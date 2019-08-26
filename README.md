@@ -4,9 +4,9 @@
 
 DSS is an _Embedded REST Services Application_ for the NVIDA® Jetson™ Platform. Written in C++ 11, DSS is built on the following SDK's.
 
-* [DeepStream](https://developer.nvidia.com/deepstream-sdk) - A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing.
-* [NVIDIA Container Runtime](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) - Enables users to run GPU accelerated Deep Learning and HPC containers on Jetson devices
-* [Pistache](https://github.com/oktal/pistache) - A high-performance REST Toolkit written in C++
+* [DeepStream](https://developer.nvidia.com/deepstream-sdk) - _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_
+* [NVIDIA Container Runtime](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) - _"Enables users to run GPU accelerated Deep Learning and HPC containers on Jetson devices."_
+* [Pistache](https://github.com/oktal/pistache) - _"A high-performance REST Toolkit written in C++"_
 
 [![IMAGE ALT TEXT](/Images/deepstream-on-jetson-nano.png)](https://www.youtube.com/watch?time_continue=2&v=Y43W04sMK7I)
 
