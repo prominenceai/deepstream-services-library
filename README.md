@@ -1,4 +1,16 @@
-# on-target
+# deepstream-server
+DSS is an Embedded REST Services Application for the NVIDA Jetson Platform. DSS is written in C++ 11 and built on the following SDK's.
+
+* [DeepStream](https://developer.nvidia.com/deepstream-sdk)
+* [NVIDIA Container Runtime]
+* [Pistache](https://github.com/oktal/pistache) - A high-performance REST Toolkit written in C++
+
+    <iframe width="560" height="315"
+src="https://www.youtube.com/embed/MUQfKFzIOeU" 
+frameborder="0" 
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+allowfullscreen></iframe>
+
 
 ## Installing Dependencies
 
