@@ -8,6 +8,11 @@ DSS is an _Embedded REST Services Application_ for the NVIDA® Jetson™ Platfor
 * [NVIDIA Container Runtime](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) - _"Enables users to run GPU accelerated Deep Learning and HPC containers on Jetson devices."_
 * [Pistache](https://github.com/oktal/pistache) - _"A high-performance REST Toolkit written in C++"_
 
+DSS implements a RESTful API for client applications - desktop and mobile - to request services from a Jetson AI System. The server is designed to provide a set of common AI platform services (TBD) as one component of a distributive application framework for developing new, custom applications.
+
+![System Components](https://github.com/canammex-tech/getting-started/blob/master/images/system-image.png)
+
+
 [![IMAGE ALT TEXT](/Images/deepstream-on-jetson-nano.png)](https://www.youtube.com/watch?time_continue=2&v=Y43W04sMK7I)
 
 ## Contributing
