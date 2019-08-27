@@ -24,7 +24,9 @@
 #
 ################################################################################
 
-APP:= child-alone
+APP:= ds_server
+
+CC = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
@@ -35,23 +37,29 @@ SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/includes/
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
 
-SRCS:= $(wildcard *.cpp)
+SRCS:= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ../../apps-common/src/*.c)
 
-INCS:= $(wildcard *.h)
+INCS:= $(wildcard ./src/*.h)
 
 PKGS:= gstreamer-1.0 gstreamer-video-1.0 x11
 
 OBJS:= $(SRCS:.cpp=.o)
 
-CFLAGS+= -I$(INC_INSTALL_DIR) -I$(SRC_INSTALL_DIR)/apps/apps-common/includes -DDS_VERSION_MINOR=0 -DDS_VERSION_MAJOR=4
+CFLAGS+= -I$(INC_INSTALL_DIR) \
+    -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
+    -I/opt/include \
+    -DDS_VERSION_MINOR=0 \
+    -DDS_VERSION_MAJOR=4 \
+    -DDSS_LOGGER_IMP='"dss_log4cxx.h"'
 
-LIBS+= -L$(LIB_INSTALL_DIR) -lnvdsgst_meta -lnvds_meta -lnvdsgst_helper -lnvds_utils -lm \
-       -lgstrtspserver-1.0 -Wl,-rpath,$(LIB_INSTALL_DIR)
+LIBS+= -L$(LIB_INSTALL_DIR) -llog4cxx -laprutil-1 -lapr-1
+# LIBS+= -L$(LIB_INSTALL_DIR) -lnvdsgst_meta -lnvds_meta -lnvdsgst_helper -lnvds_utils -lm \
+#        -lgstrtspserver-1.0 -Wl,-rpath,$(LIB_INSTALL_DIR)
 
-CFLAGS+= `pkg-config --cflags $(PKGS)`
+# CFLAGS+= `pkg-config --cflags $(PKGS)`
 
-LIBS+= `pkg-config --libs $(PKGS)`
+# LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 
