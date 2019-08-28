@@ -16,7 +16,7 @@ DSS implements a RESTful API for client applications - desktop and mobile - to r
 [![IMAGE ALT TEXT](/Images/deepstream-on-jetson-nano.png)](https://www.youtube.com/watch?time_continue=2&v=Y43W04sMK7I)
 
 ## Contributing
-deepstream-server is released under the MIT license. Contributions are welcome and encourged. Contributor guidelines and code of conduct are still TBD. 
+deepstream-server is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBD. 
 
 ## Installing Dependencies
 
