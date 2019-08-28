@@ -29,72 +29,101 @@ THE SOFTWARE.
 
 
 /**
-returns a pointer to a log4cxx logger, specific to the calling function.
+ * returns a pointer to a log4cxx logger, specific to the calling function.
  * Each function will create a new logger on first use.
  * The logger instance will be reused on each subsequent call to the same function.
  * Note: used by the logging macros below, not to be called directly.
-
-@param message the message string to log.
-*/
+ *
+ * @param[in] message the message string to log.
+ */
 #define LOG4CXX_LOGGER LogMgr::Ptr()->Log4cxxLogger(__builtin_FUNCTION())
 
 /**
-Logs the Entry and Exit of a Function with the DEBUG level.
+ * Logs the Entry and Exit of a Function with the DEBUG level.
  * Add macro as the first statement to each function of interest.
  * Consider the intrussion/penalty of this call when adding.
-
-@param message the message string to log.
-*/
+ */
 #define LOG_FUNC() LogFunc lf(__builtin_FUNCTION())
 
 /**
-Logs a message with the DEBUG level.
-
-*/
+ * Logs a message with the DEBUG level.
+ * 
+ * @param[in] message the message string to log.
+ */
 #define LOG_DEBUG(message) LOG4CXX_DEBUG(LOG4CXX_LOGGER, message)
 
 /**
-Logs a message with the INFO level.
-
-@param message the message string to log.
-*/
+ * Logs a message with the INFO level.
+ * 
+ * @param[in] message the message string to log.
+ */
 #define LOG_INFO(message) LOG4CXX_INFO(LOG4CXX_LOGGER, message)
 
 /**
-Logs a message with the WARN level.
-
-@param message the message string to log.
-*/
+ * Logs a message with the WARN level.
+ * 
+ * @param[in] message the message string to log.
+ */
 #define LOG_WARN(message) LOG4CXX_WARN(LOG4CXX_LOGGER, message)
 
 /**
-Logs a message with the ERROR level.
-
-@param message the message string to log.
-*/
+ * Logs a message with the ERROR level.
+ * 
+ * @param[in] message the message string to log.
+ */
 #define LOG_ERROR(message) LOG4CXX_ERROR(LOG4CXX_LOGGER, message)
 
 /**
-Logs a message with the FATAL level.
-
-@param message the message string to log.
-*/
+ * Logs a message with the FATAL level.
+ * 
+ * @param[in] message the message string to log.
+ */
 #define LOG_FATAL(message) LOG4CXX_FATAL(LOG4CXX_LOGGER, message)
 
+ 
 namespace DSS
 {
 
+    /**
+     * @class LogMgr
+     * @file  DssLog4cxx.h
+     * @brief Implements a singlton instance to manage initialization and
+     * configuration of log4cxx on first call to any of the logging macros. 
+     */
     class LogMgr
     {
     public:
+    
+        /** Returns a pointer to this singleton
+         * 
+         * @return instance pointer
+         */
+         
         static LogMgr* Ptr();
+        
+        /**
+         * @brief Returns a pointer to a log4cxx logger unique to each unique name
+         * Subsequent calls using the same name will return the same instance
+         * 
+         * @param[in] name name of the looger to get
+         * @return pointer to the logger identified by name
+         */
         log4cxx::LoggerPtr Log4cxxLogger(const std::string& name);
     
     private:
+        /**
+         * @brief private constructor for this singleton class
+         */
         LogMgr(){};
+        
         static LogMgr* m_pInstatnce;
     };  
     
+    /**
+     * @class LogFunc
+     * @file  DssLog4cxx.h
+     * @brief Used to log entry and exit of a function.
+     */
     class LogFunc
     {
     public:

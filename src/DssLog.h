@@ -30,42 +30,41 @@ THE SOFTWARE.
 Logs the Entry and Exit of a Function with the DEBUG level.
  * Add macro as the first statement to each function of interest.
  * Consider the intrussion/penalty of this call when adding.
-
-@param message the message string to log.
 */
 #define LOG_FUNC()
 
 /**
 Logs a message with the DEBUG level.
 
+@param[in] message the message string to log.
 */
 #define LOG_DEBUG(message)
 
 /**
 Logs a message with the INFO level.
 
-@param message the message string to log.
+@param[in] message the message string to log.
 */
 #define LOG_INFO(message)
 
 /**
 Logs a message with the WARN level.
 
-@param message the message string to log.
+@param[in] message the message string to log.
 */
 #define LOG_WARN(message)
 
 /**
 Logs a message with the ERROR level.
 
-@param message the message string to log.
+@param[in] message the message string to log.
 */
 #define LOG_ERROR(message)
 
 /**
 Logs a message with the FATAL level.
 
-@param message the message string to log.
+@param[in] message the message string to log.
 */
 #define LOG_FATAL(message)
 
