@@ -24,7 +24,7 @@
 #
 ################################################################################
 
-APP:= ds_server
+APP:= ds-server
 
 CC = g++
 
@@ -51,7 +51,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -I/opt/include \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
-    -DDSS_LOGGER_IMP='"dss_log4cxx.h"'
+    -DDSS_LOGGER_IMP='"DssLog4cxx.h"'
 
 LIBS+= -L$(LIB_INSTALL_DIR) -llog4cxx -laprutil-1 -lapr-1
 # LIBS+= -L$(LIB_INSTALL_DIR) -lnvdsgst_meta -lnvds_meta -lnvdsgst_helper -lnvds_utils -lm \
