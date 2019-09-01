@@ -22,59 +22,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dss.h" 
+#ifndef _DSS_APP_CTX_H
+#define _DSS_APP_CTX_H
 
-using namespace DSS;
+#include "Dss.h"
+#include "DssPipeline.h"
 
-#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
+namespace DSS {
 
-#define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
-
-/**
- * Function to handle program interrupt signal.
- * It installs default handler after handling the interrupt.
- */
-static void PrgItrSigIsr(int signum)
-{
-    LOG_FUNC();
+    /**
+     * @class AppContext
+     * @file  AppCtx.h
+     * @brief 
+     */
+    class AppContext
+    {
+    public:
     
-    INIT_STRUCT(sigaction, sa);
+        /** 
+         * 
+         */
+        AppContext();
 
-    sa.sa_handler = SIG_DFL;
-
-    sigaction(SIGINT, &sa, NULL);
-
-    g_main_loop_quit(Driver::GetDriver()->m_pMainLoop);
-}
-
-/**
- * Function to install custom handler for program interrupt signal.
- */
-static void PrgItrSigIsrInstall(void)
-{
-    LOG_FUNC();
-
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = PrgItrSigIsr;
-
-    sigaction(SIGINT, &sa, NULL);
-}
-
- 
-int main(int argc, char **argv)
-{
-    LOG_FUNC();
+        ~AppContext();
     
-    // Install the custom Program Interrup Signal ISR
-    PrgItrSigIsrInstall();    
+    private:
     
-    // First call to GetDriver() for initialization
-    Driver* pDrv = Driver::GetDriver();
+        /**
+         * 
+         */
+        Pipline m_pPipeline;
+
+        /**
+         * 
+         */
+        NvDsSinkBin m_sinkBins[MAX_SOURCE_BINS];
+
+    };
     
-    // Run the main loop
-    g_main_loop_run(pDrv->m_pMainLoop);
-    
-    // Main loop has terminated
-    return EXIT_SUCCESS;
-}
+
+#endif // _DSS_APP_CTX_H

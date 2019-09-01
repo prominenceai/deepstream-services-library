@@ -22,15 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSS_H
-#define _DSS_H
+#include "Dss.h"
 
-#include <cstdlib>
+namespace DSS
+{
+ 
+    AppContext::AppContext()
+        : m_pipeline(Pipeline())
+    {
+    }
 
-#include "DssDriver.h"
-#include "DssMutex.h"
-#include "DssLog.h"
-#include "DssAppCtx.h"
-#include "DssPipeline.h"
-
-#endif // _DSS_H
+    AppContext::AppContext()
+    {
+    }
+}

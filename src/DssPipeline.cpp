@@ -22,59 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dss.h" 
+#include "Dss.h"
 
-using namespace DSS;
-
-#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
-
-#define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
-
-/**
- * Function to handle program interrupt signal.
- * It installs default handler after handling the interrupt.
- */
-static void PrgItrSigIsr(int signum)
+namespace DSS
 {
-    LOG_FUNC();
-    
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = SIG_DFL;
-
-    sigaction(SIGINT, &sa, NULL);
-
-    g_main_loop_quit(Driver::GetDriver()->m_pMainLoop);
-}
-
-/**
- * Function to install custom handler for program interrupt signal.
- */
-static void PrgItrSigIsrInstall(void)
-{
-    LOG_FUNC();
-
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = PrgItrSigIsr;
-
-    sigaction(SIGINT, &sa, NULL);
-}
-
  
-int main(int argc, char **argv)
-{
-    LOG_FUNC();
+    Pipeline::Pipeline()
+        : m_pPipeline(NULL)
+    {
+        LOG_FUNC();
+    }
+
+    Pipeline::~Pipeline()
+    {
+        LOG_FUNC();
+    }
     
-    // Install the custom Program Interrup Signal ISR
-    PrgItrSigIsrInstall();    
+    bool Pipeline::Pause()
+    {
+        LOG_FUNC();
+        
+        return (gst_element_set_state(m_pPipeline, 
+            GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE)
+    }
+
+    bool Pipeline::Play()
+    {
+        LOG_FUNC();
+        
+        return (gst_element_set_state(m_pPipeline, 
+            GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE)
+    }
     
-    // First call to GetDriver() for initialization
-    Driver* pDrv = Driver::GetDriver();
-    
-    // Run the main loop
-    g_main_loop_run(pDrv->m_pMainLoop);
-    
-    // Main loop has terminated
-    return EXIT_SUCCESS;
-}
+
+} // DSS

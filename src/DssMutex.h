@@ -1,3 +1,5 @@
+
+
 /*
 The MIT License
 
@@ -22,59 +24,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dss.h" 
+#ifndef _DSS_MUTEX_H
+#define _DSS_MUTEX_H
 
-using namespace DSS;
+#include <gst/gst.h>
 
-#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
+#include "DssLog.h"
 
-#define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
 
-/**
- * Function to handle program interrupt signal.
- * It installs default handler after handling the interrupt.
- */
-static void PrgItrSigIsr(int signum)
-{
-    LOG_FUNC();
-    
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = SIG_DFL;
-
-    sigaction(SIGINT, &sa, NULL);
-
-    g_main_loop_quit(Driver::GetDriver()->m_pMainLoop);
-}
-
-/**
- * Function to install custom handler for program interrupt signal.
- */
-static void PrgItrSigIsrInstall(void)
-{
-    LOG_FUNC();
-
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = PrgItrSigIsr;
-
-    sigaction(SIGINT, &sa, NULL);
-}
-
+#define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 
  
-int main(int argc, char **argv)
+namespace DSS
 {
-    LOG_FUNC();
-    
-    // Install the custom Program Interrup Signal ISR
-    PrgItrSigIsrInstall();    
-    
-    // First call to GetDriver() for initialization
-    Driver* pDrv = Driver::GetDriver();
-    
-    // Run the main loop
-    g_main_loop_run(pDrv->m_pMainLoop);
-    
-    // Main loop has terminated
-    return EXIT_SUCCESS;
-}
+    /**
+     * @class LockMutex
+     * @file  DssMutex.h
+     * @brief Used to lock a mutex for the current scope {}.
+     */
+    class LockMutexForCurrentScope
+    {
+    public:
+        LockMutexForCurrentScope(GMutex* mutex) : m_pMutex(mutex) 
+        {
+            g_mutex_lock(m_pMutex);
+        };
+        
+        ~LockMutexForCurrentScope()
+        {
+            g_mutex_unlock(m_pMutex);
+        };
+        
+    private:
+        GMutex* m_pMutex; 
+    };
+
+} // namespace 
+
+#endif // _DSS_MUTEX_H

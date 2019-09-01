@@ -27,6 +27,16 @@ THE SOFTWARE.
 
 #include <log4cxx/logger.h>
 
+inline std::string methodName(const std::string& prettyFunction)
+{
+    size_t colons = prettyFunction.find("::");
+    size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+    size_t end = prettyFunction.rfind("(") - begin;
+
+    return prettyFunction.substr(begin,end) + "()";
+}
+
+#define __METHOD_NAME__ methodName(__PRETTY_FUNCTION__)
 
 /**
  * returns a pointer to a log4cxx logger, specific to the calling function.
@@ -36,7 +46,7 @@ THE SOFTWARE.
  *
  * @param[in] message the message string to log.
  */
-#define LOG4CXX_LOGGER LogMgr::Ptr()->Log4cxxLogger(__builtin_FUNCTION())
+#define LOG4CXX_LOGGER LogMgr::Ptr()->Log4cxxLogger(__METHOD_NAME__)
 
 /**
  * Logs the Entry and Exit of a Function with the DEBUG level.
