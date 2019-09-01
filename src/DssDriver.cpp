@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dss.h"
+#include "DssDriver.h"
 
 namespace DSS
 {
@@ -47,15 +48,14 @@ namespace DSS
         : m_pDisplay(XOpenDisplay(NULL))
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_pXWindowEventThread(NULL)
+        , m_appContext(AppContext())
     {
         LOG_FUNC();
         
         // Initialize all 
         g_mutex_init(&m_driverMutex);
         g_mutex_init(&m_displayMutex);
-        
-        m_appContext = AppContext()
-        
+                
         // Add the event thread
         g_timeout_add(40, EventThread, NULL);
 

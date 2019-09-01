@@ -32,15 +32,15 @@ namespace DSS {
      * @file  AppCtx.h
      * @brief 
      */
-    class Pipline
+    class Pipeline
     {
     public:
     
         /** 
          * 
          */
-        Pipline();
-        ~Pipline();
+        Pipeline();
+        ~Pipeline();
         
         bool Pause();
         bool Play();

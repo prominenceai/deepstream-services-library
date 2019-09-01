@@ -23,6 +23,9 @@ THE SOFTWARE.
 */
 
 #include "Dss.h"
+#include "DssPipeline.h"
+
+#include <gst/gst.h>
 
 namespace DSS
 {
@@ -43,7 +46,7 @@ namespace DSS
         LOG_FUNC();
         
         return (gst_element_set_state(m_pPipeline, 
-            GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE)
+            GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
     }
 
     bool Pipeline::Play()
@@ -51,7 +54,7 @@ namespace DSS
         LOG_FUNC();
         
         return (gst_element_set_state(m_pPipeline, 
-            GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE)
+            GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
     }
     
 

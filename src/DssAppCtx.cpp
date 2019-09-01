@@ -23,6 +23,8 @@ THE SOFTWARE.
 */
 
 #include "Dss.h"
+#include "DssAppCtx.h"
+#include "DssPipeline.h"
 
 namespace DSS
 {
@@ -30,9 +32,12 @@ namespace DSS
     AppContext::AppContext()
         : m_pipeline(Pipeline())
     {
+        LOG_FUNC();
+        
     }
 
-    AppContext::AppContext()
+    AppContext::~AppContext()
     {
+        LOG_FUNC();
     }
 }

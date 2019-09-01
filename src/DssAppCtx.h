@@ -28,7 +28,10 @@ THE SOFTWARE.
 #include "Dss.h"
 #include "DssPipeline.h"
 
-namespace DSS {
+#include <deepstream_sinks.h>
+
+namespace DSS 
+{
 
     /**
      * @class AppContext
@@ -51,14 +54,15 @@ namespace DSS {
         /**
          * 
          */
-        Pipline m_pPipeline;
+        Pipeline m_pipeline;
 
         /**
          * 
          */
         NvDsSinkBin m_sinkBins[MAX_SOURCE_BINS];
 
+
     };
-    
+} // DSS
 
 #endif // _DSS_APP_CTX_H

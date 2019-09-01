@@ -25,23 +25,7 @@ THE SOFTWARE.
 #ifndef _DSS_DRIVER_H
 #define _DSS_DRIVER_H
 
-#include <gst/gst.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-
-#include "deepstream_common.h"
-#include "deepstream_config.h"
-#include "deepstream_osd.h"
-#include "deepstream_perf.h"
-#include "deepstream_primary_gie.h"
-#include "deepstream_sinks.h"
-#include "deepstream_sources.h"
-#include "deepstream_streammux.h"
-#include "deepstream_tiled_display.h"
-#include "deepstream_dsexample.h"
-#include "deepstream_tracker.h"
-#include "deepstream_secondary_gie.h"
+#include "DssAppCtx.h"
 
 
 namespace DSS {
