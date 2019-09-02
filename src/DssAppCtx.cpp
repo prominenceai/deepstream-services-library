@@ -34,6 +34,10 @@ namespace DSS
     {
         LOG_FUNC();
         
+//        if (!m_pipeline.Pause())
+//        {
+//            LOG_ERROR("pipline failed to pause");
+//        }
     }
 
     AppContext::~AppContext()

@@ -26,6 +26,7 @@
 
 APP:= ds-server
 
+CXX = g++
 CC = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
@@ -40,16 +41,22 @@ SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
 
-SRCS:= $(wildcard ./src/*.cpp)
-SRCS+= $(wildcard ../../apps-common/src/*.c)
+SRCS:= $(wildcard $(SRC_INSTALL_DIR)/apps/apps-common/src/*.c)
+SRCS+= $(wildcard ./src/*.cpp) 
 
 INCS:= $(wildcard ./src/*.h)
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
+	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
 	x11
 
-OBJS:= $(SRCS:.cpp=.o)
+OBJS:= $(SRCS:.c=.o)
+OBJS:= $(OBJS:.cpp=.o)
+
+ifeq ($(TARGET_DEVICE),aarch64)
+	CFLAGS:= -DPLATFORM_TEGRA
+endif
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
@@ -70,23 +77,30 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lapr-1 \
 	-lX11 \
 	-L/usr/lib/aarch64-linux-gnu \
+	-lnvdsgst_meta \
+	-lnvds_meta \
+	-lnvdsgst_helper \
+	-lnvds_utils \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
-	-Lgstreamer-video-$(GSTREAMER_VERSION)
+	-Lgstreamer-video-$(GSTREAMER_VERSION) \
+	-Lgstreamer-rtsp-server-$(GSTREAMER_VERSION) \
+	-Wl,-rpath,$(LIB_INSTALL_DIR)
 	
-# LIBS+= -L$(LIB_INSTALL_DIR) -lnvdsgst_meta -lnvds_meta -lnvdsgst_helper -lnvds_utils -lm \
-#        -lgstrtspserver-1.0 -Wl,-rpath,$(LIB_INSTALL_DIR)
-
 CFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 
-%.o: %.cpp $(INCS) Makefile
+%.o: %.c $(INC_INSTALL_DIR) Makefile
 	$(CC) -c -o $@ $(CFLAGS) $<
 
+%.o: %.cpp $(INCS) Makefile
+	$(CXX) -c -o $@ $(CFLAGS) $<
+
 $(APP): $(OBJS) Makefile
+	@echo $(SRCS)
 	$(CC) -o $(APP) $(OBJS) $(LIBS)
 
 clean:

@@ -25,8 +25,8 @@ THE SOFTWARE.
 #ifndef _DSS_DRIVER_H
 #define _DSS_DRIVER_H
 
+#include "DssConfig.h"
 #include "DssAppCtx.h"
-
 
 namespace DSS {
 
@@ -45,7 +45,9 @@ namespace DSS {
          * @return instance pointer to Driver
          */
         static Driver* GetDriver();
-
+        
+        bool Configure(const std::string& cfgFilePathSpec);
+        
         bool IsDisplayActive(){ return m_pDisplay; };
         
         /** 
@@ -82,6 +84,12 @@ namespace DSS {
         */
         GMutex m_driverMutex;
 
+        /** 
+         * @brief pointer to a driver config object
+         * 
+         */
+        Config* m_pConfig;
+
         /**
          * @brief a single display for the driver
         */
@@ -96,6 +104,7 @@ namespace DSS {
          * @brief handle to the X Window event thread, 
          * active for the life of the driver
         */
+
         GThread* m_pXWindowEventThread;
 
         /**

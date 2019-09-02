@@ -27,9 +27,7 @@ THE SOFTWARE.
 #ifndef _DSS_MUTEX_H
 #define _DSS_MUTEX_H
 
-#include <gst/gst.h>
-
-#include "DssLog.h"
+#include "Dss.h"
 
 
 #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 

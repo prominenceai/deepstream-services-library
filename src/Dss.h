@@ -27,16 +27,18 @@ THE SOFTWARE.
 
 #include <cstdlib>
 
-#include "DssMutex.h"
-#include "DssLog.h"
-
 #include <gst/gst.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <iostream> 
+#include <vector>
+#include <map> 
+
 #include <deepstream_app_version.h>
 #include <deepstream_common.h>
 #include <deepstream_config.h>
+#include <deepstream_config_file_parser.h>
 #include <deepstream_osd.h>
 #include <deepstream_perf.h>
 #include <deepstream_primary_gie.h>
@@ -49,6 +51,10 @@ THE SOFTWARE.
 #include <deepstream_secondary_gie.h>
 #include <deepstream_gie.h>
 #include <deepstream_dewarper.h>
+
+#include "DssMutex.h"
+#include "DssLog.h"
+
 
 
 #endif // _DSS_H

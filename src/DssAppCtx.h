@@ -28,14 +28,12 @@ THE SOFTWARE.
 #include "Dss.h"
 #include "DssPipeline.h"
 
-#include <deepstream_sinks.h>
-
 namespace DSS 
 {
 
     /**
      * @class AppContext
-     * @file  AppCtx.h
+     * @file  DssAppCtx.h
      * @brief 
      */
     class AppContext

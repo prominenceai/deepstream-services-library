@@ -49,13 +49,16 @@ namespace DSS
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_pXWindowEventThread(NULL)
         , m_appContext(AppContext())
+        , m_pConfig(NULL)
     {
         LOG_FUNC();
         
         // Initialize all 
         g_mutex_init(&m_driverMutex);
         g_mutex_init(&m_displayMutex);
-                
+
+        m_pConfig = new Config();
+        
         // Add the event thread
         g_timeout_add(40, EventThread, NULL);
 
@@ -85,10 +88,22 @@ namespace DSS
                 LOG_WARN("Main loop is still running!");
                 g_main_loop_quit(m_pMainLoop);
             }
-            
+
+            if (m_pConfig)
+            {   
+                delete m_pConfig;
+            }
         }
+        
         g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_driverMutex);
+    }
+    
+    bool Driver::Configure(const std::string& cfgFilePathSpec)
+    {
+        LOG_FUNC();
+        
+        return m_pConfig->LoadFile(cfgFilePathSpec);
     }
     
     bool Driver::HandleXWindowEvents()

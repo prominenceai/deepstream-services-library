@@ -26,6 +26,8 @@ THE SOFTWARE.
 
 using namespace DSS;
 
+GST_DEBUG_CATEGORY (NVDS_APP);
+
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 
 #define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
@@ -71,6 +73,11 @@ int main(int argc, char **argv)
     
     // First call to GetDriver() for initialization
     Driver* pDrv = Driver::GetDriver();
+    
+    if (!(pDrv->Configure("./configs/source1_csi_dec_infer_resnet_int8.txt")))
+    {
+        return EXIT_FAILURE;
+    }
     
     // Run the main loop
     g_main_loop_run(pDrv->m_pMainLoop);
