@@ -34,7 +34,8 @@ namespace DSS
     { 
         evNotDefined, 
         evApplication, 
-        evTiledDisplay, 
+        evTiledDisplay,
+        evTracker,
         evSource0, 
         evSink0,
         evSink1,
@@ -42,8 +43,7 @@ namespace DSS
         evOsd,
         evStreamMux,
         evPrimaryGie,
-        evTests,
-        evEnd
+        evTests
     };    
     
     /**
@@ -62,20 +62,41 @@ namespace DSS
 
         ~Config();
         
-        bool LoadFile(const std::string& cfgFilePathSpec);
+        /**
+        * 
+        */
+        bool LoadFile(const std::string& cfgFileSpec);
     
     private:
 
         /**
         * 
+        */       
+        std::string m_cfgFileSpec;
+        
+        /**
+        * 
         */
+        GKeyFile* m_pCfgKeyFile;
         
-        GKeyFile* m_pCfgFile;
-        
+        /**
+        * 
+        */
         std::map<std::string, GroupNames> m_mapGroupNames;
         
+        /**
+        * 
+        */
         bool m_isPerfMetricEnabled;
+
+        /**
+        * 
+        */
         guint m_perfMetricInterval;
+
+        /**
+        * 
+        */
         gint m_fileLoop;
 
 
@@ -91,22 +112,45 @@ namespace DSS
 //        NvDsSinkSubBinConfig m_sinkSubBinsConfigs[MAX_SINK_BINS];
         std::vector<NvDsSinkSubBinConfig> m_sinkSubBinsConfigs;          
 
+        /**
+        * 
+        */
         gchar *m_pBBoxDir;
+
+        /**
+        * 
+        */
         gchar *m_pKittiTrackDir;
 
+        /**
+        * 
+        */
         NvDsStreammuxConfig m_streammuxConfig;
 
+        /**
+        * 
+        */
         NvDsOSDConfig m_osdConfig;
 
+        /**
+        * 
+        */
         NvDsGieConfig m_primaryGieConfig;
+
+        /**
+        * 
+        */
         NvDsTrackerConfig m_trackerConfig;
+
+        /**
+        * 
+        */
         NvDsTiledDisplayConfig m_tiledDisplayConfig;
+
+        /**
+        * 
+        */
         NvDsDsExampleConfig m_dsExampleConfig;
-
-    /**
-    * 
-    */
-
 
     };
 } // DSS

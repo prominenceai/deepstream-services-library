@@ -29,7 +29,8 @@ namespace DSS
 {
          
     Config::Config()
-        : m_pCfgFile(g_key_file_new())
+//        : m_cfgFileSpec()
+        : m_pCfgKeyFile(g_key_file_new())
         , m_isPerfMetricEnabled(false)
         , m_perfMetricInterval(0)
         , m_fileLoop(0)
@@ -47,6 +48,7 @@ namespace DSS
         
         m_mapGroupNames["application"] = evApplication;
         m_mapGroupNames["tiled-display"] = evTiledDisplay;
+        m_mapGroupNames["tracker"] = evTracker;
         m_mapGroupNames["source0"] = evSource0;
         m_mapGroupNames["sink0"] = evSink0;
         m_mapGroupNames["sink1"] = evSink1;
@@ -62,29 +64,31 @@ namespace DSS
     {
         LOG_FUNC();
         
-        if (m_pCfgFile)
+        if (m_pCfgKeyFile)
         {
             LOG_INFO("Releasing the Configuration Key File");
-            g_key_file_free(m_pCfgFile);
+            g_key_file_free(m_pCfgKeyFile);
         }
     }
 
-    bool Config::LoadFile(const std::string& cfgFilePathSpec)
+    bool Config::LoadFile(const std::string& cfgFileSpec) 
     {
         LOG_FUNC();
         
-        LOG_INFO("loading config file:: " << cfgFilePathSpec);
+        m_cfgFileSpec.assign(cfgFileSpec);
+        
+        LOG_INFO("loading config file:: " << m_cfgFileSpec);
         
         GError *error = NULL;
         
-        if (!g_key_file_load_from_file(m_pCfgFile, 
-            cfgFilePathSpec.c_str(), G_KEY_FILE_NONE, &error)) 
+        if (!g_key_file_load_from_file(m_pCfgKeyFile, 
+            m_cfgFileSpec.c_str(), G_KEY_FILE_NONE, &error)) 
         {
             LOG_ERROR("Failed to load config file:: " << error->message);
             return false;
         }
         
-        gchar** groups = g_key_file_get_groups(m_pCfgFile, NULL);
+        gchar** groups = g_key_file_get_groups(m_pCfgKeyFile, NULL);
 
         for (gchar** group = groups; *group; group++) 
         {
@@ -95,6 +99,10 @@ namespace DSS
                 case evApplication: 
                     break;
                 case evTiledDisplay: 
+                    parse_tiled_display(&m_tiledDisplayConfig, m_pCfgKeyFile);
+                    break;
+                case evTracker: 
+                    parse_tracker(&m_trackerConfig, m_pCfgKeyFile, (gchar*)(m_cfgFileSpec.c_str()));
                     break;
                 case evSource0: 
                     break;
@@ -105,11 +113,13 @@ namespace DSS
                 case evSink2: 
                     break;
                 case evOsd: 
+                    parse_osd(&m_osdConfig, m_pCfgKeyFile);
                     break;
                 case evStreamMux: 
-                    parse_streammux(&m_streammuxConfig, m_pCfgFile);
+                    parse_streammux(&m_streammuxConfig, m_pCfgKeyFile);
                     break;
                 case evPrimaryGie: 
+                    parse_osd(&m_osdConfig, m_pCfgKeyFile);
                     break;
                 case evTests: 
                     break;
