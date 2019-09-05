@@ -85,10 +85,10 @@ namespace DSS {
         GMutex m_driverMutex;
 
         /** 
-         * @brief pointer to a driver config object
+         * @brief pointer to a Application Context object
          * 
          */
-        Config* m_pConfig;
+        AppContext* m_pAppContext;
 
         /**
          * @brief a single display for the driver
@@ -110,7 +110,7 @@ namespace DSS {
         /**
          * @brief Only one application context at this time
         */
-        AppContext m_appContext;
+        AppContext* m_appContext;
 
     };  
 

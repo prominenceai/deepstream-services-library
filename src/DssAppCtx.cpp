@@ -29,19 +29,54 @@ THE SOFTWARE.
 namespace DSS
 {
  
-    AppContext::AppContext()
-        : m_pipeline(Pipeline())
+    AppContext::AppContext(Config& config)
+        : m_config(config)
+        , m_pPipeline(NULL)
     {
         LOG_FUNC();
         
-//        if (!m_pipeline.Pause())
-//        {
-//            LOG_ERROR("pipline failed to pause");
-//        }
     }
 
     AppContext::~AppContext()
     {
         LOG_FUNC();
+        
+        if (m_pPipeline)
+        {
+            delete m_pPipeline;
+        }
+        
+    }
+
+//    bool AppContext::Configure(const std::string& cfgFilePathSpec)
+//    {
+//        LOG_FUNC();
+//        
+//        return m_pConfig->LoadFile(cfgFilePathSpec);
+//    }
+
+    bool AppContext::Update(Display *display)
+    {
+        LOG_FUNC();
+                
+        if (!m_config.IsTiledDisplayEnabled())
+        {
+            LOG_ERROR("Application has no tiled display");
+            return false;
+        }
+                
+        try 
+        {
+            m_pPipeline = new Pipeline();
+            
+        }
+        catch(...)
+        {
+            return false;
+        }
+        
+        m_config.ConfigureNewXWindows();
+        
+        return true;
     }
 }

@@ -32,7 +32,6 @@ namespace DSS
 
     enum GroupNames
     { 
-        evNotDefined, 
         evApplication, 
         evTiledDisplay,
         evTracker,
@@ -44,7 +43,15 @@ namespace DSS
         evStreamMux,
         evPrimaryGie,
         evTests
-    };    
+    };
+
+    enum AppCfgItems
+    {
+        evEnablePerfMeasurement,
+        evPerfMeasurementInteralSec,
+        evGieKittiOutputDir, 
+        evKittiTrackOutputDir
+    };
     
     /**
      * @class Config
@@ -66,6 +73,34 @@ namespace DSS
         * 
         */
         bool LoadFile(const std::string& cfgFileSpec);
+        
+        /**
+        * 
+        */
+        bool IsTiledDisplayEnabled();
+
+        /**
+        * 
+        */
+        bool IsPerfMetricEnabled();
+
+        /**
+        * 
+        */
+        bool SetPerfMetricEnabled(bool newValue);
+        
+        /**
+        * 
+        */
+        gint GetMetricInterval();
+        
+        /**
+        * 
+        */
+        gint SetMetricInterval(gint newValue);
+        
+        void ConfigureNewXWindows();
+        
     
     private:
 
@@ -87,6 +122,11 @@ namespace DSS
         /**
         * 
         */
+        std::map<std::string, AppCfgItems> m_mapAppCfgItems;
+        
+        /**
+        * 
+        */
         bool m_isPerfMetricEnabled;
 
         /**
@@ -97,30 +137,32 @@ namespace DSS
         /**
         * 
         */
-        gint m_fileLoop;
-
-
-        // guint m_sourceSubBinsCount;
-        // NvDsSourceConfig m_sourceConfigs[MAX_SOURCE_BINS];
         std::vector<NvDsSourceConfig> m_sourceConfigs;          
 
-//        guint m_secondaryGieSubBinsCount;
-//        NvDsGieConfig m_secondaryGieSubBinsConfigs[MAX_SECONDARY_GIE_BINS];
+        /**
+        * 
+        */
         std::vector<NvDsGieConfig> m_secondaryGieSubBinsConfigs;          
 
-//        guint m_sinkSubBinsCount;
-//        NvDsSinkSubBinConfig m_sinkSubBinsConfigs[MAX_SINK_BINS];
+        /**
+        * 
+        */
         std::vector<NvDsSinkSubBinConfig> m_sinkSubBinsConfigs;          
 
         /**
         * 
         */
-        gchar *m_pBBoxDir;
+        std::vector<Window> m_windows;          
 
         /**
         * 
         */
-        gchar *m_pKittiTrackDir;
+        std::string m_bBoxDir;
+
+        /**
+        * 
+        */
+        std::string m_kittiTrackDir;
 
         /**
         * 
@@ -151,7 +193,28 @@ namespace DSS
         * 
         */
         NvDsDsExampleConfig m_dsExampleConfig;
+        
+        /**
+        * 
+        */
+        gint m_fileLoop;
 
+        /**
+        * 
+        */
+        bool ParseApplicationGroup();
+        
+        /**
+        * 
+        */
+        bool ParseSourceGroup(gchar* group);
+        
+        /**
+        * 
+        */
+        bool ParseSinkGroup(gchar* group);
+        
+        
     };
 } // DSS
 

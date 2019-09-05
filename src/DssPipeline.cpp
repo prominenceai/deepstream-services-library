@@ -34,11 +34,23 @@ namespace DSS
         : m_pPipeline(NULL)
     {
         LOG_FUNC();
+        
+        m_pPipeline = gst_pipeline_new("pipeline");
+        
+        if (!m_pPipeline)
+        {
+            LOG_ERROR("Failed to create new pipeline");
+            throw;
+        }
     }
 
     Pipeline::~Pipeline()
     {
         LOG_FUNC();
+
+        // cleanup all resources
+        gst_element_set_state(m_pPipeline, GST_STATE_NULL);
+        gst_object_unref(GST_OBJECT (m_pPipeline));
     }
     
     bool Pipeline::Pause()

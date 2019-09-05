@@ -48,8 +48,7 @@ namespace DSS
         : m_pDisplay(XOpenDisplay(NULL))
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_pXWindowEventThread(NULL)
-        , m_appContext(AppContext())
-        , m_pConfig(NULL)
+        , m_pAppContext(NULL)
     {
         LOG_FUNC();
         
@@ -57,8 +56,6 @@ namespace DSS
         g_mutex_init(&m_driverMutex);
         g_mutex_init(&m_displayMutex);
 
-        m_pConfig = new Config();
-        
         // Add the event thread
         g_timeout_add(40, EventThread, NULL);
 
@@ -89,23 +86,32 @@ namespace DSS
                 g_main_loop_quit(m_pMainLoop);
             }
 
-            if (m_pConfig)
+            if (m_pAppContext)
             {   
-                delete m_pConfig;
+                delete m_pAppContext;
             }
         }
         
         g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_driverMutex);
     }
-    
+
     bool Driver::Configure(const std::string& cfgFilePathSpec)
     {
         LOG_FUNC();
         
-        return m_pConfig->LoadFile(cfgFilePathSpec);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        Config* pAppConfig = new Config();
+        if (!(pAppConfig->LoadFile(cfgFilePathSpec)))
+        {
+            return false;
+        }    
+        m_pAppContext = new AppContext(*pAppConfig);
+        
+        return m_pAppContext->Update(m_pDisplay);
     }
-    
+        
     bool Driver::HandleXWindowEvents()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);

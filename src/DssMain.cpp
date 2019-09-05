@@ -68,20 +68,28 @@ int main(int argc, char **argv)
 {
     LOG_FUNC();
     
+    int returnValue = EXIT_FAILURE;
+    
+    // initialize the GStreamer library
+    gst_init(&argc, &argv);
+    
     // Install the custom Program Interrup Signal ISR
     PrgItrSigIsrInstall();    
     
     // First call to GetDriver() for initialization
     Driver* pDrv = Driver::GetDriver();
-    
-    if (!(pDrv->Configure("./configs/source1_csi_dec_infer_resnet_int8.txt")))
+        
+    if (pDrv->Configure("./configs/source1_csi_dec_infer_resnet_int8.txt"))
     {
-        return EXIT_FAILURE;
+        // Run the main loop
+        g_main_loop_run(pDrv->m_pMainLoop);
+
+        returnValue = EXIT_SUCCESS;
     }
     
-    // Run the main loop
-    g_main_loop_run(pDrv->m_pMainLoop);
+    
+    gst_deinit();
     
     // Main loop has terminated
-    return EXIT_SUCCESS;
+    return returnValue;
 }

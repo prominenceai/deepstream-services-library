@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dss.h"
 #include "DssPipeline.h"
+#include "DssConfig.h"
 
 namespace DSS 
 {
@@ -43,16 +44,35 @@ namespace DSS
         /** 
          * 
          */
-        AppContext();
+        AppContext(Config& config);
 
+        /** 
+         * 
+         */
         ~AppContext();
+        
+        /** 
+         * 
+         */
+        bool Update(Display* display);
     
     private:
     
+        /** 
+         * @brief Application config object
+         * 
+         */
+        Config& m_config;
+
         /**
          * 
          */
-        Pipeline m_pipeline;
+        Pipeline* m_pPipeline;
+        
+        /**
+         * 
+         */
+        Window m_window;
 
         /**
          * 
