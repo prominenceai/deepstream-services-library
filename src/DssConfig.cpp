@@ -203,38 +203,78 @@ namespace DSS
         return prevValue;
     }
     
-    void Config::ConfigureNewXWindows()
+    void Config::ConfigureNewWindows(Display* display)
     {
         LOG_FUNC();
         
-        for (auto i = m_sinkSubBinsConfigs.begin(); i != m_sinkSubBinsConfigs.end(); ++i)
+        for (auto i = m_sinkSubBins.begin(); i != m_sinkSubBins.end(); ++i)
         {
+//              if (!create_sink_bin(m_sinkSubBins.size(),
+//                    i->config, &i->sinkSubBin.sink, index)) {
+//                goto done;
+//              }
+            
+//            if (!GST_IS_VIDEO_OVERLAY(i->sinkSubBin.sink)){
+//                LOG_INFO("!GST_IS_VIDEO_OVERLAY");
+//                continue;
+//            }
             uint width, height = 0;
-            if (i.render_config.width)
+            if (i->config.render_config.width)
             {
-                width = i.render_config.width
+                width = i->config.render_config.width;
                 LOG_INFO("Using render_config.width:: " << width);
             }
             else
             {
-                width = i.tiled_display_config.width;
+                width = m_tiledDisplayConfig.width;
                 LOG_INFO("Using 'tiled_display_config.width':: " << width);
             }
-            if (i.render_config.height)
+            if (i->config.render_config.height)
             {
-                height = i.render_config.height
+                height = i->config.render_config.height;
                 LOG_INFO("Using render_config.height:: " << height);
             }
             else
             {
-                height = i.tiled_display_config.height;
+                height = m_tiledDisplayConfig.height;
                 LOG_INFO("Using 'tiled_display_config.height':: " << height);
             }
             
-            m_windows.push_back(
-                XCreateSimpleWindow(display, 
-                    RootWindow(display, DefaultScreen(display)), 
-                    0, 0, width, height, 2, 0, 0);            
+            Window window = XCreateSimpleWindow(display, 
+                RootWindow(display, DefaultScreen(display)), 
+                0, 0, width, height, 2, 0x00000000, 0x00000000);            
+
+            XSetWindowAttributes attr = { 0 };
+            
+            if ((m_tiledDisplayConfig.enable &&
+                m_tiledDisplayConfig.rows * m_tiledDisplayConfig.columns == 1) ||
+                (!m_tiledDisplayConfig.enable &&
+                    m_sourceSubBinConfigs.size() == 1))
+            {
+                attr.event_mask = KeyPress;
+            } 
+            else
+            {
+                attr.event_mask = ButtonPress | KeyRelease;
+            }
+            XChangeWindowAttributes(display, window, CWEventMask, &attr);
+
+            Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
+            if (wmDeleteMessage != None)
+            {
+                XSetWMProtocols(display, window, &wmDeleteMessage, 1);
+            }
+            XMapRaised (display, window);
+            XSync (display, 1);       
+
+            
+//            gst_video_overlay_set_window_handle (
+//                GST_VIDEO_OVERLAY(appCtx[i]->pipeline.instance_bins[0].sink_bin.sub_bins[j].sink),
+//                (gulong)window);
+//              
+//            gst_video_overlay_expose (GST_VIDEO_OVERLAY (appCtx[i]->
+//                  pipeline.instance_bins[0].sink_bin.sub_bins[j].sink));
+            
         }
     }
     
@@ -246,8 +286,8 @@ namespace DSS
         GError *error = NULL;
 
         // itereate through the Groups of config options
-        gchar** keys = g_key_file_get_keys(m_pCfgKeyFile, 
-            "application", NULL, &error);
+        gchar** keys = g_key_file_get_keys(
+            m_pCfgKeyFile, "application", NULL, &error);
             
         for (gchar** key = keys; *key; key++) 
         {
@@ -284,9 +324,12 @@ namespace DSS
         }
         return true;
     }
+    
     bool Config::ParseSourceGroup(gchar* group)
     {
-        if (m_sourceConfigs.size() >= MAX_SOURCE_BINS)
+        LOG_FUNC();
+        
+        if (m_sourceSubBinConfigs.size() >= MAX_SOURCE_BINS)
         {
             LOG_ERROR("Exceeded MAX_SOURCE_BINS:: " << MAX_SOURCE_BINS);
             return false;
@@ -300,28 +343,29 @@ namespace DSS
             LOG_ERROR("Failure parsing source");
             return false;
         }
-        m_sourceConfigs.push_back(sourceConfig);
-        LOG_INFO("Source Configs count:: " << m_sourceConfigs.size());
+        m_sourceSubBinConfigs.push_back(sourceConfig);
+        LOG_INFO("Source Configs count:: " << m_sourceSubBinConfigs.size());
         return true;
     }
 
     bool Config::ParseSinkGroup(gchar* group)
     {
-        if (m_sinkSubBinsConfigs.size() >= MAX_SINK_BINS)
+        if (m_sinkSubBins.size() >= MAX_SINK_BINS)
         {
             LOG_ERROR("Exceeded MAX_SINK_BINS:: " << MAX_SINK_BINS);
             return false;
         }
 
-        NvDsSinkSubBinConfig sinkSubBinConfig;
+        SyncSubBin sinkSubBin = { 0 };
         
-        if (!(parse_sink(&sinkSubBinConfig, m_pCfgKeyFile, group)))
+        if (!(parse_sink(&sinkSubBin.config, m_pCfgKeyFile, group)))
         {
             LOG_ERROR("Failure parsing sink::" << group);
             return false;
         }
-        m_sinkSubBinsConfigs.push_back(sinkSubBinConfig);
-        LOG_INFO("Sink Sub-Bin Configs count:: " << m_sinkSubBinsConfigs.size());
+                
+        m_sinkSubBins.push_back(sinkSubBin);
+        LOG_INFO("Sink Sub-Bin count:: " << m_sinkSubBins.size());
         return true;
     }
 }

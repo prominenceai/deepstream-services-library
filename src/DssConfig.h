@@ -53,6 +53,27 @@ namespace DSS
         evKittiTrackOutputDir
     };
     
+    struct SyncSubBin
+    {
+        /** 
+         * 
+         */
+        NvDsSinkSubBinConfig config;
+
+        /** 
+         * 
+         */
+        NvDsSinkBin sinkSubBin;
+    };
+    
+    struct Source
+    {
+        /** 
+         * 
+         */
+        NvDsSourceConfig config;
+    };
+    
     /**
      * @class Config
      * @file  DssConfig.h
@@ -99,7 +120,10 @@ namespace DSS
         */
         gint SetMetricInterval(gint newValue);
         
-        void ConfigureNewXWindows();
+        /**
+        * 
+        */
+        void ConfigureNewWindows(Display* display);
         
     
     private:
@@ -137,7 +161,7 @@ namespace DSS
         /**
         * 
         */
-        std::vector<NvDsSourceConfig> m_sourceConfigs;          
+        std::vector<NvDsSourceConfig> m_sourceSubBinConfigs;          
 
         /**
         * 
@@ -147,12 +171,7 @@ namespace DSS
         /**
         * 
         */
-        std::vector<NvDsSinkSubBinConfig> m_sinkSubBinsConfigs;          
-
-        /**
-        * 
-        */
-        std::vector<Window> m_windows;          
+        std::vector<SyncSubBin> m_sinkSubBins;          
 
         /**
         * 
@@ -199,6 +218,11 @@ namespace DSS
         */
         gint m_fileLoop;
 
+        /**
+         * 
+         */
+        NvDsSinkBin m_sinkBin;
+        
         /**
         * 
         */

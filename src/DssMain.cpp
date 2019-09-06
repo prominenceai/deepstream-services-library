@@ -87,7 +87,7 @@ int main(int argc, char **argv)
         returnValue = EXIT_SUCCESS;
     }
     
-    
+    // Clean-up 
     gst_deinit();
     
     // Main loop has terminated

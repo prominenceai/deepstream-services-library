@@ -26,6 +26,8 @@ THE SOFTWARE.
 #define _DSS_PIPELINE_H
 
 namespace DSS {
+    
+   
 
     /**
      * @class Pipline
@@ -44,14 +46,85 @@ namespace DSS {
         
         bool Pause();
         bool Play();
+        
+        /**
+         * @brief handles incoming Message Packets received
+         * by the bus watcher callback function
+         * @return true if the message was handled correctly 
+         */
+        bool HandleBusWatchMessage(GstMessage* pMessage);
+
+        /**
+         * @brief handles incoming sync messages
+         * @param message incoming message to process
+         * @return [GST_BUS_PASS|GST_BUS_FAIL]
+         */
+        GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
     
     private:
+
         /**
-         * 
+         * @brief underlying GStream pipeline wrapped by this class
          */
         GstElement* m_pPipeline;
 
+        /**
+         * @brief mutex to protect critical pipeline code
+        */
+        GMutex m_pipelineMutex;
+
+        /**
+         * @brief mutex to prevent callback reentry
+        */
+        GMutex m_busWatchMutex;
+
+        /**
+         * @brief mutex to prevent callback reentry
+        */
+        GMutex m_busSyncMutex;
+
+        /**
+         * @brief Bus used to receive GstMessage packets.
+         */
+        GstBus* m_pGstBus;
+        
+        /**
+         * @brief handle to the installed Bus Watch function.
+         */
+        guint m_gstBusWatch;
+        
+        NvDsSrcParentBin m_multiSourceBin;
+        
+        bool HandleStateChanged(GstMessage* pMessage);
+        
+        /**
+        * 
+        */
+        std::map<GstState, std::string> m_mapPipelineStates;
+        
     }; // Pipeline
+    
+    /**
+     * @brief callback function to watch a pipeline's bus for messages
+     * @param bus instance pointer
+     * @param message incoming message packet to process
+     * @param pData pipeline instance pointer
+     * @return true if the message was handled correctly 
+     */
+    static gboolean bus_watch(
+        GstBus* bus, GstMessage* pMessage, gpointer pData);
+
+    /**
+     * @brief 
+     * @param bus instance pointer
+     * @param message incoming message packet to process
+     * @param pData pipeline instance pointer
+     * @return [GST_BUS_PASS|GST_BUS_FAIL]
+     */
+    static GstBusSyncReply bus_sync_handler(
+        GstBus* bus, GstMessage* pMessage, gpointer pData);
+        
+    
 } // Namespace
 
 #endif // _DSS_PIPELINE_H

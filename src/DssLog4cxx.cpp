@@ -49,14 +49,14 @@ namespace DSS
     }
     
     LogFunc::LogFunc(const std::string& name)
-        : m_name(name)
     {
+        m_name.assign(name);
         LOG4CXX_DEBUG(LogMgr::Ptr()->Log4cxxLogger(m_name), "--- ENTER ---");        
     }
 
     LogFunc::~LogFunc()
     {
-        LOG4CXX_DEBUG(LogMgr::Ptr()->Log4cxxLogger(m_name), "--- EXIT ---");        
+        LOG4CXX_DEBUG(LogMgr::Ptr()->Log4cxxLogger(m_name), "--- EXIT ---\n");        
     }
 
 } // namespace 

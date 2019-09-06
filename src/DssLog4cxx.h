@@ -53,7 +53,7 @@ inline std::string methodName(const std::string& prettyFunction)
  * Add macro as the first statement to each function of interest.
  * Consider the intrussion/penalty of this call when adding.
  */
-#define LOG_FUNC() LogFunc lf(__builtin_FUNCTION())
+#define LOG_FUNC() LogFunc lf(__METHOD_NAME__)
 
 /**
  * Logs a message with the DEBUG level.
@@ -140,7 +140,7 @@ namespace DSS
         LogFunc(const std::string& name);
         ~LogFunc();
     private:
-        const std::string& m_name; 
+        std::string m_name; 
     };
 
 } // namespace 

@@ -74,12 +74,6 @@ namespace DSS
          */
         Window m_window;
 
-        /**
-         * 
-         */
-        NvDsSinkBin m_sinkBins[MAX_SOURCE_BINS];
-
-
     };
 } // DSS
 

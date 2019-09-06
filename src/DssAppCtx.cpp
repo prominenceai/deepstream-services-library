@@ -75,7 +75,9 @@ namespace DSS
             return false;
         }
         
-        m_config.ConfigureNewXWindows();
+        m_config.ConfigureNewWindows(display);
+
+        m_pPipeline->Play();
         
         return true;
     }
