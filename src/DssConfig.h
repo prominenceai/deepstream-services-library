@@ -52,8 +52,8 @@ namespace DSS
         evGieKittiOutputDir, 
         evKittiTrackOutputDir
     };
-    
-    struct SyncSubBin
+
+    struct Sink
     {
         /** 
          * 
@@ -63,15 +63,25 @@ namespace DSS
         /** 
          * 
          */
-        NvDsSinkBin sinkSubBin;
+        Window window;
+    };
+
+    struct PrimaryGie
+    {
+        NvDsGieConfig config;
+        NvDsPrimaryGieBin bin;
+    };
+    
+    struct SecondaryGie
+    {
+        NvDsGieConfig config;
+        NvDsSecondaryGieBin bin;
     };
     
     struct Source
     {
-        /** 
-         * 
-         */
         NvDsSourceConfig config;
+        NvDsSrcBin bin;
     };
     
     /**
@@ -86,7 +96,7 @@ namespace DSS
         /** 
          * 
          */
-        Config();
+        Config(Display* pDisplay);
 
         ~Config();
         
@@ -121,12 +131,17 @@ namespace DSS
         gint SetMetricInterval(gint newValue);
         
         /**
-        * 
-        */
-        void ConfigureNewWindows(Display* display);
-        
-    
+         * @brief 
+         * @return true if the tiled display was configured successfully.
+         */
+        bool ConfigureTiledDisplay();
+            
     private:
+
+        /**
+         * @brief handle to a common display used by all pipelines
+         */
+        Display* m_pDisplay;
 
         /**
         * 
@@ -161,17 +176,22 @@ namespace DSS
         /**
         * 
         */
-        std::vector<NvDsSourceConfig> m_sourceSubBinConfigs;          
+        std::vector<Source> m_vSources;          
 
         /**
         * 
         */
-        std::vector<NvDsGieConfig> m_secondaryGieSubBinsConfigs;          
+        std::vector<PrimaryGie> m_vPrimaryGies;
+        
+        /**
+        * 
+        */
+        std::vector<SecondaryGie> m_vSecondaryGies;          
 
         /**
         * 
         */
-        std::vector<SyncSubBin> m_sinkSubBins;          
+        std::vector<Sink> m_vSinks;          
 
         /**
         * 
@@ -182,31 +202,48 @@ namespace DSS
         * 
         */
         std::string m_kittiTrackDir;
+        
+        
+        /**
+        * 
+        */
+        GstElement *pInstanceBin;
 
         /**
         * 
         */
-        NvDsStreammuxConfig m_streammuxConfig;
+        struct
+        {
+            NvDsStreammuxConfig config;
+            NvDsSrcParentBin bin;
+        } m_streamMux;     
 
         /**
         * 
         */
-        NvDsOSDConfig m_osdConfig;
+        struct
+        {
+            NvDsOSDConfig config;
+            NvDsOSDBin bin;
+        } m_osd;
+  
+        /**
+        * 
+        */
+        struct
+        {
+            NvDsTrackerConfig config;
+            NvDsTrackerBin bin;
+        } m_tracker;
 
         /**
         * 
         */
-        NvDsGieConfig m_primaryGieConfig;
-
-        /**
-        * 
-        */
-        NvDsTrackerConfig m_trackerConfig;
-
-        /**
-        * 
-        */
-        NvDsTiledDisplayConfig m_tiledDisplayConfig;
+        struct
+        {
+            NvDsTiledDisplayConfig config;
+            NvDsTiledDisplayBin bin;            
+        } m_tiledDisplay;
 
         /**
         * 
@@ -217,28 +254,67 @@ namespace DSS
         * 
         */
         gint m_fileLoop;
-
+    
         /**
-         * 
+         * @struct m_secondaryGie
+         * @brief 
          */
-        NvDsSinkBin m_sinkBin;
-        
+        struct
+        {
+            NvDsGieConfig config;
+            NvDsSecondaryGieBin bin;
+        } m_secondaryGie;
+                
         /**
-        * 
-        */
+         * @brief 
+         * @param group
+         * @return true if "application" group was parsed successfully.
+         */
         bool ParseApplicationGroup();
         
         /**
-        * 
-        */
+         * @brief 
+         * @param group
+         * @return true if a "source<n>" group was parsed successfully.
+         */
         bool ParseSourceGroup(gchar* group);
         
         /**
-        * 
-        */
+         * @brief 
+         * @param group
+         * @return true if a "sink<n>" group was parsed successfully.
+         */
         bool ParseSinkGroup(gchar* group);
         
+        /**
+         * @brief 
+         * @return true if an "osd" group was parsed successfully.
+         */
+        bool ParseOSD();
+
+        /**
+         * @brief 
+         * @return true if an "primary-gie" group was parsed successfully.
+         */
+        bool ParsePrimaryGieGroup(gchar* group);
+
+        /**
+         * @brief 
+         * @return true if the "streammux" group was parsed successfully.
+         */
+        bool ParseStreamMuxGroup();
         
+        /**
+         * @brief 
+         * @return true if the "titled-display" group was parsed successfully.
+         */
+        bool ParseTiledDisplayGroup();
+
+        /**
+         * @brief 
+         * @return true if the "tracker" group was parsed successfully.
+         */
+        bool ParseTrackerGroup();
     };
 } // DSS
 

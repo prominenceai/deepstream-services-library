@@ -29,8 +29,9 @@ THE SOFTWARE.
 namespace DSS
 {
  
-    AppContext::AppContext(Config& config)
+    AppContext::AppContext(Config& config, Display* display)
         : m_config(config)
+        , m_pDisplay(display)
         , m_pPipeline(NULL)
     {
         LOG_FUNC();
@@ -55,19 +56,13 @@ namespace DSS
 //        return m_pConfig->LoadFile(cfgFilePathSpec);
 //    }
 
-    bool AppContext::Update(Display *display)
+    bool AppContext::Update()
     {
         LOG_FUNC();
                 
-        if (!m_config.IsTiledDisplayEnabled())
-        {
-            LOG_ERROR("Application has no tiled display");
-            return false;
-        }
-                
         try 
         {
-            m_pPipeline = new Pipeline();
+            m_pPipeline = new Pipeline(m_config, m_pDisplay);
             
         }
         catch(...)
@@ -75,8 +70,6 @@ namespace DSS
             return false;
         }
         
-        m_config.ConfigureNewWindows(display);
-
         m_pPipeline->Play();
         
         return true;

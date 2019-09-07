@@ -22,22 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#include <math.h>
+
 #include "Dss.h"
 #include "DssConfig.h"
 
 namespace DSS
 {
          
-    Config::Config()
-        : m_pCfgKeyFile(g_key_file_new())
+    Config::Config(Display* pDisplay)
+        : m_pDisplay(pDisplay)
+        , m_pCfgKeyFile(g_key_file_new())
         , m_isPerfMetricEnabled(false)
         , m_perfMetricInterval(0)
         , m_fileLoop(0)
-        , m_streammuxConfig{0}
-        , m_osdConfig{0}
-        , m_primaryGieConfig{0}
-        , m_trackerConfig{0}
-        , m_tiledDisplayConfig{0}
+        , m_streamMux{0}
+        , m_osd{0}
+        , m_tracker{0}
+        , m_tiledDisplay{0}
         , m_dsExampleConfig{0}
 
     {
@@ -107,13 +109,11 @@ namespace DSS
                     break;
 
                 case evTiledDisplay: 
-                    result = parse_tiled_display(
-                        &m_tiledDisplayConfig, m_pCfgKeyFile);
+                    result = ParseTiledDisplayGroup();
                     break;
 
                 case evTracker: 
-                    result = parse_tracker(
-                        &m_trackerConfig, m_pCfgKeyFile, (gchar*)m_cfgFileSpec.c_str());
+                    result = ParseTrackerGroup();
                     break;
 
                 case evSource0: 
@@ -127,16 +127,15 @@ namespace DSS
                     break;
                     
                 case evOsd: 
-                    result = parse_osd(&m_osdConfig, m_pCfgKeyFile);
+                    result = ParseOSD();
                     break;
                     
                 case evStreamMux: 
-                    result = parse_streammux(&m_streammuxConfig, m_pCfgKeyFile);
+                    result = ParseStreamMuxGroup();
                     break;
                     
                 case evPrimaryGie: 
-                    result = parse_gie(
-                        &m_primaryGieConfig, m_pCfgKeyFile, *group, (gchar*)m_cfgFileSpec.c_str());
+                    result = ParsePrimaryGieGroup(*group);
                     break;
                     
                 case evTests: 
@@ -158,9 +157,9 @@ namespace DSS
     bool Config::IsTiledDisplayEnabled()
     {
         LOG_FUNC();
-        LOG_INFO("Tiled display enabled:: " << m_tiledDisplayConfig.enable);
+        LOG_INFO("Tiled display enabled:: " << m_tiledDisplay.config.enable);
         
-        return m_tiledDisplayConfig.enable;
+        return m_tiledDisplay.config.enable;
     }
 
     bool Config::IsPerfMetricEnabled()
@@ -201,81 +200,6 @@ namespace DSS
         LOG_INFO("Performance metric interval:: " << m_perfMetricInterval << "s");
         
         return prevValue;
-    }
-    
-    void Config::ConfigureNewWindows(Display* display)
-    {
-        LOG_FUNC();
-        
-        for (auto i = m_sinkSubBins.begin(); i != m_sinkSubBins.end(); ++i)
-        {
-//              if (!create_sink_bin(m_sinkSubBins.size(),
-//                    i->config, &i->sinkSubBin.sink, index)) {
-//                goto done;
-//              }
-            
-//            if (!GST_IS_VIDEO_OVERLAY(i->sinkSubBin.sink)){
-//                LOG_INFO("!GST_IS_VIDEO_OVERLAY");
-//                continue;
-//            }
-            uint width, height = 0;
-            if (i->config.render_config.width)
-            {
-                width = i->config.render_config.width;
-                LOG_INFO("Using render_config.width:: " << width);
-            }
-            else
-            {
-                width = m_tiledDisplayConfig.width;
-                LOG_INFO("Using 'tiled_display_config.width':: " << width);
-            }
-            if (i->config.render_config.height)
-            {
-                height = i->config.render_config.height;
-                LOG_INFO("Using render_config.height:: " << height);
-            }
-            else
-            {
-                height = m_tiledDisplayConfig.height;
-                LOG_INFO("Using 'tiled_display_config.height':: " << height);
-            }
-            
-            Window window = XCreateSimpleWindow(display, 
-                RootWindow(display, DefaultScreen(display)), 
-                0, 0, width, height, 2, 0x00000000, 0x00000000);            
-
-            XSetWindowAttributes attr = { 0 };
-            
-            if ((m_tiledDisplayConfig.enable &&
-                m_tiledDisplayConfig.rows * m_tiledDisplayConfig.columns == 1) ||
-                (!m_tiledDisplayConfig.enable &&
-                    m_sourceSubBinConfigs.size() == 1))
-            {
-                attr.event_mask = KeyPress;
-            } 
-            else
-            {
-                attr.event_mask = ButtonPress | KeyRelease;
-            }
-            XChangeWindowAttributes(display, window, CWEventMask, &attr);
-
-            Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
-            if (wmDeleteMessage != None)
-            {
-                XSetWMProtocols(display, window, &wmDeleteMessage, 1);
-            }
-            XMapRaised (display, window);
-            XSync (display, 1);       
-
-            
-//            gst_video_overlay_set_window_handle (
-//                GST_VIDEO_OVERLAY(appCtx[i]->pipeline.instance_bins[0].sink_bin.sub_bins[j].sink),
-//                (gulong)window);
-//              
-//            gst_video_overlay_expose (GST_VIDEO_OVERLAY (appCtx[i]->
-//                  pipeline.instance_bins[0].sink_bin.sub_bins[j].sink));
-            
-        }
     }
     
 
@@ -329,43 +253,253 @@ namespace DSS
     {
         LOG_FUNC();
         
-        if (m_sourceSubBinConfigs.size() >= MAX_SOURCE_BINS)
+        if (m_vSources.size() >= MAX_SOURCE_BINS)
         {
             LOG_ERROR("Exceeded MAX_SOURCE_BINS:: " << MAX_SOURCE_BINS);
             return false;
         }
 
-        NvDsSourceConfig sourceConfig;
+//        Source source = {0};
+        Source source;
         
         if (!(parse_source(
-            &sourceConfig, m_pCfgKeyFile, group, (gchar*)m_cfgFileSpec.c_str())))
+            &source.config, m_pCfgKeyFile, group, (gchar*)m_cfgFileSpec.c_str())))
         {
             LOG_ERROR("Failure parsing source");
             return false;
         }
-        m_sourceSubBinConfigs.push_back(sourceConfig);
-        LOG_INFO("Source Configs count:: " << m_sourceSubBinConfigs.size());
+        if (!create_source_bin(&source.config, &source.bin)) 
+        {
+            LOG_ERROR("Failed to create source bin ");
+            return false;
+        }
+        m_vSources.push_back(source);
+        LOG_INFO("Source Configs count:: " << m_vSources.size());
+        
         return true;
     }
 
     bool Config::ParseSinkGroup(gchar* group)
     {
-        if (m_sinkSubBins.size() >= MAX_SINK_BINS)
+        LOG_FUNC();
+        // TODO: fix - should be collective size of all Applications
+        if (m_vSinks.size() >= MAX_SINK_BINS)
         {
             LOG_ERROR("Exceeded MAX_SINK_BINS:: " << MAX_SINK_BINS);
             return false;
         }
 
-        SyncSubBin sinkSubBin = { 0 };
+        Sink sink = { 0 };
         
-        if (!(parse_sink(&sinkSubBin.config, m_pCfgKeyFile, group)))
+        if (!(parse_sink(&sink.config, m_pCfgKeyFile, group)))
         {
             LOG_ERROR("Failure parsing sink::" << group);
             return false;
         }
-                
-        m_sinkSubBins.push_back(sinkSubBin);
-        LOG_INFO("Sink Sub-Bin count:: " << m_sinkSubBins.size());
+        switch (sink.config.type)
+        {
+        case NV_DS_SINK_FAKE:
+        case NV_DS_SINK_RENDER_EGL:
+        case NV_DS_SINK_RENDER_OVERLAY:
+            if (!sink.config.render_config.qos_value_specified)
+            {
+                // Force QoS events to be generated by sink if soures
+                // are live or from synchronous non-live playback
+                sink.config.render_config.qos = 
+                    m_streamMux.config.live_source || 
+                    sink.config.render_config.sync;
+            }
+        default:
+            break;
+        }
+
+//              if (!create_sink_bin(m_sinkSubBins.size(),
+//                    i->config, &i->sinkSubBin.sink, index)) {
+//                goto done;
+//              }
+            
+//            if (!GST_IS_VIDEO_OVERLAY(i->sinkSubBin.sink)){
+//                LOG_INFO("!GST_IS_VIDEO_OVERLAY");
+//                continue;
+//            }
+
+        m_vSinks.push_back(sink);
+        LOG_INFO("Sink Sub-Bin count:: " << m_vSinks.size());
+        
         return true;
     }
-}
+    
+    bool Config::ParseOSD()
+    {
+        LOG_FUNC();
+        
+        if (!parse_osd(&m_osd.config, m_pCfgKeyFile))
+        {
+            LOG_ERROR("Failed to parse_osd");
+        }
+        if (!create_osd_bin(&m_osd.config, &m_osd.bin)) 
+        {
+            LOG_ERROR("Failed to create tracker bin ");
+            return false;
+        }
+    }
+ 
+    bool Config::ParsePrimaryGieGroup(gchar* group)
+    {
+        LOG_FUNC();
+        
+        PrimaryGie primaryGie;
+        
+        if (!parse_gie(&primaryGie.config, m_pCfgKeyFile, 
+            group, (gchar*)m_cfgFileSpec.c_str()))
+        {
+            LOG_ERROR("Failed to parse parse");
+            return false;
+        }
+        if (!create_primary_gie_bin(&primaryGie.config, &primaryGie.bin)) 
+        {
+            LOG_ERROR("Failed to create tracker bin ");
+            return false;
+        }
+        m_vPrimaryGies.push_back(primaryGie);
+        
+        return true;
+    }
+            
+    bool Config::ParseStreamMuxGroup()
+    {
+        LOG_FUNC();
+        
+        if(!parse_streammux(&m_streamMux.config, m_pCfgKeyFile))
+        {
+            LOG_ERROR("Failed to parse_streammux");
+            return false;
+        }
+        NVGSTDS_LINK_ELEMENT (pipeline->multi_src_bin.bin, last_elem);
+
+        set_streammux_properties(&m_streamMux.config, m_streamMux.bin.streammux);
+        
+        return true;
+    }
+
+    bool Config::ParseTiledDisplayGroup()
+    {
+        LOG_FUNC();
+        
+        if(!parse_tiled_display(&m_tiledDisplay.config, m_pCfgKeyFile))
+        {
+            LOG_ERROR("Failed to parse_tiled_display");
+            return false;
+        }
+        return true;
+    }
+
+    bool Config::ParseTrackerGroup()
+    {
+        LOG_FUNC();
+
+        if (!parse_tracker(&m_tracker.config, m_pCfgKeyFile, 
+            (gchar*)m_cfgFileSpec.c_str()))
+        {
+            LOG_ERROR("Failed to parse tracker");
+            return false;
+        }    
+        if (m_tracker.config.enable) 
+        {
+            if (!create_tracking_bin(&m_tracker.config, &m_tracker.bin)) 
+            {
+                LOG_ERROR("Failed to create tracker bin ");
+                return false;
+            }
+        }
+        
+
+    }
+        
+    bool Config::ConfigureTiledDisplay()
+    {
+        LOG_FUNC();
+
+        if (!m_tiledDisplay.config.enable)
+        {
+            LOG_WARN("Tiled Display is disabled");
+            return false;
+        }
+        
+        if (m_tiledDisplay.config.columns *
+            m_tiledDisplay.config.rows < m_vSources.size()) 
+        {
+            // TODO - check with test... looks suspicious
+            if (m_tiledDisplay.config.columns == 0) 
+            {
+                m_tiledDisplay.config.columns = 
+                    (guint)(sqrt(m_vSources.size()) + 0.5);
+            }
+            m_tiledDisplay.config.rows = 
+                (guint)ceil(1.0 * m_vSources.size() /
+                    m_tiledDisplay.config.columns);
+            LOG_WARN("Adjusting display:: " << m_tiledDisplay.config.rows << " rows, " <<
+                m_tiledDisplay.config.columns << " columns");
+        }
+        
+        for (std::vector<Sink>::iterator itSink = m_vSinks.begin(); itSink != m_vSinks.end(); itSink++)
+        {
+            gint width, height = 0;
+            
+            if (itSink->config.render_config.width)
+            {
+                width = itSink->config.render_config.width;
+                LOG_INFO("Using render_config.width:: " << width);
+            }
+            else
+            {
+                width = m_tiledDisplay.config.width;
+                LOG_INFO("Using 'tiled_display_config.width':: " << width);
+            }
+            if (itSink->config.render_config.height)
+            {
+                height = itSink->config.render_config.height;
+                LOG_INFO("Using render_config.height:: " << height);
+            }
+            else
+            {
+                height = m_tiledDisplay.config.height;
+                LOG_INFO("Using 'tiled_display_config.height':: " << height);
+            }
+
+            itSink->window = XCreateSimpleWindow(m_pDisplay, 
+                RootWindow(m_pDisplay, DefaultScreen(m_pDisplay)), 
+                0, 0, width, height, 2, 0x00000000, 0x00000000);            
+
+            XSetWindowAttributes attr = { 0 };
+            
+            if ((m_tiledDisplay.config.enable &&
+                m_tiledDisplay.config.rows * m_tiledDisplay.config.columns == 1) ||
+                (!m_tiledDisplay.config.enable && m_vSources.size() == 1))
+            {
+                attr.event_mask = KeyPress;
+            } 
+            else
+            {
+                attr.event_mask = ButtonPress | KeyRelease;
+            }
+            XChangeWindowAttributes(m_pDisplay, itSink->window, CWEventMask, &attr);
+
+            Atom wmDeleteMessage = XInternAtom(m_pDisplay, "WM_DELETE_WINDOW", False);
+            if (wmDeleteMessage != None)
+            {
+                XSetWMProtocols(m_pDisplay, itSink->window, &wmDeleteMessage, 1);
+            }
+            XMapRaised(m_pDisplay, itSink->window);
+            XSync(m_pDisplay, 1);       
+
+            
+            if (!create_tiled_display_bin(&m_tiledDisplay.config, &m_tiledDisplay.bin))
+            {
+                LOG_ERROR("Failed to create tiled display bin");
+                return false;
+            }
+        }     
+        return true;
+    }
+   

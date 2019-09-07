@@ -44,7 +44,7 @@ namespace DSS
         /** 
          * 
          */
-        AppContext(Config& config);
+        AppContext(Config& config, Display* display);
 
         /** 
          * 
@@ -54,7 +54,7 @@ namespace DSS
         /** 
          * 
          */
-        bool Update(Display* display);
+        bool Update();
     
     private:
     
@@ -63,6 +63,11 @@ namespace DSS
          * 
          */
         Config& m_config;
+        
+        /**
+         * @brief Handle to common display shared by all Applications
+         */
+        Display* m_pDisplay;
 
         /**
          * 

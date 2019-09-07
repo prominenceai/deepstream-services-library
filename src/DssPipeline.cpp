@@ -30,10 +30,13 @@ THE SOFTWARE.
 namespace DSS
 {
  
-    Pipeline::Pipeline()
-        : m_pPipeline(NULL)
+    Pipeline::Pipeline(Config& config, Display* pDisplay)
+        : m_config(config)
+        , m_pDisplay(pDisplay)
+        , m_pPipeline(NULL)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
+//        , m_pInstanceBin(NULL)
         , m_multiSourceBin{0}
     {
         LOG_FUNC();
@@ -46,14 +49,34 @@ namespace DSS
             throw;
         }
 
+        if (m_config.IsTiledDisplayEnabled() && !m_config.ConfigureTiledDisplay())
+        {
+            LOG_ERROR("Failed to configure Tiled Display");
+            throw;
+        }
+
         g_mutex_init(&m_pipelineMutex);
         g_mutex_init(&m_busSyncMutex);
         g_mutex_init(&m_busWatchMutex);
+
+        m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
+        m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
+        m_mapMessageTypes[GST_MESSAGE_INFO] = "GST_MESSAGE_INFO";
+        m_mapMessageTypes[GST_MESSAGE_WARNING] = "GST_MESSAGE_WARNING";
+        m_mapMessageTypes[GST_MESSAGE_ERROR] = "GST_MESSAGE_ERROR";
+        m_mapMessageTypes[GST_MESSAGE_TAG] = "GST_MESSAGE_TAG";
+        m_mapMessageTypes[GST_MESSAGE_BUFFERING] = "GST_MESSAGE_BUFFERING";
+        m_mapMessageTypes[GST_MESSAGE_STATE_CHANGED] = "GST_MESSAGE_STATE_CHANGED";
+        m_mapMessageTypes[GST_MESSAGE_STEP_DONE] = "GST_MESSAGE_STEP_DONE";
+        m_mapMessageTypes[GST_MESSAGE_CLOCK_LOST] = "GST_MESSAGE_CLOCK_LOST";
+        m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
+        m_mapMessageTypes[GST_MESSAGE_STREAM_STATUS] = "GST_MESSAGE_STREAM_STATUS";
 
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
         m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";
         m_mapPipelineStates[GST_STATE_PAUSED] = "GST_STATE_PAUSED";
         m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
+        
         
         // get the GST message bus - one per GST pipeline
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pPipeline));
@@ -63,7 +86,7 @@ namespace DSS
         
         // install the sync handler for the message bus
         gst_bus_set_sync_handler(m_pGstBus, bus_sync_handler, this, NULL);        
-}
+    }
 
     Pipeline::~Pipeline()
     {
@@ -103,25 +126,23 @@ namespace DSS
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
         
+        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
+        
         switch (GST_MESSAGE_TYPE(pMessage))
         {
         case GST_MESSAGE_INFO:
-            LOG_INFO("Info message received");
-            break;
+            return true;
         case GST_MESSAGE_WARNING:
-            LOG_WARN("Warning message received");
-            break;
+            return true;
         case GST_MESSAGE_ERROR:
-            LOG_ERROR("Error message received");
-            break;
+            return true;
         case GST_MESSAGE_STATE_CHANGED:
             return HandleStateChanged(pMessage);
-        case GST_STATE_NULL:
-            LOG_INFO("State NULL received");
-            break;
+        case GST_MESSAGE_EOS:
+          return FALSE;
+      break;
         default:
-            LOG_INFO("Unhandled message type:: " << GST_MESSAGE_TYPE(pMessage));
-            break;
+            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }
         return true;
     }
@@ -130,6 +151,8 @@ namespace DSS
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
+
+        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -141,13 +164,9 @@ namespace DSS
                 const GstStructure *structure;
                 structure = gst_message_get_structure(pMessage);
             }
-            break;
-        case GST_MESSAGE_STATE_CHANGED:
-            LOG_INFO("State changed message received");
-            break;
+            return GST_BUS_PASS;
         default:
-            LOG_INFO("Unhandled message type:: " << GST_MESSAGE_TYPE(pMessage));
-            break;
+            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }
         return GST_BUS_PASS;
     }

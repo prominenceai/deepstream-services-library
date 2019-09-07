@@ -102,14 +102,14 @@ namespace DSS
         
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        Config* pAppConfig = new Config();
+        Config* pAppConfig = new Config(m_pDisplay);
         if (!(pAppConfig->LoadFile(cfgFilePathSpec)))
         {
             return false;
         }    
-        m_pAppContext = new AppContext(*pAppConfig);
+        m_pAppContext = new AppContext(*pAppConfig, m_pDisplay);
         
-        return m_pAppContext->Update(m_pDisplay);
+        return m_pAppContext->Update();
     }
         
     bool Driver::HandleXWindowEvents()

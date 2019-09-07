@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef _DSS_PIPELINE_H
 #define _DSS_PIPELINE_H
 
+#include "DssConfig.h"
+
 namespace DSS {
     
    
@@ -41,7 +43,7 @@ namespace DSS {
         /** 
          * 
          */
-        Pipeline();
+        Pipeline(Config& config, Display* pDisplay);
         ~Pipeline();
         
         bool Pause();
@@ -67,20 +69,30 @@ namespace DSS {
          * @brief underlying GStream pipeline wrapped by this class
          */
         GstElement* m_pPipeline;
+        
+        /**
+         * @brief config object used by this pipeline
+         */
+        Config& m_config;
+        
+        /**
+         * @brief handle to a common display used by all pipelines
+         */
+        Display* m_pDisplay;
 
         /**
          * @brief mutex to protect critical pipeline code
-        */
+         */
         GMutex m_pipelineMutex;
 
         /**
          * @brief mutex to prevent callback reentry
-        */
+         */
         GMutex m_busWatchMutex;
 
         /**
          * @brief mutex to prevent callback reentry
-        */
+         */
         GMutex m_busSyncMutex;
 
         /**
@@ -95,12 +107,18 @@ namespace DSS {
         
         NvDsSrcParentBin m_multiSourceBin;
         
-        bool HandleStateChanged(GstMessage* pMessage);
+        /**
+         * @brief maps a GstState constant value to a string for logging
+         */
+        std::map<GstState, std::string> m_mapPipelineStates;
         
         /**
-        * 
-        */
-        std::map<GstState, std::string> m_mapPipelineStates;
+         * @brief maps a GstMessage constant value to a string for logging
+         */
+        std::map<GstMessageType, std::string> m_mapMessageTypes;
+
+        bool HandleStateChanged(GstMessage* pMessage);
+        
         
     }; // Pipeline
     
