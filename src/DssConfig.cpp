@@ -40,11 +40,15 @@ namespace DSS
         , m_osd{0}
         , m_tracker{0}
         , m_tiledDisplay{0}
-        , m_dsExampleConfig{0}
+        , m_dsExampleConfig{0} 
+        , m_sourcesBintr{0}
 
     {
         LOG_FUNC();
-        
+
+            
+        g_mutex_init(&m_configMutex);
+
         // Map the CFG group names
         m_mapGroupNames["application"] = evApplication;
         m_mapGroupNames["tiled-display"] = evTiledDisplay;
@@ -75,11 +79,13 @@ namespace DSS
             LOG_INFO("Releasing the Configuration Key File");
             g_key_file_free(m_pCfgKeyFile);
         }
+        g_mutex_clear(&m_configMutex);
     }
 
     bool Config::LoadFile(const std::string& cfgFileSpec) 
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
         
         m_cfgFileSpec.assign(cfgFileSpec);
         
@@ -105,37 +111,37 @@ namespace DSS
             switch (m_mapGroupNames[*group])
             {
                 case evApplication: 
-                    result = ParseApplicationGroup();
+                    result = _parseApplicationGroup();
                     break;
 
                 case evTiledDisplay: 
-                    result = ParseTiledDisplayGroup();
+                    result = _parseTiledDisplayGroup();
                     break;
 
                 case evTracker: 
-                    result = ParseTrackerGroup();
+                    result = _parseTrackerGroup();
                     break;
 
                 case evSource0: 
-                    result = ParseSourceGroup(*group);
+                    result = _parseSourceGroup(*group);
                     break;
 
                 case evSink0: 
                 case evSink1: 
                 case evSink2: 
-                    result = ParseSinkGroup(*group);
+                    result = _parseSinkGroup(*group);
                     break;
                     
                 case evOsd: 
-                    result = ParseOSD();
+                    result = _parseOSD();
                     break;
                     
                 case evStreamMux: 
-                    result = ParseStreamMuxGroup();
+                    result = _parseStreamMuxGroup();
                     break;
                     
                 case evPrimaryGie: 
-                    result = ParsePrimaryGieGroup(*group);
+                    result = _parsePrimaryGieGroup(*group);
                     break;
                     
                 case evTests: 
@@ -157,14 +163,28 @@ namespace DSS
     bool Config::IsTiledDisplayEnabled()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
         LOG_INFO("Tiled display enabled:: " << m_tiledDisplay.config.enable);
-        
+
         return m_tiledDisplay.config.enable;
+    }
+
+    bool Config::IsOsdEnabled()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        LOG_INFO("OSD enabled:: " << m_osd.config.enable);
+
+        return m_osd.config.enable;
     }
 
     bool Config::IsPerfMetricEnabled()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
         LOG_INFO("Performance metric is:: " << m_isPerfMetricEnabled);
         
         return m_isPerfMetricEnabled;
@@ -173,6 +193,7 @@ namespace DSS
     bool Config::SetPerfMetricEnabled(bool newValue)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
         
         bool prevValue = m_isPerfMetricEnabled;
         m_isPerfMetricEnabled = newValue;
@@ -185,6 +206,8 @@ namespace DSS
     gint Config::GetMetricInterval()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
         LOG_INFO("Performance metric interval:: " << m_perfMetricInterval << "s");
         
         return m_perfMetricInterval;
@@ -193,6 +216,7 @@ namespace DSS
     gint Config::SetMetricInterval(gint newValue)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
         
         gint prevValue = m_perfMetricInterval;
         m_perfMetricInterval = newValue;
@@ -203,7 +227,233 @@ namespace DSS
     }
     
 
-    bool Config::ParseApplicationGroup()
+//        NVGSTDS_LINK_ELEMENT(m_streamMux.bin.bin, last_elem);
+//        set_streammux_properties(&m_streamMux.config, m_streamMux.bin.streammux);
+    
+    bool Config::ConfigureTiledDisplay()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        
+        for (auto itSink = m_sinksConfig.begin(); itSink != m_sinksConfig.end(); itSink++)
+        {
+            gint width, height = 0;
+            
+            if (itSink->render_config.width)
+            {
+                width = itSink->render_config.width;
+                LOG_INFO("Using render_config.width:: " << width);
+            }
+            else
+            {
+                width = m_tiledDisplay.config.width;
+                LOG_INFO("Using 'tiled_display_config.width':: " << width);
+            }
+            if (itSink->render_config.height)
+            {
+                height = itSink->render_config.height;
+                LOG_INFO("Using render_config.height:: " << height);
+            }
+            else
+            {
+                height = m_tiledDisplay.config.height;
+                LOG_INFO("Using 'tiled_display_config.height':: " << height);
+            }
+
+            Window window = XCreateSimpleWindow(m_pDisplay, 
+                RootWindow(m_pDisplay, DefaultScreen(m_pDisplay)), 
+                0, 0, width, height, 2, 0x00000000, 0x00000000);            
+
+            XSetWindowAttributes attr = { 0 };
+            
+            if ((m_tiledDisplay.config.enable &&
+                m_tiledDisplay.config.rows * m_tiledDisplay.config.columns == 1) ||
+                (!m_tiledDisplay.config.enable && m_sourcesConfig.size() == 1))
+            {
+                attr.event_mask = KeyPress;
+            } 
+            else
+            {
+                attr.event_mask = ButtonPress | KeyRelease;
+            }
+            XChangeWindowAttributes(m_pDisplay, window, CWEventMask, &attr);
+
+            Atom wmDeleteMessage = XInternAtom(m_pDisplay, "WM_DELETE_WINDOW", False);
+            if (wmDeleteMessage != None)
+            {
+                XSetWMProtocols(m_pDisplay, window, &wmDeleteMessage, 1);
+            }
+            XMapRaised(m_pDisplay, window);
+            XSync(m_pDisplay, 1);       
+        }     
+        return true;
+    }
+
+    GstElement* Config::CreateTiledDisplayBin(GstElement* parentBin)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+        
+        if (!m_tiledDisplay.config.enable)
+        {
+            LOG_INFO("Tiled Display is disabled");
+            return NULL;
+        }
+        
+        if (m_tiledDisplay.config.columns *
+            m_tiledDisplay.config.rows < m_sourcesConfig.size()) 
+        {
+            // TODO - check with test... looks suspicious
+            if (m_tiledDisplay.config.columns == 0) 
+            {
+                m_tiledDisplay.config.columns = 
+                    (guint)(sqrt(m_sourcesConfig.size()) + 0.5);
+            }
+            m_tiledDisplay.config.rows = 
+                (guint)ceil(1.0 * m_sourcesConfig.size() /
+                    m_tiledDisplay.config.columns);
+            LOG_WARN("Adjusting display:: " << m_tiledDisplay.config.rows << " rows, " <<
+                m_tiledDisplay.config.columns << " columns");
+        }
+        if (!create_tiled_display_bin(&m_tiledDisplay.config, &m_tiledDisplay.bintr))
+        {
+            LOG_ERROR("Failed to create tiled display bin");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_tiledDisplay.bintr.bin))
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+            
+        return m_tiledDisplay.bintr.bin;
+    }
+    
+    GstElement* Config::CreateSourcesBin(GstElement* parentBin)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+        
+        if (!create_multi_source_bin(m_sourcesConfig.size(),
+              &m_sourcesConfig[0], &m_sourcesBintr))
+        {
+            LOG_ERROR("Failed to create multi source bin");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_sourcesBintr.bin))
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+        return m_sourcesBintr.bin;
+    }
+
+//        if (m_streamMux.config.is_parsed)
+//        {
+//            set_streammux_properties(&m_streamMux.config,
+//                m_sourcesBintr.streammux);
+//        }
+        
+
+    GstElement* Config::CreateOsdBin(GstElement* parentBin)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+        
+        if (!m_osd.config.enable)
+        {
+            LOG_INFO("OSD is disabled");
+            return NULL;
+        }
+        if(!create_osd_bin(&m_osd.config, &m_osd.bintr))
+        {
+            LOG_ERROR("Failed to create OSD bin");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_sourcesBintr.bin))
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+        return m_osd.bintr.bin;
+    }    
+
+    GstElement* Config::CreateSinksBin(GstElement* parentBin)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        if (!create_sink_bin(m_sinksConfig.size(), &m_sinksConfig[0], &m_sinkBintr, 0))
+        {
+            LOG_ERROR("Failed to create sink bin");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_sinkBintr.bin)
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+        return m_sinkBintr.bin;
+    }
+    
+    GstElement* Config::CreateTrackerBin(GstElement* parentBin)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        if (!m_tracker.config.enable)
+        {
+            LOG_WARN("Tracker is disabled");
+            return NULL;
+        }
+        if(!create_tracking_bin(&m_tracker.config, &m_tracker.bintr))
+        {
+            LOG_ERROR("Failed to create OSD bin");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_tracker.bintr.bin))
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+        return m_tracker.bintr.bin;
+    }
+
+    GstElement* Config::CreatePrimaryGieBin(GstElement* parentBin)
+    {
+        
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        if (!m_tracker.config.enable)
+        {
+            LOG_WARN("Tracker is disabled");
+            return NULL;
+        }
+        if (!create_primary_gie_bin(&m_primaryGie.config, &m_primaryGie.bintr)) 
+        {
+            LOG_ERROR("Failed to create tracker bin ");
+            throw;
+        }
+        if (!gst_bin_add(parentBin, m_primaryGie.bintr.bin))
+        {
+            LOG_ERROR("Failed to add tiled display bin to parent");
+            throw;
+        }
+        return m_primaryGie.bintr.bin;
+        
+    }
+//        GstPad *gstpad = gst_element_get_static_pad(prevBin, "sink"); \
+//        if (!gstpad)
+//        {
+//            LOG_ERROR("Failed to create a static pad");
+//            return false;
+//        } 
+//        gst_element_add_pad(prevBin, gst_ghost_pad_new("sink", gstpad)); \
+//        gst_object_unref(gstpad);
+
+    bool Config::_parseApplicationGroup()
     {
         LOG_FUNC();
         
@@ -249,124 +499,106 @@ namespace DSS
         return true;
     }
     
-    bool Config::ParseSourceGroup(gchar* group)
+    bool Config::_parseSourceGroup(gchar* group)
     {
         LOG_FUNC();
         
-        if (m_vSources.size() >= MAX_SOURCE_BINS)
+        if (m_sourcesConfig.size() >= MAX_SOURCE_BINS)
         {
             LOG_ERROR("Exceeded MAX_SOURCE_BINS:: " << MAX_SOURCE_BINS);
             return false;
         }
 
-//        Source source = {0};
-        Source source;
+        // TODO: how to initialize?
+        NvDsSourceConfig config;
+        
+        LOG_INFO((gchar*)m_cfgFileSpec.c_str());
         
         if (!(parse_source(
-            &source.config, m_pCfgKeyFile, group, (gchar*)m_cfgFileSpec.c_str())))
+            &config, m_pCfgKeyFile, group, (gchar*)m_cfgFileSpec.c_str())))
         {
             LOG_ERROR("Failure parsing source");
             return false;
         }
-        if (!create_source_bin(&source.config, &source.bin)) 
-        {
-            LOG_ERROR("Failed to create source bin ");
-            return false;
-        }
-        m_vSources.push_back(source);
-        LOG_INFO("Source Configs count:: " << m_vSources.size());
+        m_sourcesConfig.push_back(config);
+        LOG_INFO("Source Configs count:: " << m_sourcesConfig.size());
         
         return true;
     }
 
-    bool Config::ParseSinkGroup(gchar* group)
+    bool Config::_parseSinkGroup(gchar* group)
     {
         LOG_FUNC();
         // TODO: fix - should be collective size of all Applications
-        if (m_vSinks.size() >= MAX_SINK_BINS)
+        if (m_sinksConfig.size() >= MAX_SINK_BINS)
         {
             LOG_ERROR("Exceeded MAX_SINK_BINS:: " << MAX_SINK_BINS);
             return false;
         }
 
-        Sink sink = { 0 };
+        NvDsSinkSubBinConfig config = {0};
         
-        if (!(parse_sink(&sink.config, m_pCfgKeyFile, group)))
+        if (!(parse_sink(&config, m_pCfgKeyFile, group)))
         {
             LOG_ERROR("Failure parsing sink::" << group);
             return false;
         }
-        switch (sink.config.type)
+        switch (config.type)
         {
         case NV_DS_SINK_FAKE:
         case NV_DS_SINK_RENDER_EGL:
         case NV_DS_SINK_RENDER_OVERLAY:
-            if (!sink.config.render_config.qos_value_specified)
+            if (!config.render_config.qos_value_specified)
             {
                 // Force QoS events to be generated by sink if soures
                 // are live or from synchronous non-live playback
-                sink.config.render_config.qos = 
+                config.render_config.qos = 
                     m_streamMux.config.live_source || 
-                    sink.config.render_config.sync;
+                    config.render_config.sync;
             }
         default:
             break;
         }
 
-//              if (!create_sink_bin(m_sinkSubBins.size(),
-//                    i->config, &i->sinkSubBin.sink, index)) {
-//                goto done;
-//              }
-            
-//            if (!GST_IS_VIDEO_OVERLAY(i->sinkSubBin.sink)){
-//                LOG_INFO("!GST_IS_VIDEO_OVERLAY");
-//                continue;
-//            }
-
-        m_vSinks.push_back(sink);
-        LOG_INFO("Sink Sub-Bin count:: " << m_vSinks.size());
+        m_sinksConfig.push_back(config);
+        LOG_INFO("Sink Sub-Bin count:: " << m_sinksConfig.size());
         
         return true;
     }
     
-    bool Config::ParseOSD()
+    bool Config::_parseOSD()
     {
         LOG_FUNC();
         
         if (!parse_osd(&m_osd.config, m_pCfgKeyFile))
         {
             LOG_ERROR("Failed to parse_osd");
-        }
-        if (!create_osd_bin(&m_osd.config, &m_osd.bin)) 
-        {
-            LOG_ERROR("Failed to create tracker bin ");
             return false;
         }
+        
+        // TODO: Why must buffers be 8 or greater.
+        if (m_osd.config.num_out_buffers < 8)
+        {
+            m_osd.config.num_out_buffers = 8;
+        }
+        return true;
     }
  
-    bool Config::ParsePrimaryGieGroup(gchar* group)
+    bool Config::_parsePrimaryGieGroup(gchar* group)
     {
         LOG_FUNC();
         
-        PrimaryGie primaryGie;
-        
-        if (!parse_gie(&primaryGie.config, m_pCfgKeyFile, 
+        if (!parse_gie(&m_primaryGie.config, m_pCfgKeyFile, 
             group, (gchar*)m_cfgFileSpec.c_str()))
         {
-            LOG_ERROR("Failed to parse parse");
+            LOG_ERROR("Failed to parse primary-gie");
             return false;
         }
-        if (!create_primary_gie_bin(&primaryGie.config, &primaryGie.bin)) 
-        {
-            LOG_ERROR("Failed to create tracker bin ");
-            return false;
-        }
-        m_vPrimaryGies.push_back(primaryGie);
         
         return true;
     }
             
-    bool Config::ParseStreamMuxGroup()
+    bool Config::_parseStreamMuxGroup()
     {
         LOG_FUNC();
         
@@ -375,14 +607,11 @@ namespace DSS
             LOG_ERROR("Failed to parse_streammux");
             return false;
         }
-        NVGSTDS_LINK_ELEMENT (pipeline->multi_src_bin.bin, last_elem);
-
-        set_streammux_properties(&m_streamMux.config, m_streamMux.bin.streammux);
         
         return true;
     }
 
-    bool Config::ParseTiledDisplayGroup()
+    bool Config::_parseTiledDisplayGroup()
     {
         LOG_FUNC();
         
@@ -394,7 +623,7 @@ namespace DSS
         return true;
     }
 
-    bool Config::ParseTrackerGroup()
+    bool Config::_parseTrackerGroup()
     {
         LOG_FUNC();
 
@@ -403,103 +632,8 @@ namespace DSS
         {
             LOG_ERROR("Failed to parse tracker");
             return false;
-        }    
-        if (m_tracker.config.enable) 
-        {
-            if (!create_tracking_bin(&m_tracker.config, &m_tracker.bin)) 
-            {
-                LOG_ERROR("Failed to create tracker bin ");
-                return false;
-            }
         }
-        
-
-    }
-        
-    bool Config::ConfigureTiledDisplay()
-    {
-        LOG_FUNC();
-
-        if (!m_tiledDisplay.config.enable)
-        {
-            LOG_WARN("Tiled Display is disabled");
-            return false;
-        }
-        
-        if (m_tiledDisplay.config.columns *
-            m_tiledDisplay.config.rows < m_vSources.size()) 
-        {
-            // TODO - check with test... looks suspicious
-            if (m_tiledDisplay.config.columns == 0) 
-            {
-                m_tiledDisplay.config.columns = 
-                    (guint)(sqrt(m_vSources.size()) + 0.5);
-            }
-            m_tiledDisplay.config.rows = 
-                (guint)ceil(1.0 * m_vSources.size() /
-                    m_tiledDisplay.config.columns);
-            LOG_WARN("Adjusting display:: " << m_tiledDisplay.config.rows << " rows, " <<
-                m_tiledDisplay.config.columns << " columns");
-        }
-        
-        for (std::vector<Sink>::iterator itSink = m_vSinks.begin(); itSink != m_vSinks.end(); itSink++)
-        {
-            gint width, height = 0;
-            
-            if (itSink->config.render_config.width)
-            {
-                width = itSink->config.render_config.width;
-                LOG_INFO("Using render_config.width:: " << width);
-            }
-            else
-            {
-                width = m_tiledDisplay.config.width;
-                LOG_INFO("Using 'tiled_display_config.width':: " << width);
-            }
-            if (itSink->config.render_config.height)
-            {
-                height = itSink->config.render_config.height;
-                LOG_INFO("Using render_config.height:: " << height);
-            }
-            else
-            {
-                height = m_tiledDisplay.config.height;
-                LOG_INFO("Using 'tiled_display_config.height':: " << height);
-            }
-
-            itSink->window = XCreateSimpleWindow(m_pDisplay, 
-                RootWindow(m_pDisplay, DefaultScreen(m_pDisplay)), 
-                0, 0, width, height, 2, 0x00000000, 0x00000000);            
-
-            XSetWindowAttributes attr = { 0 };
-            
-            if ((m_tiledDisplay.config.enable &&
-                m_tiledDisplay.config.rows * m_tiledDisplay.config.columns == 1) ||
-                (!m_tiledDisplay.config.enable && m_vSources.size() == 1))
-            {
-                attr.event_mask = KeyPress;
-            } 
-            else
-            {
-                attr.event_mask = ButtonPress | KeyRelease;
-            }
-            XChangeWindowAttributes(m_pDisplay, itSink->window, CWEventMask, &attr);
-
-            Atom wmDeleteMessage = XInternAtom(m_pDisplay, "WM_DELETE_WINDOW", False);
-            if (wmDeleteMessage != None)
-            {
-                XSetWMProtocols(m_pDisplay, itSink->window, &wmDeleteMessage, 1);
-            }
-            XMapRaised(m_pDisplay, itSink->window);
-            XSync(m_pDisplay, 1);       
-
-            
-            if (!create_tiled_display_bin(&m_tiledDisplay.config, &m_tiledDisplay.bin))
-            {
-                LOG_ERROR("Failed to create tiled display bin");
-                return false;
-            }
-        }     
         return true;
     }
-   
+        
+} // namespace DSS  

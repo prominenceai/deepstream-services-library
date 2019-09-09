@@ -66,24 +66,12 @@ namespace DSS
         Window window;
     };
 
-    struct PrimaryGie
-    {
-        NvDsGieConfig config;
-        NvDsPrimaryGieBin bin;
-    };
-    
     struct SecondaryGie
     {
         NvDsGieConfig config;
         NvDsSecondaryGieBin bin;
     };
-    
-    struct Source
-    {
-        NvDsSourceConfig config;
-        NvDsSrcBin bin;
-    };
-    
+        
     /**
      * @class Config
      * @file  DssConfig.h
@@ -113,6 +101,10 @@ namespace DSS
         /**
         * 
         */
+        bool IsOsdEnabled();
+        /**
+        * 
+        */
         bool IsPerfMetricEnabled();
 
         /**
@@ -130,11 +122,44 @@ namespace DSS
         */
         gint SetMetricInterval(gint newValue);
         
-        /**
-         * @brief 
-         * @return true if the tiled display was configured successfully.
-         */
         bool ConfigureTiledDisplay();
+        
+        /**
+         * @brief Creates a new Tiled-Display bin if enabled
+         * @return newly created bin if enabled, NULL if not.
+         */
+        GstElement* CreateTiledDisplayBin(GstElement* parentBin);
+        
+        /**
+         * @brief Creates a new bin for all Sources
+         * @return newly created bin
+         */
+        GstElement* CreateSourcesBin(GstElement* parentBin);
+
+        /**
+         * @brief Creates a new bin for all Sinkds
+         * @return newly created bin
+         */
+        GstElement* CreateSinksBin(GstElement* parentBin);
+        
+        /**
+         * @brief Creates a new OSD bin if enabled
+         * @return newly created bin if enabled, NULL if not.
+         */
+        GstElement* CreateOsdBin(GstElement* parentBin);
+       
+        /**
+         * @brief Creates a new Tracker bin if enabled
+         * @return newly created bin if enabled, NULL if not.
+         */
+        GstElement* CreateTrackerBin(GstElement* parentBin);
+       
+        /**
+         * @brief Creates a new Primary GIEb if enabled
+         * @return newly created bin if enabled, NULL if not.
+         * @throws general exeception on failure
+         */
+        GstElement* CreatePrimaryGieBin(GstElement* parentBin);
             
     private:
 
@@ -143,6 +168,11 @@ namespace DSS
          */
         Display* m_pDisplay;
 
+        /**
+         * @brief mutex to prevent config reentry
+        */
+        GMutex m_configMutex;
+        
         /**
         * 
         */       
@@ -176,38 +206,34 @@ namespace DSS
         /**
         * 
         */
-        std::vector<Source> m_vSources;          
+        std::vector<NvDsSourceConfig> m_sourcesConfig; 
+            
+        NvDsSrcParentBin m_sourcesBintr;
 
         /**
         * 
         */
-        std::vector<PrimaryGie> m_vPrimaryGies;
-        
-        /**
-        * 
-        */
-        std::vector<SecondaryGie> m_vSecondaryGies;          
-
-        /**
-        * 
-        */
-        std::vector<Sink> m_vSinks;          
-
-        /**
-        * 
-        */
-        std::string m_bBoxDir;
-
-        /**
-        * 
-        */
-        std::string m_kittiTrackDir;
+        struct
+        {
+            NvDsGieConfig config;
+            NvDsPrimaryGieBin bintr;
+        } m_primaryGie;
         
         
         /**
         * 
         */
-        GstElement *pInstanceBin;
+        std::vector<SecondaryGie> m_secondaryGies;          
+
+        /**
+        * 
+        */
+        std::vector<NvDsSinkSubBinConfig> m_sinksConfig;  
+        
+        /**
+        * 
+        */
+        NvDsSinkBin m_sinkBintr;
 
         /**
         * 
@@ -224,7 +250,7 @@ namespace DSS
         struct
         {
             NvDsOSDConfig config;
-            NvDsOSDBin bin;
+            NvDsOSDBin bintr;
         } m_osd;
   
         /**
@@ -233,7 +259,7 @@ namespace DSS
         struct
         {
             NvDsTrackerConfig config;
-            NvDsTrackerBin bin;
+            NvDsTrackerBin bintr;
         } m_tracker;
 
         /**
@@ -242,13 +268,23 @@ namespace DSS
         struct
         {
             NvDsTiledDisplayConfig config;
-            NvDsTiledDisplayBin bin;            
+            NvDsTiledDisplayBin bintr;            
         } m_tiledDisplay;
 
         /**
         * 
         */
         NvDsDsExampleConfig m_dsExampleConfig;
+        
+        /**
+        * 
+        */
+        std::string m_bBoxDir;
+
+        /**
+        * 
+        */
+        std::string m_kittiTrackDir;
         
         /**
         * 
@@ -270,51 +306,51 @@ namespace DSS
          * @param group
          * @return true if "application" group was parsed successfully.
          */
-        bool ParseApplicationGroup();
+        bool _parseApplicationGroup();
         
         /**
          * @brief 
          * @param group
          * @return true if a "source<n>" group was parsed successfully.
          */
-        bool ParseSourceGroup(gchar* group);
+        bool _parseSourceGroup(gchar* group);
         
         /**
          * @brief 
          * @param group
          * @return true if a "sink<n>" group was parsed successfully.
          */
-        bool ParseSinkGroup(gchar* group);
+        bool _parseSinkGroup(gchar* group);
         
         /**
          * @brief 
          * @return true if an "osd" group was parsed successfully.
          */
-        bool ParseOSD();
+        bool _parseOSD();
 
         /**
          * @brief 
          * @return true if an "primary-gie" group was parsed successfully.
          */
-        bool ParsePrimaryGieGroup(gchar* group);
+        bool _parsePrimaryGieGroup(gchar* group);
 
         /**
          * @brief 
          * @return true if the "streammux" group was parsed successfully.
          */
-        bool ParseStreamMuxGroup();
+        bool _parseStreamMuxGroup();
         
         /**
          * @brief 
          * @return true if the "titled-display" group was parsed successfully.
          */
-        bool ParseTiledDisplayGroup();
+        bool _parseTiledDisplayGroup();
 
         /**
          * @brief 
          * @return true if the "tracker" group was parsed successfully.
          */
-        bool ParseTrackerGroup();
+        bool _parseTrackerGroup();
     };
 } // DSS
 

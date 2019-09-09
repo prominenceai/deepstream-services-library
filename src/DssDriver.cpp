@@ -96,14 +96,14 @@ namespace DSS
         g_mutex_clear(&m_driverMutex);
     }
 
-    bool Driver::Configure(const std::string& cfgFilePathSpec)
+    bool Driver::Configure(const std::string& cfgFileDir, 
+        const std::string& cfgFileName)
     {
         LOG_FUNC();
-        
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
         Config* pAppConfig = new Config(m_pDisplay);
-        if (!(pAppConfig->LoadFile(cfgFilePathSpec)))
+        if (!(pAppConfig->LoadFile("./configs/" + cfgFileName)))
         {
             return false;
         }    

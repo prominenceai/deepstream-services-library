@@ -26,10 +26,9 @@ THE SOFTWARE.
 #define _DSS_PIPELINE_H
 
 #include "DssConfig.h"
+#include "DssBintr.h"
 
 namespace DSS {
-    
-   
 
     /**
      * @class Pipline
@@ -79,6 +78,10 @@ namespace DSS {
          * @brief handle to a common display used by all pipelines
          */
         Display* m_pDisplay;
+        
+        std::vector<Bintr*> m_bintrs;
+        
+        GstElement* m_pInstance;
 
         /**
          * @brief mutex to protect critical pipeline code

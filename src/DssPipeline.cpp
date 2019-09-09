@@ -36,12 +36,14 @@ namespace DSS
         , m_pPipeline(NULL)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
-//        , m_pInstanceBin(NULL)
+        , m_pInstance(NULL)
         , m_multiSourceBin{0}
     {
         LOG_FUNC();
         
         m_pPipeline = gst_pipeline_new("pipeline");
+        m_pInstance = gst_bin_new("instance");
+
         
         if (!m_pPipeline)
         {
@@ -49,11 +51,26 @@ namespace DSS
             throw;
         }
 
-        if (m_config.IsTiledDisplayEnabled() && !m_config.ConfigureTiledDisplay())
-        {
-            LOG_ERROR("Failed to configure Tiled Display");
-            throw;
-        }
+        m_bintrs.push_back(new Bintr("sources", 
+            m_config.CreateSourcesBin(m_pPipeline)));
+            
+        m_bintrs.push_back(new Bintr("tracker", 
+            m_config.CreateTrackerBin(m_pPipeline)));
+
+        m_bintrs.push_back(new Bintr("primary-gie", 
+            m_config.CreatePrimaryGieBin(m_pPipeline)));
+
+
+        m_bintrs.push_back(new Bintr("tiled-display", 
+            m_config.CreateTiledDisplayBin(m_pInstance)));
+
+        m_bintrs.push_back(new Bintr("sinks", 
+            m_config.CreateSinksBin(m_pInstance)));
+
+        m_bintrs.push_back(new Bintr("osd", 
+            m_config.CreateOsdBin(m_pInstance)));
+        
+        m_config.ConfigureTiledDisplay();
 
         g_mutex_init(&m_pipelineMutex);
         g_mutex_init(&m_busSyncMutex);
@@ -76,8 +93,7 @@ namespace DSS
         m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";
         m_mapPipelineStates[GST_STATE_PAUSED] = "GST_STATE_PAUSED";
         m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
-        
-        
+                
         // get the GST message bus - one per GST pipeline
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pPipeline));
         
@@ -165,6 +181,9 @@ namespace DSS
                 structure = gst_message_get_structure(pMessage);
             }
             return GST_BUS_PASS;
+        case GST_MESSAGE_STATE_CHANGED:
+            return GST_BUS_PASS;
+
         default:
             LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }

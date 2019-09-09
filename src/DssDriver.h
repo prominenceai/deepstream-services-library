@@ -46,7 +46,8 @@ namespace DSS {
          */
         static Driver* GetDriver();
         
-        bool Configure(const std::string& cfgFilePathSpec);
+        bool Configure(const std::string& cfgFileDir, 
+            const std::string& cfgFileName);
         
         bool IsDisplayActive(){ return m_pDisplay; };
         

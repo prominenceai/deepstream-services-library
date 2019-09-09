@@ -78,8 +78,10 @@ int main(int argc, char **argv)
     
     // First call to GetDriver() for initialization
     Driver* pDrv = Driver::GetDriver();
+    
+    LOG_INFO(DS_CONFIG_DIR);
         
-    if (pDrv->Configure("./configs/source1_csi_dec_infer_resnet_int8.txt"))
+    if (pDrv->Configure(DS_CONFIG_DIR, "/source1_csi_dec_infer_resnet_int8.txt"))
     {
         // Run the main loop
         g_main_loop_run(pDrv->m_pMainLoop);
