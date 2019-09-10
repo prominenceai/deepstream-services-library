@@ -40,6 +40,7 @@ GSTREAMER_VERSION:=1.0
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
+CFG_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/configs/deepstream-app
 
 SRCS:= $(wildcard $(SRC_INSTALL_DIR)/apps/apps-common/src/*.c)
 SRCS+= $(wildcard ./src/*.cpp) 
@@ -69,6 +70,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/lib/aarch64-linux-gnu/glib-$(GLIB_VERSION)/include \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
+	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
     -DDSS_LOGGER_IMP='"DssLog4cxx.h"'
 
 LIBS+= -L$(LIB_INSTALL_DIR) \

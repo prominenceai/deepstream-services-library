@@ -79,9 +79,18 @@ namespace DSS {
          */
         Display* m_pDisplay;
         
-        std::vector<Bintr*> m_bintrs;
+        Bintr* m_pPipelineBintr;
+        Bintr* m_pProcessingBintr;
+        Bintr* m_pSinksBintr;
+        Bintr* m_pOsdBintr;
+        Bintr* m_pSourcesBintr;
+        Bintr* m_pTrackerBintr;
+        Bintr* m_pPrimaryGieBintr;
+        Bintr* m_pSecondaryGiesBintr;
+        Bintr* m_pTiledDisplayBintr;
         
-        GstElement* m_pInstance;
+        GstElement* m_pProcessingBin;
+
 
         /**
          * @brief mutex to protect critical pipeline code
@@ -121,6 +130,10 @@ namespace DSS {
         std::map<GstMessageType, std::string> m_mapMessageTypes;
 
         bool HandleStateChanged(GstMessage* pMessage);
+        /**
+         * @brief initializes the "constant-value-to-string" maps
+         */
+        void _initMaps();
         
         
     }; // Pipeline

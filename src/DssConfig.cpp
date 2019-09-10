@@ -42,7 +42,7 @@ namespace DSS
         , m_tiledDisplay{0}
         , m_dsExampleConfig{0} 
         , m_sourcesBintr{0}
-
+        , m_secondaryGiesbintr{0}
     {
         LOG_FUNC();
 
@@ -170,16 +170,6 @@ namespace DSS
         return m_tiledDisplay.config.enable;
     }
 
-    bool Config::IsOsdEnabled()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
-
-        LOG_INFO("OSD enabled:: " << m_osd.config.enable);
-
-        return m_osd.config.enable;
-    }
-
     bool Config::IsPerfMetricEnabled()
     {
         LOG_FUNC();
@@ -290,7 +280,7 @@ namespace DSS
         return true;
     }
 
-    GstElement* Config::CreateTiledDisplayBin(GstElement* parentBin)
+    GstElement* Config::CreateTiledDisplayBin()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
@@ -321,16 +311,11 @@ namespace DSS
             LOG_ERROR("Failed to create tiled display bin");
             throw;
         }
-        if (!gst_bin_add(parentBin, m_tiledDisplay.bintr.bin))
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
-            throw;
-        }
             
         return m_tiledDisplay.bintr.bin;
     }
     
-    GstElement* Config::CreateSourcesBin(GstElement* parentBin)
+    GstElement* Config::CreateSourcesBin()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
@@ -339,11 +324,6 @@ namespace DSS
               &m_sourcesConfig[0], &m_sourcesBintr))
         {
             LOG_ERROR("Failed to create multi source bin");
-            throw;
-        }
-        if (!gst_bin_add(parentBin, m_sourcesBintr.bin))
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
             throw;
         }
         return m_sourcesBintr.bin;
@@ -356,7 +336,7 @@ namespace DSS
 //        }
         
 
-    GstElement* Config::CreateOsdBin(GstElement* parentBin)
+    GstElement* Config::CreateOsdBin()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
@@ -371,15 +351,10 @@ namespace DSS
             LOG_ERROR("Failed to create OSD bin");
             throw;
         }
-        if (!gst_bin_add(parentBin, m_sourcesBintr.bin))
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
-            throw;
-        }
         return m_osd.bintr.bin;
     }    
 
-    GstElement* Config::CreateSinksBin(GstElement* parentBin)
+    GstElement* Config::CreateSinksBin()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
@@ -389,15 +364,10 @@ namespace DSS
             LOG_ERROR("Failed to create sink bin");
             throw;
         }
-        if (!gst_bin_add(parentBin, m_sinkBintr.bin)
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
-            throw;
-        }
         return m_sinkBintr.bin;
     }
     
-    GstElement* Config::CreateTrackerBin(GstElement* parentBin)
+    GstElement* Config::CreateTrackerBin()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
@@ -409,40 +379,50 @@ namespace DSS
         }
         if(!create_tracking_bin(&m_tracker.config, &m_tracker.bintr))
         {
-            LOG_ERROR("Failed to create OSD bin");
-            throw;
-        }
-        if (!gst_bin_add(parentBin, m_tracker.bintr.bin))
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
+            LOG_ERROR("Failed to create Tracker bin");
             throw;
         }
         return m_tracker.bintr.bin;
     }
 
-    GstElement* Config::CreatePrimaryGieBin(GstElement* parentBin)
+    GstElement* Config::CreatePrimaryGieBin()
     {
         
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
 
-        if (!m_tracker.config.enable)
+        if (!m_primaryGie.config.enable)
         {
-            LOG_WARN("Tracker is disabled");
+            LOG_INFO("Primary GIE is disabled");
             return NULL;
         }
         if (!create_primary_gie_bin(&m_primaryGie.config, &m_primaryGie.bintr)) 
         {
-            LOG_ERROR("Failed to create tracker bin ");
-            throw;
-        }
-        if (!gst_bin_add(parentBin, m_primaryGie.bintr.bin))
-        {
-            LOG_ERROR("Failed to add tiled display bin to parent");
+            LOG_ERROR("Failed to create Primary GIE bin ");
             throw;
         }
         return m_primaryGie.bintr.bin;
+    }
+    
+    GstElement* Config::CreateSecondaryGiesBin()
+    {
         
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        if (!m_primaryGie.config.enable)
+        {
+            LOG_INFO("Primary GIE is disabled");
+            return NULL;
+        }
+        if (!create_secondary_gie_bin(m_secondaryGieConfigs.size(),
+            m_secondaryGieConfigs.size(), &m_secondaryGieConfigs[0],
+            &m_secondaryGiesbintr))
+        {
+            LOG_ERROR("Failed to create Seconday GIEs bin");
+            throw;
+        }
+        return m_secondaryGiesbintr.bin;
     }
 //        GstPad *gstpad = gst_element_get_static_pad(prevBin, "sink"); \
 //        if (!gstpad)
@@ -598,6 +578,26 @@ namespace DSS
         return true;
     }
             
+    bool Config::_parseSecondaryGieGroup(gchar* group)
+    {
+        LOG_FUNC();
+        
+        NvDsGieConfig config;
+        
+        LOG_INFO((gchar*)m_cfgFileSpec.c_str());
+        
+        if (!(parse_gie(&config, m_pCfgKeyFile, 
+            group, (gchar*)m_cfgFileSpec.c_str())))
+        {
+            LOG_ERROR("Failure parsing source");
+            return false;
+        }
+        m_secondaryGieConfigs.push_back(config);
+        LOG_INFO("Secondary GIE Configs count:: " << m_secondaryGieConfigs.size());
+        
+        return true;
+    }
+
     bool Config::_parseStreamMuxGroup()
     {
         LOG_FUNC();

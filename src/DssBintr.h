@@ -43,6 +43,9 @@ namespace DSS
          */
         Bintr(const std::string& name, GstElement* bin)
             : m_bin(bin)
+            , m_pParentBintr(NULL)
+            , m_pSourceBintr(NULL)
+            , m_pDestBintr(NULL)
         { 
             LOG_FUNC(); 
             LOG_INFO("New bintr:: " << name);
@@ -55,12 +58,60 @@ namespace DSS
             LOG_FUNC();
             LOG_INFO("Delete bintr:: " << m_name);
         };
+
+        void Link(Bintr* pDestBintr)
+        { 
+            LOG_FUNC();
+            
+            m_pDestBintr = pDestBintr;
+            pDestBintr->m_pSourceBintr = this;
+
+            LOG_INFO("Source Bin " << m_name 
+                << " enabled:: " << (bool)m_bin);
+            LOG_INFO("Distination Bin " << pDestBintr->m_name 
+                << " enabled:: " << (bool)m_bin);
+            
+            if (m_bin && pDestBintr->m_bin)
+            {
+                if (!gst_element_link(m_bin, pDestBintr->m_bin))
+                {
+                    LOG_ERROR("Failed to link " << m_name << " to "
+                        << pDestBintr->m_name);
+                    throw;
+                }
+            }
+        };
+
+        void AddChild(Bintr* pChildBintr)
+        {
+            LOG_FUNC();
+            
+//            m_pChildBintr = pChildBintr;
+            pChildBintr->m_pParentBintr = this;
+            
+            if (m_bin && pChildBintr->m_bin)
+            {
+                if (!gst_bin_add(GST_BIN(m_bin), pChildBintr->m_bin))
+                {
+                    LOG_ERROR("Failed to add " << pChildBintr->m_bin << " to " << m_name);
+                    throw;
+                }
+            }
+        }
         
     private:
-
         std::string m_name;
 
         GstElement* m_bin;
+
+        Bintr* m_pParentBintr;
+        
+        Bintr* m_pSourceBintr;
+
+        Bintr* m_pDestBintr;
+        
+        friend class Config;
+        
     };
     
 } // DSS

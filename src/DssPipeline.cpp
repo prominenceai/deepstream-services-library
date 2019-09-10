@@ -29,46 +29,94 @@ THE SOFTWARE.
 
 namespace DSS
 {
- 
-    Pipeline::Pipeline(Config& config, Display* pDisplay)
+     Pipeline::Pipeline(Config& config, Display* pDisplay)
         : m_config(config)
         , m_pDisplay(pDisplay)
         , m_pPipeline(NULL)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
-        , m_pInstance(NULL)
-        , m_multiSourceBin{0}
+        , m_pProcessingBin(NULL)
+        , m_pPipelineBintr(NULL)
+        , m_pProcessingBintr(NULL)
+        , m_pSinksBintr(NULL)
+        , m_pOsdBintr(NULL)
+        , m_pSourcesBintr(NULL)
+        , m_pTrackerBintr(NULL)
+        , m_pPrimaryGieBintr(NULL)
+        , m_pSecondaryGiesBintr(NULL)
+        , m_pTiledDisplayBintr(NULL)
     {
         LOG_FUNC();
         
+        // New GST Pipeline
         m_pPipeline = gst_pipeline_new("pipeline");
-        m_pInstance = gst_bin_new("instance");
-
-        
         if (!m_pPipeline)
         {
             LOG_ERROR("Failed to create new pipeline");
             throw;
         }
 
-        m_bintrs.push_back(new Bintr("sources", 
-            m_config.CreateSourcesBin(m_pPipeline)));
+        // New processing parent bin 
+        m_pProcessingBin = gst_bin_new("processing-bin");
+        if (!m_pProcessingBin)
+        {
+            LOG_ERROR("Failed to create new processing-bin");
+            throw;
+        }
+        
+        m_pPipelineBintr = new Bintr("pipeline", (GstElement*)m_pPipeline);
+        m_pProcessingBintr = new Bintr("processing", m_pProcessingBin);
+
+        //  BUILD PIPELINE
+
+        // Starting with the multi source bin
+        m_pSourcesBintr = new Bintr("sources", m_config.CreateSourcesBin());
+        m_pPipelineBintr->AddChild(m_pSourcesBintr);
+        
             
-        m_bintrs.push_back(new Bintr("tracker", 
-            m_config.CreateTrackerBin(m_pPipeline)));
+        // Create the child procing bins for SINKS and OSD
+        m_pSinksBintr = new Bintr("sinks", m_config.CreateSinksBin());
+        m_pOsdBintr = new Bintr("osd", m_config.CreateOsdBin());
 
-        m_bintrs.push_back(new Bintr("primary-gie", 
-            m_config.CreatePrimaryGieBin(m_pPipeline)));
+        // Add both to the Processing Bintr
+        m_pProcessingBintr->AddChild(m_pSinksBintr);
+        m_pProcessingBintr->AddChild(m_pOsdBintr);
+            
+        // Link the OSD and SINKS bins
+        m_pOsdBintr->Link(m_pSinksBintr);
+        
+        // Add the proccessing bin to the Pipeline
+        m_pPipelineBintr->AddChild(m_pProcessingBintr);
+
+        // Create the Tiled Display bin and add it to Pipeline
+        m_pTiledDisplayBintr = new Bintr("tiled-display", 
+            m_config.CreateTiledDisplayBin());
+        m_pPipelineBintr->AddChild(m_pTiledDisplayBintr);
+
+        // Link the Tiled Display and the processing bin
+//        m_pTiledDisplayBintr->Link(m_pProcessingBintr);
+
+        // COMMON ELEMNTS
+        
+        // Create the Secondary GIEs bin and add it to Pipeline
+        m_pSecondaryGiesBintr = new Bintr("secondary-gies", 
+            m_config.CreateSecondaryGiesBin());
+        m_pPipelineBintr->AddChild(m_pSecondaryGiesBintr);
+
+        // Create the Tracker bin and add it to the Pipeline
+//        m_pTrackerBintr = new Bintr("tracker", m_config.CreateTrackerBin());
+//        m_pPipelineBintr->AddChild(m_pTrackerBintr);
+
+        // Create the Primary GIE bin and add it to Pipeline
+        m_pPrimaryGieBintr = new Bintr("primary-gie", 
+            m_config.CreatePrimaryGieBin());
+        m_pPipelineBintr->AddChild(m_pPrimaryGieBintr);
+        
+        m_pPrimaryGieBintr->Link(m_pSecondaryGiesBintr);
 
 
-        m_bintrs.push_back(new Bintr("tiled-display", 
-            m_config.CreateTiledDisplayBin(m_pInstance)));
-
-        m_bintrs.push_back(new Bintr("sinks", 
-            m_config.CreateSinksBin(m_pInstance)));
-
-        m_bintrs.push_back(new Bintr("osd", 
-            m_config.CreateOsdBin(m_pInstance)));
+        // Initialize "constant-to-string" maps
+        _initMaps();
         
         m_config.ConfigureTiledDisplay();
 
@@ -76,24 +124,6 @@ namespace DSS
         g_mutex_init(&m_busSyncMutex);
         g_mutex_init(&m_busWatchMutex);
 
-        m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
-        m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
-        m_mapMessageTypes[GST_MESSAGE_INFO] = "GST_MESSAGE_INFO";
-        m_mapMessageTypes[GST_MESSAGE_WARNING] = "GST_MESSAGE_WARNING";
-        m_mapMessageTypes[GST_MESSAGE_ERROR] = "GST_MESSAGE_ERROR";
-        m_mapMessageTypes[GST_MESSAGE_TAG] = "GST_MESSAGE_TAG";
-        m_mapMessageTypes[GST_MESSAGE_BUFFERING] = "GST_MESSAGE_BUFFERING";
-        m_mapMessageTypes[GST_MESSAGE_STATE_CHANGED] = "GST_MESSAGE_STATE_CHANGED";
-        m_mapMessageTypes[GST_MESSAGE_STEP_DONE] = "GST_MESSAGE_STEP_DONE";
-        m_mapMessageTypes[GST_MESSAGE_CLOCK_LOST] = "GST_MESSAGE_CLOCK_LOST";
-        m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
-        m_mapMessageTypes[GST_MESSAGE_STREAM_STATUS] = "GST_MESSAGE_STREAM_STATUS";
-
-        m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
-        m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";
-        m_mapPipelineStates[GST_STATE_PAUSED] = "GST_STATE_PAUSED";
-        m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
-                
         // get the GST message bus - one per GST pipeline
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pPipeline));
         
@@ -214,6 +244,27 @@ namespace DSS
 //        default:
 //        }
         return true;
+    }
+    
+    void Pipeline::_initMaps()
+    {
+        m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
+        m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
+        m_mapMessageTypes[GST_MESSAGE_INFO] = "GST_MESSAGE_INFO";
+        m_mapMessageTypes[GST_MESSAGE_WARNING] = "GST_MESSAGE_WARNING";
+        m_mapMessageTypes[GST_MESSAGE_ERROR] = "GST_MESSAGE_ERROR";
+        m_mapMessageTypes[GST_MESSAGE_TAG] = "GST_MESSAGE_TAG";
+        m_mapMessageTypes[GST_MESSAGE_BUFFERING] = "GST_MESSAGE_BUFFERING";
+        m_mapMessageTypes[GST_MESSAGE_STATE_CHANGED] = "GST_MESSAGE_STATE_CHANGED";
+        m_mapMessageTypes[GST_MESSAGE_STEP_DONE] = "GST_MESSAGE_STEP_DONE";
+        m_mapMessageTypes[GST_MESSAGE_CLOCK_LOST] = "GST_MESSAGE_CLOCK_LOST";
+        m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
+        m_mapMessageTypes[GST_MESSAGE_STREAM_STATUS] = "GST_MESSAGE_STREAM_STATUS";
+
+        m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
+        m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";
+        m_mapPipelineStates[GST_STATE_PAUSED] = "GST_STATE_PAUSED";
+        m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
     }
 
     static gboolean bus_watch(

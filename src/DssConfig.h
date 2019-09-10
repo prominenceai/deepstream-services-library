@@ -66,12 +66,6 @@ namespace DSS
         Window window;
     };
 
-    struct SecondaryGie
-    {
-        NvDsGieConfig config;
-        NvDsSecondaryGieBin bin;
-    };
-        
     /**
      * @class Config
      * @file  DssConfig.h
@@ -101,10 +95,6 @@ namespace DSS
         /**
         * 
         */
-        bool IsOsdEnabled();
-        /**
-        * 
-        */
         bool IsPerfMetricEnabled();
 
         /**
@@ -128,39 +118,46 @@ namespace DSS
          * @brief Creates a new Tiled-Display bin if enabled
          * @return newly created bin if enabled, NULL if not.
          */
-        GstElement* CreateTiledDisplayBin(GstElement* parentBin);
+        GstElement* CreateTiledDisplayBin();
         
         /**
          * @brief Creates a new bin for all Sources
          * @return newly created bin
          */
-        GstElement* CreateSourcesBin(GstElement* parentBin);
+        GstElement* CreateSourcesBin();
 
         /**
          * @brief Creates a new bin for all Sinkds
          * @return newly created bin
          */
-        GstElement* CreateSinksBin(GstElement* parentBin);
+        GstElement* CreateSinksBin();
         
         /**
          * @brief Creates a new OSD bin if enabled
          * @return newly created bin if enabled, NULL if not.
          */
-        GstElement* CreateOsdBin(GstElement* parentBin);
+        GstElement* CreateOsdBin();
        
         /**
          * @brief Creates a new Tracker bin if enabled
          * @return newly created bin if enabled, NULL if not.
          */
-        GstElement* CreateTrackerBin(GstElement* parentBin);
+        GstElement* CreateTrackerBin();
        
         /**
-         * @brief Creates a new Primary GIEb if enabled
+         * @brief Creates a new Primary GIE bin if enabled
          * @return newly created bin if enabled, NULL if not.
          * @throws general exeception on failure
          */
-        GstElement* CreatePrimaryGieBin(GstElement* parentBin);
-            
+        GstElement* CreatePrimaryGieBin();
+
+        /**
+         * @brief Creates a Secondary GIES bin if the Primary  
+         * GIE binis enabled.
+         * @return newly created bin if enabled, NULL if not.
+         * @throws general exeception on failure
+         */
+        GstElement* CreateSecondaryGiesBin();
     private:
 
         /**
@@ -223,7 +220,10 @@ namespace DSS
         /**
         * 
         */
-        std::vector<SecondaryGie> m_secondaryGies;          
+        std::vector<NvDsGieConfig> m_secondaryGieConfigs;
+        
+        NvDsSecondaryGieBin m_secondaryGiesbintr;
+        
 
         /**
         * 
@@ -330,9 +330,15 @@ namespace DSS
 
         /**
          * @brief 
-         * @return true if an "primary-gie" group was parsed successfully.
+         * @return true if a "primary-gie" group was parsed successfully.
          */
         bool _parsePrimaryGieGroup(gchar* group);
+
+        /**
+         * @brief 
+         * @return true if a "secondary-gie" group was parsed successfully.
+         */
+        bool _parseSecondaryGieGroup(gchar* group);
 
         /**
          * @brief 
