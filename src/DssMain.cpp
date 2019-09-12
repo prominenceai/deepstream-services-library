@@ -77,11 +77,13 @@ int main(int argc, char **argv)
     PrgItrSigIsrInstall();    
     
     // First call to GetDriver() for initialization
-    Driver* pDrv = Driver::GetDriver();
+    Driver* pDriver = Driver::GetDriver();
+
+    pDriver->NewPipeline("new-driver");
     
-    LOG_INFO(DS_CONFIG_DIR);
+    pDriver->DeleteDriver("new-driver")
         
-    if (pDrv->Configure(DS_CONFIG_DIR, "/source1_csi_dec_infer_resnet_int8.txt"))
+    if (pDrv->Configure(DS_CONFIG_DIR, "source1_csi_dec_infer_resnet_int8.txt"))
     {
         // Run the main loop
         g_main_loop_run(pDrv->m_pMainLoop);

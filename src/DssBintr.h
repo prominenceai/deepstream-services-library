@@ -59,7 +59,7 @@ namespace DSS
             LOG_INFO("Delete bintr:: " << m_name);
         };
 
-        void Link(Bintr* pDestBintr)
+        void LinkTo(Bintr* pDestBintr)
         { 
             LOG_FUNC();
             

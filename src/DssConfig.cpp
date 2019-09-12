@@ -215,11 +215,21 @@ namespace DSS
         
         return prevValue;
     }
-    
 
-//        NVGSTDS_LINK_ELEMENT(m_streamMux.bin.bin, last_elem);
-//        set_streammux_properties(&m_streamMux.config, m_streamMux.bin.streammux);
-    
+    void Config::ConfigureStreamMux()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_configMutex);
+
+        if (m_streamMux.config.is_parsed)
+        {
+            LOG_INFO("Setting streammux properties");
+            
+            set_streammux_properties(&m_streamMux.config,
+                m_sourcesBintr.streammux);
+        }
+    }        
+       
     bool Config::ConfigureTiledDisplay()
     {
         LOG_FUNC();

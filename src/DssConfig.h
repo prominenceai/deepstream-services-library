@@ -68,7 +68,6 @@ namespace DSS
 
     /**
      * @class Config
-     * @file  DssConfig.h
      * @brief 
      */
     class Config
@@ -113,6 +112,8 @@ namespace DSS
         gint SetMetricInterval(gint newValue);
         
         bool ConfigureTiledDisplay();
+        
+        void ConfigureStreamMux();
         
         /**
          * @brief Creates a new Tiled-Display bin if enabled

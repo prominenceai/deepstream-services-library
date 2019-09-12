@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 namespace DSS
 {
-     Pipeline::Pipeline(Config& config, Display* pDisplay)
+     Pipeline::Pipeline(Display* pDisplay)
         : m_config(config)
         , m_pDisplay(pDisplay)
         , m_pPipeline(NULL)
@@ -69,57 +69,43 @@ namespace DSS
 
         //  BUILD PIPELINE
 
-        // Starting with the multi source bin
+        // Create all bins for the Pipeline
         m_pSourcesBintr = new Bintr("sources", m_config.CreateSourcesBin());
-        m_pPipelineBintr->AddChild(m_pSourcesBintr);
-        
-            
-        // Create the child procing bins for SINKS and OSD
         m_pSinksBintr = new Bintr("sinks", m_config.CreateSinksBin());
         m_pOsdBintr = new Bintr("osd", m_config.CreateOsdBin());
-
-        // Add both to the Processing Bintr
-        m_pProcessingBintr->AddChild(m_pSinksBintr);
-        m_pProcessingBintr->AddChild(m_pOsdBintr);
-            
-        // Link the OSD and SINKS bins
-        m_pOsdBintr->Link(m_pSinksBintr);
-        
-        // Add the proccessing bin to the Pipeline
-        m_pPipelineBintr->AddChild(m_pProcessingBintr);
-
-        // Create the Tiled Display bin and add it to Pipeline
         m_pTiledDisplayBintr = new Bintr("tiled-display", 
             m_config.CreateTiledDisplayBin());
-        m_pPipelineBintr->AddChild(m_pTiledDisplayBintr);
-
-        // Link the Tiled Display and the processing bin
-//        m_pTiledDisplayBintr->Link(m_pProcessingBintr);
-
-        // COMMON ELEMNTS
-        
-        // Create the Secondary GIEs bin and add it to Pipeline
-        m_pSecondaryGiesBintr = new Bintr("secondary-gies", 
-            m_config.CreateSecondaryGiesBin());
-        m_pPipelineBintr->AddChild(m_pSecondaryGiesBintr);
-
-        // Create the Tracker bin and add it to the Pipeline
-//        m_pTrackerBintr = new Bintr("tracker", m_config.CreateTrackerBin());
-//        m_pPipelineBintr->AddChild(m_pTrackerBintr);
-
-        // Create the Primary GIE bin and add it to Pipeline
         m_pPrimaryGieBintr = new Bintr("primary-gie", 
             m_config.CreatePrimaryGieBin());
-        m_pPipelineBintr->AddChild(m_pPrimaryGieBintr);
-        
-        m_pPrimaryGieBintr->Link(m_pSecondaryGiesBintr);
+        m_pSecondaryGiesBintr = new Bintr("secondary-gies", 
+            m_config.CreateSecondaryGiesBin());
+        m_pTrackerBintr = new Bintr("tracker", m_config.CreateTrackerBin());
 
+        m_config.ConfigureStreamMux();
+        m_config.ConfigureTiledDisplay();
+
+        // Add both SINKS and OSD to the Processing Bin
+        m_pProcessingBintr->AddChild(m_pSinksBintr);
+        m_pProcessingBintr->AddChild(m_pOsdBintr);
+
+        // Add the processing bin and all others to the pipeline
+        m_pPipelineBintr->AddChild(m_pProcessingBintr);
+        m_pPipelineBintr->AddChild(m_pSourcesBintr);
+        m_pPipelineBintr->AddChild(m_pTrackerBintr);
+        m_pPipelineBintr->AddChild(m_pTiledDisplayBintr);
+        m_pPipelineBintr->AddChild(m_pSecondaryGiesBintr);
+        m_pPipelineBintr->AddChild(m_pPrimaryGieBintr);
+
+        m_pOsdBintr->LinkTo(m_pSinksBintr);
+            
+        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
+        m_pPrimaryGieBintr->LinkTo(m_pSecondaryGiesBintr);
+        m_pSecondaryGiesBintr->LinkTo(m_pTiledDisplayBintr);
+//        m_pTiledDisplayBintr->LinkTo(m_pProcessingBintr);
 
         // Initialize "constant-to-string" maps
         _initMaps();
         
-        m_config.ConfigureTiledDisplay();
-
         g_mutex_init(&m_pipelineMutex);
         g_mutex_init(&m_busSyncMutex);
         g_mutex_init(&m_busWatchMutex);
