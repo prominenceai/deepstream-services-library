@@ -39,10 +39,11 @@ THE SOFTWARE.
 /**
  * Source Object Return Values
  */
-#define DSD_RESULT_SOURCE_RESULT                                    0x00010000
-#define DSD_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00010001
-#define DSD_RESULT_SOURCE_NAME_NOT_FOUND                            0x00010010
-#define DSD_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00010011
+#define DSD_RESULT_SOURCE_RESULT                                    0x00100000
+#define DSD_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
+#define DSD_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
+#define DSD_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
+#define DSD_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
 
 /**
  * StreamMux Object Return Values
@@ -117,6 +118,8 @@ THE SOFTWARE.
 #define DSD_SINK_TYPE_RTSP                                          4
 #define DSD_SINK_TYPE_CSI                                           5
 
+typedef int DsdReturnType;
+
 /**
  * @brief creates a new, uniquely named Source obj
  * @param source unique name for the new Config
@@ -127,7 +130,7 @@ THE SOFTWARE.
  * @param fps-d
  * @return DSD_RESULT_SOURCE_RESULT
  */
-#define DSD_SOURCE_NEW(source, type, width, height, fps-n, fps-d)
+#define DSD_SOURCE_NEW(source, type, width, height, fps_n, fps_d)
 
 /**
  * @brief deletes a Source object by name
@@ -330,4 +333,4 @@ THE SOFTWARE.
  */
 #define DSD_PIPELINE_GET_STATE(pipeline)
 
-#endif _DSD_API_H
+#endif // _DSD_API_H

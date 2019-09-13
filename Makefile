@@ -71,7 +71,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
 	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
-    -DDSS_LOGGER_IMP='"DssLog4cxx.h"'
+    -DDSD_LOGGER_IMP='"DsdLog4cxx.h"'
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-llog4cxx  \
