@@ -88,8 +88,8 @@ namespace DSD
         g_mutex_clear(&m_driverMutex);
     }
 
-    DsdReturnType Driver::SourceNew(const std::string& source, 
-        guint type, guint width, guint height, guint fps_n, guint fps_d)
+    DsdReturnType Driver::SourceNew(const std::string& source, guint type, 
+        gboolean live, guint width, guint height, guint fps_n, guint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
@@ -101,7 +101,8 @@ namespace DSD
         }
         try
         {
-            m_allSources[source] = new SourceBintr(source);
+            m_allSources[source] = new SourceBintr(
+                source, type, live, width, height, fps_n, fps_d);
         }
         catch(...)
         {
@@ -130,7 +131,7 @@ namespace DSD
         }
         catch(...)
         {
-            LOG_ERROR("New Source '" << source << "' threw exception on create");
+            LOG_ERROR("Source delete '" << source << "' threw exception on create");
             return DSD_RESULT_SOURCE_NEW_EXCEPTION;
         }
         LOG_INFO("Source '" << source << "' deleted successfully");
@@ -149,7 +150,16 @@ namespace DSD
             LOG_ERROR("Stream Mux name '" << streammux << "' is not unique");
             return DSD_RESULT_STREAMMUX_NAME_NOT_UNIQUE;
         }
-        m_allStreamMuxs[streammux] = 1;
+        try
+        {
+            m_allStreamMuxs[streammux] = new StreamMuxBintr(
+                streammux, live, batchSize, batchTimeout, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New StreamMux '" << streammux << "' threw exception on create");
+            return DSD_RESULT_STREAMMUX_NEW_EXCEPTION;
+        }
         LOG_INFO("new Stream Mux '" << streammux << "' created successfully");
 
         return DSD_RESULT_SUCCESS;
@@ -165,7 +175,17 @@ namespace DSD
             LOG_ERROR("Streammux name '" << streammux << "' was not found");
             return DSD_RESULT_STREAMMUX_NAME_NOT_FOUND;
         }
-        m_allStreamMuxs.erase(streammux);
+        try
+        {
+            delete m_allStreamMuxs[streammux];
+            m_allStreamMuxs.erase(streammux);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Stream Mux delete '" << streammux << "' threw exception on create");
+            return DSD_RESULT_SOURCE_NEW_EXCEPTION;
+        }
+        
         LOG_INFO("Streammux '" << streammux << "' deleted successfully");
 
         return DSD_RESULT_SUCCESS;

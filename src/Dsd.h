@@ -58,6 +58,4 @@ GST_DEBUG_CATEGORY_EXTERN (NVDS_APP);
 #include "DsdMutex.h"
 #include "DsdLog.h"
 
-
-
 #endif // _DSD_H

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "DsdDriver.h"
 
-GST_DEBUG_CATEGORY(NVDS_APP);
+//GST_DEBUG_CATEGORY(NVDS_APP);
 
 using namespace DSD;
 
@@ -80,30 +80,22 @@ int main(int argc, char **argv)
     // First call to GetDriver() for initialization
     Driver* pDriver = Driver::GetDriver();
 
-    DSD_SOURCE_NEW("source1", DSD_SOURCE_TYPE_CSI, 1280, 720, 30, 1);
-    DSD_SOURCE_NEW("source1", DSD_SOURCE_TYPE_CSI, 0, 0, 0, 1);
+    DSD_SOURCE_NEW("source1", DSD_SOURCE_TYPE_CSI, DSD_TRUE, 1280, 720, 30, 1);
 
     DSD_STREAMMUX_NEW("streammux1", TRUE, 1, 40000, 1280, 720);
-    DSD_STREAMMUX_NEW("streammux1", FALSE, 0, 0, 0, 0);
 
     DSD_DISPLAY_NEW("display1", 1, 1, 1280, 720);
-    DSD_DISPLAY_NEW("display1", 1, 0, 0, 0);
 
     DSD_GIE_NEW("GIE1",
         "../../models/Primary_Detector/resnet10.caffemodel_b30_int8.engine", 
         "config_infer_primary.txt", 1, 1, 1, 1, 1);
-    DSD_GIE_NEW("GIE1", "", "", 0, 0, 0, 0, 0);
 
     DSD_GIE_DELETE("GIE1");
-    DSD_GIE_DELETE("GIE1");
     
-    DSD_DISPLAY_DELETE("display1");
     DSD_DISPLAY_DELETE("display1");
     
     DSD_STREAMMUX_DELETE("streammux1");
-    DSD_STREAMMUX_DELETE("streammux1");
     
-    DSD_SOURCE_DELETE("source1");
     DSD_SOURCE_DELETE("source1");
 
         // Run the main loop

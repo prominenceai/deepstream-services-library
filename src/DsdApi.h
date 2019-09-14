@@ -25,6 +25,9 @@ THE SOFTWARE.
 #ifndef _DSD_API_H
 #define _DSD_API_H
 
+#define DSD_FALSE                                                   0
+#define DSD_TRUE                                                    1
+
 #define DSD_RESULT_SUCCESS                                          0x00000000
 #define DSD_RESULT_API_NOT_IMPLEMENTED                              0x00000001
 
@@ -52,6 +55,7 @@ THE SOFTWARE.
 #define DSD_RESULT_STREAMMUX_NAME_NOT_UNIQUE                        0x00010001
 #define DSD_RESULT_STREAMMUX_NAME_NOT_FOUND                         0x00010010
 #define DSD_RESULT_STREAMMUX_NAME_BAD_FORMAT                        0x00010011
+#define DSD_RESULT_STREAMMUX_NEW_EXCEPTION                          0x00010100
 
 /**
  * Sink Object Return Values
@@ -124,13 +128,14 @@ typedef int DsdReturnType;
  * @brief creates a new, uniquely named Source obj
  * @param source unique name for the new Config
  * @param type value of DSD_SOURCE_TYPE
+ * @param live specifies if source is live [DSD_TRUE | DSD_FLASE]
  * @param width width of the source in pixels
  * @param height height of the source in pixels
  * @param fps-n
  * @param fps-d
  * @return DSD_RESULT_SOURCE_RESULT
  */
-#define DSD_SOURCE_NEW(source, type, width, height, fps_n, fps_d)
+#define DSD_SOURCE_NEW(source, type, live, width, height, fps_n, fps_d)
 
 /**
  * @brief deletes a Source object by name

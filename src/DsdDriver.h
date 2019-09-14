@@ -30,8 +30,8 @@ THE SOFTWARE.
 #include "DsdApi.h"
 
 #undef DSD_SOURCE_NEW
-#define DSD_SOURCE_NEW(source, type, width, height, fps_n, fps_d) \
-    Driver::GetDriver()->SourceNew(source, type, width, height, fps_n, fps_d)
+#define DSD_SOURCE_NEW(source, type, live, width, height, fps_n, fps_d) \
+    Driver::GetDriver()->SourceNew(source, type, live, width, height, fps_n, fps_d)
 
 #undef DSD_SOURCE_DELETE
 #define DSD_SOURCE_DELETE(source) \
@@ -148,13 +148,13 @@ namespace DSD {
          */
         static Driver* GetDriver();
         
-        DsdReturnType SourceNew(const std::string& source, 
-            guint type, guint width, guint height, guint fps_n, guint fps_d);
+        DsdReturnType SourceNew(const std::string& source, guint type, 
+            gboolean live, guint width, guint height, guint fps_n, guint fps_d);
         
         DsdReturnType SourceDelete(const std::string& source);
         
-        DsdReturnType StreamMuxNew(const std::string& streammux, 
-            gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
+        DsdReturnType StreamMuxNew(const std::string& streammux, gboolean live, 
+            guint batchSize, guint batchTimeout, guint width, guint height);
         
         DsdReturnType StreamMuxDelete(const std::string& streammux);
         
@@ -271,7 +271,7 @@ namespace DSD {
         GThread* m_pXWindowEventThread;
         
         std::map <std::string, SourceBintr*> m_allSources;
-        std::map <std::string, guint> m_allStreamMuxs;
+        std::map <std::string, StreamMuxBintr*> m_allStreamMuxs;
         std::map <std::string, guint> m_allSinks;
         std::map <std::string, guint> m_allOsds;
         std::map <std::string, guint> m_allGies;
