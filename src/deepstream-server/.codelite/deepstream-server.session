@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Session Name="/home/rjhowell44/Public/CanAmMex/deepstream-sever/deepstream-server/deepstream-server.workspace">
+  <int Value="8" Name="m_selectedTab"/>
+  <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/deepstream-server/deepstream-server.workspace" Name="m_workspaceName"/>
+  <TabInfoArray Name="TabInfoArray">
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssDriver.h" Name="FileName"/>
+      <int Value="94" Name="FirstVisibleLine"/>
+      <int Value="95" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="25:3"/>
+        <wxString Value="50:3"/>
+      </wxArrayString>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssDriver.cpp" Name="FileName"/>
+      <int Value="113" Name="FirstVisibleLine"/>
+      <int Value="111" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="167:3"/>
+      </wxArrayString>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/opt/nvidia/deepstream/deepstream-4.0/sources/apps/sample_apps/deepstream-app/deepstream_app_main.c" Name="FileName"/>
+      <int Value="57" Name="FirstVisibleLine"/>
+      <int Value="55" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/opt/nvidia/deepstream/deepstream-4.0/sources/apps/sample_apps/deepstream-app/deepstream_app.h" Name="FileName"/>
+      <int Value="52" Name="FirstVisibleLine"/>
+      <int Value="69" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="77:3"/>
+      </wxArrayString>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/opt/nvidia/deepstream/deepstream-4.0/sources/apps/sample_apps/deepstream-app/deepstream_app.c" Name="FileName"/>
+      <int Value="681" Name="FirstVisibleLine"/>
+      <int Value="700" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssConfig.cpp" Name="FileName"/>
+      <int Value="155" Name="FirstVisibleLine"/>
+      <int Value="172" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="35:3"/>
+        <wxString Value="39:3"/>
+      </wxArrayString>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssAppCtx.cpp" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssPipeline.h" Name="FileName"/>
+      <int Value="68" Name="FirstVisibleLine"/>
+      <int Value="93" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssPipeline.cpp" Name="FileName"/>
+      <int Value="73" Name="FirstVisibleLine"/>
+      <int Value="97" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks">
+        <wxString Value="40:3"/>
+      </wxArrayString>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssConfig.h" Name="FileName"/>
+      <int Value="72" Name="FirstVisibleLine"/>
+      <int Value="94" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/opt/nvidia/deepstream/deepstream-4.0/sources/apps/sample_apps/deepstream-app/deepstream_app_config_parser.c" Name="FileName"/>
+      <int Value="180" Name="FirstVisibleLine"/>
+      <int Value="203" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/rjhowell44/Public/CanAmMex/deepstream-sever/src/DssBintr.h" Name="FileName"/>
+      <int Value="56" Name="FirstVisibleLine"/>
+      <int Value="74" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+  </TabInfoArray>
+  <SerializedObject Name="m_breakpoints">
+    <long Value="0" Name="Count"/>
+  </SerializedObject>
+</Session>

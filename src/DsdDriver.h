@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include "DsdConfig.h"
 #include "DsdPipeline.h"
 #include "DsdApi.h"
+#include "DsdSourceBintr.h"
+#include "DsdStreamMuxBintr.h"
+#include "DsdDisplayBintr.h"
 
 #undef DSD_SOURCE_NEW
 #define DSD_SOURCE_NEW(source, type, live, width, height, fps_n, fps_d) \
@@ -274,8 +277,8 @@ namespace DSD {
         std::map <std::string, StreamMuxBintr*> m_allStreamMuxs;
         std::map <std::string, guint> m_allSinks;
         std::map <std::string, guint> m_allOsds;
-        std::map <std::string, guint> m_allGies;
-        std::map <std::string, guint> m_allDisplays;
+        std::map <std::string, PrimaryGieBintr*> m_allGies;
+        std::map <std::string, TiledDisplayBintr*> m_allDisplays;
         std::map <std::string, guint> m_allConfigs;
     };  
 

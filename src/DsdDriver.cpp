@@ -131,7 +131,7 @@ namespace DSD
         }
         catch(...)
         {
-            LOG_ERROR("Source delete '" << source << "' threw exception on create");
+            LOG_ERROR("Source Delete '" << source << "' threw exception");
             return DSD_RESULT_SOURCE_NEW_EXCEPTION;
         }
         LOG_INFO("Source '" << source << "' deleted successfully");
@@ -182,7 +182,7 @@ namespace DSD
         }
         catch(...)
         {
-            LOG_ERROR("Stream Mux delete '" << streammux << "' threw exception on create");
+            LOG_ERROR("Stream Mux delete '" << streammux << "' threw exception");
             return DSD_RESULT_SOURCE_NEW_EXCEPTION;
         }
         
@@ -202,7 +202,16 @@ namespace DSD
             LOG_ERROR("Display name '" << display << "' is not unique");
             return DSD_RESULT_DISPLAY_NAME_NOT_UNIQUE;
         }
-        m_allDisplays[display] = 1;
+        try
+        {
+            m_allDisplays[display] = new TiledDisplayBintr(
+                display, rows, columns, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display New'" << display << "' threw exception on create");
+            return DSD_RESULT_DISPLAY_NEW_EXCEPTION;
+        }
         LOG_INFO("new Display '" << display << "' created successfully");
 
         return DSD_RESULT_SUCCESS;
@@ -218,7 +227,16 @@ namespace DSD
             LOG_ERROR("Display name '" << display << "' was not found");
             return DSD_RESULT_DISPLAY_NAME_NOT_FOUND;
         }
-        m_allDisplays.erase(display);
+        try
+        {
+            delete m_allDisplays[display];
+            m_allDisplays.erase(display);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display delete '" << display << "' threw exception");
+            return DSD_RESULT_DISPLAY_NEW_EXCEPTION;
+        }
         LOG_INFO("Display '" << display << "' deleted successfully");
 
         return DSD_RESULT_SUCCESS;
@@ -236,7 +254,16 @@ namespace DSD
             LOG_ERROR("GIE name '" << gie << "' is not unique");
             return DSD_RESULT_GIE_NAME_NOT_UNIQUE;
         }
-        m_allGies[gie] = 1;
+        try
+        {
+            m_allGies[gie] = new PrimaryGieBintr(
+                gie, model, infer, batchSize, bc1, bc2, bc3, bc4);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Primary GIE '" << gie << "' threw exception on create");
+            return DSD_RESULT_GIE_NEW_EXCEPTION;
+        }
         LOG_INFO("new GIE '" << gie << "' created successfully");
 
         return DSD_RESULT_SUCCESS;
@@ -251,6 +278,16 @@ namespace DSD
         {   
             LOG_ERROR("GIE name '" << gie << "' was not found");
             return DSD_RESULT_GIE_NAME_NOT_FOUND;
+        }
+        try
+        {
+            delete m_allGies[gie];
+            m_allDisplays.erase(gie);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Delete Primary GIE '" << gie << "' threw exception on create");
+            return DSD_RESULT_DISPLAY_NEW_EXCEPTION;
         }
         m_allGies.erase(gie);
         LOG_INFO("GIE '" << gie << "' deleted successfully");

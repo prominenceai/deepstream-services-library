@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "DsdDriver.h"
 
-//GST_DEBUG_CATEGORY(NVDS_APP);
+GST_DEBUG_CATEGORY(NVDS_APP);
 
 using namespace DSD;
 
@@ -86,11 +86,13 @@ int main(int argc, char **argv)
 
     DSD_DISPLAY_NEW("display1", 1, 1, 1280, 720);
 
-    DSD_GIE_NEW("GIE1",
-        "../../models/Primary_Detector/resnet10.caffemodel_b30_int8.engine", 
-        "config_infer_primary.txt", 1, 1, 1, 1, 1);
-
-    DSD_GIE_DELETE("GIE1");
+//    DSD_GIE_NEW("GIE1",
+//        "resnet10.caffemodel_b30_int8.engine", 
+//        "config_infer_primary.txt", 1, 1, 1, 1, 1);
+//        
+//    
+//
+//    DSD_GIE_DELETE("GIE1");
     
     DSD_DISPLAY_DELETE("display1");
     

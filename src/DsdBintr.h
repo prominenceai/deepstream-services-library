@@ -44,7 +44,7 @@ namespace DSD
          * @brief 
          */
         Bintr(const std::string& name)
-            : m_bin(NULL)
+            : m_pBin(NULL)
             , m_pParentBintr(NULL)
             , m_pSourceBintr(NULL)
             , m_pDestBintr(NULL)
@@ -53,6 +53,7 @@ namespace DSD
             LOG_INFO("New bintr:: " << name);
             
             m_name.assign(name);
+            m_configFilePath.assign(DS_CONFIG_DIR);
             
             g_mutex_init(&m_bintrMutex);
         };
@@ -65,6 +66,8 @@ namespace DSD
             g_mutex_clear(&m_bintrMutex);
         };
 
+        std::string m_configFilePath;
+
         void LinkTo(Bintr* pDestBintr)
         { 
             LOG_FUNC();
@@ -74,13 +77,13 @@ namespace DSD
             pDestBintr->m_pSourceBintr = this;
 
             LOG_INFO("Source Bin " << m_name 
-                << " enabled:: " << (bool)m_bin);
+                << " enabled:: " << (bool)m_pBin);
             LOG_INFO("Distination Bin " << pDestBintr->m_name 
-                << " enabled:: " << (bool)m_bin);
+                << " enabled:: " << (bool)m_pBin);
             
-            if (m_bin && pDestBintr->m_bin)
+            if (m_pBin && pDestBintr->m_pBin)
             {
-                if (!gst_element_link(m_bin, pDestBintr->m_bin))
+                if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
                 {
                     LOG_ERROR("Failed to link " << m_name << " to "
                         << pDestBintr->m_name);
@@ -97,20 +100,20 @@ namespace DSD
 //            m_pChildBintr = pChildBintr;
             pChildBintr->m_pParentBintr = this;
             
-            if (m_bin && pChildBintr->m_bin)
+            if (m_pBin && pChildBintr->m_pBin)
             {
-                if (!gst_bin_add(GST_BIN(m_bin), pChildBintr->m_bin))
+                if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
                 {
-                    LOG_ERROR("Failed to add " << pChildBintr->m_bin << " to " << m_name);
+                    LOG_ERROR("Failed to add " << pChildBintr->m_pBin << " to " << m_name);
                     throw;
                 }
             }
         }
         
-    private:
+    public:
         std::string m_name;
 
-        GstElement* m_bin;
+        GstElement* m_pBin;
 
         Bintr* m_pParentBintr;
         
@@ -124,80 +127,35 @@ namespace DSD
         GMutex m_bintrMutex;
     };
 
-    class SourceBintr : public Bintr
+
+    class PrimaryGieBintr : public Bintr
     {
     public: 
     
-        SourceBintr(const std::string& source, guint type, gboolean live, 
-            guint width, guint height, guint fps_n, guint fps_d)
-            : Bintr(source)
+        PrimaryGieBintr(const std::string& gie, 
+            const std::string& model,const std::string& infer, 
+            guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4)
+            : Bintr(gie)
         {
             LOG_FUNC();
             
             INIT_MEMORY(m_nvdsConfig);
             INIT_MEMORY(m_nvdsBin);
             
-            m_nvdsConfig.type = (NvDsSourceType)type;
-            m_nvdsConfig.live_source = live;
-            m_nvdsConfig.source_width = width;
-            m_nvdsConfig.source_height = height;
-            m_nvdsConfig.source_fps_n = fps_n;
-            m_nvdsConfig.source_fps_d = fps_d;
-            m_nvdsConfig.camera_csi_sensor_id = 1;
-
-            if (!create_source_bin(&m_nvdsConfig, &m_nvdsBin))
-            {
-                LOG_ERROR("Failed to create new Source bin for '" << source << "'");
-                throw;
-            }
-            
-        };
-
-        ~SourceBintr()
-        {
-            LOG_FUNC();
-        };
-        
-    private:
-    
-        NvDsSourceConfig m_nvdsConfig;
-
-        NvDsSrcBin m_nvdsBin;        
-    };
-
-    class StreamMuxBintr : public Bintr
-    {
-    public: 
-    
-        StreamMuxBintr(const std::string& streammux, 
-            gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)
-            : Bintr(streammux)
-        {
-            LOG_FUNC();
-            
-            INIT_MEMORY(m_nvdsConfig);
-            
-            m_nvdsConfig.pipeline_width = width;
-            m_nvdsConfig.pipeline_height = height;
+            m_nvdsConfig.config_file_path = (gchar*)Bintr::m_configFilePath.c_str();;
+            m_nvdsConfig.model_engine_file_path = (gchar*)model.c_str();
+            m_nvdsConfig.label_file_path = (gchar*)infer.c_str();
+            m_nvdsConfig.is_batch_size_set = (gboolean)batchSize;
             m_nvdsConfig.batch_size = batchSize;
-            m_nvdsConfig.batched_push_timeout = batchTimeout;
-            m_nvdsConfig.live_source = live;
-            m_nvdsConfig.is_parsed = TRUE;
 
-            m_pBin = gst_element_factory_make (NVDS_ELEM_STREAM_MUX, "stream_muxer");
-            if (!m_pBin) 
-            {            
-                LOG_ERROR("Failed to create new Stream Muxer bin for '" << streammux << "'");
-                throw;
-            };
-            if (!set_streammux_properties(&m_nvdsConfig, m_pBin))
+            if (!create_primary_gie_bin(&m_nvdsConfig, &m_nvdsBin))
             {
-                LOG_ERROR("Failed to set Stream Muxer properties for '" << streammux << "'");
+                LOG_ERROR("Failed to create new Primary GIE bin for '" << gie << "'");
                 throw;
             }
         };    
 
-        ~StreamMuxBintr()
+        ~PrimaryGieBintr()
         {
             LOG_FUNC();
         };
@@ -205,10 +163,12 @@ namespace DSD
         
     private:
     
-        NvDsStreammuxConfig m_nvdsConfig;
+        NvDsGieConfig m_nvdsConfig;
 
-        GstElement* m_pBin;        
+        NvDsPrimaryGieBin m_nvdsBin;
     };
+    
+
 } // DSD
 
 #endif // _DSD_BINTR_H

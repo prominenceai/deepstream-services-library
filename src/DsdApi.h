@@ -51,64 +51,68 @@ THE SOFTWARE.
 /**
  * StreamMux Object Return Values
  */
-#define DSD_RESULT_STREAMMUX_RESULT                                 0x00010000
-#define DSD_RESULT_STREAMMUX_NAME_NOT_UNIQUE                        0x00010001
-#define DSD_RESULT_STREAMMUX_NAME_NOT_FOUND                         0x00010010
-#define DSD_RESULT_STREAMMUX_NAME_BAD_FORMAT                        0x00010011
-#define DSD_RESULT_STREAMMUX_NEW_EXCEPTION                          0x00010100
+#define DSD_RESULT_STREAMMUX_RESULT                                 0x00110000
+#define DSD_RESULT_STREAMMUX_NAME_NOT_UNIQUE                        0x00110001
+#define DSD_RESULT_STREAMMUX_NAME_NOT_FOUND                         0x00110010
+#define DSD_RESULT_STREAMMUX_NAME_BAD_FORMAT                        0x00110011
+#define DSD_RESULT_STREAMMUX_NEW_EXCEPTION                          0x00110100
 
 /**
  * Sink Object Return Values
  */
-#define DSD_RESULT_SINK_RESULT                                      0x00100000
-#define DSD_RESULT_SINK_NAME_NOT_UNIQUE                             0x00100001
-#define DSD_RESULT_SINK_NAME_NOT_FOUND                              0x00100010
-#define DSD_RESULT_SINK_NAME_BAD_FORMAT                             0x00100011
+#define DSD_RESULT_SINK_RESULT                                      0x01000000
+#define DSD_RESULT_SINK_NAME_NOT_UNIQUE                             0x01000001
+#define DSD_RESULT_SINK_NAME_NOT_FOUND                              0x01000010
+#define DSD_RESULT_SINK_NAME_BAD_FORMAT                             0x01000011
+#define DSD_RESULT_SINK_NEW_EXCEPTION                               0x01000100
 
 /**
  * OSD Object Return Values
  */
-#define DSD_RESULT_OSD_RESULT                                       0x00100000
-#define DSD_RESULT_OSD_NAME_NOT_UNIQUE                              0x00100001
-#define DSD_RESULT_OSD_NAME_NOT_FOUND                               0x00100010
-#define DSD_RESULT_OSD_NAME_BAD_FORMAT                              0x00100011
+#define DSD_RESULT_OSD_RESULT                                       0x01010000
+#define DSD_RESULT_OSD_NAME_NOT_UNIQUE                              0x01010001
+#define DSD_RESULT_OSD_NAME_NOT_FOUND                               0x01010010
+#define DSD_RESULT_OSD_NAME_BAD_FORMAT                              0x01010011
+#define DSD_RESULT_OSD_NEW_EXCEPTION                                0x01010100
 
 /**
  * GIE Object Return Values
  */
-#define DSD_RESULT_GIE_RESULT                                       0x00100000
-#define DSD_RESULT_GIE_NAME_NOT_UNIQUE                              0x00100001
-#define DSD_RESULT_GIE_NAME_NOT_FOUND                               0x00100010
-#define DSD_RESULT_GIE_NAME_BAD_FORMAT                              0x00100011
+#define DSD_RESULT_GIE_RESULT                                       0x01100000
+#define DSD_RESULT_GIE_NAME_NOT_UNIQUE                              0x01100001
+#define DSD_RESULT_GIE_NAME_NOT_FOUND                               0x01100010
+#define DSD_RESULT_GIE_NAME_BAD_FORMAT                              0x01100011
+#define DSD_RESULT_GIE_NEW_EXCEPTION                                0x01100100
 
 /**
  * Display Object Return Values
  */
-#define DSD_RESULT_DISPLAY_RESULT                                   0x00100000
-#define DSD_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x00100001
-#define DSD_RESULT_DISPLAY_NAME_NOT_FOUND                           0x00100010
-#define DSD_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x00100011
+#define DSD_RESULT_DISPLAY_RESULT                                   0x10000000
+#define DSD_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x10000001
+#define DSD_RESULT_DISPLAY_NAME_NOT_FOUND                           0x10000010
+#define DSD_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x10000011
+#define DSD_RESULT_DISPLAY_NEW_EXCEPTION                            0x10000100
 
 /**
  * Config Object Return Values
  */
-#define DSD_RESULT_CONFIG_RESULT                                    0x00100000
-#define DSD_RESULT_CONFIG_NAME_NOT_UNIQUE                           0x00100001
-#define DSD_RESULT_CONFIG_NAME_NOT_FOUND                            0x00100010
-#define DSD_RESULT_CONFIG_NAME_BAD_FORMAT                           0x00100011
-#define DSD_RESULT_CONFIG_FILE_NOT_FOUND                            0x00100100
-#define DSD_RESULT_CONFIG_FILE_EXISTS                               0x00100101
-#define DSD_RESULT_CONFIG_MAX_SOURCES_REACHED                       0x00100110
+#define DSD_RESULT_CONFIG_RESULT                                    0x10100000
+#define DSD_RESULT_CONFIG_NAME_NOT_UNIQUE                           0x10100001
+#define DSD_RESULT_CONFIG_NAME_NOT_FOUND                            0x10100010
+#define DSD_RESULT_CONFIG_NAME_BAD_FORMAT                           0x10100011
+#define DSD_RESULT_CONFIG_FILE_NOT_FOUND                            0x10100100
+#define DSD_RESULT_CONFIG_FILE_EXISTS                               0x10100101
+#define DSD_RESULT_CONFIG_MAX_SOURCES_REACHED                       0x10100110
 
 /**
  * Pipeline Object Return Values
  */
-#define DSD_RESULT_PIPELINE_RESULT                                  0x00110000
-#define DSD_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x00110001
-#define DSD_RESULT_PIPELINE_NAME_NOT_FOUND                          0x00110010
-#define DSD_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x00110011
-#define DSD_RESULT_PIPELINE_STATE_PAUSED                            0x00110100
-#define DSD_RESULT_PIPELINE_STATE_RUNNING                           0x00110101
+#define DSD_RESULT_PIPELINE_RESULT                                  0x11000000
+#define DSD_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x11000001
+#define DSD_RESULT_PIPELINE_NAME_NOT_FOUND                          0x11000010
+#define DSD_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
+#define DSD_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
+#define DSD_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
 
 #define DSD_SOURCE_TYPE_CAMERA_V4L2                                 1
 #define DSD_SOURCE_TYPE_URI                                         2
