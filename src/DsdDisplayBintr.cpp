@@ -28,9 +28,10 @@ THE SOFTWARE.
 namespace DSD
 {
 
-    TiledDisplayBintr::TiledDisplayBintr(const std::string& display, 
+    DisplayBintr::DisplayBintr(const std::string& display, Display* pGstDisplay,
         guint rows, guint columns, guint width, guint height)
         : Bintr(display)
+        , m_pGstDisplay(pGstDisplay)
         , m_rows(rows)
         , m_columns(columns)
         , m_width(width)
@@ -42,6 +43,7 @@ namespace DSD
         , m_pTiler(NULL)
         , m_pSinkGst(NULL)
         , m_pSrcGst(NULL)
+        , m_window(0)
     {
         LOG_FUNC();
         
@@ -94,9 +96,33 @@ namespace DSD
 
         gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", m_pSinkGst));
         gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", m_pSrcGst));
+        
+        m_window = XCreateSimpleWindow(m_pGstDisplay, 
+            RootWindow(m_pGstDisplay, DefaultScreen(m_pGstDisplay)), 
+            0, 0, m_width, m_height, 2, 0x00000000, 0x00000000);            
+
+        if (!m_window)
+        {
+            LOG_ERROR("Failed to create new X Window for Display '" << display <<" '");
+            throw;
+        }
+
+        XSetWindowAttributes attr = {0};
+        
+        attr.event_mask = ButtonPress | KeyRelease;
+        XChangeWindowAttributes(m_pGstDisplay, m_window, CWEventMask, &attr);
+
+        Atom wmDeleteMessage = XInternAtom(m_pGstDisplay, "WM_DELETE_WINDOW", False);
+        if (wmDeleteMessage != None)
+        {
+            XSetWMProtocols(m_pGstDisplay, m_window, &wmDeleteMessage, 1);
+        }
+        XMapRaised(m_pGstDisplay, m_window);
+        XSync(m_pGstDisplay, 1);       
+        
     };    
 
-    TiledDisplayBintr::~TiledDisplayBintr()
+    DisplayBintr::~DisplayBintr()
     {
         LOG_FUNC();
     };

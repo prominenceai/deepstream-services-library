@@ -53,7 +53,6 @@ namespace DSD
             LOG_INFO("New bintr:: " << name);
             
             m_name.assign(name);
-            m_configFilePath.assign(DS_CONFIG_DIR);
             
             g_mutex_init(&m_bintrMutex);
         };
@@ -68,7 +67,7 @@ namespace DSD
 
         std::string m_configFilePath;
 
-        void LinkTo(Bintr* pDestBintr)
+        bool LinkTo(Bintr* pDestBintr)
         { 
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -77,22 +76,19 @@ namespace DSD
             pDestBintr->m_pSourceBintr = this;
 
             LOG_INFO("Source Bin " << m_name 
-                << " enabled:: " << (bool)m_pBin);
+                << " is object:: " << (bool)m_pBin);
             LOG_INFO("Distination Bin " << pDestBintr->m_name 
-                << " enabled:: " << (bool)m_pBin);
+                << " is object:: " << (bool)m_pBin);
             
-            if (m_pBin && pDestBintr->m_pBin)
+            if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
             {
-                if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
-                {
-                    LOG_ERROR("Failed to link " << m_name << " to "
-                        << pDestBintr->m_name);
-                    throw;
-                }
+                LOG_ERROR("Failed to link " << m_name << " to "
+                    << pDestBintr->m_name);
+                throw;
             }
         };
 
-        void AddChild(Bintr* pChildBintr)
+        bool AddChild(Bintr* pChildBintr)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -100,14 +96,17 @@ namespace DSD
 //            m_pChildBintr = pChildBintr;
             pChildBintr->m_pParentBintr = this;
             
-            if (m_pBin && pChildBintr->m_pBin)
+            LOG_INFO("Parent Bin " << m_name 
+                << " is object:: " << (bool)m_pBin);
+            LOG_INFO("Child Bin " << pChildBintr->m_name 
+                << " is object:: " << (bool)m_pBin);
+                
+            if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
-                if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
-                {
-                    LOG_ERROR("Failed to add " << pChildBintr->m_pBin << " to " << m_name);
-                    throw;
-                }
+                LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
+                return FALSE;
             }
+            return true;
         }
         
     public:

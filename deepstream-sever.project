@@ -5,7 +5,6 @@
   <VirtualDirectory Name="src">
     <File Name="src/DsdLog4cxx.h"/>
     <File Name="src/DsdMutex.h"/>
-    <File Name="src/DsdPipeline.h"/>
     <File Name="src/DsdConfig.h"/>
     <File Name="src/DsdLog.h"/>
     <File Name="src/DsdDriver.cpp"/>
@@ -14,7 +13,6 @@
     <File Name="src/DsdConfig.cpp"/>
     <File Name="src/DsdApi.h"/>
     <File Name="src/DsdDriver.h"/>
-    <File Name="src/DsdPipeline.cpp"/>
     <File Name="src/DsdMain.cpp"/>
     <File Name="src/DsdBintr.h"/>
     <File Name="src/DsdDisplayBintr.h"/>
@@ -23,6 +21,8 @@
     <File Name="src/DsdSourceBintr.h"/>
     <File Name="src/DsdStreamMuxBintr.h"/>
     <File Name="src/DsdStreamMuxBintr.cpp"/>
+    <File Name="src/DsdPipelineBintr.h"/>
+    <File Name="src/DsdPipelineBintr.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

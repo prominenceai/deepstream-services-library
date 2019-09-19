@@ -23,34 +23,24 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdPipeline.h"
+#include "DsdPipelineBintr.h"
 
 #include <gst/gst.h>
 
 namespace DSD
 {
-     Pipeline::Pipeline(Config& config, Display* pDisplay)
-        : m_config(config)
-        , m_pDisplay(pDisplay)
-        , m_pPipeline(NULL)
+    PipelineBintr::PipelineBintr(const std::string& pipeline)
+        : Bintr(pipeline)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
         , m_pProcessingBin(NULL)
-        , m_pPipelineBintr(NULL)
         , m_pProcessingBintr(NULL)
-        , m_pSinksBintr(NULL)
-        , m_pOsdBintr(NULL)
-        , m_pSourcesBintr(NULL)
-        , m_pTrackerBintr(NULL)
-        , m_pPrimaryGieBintr(NULL)
-        , m_pSecondaryGiesBintr(NULL)
-        , m_pTiledDisplayBintr(NULL)
     {
         LOG_FUNC();
         
         // New GST Pipeline
-        m_pPipeline = gst_pipeline_new("pipeline");
-        if (!m_pPipeline)
+        m_pBin = gst_pipeline_new("pipeline");
+        if (!m_pBin)
         {
             LOG_ERROR("Failed to create new pipeline");
             throw;
@@ -63,38 +53,12 @@ namespace DSD
             LOG_ERROR("Failed to create new processing-bin");
             throw;
         }
-        
-//        m_pPipelineBintr = new Bintr("pipeline", (GstElement*)m_pPipeline);
-//        m_pProcessingBintr = new Bintr("processing", m_pProcessingBin);
+
+        m_pProcessingBintr = new Bintr("processing");
+        m_pProcessingBintr->m_pBin = m_pProcessingBin;
 
         //  BUILD PIPELINE
 
-        // Create all bins for the Pipeline
-//        m_pSourcesBintr = new Bintr("sources", m_config.CreateSourcesBin());
-//        m_pSinksBintr = new Bintr("sinks", m_config.CreateSinksBin());
-//        m_pOsdBintr = new Bintr("osd", m_config.CreateOsdBin());
-//        m_pTiledDisplayBintr = new Bintr("tiled-display", 
-//            m_config.CreateTiledDisplayBin());
-//        m_pPrimaryGieBintr = new Bintr("primary-gie", 
-//            m_config.CreatePrimaryGieBin());
-//        m_pSecondaryGiesBintr = new Bintr("secondary-gies", 
-//            m_config.CreateSecondaryGiesBin());
-//        m_pTrackerBintr = new Bintr("tracker", m_config.CreateTrackerBin());
-//
-//        m_config.ConfigureStreamMux();
-//        m_config.ConfigureTiledDisplay();
-
-        // Add both SINKS and OSD to the Processing Bin
-//        m_pProcessingBintr->AddChild(m_pSinksBintr);
-//        m_pProcessingBintr->AddChild(m_pOsdBintr);
-
-        // Add the processing bin and all others to the pipeline
-//        m_pPipelineBintr->AddChild(m_pProcessingBintr);
-//        m_pPipelineBintr->AddChild(m_pSourcesBintr);
-//        m_pPipelineBintr->AddChild(m_pTrackerBintr);
-//        m_pPipelineBintr->AddChild(m_pTiledDisplayBintr);
-//        m_pPipelineBintr->AddChild(m_pSecondaryGiesBintr);
-//        m_pPipelineBintr->AddChild(m_pPrimaryGieBintr);
 
 //        m_pOsdBintr->LinkTo(m_pSinksBintr);
 //            
@@ -111,7 +75,7 @@ namespace DSD
         g_mutex_init(&m_busWatchMutex);
 
         // get the GST message bus - one per GST pipeline
-        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pPipeline));
+        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pBin));
         
         // install the watch function for the message bus
         m_gstBusWatch = gst_bus_add_watch(m_pGstBus, bus_watch, this);
@@ -120,40 +84,68 @@ namespace DSD
         gst_bus_set_sync_handler(m_pGstBus, bus_sync_handler, this, NULL);        
     }
 
-    Pipeline::~Pipeline()
+    PipelineBintr::~PipelineBintr()
     {
         LOG_FUNC();
 
-        gst_element_set_state(m_pPipeline, GST_STATE_NULL);
+        gst_element_set_state(m_pBin, GST_STATE_NULL);
         
         // cleanup all resources
         gst_object_unref(m_pGstBus);
-        gst_object_unref(m_pPipeline);
 
         g_mutex_clear(&m_pipelineMutex);
         g_mutex_clear(&m_busSyncMutex);
         g_mutex_clear(&m_busWatchMutex);
     }
     
-    bool Pipeline::Pause()
+    gboolean PipelineBintr::AddSourceBintr(SourceBintr* pBintr)
+    {
+        LOG_FUNC();
+        
+        m_pSourceBintr = pBintr;
+        
+        return AddChild((Bintr*)pBintr);
+    }
+
+    gboolean PipelineBintr::AddStreamMuxBintr(StreamMuxBintr* pBintr)
+    {
+        LOG_FUNC();
+
+        m_pStreamMuxBintr = pBintr;
+
+        return AddChild((Bintr*)pBintr);
+    }
+
+    gboolean PipelineBintr::AddDisplayBintr(DisplayBintr* pBintr)
+    {
+        LOG_FUNC();
+
+        m_pDisplayBintr = pBintr;
+        
+        return AddChild((Bintr*)pBintr);
+    }
+
+    bool PipelineBintr::Pause()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
         
-        return (gst_element_set_state(m_pPipeline, 
+        return (gst_element_set_state(m_pBin, 
             GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
     }
 
-    bool Pipeline::Play()
+    bool PipelineBintr::Play()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
         
-        return (gst_element_set_state(m_pPipeline, 
+        m_pSourceBintr->LinkTo((Bintr*)m_pDisplayBintr);
+        
+        return (gst_element_set_state(m_pBin, 
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
     }
     
-    bool Pipeline::HandleBusWatchMessage(GstMessage* pMessage)
+    bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
@@ -179,7 +171,7 @@ namespace DSD
         return true;
     }
 
-    GstBusSyncReply Pipeline::HandleBusSyncMessage(GstMessage* pMessage)
+    GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
@@ -206,11 +198,11 @@ namespace DSD
         return GST_BUS_PASS;
     }
     
-    bool Pipeline::HandleStateChanged(GstMessage* pMessage)
+    bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
         LOG_FUNC();
 
-        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pPipeline)
+        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pBin)
         {
             return false;
         }
@@ -232,7 +224,7 @@ namespace DSD
         return true;
     }
     
-    void Pipeline::_initMaps()
+    void PipelineBintr::_initMaps()
     {
         m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
         m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
@@ -256,13 +248,13 @@ namespace DSD
     static gboolean bus_watch(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<Pipeline *>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineBintr *>(pData)->HandleBusWatchMessage(pMessage);
     }    
     
     static GstBusSyncReply bus_sync_handler(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<Pipeline *>(pData)->HandleBusSyncMessage(pMessage);
+        return static_cast<PipelineBintr *>(pData)->HandleBusSyncMessage(pMessage);
     }
     
 

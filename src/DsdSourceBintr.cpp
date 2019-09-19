@@ -42,7 +42,6 @@ namespace DSD
         , m_latency(100)
         , m_numDecodeSurfaces(N_DECODE_SURFACES)
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
-        , m_pBin(NULL)
         , m_pSourceElement(NULL)
         , m_pCapsFilter(NULL)
         , m_pCaps(NULL)
@@ -55,7 +54,7 @@ namespace DSD
             LOG_ERROR("Failed to create new Source bin for '" << source << "'");
             throw;  
         }
-        m_pSourceElement = gst_element_factory_make(NVDS_ELEM_SRC_CAMERA_CSI, "source_element");
+        m_pSourceElement = gst_element_factory_make(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem");
         if (!m_pSourceElement)
         {
             LOG_ERROR("Failed to create new Source Element for '" << source << "'");
@@ -81,21 +80,28 @@ namespace DSD
         g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 1, NULL);
-        
+
         GstCapsFeatures *feature = NULL;
         
         feature = gst_caps_features_new("memory:NVMM", NULL);
         gst_caps_set_features(m_pCaps, 0, feature);
+        
+        g_object_set(G_OBJECT(m_pCapsFilter), "caps", m_pCaps, NULL);
+        
+        gst_bin_add_many(GST_BIN(m_pBin), m_pSourceElement, m_pCapsFilter, NULL);
+        
+        if (!gst_element_link(m_pSourceElement, m_pCapsFilter))
+        {
+            LOG_ERROR("Failed to link 'src_elm' to caps_filter");
+            throw;
+        }
+        
     }
 
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
 
-        if(m_pBin)
-        {
-            
-        }    
         if(m_pSourceElement)
         {
             

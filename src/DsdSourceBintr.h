@@ -90,11 +90,6 @@ namespace DSD
         /**
          @brief
          */
-        GstElement * m_pBin;        
-        
-        /**
-         @brief
-         */
         GstElement * m_pSourceElement;
         
         /**

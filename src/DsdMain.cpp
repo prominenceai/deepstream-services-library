@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "DsdDriver.h"
+#include "DsdApi.h"
 
 GST_DEBUG_CATEGORY(NVDS_APP);
 
@@ -80,28 +80,40 @@ int main(int argc, char **argv)
     // First call to GetDriver() for initialization
     Driver* pDriver = Driver::GetDriver();
 
-    DSD_SOURCE_NEW("source1", DSD_SOURCE_TYPE_CSI, DSD_TRUE, 1280, 720, 30, 1);
+    dsd_source_new("source1", 5, TRUE, 1280, 720, 30, 1);
 
-    DSD_STREAMMUX_NEW("streammux1", TRUE, 1, 40000, 1280, 720);
+    dsd_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
 
-    DSD_DISPLAY_NEW("display1", 1, 1, 1280, 720);
+    dsd_display_new("display1", 1, 1, 1280, 720);
 
 //    DSD_GIE_NEW("GIE1",
 //        "resnet10.caffemodel_b30_int8.engine", 
 //        "config_infer_primary.txt", 1, 1, 1, 1, 1);
 //        
-//    
+    dsd_pipeline_new("pipeline1");
+    
+    dsd_pipeline_source_add("pipeline1", "source1");
+    
+    dsd_pipeline_streammux_add("pipeline1", "streammux1");
+
+    dsd_pipeline_display_add("pipeline1", "display1");
+    
+    dsd_pipeline_play("pipeline1");
+
+    // Run the main loop
+    dsd_main_loop_run();
+    
 //
 //    DSD_GIE_DELETE("GIE1");
     
-    DSD_DISPLAY_DELETE("display1");
+    dsd_display_delete("display1");
     
-    DSD_STREAMMUX_DELETE("streammux1");
+    dsd_streammux_delete("streammux1");
     
-    DSD_SOURCE_DELETE("source1");
+    dsd_source_delete("source1");
 
-        // Run the main loop
-//        g_main_loop_run(pDrv->m_pMainLoop);
+    dsd_pipeline_delete("pipeline1");
+
 
     returnValue = EXIT_SUCCESS;
     

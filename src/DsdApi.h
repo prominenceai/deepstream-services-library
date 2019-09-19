@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef _DSD_API_H
 #define _DSD_API_H
 
+#include "DsdDriver.h"
+
 #define DSD_FALSE                                                   0
 #define DSD_TRUE                                                    1
 
@@ -94,17 +96,6 @@ THE SOFTWARE.
 #define DSD_RESULT_DISPLAY_NEW_EXCEPTION                            0x10000100
 
 /**
- * Config Object Return Values
- */
-#define DSD_RESULT_CONFIG_RESULT                                    0x10100000
-#define DSD_RESULT_CONFIG_NAME_NOT_UNIQUE                           0x10100001
-#define DSD_RESULT_CONFIG_NAME_NOT_FOUND                            0x10100010
-#define DSD_RESULT_CONFIG_NAME_BAD_FORMAT                           0x10100011
-#define DSD_RESULT_CONFIG_FILE_NOT_FOUND                            0x10100100
-#define DSD_RESULT_CONFIG_FILE_EXISTS                               0x10100101
-#define DSD_RESULT_CONFIG_MAX_SOURCES_REACHED                       0x10100110
-
-/**
  * Pipeline Object Return Values
  */
 #define DSD_RESULT_PIPELINE_RESULT                                  0x11000000
@@ -113,6 +104,8 @@ THE SOFTWARE.
 #define DSD_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
 #define DSD_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
 #define DSD_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
+#define DSD_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
+#define DSD_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
 
 #define DSD_SOURCE_TYPE_CAMERA_V4L2                                 1
 #define DSD_SOURCE_TYPE_URI                                         2
@@ -126,11 +119,9 @@ THE SOFTWARE.
 #define DSD_SINK_TYPE_RTSP                                          4
 #define DSD_SINK_TYPE_CSI                                           5
 
-typedef int DsdReturnType;
-
 /**
  * @brief creates a new, uniquely named Source obj
- * @param source unique name for the new Config
+ * @param source unique name for the new Source
  * @param type value of DSD_SOURCE_TYPE
  * @param live specifies if source is live [DSD_TRUE | DSD_FLASE]
  * @param width width of the source in pixels
@@ -139,14 +130,15 @@ typedef int DsdReturnType;
  * @param fps-d
  * @return DSD_RESULT_SOURCE_RESULT
  */
-#define DSD_SOURCE_NEW(source, type, live, width, height, fps_n, fps_d)
+DsdReturnType dsd_source_new(const std::string& source, guint type, 
+    gboolean live, guint width, guint height, guint fps_n, guint fps_d);
 
 /**
  * @brief deletes a Source object by name
  * @param source name of the Source object to delete
  * @return DSD_RESULT_SOURCE_RESULT
  */
-#define DSD_SOURCE_DELETE(source)
+DsdReturnType dsd_source_delete(const std::string& source);
 
 /**
  * @brief creates a new, uniquely named Streammux obj
@@ -158,14 +150,15 @@ typedef int DsdReturnType;
  * @param heigth height of the muxer output
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
-#define DSD_STREAMMUX_NEW(streammux, live, batchSize, batchTimeout, width, height)
+DsdReturnType dsd_streammux_new(const std::string& streammux, 
+    gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
 /**
  * @brief deletes a Source object by name
  * @param source name of the Source object to delete
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
-#define DSD_STREAMMUX_DELETE(streammux)
+DsdReturnType dsd_streammux_delete(const std::string& streammux);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -176,14 +169,15 @@ typedef int DsdReturnType;
  * @param height height of each row in pix  als
  * @return DSD_RESULT_DISPLAY_RESULT
  */
-#define DSD_DISPLAY_NEW(display, rows, columns, width, height)
+DsdReturnType dsd_display_new(const std::string& display, 
+    guint rows, guint columns, guint width, guint height);
 
 /**
  * @brief deletes a Display object by name
  * @param display name of the Display object to delete
  * @return DSD_RESULT_DISPLAY_RESULT
  */
-#define DSD_DISPLAY_DELETE(display)
+DsdReturnType dsd_display_delete(const std::string& display);
 
 /**
  * @brief creates a new, uniquely named GIE object
@@ -193,153 +187,144 @@ typedef int DsdReturnType;
  * @param batchSize
  * @param boarder-box colors 1..4
  * @param height height of each row in pix  als
- * @return DSD_RESULT_DISPLAY_RESULT
+ * @return DSD_RESULT_GIE_RESULT
  */
-#define DSD_GIE_NEW(gie, model, infer, batchSize, bc1, bc2, bc3, bc4)
+DsdReturnType dsd_gie_new(const std::string& gie, 
+    const std::string& model,const std::string& infer, 
+    guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4);
 
 /**
  * @brief deletes a GIE object by name
  * @param display name of the Display object to delete
- * @return DSD_RESULT_DISPLAY_RESULT
+ * @return DSD_RESULT_GIE_RESULT
  */
-#define DSD_GIE_DELETE(gie)
-
-/**
- * @brief creates a new, uniquely named Config obj
- * @param config unique name for the new Config
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_NEW(config)
-
-/**
- * @brief deletes a Config object by name
- * @param config name of the Config to delete
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_DELETE(config)
-
-/**
- * @brief creates a new, uniquely named Config obj
- * @param config unique name for the new Config
- * @return DSD_RESULT
- */
-#define DSD_CONFIG_NEW(config)
-
-/**
- * @brief deletes a Config object by name
- * @param config unique name of the Config to delete
- * @return DSD_RESULT
- */
-#define DSD_CONFIG_DELETE(config)
-
-/**
- * @brief loads a deepstream configuration from text file
- * @param config unique name of the Config object
- * @param file full file-path specification of the configuration to load
- * @return DSD_RESULT
- */
-#define DSD_CONFIG_FILE_LOAD(config, file)
-
-/**
- * @brief saves a deepstream configuration to text file
- * @param config unique name of the Config object
- * @param file full path-spec of the configuration file to save to
- * @return DSD_RESULT
- */
-#define DSD_CONFIG_FILE_SAVE(config, file)
-
-/**
- * @brief saves a deepstream configuration to text file
- * Will overwrite any existing file of the same name
- * @param config unique name of the Config object
- * @param file full path-spec of the configuration file to save to
- * @return DSD_RESULT
- */
-#define DSD_CONFIG_FILE_OVERWRITE(config, file)
-
-/**
- * @brief adds a Source object to a Config object
- * @param config name of the Config object to update
- * @param source name of the Source object to add
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_SOURCE_ADD(config, source)
-
-/**
- * @brief removes a Source object from a Config object
- * @param config name of the Config object to update
- * @param source name of the Source object to remove
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_SOURCE_REMOVE(config, source)
-
-/**
- * @brief adds an OSD object to a Config object
- * @param config name of the Config object to update
- * @param osd name of the OSD object to add
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_OSD_ADD(config, osd)
-
-/**
- * @brief removes an OSD object from a Config object
- * @param config name of the Config object to update
- * @param source name of the OSD object to remove
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_OSD_REMOVE(config, source)
-
-/**
- * @brief adds a GIE object to a Config object
- * @param config name of the Config object to update
- * @param osd name of the OSD object to add
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_GIE_ADD(config, osd)
-
-/**
- * @brief removes an OSD object from a Config object
- * @param config name of the Config object to unsource
- * @param source name of the OSD object to remove
- * @return DSD_RESULT_CONFIG_RESULT
- */
-#define DSD_CONFIG_GIE_REMOVE(config, source)
+DsdReturnType dsd_gie_delete(const std::string& gie);
 
 /**
  * @brief creates a new, uniquely named Pipeline
  * @param pipeline unique name for the new Pipeline
- * @param config unique name of the configuration object to use
  * @return DSD_RESULT_PIPELINE_RESULT
  */
-#define DSD_PIPELINE_NEW(pipeline, config)
+DsdReturnType dsd_pipeline_new(const std::string& pipeline);
 
 /**
  * @brief deletes a Pipeline object by name.
- * Does NOT delete the Config object used to create the pipeline
+ * Does NOT delete the Pipeline object used to create the pipeline
  * @param pipeline unique name of the Pipeline to delete.
  * @return DSD_RESULT_PIPELINE_RESULT.
  */
-#define DSD_PIPELINE_DELETE(pipeline)
+DsdReturnType dsd_pipeline_delete(const std::string& pipeline);
+
+/**
+ * @brief adds a Source object to a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param source name of the Source object to add
+ * @return DSD_RESULT_CONFIG_RESULT
+ */
+DsdReturnType dsd_pipeline_source_add(const std::string& pipeline, 
+    const std::string& source);
+
+/**
+ * @brief removes a Source object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param source name of the Source object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_source_remove(const std::string& pipeline, 
+    const std::string& source);
+
+/**
+ * @brief adds a Stream Mux object to a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param streammux name of the Source object to add
+ * @return DSD_RESULT_CONFIG_RESULT
+ */
+DsdReturnType dsd_pipeline_streammux_add(const std::string& pipeline, 
+    const std::string& streammux);
+
+/**
+ * @brief removes a Stream Mux object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param streammux name of the Source object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_streammux_remove(const std::string& pipeline, 
+    const std::string& streammux);
+
+/**
+ * @brief adds an OSD object to a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param osd name of the OSD object to add
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_osd_add(const std::string& pipeline, const std::string& osd);
+
+/**
+ * @brief removes an OSD object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param osd name of the OSD object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_osd_remove(const std::string& pipeline, 
+    const std::string& osd);
+
+/**
+ * @brief adds a GIE object to a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param osd name of the OSD object to add
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_gie_add(const std::string& pipeline, 
+    const std::string& gie);
+
+/**
+ * @brief removes a GIE object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param gie name of the GIE object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_gie_remove(const std::string& pipeline, 
+    const std::string& gie);
+
+/**
+ * @brief adds a GIE object to a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param display name of the Display object to add
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_display_add(const std::string& pipeline, 
+    const std::string& display);
+
+/**
+ * @brief removes an OSD object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param display name of the Display object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_display_remove(const std::string& pipeline, 
+    const std::string& display);
 
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param pipeline unique name of the Pipeline to pause.
  * @return DSD_RESULT.
  */
-#define DSD_PIPELINE_PAUSE(pipeline)
+DsdReturnType dsd_pipeline_pause(const std::string& pipeline);
 
 /**
  * @brief plays a Pipeline if in a state of paused
  * @param pipeline unique name of the Pipeline to play.
  * @return DSD_RESULT_PIPELINE_RESULT.
  */
-#define DSD_PIPELINE_PLAY(pipeline)
+DsdReturnType dsd_pipeline_play(const std::string& pipeline);
 
 /**
  * @brief gets the current state of a Pipeline
  * @param pipeline unique name of the Pipeline to query
  * @return DSD_RESULT_PIPELINE_PAUSED | DSD_RESULT_PIPELINE_PLAYING
  */
-#define DSD_PIPELINE_GET_STATE(pipeline)
+DsdReturnType dsd_pipeline_get_state(const std::string& pipeline);
+
+void dsd_main_loop_run();
 
 #endif // _DSD_API_H

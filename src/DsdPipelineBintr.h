@@ -25,27 +25,34 @@ THE SOFTWARE.
 #ifndef _DSD_PIPELINE_H
 #define _DSD_PIPELINE_H
 
-#include "DsdConfig.h"
-#include "DsdBintr.h"
+#include "DsdDisplayBintr.h"
+#include "DsdSourceBintr.h"
+#include "DsdStreamMuxBintr.h"
 
 namespace DSD {
 
     /**
-     * @class Pipline
+     * @class PipelineBintr
      * @brief 
      */
-    class Pipeline
+    class PipelineBintr : public Bintr
     {
     public:
     
         /** 
          * 
          */
-        Pipeline(Config& config, Display* pDisplay);
-        ~Pipeline();
+        PipelineBintr(const std::string& pipeline);
+        ~PipelineBintr();
         
         bool Pause();
         bool Play();
+
+        gboolean AddSourceBintr(SourceBintr* pBintr);
+
+        gboolean AddStreamMuxBintr(StreamMuxBintr* pBintr);
+
+        gboolean AddDisplayBintr(DisplayBintr* pBintr);
         
         /**
          * @brief handles incoming Message Packets received
@@ -64,31 +71,19 @@ namespace DSD {
     private:
 
         /**
-         * @brief underlying GStream pipeline wrapped by this class
-         */
-        GstElement* m_pPipeline;
-        
-        /**
-         * @brief config object used by this pipeline
-         */
-        Config& m_config;
-        
-        /**
          * @brief handle to a common display used by all pipelines
          */
         Display* m_pDisplay;
         
-        Bintr* m_pPipelineBintr;
         Bintr* m_pProcessingBintr;
-        Bintr* m_pSinksBintr;
-        Bintr* m_pOsdBintr;
-        Bintr* m_pSourcesBintr;
-        Bintr* m_pTrackerBintr;
-        Bintr* m_pPrimaryGieBintr;
-        Bintr* m_pSecondaryGiesBintr;
-        Bintr* m_pTiledDisplayBintr;
         
         GstElement* m_pProcessingBin;
+        
+        SourceBintr* m_pSourceBintr;
+        
+        StreamMuxBintr* m_pStreamMuxBintr;
+        
+        DisplayBintr* m_pDisplayBintr;
 
 
         /**

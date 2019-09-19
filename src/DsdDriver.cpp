@@ -23,7 +23,145 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdDriver.h"
+#include "DsdApi.h"
+
+DsdReturnType dsd_source_new(const std::string& source, guint type, 
+        gboolean live, guint width, guint height, guint fps_n, guint fps_d)
+{
+    return DSD::Driver::GetDriver()->SourceNew(source, type, live, 
+        width, height, fps_n, fps_d);
+}
+
+DsdReturnType dsd_source_delete(const std::string& source)
+{
+    return DSD::Driver::GetDriver()->SourceDelete(source);
+};
+
+DsdReturnType dsd_streammux_new(const std::string& streammux, 
+        gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)
+{
+    return DSD::Driver::GetDriver()->StreamMuxNew(streammux, live, 
+        batchSize, batchTimeout, width, height);
+}
+
+DsdReturnType dsd_streammux_delete(const std::string& streammux)
+{
+    return DSD::Driver::GetDriver()->StreamMuxDelete(streammux);
+}
+
+DsdReturnType dsd_display_new(const std::string& display, 
+        guint rows, guint columns, guint width, guint height)
+{
+    return DSD::Driver::GetDriver()->DisplayNew(display, rows, columns, width, height);
+}
+
+DsdReturnType dsd_display_delete(const std::string& display)
+{
+    return DSD::Driver::GetDriver()->DisplayDelete(display);
+}
+
+DsdReturnType dsd_gie_new(const std::string& gie, 
+        const std::string& model,const std::string& infer, 
+        guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4)
+{
+    return DSD::Driver::GetDriver()->GieNew(gie, model, infer, 
+        batchSize, bc1, bc2, bc3, bc4);
+}
+
+DsdReturnType dsd_gie_delete(const std::string& gie)
+{
+    return DSD::Driver::GetDriver()->GieDelete(gie);
+}
+
+DsdReturnType dsd_pipeline_new(const std::string& pipeline)
+{
+    return DSD::Driver::GetDriver()->PipelineNew(pipeline);
+}
+
+DsdReturnType dsd_pipeline_delete(const std::string& pipeline)
+{
+    return DSD::Driver::GetDriver()->PipelineDelete(pipeline);
+}
+
+DsdReturnType dsd_pipeline_source_add(const std::string& pipeline, 
+    const std::string& source)
+{
+    return DSD::Driver::GetDriver()->PipelineSourceAdd(pipeline, source);
+};
+
+DsdReturnType dsd_pipeline_source_remove(const std::string& pipeline, 
+    const std::string& source)
+{
+    return DSD::Driver::GetDriver()->PipelineSourceRemove(pipeline, source);
+};
+
+DsdReturnType dsd_pipeline_streammux_add(const std::string& pipeline, 
+    const std::string& streammux)
+{
+    return DSD::Driver::GetDriver()->PipelineStreamMuxAdd(pipeline, streammux);
+};
+
+DsdReturnType dsd_pipeline_streammux_remove(const std::string& pipeline, 
+    const std::string& streammux)
+{
+    return DSD::Driver::GetDriver()->PipelineStreamMuxRemove(pipeline, streammux);
+};
+
+DsdReturnType dsd_pipeline_osd_add(const std::string& pipeline, 
+    const std::string& osd)
+{
+    return DSD::Driver::GetDriver()->PipelineOsdAdd(pipeline, osd);
+};
+
+DsdReturnType dsd_pipeline_osd_remove(const std::string& pipeline, 
+    const std::string& osd)
+{
+    return DSD::Driver::GetDriver()->PipelineOsdRemove(pipeline, osd);
+};
+
+DsdReturnType dsd_pipeline_gie_add(const std::string& pipeline, 
+    const std::string& gie)
+{
+    return DSD::Driver::GetDriver()->PipelineGieAdd(pipeline, gie);
+};
+
+DsdReturnType dsd_pipeline_gie_remove(const std::string& pipeline, 
+    const std::string& gie)
+{
+    return DSD::Driver::GetDriver()->PipelineGieRemove(pipeline, gie);
+};
+
+DsdReturnType dsd_pipeline_display_add(const std::string& pipeline, 
+    const std::string& display)
+{
+    DSD::Driver::GetDriver()->PipelineDisplayAdd(pipeline, display);
+};
+
+DsdReturnType dsd_pipeline_display_remove(const std::string& pipeline, 
+    const std::string& display)
+{
+    return DSD::Driver::GetDriver()->PipelineDisplayRemove(pipeline, display);
+};
+
+DsdReturnType dsd_pipeline_pause(const std::string& pipeline)
+{
+    return DSD::Driver::GetDriver()->PipelineGetState(pipeline);
+};
+
+DsdReturnType dsd_pipeline_play(const std::string& pipeline)
+{
+    return DSD::Driver::GetDriver()->PipelinePlay(pipeline);
+};
+
+DsdReturnType dsd_pipeline_get_state(const std::string& pipeline)
+{
+    return DSD::Driver::GetDriver()->PipelineGetState(pipeline);
+};
+
+void dsd_main_loop_run()
+{
+    DSD::Driver::GetDriver()->MainLoopRun();
+};
 
 namespace DSD
 {
@@ -43,8 +181,8 @@ namespace DSD
     }
         
     Driver::Driver()
-        : m_pDisplay(XOpenDisplay(NULL))
-        , m_pMainLoop(g_main_loop_new(NULL, FALSE))
+        : m_pMainLoop(g_main_loop_new(NULL, FALSE))
+        , m_pXDisplay(XOpenDisplay(NULL))
         , m_pXWindowEventThread(NULL)
     {
         LOG_FUNC();
@@ -68,14 +206,6 @@ namespace DSD
         
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-            if (m_pDisplay) 
-            { 
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-                
-                // The X window event thread will exit on display close
-                XCloseDisplay(m_pDisplay); 
-            }
             
             if (m_pMainLoop)
             {
@@ -204,8 +334,8 @@ namespace DSD
         }
         try
         {
-            m_allDisplays[display] = new TiledDisplayBintr(
-                display, rows, columns, width, height);
+            m_allDisplays[display] = new DisplayBintr(
+                display, m_pXDisplay, rows, columns, width, height);
         }
         catch(...)
         {
@@ -282,145 +412,40 @@ namespace DSD
         try
         {
             delete m_allGies[gie];
-            m_allDisplays.erase(gie);
+            m_allGies.erase(gie);
         }
         catch(...)
         {
             LOG_ERROR("Delete Primary GIE '" << gie << "' threw exception on create");
             return DSD_RESULT_DISPLAY_NEW_EXCEPTION;
         }
-        m_allGies.erase(gie);
         LOG_INFO("GIE '" << gie << "' deleted successfully");
 
         return DSD_RESULT_SUCCESS;
     }
     
-    DsdReturnType Driver::ConfigNew(const std::string& config)
+    DsdReturnType Driver::PipelineNew(const std::string& pipeline)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allConfigs[config])
+        if (m_allPipelines[pipeline])
         {   
-            LOG_ERROR("Config name '" << config << "' is not unique");
-            return DSD_RESULT_CONFIG_NAME_NOT_UNIQUE;
+            LOG_ERROR("Pipeline name '" << pipeline << "' is not unique");
+            return DSD_RESULT_PIPELINE_NAME_NOT_UNIQUE;
         }
-        m_allConfigs[config] = 1;
-        LOG_INFO("new Config '" << config << "' created successfully");
+        try
+        {
+            m_allPipelines[pipeline] = new PipelineBintr(pipeline);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Pipeline '" << pipeline << "' threw exception on create");
+            return DSD_RESULT_PIPELINE_NEW_EXCEPTION;
+        }
+        LOG_INFO("new PIPELINE '" << pipeline << "' created successfully");
 
         return DSD_RESULT_SUCCESS;
-    }
-    
-    DsdReturnType Driver::ConfigDelete(const std::string& config)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        if (!m_allConfigs[config])
-        {   
-            LOG_ERROR("Config name '" << config << "' was not found");
-            return DSD_RESULT_CONFIG_NAME_NOT_FOUND;
-        }
-        m_allConfigs.erase(config);
-        LOG_INFO("Config '" << config << "' deleted successfully");
-
-        return DSD_RESULT_SUCCESS;
-    }
-    
-    DsdReturnType Driver::ConfigFileLoad(const std::string& config, const std::string& file)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigFileSave(const std::string& config, const std::string& file)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigFileOverWrite(const std::string& config, const std::string& file)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigSourceAdd(const std::string& config, const std::string& source)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigSourceRemove(const std::string& config, const std::string& source)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigOsdAdd(const std::string& config, const std::string& osd)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigOsdRemove(const std::string& config, const std::string& osd)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigGieAdd(const std::string& config, const std::string& gie)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigGieRemove(const std::string& config, const std::string& gie)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigDisplayAdd(const std::string& config, const std::string& display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::ConfigDisplayRemove(const std::string& config, const std::string& display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
-    }
-    
-    DsdReturnType Driver::PipelineNew(const std::string& pipeline, const std::string& config)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        return DSD_RESULT_API_NOT_IMPLEMENTED;
     }
     
     DsdReturnType Driver::PipelineDelete(const std::string& pipeline)
@@ -428,9 +453,170 @@ namespace DSD
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        if (!m_allPipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSD_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        try
+        {
+            delete m_allPipelines[pipeline];
+            m_allPipelines.erase(pipeline);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Delete Pipeline '" << pipeline << "' threw exception on create");
+            return DSD_RESULT_PIPELINE_NEW_EXCEPTION;
+        }
+        LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
+
+        return DSD_RESULT_SUCCESS;
+    }
+    
+    DsdReturnType Driver::PipelineSourceAdd(const std::string& pipeline, 
+        const std::string& source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        if (!m_allPipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSD_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        if (!m_allSources[source])
+        {   
+            LOG_ERROR("Source name '" << source << "' was not found");
+            return DSD_RESULT_SOURCE_NAME_NOT_FOUND;
+        }
+        if (!m_allPipelines[pipeline]->AddSourceBintr(m_allSources[source]))
+        {   
+            LOG_ERROR("Failed to add '" << source << "' to Pipeline '" << pipeline);
+            return DSD_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+        }
+        
+        LOG_INFO("Source '" << source << "'was added to Pipeline '" << pipeline << "' successfully");
+
+        return DSD_RESULT_SUCCESS;
+    }
+    
+    DsdReturnType Driver::PipelineSourceRemove(const std::string& pipeline, 
+        const std::string& source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
         return DSD_RESULT_API_NOT_IMPLEMENTED;
     }
     
+    DsdReturnType Driver::PipelineStreamMuxAdd(const std::string& pipeline, 
+        const std::string& streammux)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        if (!m_allPipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSD_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        if (!m_allStreamMuxs[streammux])
+        {   
+            LOG_ERROR("Stream Mux name '" << streammux << "' was not found");
+            return DSD_RESULT_STREAMMUX_NAME_NOT_FOUND;
+        }
+        if (!m_allPipelines[pipeline]->AddStreamMuxBintr(m_allStreamMuxs[streammux]))
+        {   
+            LOG_ERROR("Failed to add '" << streammux << "' to Pipeline '" << pipeline);
+            return DSD_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+        }
+        
+        LOG_INFO("Stream Mux '" << streammux << "'was added to Pipeline '" << pipeline << "' successfully");
+
+        return DSD_RESULT_SUCCESS;
+    }
+    
+    DsdReturnType Driver::PipelineStreamMuxRemove(const std::string& pipeline, 
+        const std::string& streammux)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DsdReturnType Driver::PipelineOsdAdd(const std::string& pipeline, 
+        const std::string& osd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DsdReturnType Driver::PipelineOsdRemove(const std::string& pipeline, 
+        const std::string& osd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DsdReturnType Driver::PipelineGieAdd(const std::string& pipeline, 
+        const std::string& gie)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DsdReturnType Driver::PipelineGieRemove(const std::string& pipeline, 
+        const std::string& gie)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DsdReturnType Driver::PipelineDisplayAdd(const std::string& pipeline, 
+        const std::string& display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        if (!m_allPipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSD_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        if (!m_allDisplays[display])
+        {   
+            LOG_ERROR("Display name '" << display << "' was not found");
+            return DSD_RESULT_DISPLAY_NAME_NOT_FOUND;
+        }
+        if (!m_allPipelines[pipeline]->AddDisplayBintr(m_allDisplays[display]))
+        {   
+            LOG_ERROR("Failed to add '" << display << "' to Pipeline '" << pipeline);
+            return DSD_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+        }
+        
+        LOG_INFO("Display '" << display << "'was added to Pipeline '" << pipeline << "' successfully");
+
+        return DSD_RESULT_SUCCESS;
+    }
+    
+    DsdReturnType Driver::PipelineDisplayRemove(const std::string& pipeline, 
+        const std::string& display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+
+        return DSD_RESULT_API_NOT_IMPLEMENTED;
+    }
+        
     DsdReturnType Driver::PipelinePause(const std::string& pipeline)
     {
         LOG_FUNC();
@@ -455,18 +641,25 @@ namespace DSD
         return DSD_RESULT_API_NOT_IMPLEMENTED;
     }
         
+    void Driver::MainLoopRun()
+    {
+        LOG_FUNC();
+
+        g_main_loop_run(m_pMainLoop);
+    };
+        
     bool Driver::HandleXWindowEvents()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
         
         XEvent xEvent;
 
-        while (XPending (m_pDisplay)) 
+        while (XPending (m_pXDisplay)) 
         {
             
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
             
-            XNextEvent(m_pDisplay, &xEvent);
+            XNextEvent(m_pXDisplay, &xEvent);
             switch (xEvent.type) 
             {
             case ButtonPress:                

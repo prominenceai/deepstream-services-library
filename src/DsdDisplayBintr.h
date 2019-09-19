@@ -30,14 +30,14 @@ THE SOFTWARE.
 
 namespace DSD
 {
-    class TiledDisplayBintr : public Bintr
+    class DisplayBintr : public Bintr
     {
     public: 
     
-        TiledDisplayBintr(const std::string& display, 
+        DisplayBintr(const std::string& display, Display* m_pGstDisplay,
             guint rows, guint columns, guint width, guint height);
 
-        ~TiledDisplayBintr();
+        ~DisplayBintr();
 
         
     private:
@@ -96,6 +96,14 @@ namespace DSD
          @brief
          */
         GstPad *m_pSrcGst; 
+        
+        Window m_window;
+
+        /**
+         * @brief a single display for the driver
+        */
+        Display* m_pGstDisplay;
+        
         
     };
     
