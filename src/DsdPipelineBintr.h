@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "DsdDisplayBintr.h"
 #include "DsdSourceBintr.h"
 #include "DsdStreamMuxBintr.h"
+#include "DsdSinkBintr.h"
 
 namespace DSD {
 
@@ -52,6 +53,10 @@ namespace DSD {
 
         gboolean AddStreamMuxBintr(StreamMuxBintr* pBintr);
 
+        gboolean AddSinkBintr(SinkBintr* pBintr);
+
+        gboolean AddOsdBintr(OsdBintr* pBintr);
+
         gboolean AddDisplayBintr(DisplayBintr* pBintr);
         
         /**
@@ -70,11 +75,6 @@ namespace DSD {
     
     private:
 
-        /**
-         * @brief handle to a common display used by all pipelines
-         */
-        Display* m_pDisplay;
-        
         Bintr* m_pProcessingBintr;
         
         GstElement* m_pProcessingBin;
@@ -82,6 +82,10 @@ namespace DSD {
         SourceBintr* m_pSourceBintr;
         
         StreamMuxBintr* m_pStreamMuxBintr;
+        
+        SinkBintr* m_pSinkBintr;
+        
+        OsdBintr* m_pOsdBintr;
         
         DisplayBintr* m_pDisplayBintr;
 

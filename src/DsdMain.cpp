@@ -81,6 +81,8 @@ int main(int argc, char **argv)
     Driver* pDriver = Driver::GetDriver();
 
     dsd_source_new("source1", 5, TRUE, 1280, 720, 30, 1);
+    
+    dsd_sink_new("sink1", 0, 1, 0, 0, 0, 0);
 
     dsd_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
 
@@ -94,6 +96,8 @@ int main(int argc, char **argv)
     
     dsd_pipeline_source_add("pipeline1", "source1");
     
+    dsd_pipeline_sink_add("pipeline1", "sink1");
+    
     dsd_pipeline_streammux_add("pipeline1", "streammux1");
 
     dsd_pipeline_display_add("pipeline1", "display1");
@@ -102,7 +106,6 @@ int main(int argc, char **argv)
 
     // Run the main loop
     dsd_main_loop_run();
-    
 //
 //    DSD_GIE_DELETE("GIE1");
     
@@ -113,7 +116,6 @@ int main(int argc, char **argv)
     dsd_source_delete("source1");
 
     dsd_pipeline_delete("pipeline1");
-
 
     returnValue = EXIT_SUCCESS;
     

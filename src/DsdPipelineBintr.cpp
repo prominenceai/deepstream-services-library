@@ -116,6 +116,24 @@ namespace DSD
         return AddChild((Bintr*)pBintr);
     }
 
+    gboolean PipelineBintr::AddSinkBintr(SinkBintr* pBintr)
+    {
+        LOG_FUNC();
+        
+        m_pSinkBintr = pBintr;
+        
+        return AddChild((Bintr*)pBintr);
+    }
+
+    gboolean PipelineBintr::AddOsdBintr(OsdBintr* pBintr)
+    {
+        LOG_FUNC();
+        
+        m_pOsdBintr = pBintr;
+        
+        return AddChild((Bintr*)pBintr);
+    }
+
     gboolean PipelineBintr::AddDisplayBintr(DisplayBintr* pBintr)
     {
         LOG_FUNC();
@@ -139,7 +157,8 @@ namespace DSD
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
         
-        m_pSourceBintr->LinkTo((Bintr*)m_pDisplayBintr);
+        m_pSourceBintr->LinkTo((Bintr*)m_pStreamMuxBintr);
+        m_pStreamMuxBintr->LinkTo((Bintr*)m_pDisplayBintr);
         
         return (gst_element_set_state(m_pBin, 
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);

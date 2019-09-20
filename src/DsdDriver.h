@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "DsdPipelineBintr.h"
 #include "DsdSourceBintr.h"
+#include "DsdSinkBintr.h"
 #include "DsdStreamMuxBintr.h"
 #include "DsdDisplayBintr.h"
 
@@ -55,6 +56,11 @@ namespace DSD {
         
         DsdReturnType SourceDelete(const std::string& source);
         
+        DsdReturnType SinkNew(const std::string& sink, guint displayId, guint overlayId,
+            guint offsetX, guint offsetY, guint width, guint height);
+        
+        DsdReturnType SinkDelete(const std::string& sink);
+        
         DsdReturnType StreamMuxNew(const std::string& streammux, gboolean live, 
             guint batchSize, guint batchTimeout, guint width, guint height);
         
@@ -74,6 +80,10 @@ namespace DSD {
         DsdReturnType PipelineSourceAdd(const std::string& pipeline, const std::string& source);
         
         DsdReturnType PipelineSourceRemove(const std::string& pipeline, const std::string& source);
+        
+        DsdReturnType PipelineSinkAdd(const std::string& pipeline, const std::string& sink);
+        
+        DsdReturnType PipelineSinkRemove(const std::string& pipeline, const std::string& sink);
         
         DsdReturnType PipelineStreamMuxAdd(const std::string& pipeline, const std::string& streammux);
         
@@ -101,8 +111,6 @@ namespace DSD {
         
         DsdReturnType PipelineGetState(const std::string& pipeline);
                         
-        void MainLoopRun();
-        
         /** 
          * @brief Handles all pending events
          * 
@@ -156,14 +164,16 @@ namespace DSD {
         GThread* m_pXWindowEventThread;
         
         std::map <std::string, SourceBintr*> m_allSources;
+        std::map <std::string, SinkBintr*> m_allSinks;
         std::map <std::string, StreamMuxBintr*> m_allStreamMuxs;
-        std::map <std::string, guint> m_allSinks;
         std::map <std::string, guint> m_allOsds;
         std::map <std::string, PrimaryGieBintr*> m_allGies;
         std::map <std::string, DisplayBintr*> m_allDisplays;
         std::map <std::string, PipelineBintr*> m_allPipelines;
         
     };  
+
+    static gboolean MainLoopThread(gpointer arg);
 
     /**
      * @brief 

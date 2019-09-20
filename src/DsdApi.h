@@ -106,6 +106,8 @@ THE SOFTWARE.
 #define DSD_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
 #define DSD_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
 #define DSD_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
+#define DSD_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001000
+#define DSD_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001001
 
 #define DSD_SOURCE_TYPE_CAMERA_V4L2                                 1
 #define DSD_SOURCE_TYPE_URI                                         2
@@ -146,8 +148,8 @@ DsdReturnType dsd_source_delete(const std::string& source);
  * @param live DSD_TRUE | DSD_FLASE
  * @param batchSize
  * @param batchTimeout
- * @param width width of the muxer output
- * @param heigth height of the muxer output
+ * @param width 
+ * @param heigth 
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
 DsdReturnType dsd_streammux_new(const std::string& streammux, 
@@ -159,6 +161,37 @@ DsdReturnType dsd_streammux_new(const std::string& streammux,
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
 DsdReturnType dsd_streammux_delete(const std::string& streammux);
+
+/**
+ * @brief creates a new, uniquely named Sink obj
+ * @param sink unique name for the new Sink
+ * @param displayId
+ * @param overlatId
+ * @param offsetX
+ * @param offsetY
+ * @param width width of the muxer output
+ * @param heigth height of the muxer output
+ * @return DSD_RESULT_SINK_RESULT
+ */
+DsdReturnType dsd_sink_new(const std::string& sink, guint displayId, 
+    guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
+
+/**
+ * @brief deletes a Sink object by name
+ * @param sink name of the Sink object to delete
+ * @return DSD_RESULT_SINK_RESULT
+ */
+DsdReturnType dsd_sink_delete(const std::string& source);
+
+DsdReturnType dsd_osd_new(const std::string& osd, guint displayId, 
+    guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
+
+/**
+ * @brief deletes an OSD object by name
+ * @param osd name of the OSD object to delete
+ * @return DSD_RESULT_SINK_RESULT
+ */
+DsdReturnType dsd_osd_delete(const std::string& osd);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -219,7 +252,7 @@ DsdReturnType dsd_pipeline_delete(const std::string& pipeline);
  * @brief adds a Source object to a Pipeline object
  * @param[in] pipeline name of the pipepline to update
  * @param source name of the Source object to add
- * @return DSD_RESULT_CONFIG_RESULT
+ * @return DSD_RESULT_PIPELINE_RESULT
  */
 DsdReturnType dsd_pipeline_source_add(const std::string& pipeline, 
     const std::string& source);
@@ -232,6 +265,24 @@ DsdReturnType dsd_pipeline_source_add(const std::string& pipeline,
  */
 DsdReturnType dsd_pipeline_source_remove(const std::string& pipeline, 
     const std::string& source);
+
+/**
+ * @brief adds a Sink object to a Pipeline object
+ * @param[in] sink name of the pipepline to update
+ * @param source name of the Sing object to add
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_sink_add(const std::string& pipeline, 
+    const std::string& sink);
+
+/**
+ * @brief removes a Sink object from a Pipeline object
+ * @param[in] pipeline name of the pipepline to update
+ * @param sink name of the Sink object to remove
+ * @return DSD_RESULT_PIPELINE_RESULT
+ */
+DsdReturnType dsd_pipeline_sink_remove(const std::string& pipeline, 
+    const std::string& sink);
 
 /**
  * @brief adds a Stream Mux object to a Pipeline object
@@ -325,6 +376,10 @@ DsdReturnType dsd_pipeline_play(const std::string& pipeline);
  */
 DsdReturnType dsd_pipeline_get_state(const std::string& pipeline);
 
+/**
+ * @brief entry point to the GST Main Loop
+ * Note: This is a blocking call - executes an endless loop
+ */
 void dsd_main_loop_run();
 
 #endif // _DSD_API_H

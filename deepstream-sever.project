@@ -23,6 +23,10 @@
     <File Name="src/DsdStreamMuxBintr.cpp"/>
     <File Name="src/DsdPipelineBintr.h"/>
     <File Name="src/DsdPipelineBintr.cpp"/>
+    <File Name="src/DsdSinkBintr.h"/>
+    <File Name="src/DsdSinkBintr.cpp"/>
+    <File Name="src/DsdOsdBintr.h"/>
+    <File Name="src/DsdOsdBintr.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

@@ -28,10 +28,10 @@ THE SOFTWARE.
 namespace DSD
 {
 
-    DisplayBintr::DisplayBintr(const std::string& display, Display* pGstDisplay,
+    DisplayBintr::DisplayBintr(const std::string& display, Display* pXDisplay,
         guint rows, guint columns, guint width, guint height)
         : Bintr(display)
-        , m_pGstDisplay(pGstDisplay)
+        , m_pXDisplay(pXDisplay)
         , m_rows(rows)
         , m_columns(columns)
         , m_width(width)
@@ -97,8 +97,8 @@ namespace DSD
         gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", m_pSinkGst));
         gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", m_pSrcGst));
         
-        m_window = XCreateSimpleWindow(m_pGstDisplay, 
-            RootWindow(m_pGstDisplay, DefaultScreen(m_pGstDisplay)), 
+        m_window = XCreateSimpleWindow(m_pXDisplay, 
+            RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
             0, 0, m_width, m_height, 2, 0x00000000, 0x00000000);            
 
         if (!m_window)
@@ -110,16 +110,14 @@ namespace DSD
         XSetWindowAttributes attr = {0};
         
         attr.event_mask = ButtonPress | KeyRelease;
-        XChangeWindowAttributes(m_pGstDisplay, m_window, CWEventMask, &attr);
+        XChangeWindowAttributes(m_pXDisplay, m_window, CWEventMask, &attr);
 
-        Atom wmDeleteMessage = XInternAtom(m_pGstDisplay, "WM_DELETE_WINDOW", False);
+        Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
         if (wmDeleteMessage != None)
         {
-            XSetWMProtocols(m_pGstDisplay, m_window, &wmDeleteMessage, 1);
+            XSetWMProtocols(m_pXDisplay, m_window, &wmDeleteMessage, 1);
         }
-        XMapRaised(m_pGstDisplay, m_window);
-        XSync(m_pGstDisplay, 1);       
-        
+        XMapRaised(m_pXDisplay, m_window);
     };    
 
     DisplayBintr::~DisplayBintr()

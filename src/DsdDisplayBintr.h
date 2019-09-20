@@ -34,7 +34,7 @@ namespace DSD
     {
     public: 
     
-        DisplayBintr(const std::string& display, Display* m_pGstDisplay,
+        DisplayBintr(const std::string& display, Display* m_pXDisplay,
             guint rows, guint columns, guint width, guint height);
 
         ~DisplayBintr();
@@ -102,7 +102,7 @@ namespace DSD
         /**
          * @brief a single display for the driver
         */
-        Display* m_pGstDisplay;
+        Display* m_pXDisplay;
         
         
     };
