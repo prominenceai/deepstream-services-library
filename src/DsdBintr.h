@@ -44,7 +44,10 @@ namespace DSD
          * @brief 
          */
         Bintr(const std::string& name)
-            : m_pBin(NULL)
+            : m_gpuId(0)
+            , m_nvbufMemoryType(0)
+            , m_pSinkPad(NULL)
+            , m_pSourcePad(NULL)
             , m_pParentBintr(NULL)
             , m_pSourceBintr(NULL)
             , m_pDestBintr(NULL)
@@ -53,6 +56,13 @@ namespace DSD
             LOG_INFO("New bintr:: " << name);
             
             m_name.assign(name);
+
+            m_pBin = gst_bin_new((gchar*)name.c_str());
+            if (!m_pBin)
+            {
+                LOG_ERROR("Failed to create new bin for component'" << name << "'");
+                throw;  
+            }
             
             g_mutex_init(&m_bintrMutex);
         };
@@ -74,11 +84,6 @@ namespace DSD
             
             m_pDestBintr = pDestBintr;
             pDestBintr->m_pSourceBintr = this;
-
-            LOG_INFO("Source Bin " << m_name 
-                << " is object:: " << (bool)m_pBin);
-            LOG_INFO("Distination Bin " << pDestBintr->m_name 
-                << " is object:: " << (bool)m_pBin);
             
             if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
             {
@@ -93,31 +98,91 @@ namespace DSD
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
-//            m_pChildBintr = pChildBintr;
             pChildBintr->m_pParentBintr = this;
-            
-            LOG_INFO("Parent Bin " << m_name 
-                << " is object:: " << (bool)m_pBin);
-            LOG_INFO("Child Bin " << pChildBintr->m_name 
-                << " is object:: " << (bool)m_pBin);
-                
+                            
             if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
                 LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
                 return FALSE;
             }
             return true;
-        }
+        };
+        
+        GstElement* MakeElement(const gchar * factoryname, const gchar * name)
+        {
+            LOG_FUNC();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
+
+            GstElement* pElement = gst_element_factory_make(factoryname, name);
+            if (!pElement)
+            {
+                LOG_ERROR("Failed to create new Element '" << name << "'");
+                throw;  
+            }
+        };
+        
+        void AddGhostPads(GstElement* sink, GstElement* source)
+        {
+            m_pSinkPad = gst_element_get_static_pad(sink, "sink");
+            if (!m_pSinkPad)
+            {
+                LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
+                throw;
+            }
+            
+            m_pSourcePad = gst_element_get_static_pad(source, "src");
+            if (!m_pSourcePad)
+            {
+                LOG_ERROR("Failed to Source Pad for '" << m_name <<" '");
+                throw;
+            }
+        };
         
     public:
+
+        /**
+         @brief
+         */
         std::string m_name;
 
+        /**
+         @brief
+         */
         GstElement* m_pBin;
+        
+        /**
+         @brief
+         */
+        guint m_gpuId;
 
+        /**
+         @brief
+         */
+        guint m_nvbufMemoryType;
+
+        /**
+         @brief
+         */
+        GstPad *m_pSinkPad;
+        
+        /**
+         @brief
+         */
+        GstPad *m_pSourcePad; 
+        
+        /**
+         @brief
+         */
         Bintr* m_pParentBintr;
         
+        /**
+         @brief
+         */
         Bintr* m_pSourceBintr;
 
+        /**
+         @brief
+         */
         Bintr* m_pDestBintr;
         
         /**

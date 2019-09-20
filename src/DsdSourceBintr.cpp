@@ -48,25 +48,9 @@ namespace DSD
     {
         LOG_FUNC();
                 
-        m_pBin = gst_bin_new((gchar*)source.c_str());
-        if (!m_pBin)
-        {
-            LOG_ERROR("Failed to create new Source bin for '" << source << "'");
-            throw;  
-        }
-        m_pSourceElement = gst_element_factory_make(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem");
-        if (!m_pSourceElement)
-        {
-            LOG_ERROR("Failed to create new Source Element for '" << source << "'");
-            throw;  
-        }
+        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem");
 
-        m_pCapsFilter = gst_element_factory_make(NVDS_ELEM_CAPS_FILTER, "src_cap_filter");
-        if (!m_pCapsFilter)
-        {
-            LOG_ERROR("Failed to create new Caps filter for '" << source << "'");
-            throw;  
-        }
+        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter");
 
         m_pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 

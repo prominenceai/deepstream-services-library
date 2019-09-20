@@ -27,55 +27,30 @@ THE SOFTWARE.
 
 namespace DSD
 {
-    OsdBintr::OsdBintr(const std::string& osd, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height)
+    std::string OsdBintr::m_sClockFont = "Serif";
+    guint OsdBintr::m_sClockFontSize = 12;
+    guint OsdBintr::m_sClockOffsetX = 800;
+    guint OsdBintr::m_sClockOffsetY = 820;
+    guint OsdBintr::m_sClockColor = 0;
+    
+    OsdBintr::OsdBintr(const std::string& osd, gboolean isClockEnabled)
         : Bintr(osd)
-        , m_displayId(displayId)
-        , m_overlayId(overlayId)
-        , m_offsetX(offsetX)
-        , m_offsetY(offsetY)
-        , m_width(width)
-        , m_height(height)
+        , m_isClockEnabled(isClockEnabled)
         , m_pQueue(NULL)
-        , m_pTee(NULL)
-        , m_pSink(NULL)
+        , m_pVidConv(NULL)
+        , m_pCapsFilter(NULL)
+        , m_pConvQueue(NULL)
+        , m_pOsd(NULL)
     {
         LOG_FUNC();
         
-        m_pBin = gst_bin_new((gchar*)osd.c_str());
-        if (!m_pBin)
-        {
-            LOG_ERROR("Failed to create new OSD bin for '" << osd << "'");
-            throw;  
-        }
+        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "osd_conv");
 
-        m_pVidConv = gst_element_factory_make(NVDS_ELEM_VIDEO_CONV, "osd_conv");
-        if (!m_pVidConv)
-        {
-            LOG_ERROR("Failed to create new Video Conv for OSD '" << osd << "'");
-            throw;  
-        }
-
-        m_pQueue = gst_element_factory_make(NVDS_ELEM_QUEUE, "osd_queue");
-        if (!m_pQueue)
-        {
-            LOG_ERROR("Failed to create new Queue for OSD '" << osd << "'");
-            throw;  
-        }
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_queue");
         
-        m_pCapsFilter = gst_element_factory_make(NVDS_ELEM_CAPS_FILTER, "osd_caps");
-        if (!m_pCapsFilter)
-        {
-            LOG_ERROR("Failed to create new Caps for OSD '" << osd << "'");
-            throw;  
-        }
+        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps");
         
-        m_pConvQueue = gst_element_factory_make(NVDS_ELEM_QUEUE, "osd_conv_queue");
-        if (!m_pConvQueue)
-        {
-            LOG_ERROR("Failed to create new  for OSD '" << osd << "'");
-            throw;  
-        }
+        m_pConvQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_conv_queue");
 
         GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
 
@@ -83,23 +58,17 @@ namespace DSD
         gst_caps_set_features(caps, 0, feature);
         g_object_set(G_OBJECT(m_pCapsFilter), "caps", caps, NULL);
 
-        m_pOsd = gst_element_factory_make(NVDS_ELEM_OSD, "osd0");
-        if (!m_pOsd)
-        {
-            LOG_ERROR("Failed to create new OSD element for OSD '" << osd << "'");
-            throw;  
-        }
+        MakeElement(NVDS_ELEM_OSD, "osd0");
 
         g_object_set(G_OBJECT(m_pOsd), "display-clock", m_isClockEnabled,
-            "clock-font", m_font, "x-clock-offset", m_clockOffsetX,
-            "y-clock-offset", m_clockOffsetY, "clock-color", m_clkColor,
-            "clock-font-size", m_clockFontOffset, "process-mode", m_processMode, NULL);
+            "clock-font", (gchar*)m_sClockFont.c_str(), "x-clock-offset", m_sClockOffsetX,
+            "y-clock-offset", m_sClockOffsetY, "clock-color", m_sClockColor,
+            "clock-font-size", m_sClockFontSize, "process-mode", m_processMode, NULL);
 
         gst_bin_add_many(GST_BIN(m_pBin), m_pQueue, m_pVidConv, m_pConvQueue, m_pOsd, NULL);
 
-        g_object_set(G_OBJECT (bin->nvvidconv), "gpu-id", config->gpu_id, NULL);
-        g_object_set(G_OBJECT (bin->nvvidconv), "nvbuf-memory-type",
-            config->nvbuf_memory_type, NULL);
+        g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
+        g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pOsd), "gpu-id", m_gpuId, NULL);
 
@@ -120,9 +89,7 @@ namespace DSD
             throw;
         }
 
-        gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", m_pQueue));
-        gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", m_pOsd));
-
+        AddGhostPads(m_pQueue, m_pOsd);
     }    
     
     OsdBintr::~OsdBintr()

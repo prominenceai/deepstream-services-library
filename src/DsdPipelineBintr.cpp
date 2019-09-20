@@ -37,14 +37,6 @@ namespace DSD
         , m_pProcessingBintr(NULL)
     {
         LOG_FUNC();
-        
-        // New GST Pipeline
-        m_pBin = gst_pipeline_new("pipeline");
-        if (!m_pBin)
-        {
-            LOG_ERROR("Failed to create new pipeline");
-            throw;
-        }
 
         // New processing parent bin 
         m_pProcessingBin = gst_bin_new("processing-bin");

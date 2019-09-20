@@ -29,7 +29,8 @@ THE SOFTWARE.
 #include "DsdSourceBintr.h"
 #include "DsdStreamMuxBintr.h"
 #include "DsdSinkBintr.h"
-
+#include "DsdOsdBintr.h"
+    
 namespace DSD {
 
     /**

@@ -61,16 +61,6 @@ namespace DSD
          @brief
          */
         guint m_height;
-
-        /**
-         @brief
-         */
-        guint m_gpuId;
-
-        /**
-         @brief
-         */
-        guint m_nvbufMemoryType;
         
         /**
          @brief
@@ -87,23 +77,12 @@ namespace DSD
          */
         GstElement* m_pTiler;
         
-        /**
-         @brief
-         */
-        GstPad *m_pSinkGst;
-        
-        /**
-         @brief
-         */
-        GstPad *m_pSrcGst; 
-        
         Window m_window;
 
         /**
          * @brief a single display for the driver
         */
         Display* m_pXDisplay;
-        
         
     };
     

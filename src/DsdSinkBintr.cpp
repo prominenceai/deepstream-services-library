@@ -42,28 +42,11 @@ namespace DSD
     {
         LOG_FUNC();
         
-        m_pBin = gst_bin_new((gchar*)sink.c_str());
-        if (!m_pBin)
-        {
-            LOG_ERROR("Failed to create new Sink bin for '" << sink << "'");
-            throw;  
-        }
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue");
         
-        m_pQueue = gst_element_factory_make(NVDS_ELEM_QUEUE, "sink_bin_queue");
-        if (!m_pQueue)
-        {
-            LOG_ERROR("Failed to create new Queue for Sink '" << sink << "'");
-            throw;  
-        }
-        
-        m_pTee = gst_element_factory_make(NVDS_ELEM_TEE, "sink_bin_tee");
-        if (!m_pTee)
-        {
-            LOG_ERROR("Failed to create new Tee for Sink '" << sink << "'");
-            throw;  
-        }
+        m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee");
 
-        m_pSink = gst_element_factory_make (NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str());
+        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str());
         
         g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay", m_overlayId, NULL);

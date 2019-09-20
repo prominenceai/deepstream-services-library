@@ -36,34 +36,28 @@ namespace DSD
         , m_batchSize(batchSize)
         , m_batchTimeout(batchTimeout)
         , m_isLive(live)
-        , m_gpuId(0)
         , m_enablePadding(FALSE)
-        , m_nvbufMemoryType(0)
     {
         LOG_FUNC();
         
-        m_pBin = gst_element_factory_make(NVDS_ELEM_STREAM_MUX, "stream_muxer");
-        if (!m_pBin) 
-        {            
-            LOG_ERROR("Failed to create new Stream Muxer bin for '" << streammux << "'");
-            throw;
-        };
-        g_object_set(G_OBJECT(m_pBin), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pBin), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
-        g_object_set(G_OBJECT(m_pBin), "live-source", m_isLive, NULL);
-        g_object_set(G_OBJECT(m_pBin), "batched-push-timeout", m_batchTimeout, NULL);
+        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer");
+        
+        g_object_set(G_OBJECT(m_pStreamMux), "gpu-id", m_gpuId, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "live-source", m_isLive, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "batched-push-timeout", m_batchTimeout, NULL);
 
         if ((gboolean)m_batchSize)
         {
-            g_object_set(G_OBJECT(m_pBin), "batch-size", m_batchSize, NULL);
+            g_object_set(G_OBJECT(m_pStreamMux), "batch-size", m_batchSize, NULL);
         }
 
-        g_object_set(G_OBJECT(m_pBin), "enable-padding", m_enablePadding, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "enable-padding", m_enablePadding, NULL);
 
         if (m_width && m_height)
         {
-            g_object_set(G_OBJECT(m_pBin), "width", m_width, NULL);
-            g_object_set(G_OBJECT(m_pBin), "height", m_height, NULL);
+            g_object_set(G_OBJECT(m_pStreamMux), "width", m_width, NULL);
+            g_object_set(G_OBJECT(m_pStreamMux), "height", m_height, NULL);
         }
     };    
 

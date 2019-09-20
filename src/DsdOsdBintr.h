@@ -31,27 +31,35 @@ THE SOFTWARE.
 
 namespace DSD
 {
+    
     class OsdBintr : public Bintr
     {
     public: 
     
-        OsdBintr(const std::string& sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height);
+        OsdBintr(const std::string& osd, gboolean isClockEnabled);
 
         ~OsdBintr();
         
     private:
 
-        guint m_displayId;
-        guint m_overlayId;
-        guint m_offsetX;
-        guint m_offsetY;
-        guint m_width;
-        guint m_height;
-
+        gboolean m_isClockEnabled;
+        
+        static std::string m_sClockFont;
+        static guint m_sClockFontSize;
+        static guint m_sClockOffsetX;
+        static guint m_sClockOffsetY;
+        static guint m_sClockColor;
+        
+        /**
+         @brief
+         */
+        guint m_processMode;
+        
         GstElement* m_pQueue;
-        GstElement* m_pTee;
-        GstElement* m_pSink;
+        GstElement* m_pVidConv;
+        GstElement* m_pCapsFilter;
+        GstElement* m_pConvQueue;
+        GstElement* m_pOsd;
     
     };
 }

@@ -42,6 +42,8 @@ namespace DSD
 
     private:
 
+        GstElement* m_pStreamMux;
+        
         /**
          @brief
          */
@@ -67,16 +69,6 @@ namespace DSD
          */
         gboolean m_isLive;
 
-        /**
-         @brief
-         */
-        guint m_gpuId;
-
-        /**
-         @brief
-         */
-        guint m_nvbufMemoryType;
-        
         /**
          @brief
          */
