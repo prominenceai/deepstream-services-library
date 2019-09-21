@@ -123,6 +123,9 @@ namespace DSD
         
         void AddGhostPads(GstElement* sink, GstElement* source)
         {
+            LOG_FUNC();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
+
             m_pSinkPad = gst_element_get_static_pad(sink, "sink");
             if (!m_pSinkPad)
             {
@@ -191,47 +194,6 @@ namespace DSD
         GMutex m_bintrMutex;
     };
 
-
-    class PrimaryGieBintr : public Bintr
-    {
-    public: 
-    
-        PrimaryGieBintr(const std::string& gie, 
-            const std::string& model,const std::string& infer, 
-            guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4)
-            : Bintr(gie)
-        {
-            LOG_FUNC();
-            
-            INIT_MEMORY(m_nvdsConfig);
-            INIT_MEMORY(m_nvdsBin);
-            
-            m_nvdsConfig.config_file_path = (gchar*)Bintr::m_configFilePath.c_str();;
-            m_nvdsConfig.model_engine_file_path = (gchar*)model.c_str();
-            m_nvdsConfig.label_file_path = (gchar*)infer.c_str();
-            m_nvdsConfig.is_batch_size_set = (gboolean)batchSize;
-            m_nvdsConfig.batch_size = batchSize;
-
-            if (!create_primary_gie_bin(&m_nvdsConfig, &m_nvdsBin))
-            {
-                LOG_ERROR("Failed to create new Primary GIE bin for '" << gie << "'");
-                throw;
-            }
-        };    
-
-        ~PrimaryGieBintr()
-        {
-            LOG_FUNC();
-        };
-
-        
-    private:
-    
-        NvDsGieConfig m_nvdsConfig;
-
-        NvDsPrimaryGieBin m_nvdsBin;
-    };
-    
 
 } // DSD
 

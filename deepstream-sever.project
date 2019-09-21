@@ -27,6 +27,8 @@
     <File Name="src/DsdSinkBintr.cpp"/>
     <File Name="src/DsdOsdBintr.h"/>
     <File Name="src/DsdOsdBintr.cpp"/>
+    <File Name="src/DsdGieBintr.h"/>
+    <File Name="src/DsdGieBintr.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
