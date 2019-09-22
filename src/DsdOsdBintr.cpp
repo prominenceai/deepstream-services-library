@@ -44,52 +44,29 @@ namespace DSD
     {
         LOG_FUNC();
         
-        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "osd_conv");
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_queue", LINK_TRUE);
+        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "osd_conv", LINK_TRUE);
+        m_pConvQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_conv_queue", LINK_TRUE);
+        m_pOsd = MakeElement(NVDS_ELEM_OSD, "nvosd0", LINK_TRUE);
 
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_queue");
-        
-        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps");
-        
-        m_pConvQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_conv_queue");
-
+        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps", LINK_FALSE);
         GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
 
         GstCapsFeatures *feature = gst_caps_features_new(MEMORY_FEATURES, NULL);
         gst_caps_set_features(caps, 0, feature);
         g_object_set(G_OBJECT(m_pCapsFilter), "caps", caps, NULL);
 
-        MakeElement(NVDS_ELEM_OSD, "osd0");
-
         g_object_set(G_OBJECT(m_pOsd), "display-clock", m_isClockEnabled,
             "clock-font", (gchar*)m_sClockFont.c_str(), "x-clock-offset", m_sClockOffsetX,
             "y-clock-offset", m_sClockOffsetY, "clock-color", m_sClockColor,
             "clock-font-size", m_sClockFontSize, "process-mode", m_processMode, NULL);
-
-        gst_bin_add_many(GST_BIN(m_pBin), m_pQueue, m_pVidConv, m_pConvQueue, m_pOsd, NULL);
 
         g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
         g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pOsd), "gpu-id", m_gpuId, NULL);
 
-        if (!gst_element_link(m_pQueue, m_pVidConv))
-        {
-            LOG_ERROR("Failed to link Queue to Vid Conv for OSD '" << osd <<" '");
-            throw;
-        }
-        
-        if (!gst_element_link(m_pVidConv, m_pConvQueue))
-        {
-            LOG_ERROR("Failed to link Vid Conv to Conv Queue for OSD '" << osd <<" '");
-            throw;
-        }
-        if (!gst_element_link(m_pConvQueue, m_pOsd))
-        {
-            LOG_ERROR("Failed to link Conv Queue to OSD for '" << osd <<" '");
-            throw;
-        }
-
-        AddGhostPads(m_pQueue, m_pOsd);
+        AddGhostPads();
     }    
     
     OsdBintr::~OsdBintr()

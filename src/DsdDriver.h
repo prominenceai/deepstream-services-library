@@ -27,8 +27,10 @@ THE SOFTWARE.
 
 #include "DsdPipelineBintr.h"
 #include "DsdSourceBintr.h"
-#include "DsdSinkBintr.h"
 #include "DsdStreamMuxBintr.h"
+#include "DsdSinkBintr.h"
+#include "DsdOsdBintr.h"
+#include "DsdGieBintr.h"
 #include "DsdDisplayBintr.h"
 
 typedef int DsdReturnType;
@@ -167,7 +169,7 @@ namespace DSD {
         std::map <std::string, SinkBintr*> m_allSinks;
         std::map <std::string, StreamMuxBintr*> m_allStreamMuxs;
         std::map <std::string, guint> m_allOsds;
-        std::map <std::string, PrimaryGieBintr*> m_allGies;
+        std::map <std::string, GieBintr*> m_allGies;
         std::map <std::string, DisplayBintr*> m_allDisplays;
         std::map <std::string, PipelineBintr*> m_allPipelines;
         

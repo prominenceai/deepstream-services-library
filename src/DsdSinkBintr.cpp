@@ -41,11 +41,12 @@ namespace DSD
         , m_pSink(NULL)
     {
         LOG_FUNC();
+
+        // New Queie. Tee, amd Sink Elements for this Sink bin
+        // Note!, elements will be linked in the order they're created
         
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue");
-        
         m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee");
-
         m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str());
         
         g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
@@ -55,14 +56,7 @@ namespace DSD
         g_object_set(G_OBJECT(m_pSink), "overlay-w", m_width, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay-h", m_height, NULL);
 
-        gst_bin_add_many(GST_BIN(m_pBin), m_pQueue, m_pTee, m_pSink, NULL);
-
-        if (!gst_element_link(m_pQueue, m_pTee))
-        {
-            LOG_ERROR("Failed to link Queue to Tee for Sink '" << sink <<" '");
-            throw;
-        }
-        
+        AddGhostPads();
     }
     
     SinkBintr::~SinkBintr()

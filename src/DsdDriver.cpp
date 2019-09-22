@@ -464,7 +464,7 @@ namespace DSD
         }
         try
         {
-            m_allGies[gie] = new PrimaryGieBintr(
+            m_allGies[gie] = new GieBintr(
                 gie, model, infer, batchSize, bc1, bc2, bc3, bc4);
         }
         catch(...)

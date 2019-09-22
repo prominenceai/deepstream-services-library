@@ -31,12 +31,15 @@ namespace DSD
     guint OsdBintr::m_sClockFontSize = 12;
     
     OsdBintr::OsdBintr(const std::string& osd, const std::string& configFilePath,
-        guint batchSize, guint interval, guint uniqueId, guint gpuId)
+        guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+        const std::string& m_modelEngineFile, const std::string& gchar* m_rawOutputDir)
+        )
         : Bintr(osd)
         , m_batchSize(batchSize)
         , m_interval(interval)
         , m_uniqueId(uniqueId)
         , m_gpuId(gpuId)
+        , m_modelEngineFile
         , m_pVidConv(NULL)
         , m_pQueue(NULL)
         , m_pClassifier(NULL)
@@ -48,7 +51,7 @@ namespace DSD
         m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier");
 
         g_object_set(G_OBJECT (m_pClassifier), "config-file-path", 
-            GET_FILE_PATH (configFilePath), "process-mode", 1, NULL);
+            GET_FILE_PATH ((gchar*)configFilePath.c_str()), "process-mode", 1, NULL);
 
         if (m_batchSize)
         {
@@ -73,7 +76,7 @@ namespace DSD
         if (m_modelEngineFile)
         {
             g_object_set(G_OBJECT(m_pClassifier), "model-engine-file",
-                GET_FILE_PATH(m_modelEngineFile), NULL);
+                GET_FILE_PATH((gchar*)m_modelEngineFile), NULL);
         }
 
         if (m_rawOutputDir)

@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include "Dsd.h"
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
+#define LINK_TRUE true
+#define LINK_FALSE false
 
 namespace DSD
 {
@@ -93,22 +95,22 @@ namespace DSD
             }
         };
 
-        bool AddChild(Bintr* pChildBintr)
+        void AddChild(Bintr* pChildBintr)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             pChildBintr->m_pParentBintr = this;
+            m_pChildBintrs.push_back(pChildBintr)
                             
             if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
                 LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
-                return FALSE;
+                throw;
             }
-            return true;
         };
         
-        GstElement* MakeElement(const gchar * factoryname, const gchar * name)
+        GstElement* MakeElement(const gchar * factoryname, const gchar * name, bool linkToPrev)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -119,21 +121,49 @@ namespace DSD
                 LOG_ERROR("Failed to create new Element '" << name << "'");
                 throw;  
             }
+
+            if (!gst_bin_add(GST_BIN(m_pBin), pElement))
+            {
+                LOG_ERROR("Failed to add " << name << " to " << m_name);
+                throw;
+            }
+            
+            if (!linkToPrev)
+            {
+                return;
+            }
+            
+            // If not the first element
+            if (m_pLinkedChildElements.size())
+            {
+                
+                // link the new element to the previously made.
+                if (!gst_element_link(m_pLinkedChildElements.back(), pElement))
+                {
+                    LOG_ERROR("Failed to link new element" << m_name << " to "
+                        << m_name);
+                    throw;
+                }
+            }
+            m_pLinkedChildElements.push_back(pElement);
+            
         };
         
-        void AddGhostPads(GstElement* sink, GstElement* source)
+        void AddGhostPads()
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
-
-            m_pSinkPad = gst_element_get_static_pad(sink, "sink");
+            
+            // get Sink pad for first child element in the order list
+            m_pSinkPad = gst_element_get_static_pad(m_pLinkedChildElements.back(), "sink");
             if (!m_pSinkPad)
             {
                 LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
                 throw;
             }
             
-            m_pSourcePad = gst_element_get_static_pad(source, "src");
+            // get Source pad for last child element in the ordered list
+            m_pSourcePad = gst_element_get_static_pad(m_pLinkedChildElements.back(), "src");
             if (!m_pSourcePad)
             {
                 LOG_ERROR("Failed to Source Pad for '" << m_name <<" '");
@@ -152,6 +182,11 @@ namespace DSD
          @brief
          */
         GstElement* m_pBin;
+        
+        /**
+         @brief
+         */
+        std::vector<GstElement*> m_pLinkedChildElements;
         
         /**
          @brief
@@ -177,6 +212,11 @@ namespace DSD
          @brief
          */
         Bintr* m_pParentBintr;
+        
+        /**
+         @brief
+         */
+        std::vector<Bintr*> m_pChildBintrs;
         
         /**
          @brief
