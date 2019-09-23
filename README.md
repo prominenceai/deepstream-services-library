@@ -1,14 +1,32 @@
-# deepstream-server (DSS)
+# deepstream-services-library (DSL)
 
 ![](/Images/under-construction.png)
 
-DSS is an _Embedded REST Services Application_ for the NVIDA® Jetson™ Platform. Written in C++ 11, DSS is built on the following SDK's.
+DSL implements a simple services API for the NVIDA® Jetson™ Platform. Written in C++ 11, DSS is built on the following SDK's.
 
 * [DeepStream](https://developer.nvidia.com/deepstream-sdk) - _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_
 * [NVIDIA Container Runtime](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) - _"Enables users to run GPU accelerated Deep Learning and HPC containers on Jetson devices."_
-* [Pistache](https://github.com/oktal/pistache) - _"A high-performance REST Toolkit written in C++"_
 
-DSS implements a RESTful API for client applications - desktop and mobile - to request services from a Jetson AI System. The server is designed to provide a set of common AI platform services (TBD) as one component of a distributive application framework for developing new, custom applications.
+Setting up and playing pipeline
+
+```
+    dsl_csi_source_new("source1", 5, TRUE, 1280, 720, 30, 1);
+    dsl_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
+    dsl_sink_new("sink1", 0, 1, 0, 0, 0, 0);
+    dsl_osd1_new("osd1", 0, 1, 0, 0, 0, 0);
+    dsl_display_new("display1", 1, 1, 1280, 720);
+    dsl_gie_new("gie1", "resnet10.caffemodel_b30_int8.engine", 
+        "config_infer_primary.txt", 1, 1, 1, 1, 1);
+
+    dsl_pipeline_new("pipeline1");
+
+    char* comp_list[] =  {"source1", "streammux1", "sink1", "osd1", "gie1", "display1"};
+    
+    dsl_pipeline_add_components("pipeline1", comp_list);
+    
+    dsl_pipeline_play("pipeline1");
+
+```
 
 ![System Components](https://github.com/canammex-tech/getting-started/blob/master/images/system-image.png)
 
@@ -16,7 +34,7 @@ DSS implements a RESTful API for client applications - desktop and mobile - to r
 [![IMAGE ALT TEXT](/Images/deepstream-on-jetson-nano.png)](https://www.youtube.com/watch?time_continue=2&v=Y43W04sMK7I)
 
 ## Contributing
-deepstream-server is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBD. 
+DSL is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBD. 
 
 ## Installing Dependencies
 
