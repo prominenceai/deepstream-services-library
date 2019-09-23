@@ -36,6 +36,16 @@ THE SOFTWARE.
 typedef int DsdReturnType;
 
 namespace DSD {
+    
+    enum compTypes
+    {
+        SOURCE_CAMERA_CSI = 0,
+        OSD_WITH_CLOCK,
+        SINK_OVERLAY,
+        STREAM_MUTEX,
+        GIE_CLASIFIER,
+        TILED_DISPLAY
+    };
 
     /**
      * @class Driver
@@ -73,9 +83,9 @@ namespace DSD {
         
         DsdReturnType DisplayDelete(const std::string& display);
         
-        DsdReturnType GieNew(const std::string& gie, 
-            const std::string& model, const std::string& infer, 
-            guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4);
+        DsdReturnType GieNew(const std::string& gie, const std::string& configFilePath, 
+            guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
+            std::string& modelEngineFile, const std::string& rawOutputDir);
         
         DsdReturnType GieDelete(const std::string& gie);
         
@@ -165,13 +175,8 @@ namespace DSD {
         
         GThread* m_pXWindowEventThread;
         
-        std::map <std::string, SourceBintr*> m_allSources;
-        std::map <std::string, SinkBintr*> m_allSinks;
-        std::map <std::string, StreamMuxBintr*> m_allStreamMuxs;
-        std::map <std::string, guint> m_allOsds;
-        std::map <std::string, GieBintr*> m_allGies;
-        std::map <std::string, DisplayBintr*> m_allDisplays;
-        std::map <std::string, PipelineBintr*> m_allPipelines;
+
+        std::map <std::string, Bintr*> m_allComps;
         
     };  
 

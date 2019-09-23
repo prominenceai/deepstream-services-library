@@ -44,18 +44,17 @@ namespace DSD
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
         , m_pSourceElement(NULL)
         , m_pCapsFilter(NULL)
-        , m_pCaps(NULL)
     {
         LOG_FUNC();
-                
-        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem");
-
+              
+        // Create Source Element and Caps filter - Order is specific
+        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", LINK_TRUE);
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter");
 
-        m_pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
             "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
-        if (!m_pCaps)
+        if (!pCaps)
         {
             LOG_ERROR("Failed to create new Caps Simple for '" << source << "'");
             throw;  
@@ -66,38 +65,19 @@ namespace DSD
         g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 1, NULL);
 
         GstCapsFeatures *feature = NULL;
-        
         feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(m_pCaps, 0, feature);
+
+        gst_caps_set_features(pCaps, 0, feature);
+        g_object_set(G_OBJECT(pCapsFilter), "caps", pCaps, NULL);
         
-        g_object_set(G_OBJECT(m_pCapsFilter), "caps", m_pCaps, NULL);
+        gst_caps_unref(pCaps);        
         
-        gst_bin_add_many(GST_BIN(m_pBin), m_pSourceElement, m_pCapsFilter, NULL);
-        
-        if (!gst_element_link(m_pSourceElement, m_pCapsFilter))
-        {
-            LOG_ERROR("Failed to link 'src_elm' to caps_filter");
-            throw;
-        }
-        
+        AddGhostPads();
     }
 
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
-
-        if(m_pSourceElement)
-        {
-            
-        }
-        if(m_pCapsFilter)
-        {
-//            gst_element_unref(m_pCapsFilter);
-        }
-        if(m_pCaps)
-        {
-            gst_caps_unref(m_pCaps);
-        }
 
     }
 }

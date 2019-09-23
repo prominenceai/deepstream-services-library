@@ -101,7 +101,7 @@ namespace DSD
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             pChildBintr->m_pParentBintr = this;
-            m_pChildBintrs.push_back(pChildBintr)
+            m_pChildBintrs.push_back(pChildBintr);
                             
             if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
@@ -130,23 +130,20 @@ namespace DSD
             
             if (!linkToPrev)
             {
-                return;
-            }
-            
-            // If not the first element
-            if (m_pLinkedChildElements.size())
-            {
-                
-                // link the new element to the previously made.
-                if (!gst_element_link(m_pLinkedChildElements.back(), pElement))
+                // If not the first element
+                if (m_pLinkedChildElements.size())
                 {
-                    LOG_ERROR("Failed to link new element" << m_name << " to "
-                        << m_name);
-                    throw;
+                    // link the previous to the new element 
+                    if (!gst_element_link(m_pLinkedChildElements.back(), pElement))
+                    {
+                        LOG_ERROR("Failed to link new element" << m_name << " to "
+                            << m_name);
+                        throw;
+                    }
                 }
+                m_pLinkedChildElements.push_back(pElement);
             }
-            m_pLinkedChildElements.push_back(pElement);
-            
+            return pElement;
         };
         
         void AddGhostPads()

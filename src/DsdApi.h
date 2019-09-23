@@ -132,7 +132,7 @@ THE SOFTWARE.
  * @param fps-d
  * @return DSD_RESULT_SOURCE_RESULT
  */
-DsdReturnType dsd_source_new(const std::string& source, guint type, 
+DsdReturnType dsd_source_new(const char* source, guint type, 
     gboolean live, guint width, guint height, guint fps_n, guint fps_d);
 
 /**
@@ -140,7 +140,7 @@ DsdReturnType dsd_source_new(const std::string& source, guint type,
  * @param source name of the Source object to delete
  * @return DSD_RESULT_SOURCE_RESULT
  */
-DsdReturnType dsd_source_delete(const std::string& source);
+DsdReturnType dsd_source_delete(const char* source);
 
 /**
  * @brief creates a new, uniquely named Streammux obj
@@ -152,7 +152,7 @@ DsdReturnType dsd_source_delete(const std::string& source);
  * @param heigth 
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
-DsdReturnType dsd_streammux_new(const std::string& streammux, 
+DsdReturnType dsd_streammux_new(const char* streammux, 
     gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
 /**
@@ -160,7 +160,7 @@ DsdReturnType dsd_streammux_new(const std::string& streammux,
  * @param source name of the Source object to delete
  * @return DSD_RESULT_STREAMMUX_RESULT
  */
-DsdReturnType dsd_streammux_delete(const std::string& streammux);
+DsdReturnType dsd_streammux_delete(const char* streammux);
 
 /**
  * @brief creates a new, uniquely named Sink obj
@@ -173,7 +173,7 @@ DsdReturnType dsd_streammux_delete(const std::string& streammux);
  * @param heigth height of the muxer output
  * @return DSD_RESULT_SINK_RESULT
  */
-DsdReturnType dsd_sink_new(const std::string& sink, guint displayId, 
+DsdReturnType dsd_sink_new(const char* sink, guint displayId, 
     guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
 
 /**
@@ -181,9 +181,9 @@ DsdReturnType dsd_sink_new(const std::string& sink, guint displayId,
  * @param sink name of the Sink object to delete
  * @return DSD_RESULT_SINK_RESULT
  */
-DsdReturnType dsd_sink_delete(const std::string& source);
+DsdReturnType dsd_sink_delete(const char* source);
 
-DsdReturnType dsd_osd_new(const std::string& osd, guint displayId, 
+DsdReturnType dsd_osd_new(const char* osd, guint displayId, 
     guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
 
 /**
@@ -191,7 +191,7 @@ DsdReturnType dsd_osd_new(const std::string& osd, guint displayId,
  * @param osd name of the OSD object to delete
  * @return DSD_RESULT_SINK_RESULT
  */
-DsdReturnType dsd_osd_delete(const std::string& osd);
+DsdReturnType dsd_osd_delete(const char* osd);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -202,7 +202,7 @@ DsdReturnType dsd_osd_delete(const std::string& osd);
  * @param height height of each row in pix  als
  * @return DSD_RESULT_DISPLAY_RESULT
  */
-DsdReturnType dsd_display_new(const std::string& display, 
+DsdReturnType dsd_display_new(const char* display, 
     guint rows, guint columns, guint width, guint height);
 
 /**
@@ -210,7 +210,7 @@ DsdReturnType dsd_display_new(const std::string& display,
  * @param display name of the Display object to delete
  * @return DSD_RESULT_DISPLAY_RESULT
  */
-DsdReturnType dsd_display_delete(const std::string& display);
+DsdReturnType dsd_display_delete(const char* display);
 
 /**
  * @brief creates a new, uniquely named GIE object
@@ -222,23 +222,23 @@ DsdReturnType dsd_display_delete(const std::string& display);
  * @param height height of each row in pix  als
  * @return DSD_RESULT_GIE_RESULT
  */
-DsdReturnType dsd_gie_new(const std::string& gie, 
-    const std::string& model,const std::string& infer, 
-    guint batchSize, guint bc1, guint bc2, guint bc3, guint bc4);
+DsdReturnType dsd_gie_new(const char* gie, const char* configFilePath, 
+            guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
+            std::string& modelEngineFile, const char* rawOutputDir);
 
 /**
  * @brief deletes a GIE object by name
  * @param display name of the Display object to delete
  * @return DSD_RESULT_GIE_RESULT
  */
-DsdReturnType dsd_gie_delete(const std::string& gie);
+DsdReturnType dsd_gie_delete(const char* gie);
 
 /**
  * @brief creates a new, uniquely named Pipeline
  * @param pipeline unique name for the new Pipeline
  * @return DSD_RESULT_PIPELINE_RESULT
  */
-DsdReturnType dsd_pipeline_new(const std::string& pipeline);
+DsdReturnType dsd_pipeline_new(const char* pipeline);
 
 /**
  * @brief deletes a Pipeline object by name.
@@ -246,135 +246,46 @@ DsdReturnType dsd_pipeline_new(const std::string& pipeline);
  * @param pipeline unique name of the Pipeline to delete.
  * @return DSD_RESULT_PIPELINE_RESULT.
  */
-DsdReturnType dsd_pipeline_delete(const std::string& pipeline);
+DsdReturnType dsd_pipeline_delete(const char* pipeline);
 
 /**
- * @brief adds a Source object to a Pipeline object
+ * @brief adds a list of components to a Pipeline 
  * @param[in] pipeline name of the pipepline to update
- * @param source name of the Source object to add
+ * @param[in] components NULL terminated array of component names to add
  * @return DSD_RESULT_PIPELINE_RESULT
  */
-DsdReturnType dsd_pipeline_source_add(const std::string& pipeline, 
-    const std::string& source);
+DsdReturnType dsd_pipeline_add_components(const char* pipeline, 
+    const char** components);
 
 /**
- * @brief removes a Source object from a Pipeline object
+ * @brief removes a list of names components from a Pipeline
  * @param[in] pipeline name of the pipepline to update
- * @param source name of the Source object to remove
+ * @param[in] components NULL terminated array of component names to remove
  * @return DSD_RESULT_PIPELINE_RESULT
  */
-DsdReturnType dsd_pipeline_source_remove(const std::string& pipeline, 
-    const std::string& source);
-
-/**
- * @brief adds a Sink object to a Pipeline object
- * @param[in] sink name of the pipepline to update
- * @param source name of the Sing object to add
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_sink_add(const std::string& pipeline, 
-    const std::string& sink);
-
-/**
- * @brief removes a Sink object from a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param sink name of the Sink object to remove
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_sink_remove(const std::string& pipeline, 
-    const std::string& sink);
-
-/**
- * @brief adds a Stream Mux object to a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param streammux name of the Source object to add
- * @return DSD_RESULT_CONFIG_RESULT
- */
-DsdReturnType dsd_pipeline_streammux_add(const std::string& pipeline, 
-    const std::string& streammux);
-
-/**
- * @brief removes a Stream Mux object from a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param streammux name of the Source object to remove
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_streammux_remove(const std::string& pipeline, 
-    const std::string& streammux);
-
-/**
- * @brief adds an OSD object to a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param osd name of the OSD object to add
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_osd_add(const std::string& pipeline, const std::string& osd);
-
-/**
- * @brief removes an OSD object from a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param osd name of the OSD object to remove
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_osd_remove(const std::string& pipeline, 
-    const std::string& osd);
-
-/**
- * @brief adds a GIE object to a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param osd name of the OSD object to add
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_gie_add(const std::string& pipeline, 
-    const std::string& gie);
-
-/**
- * @brief removes a GIE object from a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param gie name of the GIE object to remove
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_gie_remove(const std::string& pipeline, 
-    const std::string& gie);
-
-/**
- * @brief adds a GIE object to a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param display name of the Display object to add
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_display_add(const std::string& pipeline, 
-    const std::string& display);
-
-/**
- * @brief removes an OSD object from a Pipeline object
- * @param[in] pipeline name of the pipepline to update
- * @param display name of the Display object to remove
- * @return DSD_RESULT_PIPELINE_RESULT
- */
-DsdReturnType dsd_pipeline_display_remove(const std::string& pipeline, 
-    const std::string& display);
+DsdReturnType dsd_pipeline_remove_components(const char* pipeline, 
+    const char** components);
 
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param pipeline unique name of the Pipeline to pause.
  * @return DSD_RESULT.
  */
-DsdReturnType dsd_pipeline_pause(const std::string& pipeline);
+DsdReturnType dsd_pipeline_pause(const char* pipeline);
 
 /**
  * @brief plays a Pipeline if in a state of paused
  * @param pipeline unique name of the Pipeline to play.
  * @return DSD_RESULT_PIPELINE_RESULT.
  */
-DsdReturnType dsd_pipeline_play(const std::string& pipeline);
+DsdReturnType dsd_pipeline_play(const char* pipeline);
 
 /**
  * @brief gets the current state of a Pipeline
  * @param pipeline unique name of the Pipeline to query
  * @return DSD_RESULT_PIPELINE_PAUSED | DSD_RESULT_PIPELINE_PLAYING
  */
-DsdReturnType dsd_pipeline_get_state(const std::string& pipeline);
+DsdReturnType dsd_pipeline_get_state(const char* pipeline);
 
 /**
  * @brief entry point to the GST Main Loop

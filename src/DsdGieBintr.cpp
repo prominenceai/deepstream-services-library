@@ -27,30 +27,32 @@ THE SOFTWARE.
 
 namespace DSD
 {
-    std::string OsdBintr::m_sClockFont = "Serif";
-    guint OsdBintr::m_sClockFontSize = 12;
-    
-    OsdBintr::OsdBintr(const std::string& osd, const std::string& configFilePath,
+    GieBintr::GieBintr(const std::string& osd, const std::string& configFilePath,
         guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-        const std::string& m_modelEngineFile, const std::string& gchar* m_rawOutputDir)
-        )
+        const std::string& modelEngineFile, const std::string&  rawOutputDir)
         : Bintr(osd)
         , m_batchSize(batchSize)
         , m_interval(interval)
         , m_uniqueId(uniqueId)
-        , m_gpuId(gpuId)
-        , m_modelEngineFile
         , m_pVidConv(NULL)
         , m_pQueue(NULL)
         , m_pClassifier(NULL)
     {
         LOG_FUNC();
         
-        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
+        m_configFilePath.assign(configFilePath);
+        m_modelEngineFile.assign(modelEngineFile);
+        m_rawOutputDir.assign(rawOutputDir);
+        
+        
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "primary_gie_queue");
+        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
         m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier");
 
-        g_object_set(G_OBJECT (m_pClassifier), "config-file-path", 
+        g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
+        g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+
+        g_object_set(G_OBJECT(m_pClassifier), "config-file-path", 
             GET_FILE_PATH ((gchar*)configFilePath.c_str()), "process-mode", 1, NULL);
 
         if (m_batchSize)
@@ -73,13 +75,13 @@ namespace DSD
             g_object_set(G_OBJECT(m_pClassifier), "gpu-id", m_uniqueId, NULL);
         }
 
-        if (m_modelEngineFile)
+        if (m_modelEngineFile.length())
         {
             g_object_set(G_OBJECT(m_pClassifier), "model-engine-file",
                 GET_FILE_PATH((gchar*)m_modelEngineFile), NULL);
         }
 
-        if (m_rawOutputDir)
+        if (m_rawOutputDir.length())
         {
             g_object_set(G_OBJECT(m_pClassifier),
                 "raw-output-generated-callback", out_callback,
@@ -87,27 +89,11 @@ namespace DSD
                 NULL);
         }
 
-        g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
-        gst_bin_add_many(GST_BIN(m_pBin), m_pQueue, m_pVidConv, m_pClassifier, NULL);
-
-        if (!gst_element_link(m_pQueue, m_pVidConv))
-        {
-            LOG_ERROR("Failed to link Queue to Video Conv for '" << gie <<" '");
-            throw;
-        }
-
-        if (!gst_element_link(m_pVidConv, m_pClassifier))
-        {
-            LOG_ERROR("Failed to link Queue to Video Conv for '" << gie <<" '");
-            throw;
-        }
-
-        AddGhostPads(m_pQueue, m_pClassifier);
+        AddGhostPads();
     }    
     
-    OsdBintr::~OsdBintr()
+    GieBintr::~GieBintr()
     {
         LOG_FUNC();
     }

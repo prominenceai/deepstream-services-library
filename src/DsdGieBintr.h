@@ -36,7 +36,9 @@ namespace DSD
     {
     public: 
     
-        GieBintr(const std::string& osd, gboolean isClockEnabled);
+        GieBintr(const std::string& osd, const std::string& configFilePath,
+            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+            const std::string& modelEngineFile, const std::string& rawOutputDir);
 
         ~GieBintr();
         
@@ -47,6 +49,19 @@ namespace DSD
         static std::string m_sClockFont;
         static guint m_sClockFontSize;
         
+        guint m_batchSize;
+        
+        guint m_interval;
+        
+        guint m_uniqueId;
+
+        const std::string m_configFilePath;
+        
+        const std::string m_modelEngineFile;
+
+        const std::string m_rawOutputDir;
+        
+        
         /**
          @brief
          */
@@ -56,6 +71,7 @@ namespace DSD
         GstElement* m_pVidConv;
         GstElement* m_pCapsFilter;
         GstElement* m_pConvQueue;
+        GstElement* m_pClassifier;
         GstElement* m_pOsd;
     
     };

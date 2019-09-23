@@ -96,11 +96,6 @@ namespace DSD
          @brief
          */
         GstElement * m_pCapsFilter;
-
-        /**
-         @brief
-         */
-        GstCaps * m_pCaps;
     };
 }
 

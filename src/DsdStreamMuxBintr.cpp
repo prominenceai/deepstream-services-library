@@ -40,7 +40,7 @@ namespace DSD
     {
         LOG_FUNC();
         
-        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer");
+        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_FALSE);
         
         g_object_set(G_OBJECT(m_pStreamMux), "gpu-id", m_gpuId, NULL);
         g_object_set(G_OBJECT(m_pStreamMux), "nvbuf-memory-type", m_nvbufMemoryType, NULL);

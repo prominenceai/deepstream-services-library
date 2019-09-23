@@ -45,9 +45,9 @@ namespace DSD
         // New Queie. Tee, amd Sink Elements for this Sink bin
         // Note!, elements will be linked in the order they're created
         
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue");
-        m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee");
-        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str());
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
+        m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
+        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str(), LINK_TRUE);
         
         g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay", m_overlayId, NULL);

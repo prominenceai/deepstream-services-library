@@ -50,15 +50,15 @@ namespace DSD {
         bool Pause();
         bool Play();
 
-        gboolean AddSourceBintr(SourceBintr* pBintr);
+        void AddSourceBintr(SourceBintr* pBintr);
 
-        gboolean AddStreamMuxBintr(StreamMuxBintr* pBintr);
+        void AddStreamMuxBintr(StreamMuxBintr* pBintr);
 
-        gboolean AddSinkBintr(SinkBintr* pBintr);
+        void AddSinkBintr(SinkBintr* pBintr);
 
-        gboolean AddOsdBintr(OsdBintr* pBintr);
+        void AddOsdBintr(OsdBintr* pBintr);
 
-        gboolean AddDisplayBintr(DisplayBintr* pBintr);
+        void AddDisplayBintr(DisplayBintr* pBintr);
         
         /**
          * @brief handles incoming Message Packets received

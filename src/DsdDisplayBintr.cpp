@@ -42,10 +42,10 @@ namespace DSD
         , m_window(0)
     {
         LOG_FUNC();
-        
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "tiled_display_queue");
 
-        m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler");
+        // Queue and Tiler elements will be linked in the order created.
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "tiled_display_queue", LINK_TRUE);
+        m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler", LINK_TRUE);
 
         g_object_set(G_OBJECT(m_pTiler), "width", m_width, NULL);
         g_object_set(G_OBJECT(m_pTiler), "height", m_height, NULL);
@@ -53,16 +53,9 @@ namespace DSD
         g_object_set(G_OBJECT(m_pTiler), "columns", m_columns, NULL);
         g_object_set(G_OBJECT(m_pTiler), "gpu-id", m_gpuId, NULL);
         g_object_set(G_OBJECT(m_pTiler), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
-        
-        gst_bin_add_many(GST_BIN(m_pBin), m_pQueue, m_pTiler, NULL);
 
-        if (!gst_element_link(m_pQueue, m_pTiler))
-        {
-            LOG_ERROR("Failed to link Queue to Tiler for Display '" << display <<" '");
-            throw;
-        }
-
-        AddGhostPads(m_pQueue, m_pTiler);
+        // Add Sink and Source pads for Queue and Tiler
+        AddGhostPads();
         
         m_window = XCreateSimpleWindow(m_pXDisplay, 
             RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 

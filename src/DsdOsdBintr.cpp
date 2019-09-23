@@ -50,9 +50,10 @@ namespace DSD
         m_pOsd = MakeElement(NVDS_ELEM_OSD, "nvosd0", LINK_TRUE);
 
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps", LINK_FALSE);
+        
         GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
-
         GstCapsFeatures *feature = gst_caps_features_new(MEMORY_FEATURES, NULL);
+
         gst_caps_set_features(caps, 0, feature);
         g_object_set(G_OBJECT(m_pCapsFilter), "caps", caps, NULL);
 

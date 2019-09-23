@@ -90,49 +90,49 @@ namespace DSD
         g_mutex_clear(&m_busWatchMutex);
     }
     
-    gboolean PipelineBintr::AddSourceBintr(SourceBintr* pBintr)
+    void PipelineBintr::AddSourceBintr(SourceBintr* pBintr)
     {
         LOG_FUNC();
         
         m_pSourceBintr = pBintr;
         
-        return AddChild((Bintr*)pBintr);
+        AddChild((Bintr*)pBintr);
     }
 
-    gboolean PipelineBintr::AddStreamMuxBintr(StreamMuxBintr* pBintr)
+    void PipelineBintr::AddStreamMuxBintr(StreamMuxBintr* pBintr)
     {
         LOG_FUNC();
 
         m_pStreamMuxBintr = pBintr;
 
-        return AddChild((Bintr*)pBintr);
+        AddChild((Bintr*)pBintr);
     }
 
-    gboolean PipelineBintr::AddSinkBintr(SinkBintr* pBintr)
+    void PipelineBintr::AddSinkBintr(SinkBintr* pBintr)
     {
         LOG_FUNC();
         
         m_pSinkBintr = pBintr;
         
-        return AddChild((Bintr*)pBintr);
+        AddChild((Bintr*)pBintr);
     }
 
-    gboolean PipelineBintr::AddOsdBintr(OsdBintr* pBintr)
+    void PipelineBintr::AddOsdBintr(OsdBintr* pBintr)
     {
         LOG_FUNC();
         
         m_pOsdBintr = pBintr;
         
-        return AddChild((Bintr*)pBintr);
+        AddChild((Bintr*)pBintr);
     }
 
-    gboolean PipelineBintr::AddDisplayBintr(DisplayBintr* pBintr)
+    void PipelineBintr::AddDisplayBintr(DisplayBintr* pBintr)
     {
         LOG_FUNC();
 
         m_pDisplayBintr = pBintr;
         
-        return AddChild((Bintr*)pBintr);
+        AddChild((Bintr*)pBintr);
     }
 
     bool PipelineBintr::Pause()
