@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsd.h"
-#include "DsdDisplayBintr.h"
+#include "Dsl.h"
+#include "DslDisplayBintr.h"
 
-namespace DSD
+namespace DSL
 {
 
     DisplayBintr::DisplayBintr(const std::string& display, Display* pXDisplay,

@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -23,38 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_SINK_BINTR_H
-#define _DSD_SINK_BINTR_H
+#ifndef _DSD_H
+#define _DSD_H
 
-#include "Dsd.h"
-#include "DsdBintr.h"
+#include <cstdlib>
 
-namespace DSD
-{
-    class SinkBintr : public Bintr
-    {
-    public: 
-    
-        SinkBintr(const std::string& sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height);
+#include <gst/gst.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
-        ~SinkBintr();
-        
-    private:
+#include <iostream> 
+#include <vector>
+#include <map> 
 
-        guint m_displayId;
-        guint m_overlayId;
-        guint m_offsetX;
-        guint m_offsetY;
-        guint m_width;
-        guint m_height;
+#include <deepstream_common.h>
+#include <deepstream_config.h>
+#include <deepstream_perf.h>
 
-        GstElement* m_pQueue;
-        GstElement* m_pTee;
-        GstElement* m_pSink;
-    
-    };
-}
+#include "DslMutex.h"
+#include "DslLog.h"
 
-#endif // _DSD_SINK_BINTR_H
-    
+#endif // _DSD_H

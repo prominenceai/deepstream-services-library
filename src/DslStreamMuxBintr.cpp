@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsd.h"
-#include "DsdStreamMuxBintr.h"
+#include "Dsl.h"
+#include "DslStreamMuxBintr.h"
 
 
-namespace DSD
+namespace DSL
 {
     StreamMuxBintr::StreamMuxBintr(const std::string& streammux, 
         gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)

@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsd.h"
-#include "DsdOsdBintr.h"
+#include "Dsl.h"
+#include "DslOsdBintr.h"
 
-namespace DSD
+namespace DSL
 {
     std::string OsdBintr::m_sClockFont = "Serif";
     guint OsdBintr::m_sClockFontSize = 12;

@@ -22,16 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_BINTR_H
-#define _DSD_BINTR_H
+#ifndef _DSL_BINTR_H
+#define _DSL_BINTR_H
 
-#include "Dsd.h"
+#include "Dsl.h"
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define LINK_TRUE true
 #define LINK_FALSE false
 
-namespace DSD
+namespace DSL
 {
     
     /**
@@ -232,6 +232,6 @@ namespace DSD
     };
 
 
-} // DSD
+} // DSL
 
-#endif // _DSD_BINTR_H
+#endif // _DSL_BINTR_H

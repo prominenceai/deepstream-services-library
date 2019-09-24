@@ -23,9 +23,9 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdGieBintr.h"
+#include "DslGieBintr.h"
 
-namespace DSD
+namespace DSL
 {
     GieBintr::GieBintr(const std::string& osd, const std::string& configFilePath,
         guint batchSize, guint interval, guint uniqueId, guint gpuId, 

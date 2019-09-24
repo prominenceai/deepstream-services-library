@@ -1,4 +1,5 @@
 
+
 /*
 The MIT License
 
@@ -23,45 +24,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_OSD_BINTR_H
-#define _DSD_OSD_BINTR_H
+#ifndef _DSL_MUTEX_H
+#define _DSL_MUTEX_H
 
 #include "Dsd.h"
-#include "DsdBintr.h"
 
-namespace DSD
+
+#define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 
+ 
+namespace DSL
 {
-    
-    class OsdBintr : public Bintr
+    /**
+     * @class LockMutex
+     * @file  DssMutex.h
+     * @brief Used to lock a mutex for the current scope {}.
+     */
+    class LockMutexForCurrentScope
     {
-    public: 
-    
-        OsdBintr(const std::string& osd, gboolean isClockEnabled);
-
-        ~OsdBintr();
+    public:
+        LockMutexForCurrentScope(GMutex* mutex) : m_pMutex(mutex) 
+        {
+            g_mutex_lock(m_pMutex);
+        };
+        
+        ~LockMutexForCurrentScope()
+        {
+            g_mutex_unlock(m_pMutex);
+        };
         
     private:
-
-        gboolean m_isClockEnabled;
-        
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        static guint m_sClockOffsetX;
-        static guint m_sClockOffsetY;
-        static guint m_sClockColor;
-        
-        /**
-         @brief
-         */
-        guint m_processMode;
-        
-        GstElement* m_pQueue;
-        GstElement* m_pVidConv;
-        GstElement* m_pCapsFilter;
-        GstElement* m_pConvQueue;
-        GstElement* m_pOsd;
-    
+        GMutex* m_pMutex; 
     };
-}
 
-#endif // _DSD_OSD_BINTR_H
+} // namespace 
+
+#endif // _DSL_MUTEX_H

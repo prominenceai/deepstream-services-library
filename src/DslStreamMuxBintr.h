@@ -23,58 +23,58 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_GIE_BINTR_H
-#define _DSD_GIE_BINTR_H
+#ifndef _DSL_STREAMMUX_BINTR_H
+#define _DSL_STREAMMUX_BINTR_H
 
-#include "Dsd.h"
-#include "DsdBintr.h"
+#include "Dsl.h"
+#include "DslBintr.h"
 
-namespace DSD
+namespace DSL
 {
-    
-    class GieBintr : public Bintr
+    class StreamMuxBintr : public Bintr
     {
     public: 
     
-        GieBintr(const std::string& osd, const std::string& configFilePath,
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-            const std::string& modelEngineFile, const std::string& rawOutputDir);
+        StreamMuxBintr(const std::string& streammux, 
+            gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
-        ~GieBintr();
-        
+        ~StreamMuxBintr();
+
     private:
 
-        gboolean m_isClockEnabled;
-        
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        
-        guint m_batchSize;
-        
-        guint m_interval;
-        
-        guint m_uniqueId;
-
-        const std::string m_configFilePath;
-        
-        const std::string m_modelEngineFile;
-
-        const std::string m_rawOutputDir;
-        
+        GstElement* m_pStreamMux;
         
         /**
          @brief
          */
-        guint m_processMode;
-        
-        GstElement* m_pQueue;
-        GstElement* m_pVidConv;
-        GstElement* m_pCapsFilter;
-        GstElement* m_pConvQueue;
-        GstElement* m_pClassifier;
-        GstElement* m_pOsd;
-    
-    };
-}
+        gint m_width;
 
-#endif // _DSD_GIE_BINTR_H
+        /**
+         @brief
+         */
+        gint m_height;
+
+        /**
+         @brief
+         */
+        gint m_batchSize;
+
+        /**
+         @brief
+         */
+        gint m_batchTimeout;
+
+        /**
+         @brief
+         */
+        gboolean m_isLive;
+
+        /**
+         @brief
+         */
+        gboolean m_enablePadding;
+        
+    };
+};
+
+#endif // _DSL_STREAMMUX_BINTR_H

@@ -24,9 +24,9 @@ THE SOFTWARE.
 
 #include <log4cxx/basicconfigurator.h>
 
-#include "DsdLog4cxx.h"
+#include "DslLog4cxx.h"
 
-namespace DSD
+namespace DSL
 {
      
     LogMgr* LogMgr::m_pInstatnce = NULL;

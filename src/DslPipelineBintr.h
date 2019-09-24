@@ -22,16 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_PIPELINE_H
-#define _DSD_PIPELINE_H
+#ifndef _DSL_PIPELINE_H
+#define _DSL_PIPELINE_H
 
-#include "DsdDisplayBintr.h"
-#include "DsdSourceBintr.h"
-#include "DsdStreamMuxBintr.h"
-#include "DsdSinkBintr.h"
-#include "DsdOsdBintr.h"
+#include "DslSourceBintr.h"
+#include "DslStreamMuxBintr.h"
+#include "DslSinkBintr.h"
+#include "DslOsdBintr.h"
+#include "DslGieBintr.h"
+#include "DslDisplayBintr.h"
     
-namespace DSD {
+namespace DSL {
 
     /**
      * @class PipelineBintr
@@ -160,5 +161,5 @@ namespace DSD {
     
 } // Namespace
 
-#endif // _DSD_PIPELINE_H
+#endif // _DSL_PIPELINE_H
 

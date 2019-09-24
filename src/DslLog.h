@@ -22,40 +22,55 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_H
-#define _DSD_H
+#ifndef _DSL_LOG_H
+#define _DSL_LOG_H
 
-#include <cstdlib>
+#if defined(DSL_LOGGER_IMP)
+    #include DSL_LOGGER_IMP
+#else
 
-#include <gst/gst.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+    /**
+     * Logs the Entry and Exit of a Function with the DEBUG level.
+     * Add macro as the first statement to each function of interest.
+     * Consider the intrussion/penalty of this call when adding.
+    */
+    #define LOG_FUNC()
 
-#include <iostream> 
-#include <vector>
-#include <map> 
+    /**
+    Logs a message with the DEBUG level.
 
-// referenced in deepstream_tracker_bin.c
-GST_DEBUG_CATEGORY_EXTERN (NVDS_APP);
+    @param[in] message the message string to log.
+    */
+    #define LOG_DEBUG(message)
 
-#include <deepstream_app_version.h>
-#include <deepstream_common.h>
-#include <deepstream_config.h>
-#include <deepstream_config_file_parser.h>
-#include <deepstream_osd.h>
-#include <deepstream_perf.h>
-#include <deepstream_primary_gie.h>
-#include <deepstream_sinks.h>
-#include <deepstream_sources.h>
-#include <deepstream_streammux.h>
-#include <deepstream_tiled_display.h>
-#include <deepstream_dsexample.h>
-#include <deepstream_tracker.h>
-#include <deepstream_secondary_gie.h>
-#include <deepstream_gie.h>
-#include <deepstream_dewarper.h>
+    /**
+    Logs a message with the INFO level.
 
-#include "DsdMutex.h"
-#include "DsdLog.h"
+    @param[in] message the message string to log.
+    */
+    #define LOG_INFO(message)
 
-#endif // _DSD_H
+    /**
+    Logs a message with the WARN level.
+
+    @param[in] message the message string to log.
+    */
+    #define LOG_WARN(message)
+
+    /**
+    Logs a message with the ERROR level.
+
+    @param[in] message the message string to log.
+    */
+    #define LOG_ERROR(message)
+
+    /**
+    Logs a message with the FATAL level.
+
+    @param[in] message the message string to log.
+    */
+    #define LOG_FATAL(message)
+    
+#endif // !DSL_LOGGER_IMP
+
+#endif // _DSL_LOG_H

@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "DsdApi.h"
+#include "DslApi.h"
 
 GST_DEBUG_CATEGORY(NVDS_APP);
 
-using namespace DSD;
+using namespace DSL;
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
     dsd_display_new("display1", 1, 1, 1280, 720);
 
-//    DSD_GIE_NEW("GIE1",
+//    DSL_GIE_NEW("GIE1",
 //        "resnet10.caffemodel_b30_int8.engine", 
 //        "config_infer_primary.txt", 1, 1, 1, 1, 1);
 //        
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     // Run the main loop
     dsd_main_loop_run();
 //
-//    DSD_GIE_DELETE("GIE1");
+//    DSL_GIE_DELETE("GIE1");
     
     dsd_display_delete("display1");
     

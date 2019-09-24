@@ -1,3 +1,4 @@
+
 /*
 The MIT License
 
@@ -22,70 +23,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_DISPLAY_BINTR_H
-#define _DSD_DISPLAY_BINTR_H
+#ifndef _DSL_SINK_BINTR_H
+#define _DSL_SINK_BINTR_H
 
-#include "Dsd.h"
-#include "DsdBintr.h"
+#include "Dsl.h"
+#include "DslBintr.h"
 
-namespace DSD
+namespace DSL
 {
-    class DisplayBintr : public Bintr
+    class SinkBintr : public Bintr
     {
     public: 
     
-        DisplayBintr(const std::string& display, Display* m_pXDisplay,
-            guint rows, guint columns, guint width, guint height);
+        SinkBintr(const std::string& sink, guint displayId, guint overlayId,
+        guint offsetX, guint offsetY, guint width, guint height);
 
-        ~DisplayBintr();
-
+        ~SinkBintr();
         
     private:
-    
-        /**
-         @brief
-         */
-        guint m_rows; 
-        
-        /**
-         @brief
-         */
-        guint m_columns;
-        
-        /**
-         @brief
-         */
-        guint m_width; 
-        
-        /**
-         @brief
-         */
+
+        guint m_displayId;
+        guint m_overlayId;
+        guint m_offsetX;
+        guint m_offsetY;
+        guint m_width;
         guint m_height;
-        
-        /**
-         @brief
-         */
-        gboolean m_enablePadding;
 
-        /**
-         @brief
-         */
         GstElement* m_pQueue;
- 
-        /**
-         @brief
-         */
-        GstElement* m_pTiler;
-        
-        Window m_window;
-
-        /**
-         * @brief a single display for the driver
-        */
-        Display* m_pXDisplay;
-        
-    };
+        GstElement* m_pTee;
+        GstElement* m_pSink;
     
+    };
 }
 
-#endif // _DSD_DISPLAY_BINTR_H
+#endif // _DSL_SINK_BINTR_H
+    

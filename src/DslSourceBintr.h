@@ -1,5 +1,4 @@
 
-
 /*
 The MIT License
 
@@ -24,38 +23,80 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_MUTEX_H
-#define _DSD_MUTEX_H
+#ifndef _DSL_SOURCE_BINTR_H
+#define _DSL_SOURCE_BINTR_H
 
 #include "Dsd.h"
+#include "DsdBintr.h"
 
-
-#define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 
- 
-namespace DSD
+namespace DSL
 {
-    /**
-     * @class LockMutex
-     * @file  DssMutex.h
-     * @brief Used to lock a mutex for the current scope {}.
-     */
-    class LockMutexForCurrentScope
+    class SourceBintr : public Bintr
     {
-    public:
-        LockMutexForCurrentScope(GMutex* mutex) : m_pMutex(mutex) 
-        {
-            g_mutex_lock(m_pMutex);
-        };
-        
-        ~LockMutexForCurrentScope()
-        {
-            g_mutex_unlock(m_pMutex);
-        };
+    public: 
+    
+        SourceBintr(const std::string& source, guint type, gboolean live, 
+            guint width, guint height, guint fps_n, guint fps_d);
+
+        ~SourceBintr();
         
     private:
-        GMutex* m_pMutex; 
+    
+        /**
+         @brief
+         */
+        guint m_type;
+
+        /**
+         @brief
+         */
+        gboolean m_isLive;
+
+        /**
+         @brief
+         */
+        guint m_width;
+
+        /**
+         @brief
+         */
+        guint m_height;
+
+        /**
+         @brief
+         */
+        guint m_fps_n;
+
+        /**
+         @brief
+         */
+        guint m_fps_d;
+
+        /**
+         @brief
+         */
+        guint m_latency;
+
+        /**
+         @brief
+         */
+        guint m_numDecodeSurfaces;
+
+        /**
+         @brief
+         */
+        guint m_numExtraSurfaces;
+
+        /**
+         @brief
+         */
+        GstElement * m_pSourceElement;
+        
+        /**
+         @brief
+         */
+        GstElement * m_pCapsFilter;
     };
+}
 
-} // namespace 
-
-#endif // _DSD_MUTEX_H
+#endif // _DSL_SOURCE_BINTR_H

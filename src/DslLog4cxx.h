@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_LOG4CXX_H
-#define _DSD_LOG4CXX_H
+#ifndef _DSL_LOG4CXX_H
+#define _DSL_LOG4CXX_H
 
 #include <log4cxx/logger.h>
 
@@ -91,7 +91,7 @@ inline std::string methodName(const std::string& prettyFunction)
 #define LOG_FATAL(message) LOG4CXX_FATAL(LOG4CXX_LOGGER, message)
 
  
-namespace DSD
+namespace DSL
 {
 
     /**
@@ -145,4 +145,4 @@ namespace DSD
 
 } // namespace 
 
-#endif // _DSD_LOG4CXX_H
+#endif // _DSL_LOG4CXX_H

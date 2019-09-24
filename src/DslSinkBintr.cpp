@@ -23,9 +23,9 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdSinkBintr.h"
+#include "DslSinkBintr.h"
 
-namespace DSD
+namespace DSL
 {
     SinkBintr::SinkBintr(const std::string& sink, guint displayId, guint overlayId,
         guint offsetX, guint offsetY, guint width, guint height)

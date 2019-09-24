@@ -23,80 +23,45 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_SOURCE_BINTR_H
-#define _DSD_SOURCE_BINTR_H
+#ifndef _DSL_OSD_BINTR_H
+#define _DSL_OSD_BINTR_H
 
-#include "Dsd.h"
-#include "DsdBintr.h"
+#include "Dsl.h"
+#include "DslBintr.h"
 
-namespace DSD
+namespace DSL
 {
-    class SourceBintr : public Bintr
+    
+    class OsdBintr : public Bintr
     {
     public: 
     
-        SourceBintr(const std::string& source, guint type, gboolean live, 
-            guint width, guint height, guint fps_n, guint fps_d);
+        OsdBintr(const std::string& osd, gboolean isClockEnabled);
 
-        ~SourceBintr();
+        ~OsdBintr();
         
     private:
-    
-        /**
-         @brief
-         */
-        guint m_type;
 
-        /**
-         @brief
-         */
-        gboolean m_isLive;
-
-        /**
-         @brief
-         */
-        guint m_width;
-
-        /**
-         @brief
-         */
-        guint m_height;
-
-        /**
-         @brief
-         */
-        guint m_fps_n;
-
-        /**
-         @brief
-         */
-        guint m_fps_d;
-
-        /**
-         @brief
-         */
-        guint m_latency;
-
-        /**
-         @brief
-         */
-        guint m_numDecodeSurfaces;
-
-        /**
-         @brief
-         */
-        guint m_numExtraSurfaces;
-
-        /**
-         @brief
-         */
-        GstElement * m_pSourceElement;
+        gboolean m_isClockEnabled;
+        
+        static std::string m_sClockFont;
+        static guint m_sClockFontSize;
+        static guint m_sClockOffsetX;
+        static guint m_sClockOffsetY;
+        static guint m_sClockColor;
         
         /**
          @brief
          */
-        GstElement * m_pCapsFilter;
+        guint m_processMode;
+        
+        GstElement* m_pQueue;
+        GstElement* m_pVidConv;
+        GstElement* m_pCapsFilter;
+        GstElement* m_pConvQueue;
+        GstElement* m_pOsd;
+    
     };
 }
 
-#endif // _DSD_SOURCE_BINTR_H
+#endif // _DSL_OSD_BINTR_H

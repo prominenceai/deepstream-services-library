@@ -23,12 +23,12 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdSourceBintr.h"
+#include "DslSourceBintr.h"
 
 #define N_DECODE_SURFACES 16
 #define N_EXTRA_SURFACES 1
 
-namespace DSD
+namespace DSL
 {
     SourceBintr::SourceBintr(const std::string& source, guint type, gboolean live, 
         guint width, guint height, guint fps_n, guint fps_d)

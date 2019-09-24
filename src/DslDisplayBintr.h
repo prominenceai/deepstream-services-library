@@ -22,55 +22,70 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_LOG_H
-#define _DSD_LOG_H
+#ifndef _DSL_DISPLAY_BINTR_H
+#define _DSL_DISPLAY_BINTR_H
 
-#if defined(DSD_LOGGER_IMP)
-    #include DSD_LOGGER_IMP
-#else
+#include "Dsl.h"
+#include "DslBintr.h"
 
-    /**
-     * Logs the Entry and Exit of a Function with the DEBUG level.
-     * Add macro as the first statement to each function of interest.
-     * Consider the intrussion/penalty of this call when adding.
-    */
-    #define LOG_FUNC()
-
-    /**
-    Logs a message with the DEBUG level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_DEBUG(message)
-
-    /**
-    Logs a message with the INFO level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_INFO(message)
-
-    /**
-    Logs a message with the WARN level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_WARN(message)
-
-    /**
-    Logs a message with the ERROR level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_ERROR(message)
-
-    /**
-    Logs a message with the FATAL level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_FATAL(message)
+namespace DSL
+{
+    class DisplayBintr : public Bintr
+    {
+    public: 
     
-#endif // !DSD_LOGGER_IMP
+        DisplayBintr(const std::string& display, Display* m_pXDisplay,
+            guint rows, guint columns, guint width, guint height);
 
-#endif // _DSD_LOG_H
+        ~DisplayBintr();
+
+        
+    private:
+    
+        /**
+         @brief
+         */
+        guint m_rows; 
+        
+        /**
+         @brief
+         */
+        guint m_columns;
+        
+        /**
+         @brief
+         */
+        guint m_width; 
+        
+        /**
+         @brief
+         */
+        guint m_height;
+        
+        /**
+         @brief
+         */
+        gboolean m_enablePadding;
+
+        /**
+         @brief
+         */
+        GstElement* m_pQueue;
+ 
+        /**
+         @brief
+         */
+        GstElement* m_pTiler;
+        
+        Window m_window;
+
+        /**
+         * @brief a single display for the driver
+        */
+        Display* m_pXDisplay;
+        
+    };
+    
+}
+
+#endif // _DSL_DISPLAY_BINTR_H

@@ -22,20 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_DRIVER_H
-#define _DSD_DRIVER_H
+#ifndef _DSL_DRIVER_H
+#define _DSL_DRIVER_H
 
-#include "DsdPipelineBintr.h"
-#include "DsdSourceBintr.h"
-#include "DsdStreamMuxBintr.h"
-#include "DsdSinkBintr.h"
-#include "DsdOsdBintr.h"
-#include "DsdGieBintr.h"
+#include "DslPipelineBintr.h"
+#include "DslSourceBintr.h"
+#include "DslStreamMuxBintr.h"
+#include "DslSinkBintr.h"
+#include "DslOsdBintr.h"
+#include "DslGieBintr.h"
 #include "DsdDisplayBintr.h"
 
 typedef int DsdReturnType;
 
-namespace DSD {
+namespace DSL {
     
     enum compTypes
     {
@@ -194,4 +194,4 @@ namespace DSD {
 }
 
 
-#endif // _DSD_DRIVER_H
+#endif // _DSL_DRIVER_H

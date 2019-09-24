@@ -23,11 +23,11 @@ THE SOFTWARE.
 */
 
 #include "Dsd.h"
-#include "DsdPipelineBintr.h"
+#include "DslPipelineBintr.h"
 
 #include <gst/gst.h>
 
-namespace DSD
+namespace DSL
 {
     PipelineBintr::PipelineBintr(const std::string& pipeline)
         : Bintr(pipeline)
@@ -269,4 +269,4 @@ namespace DSD
     }
     
 
-} // DSD
+} // DSL
