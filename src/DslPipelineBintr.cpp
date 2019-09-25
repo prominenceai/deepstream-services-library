@@ -90,49 +90,49 @@ namespace DSL
         g_mutex_clear(&m_busWatchMutex);
     }
     
-    void PipelineBintr::AddSourceBintr(SourceBintr* pBintr)
+    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
         
-        m_pSourceBintr = pBintr;
+        m_pSourceBintrs.push_back(pBintr);
         
-        AddChild((Bintr*)pBintr);
+        AddChild(pBintr);
     }
 
-    void PipelineBintr::AddStreamMuxBintr(StreamMuxBintr* pBintr)
+    void PipelineBintr::AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
 
         m_pStreamMuxBintr = pBintr;
 
-        AddChild((Bintr*)pBintr);
+        AddChild(pBintr);
     }
 
-    void PipelineBintr::AddSinkBintr(SinkBintr* pBintr)
+    void PipelineBintr::AddSinkBintr(Bintr* pBintr)
     {
         LOG_FUNC();
         
-        m_pSinkBintr = pBintr;
+        m_pSinkBintrs.push_back(pBintr);
         
-        AddChild((Bintr*)pBintr);
+        AddChild(pBintr);
     }
 
-    void PipelineBintr::AddOsdBintr(OsdBintr* pBintr)
+    void PipelineBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
         
         m_pOsdBintr = pBintr;
         
-        AddChild((Bintr*)pBintr);
+        AddChild(pBintr);
     }
 
-    void PipelineBintr::AddDisplayBintr(DisplayBintr* pBintr)
+    void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
 
         m_pDisplayBintr = pBintr;
         
-        AddChild((Bintr*)pBintr);
+        AddChild(pBintr);
     }
 
     bool PipelineBintr::Pause()

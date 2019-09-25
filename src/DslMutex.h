@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef _DSL_MUTEX_H
 #define _DSL_MUTEX_H
 
-#include "Dsd.h"
+#include "Dsl.h"
 
 
 #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 

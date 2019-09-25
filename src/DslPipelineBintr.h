@@ -51,15 +51,15 @@ namespace DSL {
         bool Pause();
         bool Play();
 
-        void AddSourceBintr(SourceBintr* pBintr);
+        void AddSourceBintr(std::shared_ptr<Bintr> pBintr);
 
-        void AddStreamMuxBintr(StreamMuxBintr* pBintr);
+        void AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr);
 
-        void AddSinkBintr(SinkBintr* pBintr);
+        void AddSinkBintr(std::shared_ptr<Bintr> pBintr);
 
-        void AddOsdBintr(OsdBintr* pBintr);
+        void AddOsdBintr(std::shared_ptr<Bintr> pBintr);
 
-        void AddDisplayBintr(DisplayBintr* pBintr);
+        void AddDisplayBintr(std::shared_ptr<Bintr> pBintr);
         
         /**
          * @brief handles incoming Message Packets received
@@ -77,20 +77,35 @@ namespace DSL {
     
     private:
 
-        Bintr* m_pProcessingBintr;
+        /**
+         * @brief processing bin for all Sink and OSD bins in this Pipeline
+         */
+        std::shared_ptr<Bintr> m_pProcessingBintr;
         
-        GstElement* m_pProcessingBin;
+        /**
+         * @brief one or more Sources in this Pipeline
+         */
+        std::vector<std::shared_ptr<Bintr>> m_pSourceBintrs;
         
-        SourceBintr* m_pSourceBintr;
+        /**
+         * @brief one and only Stream Mux in this Pipeline
+         */
+        std::shared_ptr<Bintr> m_pStreamMuxBintr;
         
-        StreamMuxBintr* m_pStreamMuxBintr;
+        /**
+         * @brief one or more Sinks for this Pipeline
+         */
+        std::vector<std::shared_ptr<Bintr>> m_pSinkBintrs;
         
-        SinkBintr* m_pSinkBintr;
+        /**
+         * @brief the one and only Display for this Pipeline
+         */
+        std::shared_ptr<Bintr> m_pOsdBintr;
         
-        OsdBintr* m_pOsdBintr;
-        
-        DisplayBintr* m_pDisplayBintr;
-
+        /**
+         * @brief the one and only Display for this Pipeline
+         */
+        std::shared_ptr<Bintr> m_pDisplayBintr;
 
         /**
          * @brief mutex to protect critical pipeline code
@@ -116,8 +131,6 @@ namespace DSL {
          * @brief handle to the installed Bus Watch function.
          */
         guint m_gstBusWatch;
-        
-        NvDsSrcParentBin m_multiSourceBin;
         
         /**
          * @brief maps a GstState constant value to a string for logging

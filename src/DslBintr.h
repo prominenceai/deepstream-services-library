@@ -33,6 +33,24 @@ THE SOFTWARE.
 
 namespace DSL
 {
+
+    typedef enum _bintrTypes
+    {
+        SOURCE_CAMERA_CSI = 0,
+        SOURCE_CAMERA_V4L2,
+        SOURCE_URI_SINGLE,
+        SOURCE_URI_MULTI,
+        SINK_OVERLAY,
+        SINK_RTSP_STREAMING,
+        SINK_FILE,
+        SINK_EGL,
+        SINK_FAKE,
+        STREAM_MUTEX,
+        GIE_PRIMARY,
+        GIE_SECONDARY,
+        TILED_DISPLAY
+    } BintrTypes;
+
     
     /**
      * @class Bintr
@@ -77,15 +95,15 @@ namespace DSL
             g_mutex_clear(&m_bintrMutex);
         };
 
-        std::string m_configFilePath;
-
-        bool LinkTo(Bintr* pDestBintr)
+        virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr) = 0;
+        
+        void LinkTo(std::shared_ptr<Bintr> pDestBintr)
         { 
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             m_pDestBintr = pDestBintr;
-            pDestBintr->m_pSourceBintr = this;
+            pDestBintr->m_pSourceBintr = std::dynamic_pointer_cast<Bintr>(this);
             
             if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
             {
@@ -95,7 +113,7 @@ namespace DSL
             }
         };
 
-        void AddChild(Bintr* pChildBintr)
+        void AddChild(std::shared_ptr<Bintr> pChildBintr)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -208,22 +226,22 @@ namespace DSL
         /**
          @brief
          */
-        Bintr* m_pParentBintr;
+        std::shared_ptr<Bintr> m_pParentBintr;
         
         /**
          @brief
          */
-        std::vector<Bintr*> m_pChildBintrs;
+        std::vector<std::shared_ptr<Bintr>> m_pChildBintrs;
         
         /**
          @brief
          */
-        Bintr* m_pSourceBintr;
+        std::shared_ptr<Bintr> m_pSourceBintr;
 
         /**
          @brief
          */
-        Bintr* m_pDestBintr;
+        std::shared_ptr<Bintr> m_pDestBintr;
         
         /**
          * @brief mutex to protect bintr reentry

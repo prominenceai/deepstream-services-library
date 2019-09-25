@@ -31,97 +31,86 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
 #include "DslGieBintr.h"
-#include "DsdDisplayBintr.h"
+#include "DslDisplayBintr.h"
 
-typedef int DsdReturnType;
+typedef int DslReturnType;
 
 namespace DSL {
     
-    enum compTypes
-    {
-        SOURCE_CAMERA_CSI = 0,
-        OSD_WITH_CLOCK,
-        SINK_OVERLAY,
-        STREAM_MUTEX,
-        GIE_CLASIFIER,
-        TILED_DISPLAY
-    };
-
     /**
-     * @class Driver
-     * @file  DssDriver.h
+     * @class Services
      * @brief Implements a singlton instance 
      */
-    class Driver
+    class Services
     {
     public:
     
         /** 
          * @brief Returns a pointer to this singleton
          * 
-         * @return instance pointer to Driver
+         * @return instance pointer to Services
          */
-        static Driver* GetDriver();
+        static Services* GetServices();
         
-        DsdReturnType SourceNew(const std::string& source, guint type, 
+        DslReturnType SourceNew(const std::string& source, guint type, 
             gboolean live, guint width, guint height, guint fps_n, guint fps_d);
         
-        DsdReturnType SourceDelete(const std::string& source);
+        DslReturnType SourceDelete(const std::string& source);
         
-        DsdReturnType SinkNew(const std::string& sink, guint displayId, guint overlayId,
+        DslReturnType SinkNew(const std::string& sink, guint displayId, guint overlayId,
             guint offsetX, guint offsetY, guint width, guint height);
         
-        DsdReturnType SinkDelete(const std::string& sink);
+        DslReturnType SinkDelete(const std::string& sink);
         
-        DsdReturnType StreamMuxNew(const std::string& streammux, gboolean live, 
+        DslReturnType StreamMuxNew(const std::string& streammux, gboolean live, 
             guint batchSize, guint batchTimeout, guint width, guint height);
         
-        DsdReturnType StreamMuxDelete(const std::string& streammux);
+        DslReturnType StreamMuxDelete(const std::string& streammux);
         
-        DsdReturnType DisplayNew(const std::string& display, 
+        DslReturnType DisplayNew(const std::string& display, 
             guint rows, guint columns, guint width, guint height);
         
-        DsdReturnType DisplayDelete(const std::string& display);
+        DslReturnType DisplayDelete(const std::string& display);
         
-        DsdReturnType GieNew(const std::string& gie, const std::string& configFilePath, 
+        DslReturnType GieNew(const std::string& gie, const std::string& configFilePath, 
             guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
             std::string& modelEngineFile, const std::string& rawOutputDir);
         
-        DsdReturnType GieDelete(const std::string& gie);
+        DslReturnType GieDelete(const std::string& gie);
         
-        DsdReturnType PipelineSourceAdd(const std::string& pipeline, const std::string& source);
+        DslReturnType PipelineSourceAdd(const std::string& pipeline, const std::string& source);
         
-        DsdReturnType PipelineSourceRemove(const std::string& pipeline, const std::string& source);
+        DslReturnType PipelineSourceRemove(const std::string& pipeline, const std::string& source);
         
-        DsdReturnType PipelineSinkAdd(const std::string& pipeline, const std::string& sink);
+        DslReturnType PipelineSinkAdd(const std::string& pipeline, const std::string& sink);
         
-        DsdReturnType PipelineSinkRemove(const std::string& pipeline, const std::string& sink);
+        DslReturnType PipelineSinkRemove(const std::string& pipeline, const std::string& sink);
         
-        DsdReturnType PipelineStreamMuxAdd(const std::string& pipeline, const std::string& streammux);
+        DslReturnType PipelineStreamMuxAdd(const std::string& pipeline, const std::string& streammux);
         
-        DsdReturnType PipelineStreamMuxRemove(const std::string& pipeline, const std::string& streammux);
+        DslReturnType PipelineStreamMuxRemove(const std::string& pipeline, const std::string& streammux);
 
-        DsdReturnType PipelineOsdAdd(const std::string& pipeline, const std::string& osd);
+        DslReturnType PipelineOsdAdd(const std::string& pipeline, const std::string& osd);
         
-        DsdReturnType PipelineOsdRemove(const std::string& pipeline, const std::string& osd);
+        DslReturnType PipelineOsdRemove(const std::string& pipeline, const std::string& osd);
         
-        DsdReturnType PipelineGieAdd(const std::string& pipeline, const std::string& gie);
+        DslReturnType PipelineGieAdd(const std::string& pipeline, const std::string& gie);
         
-        DsdReturnType PipelineGieRemove(const std::string& pipeline, const std::string& gie);
+        DslReturnType PipelineGieRemove(const std::string& pipeline, const std::string& gie);
         
-        DsdReturnType PipelineDisplayAdd(const std::string& pipeline, const std::string& display);
+        DslReturnType PipelineDisplayAdd(const std::string& pipeline, const std::string& display);
         
-        DsdReturnType PipelineDisplayRemove(const std::string& pipeline, const std::string& display);
+        DslReturnType PipelineDisplayRemove(const std::string& pipeline, const std::string& display);
         
-        DsdReturnType PipelineNew(const std::string& pipeline);
+        DslReturnType PipelineNew(const std::string& pipeline);
         
-        DsdReturnType PipelineDelete(const std::string& pipeline);
+        DslReturnType PipelineDelete(const std::string& pipeline);
         
-        DsdReturnType PipelinePause(const std::string& pipeline);
+        DslReturnType PipelinePause(const std::string& pipeline);
         
-        DsdReturnType PipelinePlay(const std::string& pipeline);
+        DslReturnType PipelinePlay(const std::string& pipeline);
         
-        DsdReturnType PipelineGetState(const std::string& pipeline);
+        DslReturnType PipelineGetState(const std::string& pipeline);
                         
         /** 
          * @brief Handles all pending events
@@ -141,17 +130,17 @@ namespace DSL {
         /**
          * @brief private ctor for this singleton class
          */
-        Driver();
+        Services();
 
         /**
          * @brief private dtor for this singleton class
          */
-        ~Driver();
+        ~Services();
         
         /**
          * @brief instance pointer for this singleton class
          */
-        static Driver* m_pInstatnce;
+        static Services* m_pInstatnce;
         
         /**
          * @brief mutex to prevent driver reentry
@@ -176,8 +165,9 @@ namespace DSL {
         GThread* m_pXWindowEventThread;
         
 
-        std::map <std::string, Bintr*> m_allComps;
+        std::map <std::string, std::shared_ptr<Bintr>> m_pipelines;
         
+        std::map <std::string, std::shared_ptr<Bintr>> m_components;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

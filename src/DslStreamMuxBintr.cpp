@@ -66,5 +66,11 @@ namespace DSL
         LOG_FUNC();
     };
     
+    void StreamMuxBintr::AddToParent(Bintr* pParentBintr)
+    {
+        LOG_FUNC();
+
+        ((PipelineBintr*)pParentBintr)->AddStreamMuxBintr(this*);
+    }
     
 };

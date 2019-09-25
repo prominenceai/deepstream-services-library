@@ -40,6 +40,8 @@ namespace DSL
 
         ~SinkBintr();
         
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        
     private:
 
         guint m_displayId;

@@ -190,14 +190,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[source])
+        if (m_components[source])
         {   
             LOG_ERROR("Source name '" << source << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[source] = new SourceBintr(
+            m_components[source] = new SourceBintr(
                 source, type, live, width, height, fps_n, fps_d);
         }
         catch(...)
@@ -215,13 +215,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[source])
+        if (!m_components[source])
         {   
             LOG_ERROR("Source name '" << source << "' was not found");
             return DSL_RESULT_SOURCE_NAME_NOT_FOUND;
         }
-        delete m_allComps[source];
-        m_allComps.erase(source);
+        delete m_components[source];
+        m_components.erase(source);
 
         LOG_INFO("Source '" << source << "' deleted successfully");
 
@@ -234,14 +234,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[sink])
+        if (m_components[sink])
         {   
             LOG_ERROR("Sink name '" << sink << "' is not unique");
             return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[sink] = new SinkBintr(
+            m_components[sink] = new SinkBintr(
                 sink, displayId, overlayId, offsetX, offsetY, width, height);
         }
         catch(...)
@@ -259,13 +259,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[sink])
+        if (!m_components[sink])
         {   
             LOG_ERROR("Sink name '" << sink << "' was not found");
             return DSL_RESULT_SINK_NAME_NOT_FOUND;
         }
-        delete m_allComps[sink];
-        m_allComps.erase(sink);
+        delete m_components[sink];
+        m_components.erase(sink);
         
         LOG_INFO("Sink '" << sink << "' deleted successfully");
 
@@ -278,14 +278,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[streammux])
+        if (m_components[streammux])
         {   
             LOG_ERROR("Stream Mux name '" << streammux << "' is not unique");
             return DSL_RESULT_STREAMMUX_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[streammux] = new StreamMuxBintr(
+            m_components[streammux] = new StreamMuxBintr(
                 streammux, live, batchSize, batchTimeout, width, height);
         }
         catch(...)
@@ -303,13 +303,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[streammux])
+        if (!m_components[streammux])
         {   
             LOG_ERROR("Streammux name '" << streammux << "' was not found");
             return DSL_RESULT_STREAMMUX_NAME_NOT_FOUND;
         }
-        delete m_allComps[streammux];
-        m_allComps.erase(streammux);
+        delete m_components[streammux];
+        m_components.erase(streammux);
         
         LOG_INFO("Streammux '" << streammux << "' deleted successfully");
 
@@ -322,14 +322,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[display])
+        if (m_components[display])
         {   
             LOG_ERROR("Display name '" << display << "' is not unique");
             return DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[display] = new DisplayBintr(
+            m_components[display] = new DisplayBintr(
                 display, m_pXDisplay, rows, columns, width, height);
         }
         catch(...)
@@ -347,13 +347,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[display])
+        if (!m_components[display])
         {   
             LOG_ERROR("Display name '" << display << "' was not found");
             return DSL_RESULT_DISPLAY_NAME_NOT_FOUND;
         }
-        delete m_allComps[display];
-        m_allComps.erase(display);
+        delete m_components[display];
+        m_components.erase(display);
 
         LOG_INFO("Display '" << display << "' deleted successfully");
 
@@ -368,14 +368,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[gie])
+        if (m_components[gie])
         {   
             LOG_ERROR("GIE name '" << gie << "' is not unique");
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[gie] = new GieBintr(gie, configFilePath, batchSize, 
+            m_components[gie] = new GieBintr(gie, configFilePath, batchSize, 
                 interval, uniqueId, gpuId, modelEngineFile, rawOutputDir);
         }
         catch(...)
@@ -393,13 +393,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[gie])
+        if (!m_components[gie])
         {   
             LOG_ERROR("GIE name '" << gie << "' was not found");
             return DSL_RESULT_GIE_NAME_NOT_FOUND;
         }
-        delete m_allComps[gie];
-        m_allComps.erase(gie);
+        delete m_components[gie];
+        m_components.erase(gie);
 
         LOG_INFO("GIE '" << gie << "' deleted successfully");
 
@@ -411,14 +411,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_allComps[pipeline])
+        if (m_components[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' is not unique");
             return DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_allComps[pipeline] = new PipelineBintr(pipeline);
+            m_components[pipeline] = new PipelineBintr(pipeline);
         }
         catch(...)
         {
@@ -435,13 +435,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[pipeline])
+        if (!m_components[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
-        delete m_allComps[pipeline];
-        m_allComps.erase(pipeline);
+        delete m_components[pipeline];
+        m_components.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
 
@@ -453,7 +453,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        ((PipelineBintr*)m_allComps[pipeline])->AddSourceBintr((SourceBintr*)m_allComps[source]);
+        ((PipelineBintr*)m_components[pipeline])->AddSourceBintr((SourceBintr*)m_components[source]);
         
         LOG_INFO("Source '" << source << "'was added to Pipeline '" << pipeline << "' successfully");
 
@@ -475,17 +475,17 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_allComps[pipeline])
+        if (!m_components[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
-        if (!m_allComps[streammux])
+        if (!m_components[streammux])
         {   
             LOG_ERROR("Stream Mux name '" << streammux << "' was not found");
             return DSL_RESULT_STREAMMUX_NAME_NOT_FOUND;
         }
-        ((PipelineBintr*)m_allComps[pipeline])->AddStreamMuxBintr((StreamMuxBintr*)m_allComps[streammux]);
+        ((PipelineBintr*)m_components[pipeline])->AddStreamMuxBintr((StreamMuxBintr*)m_components[streammux]);
         
         LOG_INFO("Stream Mux '" << streammux << "'was added to Pipeline '" << pipeline << "' successfully");
 
@@ -509,13 +509,13 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        if (!m_allComps[pipeline])
+        if (!m_components[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
 
-        if (!((PipelineBintr*)m_allComps[pipeline])->Play())
+        if (!((PipelineBintr*)m_components[pipeline])->Play())
         {
             return DSL_RESULT_PIPELINE_FAILED_TO_PLAY;
         }

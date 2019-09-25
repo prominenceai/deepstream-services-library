@@ -42,6 +42,8 @@ namespace DSL
             const std::string& modelEngineFile, const std::string& rawOutputDir);
 
         ~GieBintr();
+
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
     private:
 

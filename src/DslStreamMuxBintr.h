@@ -40,6 +40,8 @@ namespace DSL
 
         ~StreamMuxBintr();
 
+        void AddToParent(Bintr* pParentBintr);
+
     private:
 
         GstElement* m_pStreamMux;

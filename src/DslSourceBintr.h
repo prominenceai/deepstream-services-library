@@ -26,8 +26,8 @@ THE SOFTWARE.
 #ifndef _DSL_SOURCE_BINTR_H
 #define _DSL_SOURCE_BINTR_H
 
-#include "Dsd.h"
-#include "DsdBintr.h"
+#include "Dsl.h"
+#include "DslBintr.h"
 
 namespace DSL
 {
@@ -40,6 +40,8 @@ namespace DSL
 
         ~SourceBintr();
         
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
     private:
     
         /**

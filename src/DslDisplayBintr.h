@@ -39,6 +39,7 @@ namespace DSL
 
         ~DisplayBintr();
 
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
     private:
     

@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSD_H
-#define _DSD_H
+#ifndef _DSL_H
+#define _DSL_H
 
 #include <cstdlib>
 
@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <iostream> 
 #include <vector>
 #include <map> 
+#include <memory> 
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>
@@ -42,4 +43,4 @@ THE SOFTWARE.
 #include "DslMutex.h"
 #include "DslLog.h"
 
-#endif // _DSD_H
+#endif // _DSL_H
