@@ -36,11 +36,11 @@ namespace DSL
     {
     public: 
     
-        OsdBintr(const std::string& osd, gboolean isClockEnabled);
+        OsdBintr(const char* osd, gboolean isClockEnabled);
 
         ~OsdBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
         
     private:
 

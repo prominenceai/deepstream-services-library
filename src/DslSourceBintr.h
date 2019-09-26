@@ -35,20 +35,15 @@ namespace DSL
     {
     public: 
     
-        SourceBintr(const std::string& source, guint type, gboolean live, 
+        SourceBintr(const char* source, gboolean live, 
             guint width, guint height, guint fps_n, guint fps_d);
 
         ~SourceBintr();
         
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
 
     private:
     
-        /**
-         @brief
-         */
-        guint m_type;
-
         /**
          @brief
          */

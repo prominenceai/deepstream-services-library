@@ -46,7 +46,7 @@ static void PrgItrSigIsr(int signum)
 
     sigaction(SIGINT, &sa, NULL);
 
-    g_main_loop_quit(Driver::GetDriver()->m_pMainLoop);
+    g_main_loop_quit(Services::GetServices()->m_pMainLoop);
 }
 
 /**
@@ -75,47 +75,41 @@ int main(int argc, char **argv)
     
     // Install the custom Program Interrup Signal ISR
     PrgItrSigIsrInstall();    
-
     
-    // First call to GetDriver() for initialization
-    Driver* pDriver = Driver::GetDriver();
-
-    dsd_source_new("source1", 5, TRUE, 1280, 720, 30, 1);
+//    if (dsl_source_new(
+//        "source1",  // name for new Source 
+//        TRUE,       // live
+//        1280, 720,  // width and height in pixels
+//        30, 1)      // fps-n and fps-d
+//        != DSL_RESULT_SUCCESS)
+//    {
+//        return EXIT_FAILURE;
+//    }
     
-    dsd_sink_new("sink1", 0, 1, 0, 0, 0, 0);
-
-    dsd_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
-
-    dsd_display_new("display1", 1, 1, 1280, 720);
+//    dsd_sink_new("sink1", 0, 1, 0, 0, 0, 0);
+//
+//    dsd_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
+//
+//    dsd_display_new("display1", 1, 1, 1280, 720);
 
 //    DSL_GIE_NEW("GIE1",
 //        "resnet10.caffemodel_b30_int8.engine", 
 //        "config_infer_primary.txt", 1, 1, 1, 1, 1);
 //        
-    dsd_pipeline_new("pipeline1");
+    dsl_pipeline_new("pipeline1", {NULL});
     
-    dsd_pipeline_source_add("pipeline1", "source1");
-    
-    dsd_pipeline_sink_add("pipeline1", "sink1");
-    
-    dsd_pipeline_streammux_add("pipeline1", "streammux1");
-
-    dsd_pipeline_display_add("pipeline1", "display1");
-    
-    dsd_pipeline_play("pipeline1");
-
     // Run the main loop
-    dsd_main_loop_run();
+    dsl_main_loop_run();
 //
 //    DSL_GIE_DELETE("GIE1");
     
-    dsd_display_delete("display1");
+    dsl_display_delete("display1");
     
-    dsd_streammux_delete("streammux1");
+    dsl_streammux_delete("streammux1");
     
-    dsd_source_delete("source1");
+    dsl_source_delete("source1");
 
-    dsd_pipeline_delete("pipeline1");
+    dsl_pipeline_delete("pipeline1");
 
     returnValue = EXIT_SUCCESS;
     

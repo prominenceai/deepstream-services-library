@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef _DSL_DRIVER_H
 #define _DSL_DRIVER_H
 
-#include "DslPipelineBintr.h"
+#include "DslPipeline.h"
 #include "DslSourceBintr.h"
 #include "DslStreamMuxBintr.h"
 #include "DslSinkBintr.h"
@@ -52,65 +52,45 @@ namespace DSL {
          */
         static Services* GetServices();
         
-        DslReturnType SourceNew(const std::string& source, guint type, 
-            gboolean live, guint width, guint height, guint fps_n, guint fps_d);
+        DslReturnType SourceNew(const char* source, gboolean live, 
+            guint width, guint height, guint fps_n, guint fps_d);
         
-        DslReturnType SourceDelete(const std::string& source);
+        DslReturnType SourceDelete(const char* source);
         
-        DslReturnType SinkNew(const std::string& sink, guint displayId, guint overlayId,
+        DslReturnType SinkNew(const char* sink, guint displayId, guint overlayId,
             guint offsetX, guint offsetY, guint width, guint height);
         
-        DslReturnType SinkDelete(const std::string& sink);
+        DslReturnType SinkDelete(const char* sink);
         
-        DslReturnType StreamMuxNew(const std::string& streammux, gboolean live, 
+        DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
             guint batchSize, guint batchTimeout, guint width, guint height);
         
-        DslReturnType StreamMuxDelete(const std::string& streammux);
+        DslReturnType StreamMuxDelete(const char* streammux);
         
-        DslReturnType DisplayNew(const std::string& display, 
+        DslReturnType DisplayNew(const char* display, 
             guint rows, guint columns, guint width, guint height);
         
-        DslReturnType DisplayDelete(const std::string& display);
+        DslReturnType DisplayDelete(const char* display);
         
-        DslReturnType GieNew(const std::string& gie, const std::string& configFilePath, 
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
-            std::string& modelEngineFile, const std::string& rawOutputDir);
+        DslReturnType GieNew(const char* gie, const char* configFilePath, 
+            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+            const char* modelEngineFile, const char* rawOutputDir);
         
-        DslReturnType GieDelete(const std::string& gie);
+        DslReturnType GieDelete(const char* gie);
         
-        DslReturnType PipelineSourceAdd(const std::string& pipeline, const std::string& source);
+        DslReturnType PipelineNew(const char* pipeline, const char** components);
         
-        DslReturnType PipelineSourceRemove(const std::string& pipeline, const std::string& source);
+        DslReturnType PipelineDelete(const char* pipeline);
         
-        DslReturnType PipelineSinkAdd(const std::string& pipeline, const std::string& sink);
+        DslReturnType PipelineComponentsAdd(const char* pipeline, const char** components);
         
-        DslReturnType PipelineSinkRemove(const std::string& pipeline, const std::string& sink);
+        DslReturnType PipelineComponentsRemove(const char* pipeline, const char** components);
         
-        DslReturnType PipelineStreamMuxAdd(const std::string& pipeline, const std::string& streammux);
+        DslReturnType PipelinePause(const char* pipeline);
         
-        DslReturnType PipelineStreamMuxRemove(const std::string& pipeline, const std::string& streammux);
-
-        DslReturnType PipelineOsdAdd(const std::string& pipeline, const std::string& osd);
+        DslReturnType PipelinePlay(const char* pipeline);
         
-        DslReturnType PipelineOsdRemove(const std::string& pipeline, const std::string& osd);
-        
-        DslReturnType PipelineGieAdd(const std::string& pipeline, const std::string& gie);
-        
-        DslReturnType PipelineGieRemove(const std::string& pipeline, const std::string& gie);
-        
-        DslReturnType PipelineDisplayAdd(const std::string& pipeline, const std::string& display);
-        
-        DslReturnType PipelineDisplayRemove(const std::string& pipeline, const std::string& display);
-        
-        DslReturnType PipelineNew(const std::string& pipeline);
-        
-        DslReturnType PipelineDelete(const std::string& pipeline);
-        
-        DslReturnType PipelinePause(const std::string& pipeline);
-        
-        DslReturnType PipelinePlay(const std::string& pipeline);
-        
-        DslReturnType PipelineGetState(const std::string& pipeline);
+        DslReturnType PipelineGetState(const char* pipeline);
                         
         /** 
          * @brief Handles all pending events

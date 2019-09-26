@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslPipeline.h"
 
 namespace DSL
 {
@@ -34,12 +35,12 @@ namespace DSL
     {
     public: 
     
-        DisplayBintr(const std::string& display, Display* m_pXDisplay,
+        DisplayBintr(const char* display, Display* m_pXDisplay,
             guint rows, guint columns, guint width, guint height);
 
         ~DisplayBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
         
     private:
     

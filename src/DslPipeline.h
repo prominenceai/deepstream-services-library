@@ -35,31 +35,33 @@ THE SOFTWARE.
 namespace DSL {
 
     /**
-     * @class PipelineBintr
+     * @class Pipeline
      * @brief 
      */
-    class PipelineBintr : public Bintr
+    class Pipeline : public std::enable_shared_from_this<Bintr>
     {
     public:
     
         /** 
          * 
          */
-        PipelineBintr(const std::string& pipeline);
+        PipelineBintr(const char* pipeline);
         ~PipelineBintr();
         
         bool Pause();
         bool Play();
 
-        void AddSourceBintr(std::shared_ptr<Bintr> pBintr);
+        void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
-        void AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr);
+        void AddStreamMuxBintr(std::shared_ptr<Bintr> pStreamMuxBintr);
 
-        void AddSinkBintr(std::shared_ptr<Bintr> pBintr);
+        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
 
-        void AddOsdBintr(std::shared_ptr<Bintr> pBintr);
+        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
+        
+        void AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr);
 
-        void AddDisplayBintr(std::shared_ptr<Bintr> pBintr);
+        void AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr);
         
         /**
          * @brief handles incoming Message Packets received
@@ -101,6 +103,11 @@ namespace DSL {
          * @brief the one and only Display for this Pipeline
          */
         std::shared_ptr<Bintr> m_pOsdBintr;
+        
+        /**
+         * @brief the one and only Display for this Pipeline
+         */
+        std::shared_ptr<Bintr> m_pPrimaryGieBintr;
         
         /**
          * @brief the one and only Display for this Pipeline

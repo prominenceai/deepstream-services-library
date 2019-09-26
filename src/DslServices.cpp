@@ -25,10 +25,10 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-DslReturnType dsl_source_new(const char* source, guint type, 
-        gboolean live, guint width, guint height, guint fps_n, guint fps_d)
+DslReturnType dsl_source_new(const char* source, gboolean live, 
+    guint width, guint height, guint fps_n, guint fps_d)
 {
-    return DSL::Services::GetServices()->SourceNew(source, type, live, 
+    return DSL::Services::GetServices()->SourceNew(source, live, 
         width, height, fps_n, fps_d);
 }
 
@@ -75,8 +75,8 @@ DslReturnType dsl_display_delete(const char* display)
 }
 
 DslReturnType dsl_gie_new(const char* gie, const char* configFilePath, 
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
-            std::string& modelEngineFile, const char* rawOutputDir)
+    guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+    const char* modelEngineFile, const char* rawOutputDir)
 {
     return DSL::Services::GetServices()->GieNew(gie, configFilePath, batchSize, 
         interval, uniqueId, gpuId, modelEngineFile, rawOutputDir);
@@ -87,9 +87,9 @@ DslReturnType dsl_gie_delete(const char* gie)
     return DSL::Services::GetServices()->GieDelete(gie);
 }
 
-DslReturnType dsl_pipeline_new(const char* pipeline)
+DslReturnType dsl_pipeline_new(const char* pipeline, const char** components)
 {
-    return DSL::Services::GetServices()->PipelineNew(pipeline);
+    return DSL::Services::GetServices()->PipelineNew(pipeline, components);
 }
 
 DslReturnType dsl_pipeline_delete(const char* pipeline)
@@ -184,8 +184,8 @@ namespace DSL
         g_mutex_clear(&m_driverMutex);
     }
 
-    DslReturnType Services::SourceNew(const char* source, guint type, 
-        gboolean live, guint width, guint height, guint fps_n, guint fps_d)
+    DslReturnType Services::SourceNew(const char* source, gboolean live, 
+        guint width, guint height, guint fps_n, guint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
@@ -197,8 +197,8 @@ namespace DSL
         }
         try
         {
-            m_components[source] = new SourceBintr(
-                source, type, live, width, height, fps_n, fps_d);
+            m_components[source] = std::shared_ptr<SourceBintr>(new SourceBintr(
+                source, live, width, height, fps_n, fps_d));
         }
         catch(...)
         {
@@ -220,7 +220,6 @@ namespace DSL
             LOG_ERROR("Source name '" << source << "' was not found");
             return DSL_RESULT_SOURCE_NAME_NOT_FOUND;
         }
-        delete m_components[source];
         m_components.erase(source);
 
         LOG_INFO("Source '" << source << "' deleted successfully");
@@ -241,8 +240,8 @@ namespace DSL
         }
         try
         {
-            m_components[sink] = new SinkBintr(
-                sink, displayId, overlayId, offsetX, offsetY, width, height);
+            m_components[sink] = std::shared_ptr<Bintr>(new SinkBintr(
+                sink, displayId, overlayId, offsetX, offsetY, width, height));
         }
         catch(...)
         {
@@ -264,7 +263,6 @@ namespace DSL
             LOG_ERROR("Sink name '" << sink << "' was not found");
             return DSL_RESULT_SINK_NAME_NOT_FOUND;
         }
-        delete m_components[sink];
         m_components.erase(sink);
         
         LOG_INFO("Sink '" << sink << "' deleted successfully");
@@ -285,8 +283,8 @@ namespace DSL
         }
         try
         {
-            m_components[streammux] = new StreamMuxBintr(
-                streammux, live, batchSize, batchTimeout, width, height);
+            m_components[streammux] = std::shared_ptr<Bintr>(new StreamMuxBintr(
+                streammux, live, batchSize, batchTimeout, width, height));
         }
         catch(...)
         {
@@ -308,7 +306,6 @@ namespace DSL
             LOG_ERROR("Streammux name '" << streammux << "' was not found");
             return DSL_RESULT_STREAMMUX_NAME_NOT_FOUND;
         }
-        delete m_components[streammux];
         m_components.erase(streammux);
         
         LOG_INFO("Streammux '" << streammux << "' deleted successfully");
@@ -329,8 +326,8 @@ namespace DSL
         }
         try
         {
-            m_components[display] = new DisplayBintr(
-                display, m_pXDisplay, rows, columns, width, height);
+            m_components[display] = std::shared_ptr<Bintr>(new DisplayBintr(
+                display, m_pXDisplay, rows, columns, width, height));
         }
         catch(...)
         {
@@ -352,7 +349,6 @@ namespace DSL
             LOG_ERROR("Display name '" << display << "' was not found");
             return DSL_RESULT_DISPLAY_NAME_NOT_FOUND;
         }
-        delete m_components[display];
         m_components.erase(display);
 
         LOG_INFO("Display '" << display << "' deleted successfully");
@@ -362,8 +358,8 @@ namespace DSL
     
     DslReturnType Services::GieNew(const char* gie, 
         const char* configFilePath, guint batchSize, 
-        guint interval, guint uniqueId, guint gpuId, const 
-        std::string& modelEngineFile, const char* rawOutputDir)
+        guint interval, guint uniqueId, guint gpuId, 
+        const char* modelEngineFile, const char* rawOutputDir)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
@@ -375,8 +371,8 @@ namespace DSL
         }
         try
         {
-            m_components[gie] = new GieBintr(gie, configFilePath, batchSize, 
-                interval, uniqueId, gpuId, modelEngineFile, rawOutputDir);
+            m_components[gie] = std::shared_ptr<Bintr>(new GieBintr(gie, configFilePath, 
+                batchSize, interval, uniqueId, gpuId, modelEngineFile, rawOutputDir));
         }
         catch(...)
         {
@@ -398,7 +394,6 @@ namespace DSL
             LOG_ERROR("GIE name '" << gie << "' was not found");
             return DSL_RESULT_GIE_NAME_NOT_FOUND;
         }
-        delete m_components[gie];
         m_components.erase(gie);
 
         LOG_INFO("GIE '" << gie << "' deleted successfully");
@@ -406,19 +401,21 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::PipelineNew(const char* pipeline)
+    DslReturnType Services::PipelineNew(const char* pipeline, const char** components)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (m_components[pipeline])
+        if (m_pipelines[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' is not unique");
             return DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[pipeline] = new PipelineBintr(pipeline);
+            m_pipelines[pipeline] = std::shared_ptr<Bintr>(new PipelineBintr(pipeline));
+            
+            PipelineComponentsAdd(pipeline, components);
         }
         catch(...)
         {
@@ -435,33 +432,62 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        if (!m_components[pipeline])
+        if (!m_pipelines[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
-        delete m_components[pipeline];
-        m_components.erase(pipeline);
+        m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
+        
     
-    DslReturnType Services::PipelineSourceAdd(const char* pipeline, 
-        const char* source)
+    DslReturnType Services::PipelineComponentsAdd(const char* pipeline, 
+        const char** components)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
-        ((PipelineBintr*)m_components[pipeline])->AddSourceBintr((SourceBintr*)m_components[source]);
+        if (!m_pipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
         
-        LOG_INFO("Source '" << source << "'was added to Pipeline '" << pipeline << "' successfully");
+        // iterate throught the list of components to verifiy the existence
+        //  of each... before making any updates to the pipeline.
+        for (const char** component = components; component; component++)
+        {
+            if (!m_components[*component])
+            {   
+                LOG_ERROR("Component name '" << *component << "' was not found");
+                return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
+            }
+        }
 
+        // iterate through the list of components a second time
+        // adding each to the named pipeline individually.
+        for (const char** component = components; component; component++)
+        {
+            try
+            {
+                m_components[*component]->AddToParent(m_pipelines[pipeline]);
+                LOG_INFO("Component '" << *component << "' was added to Pipeline '" << pipeline << "' successfully");
+            }
+            catch(...)
+            {
+                LOG_ERROR("Pipeline '" << pipeline << "' threw exception adding component '" << component* << "'");
+                return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+            }
+        }
         return DSL_RESULT_SUCCESS;
     }
-    
-    DslReturnType Services::PipelineSourceRemove(const char* pipeline, 
-        const char* source)
+
+    DslReturnType Services::PipelineComponentsRemove(const char* pipeline, 
+        const char** components)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
@@ -469,29 +495,6 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
-    DslReturnType Services::PipelineStreamMuxAdd(const char* pipeline, 
-        const char* streammux)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        if (!m_components[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
-        if (!m_components[streammux])
-        {   
-            LOG_ERROR("Stream Mux name '" << streammux << "' was not found");
-            return DSL_RESULT_STREAMMUX_NAME_NOT_FOUND;
-        }
-        ((PipelineBintr*)m_components[pipeline])->AddStreamMuxBintr((StreamMuxBintr*)m_components[streammux]);
-        
-        LOG_INFO("Stream Mux '" << streammux << "'was added to Pipeline '" << pipeline << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::PipelinePause(const char* pipeline)
     {
         LOG_FUNC();
@@ -515,7 +518,7 @@ namespace DSL
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
 
-        if (!((PipelineBintr*)m_components[pipeline])->Play())
+        if (!std::dynamic_pointer_cast<PipelineBintr>(m_components[pipeline])->Play())
         {
             return DSL_RESULT_PIPELINE_FAILED_TO_PLAY;
         }

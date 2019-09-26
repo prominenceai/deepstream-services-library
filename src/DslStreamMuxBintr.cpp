@@ -24,11 +24,12 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslStreamMuxBintr.h"
+#include "DslPipeline.h"
 
 
 namespace DSL
 {
-    StreamMuxBintr::StreamMuxBintr(const std::string& streammux, 
+    StreamMuxBintr::StreamMuxBintr(const char* streammux, 
         gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)
         : Bintr(streammux)
         , m_width(width)
@@ -66,11 +67,15 @@ namespace DSL
         LOG_FUNC();
     };
     
-    void StreamMuxBintr::AddToParent(Bintr* pParentBintr)
+    void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
     {
         LOG_FUNC();
-
-        ((PipelineBintr*)pParentBintr)->AddStreamMuxBintr(this*);
+        
+        // add 'this' Stream Mux to the Parent Pipeline 
+        pPipeline->AddStreamMuxBintr(shared_from_this());
+        
+        //
+        m_pPipeline = pPipeline;
     }
     
 };

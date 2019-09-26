@@ -24,11 +24,12 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslDisplayBintr.h"
+#include "DslPipeline.h"
 
 namespace DSL
 {
 
-    DisplayBintr::DisplayBintr(const std::string& display, Display* pXDisplay,
+    DisplayBintr::DisplayBintr(const char* display, Display* pXDisplay,
         guint rows, guint columns, guint width, guint height)
         : Bintr(display)
         , m_pXDisplay(pXDisplay)
@@ -78,11 +79,19 @@ namespace DSL
             XSetWMProtocols(m_pXDisplay, m_window, &wmDeleteMessage, 1);
         }
         XMapRaised(m_pXDisplay, m_window);
-    };    
+    }    
 
     DisplayBintr::~DisplayBintr()
     {
         LOG_FUNC();
-    };
+    }
+    
+    void DisplayBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    {
+        LOG_FUNC();
+        
+        // add 'this' display to the Parent Pipeline 
+        pPipeline->AddDisplayBintr(shared_from_this());
+    }
     
 }

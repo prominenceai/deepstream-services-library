@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
+#include "DslPipeline.h"
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define LINK_TRUE true
@@ -56,14 +57,14 @@ namespace DSL
      * @class Bintr
      * @brief 
      */
-    class Bintr
+    class Bintr : public std::enable_shared_from_this<Bintr>
     {
     public:
 
         /**
          * @brief 
          */
-        Bintr(const std::string& name)
+        Bintr(const char* name)
             : m_gpuId(0)
             , m_nvbufMemoryType(0)
             , m_pSinkPad(NULL)
@@ -75,9 +76,9 @@ namespace DSL
             LOG_FUNC(); 
             LOG_INFO("New bintr:: " << name);
             
-            m_name.assign(name);
+            m_name = name;
 
-            m_pBin = gst_bin_new((gchar*)name.c_str());
+            m_pBin = gst_bin_new((gchar*)name);
             if (!m_pBin)
             {
                 LOG_ERROR("Failed to create new bin for component'" << name << "'");
@@ -94,8 +95,6 @@ namespace DSL
 
             g_mutex_clear(&m_bintrMutex);
         };
-
-        virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr) = 0;
         
         void LinkTo(std::shared_ptr<Bintr> pDestBintr)
         { 
@@ -103,7 +102,9 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             m_pDestBintr = pDestBintr;
-            pDestBintr->m_pSourceBintr = std::dynamic_pointer_cast<Bintr>(this);
+
+            pDestBintr->m_pSourceBintr = 
+                std::dynamic_pointer_cast<Bintr>(shared_from_this());
             
             if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
             {
@@ -118,7 +119,9 @@ namespace DSL
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
-            pChildBintr->m_pParentBintr = this;
+            pChildBintr->m_pParentBintr = 
+                std::dynamic_pointer_cast<Bintr>(shared_from_this());
+
             m_pChildBintrs.push_back(pChildBintr);
                             
             if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
@@ -181,11 +184,18 @@ namespace DSL
             m_pSourcePad = gst_element_get_static_pad(m_pLinkedChildElements.back(), "src");
             if (!m_pSourcePad)
             {
-                LOG_ERROR("Failed to Source Pad for '" << m_name <<" '");
+                LOG_ERROR("Failed to add Source Pad for '" << m_name <<" '");
                 throw;
             }
         };
         
+        virtual void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+        {
+            LOG_FUNC();
+                
+            LOG_WARN("Objects derived of base class Bintr do have parents");
+        }
+    
     public:
 
         /**
@@ -197,6 +207,9 @@ namespace DSL
          @brief
          */
         GstElement* m_pBin;
+        
+        
+        std::shared_ptr<Pipeline> m_pPipeline;
         
         /**
          @brief
@@ -247,6 +260,7 @@ namespace DSL
          * @brief mutex to protect bintr reentry
          */
         GMutex m_bintrMutex;
+        
     };
 
 

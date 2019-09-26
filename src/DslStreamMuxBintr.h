@@ -35,12 +35,12 @@ namespace DSL
     {
     public: 
     
-        StreamMuxBintr(const std::string& streammux, 
+        StreamMuxBintr(const char* streammux, 
             gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
         ~StreamMuxBintr();
 
-        void AddToParent(Bintr* pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
 
     private:
 

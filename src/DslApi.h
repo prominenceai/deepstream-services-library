@@ -36,10 +36,10 @@ THE SOFTWARE.
 /**
  * Clock Object Return Values
  */
-#define DSL_RESULT_CLOCK_RESULT                                     0x00010000
-#define DSL_RESULT_CLOCK_NAME_NOT_UNIQUE                            0x00010001
-#define DSL_RESULT_CLOCK_NAME_NOT_FOUND                             0x00010010
-#define DSL_RESULT_CLOCK_NAME_BAD_FORMAT                            0x00010011
+#define DSL_RESULT_COMPONENT_RESULT                                 0x00010000
+#define DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE                        0x00010001
+#define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010010
+#define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010011
 
 /**
  * Source Object Return Values
@@ -132,8 +132,8 @@ THE SOFTWARE.
  * @param fps-d
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_new(const char* source, guint type, 
-    gboolean live, guint width, guint height, guint fps_n, guint fps_d);
+DslReturnType dsl_source_new(const char* source, gboolean live, 
+    guint width, guint height, guint fps_n, guint fps_d);
 
 /**
  * @brief deletes a Source object by name
@@ -235,10 +235,11 @@ DslReturnType dsl_gie_delete(const char* gie);
 
 /**
  * @brief creates a new, uniquely named Pipeline
- * @param pipeline unique name for the new Pipeline
+ * @param[in] pipeline unique name for the new Pipeline
+ * @param[in] components a NULL terminated array of existing component names
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new(const char* pipeline);
+DslReturnType dsl_pipeline_new(const char* pipeline, const char** components);
 
 /**
  * @brief deletes a Pipeline object by name.

@@ -37,13 +37,13 @@ namespace DSL
     {
     public: 
     
-        GieBintr(const std::string& osd, const std::string& configFilePath,
+        GieBintr(const char* osd, const char* configFilePath,
             guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-            const std::string& modelEngineFile, const std::string& rawOutputDir);
+            const char* modelEngineFile, const char* rawOutputDir);
 
         ~GieBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
         
     private:
 
@@ -58,11 +58,11 @@ namespace DSL
         
         guint m_uniqueId;
 
-        const std::string m_configFilePath;
+        std::string m_configFilePath;
         
-        const std::string m_modelEngineFile;
+        std::string m_modelEngineFile;
 
-        const std::string m_rawOutputDir;
+        std::string m_rawOutputDir;
         
         
         /**

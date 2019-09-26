@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslOsdBintr.h"
+#include "DslPipeline.h"
 
 namespace DSL
 {
@@ -33,7 +34,7 @@ namespace DSL
     guint OsdBintr::m_sClockOffsetY = 820;
     guint OsdBintr::m_sClockColor = 0;
     
-    OsdBintr::OsdBintr(const std::string& osd, gboolean isClockEnabled)
+    OsdBintr::OsdBintr(const char* osd, gboolean isClockEnabled)
         : Bintr(osd)
         , m_isClockEnabled(isClockEnabled)
         , m_pQueue(NULL)
@@ -73,5 +74,13 @@ namespace DSL
     OsdBintr::~OsdBintr()
     {
         LOG_FUNC();
+    }
+
+    void OsdBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    {
+        LOG_FUNC();
+        
+        // add 'this' OSD to the Parent Pipeline 
+        pPipeline->AddOsdBintr(shared_from_this());
     }
 }    

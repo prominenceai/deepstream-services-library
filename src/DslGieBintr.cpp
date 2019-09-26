@@ -24,12 +24,13 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslGieBintr.h"
+#include "DslPipeline.h"
 
 namespace DSL
 {
-    GieBintr::GieBintr(const std::string& osd, const std::string& configFilePath,
+    GieBintr::GieBintr(const char* osd, const char* configFilePath,
         guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-        const std::string& modelEngineFile, const std::string&  rawOutputDir)
+        const char* modelEngineFile, const char*  rawOutputDir)
         : Bintr(osd)
         , m_batchSize(batchSize)
         , m_interval(interval)
@@ -40,20 +41,20 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_configFilePath.assign(configFilePath);
-        m_modelEngineFile.assign(modelEngineFile);
-        m_rawOutputDir.assign(rawOutputDir);
+        m_configFilePath = configFilePath;
+        m_modelEngineFile = modelEngineFile;
+        m_rawOutputDir = rawOutputDir;
         
         
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "primary_gie_queue");
-        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
-        m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier");
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "primary_gie_queue", LINK_TRUE);
+        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", LINK_TRUE);
+        m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier", LINK_TRUE);
 
         g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
         g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pClassifier), "config-file-path", 
-            GET_FILE_PATH ((gchar*)configFilePath.c_str()), "process-mode", 1, NULL);
+            GET_FILE_PATH ((gchar*)configFilePath), "process-mode", 1, NULL);
 
         if (m_batchSize)
         {
@@ -78,15 +79,16 @@ namespace DSL
         if (m_modelEngineFile.length())
         {
             g_object_set(G_OBJECT(m_pClassifier), "model-engine-file",
-                GET_FILE_PATH((gchar*)m_modelEngineFile), NULL);
+                (gchar*)m_modelEngineFile.c_str(), NULL);
+//                GET_FILE_PATH((gchar*)m_modelEngineFile), NULL);
         }
 
         if (m_rawOutputDir.length())
         {
-            g_object_set(G_OBJECT(m_pClassifier),
-                "raw-output-generated-callback", out_callback,
-                "raw-output-generated-userdata", config,
-                NULL);
+//            g_object_set(G_OBJECT(m_pClassifier),
+//                "raw-output-generated-callback", out_callback,
+//                "raw-output-generated-userdata", config,
+//                NULL);
         }
 
 
@@ -96,5 +98,13 @@ namespace DSL
     GieBintr::~GieBintr()
     {
         LOG_FUNC();
+    }
+
+    void GieBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    {
+        LOG_FUNC();
+        
+        // add 'this' GIE to the Parent Pipeline 
+        pPipeline->AddPrimaryGieBintr(shared_from_this());
     }
 }    

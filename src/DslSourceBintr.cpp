@@ -22,18 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsd.h"
+#include "Dsl.h"
 #include "DslSourceBintr.h"
+#include "DslPipeline.h"
 
 #define N_DECODE_SURFACES 16
 #define N_EXTRA_SURFACES 1
 
 namespace DSL
 {
-    SourceBintr::SourceBintr(const std::string& source, guint type, gboolean live, 
+    SourceBintr::SourceBintr(const char* source, gboolean live, 
         guint width, guint height, guint fps_n, guint fps_d)
         : Bintr(source)
-        , m_type(type)
         , m_isLive(live)
         , m_width(width)
         , m_height(height)
@@ -49,7 +49,7 @@ namespace DSL
               
         // Create Source Element and Caps filter - Order is specific
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", LINK_TRUE);
-        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter");
+        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -68,7 +68,7 @@ namespace DSL
         feature = gst_caps_features_new("memory:NVMM", NULL);
 
         gst_caps_set_features(pCaps, 0, feature);
-        g_object_set(G_OBJECT(pCapsFilter), "caps", pCaps, NULL);
+        g_object_set(G_OBJECT(m_pCapsFilter), "caps", pCaps, NULL);
         
         gst_caps_unref(pCaps);        
         
@@ -79,5 +79,13 @@ namespace DSL
     {
         LOG_FUNC();
 
+    }
+
+    void SourceBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Source to the Parent Pipeline 
+        pPipeline->AddSinkBintr(shared_from_this());
     }
 }

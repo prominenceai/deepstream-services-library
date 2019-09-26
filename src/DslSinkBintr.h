@@ -35,12 +35,12 @@ namespace DSL
     {
     public: 
     
-        SinkBintr(const std::string& sink, guint displayId, guint overlayId,
+        SinkBintr(const char* sink, guint displayId, guint overlayId,
         guint offsetX, guint offsetY, guint width, guint height);
 
         ~SinkBintr();
         
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
         
     private:
 

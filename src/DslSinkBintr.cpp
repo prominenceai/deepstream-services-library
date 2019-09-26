@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsd.h"
+#include "Dsl.h"
 #include "DslSinkBintr.h"
+#include "DslPipeline.h"
 
 namespace DSL
 {
-    SinkBintr::SinkBintr(const std::string& sink, guint displayId, guint overlayId,
+    SinkBintr::SinkBintr(const char* sink, guint displayId, guint overlayId,
         guint offsetX, guint offsetY, guint width, guint height)
         : Bintr(sink)
         , m_displayId(displayId)
@@ -47,7 +48,7 @@ namespace DSL
         
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
         m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
-        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink.c_str(), LINK_TRUE);
+        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink, LINK_TRUE);
         
         g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay", m_overlayId, NULL);
@@ -62,5 +63,13 @@ namespace DSL
     SinkBintr::~SinkBintr()
     {
         LOG_FUNC();
+    }
+    
+    void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    {
+        LOG_FUNC();
+        
+        // add 'this' display to the Parent Pipeline 
+        pPipeline->AddSinkBintr(shared_from_this());
     }
 }    
