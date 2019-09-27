@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslDisplayBintr.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 namespace DSL
 {
@@ -86,12 +86,13 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisplayBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    void DisplayBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' display to the Parent Pipeline 
-        pPipeline->AddDisplayBintr(shared_from_this());
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddDisplayBintr(shared_from_this());
     }
     
 }

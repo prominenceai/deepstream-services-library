@@ -42,7 +42,6 @@ INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/inclu
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
 CFG_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/configs/deepstream-app
 
-SRCS:= $(wildcard $(SRC_INSTALL_DIR)/apps/apps-common/src/*.c)
 SRCS+= $(wildcard ./src/*.cpp) 
 
 INCS:= $(wildcard ./src/*.h)
@@ -71,7 +70,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
 	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
-    -DDSD_LOGGER_IMP='"DsdLog4cxx.h"'
+    -DDSL_LOGGER_IMP='"DslLog4cxx.h"'
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-llog4cxx  \

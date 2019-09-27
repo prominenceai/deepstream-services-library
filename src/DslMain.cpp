@@ -76,19 +76,47 @@ int main(int argc, char **argv)
     // Install the custom Program Interrup Signal ISR
     PrgItrSigIsrInstall();    
     
-//    if (dsl_source_new(
-//        "source1",  // name for new Source 
-//        TRUE,       // live
-//        1280, 720,  // width and height in pixels
-//        30, 1)      // fps-n and fps-d
-//        != DSL_RESULT_SUCCESS)
-//    {
-//        return EXIT_FAILURE;
-//    }
+    if (dsl_source_new(
+        "source1",  // name for new Source 
+        TRUE,       // live?
+        1280, 720,  // width and height in pixels
+        30, 1)      // fps-n and fps-d
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if(dsl_streammux_new(
+        "streammux",// name for new Stream Muxer 
+        TRUE,       // 1ive? 
+        1,          // batch size
+        40000,      // batch timeout
+        1280, 720)  // width and height in pixels
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
     
-//    dsd_sink_new("sink1", 0, 1, 0, 0, 0, 0);
+    if (dsl_sink_new(
+        "sink1",    // name for new Sink
+        0,          // display Id
+        1,          // overlay Id
+        0, 0,       // X and Y offsets
+        0, 0)       // width and height in pixels
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if (dsl_osd_new(
+        "osd1",     // name for new OSD
+        TRUE)       // clock enabled?
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
 //
-//    dsd_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
 //
 //    dsd_display_new("display1", 1, 1, 1280, 720);
 
@@ -103,11 +131,11 @@ int main(int argc, char **argv)
 //
 //    DSL_GIE_DELETE("GIE1");
     
-    dsl_display_delete("display1");
+    dsl_component_delete("display1");
     
-    dsl_streammux_delete("streammux1");
+    dsl_component_delete("streammux1");
     
-    dsl_source_delete("source1");
+    dsl_component_delete("source1");
 
     dsl_pipeline_delete("pipeline1");
 

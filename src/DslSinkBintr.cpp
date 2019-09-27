@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSinkBintr.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 namespace DSL
 {
@@ -57,7 +57,7 @@ namespace DSL
         g_object_set(G_OBJECT(m_pSink), "overlay-w", m_width, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay-h", m_height, NULL);
 
-        AddGhostPads();
+//        AddGhostPads();
     }
     
     SinkBintr::~SinkBintr()
@@ -65,11 +65,12 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    void SinkBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' display to the Parent Pipeline 
-        pPipeline->AddSinkBintr(shared_from_this());
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddSinkBintr(shared_from_this());
     }
 }    

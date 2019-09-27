@@ -35,10 +35,10 @@ THE SOFTWARE.
 namespace DSL {
 
     /**
-     * @class Pipeline
+     * @class PipelineBintr
      * @brief 
      */
-    class Pipeline : public std::enable_shared_from_this<Bintr>
+    class PipelineBintr : public Bintr
     {
     public:
     
@@ -47,7 +47,7 @@ namespace DSL {
          */
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
-        
+
         bool Pause();
         bool Play();
 
@@ -78,6 +78,11 @@ namespace DSL {
         GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
     
     private:
+
+        /**
+         * @brief GStream Pipeline wrapped by this pipeline bintr
+         */
+        GstElement* m_pGstPipeline; 
 
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline

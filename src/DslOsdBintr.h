@@ -40,7 +40,7 @@ namespace DSL
 
         ~OsdBintr();
 
-        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
     private:
 

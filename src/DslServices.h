@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef _DSL_DRIVER_H
 #define _DSL_DRIVER_H
 
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 #include "DslSourceBintr.h"
 #include "DslStreamMuxBintr.h"
 #include "DslSinkBintr.h"
@@ -55,28 +55,22 @@ namespace DSL {
         DslReturnType SourceNew(const char* source, gboolean live, 
             guint width, guint height, guint fps_n, guint fps_d);
         
-        DslReturnType SourceDelete(const char* source);
+        DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
+            guint batchSize, guint batchTimeout, guint width, guint height);
         
         DslReturnType SinkNew(const char* sink, guint displayId, guint overlayId,
             guint offsetX, guint offsetY, guint width, guint height);
         
-        DslReturnType SinkDelete(const char* sink);
-        
-        DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
-            guint batchSize, guint batchTimeout, guint width, guint height);
-        
-        DslReturnType StreamMuxDelete(const char* streammux);
-        
-        DslReturnType DisplayNew(const char* display, 
-            guint rows, guint columns, guint width, guint height);
-        
-        DslReturnType DisplayDelete(const char* display);
+        DslReturnType OsdNew(const char* osd, gboolean isClockEnabled);
         
         DslReturnType GieNew(const char* gie, const char* configFilePath, 
             guint batchSize, guint interval, guint uniqueId, guint gpuId, 
             const char* modelEngineFile, const char* rawOutputDir);
         
-        DslReturnType GieDelete(const char* gie);
+        DslReturnType DisplayNew(const char* display, 
+            guint rows, guint columns, guint width, guint height);
+        
+        DslReturnType ComponentDelete(const char* component);
         
         DslReturnType PipelineNew(const char* pipeline, const char** components);
         

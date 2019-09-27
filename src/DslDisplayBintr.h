@@ -27,7 +27,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
-#include "DslPipeline.h"
 
 namespace DSL
 {
@@ -40,7 +39,7 @@ namespace DSL
 
         ~DisplayBintr();
 
-        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
     private:
     

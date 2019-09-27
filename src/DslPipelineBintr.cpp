@@ -23,19 +23,26 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 #include <gst/gst.h>
 
 namespace DSL
 {
-    Pipeline::Pipeline(const char* pipeline)
+    PipelineBintr::PipelineBintr(const char* pipeline)
         : Bintr(pipeline)
+        , m_pGstPipeline(NULL)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
     {
         LOG_FUNC();
 
+        m_pGstPipeline = gst_pipeline_new((gchar*)pipeline);
+        if (!m_pGstPipeline)
+        {
+            LOG_ERROR("Failed to create new GST Pipeline for '" << pipeline << "'");
+            throw;
+        }
 //        
 //        if (!m_pProcessingBintr)
 //        {
@@ -62,7 +69,7 @@ namespace DSL
         g_mutex_init(&m_busWatchMutex);
 
         // get the GST message bus - one per GST pipeline
-        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pBin));
+        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
         
         // install the watch function for the message bus
         m_gstBusWatch = gst_bus_add_watch(m_pGstBus, bus_watch, this);
@@ -71,7 +78,7 @@ namespace DSL
         gst_bus_set_sync_handler(m_pGstBus, bus_sync_handler, this, NULL);        
     }
 
-    Pipeline::~Pipeline()
+    PipelineBintr::~PipelineBintr()
     {
         LOG_FUNC();
 
@@ -85,7 +92,7 @@ namespace DSL
         g_mutex_clear(&m_busWatchMutex);
     }
     
-    void Pipeline::AddSourceBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
         
@@ -94,7 +101,7 @@ namespace DSL
         AddChild(pBintr);
     }
 
-    void Pipeline::AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
 
@@ -103,7 +110,7 @@ namespace DSL
         AddChild(pBintr);
     }
 
-    void Pipeline::AddSinkBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
         
@@ -112,7 +119,7 @@ namespace DSL
         AddChild(pBintr);
     }
 
-    void Pipeline::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
     {
         LOG_FUNC();
         
@@ -121,7 +128,7 @@ namespace DSL
         AddChild(pBintr);
     }
 
-    void Pipeline::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
+    void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
     {
         LOG_FUNC();
         
@@ -135,7 +142,7 @@ namespace DSL
         AddChild(pGieBintr);
     }
 
-    void Pipeline::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
+    void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
     {
         LOG_FUNC();
 
@@ -144,7 +151,7 @@ namespace DSL
         AddChild(pDisplayBintr);
     }
 
-    bool Pipeline::Pause()
+    bool PipelineBintr::Pause()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
@@ -153,7 +160,7 @@ namespace DSL
             GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
     }
 
-    bool Pipeline::Play()
+    bool PipelineBintr::Play()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
@@ -162,7 +169,7 @@ namespace DSL
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
     }
     
-    bool Pipeline::HandleBusWatchMessage(GstMessage* pMessage)
+    bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
@@ -188,7 +195,7 @@ namespace DSL
         return true;
     }
 
-    GstBusSyncReply Pipeline::HandleBusSyncMessage(GstMessage* pMessage)
+    GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
@@ -216,7 +223,7 @@ namespace DSL
         return GST_BUS_PASS;
     }
     
-    bool Pipeline::HandleStateChanged(GstMessage* pMessage)
+    bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
         LOG_FUNC();
 
@@ -242,7 +249,7 @@ namespace DSL
         return true;
     }
     
-    void Pipeline::_initMaps()
+    void PipelineBintr::_initMaps()
     {
         m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
         m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
@@ -266,13 +273,13 @@ namespace DSL
     static gboolean bus_watch(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<Pipeline *>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineBintr *>(pData)->HandleBusWatchMessage(pMessage);
     }    
     
     static GstBusSyncReply bus_sync_handler(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<Pipeline *>(pData)->HandleBusSyncMessage(pMessage);
+        return static_cast<PipelineBintr *>(pData)->HandleBusSyncMessage(pMessage);
     }
     
 

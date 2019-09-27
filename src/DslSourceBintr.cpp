@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSourceBintr.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 #define N_DECODE_SURFACES 16
 #define N_EXTRA_SURFACES 1
@@ -72,7 +72,8 @@ namespace DSL
         
         gst_caps_unref(pCaps);        
         
-        AddGhostPads();
+        // Src Ghost Pad only
+        AddSrcGhostPad();
     }
 
     SourceBintr::~SourceBintr()
@@ -81,11 +82,12 @@ namespace DSL
 
     }
 
-    void SourceBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    void SourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' Source to the Parent Pipeline 
-        pPipeline->AddSinkBintr(shared_from_this());
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddSinkBintr(shared_from_this());
     }
 }

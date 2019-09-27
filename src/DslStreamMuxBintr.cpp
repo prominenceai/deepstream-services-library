@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslStreamMuxBintr.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 
 namespace DSL
@@ -67,15 +67,13 @@ namespace DSL
         LOG_FUNC();
     };
     
-    void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    void StreamMuxBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' Stream Mux to the Parent Pipeline 
-        pPipeline->AddStreamMuxBintr(shared_from_this());
-        
-        //
-        m_pPipeline = pPipeline;
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddStreamMuxBintr(shared_from_this());
     }
     
 };

@@ -43,7 +43,7 @@ namespace DSL
 
         ~GieBintr();
 
-        void AddToPipeline(std::shared_ptr<Pipeline> pPipeline);
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
     private:
 

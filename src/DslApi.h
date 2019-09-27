@@ -136,13 +136,6 @@ DslReturnType dsl_source_new(const char* source, gboolean live,
     guint width, guint height, guint fps_n, guint fps_d);
 
 /**
- * @brief deletes a Source object by name
- * @param source name of the Source object to delete
- * @return DSL_RESULT_SOURCE_RESULT
- */
-DslReturnType dsl_source_delete(const char* source);
-
-/**
  * @brief creates a new, uniquely named Streammux obj
  * @param streammux unique name for the new Streammux obj
  * @param live DSL_TRUE | DSL_FLASE
@@ -156,61 +149,26 @@ DslReturnType dsl_streammux_new(const char* streammux,
     gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
 /**
- * @brief deletes a Source object by name
- * @param source name of the Source object to delete
- * @return DSL_RESULT_STREAMMUX_RESULT
- */
-DslReturnType dsl_streammux_delete(const char* streammux);
-
-/**
  * @brief creates a new, uniquely named Sink obj
  * @param sink unique name for the new Sink
  * @param displayId
  * @param overlatId
  * @param offsetX
  * @param offsetY
- * @param width width of the muxer output
- * @param heigth height of the muxer output
+ * @param width width of the Sink
+ * @param heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_new(const char* sink, guint displayId, 
     guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
 
 /**
- * @brief deletes a Sink object by name
- * @param sink name of the Sink object to delete
+ * @brief creates a new, uniquely named OSD obj
+ * @param osd unique name for the new Sink
+ * @param isClockEnabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_delete(const char* source);
-
-DslReturnType dsl_osd_new(const char* osd, guint displayId, 
-    guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
-
-/**
- * @brief deletes an OSD object by name
- * @param osd name of the OSD object to delete
- * @return DSL_RESULT_SINK_RESULT
- */
-DslReturnType dsl_osd_delete(const char* osd);
-
-/**
- * @brief creates a new, uniquely named Display obj
- * @param display unique name for the new Display
- * @param rows number of horizotal display rows
- * @param columns number of vertical display columns
- * @param width width of each column in pixals
- * @param height height of each row in pix  als
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_new(const char* display, 
-    guint rows, guint columns, guint width, guint height);
-
-/**
- * @brief deletes a Display object by name
- * @param display name of the Display object to delete
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_delete(const char* display);
+DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
@@ -227,11 +185,24 @@ DslReturnType dsl_gie_new(const char* gie, const char* configFilePath,
             std::string& modelEngineFile, const char* rawOutputDir);
 
 /**
- * @brief deletes a GIE object by name
- * @param display name of the Display object to delete
- * @return DSL_RESULT_GIE_RESULT
+ * @brief creates a new, uniquely named Display obj
+ * @param display unique name for the new Display
+ * @param rows number of horizotal display rows
+ * @param columns number of vertical display columns
+ * @param width width of each column in pixals
+ * @param height height of each row in pix  als
+ * @return DSL_RESULT_DISPLAY_RESULT
  */
-DslReturnType dsl_gie_delete(const char* gie);
+DslReturnType dsl_display_new(const char* display, 
+    guint rows, guint columns, guint width, guint height);
+
+/**
+ * @brief deletes a Component object by name
+ * @param name of the Component object to delete
+ * @return DSL_RESULT_COMPONENT_RESULT
+ */
+DslReturnType dsl_component_delete(const char* component);
+
 
 /**
  * @brief creates a new, uniquely named Pipeline

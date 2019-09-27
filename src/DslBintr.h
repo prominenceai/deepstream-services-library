@@ -26,7 +26,6 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
-#include "DslPipeline.h"
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define LINK_TRUE true
@@ -131,6 +130,13 @@ namespace DSL
             }
         };
         
+        virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr)
+        {
+            LOG_FUNC();
+                
+            pParentBintr->AddChild(shared_from_this());
+        }
+
         GstElement* MakeElement(const gchar * factoryname, const gchar * name, bool linkToPrev)
         {
             LOG_FUNC();
@@ -149,7 +155,7 @@ namespace DSL
                 throw;
             }
             
-            if (!linkToPrev)
+            if (linkToPrev)
             {
                 // If not the first element
                 if (m_pLinkedChildElements.size())
@@ -157,26 +163,44 @@ namespace DSL
                     // link the previous to the new element 
                     if (!gst_element_link(m_pLinkedChildElements.back(), pElement))
                     {
-                        LOG_ERROR("Failed to link new element" << m_name << " to "
-                            << m_name);
+                        LOG_ERROR("Failed to link new element " << name << " for " << m_name);
                         throw;
                     }
+                    LOG_INFO("Successfully linked new element " << name << " for " << m_name);
                 }
                 m_pLinkedChildElements.push_back(pElement);
             }
             return pElement;
         };
         
-        void AddGhostPads()
+        void AddSinkGhostPad()
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
-            // get Sink pad for first child element in the order list
-            m_pSinkPad = gst_element_get_static_pad(m_pLinkedChildElements.back(), "sink");
+            if (!m_pLinkedChildElements.size())
+            {
+                LOG_ERROR("Failed to add Sink Pad for '" << m_name <<"' No Elements");
+                throw;
+            }
+
+            // get Sink pad for first child element in the ordered list
+            m_pSinkPad = gst_element_get_static_pad(m_pLinkedChildElements.front(), "sink");
             if (!m_pSinkPad)
             {
                 LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
+                throw;
+            }
+                    };
+            
+        void AddSrcGhostPad()
+        {
+            LOG_FUNC();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
+            
+            if (!m_pLinkedChildElements.size())
+            {
+                LOG_ERROR("Failed to add Source Pad for '" << m_name <<"' No Elements");
                 throw;
             }
             
@@ -188,14 +212,13 @@ namespace DSL
                 throw;
             }
         };
-        
-        virtual void AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+
+        void AddGhostPads()
         {
-            LOG_FUNC();
-                
-            LOG_WARN("Objects derived of base class Bintr do have parents");
+            AddSinkGhostPad();
+            AddSrcGhostPad();
         }
-    
+            
     public:
 
         /**
@@ -207,9 +230,6 @@ namespace DSL
          @brief
          */
         GstElement* m_pBin;
-        
-        
-        std::shared_ptr<Pipeline> m_pPipeline;
         
         /**
          @brief

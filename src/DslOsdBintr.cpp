@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslOsdBintr.h"
-#include "DslPipeline.h"
+#include "DslPipelineBintr.h"
 
 namespace DSL
 {
@@ -76,11 +76,12 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void OsdBintr::AddToPipeline(std::shared_ptr<Pipeline> pPipeline)
+    void OsdBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' OSD to the Parent Pipeline 
-        pPipeline->AddOsdBintr(shared_from_this());
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddOsdBintr(shared_from_this());
     }
 }    
