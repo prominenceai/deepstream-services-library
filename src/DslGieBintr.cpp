@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    GieBintr::GieBintr(const char* osd, const char* configFilePath,
+    GieBintr::GieBintr(const char* osd, const char* inferConfigFile,
         guint batchSize, guint interval, guint uniqueId, guint gpuId, 
         const char* modelEngineFile, const char*  rawOutputDir)
         : Bintr(osd)
@@ -41,7 +41,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_configFilePath = configFilePath;
+        m_inferConfigFile = inferConfigFile;
         m_modelEngineFile = modelEngineFile;
         m_rawOutputDir = rawOutputDir;
         
@@ -54,7 +54,7 @@ namespace DSL
         g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pClassifier), "config-file-path", 
-            GET_FILE_PATH ((gchar*)configFilePath), "process-mode", 1, NULL);
+            (gchar*)inferConfigFile, "process-mode", 1, NULL);
 
         if (m_batchSize)
         {

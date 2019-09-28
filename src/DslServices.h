@@ -142,6 +142,10 @@ namespace DSL {
         std::map <std::string, std::shared_ptr<Bintr>> m_pipelines;
         
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+        
+        static std::string m_configFileDir;
+        
+        static std::string m_modelFileDir;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

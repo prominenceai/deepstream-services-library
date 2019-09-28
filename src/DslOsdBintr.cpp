@@ -37,6 +37,7 @@ namespace DSL
     OsdBintr::OsdBintr(const char* osd, gboolean isClockEnabled)
         : Bintr(osd)
         , m_isClockEnabled(isClockEnabled)
+        , m_processMode(0)
         , m_pQueue(NULL)
         , m_pVidConv(NULL)
         , m_pCapsFilter(NULL)
@@ -49,7 +50,6 @@ namespace DSL
         m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "osd_conv", LINK_TRUE);
         m_pConvQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_conv_queue", LINK_TRUE);
         m_pOsd = MakeElement(NVDS_ELEM_OSD, "nvosd0", LINK_TRUE);
-
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps", LINK_FALSE);
         
         GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);

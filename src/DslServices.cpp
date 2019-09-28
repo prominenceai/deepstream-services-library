@@ -57,11 +57,11 @@ DslReturnType dsl_display_new(const char* display,
     return DSL::Services::GetServices()->DisplayNew(display, rows, columns, width, height);
 }
 
-DslReturnType dsl_gie_new(const char* gie, const char* configFilePath, 
+DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
     guint batchSize, guint interval, guint uniqueId, guint gpuId, 
     const char* modelEngineFile, const char* rawOutputDir)
 {
-    return DSL::Services::GetServices()->GieNew(gie, configFilePath, batchSize, 
+    return DSL::Services::GetServices()->GieNew(gie, inferConfigFile, batchSize, 
         interval, uniqueId, gpuId, modelEngineFile, rawOutputDir);
 }
 
@@ -116,6 +116,9 @@ namespace DSL
 {
     // Initialize the Services's single instance pointer
     Services* Services::m_pInstatnce = NULL;
+
+    std::string Services::m_configFileDir = DS_CONFIG_DIR;
+    std::string Services::m_modelFileDir = DS_MODEL_DIR;
     
     Services* Services::GetServices()
     {
@@ -144,7 +147,7 @@ namespace DSL
         g_timeout_add(40, EventThread, NULL);
         
         // Start the X window event thread
-        m_pXWindowEventThread = g_thread_new("dsd-x-window-event-thread",
+        m_pXWindowEventThread = g_thread_new("dsl-x-window-event-thread",
             XWindowEventThread, NULL);
 
     }
@@ -297,7 +300,7 @@ namespace DSL
     }
         
     DslReturnType Services::GieNew(const char* gie, 
-        const char* configFilePath, guint batchSize, 
+        const char* inferConfigFile, guint batchSize, 
         guint interval, guint uniqueId, guint gpuId, 
         const char* modelEngineFile, const char* rawOutputDir)
     {
@@ -309,10 +312,36 @@ namespace DSL
             LOG_ERROR("GIE name '" << gie << "' is not unique");
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
         }
+        
+        std::string configFilePathSpec = m_configFileDir;
+        configFilePathSpec.append("/");
+        configFilePathSpec.append(inferConfigFile);
+        LOG_INFO("Infer config file: " << configFilePathSpec);
+        
+        std::ifstream configFile(configFilePathSpec.c_str());
+        if (!configFile.good())
+        {
+            LOG_ERROR("Infer Config File not found");
+            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+        }
+        
+        std::string modelFilePathSpec = m_modelFileDir;
+        modelFilePathSpec.append("/");
+        modelFilePathSpec.append(modelEngineFile);
+        LOG_INFO("Model engine file: " << modelFilePathSpec);
+        
+        std::ifstream modelFile(modelFilePathSpec.c_str());
+        if (!modelFile.good())
+        {
+            LOG_ERROR("Model Engine File not found");
+            return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+        }
+
         try
         {
-            m_components[gie] = std::shared_ptr<Bintr>(new GieBintr(gie, configFilePath, 
-                batchSize, interval, uniqueId, gpuId, modelEngineFile, rawOutputDir));
+            m_components[gie] = std::shared_ptr<Bintr>(new GieBintr(gie, 
+                configFilePathSpec.c_str(), batchSize, interval, uniqueId, 
+                gpuId, modelFilePathSpec.c_str(), rawOutputDir));
         }
         catch(...)
         {

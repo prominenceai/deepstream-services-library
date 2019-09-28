@@ -77,63 +77,74 @@ int main(int argc, char **argv)
     PrgItrSigIsrInstall();    
     
     if (dsl_source_new(
-        "source1",  // name for new Source 
-        TRUE,       // live?
-        1280, 720,  // width and height in pixels
-        30, 1)      // fps-n and fps-d
+        "source1",          // name for new Source 
+        TRUE,               // live?
+        1280, 720,          // width and height in pixels
+        30, 1)              // fps-n and fps-d
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
 
     if(dsl_streammux_new(
-        "streammux",// name for new Stream Muxer 
-        TRUE,       // 1ive? 
-        1,          // batch size
-        40000,      // batch timeout
-        1280, 720)  // width and height in pixels
+        "streammux",        // name for new Stream Muxer 
+        TRUE,               // 1ive? 
+        1,                  // batch size
+        40000,              // batch timeout
+        1280, 720)          // width and height in pixels
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
     
     if (dsl_sink_new(
-        "sink1",    // name for new Sink
-        0,          // display Id
-        1,          // overlay Id
-        0, 0,       // X and Y offsets
-        0, 0)       // width and height in pixels
+        "sink1",            // name for new Sink
+        0,                  // display Id
+        1,                  // overlay Id
+        0, 0,               // X and Y offsets
+        0, 0)               // width and height in pixels
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
 
     if (dsl_osd_new(
-        "osd1",     // name for new OSD
-        TRUE)       // clock enabled?
+        "osd1",             // name for new OSD
+        TRUE)               // clock enabled?
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
 
-//
-//
-//    dsd_display_new("display1", 1, 1, 1280, 720);
+    if (dsl_gie_new(
+        "gie1",                                 // name for new GIE
+        "config_infer_primary.txt",             // Config File with defaults
+        1, 1,                                   // batch size and interval
+        1, 0,                                   // unique Id and gpu Id
+        "resnet10.caffemodel_b1_fp16.engine",   // model engine file
+        "")                                     // raw output folder
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
-//    DSL_GIE_NEW("GIE1",
-//        "resnet10.caffemodel_b30_int8.engine", 
-//        "config_infer_primary.txt", 1, 1, 1, 1, 1);
-//        
-    dsl_pipeline_new("pipeline1", {NULL});
-    
+    if (dsl_display_new(
+        "display",          // name for new display
+        1, 1,               // rows and columns
+        1280, 720)          // width and height in pixels
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+   
     // Run the main loop
     dsl_main_loop_run();
 //
 //    DSL_GIE_DELETE("GIE1");
     
-    dsl_component_delete("display1");
+    dsl_component_delete("display");
     
-    dsl_component_delete("streammux1");
+    dsl_component_delete("streammux");
     
     dsl_component_delete("source1");
 

@@ -37,7 +37,7 @@ namespace DSL
     {
     public: 
     
-        GieBintr(const char* osd, const char* configFilePath,
+        GieBintr(const char* osd, const char* inferConfigFile,
             guint batchSize, guint interval, guint uniqueId, guint gpuId, 
             const char* modelEngineFile, const char* rawOutputDir);
 
@@ -58,7 +58,7 @@ namespace DSL
         
         guint m_uniqueId;
 
-        std::string m_configFilePath;
+        std::string m_inferConfigFile;
         
         std::string m_modelEngineFile;
 

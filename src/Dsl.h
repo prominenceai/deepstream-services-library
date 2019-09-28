@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include <vector>
 #include <map> 
 #include <memory> 
+#include <fstream>
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>

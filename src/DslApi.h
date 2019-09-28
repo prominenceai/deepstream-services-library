@@ -84,6 +84,8 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_NAME_NOT_UNIQUE                              0x01100001
 #define DSL_RESULT_GIE_NAME_NOT_FOUND                               0x01100010
 #define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x01100011
+#define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x01100100
+#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x01100100
 #define DSL_RESULT_GIE_NEW_EXCEPTION                                0x01100100
 
 /**
@@ -173,16 +175,18 @@ DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
 /**
  * @brief creates a new, uniquely named GIE object
  * @param gie unique name for the new GIE object
- * @param model full pathspec to the model config file
- * @param infer full pathspec to the inference config file
+ * @param inferConfigFile name of the Infer Config file to use
  * @param batchSize
- * @param boarder-box colors 1..4
- * @param height height of each row in pix  als
+ * @param interval
+ * @param uniqueId
+ * @param gpuId
+ * @param modelEngineFile name of the Model Engine file to use
+ * @param rawOutputDir
  * @return DSL_RESULT_GIE_RESULT
  */
-DslReturnType dsl_gie_new(const char* gie, const char* configFilePath, 
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, const 
-            std::string& modelEngineFile, const char* rawOutputDir);
+DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
+            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+            const char* modelEngineFile, const char* rawOutputDir);
 
 /**
  * @brief creates a new, uniquely named Display obj
