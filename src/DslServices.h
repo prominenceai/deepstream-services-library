@@ -72,7 +72,7 @@ namespace DSL {
         
         DslReturnType ComponentDelete(const char* component);
         
-        DslReturnType PipelineNew(const char* pipeline, const char** components);
+        DslReturnType PipelineNew(const char* pipeline);
         
         DslReturnType PipelineDelete(const char* pipeline);
         

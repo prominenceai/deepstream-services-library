@@ -111,17 +111,6 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001000
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001001
 
-#define DSL_SOURCE_TYPE_CAMERA_V4L2                                 1
-#define DSL_SOURCE_TYPE_URI                                         2
-#define DSL_SOURCE_TYPE_MULTI_URI                                   3
-#define DSL_SOURCE_TYPE_RTSP                                        4
-#define DSL_SOURCE_TYPE_CSI                                         5
-
-#define DSL_SINK_TYPE_FAKE                                          1
-#define DSL_SINK_TYPE_EGL                                           2
-#define DSL_SINK_TYPE_FILE                                          3
-#define DSL_SINK_TYPE_RTSP                                          4
-#define DSL_SINK_TYPE_CSI                                           5
 
 /**
  * @brief creates a new, uniquely named Source obj
@@ -211,10 +200,9 @@ DslReturnType dsl_component_delete(const char* component);
 /**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
- * @param[in] components a NULL terminated array of existing component names
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new(const char* pipeline, const char** components);
+DslReturnType dsl_pipeline_new(const char* pipeline);
 
 /**
  * @brief deletes a Pipeline object by name.
@@ -230,7 +218,7 @@ DslReturnType dsl_pipeline_delete(const char* pipeline);
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_add_components(const char* pipeline, 
+DslReturnType dsl_pipeline_components_add(const char* pipeline, 
     const char** components);
 
 /**
@@ -239,7 +227,7 @@ DslReturnType dsl_pipeline_add_components(const char* pipeline,
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_remove_components(const char* pipeline, 
+DslReturnType dsl_pipeline_components_remove(const char* pipeline, 
     const char** components);
 
 /**

@@ -70,9 +70,9 @@ DslReturnType dsl_component_delete(const char* component)
     return DSL::Services::GetServices()->ComponentDelete(component);
 }
 
-DslReturnType dsl_pipeline_new(const char* pipeline, const char** components)
+DslReturnType dsl_pipeline_new(const char* pipeline)
 {
-    return DSL::Services::GetServices()->PipelineNew(pipeline, components);
+    return DSL::Services::GetServices()->PipelineNew(pipeline);
 }
 
 DslReturnType dsl_pipeline_delete(const char* pipeline)
@@ -370,7 +370,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::PipelineNew(const char* pipeline, const char** components)
+    DslReturnType Services::PipelineNew(const char* pipeline)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
@@ -383,8 +383,6 @@ namespace DSL
         try
         {
             m_pipelines[pipeline] = std::shared_ptr<Bintr>(new PipelineBintr(pipeline));
-            
-            PipelineComponentsAdd(pipeline, components);
         }
         catch(...)
         {
@@ -428,18 +426,20 @@ namespace DSL
         
         // iterate throught the list of components to verifiy the existence
         //  of each... before making any updates to the pipeline.
-        for (const char** component = components; component; component++)
+        for (const char** component = components; *component; component++)
         {
+
             if (!m_components[*component])
             {   
                 LOG_ERROR("Component name '" << *component << "' was not found");
                 return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
             }
         }
+        LOG_INFO("All listed components found");
 
         // iterate through the list of components a second time
         // adding each to the named pipeline individually.
-        for (const char** component = components; component; component++)
+        for (const char** component = components; *component; component++)
         {
             try
             {

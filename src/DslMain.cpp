@@ -136,6 +136,24 @@ int main(int argc, char **argv)
     {
         return EXIT_FAILURE;
     }
+    
+    if (dsl_pipeline_new(
+        "pipeline1")        // name for new pipeline
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+    
+    const char* components[] = {"source1", "streammux", "sink1", "osd1", "gie1", "display", NULL};
+    
+    if (dsl_pipeline_components_add(
+        "pipeline1",        // name of the Pipeline to update
+        components)         // NULL terminated array of component names
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+    
    
     // Run the main loop
     dsl_main_loop_run();

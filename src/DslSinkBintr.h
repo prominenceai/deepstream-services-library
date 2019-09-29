@@ -31,6 +31,23 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    class SinksBintr : public Bintr
+    {
+    public: 
+    
+        SinksBintr(const char* sink);
+
+        ~SinksBintr();
+        
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+
+    private:
+
+        GstElement* m_pQueue;
+        GstElement* m_pTee;
+        GstElement* m_pSink;
+    };
+
     class SinkBintr : public Bintr
     {
     public: 
@@ -52,10 +69,12 @@ namespace DSL
         guint m_height;
 
         GstElement* m_pQueue;
-        GstElement* m_pTee;
+        GstElement* m_pTransform;
         GstElement* m_pSink;
-    
+            
+        friend class SinksBintr;
     };
+
 }
 
 #endif // _DSL_SINK_BINTR_H

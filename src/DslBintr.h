@@ -113,7 +113,7 @@ namespace DSL
             }
         };
 
-        void AddChild(std::shared_ptr<Bintr> pChildBintr)
+        virtual void AddChild(std::shared_ptr<Bintr> pChildBintr)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -191,7 +191,7 @@ namespace DSL
                 LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
                 throw;
             }
-                    };
+        };
             
         void AddSrcGhostPad()
         {

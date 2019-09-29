@@ -38,17 +38,16 @@ namespace DSL
         , m_width(width)
         , m_height(height)
         , m_pQueue(NULL)
-        , m_pTee(NULL)
+        , m_pTransform(NULL)
         , m_pSink(NULL)
     {
         LOG_FUNC();
 
-        // New Queie. Tee, amd Sink Elements for this Sink bin
+        // New Queue. Transform, amd Sink Elements for this Sink bin
         // Note!, elements will be linked in the order they're created
-        
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
-        m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
-        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink, LINK_TRUE);
+        m_pTransform = MakeElement(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform", LINK_TRUE);
+        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", LINK_TRUE);
         
         g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay", m_overlayId, NULL);
@@ -57,7 +56,10 @@ namespace DSL
         g_object_set(G_OBJECT(m_pSink), "overlay-w", m_width, NULL);
         g_object_set(G_OBJECT(m_pSink), "overlay-h", m_height, NULL);
 
-//        AddGhostPads();
+        g_object_set(G_OBJECT(m_pSink), "sync", config->sync, "max-lateness", -1,
+            "async", FALSE, "qos", config->qos, NULL);
+            
+        AddGhostPads();
     }
     
     SinkBintr::~SinkBintr()
@@ -73,4 +75,70 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
             AddSinkBintr(shared_from_this());
     }
+
+    SinksBintr::SinksBintr(const char* sink)
+        : Bintr(sink)
+        , m_pQueue(NULL)
+        , m_pTee(NULL)
+        , m_pSink(NULL)
+    {
+        LOG_FUNC();
+
+        // New Queie. Tee, amd Sink Elements for this Sink bin
+        // Note!, elements will be linked in the order they're created
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
+        m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
+        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink, LINK_TRUE);
+        
+        AddGhostPads();
+    }
+    
+    SinksBintr::~SinksBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    void SinksBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
+    {
+        LOG_FUNC();
+        
+        pChildBintr->m_pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(shared_from_this());
+
+        m_pChildBintrs.push_back(pChildBintr);
+                        
+        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
+        {
+            LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
+            throw;
+        }
+
+        GstPadTemplate *padtemplate = (GstPadTemplate *)
+            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee), "src_%u");
+        
+        m_pSourcePad = gst_element_request_pad(m_pTee, padtemplate, NULL, NULL);
+        if (!m_pSourcePad)
+        {
+            LOG_ERROR("Failed to add Source Pad for '" << m_name <<" '");
+            throw;
+        }
+        
+        std::shared_ptr<SinkBintr> pChildSinkBintr = pChildBintr;
+        
+        pChildSinkBintr->m_pSinkPad = gst_element_get_static_pad(
+            pChildSinkBintr->m_pSink, "sink");
+        if (!pChildSinkBintr->m_pSinkPad)
+        {
+            LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
+            throw;
+        }
+
+        if (gst_pad_link(m_pSourcePad, pChildSinkBintr->m_pSinkPad) != GST_PAD_LINK_OK)
+        {
+            LOG_ERROR("Failed to link Source pad Tee for '" << m_name 
+                << "' to child Sink pad for '" << pChildSinkBintr->m_name << "'");
+            throw;
+        }
+    };
+    
 }    

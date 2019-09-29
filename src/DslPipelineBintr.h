@@ -85,14 +85,14 @@ namespace DSL {
         GstElement* m_pGstPipeline; 
 
         /**
-         * @brief processing bin for all Sink and OSD bins in this Pipeline
+         * @brief parent bin for all Source bins in this Pipeline
          */
-        std::shared_ptr<Bintr> m_pProcessingBintr;
+        std::shared_ptr<Bintr> m_pSourcesBintr;
         
         /**
-         * @brief one or more Sources in this Pipeline
+         * @brief processing bin for all Sink and OSD bins in this Pipeline
          */
-        std::vector<std::shared_ptr<Bintr>> m_pSourceBintrs;
+        std::shared_ptr<Bintr> m_pProcessBintr;
         
         /**
          * @brief one and only Stream Mux in this Pipeline
@@ -102,7 +102,7 @@ namespace DSL {
         /**
          * @brief one or more Sinks for this Pipeline
          */
-        std::vector<std::shared_ptr<Bintr>> m_pSinkBintrs;
+        std::shared_ptr<Bintr> m_pSinksBintr;
         
         /**
          * @brief the one and only Display for this Pipeline

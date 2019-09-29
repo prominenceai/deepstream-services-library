@@ -43,24 +43,16 @@ namespace DSL
             LOG_ERROR("Failed to create new GST Pipeline for '" << pipeline << "'");
             throw;
         }
-//        
-//        if (!m_pProcessingBintr)
-//        {
-//            LOG_ERROR("Failed to create new processing-bin");
-//            throw;
-//        }
-
-
-        //  BUILD PIPELINE
-
-
-//        m_pOsdBintr->LinkTo(m_pSinksBintr);
-//            
-//        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
-//        m_pPrimaryGieBintr->LinkTo(m_pSecondaryGiesBintr);
-//        m_pSecondaryGiesBintr->LinkTo(m_pTiledDisplayBintr);
-//        m_pTiledDisplayBintr->LinkTo(m_pProcessingBintr);
-
+        
+        m_pSourcesBintr = std::shared_ptr<Bintr>(new Bintr("sources-bin"));
+        m_pProcessBintr = std::shared_ptr<Bintr>(new Bintr("process-bin"));
+        
+        m_pSinksBintr = std::shared_ptr<Bintr>(new SinksBintr("sinks-bin"));
+        
+        AddChild(m_pSourcesBintr);
+        AddChild(m_pProcessBintr);
+        AddChild(m_pSinksBintr);
+        
         // Initialize "constant-to-string" maps
         _initMaps();
         
@@ -96,8 +88,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pSourceBintrs.push_back(pBintr);
-        
+        m_pSourcesBintr->AddChild(pBintr);
+
         AddChild(pBintr);
     }
 
@@ -110,13 +102,11 @@ namespace DSL
         AddChild(pBintr);
     }
 
-    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pChildBintr)
     {
         LOG_FUNC();
         
-        m_pSinkBintrs.push_back(pBintr);
-        
-        AddChild(pBintr);
+        m_pSinksBintr->AddChild(pChildBintr);
     }
 
     void PipelineBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
