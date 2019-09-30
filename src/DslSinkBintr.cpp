@@ -28,76 +28,27 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    SinkBintr::SinkBintr(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height)
-        : Bintr(sink)
-        , m_displayId(displayId)
-        , m_overlayId(overlayId)
-        , m_offsetX(offsetX)
-        , m_offsetY(offsetY)
-        , m_width(width)
-        , m_height(height)
-        , m_pQueue(NULL)
-        , m_pTransform(NULL)
-        , m_pSink(NULL)
-    {
-        LOG_FUNC();
-
-        // New Queue. Transform, amd Sink Elements for this Sink bin
-        // Note!, elements will be linked in the order they're created
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
-        m_pTransform = MakeElement(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform", LINK_TRUE);
-        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", LINK_TRUE);
-        
-        g_object_set(G_OBJECT(m_pSink), "display-id", m_displayId, NULL);
-        g_object_set(G_OBJECT(m_pSink), "overlay", m_overlayId, NULL);
-        g_object_set(G_OBJECT(m_pSink), "overlay-x", m_offsetX, NULL);
-        g_object_set(G_OBJECT(m_pSink), "overlay-y", m_offsetY, NULL);
-        g_object_set(G_OBJECT(m_pSink), "overlay-w", m_width, NULL);
-        g_object_set(G_OBJECT(m_pSink), "overlay-h", m_height, NULL);
-
-        g_object_set(G_OBJECT(m_pSink), "sync", config->sync, "max-lateness", -1,
-            "async", FALSE, "qos", config->qos, NULL);
-            
-        AddGhostPads();
-    }
-    
-    SinkBintr::~SinkBintr()
-    {
-        LOG_FUNC();
-    }
-    
-    void SinkBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' display to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
-            AddSinkBintr(shared_from_this());
-    }
 
     SinksBintr::SinksBintr(const char* sink)
         : Bintr(sink)
         , m_pQueue(NULL)
         , m_pTee(NULL)
-        , m_pSink(NULL)
     {
         LOG_FUNC();
 
-        // New Queie. Tee, amd Sink Elements for this Sink bin
+        // New Queie. Tee, amd Overlay Elements for this Sink bin
         // Note!, elements will be linked in the order they're created
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
         m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
-        m_pSink = MakeElement(NVDS_ELEM_SINK_OVERLAY, (gchar*)sink, LINK_TRUE);
         
-        AddGhostPads();
+        AddSinkGhostPad();
     }
     
     SinksBintr::~SinksBintr()
     {
         LOG_FUNC();
     }
-    
+     
     void SinksBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
     {
         LOG_FUNC();
@@ -113,32 +64,96 @@ namespace DSL
             throw;
         }
 
-        GstPadTemplate *padtemplate = (GstPadTemplate *)
+        GstPadTemplate* padtemplate = 
             gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee), "src_%u");
+        if (!padtemplate)
+        {
+            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+            throw;
+        }
         
+        LOG_INFO("Pad Template = " << padtemplate);
+        
+        // request a pad for the Tee element 
         m_pSourcePad = gst_element_request_pad(m_pTee, padtemplate, NULL, NULL);
         if (!m_pSourcePad)
         {
-            LOG_ERROR("Failed to add Source Pad for '" << m_name <<" '");
+            LOG_ERROR("Failed to get Source Pad for '" << m_name << "'");
             throw;
         }
         
-        std::shared_ptr<SinkBintr> pChildSinkBintr = pChildBintr;
-        
-        pChildSinkBintr->m_pSinkPad = gst_element_get_static_pad(
-            pChildSinkBintr->m_pSink, "sink");
-        if (!pChildSinkBintr->m_pSinkPad)
-        {
-            LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
-            throw;
-        }
+//        m_pSinkPad = gst_element_get_static_pad(
+//            pChildBintr->m_pBin, "sink");
+//            
+//        if (!pChildBintr->m_pSinkPad)
+//        {
+//            LOG_ERROR("Failed to get Sink Pad for '" << m_name << "'");
+//            throw;
+//        }
 
-        if (gst_pad_link(m_pSourcePad, pChildSinkBintr->m_pSinkPad) != GST_PAD_LINK_OK)
+        if (gst_pad_link(m_pSourcePad, pChildBintr->m_pSinkPad) != GST_PAD_LINK_OK)
         {
             LOG_ERROR("Failed to link Source pad Tee for '" << m_name 
-                << "' to child Sink pad for '" << pChildSinkBintr->m_name << "'");
+                << "' to child Sink pad for '" << pChildBintr->m_name << "'");
             throw;
         }
     };
+
+    // ********************************************************
+    //   Overlay Sink
+    
+
+    SinkBintr::SinkBintr(const char* sink, guint displayId, guint overlayId,
+        guint offsetX, guint offsetY, guint width, guint height)
+        : Bintr(sink)
+        , m_sync(FALSE)
+        , m_async(FALSE)
+        , m_qos(TRUE)
+        , m_displayId(displayId)
+        , m_overlayId(overlayId)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetY)
+        , m_width(width)
+        , m_height(height)
+        , m_pQueue(NULL)
+        , m_pTransform(NULL)
+        , m_pOverlay(NULL)
+    {
+        LOG_FUNC();
+
+        // New Queue. Transform, amd Sink Elements for this Sink bin
+        // Note!, elements will be linked in the order they're created
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
+//        m_pTransform = MakeElement(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform", LINK_TRUE);
+        m_pOverlay = MakeElement(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", LINK_TRUE);
+        
+        g_object_set(G_OBJECT(m_pOverlay), "display-id", m_displayId, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), "overlay", m_overlayId, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), "overlay-x", m_offsetX, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), "overlay-y", m_offsetY, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), "overlay-w", m_width, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), "overlay-h", m_height, NULL);
+
+        // TODO should "sync" and "async" be configurable
+        g_object_set(G_OBJECT(m_pOverlay), "sync", m_sync, "max-lateness", -1,
+            "async", m_async, "qos", m_qos, NULL);
+            
+        // Add Sink Pad for bin only
+        AddSinkGhostPad();
+    }
+    
+    SinkBintr::~SinkBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    void SinkBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Sink to the Parent Pipeline 
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddSinkBintr(shared_from_this());
+    }
     
 }    

@@ -92,6 +92,17 @@ namespace DSL
             LOG_FUNC();
             LOG_INFO("Delete bintr:: " << m_name);
 
+            // Clean up all resources
+            if (m_pSinkPad)
+            {
+                gst_object_unref(m_pSinkPad);
+            }
+
+            if (m_pSourcePad)
+            {
+                gst_object_unref(m_pSourcePad);
+            }
+
             g_mutex_clear(&m_bintrMutex);
         };
         
@@ -118,16 +129,16 @@ namespace DSL
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
-            pChildBintr->m_pParentBintr = 
-                std::dynamic_pointer_cast<Bintr>(shared_from_this());
+//            pChildBintr->m_pParentBintr = shared_from_this();
 
             m_pChildBintrs.push_back(pChildBintr);
                             
             if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
-                LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
+                LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name <<"'");
                 throw;
             }
+            LOG_INFO("Child bin '" << pChildBintr->m_name <<"' add to '" << m_name <<"'");
         };
         
         virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr)
@@ -191,6 +202,7 @@ namespace DSL
                 LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
                 throw;
             }
+            gst_element_add_pad(m_pBin, gst_ghost_pad_new((gchar*)m_name.c_str(), m_pSinkPad));
         };
             
         void AddSrcGhostPad()
@@ -211,6 +223,8 @@ namespace DSL
                 LOG_ERROR("Failed to add Source Pad for '" << m_name <<" '");
                 throw;
             }
+            gst_element_add_pad(m_pBin, gst_ghost_pad_new((gchar*)m_name.c_str(), m_pSourcePad)); \
+            
         };
 
         void AddGhostPads()

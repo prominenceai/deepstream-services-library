@@ -89,8 +89,6 @@ namespace DSL
         LOG_FUNC();
         
         m_pSourcesBintr->AddChild(pBintr);
-
-        AddChild(pBintr);
     }
 
     void PipelineBintr::AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr)

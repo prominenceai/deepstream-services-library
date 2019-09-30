@@ -88,6 +88,6 @@ namespace DSL
         
         // add 'this' Source to the Parent Pipeline 
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
-            AddSinkBintr(shared_from_this());
+            AddSourceBintr(shared_from_this());
     }
 }

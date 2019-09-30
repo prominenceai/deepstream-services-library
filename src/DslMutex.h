@@ -36,7 +36,6 @@ namespace DSL
 {
     /**
      * @class LockMutex
-     * @file  DssMutex.h
      * @brief Used to lock a mutex for the current scope {}.
      */
     class LockMutexForCurrentScope

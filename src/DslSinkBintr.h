@@ -45,7 +45,6 @@ namespace DSL
 
         GstElement* m_pQueue;
         GstElement* m_pTee;
-        GstElement* m_pSink;
     };
 
     class SinkBintr : public Bintr
@@ -61,6 +60,9 @@ namespace DSL
         
     private:
 
+        gboolean m_sync;
+        gboolean m_async;
+        gboolean m_qos;
         guint m_displayId;
         guint m_overlayId;
         guint m_offsetX;
@@ -70,7 +72,7 @@ namespace DSL
 
         GstElement* m_pQueue;
         GstElement* m_pTransform;
-        GstElement* m_pSink;
+        GstElement* m_pOverlay;
             
         friend class SinksBintr;
     };
