@@ -108,8 +108,9 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
 #define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001000
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001001
+#define DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED                  0x11001000
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001001
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
 
 
 /**
@@ -125,19 +126,6 @@ THE SOFTWARE.
  */
 DslReturnType dsl_source_new(const char* source, gboolean live, 
     guint width, guint height, guint fps_n, guint fps_d);
-
-/**
- * @brief creates a new, uniquely named Streammux obj
- * @param streammux unique name for the new Streammux obj
- * @param live DSL_TRUE | DSL_FLASE
- * @param batchSize
- * @param batchTimeout
- * @param width 
- * @param heigth 
- * @return DSL_RESULT_STREAMMUX_RESULT
- */
-DslReturnType dsl_streammux_new(const char* streammux, 
-    gboolean live, guint batchSize, guint batchTimeout, guint width, guint height);
 
 /**
  * @brief creates a new, uniquely named Sink obj
@@ -174,8 +162,8 @@ DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
  * @return DSL_RESULT_GIE_RESULT
  */
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-            const char* modelEngineFile, const char* rawOutputDir);
+    guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+    const char* modelEngineFile, const char* rawOutputDir);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -229,6 +217,14 @@ DslReturnType dsl_pipeline_components_add(const char* pipeline,
  */
 DslReturnType dsl_pipeline_components_remove(const char* pipeline, 
     const char** components);
+
+/**
+ * @brief 
+ * @param[in] pipeline name of the pipepline to update
+ * @return 
+ */
+DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
+    gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height);
 
 /**
  * @brief pauses a Pipeline if in a state of playing

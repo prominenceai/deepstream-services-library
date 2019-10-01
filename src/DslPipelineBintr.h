@@ -26,7 +26,6 @@ THE SOFTWARE.
 #define _DSL_PIPELINE_H
 
 #include "DslSourceBintr.h"
-#include "DslStreamMuxBintr.h"
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
 #include "DslGieBintr.h"
@@ -53,8 +52,6 @@ namespace DSL {
 
         void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
-        void AddStreamMuxBintr(std::shared_ptr<Bintr> pStreamMuxBintr);
-
         void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
 
         void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
@@ -63,6 +60,9 @@ namespace DSL {
 
         void AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr);
         
+        void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
+            guint width, guint height);
+            
         /**
          * @brief handles incoming Message Packets received
          * by the bus watcher callback function
@@ -87,17 +87,12 @@ namespace DSL {
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */
-        std::shared_ptr<Bintr> m_pSourcesBintr;
+        std::shared_ptr<SourcesBintr> m_pSourcesBintr;
         
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline
          */
         std::shared_ptr<Bintr> m_pProcessBintr;
-        
-        /**
-         * @brief one and only Stream Mux in this Pipeline
-         */
-        std::shared_ptr<Bintr> m_pStreamMuxBintr;
         
         /**
          * @brief one or more Sinks for this Pipeline

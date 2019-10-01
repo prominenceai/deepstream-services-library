@@ -31,6 +31,59 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    class SourcesBintr : public Bintr
+    {
+    public: 
+    
+        SourcesBintr(const char* name);
+
+        ~SourcesBintr();
+        
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+        
+        void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
+            guint width, guint height);
+
+    private:
+
+        GstElement* m_pStreamMux;
+        
+        /**
+         @brief
+         */
+        gboolean m_areSourcesLive;
+
+        /**
+         @brief
+         */
+        gint m_batchSize;
+
+        /**
+         @brief
+         */
+        gint m_batchTimeout;
+
+        /**
+         @brief
+         */
+        gint m_streamMuxWidth;
+
+        /**
+         @brief
+         */
+        gint m_streamMuxHeight;
+
+        /**
+         @brief
+         */
+        gboolean m_enablePadding;
+    };
+
+
+    /**
+     * @class SourceBintr
+     * @brief 
+     */
     class SourceBintr : public Bintr
     {
     public: 

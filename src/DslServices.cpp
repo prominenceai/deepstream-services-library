@@ -32,13 +32,6 @@ DslReturnType dsl_source_new(const char* source, gboolean live,
         width, height, fps_n, fps_d);
 }
 
-DslReturnType dsl_streammux_new(const char* streammux, 
-    gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)
-{
-    return DSL::Services::GetServices()->StreamMuxNew(streammux, live, 
-        batchSize, batchTimeout, width, height);
-}
-
 DslReturnType dsl_sink_new(const char* sink, guint displayId, 
     guint overlayId, guint offsetX, guint offsetY, guint width, guint height)
 {
@@ -92,6 +85,12 @@ DslReturnType dsl_pipeline_components_remove(const char* pipeline,
     return DSL::Services::GetServices()->PipelineComponentsRemove(pipeline, components);
 }
 
+DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
+    gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
+        areSourcesLive, batchSize, batchTimeout, width, height);
+}    
 DslReturnType dsl_pipeline_pause(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineGetState(pipeline);
@@ -195,33 +194,7 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
-        
-    DslReturnType Services::StreamMuxNew(const char* streammux, 
-        gboolean live, guint batchSize, guint batchTimeout, guint width, guint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
-
-        if (m_components[streammux])
-        {   
-            LOG_ERROR("Stream Mux name '" << streammux << "' is not unique");
-            return DSL_RESULT_STREAMMUX_NAME_NOT_UNIQUE;
-        }
-        try
-        {
-            m_components[streammux] = std::shared_ptr<Bintr>(new StreamMuxBintr(
-                streammux, live, batchSize, batchTimeout, width, height));
-        }
-        catch(...)
-        {
-            LOG_ERROR("New StreamMux '" << streammux << "' threw exception on create");
-            return DSL_RESULT_STREAMMUX_NEW_EXCEPTION;
-        }
-        LOG_INFO("new Stream Mux '" << streammux << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-        
+                
     DslReturnType Services::SinkNew(const char* sink, guint displayId, guint overlayId,
         guint offsetX, guint offsetY, guint width, guint height)
     {
@@ -382,7 +355,7 @@ namespace DSL
         }
         try
         {
-            m_pipelines[pipeline] = std::shared_ptr<Bintr>(new PipelineBintr(pipeline));
+            m_pipelines[pipeline] = std::shared_ptr<PipelineBintr>(new PipelineBintr(pipeline));
         }
         catch(...)
         {
@@ -424,7 +397,7 @@ namespace DSL
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
         
-        // iterate throught the list of components to verifiy the existence
+        // iterate through the list of components to verifiy the existence
         //  of each... before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
@@ -466,6 +439,28 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
+    DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
+        gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)    
+    {
+        if (!m_components[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        try
+        {
+            m_pipelines[pipeline]->SetStreamMuxProperties(areSourcesLive, 
+                batchSize, batchTimeout, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception setting the Stream Muxer properties");
+            return DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
     DslReturnType Services::PipelinePause(const char* pipeline)
     {
         LOG_FUNC();

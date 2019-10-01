@@ -31,6 +31,65 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    SourcesBintr::SourcesBintr(const char* name)
+        : Bintr(name)
+    {
+        LOG_FUNC();
+
+        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
+    }
+    
+    SourcesBintr::~SourcesBintr()
+    {
+        LOG_FUNC();
+    }
+     
+    void SourcesBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
+    {
+        LOG_FUNC();
+        
+        pChildBintr->m_pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(shared_from_this());
+
+        m_pChildBintrs.push_back(pChildBintr);
+                        
+        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
+        {
+            LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
+            throw;
+        }
+        
+    }
+
+    void SourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
+        guint batchSize, guint batchTimeout, guint width, guint height)
+    {
+        m_areSourcesLive = areSourcesLive;
+        m_batchSize = batchSize;
+        m_batchTimeout= batchTimeout;
+        m_streamMuxWidth = width;
+        m_streamMuxHeight = height;
+        
+        g_object_set(G_OBJECT(m_pStreamMux), "gpu-id", m_gpuId, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "live-source", m_areSourcesLive, NULL);
+        g_object_set(G_OBJECT(m_pStreamMux), "batched-push-timeout", m_batchTimeout, NULL);
+
+        if ((gboolean)m_batchSize)
+        {
+            g_object_set(G_OBJECT(m_pStreamMux), "batch-size", m_batchSize, NULL);
+        }
+
+        g_object_set(G_OBJECT(m_pStreamMux), "enable-padding", m_enablePadding, NULL);
+
+        if (m_streamMuxWidth && m_streamMuxHeight)
+        {
+            g_object_set(G_OBJECT(m_pStreamMux), "width", m_streamMuxWidth, NULL);
+            g_object_set(G_OBJECT(m_pStreamMux), "height", m_streamMuxHeight, NULL);
+        }
+    }
+
+    
     SourceBintr::SourceBintr(const char* source, gboolean live, 
         guint width, guint height, guint fps_n, guint fps_d)
         : Bintr(source)

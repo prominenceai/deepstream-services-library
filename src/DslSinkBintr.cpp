@@ -36,8 +36,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // New Queie. Tee, amd Overlay Elements for this Sink bin
-        // Note!, elements will be linked in the order they're created
+        // New Queie and Tee Elements for this Sinks bin,
+        // linked in the order they're created
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
         m_pTee = MakeElement(NVDS_ELEM_TEE, "sink_bin_tee", LINK_TRUE);
         
@@ -71,8 +71,6 @@ namespace DSL
             LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
             throw;
         }
-        
-        LOG_INFO("Pad Template = " << padtemplate);
         
         // request a pad for the Tee element 
         m_pSourcePad = gst_element_request_pad(m_pTee, padtemplate, NULL, NULL);

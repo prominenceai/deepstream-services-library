@@ -85,17 +85,6 @@ int main(int argc, char **argv)
     {
         return EXIT_FAILURE;
     }
-
-    if(dsl_streammux_new(
-        "streammux",        // name for new Stream Muxer 
-        TRUE,               // 1ive? 
-        1,                  // batch size
-        40000,              // batch timeout
-        1280, 720)          // width and height in pixels
-        != DSL_RESULT_SUCCESS)
-    {
-        return EXIT_FAILURE;
-    }
     
     if (dsl_sink_new(
         "sink1",            // name for new Sink
@@ -149,6 +138,17 @@ int main(int argc, char **argv)
     if (dsl_pipeline_components_add(
         "pipeline1",        // name of the Pipeline to update
         components)         // NULL terminated array of component names
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if(dsl_pipeline_streammux_properties_set(
+        "pipeline1",        // name of the Pipeline to update
+        TRUE,               // are sources 1ive? 
+        1,                  // batch size
+        40000,              // batch timeout
+        1280, 720)          // width and height in pixels
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;

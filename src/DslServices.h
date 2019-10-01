@@ -27,7 +27,6 @@ THE SOFTWARE.
 
 #include "DslPipelineBintr.h"
 #include "DslSourceBintr.h"
-#include "DslStreamMuxBintr.h"
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
 #include "DslGieBintr.h"
@@ -80,6 +79,9 @@ namespace DSL {
         
         DslReturnType PipelineComponentsRemove(const char* pipeline, const char** components);
         
+        DslReturnType PipelineStreamMuxPropertiesSet(const char* pipeline,
+            gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height);
+
         DslReturnType PipelinePause(const char* pipeline);
         
         DslReturnType PipelinePlay(const char* pipeline);
@@ -139,7 +141,7 @@ namespace DSL {
         GThread* m_pXWindowEventThread;
         
 
-        std::map <std::string, std::shared_ptr<Bintr>> m_pipelines;
+        std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
         
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
         

@@ -44,7 +44,7 @@ namespace DSL
             throw;
         }
         
-        m_pSourcesBintr = std::shared_ptr<Bintr>(new Bintr("sources-bin"));
+        m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
         m_pProcessBintr = std::shared_ptr<Bintr>(new Bintr("process-bin"));
         
         m_pSinksBintr = std::shared_ptr<Bintr>(new SinksBintr("sinks-bin"));
@@ -91,15 +91,6 @@ namespace DSL
         m_pSourcesBintr->AddChild(pBintr);
     }
 
-    void PipelineBintr::AddStreamMuxBintr(std::shared_ptr<Bintr> pBintr)
-    {
-        LOG_FUNC();
-
-        m_pStreamMuxBintr = pBintr;
-
-        AddChild(pBintr);
-    }
-
     void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pChildBintr)
     {
         LOG_FUNC();
@@ -132,11 +123,19 @@ namespace DSL
 
     void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
     {
-        LOG_FUNC();
-
         m_pDisplayBintr = pDisplayBintr;
         
         AddChild(pDisplayBintr);
+    }
+
+    void PipelineBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
+        guint batchSize, guint batchTimeout, guint width, guint height)
+    {
+        
+        LOG_FUNC();
+    
+        m_pSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
+            batchSize, batchTimeout, width, height);
     }
 
     bool PipelineBintr::Pause()
