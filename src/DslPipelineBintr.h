@@ -31,7 +31,53 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
     
-namespace DSL {
+namespace DSL 
+{
+    /**
+     * @class ProcessBintr
+     * @brief 
+     */
+    class ProcessBintr : public Bintr
+    {
+    public:
+    
+        /** 
+         * 
+         */
+        ProcessBintr(const char* name);
+        ~ProcessBintr();
+
+        /**
+         * @brief Adds a Sink Bintr to this Process Bintr
+         * @param[in] pSinkBintr
+         */
+        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
+
+        /**
+         * @brief 
+         * @param[in] pOsdBintr
+         */
+        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
+        
+        /**
+         * @brief 
+         */
+        void AddSinkGhostPad();
+
+        
+    private:
+    
+        /**
+         * @brief one or more Sinks for this Process bintr
+         */
+        std::shared_ptr<SinksBintr> m_pSinksBintr;
+        
+        /**
+         * @brief optional OSD for this Process bintr
+         */
+        std::shared_ptr<OsdBintr> m_pOsdBintr;
+        
+    };
 
     /**
      * @class PipelineBintr
@@ -49,17 +95,51 @@ namespace DSL {
 
         bool Pause();
         bool Play();
-
+        
+        /**
+         * @brief 
+         * @param pSourceBintr
+         */
         void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
+        /**
+         * @brief 
+         * @param[in] pSinkBintr
+         */
+        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
+        {
+            m_pProcessBintr->AddSinkBintr(pSinkBintr);
+        }
 
-        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
+        /**
+         * @brief 
+         * @param[in] pOsdBintr
+         */
+        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
+        {
+            m_pProcessBintr->AddOsdBintr(pOsdBintr);
+        }
         
+        /**
+         * @brief 
+         * @param[in] pGieBintr
+         */
         void AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr);
 
+        /**
+         * @brief 
+         * @param[in] pDisplayBintr
+         */
         void AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr);
         
+        /**
+         * @brief 
+         * @param[in] m_areSourcesLive
+         * @param[in] batchSize
+         * @param[in] batchTimeout
+         * @param[in] width
+         * @param[in] height
+         */
         void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height);
             
@@ -72,7 +152,7 @@ namespace DSL {
 
         /**
          * @brief handles incoming sync messages
-         * @param message incoming message to process
+         * @param[in] message incoming message to process
          * @return [GST_BUS_PASS|GST_BUS_FAIL]
          */
         GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
@@ -92,17 +172,7 @@ namespace DSL {
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline
          */
-        std::shared_ptr<Bintr> m_pProcessBintr;
-        
-        /**
-         * @brief one or more Sinks for this Pipeline
-         */
-        std::shared_ptr<Bintr> m_pSinksBintr;
-        
-        /**
-         * @brief the one and only Display for this Pipeline
-         */
-        std::shared_ptr<Bintr> m_pOsdBintr;
+        std::shared_ptr<ProcessBintr> m_pProcessBintr;
         
         /**
          * @brief the one and only Display for this Pipeline
@@ -160,9 +230,9 @@ namespace DSL {
     
     /**
      * @brief callback function to watch a pipeline's bus for messages
-     * @param bus instance pointer
-     * @param message incoming message packet to process
-     * @param pData pipeline instance pointer
+     * @param[in] bus instance pointer
+     * @param[in] message incoming message packet to process
+     * @param[in] pData pipeline instance pointer
      * @return true if the message was handled correctly 
      */
     static gboolean bus_watch(
@@ -170,9 +240,9 @@ namespace DSL {
 
     /**
      * @brief 
-     * @param bus instance pointer
-     * @param message incoming message packet to process
-     * @param pData pipeline instance pointer
+     * @param[in] bus instance pointer
+     * @param[in] message incoming message packet to process
+     * @param[in] pData pipeline instance pointer
      * @return [GST_BUS_PASS|GST_BUS_FAIL]
      */
     static GstBusSyncReply bus_sync_handler(

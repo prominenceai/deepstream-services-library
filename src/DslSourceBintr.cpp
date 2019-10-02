@@ -36,7 +36,13 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // Single Stream Muxer element for all Sources 
         m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
+
+        // Each Source added will be linked to the Stream Muxer
+        
+        // Setup Src Ghost Pad for Stream Muxer element 
+        AddSourceGhostPad();
     }
     
     SourcesBintr::~SourcesBintr()
@@ -55,10 +61,27 @@ namespace DSL
                         
         if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
         {
-            LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
+            LOG_ERROR("Failed to add '" << pChildBintr->m_name 
+                << "' to " << m_name << "'");
+            throw;
+        }
+
+        // Get the static source pad - from the Source component
+        // being added - to link to Streammux element
+        StaticPadtr SourcePadtr(pChildBintr->m_pBin, "src");
+        
+        // Retrieve the sink pad - from the Streammux element - 
+        // to link to the Source component being added
+        RequestPadtr SinkPadtr(m_pStreamMux, "sink_1");
+     
+        if (gst_pad_link(SourcePadtr.m_pPad, SinkPadtr.m_pPad) != GST_PAD_LINK_OK)
+        {
+            LOG_ERROR("Failed to link '" << pChildBintr->m_name 
+                << "' to Stream Muxer" << m_name << "'");
             throw;
         }
         
+        LOG_INFO("Source '" << pChildBintr->m_name << "' linked to Stream Muxer");
     }
 
     void SourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
@@ -66,7 +89,7 @@ namespace DSL
     {
         m_areSourcesLive = areSourcesLive;
         m_batchSize = batchSize;
-        m_batchTimeout= batchTimeout;
+        m_batchTimeout = batchTimeout;
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
         
@@ -115,7 +138,7 @@ namespace DSL
             "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create new Caps Simple for '" << source << "'");
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << source << "'");
             throw;  
         }
 
@@ -132,7 +155,7 @@ namespace DSL
         gst_caps_unref(pCaps);        
         
         // Src Ghost Pad only
-        AddSrcGhostPad();
+        AddSourceGhostPad();
     }
 
     SourceBintr::~SourceBintr()

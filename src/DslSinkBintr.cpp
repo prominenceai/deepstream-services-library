@@ -80,16 +80,11 @@ namespace DSL
             throw;
         }
         
-//        m_pSinkPad = gst_element_get_static_pad(
-//            pChildBintr->m_pBin, "sink");
-//            
-//        if (!pChildBintr->m_pSinkPad)
-//        {
-//            LOG_ERROR("Failed to get Sink Pad for '" << m_name << "'");
-//            throw;
-//        }
+        // Get the static sink pad - from the Sink component
+        // being added to the Sinks bin - to link to Streammux element
+        StaticPadtr SinkPadtr(pChildBintr->m_pBin, "sink");
 
-        if (gst_pad_link(m_pSourcePad, pChildBintr->m_pSinkPad) != GST_PAD_LINK_OK)
+        if (gst_pad_link(m_pSourcePad, SinkPadtr.m_pPad) != GST_PAD_LINK_OK)
         {
             LOG_ERROR("Failed to link Source pad Tee for '" << m_name 
                 << "' to child Sink pad for '" << pChildBintr->m_name << "'");

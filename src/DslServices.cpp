@@ -442,7 +442,7 @@ namespace DSL
     DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
         gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)    
     {
-        if (!m_components[pipeline])
+        if (!m_pipelines[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;

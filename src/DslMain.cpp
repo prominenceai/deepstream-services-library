@@ -133,7 +133,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    const char* components[] = {"source1", "streammux", "sink1", "osd1", "gie1", "display", NULL};
+    const char* components[] = {"source1", "sink1", "osd1", "gie1", "display", NULL};
     
     if (dsl_pipeline_components_add(
         "pipeline1",        // name of the Pipeline to update
@@ -161,8 +161,6 @@ int main(int argc, char **argv)
 //    DSL_GIE_DELETE("GIE1");
     
     dsl_component_delete("display");
-    
-    dsl_component_delete("streammux");
     
     dsl_component_delete("source1");
 

@@ -26,35 +26,17 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
+#include "DslPadtr.h"
 
-#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
+//#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define LINK_TRUE true
 #define LINK_FALSE false
 
 namespace DSL
 {
-
-    typedef enum _bintrTypes
-    {
-        SOURCE_CAMERA_CSI = 0,
-        SOURCE_CAMERA_V4L2,
-        SOURCE_URI_SINGLE,
-        SOURCE_URI_MULTI,
-        SINK_OVERLAY,
-        SINK_RTSP_STREAMING,
-        SINK_FILE,
-        SINK_EGL,
-        SINK_FAKE,
-        STREAM_MUTEX,
-        GIE_PRIMARY,
-        GIE_SECONDARY,
-        TILED_DISPLAY
-    } BintrTypes;
-
-    
     /**
      * @class Bintr
-     * @brief 
+     * @brief Implements a base container class for a GST Bin
      */
     class Bintr : public std::enable_shared_from_this<Bintr>
     {
@@ -184,7 +166,12 @@ namespace DSL
             return pElement;
         };
         
-        void AddSinkGhostPad()
+        /**
+         * @brief Creates a new Ghost Sink pad for the first Gst Element
+         * added to this Bintr's Gst Bin.
+         * @throws a general exception on failure
+         */
+        virtual void AddSinkGhostPad()
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -196,16 +183,21 @@ namespace DSL
             }
 
             // get Sink pad for first child element in the ordered list
-            m_pSinkPad = gst_element_get_static_pad(m_pLinkedChildElements.front(), "sink");
-            if (!m_pSinkPad)
+            StaticPadtr SinkPadtr(m_pLinkedChildElements.front(), "sink");
+
+            // create a new ghost pad with the Sink pad and add to this bintr's bin
+            if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", SinkPadtr.m_pPad)))
             {
-                LOG_ERROR("Failed to add Sink Pad for '" << m_name <<" '");
-                throw;
+                LOG_ERROR("Failed to add Sink Pad for '" << m_name);
             }
-            gst_element_add_pad(m_pBin, gst_ghost_pad_new((gchar*)m_name.c_str(), m_pSinkPad));
         };
-            
-        void AddSrcGhostPad()
+        
+        /**
+         * @brief Creates a new Ghost Source pad for the last Gst element
+         * added to this Bintr's Gst Bin.
+         * @throws a general exception on failure
+         */
+        virtual void AddSourceGhostPad()
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
@@ -217,21 +209,21 @@ namespace DSL
             }
             
             // get Source pad for last child element in the ordered list
-            m_pSourcePad = gst_element_get_static_pad(m_pLinkedChildElements.back(), "src");
-            if (!m_pSourcePad)
+            StaticPadtr SourcePadtr(m_pLinkedChildElements.back(), "src");
+
+            // create a new ghost pad with the Source pad and add to this bintr's bin
+            if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
             {
-                LOG_ERROR("Failed to add Source Pad for '" << m_name <<" '");
-                throw;
+                LOG_ERROR("Failed to add Source Pad for '" << m_name);
             }
-            gst_element_add_pad(m_pBin, gst_ghost_pad_new((gchar*)m_name.c_str(), m_pSourcePad)); \
             
         };
 
         void AddGhostPads()
         {
             AddSinkGhostPad();
-            AddSrcGhostPad();
-        }
+            AddSourceGhostPad();
+        };
             
     public:
 
@@ -296,7 +288,6 @@ namespace DSL
         GMutex m_bintrMutex;
         
     };
-
 
 } // DSL
 

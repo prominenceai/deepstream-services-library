@@ -81,7 +81,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' OSD to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddOsdBintr(shared_from_this());
     }
 }    

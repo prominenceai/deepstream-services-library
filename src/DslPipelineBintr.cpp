@@ -29,6 +29,69 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    
+    ProcessBintr::ProcessBintr(const char* name)
+        : Bintr(name)
+        , m_pSinksBintr(NULL)
+        , m_pOsdBintr(NULL)
+    {
+        LOG_FUNC();
+
+        m_pSinksBintr = std::shared_ptr<SinksBintr>(new SinksBintr("sinks-bin"));
+        
+        AddChild(m_pSinksBintr);
+    }
+
+    ProcessBintr::~ProcessBintr()
+    {
+        LOG_FUNC();
+
+        m_pSinksBintr = NULL;
+    }
+    
+    void ProcessBintr::AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
+    {
+        LOG_FUNC();
+        
+        m_pSinksBintr->AddChild(pSinkBintr);
+    }
+    
+    void ProcessBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
+    {
+        LOG_FUNC();
+        
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pBintr);
+        
+        m_pOsdBintr->LinkTo(m_pSinksBintr);
+        
+        AddChild(pBintr);
+    }
+    
+    void ProcessBintr::AddSinkGhostPad()
+    {
+        LOG_FUNC();
+        
+        GstElement* pSinkBin;
+
+        if (m_pOsdBintr->m_pBin)
+        {
+            pSinkBin = m_pOsdBintr->m_pBin;
+        }
+        else
+        {
+            pSinkBin = m_pSinksBintr->m_pBin;
+        }
+
+        StaticPadtr SinkPadtr(pSinkBin, "sink");
+        
+        // create a new ghost pad with the Sink pad and add to this bintr's bin
+        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", SinkPadtr.m_pPad)))
+        {
+            LOG_ERROR("Failed to add Sink Pad for '" << m_name);
+        }
+    };
+    
+    
     PipelineBintr::PipelineBintr(const char* pipeline)
         : Bintr(pipeline)
         , m_pGstPipeline(NULL)
@@ -45,13 +108,10 @@ namespace DSL
         }
         
         m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
-        m_pProcessBintr = std::shared_ptr<Bintr>(new Bintr("process-bin"));
-        
-        m_pSinksBintr = std::shared_ptr<Bintr>(new SinksBintr("sinks-bin"));
+        m_pProcessBintr = std::shared_ptr<ProcessBintr>(new ProcessBintr("process-bin"));
         
         AddChild(m_pSourcesBintr);
         AddChild(m_pProcessBintr);
-        AddChild(m_pSinksBintr);
         
         // Initialize "constant-to-string" maps
         _initMaps();
@@ -91,21 +151,6 @@ namespace DSL
         m_pSourcesBintr->AddChild(pBintr);
     }
 
-    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pChildBintr)
-    {
-        LOG_FUNC();
-        
-        m_pSinksBintr->AddChild(pChildBintr);
-    }
-
-    void PipelineBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
-    {
-        LOG_FUNC();
-        
-        m_pOsdBintr = pBintr;
-        
-        AddChild(pBintr);
-    }
 
     void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
     {
