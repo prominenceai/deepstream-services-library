@@ -41,6 +41,8 @@ namespace DSL
         
         void AddChild(std::shared_ptr<Bintr> pChildBintr);
         
+        void AddSourceGhostPad();
+        
         void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height);
 
@@ -62,7 +64,6 @@ namespace DSL
          @brief
          */
         gint m_batchTimeout;
-
         /**
          @brief
          */

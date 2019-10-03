@@ -154,11 +154,10 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-   
+    dsl_pipeline_play("pipeline1");
+    
     // Run the main loop
     dsl_main_loop_run();
-//
-//    DSL_GIE_DELETE("GIE1");
     
     dsl_component_delete("display");
     

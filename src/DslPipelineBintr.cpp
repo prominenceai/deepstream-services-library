@@ -56,15 +56,16 @@ namespace DSL
         m_pSinksBintr->AddChild(pSinkBintr);
     }
     
-    void ProcessBintr::AddOsdBintr(std::shared_ptr<Bintr> pBintr)
+    void ProcessBintr::AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
     {
         LOG_FUNC();
         
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pBintr);
-        
+        // Add the OSD bin to this Process bin before linking to Sinks bin
+        AddChild(pOsdBintr);
+
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
+
         m_pOsdBintr->LinkTo(m_pSinksBintr);
-        
-        AddChild(pBintr);
     }
     
     void ProcessBintr::AddSinkGhostPad()
@@ -75,10 +76,14 @@ namespace DSL
 
         if (m_pOsdBintr->m_pBin)
         {
+            LOG_INFO("Adding Process bin Sink Pad for OSD '" 
+                << m_pOsdBintr->m_name);
             pSinkBin = m_pOsdBintr->m_pBin;
         }
         else
         {
+            LOG_INFO("Adding Process bin Sink Pad for Sinks '" 
+                << m_pSinksBintr->m_name);
             pSinkBin = m_pSinksBintr->m_pBin;
         }
 
@@ -95,6 +100,7 @@ namespace DSL
     PipelineBintr::PipelineBintr(const char* pipeline)
         : Bintr(pipeline)
         , m_pGstPipeline(NULL)
+        , m_areComponentsLinked(false)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
     {
@@ -134,7 +140,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        gst_element_set_state(m_pBin, GST_STATE_NULL);
+        gst_element_set_state(m_pGstPipeline, GST_STATE_NULL);
         
         // cleanup all resources
         gst_object_unref(m_pGstBus);
@@ -143,6 +149,20 @@ namespace DSL
         g_mutex_clear(&m_busSyncMutex);
         g_mutex_clear(&m_busWatchMutex);
     }
+    
+    void PipelineBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
+    {
+        LOG_FUNC();
+        
+        m_pChildBintrs.push_back(pChildBintr);
+                        
+        if (!gst_bin_add(GST_BIN(m_pGstPipeline), pChildBintr->m_pBin))
+        {
+            LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name <<"'");
+            throw;
+        }
+        LOG_INFO("Child bin '" << pChildBintr->m_name <<"' add to '" << m_name <<"'");
+    };
     
     void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pBintr)
     {
@@ -158,7 +178,8 @@ namespace DSL
         
         if (m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipeline '" << m_name << "' has an exisiting Primary GIE '" << m_pPrimaryGieBintr->m_name);
+            LOG_ERROR("Pipeline '" << m_name << "' has an exisiting Primary GIE '" 
+                << m_pPrimaryGieBintr->m_name);
             throw;
         }
         m_pPrimaryGieBintr = pGieBintr;
@@ -168,20 +189,49 @@ namespace DSL
 
     void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
     {
+        LOG_FUNC();
+        
         m_pDisplayBintr = pDisplayBintr;
         
         AddChild(pDisplayBintr);
     }
 
-    void PipelineBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
-        guint batchSize, guint batchTimeout, guint width, guint height)
+    void PipelineBintr::LinkComponents()
     {
-        
         LOG_FUNC();
-    
-        m_pSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
-            batchSize, batchTimeout, width, height);
+
+        if (m_areComponentsLinked)
+        {
+            LOG_INFO("Components for Pipeline '" << m_name << "' were linked");
+            return;
+        }
+        
+        // Ghost pad added to OSD Bintr, if OSD exists, to Sinks Bintr otherwise.
+        m_pProcessBintr->AddSinkGhostPad();
+        
+        // Link together all components 
+        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
+//        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
+//        m_pSourcesBintr->LinkTo(m_pDisplayBintr);
+//        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
+//        m_pDisplayBintr->LinkTo(m_pProcessBintr);
+       
+        m_areComponentsLinked = true;
     }
+    
+    void PipelineBintr::UnlinkComponents()
+    {
+        LOG_FUNC();
+        
+        if (!m_areComponentsLinked)
+        {
+            LOG_WARN("Components for Pipeline '" << m_name << "' were unlinked");
+            return;
+        }
+
+        m_areComponentsLinked = false;
+    }
+
 
     bool PipelineBintr::Pause()
     {
@@ -197,7 +247,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
                 
-        return (gst_element_set_state(m_pBin, 
+        return (gst_element_set_state(m_pGstPipeline, 
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
     }
     
@@ -215,12 +265,12 @@ namespace DSL
         case GST_MESSAGE_WARNING:
             return true;
         case GST_MESSAGE_ERROR:
+            _handleErrorMessage(pMessage);            
             return true;
         case GST_MESSAGE_STATE_CHANGED:
             return HandleStateChanged(pMessage);
         case GST_MESSAGE_EOS:
-          return FALSE;
-      break;
+            return false;
         default:
             LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }
@@ -247,6 +297,7 @@ namespace DSL
             }
             return GST_BUS_PASS;
         case GST_MESSAGE_STATE_CHANGED:
+            HandleStateChanged(pMessage);
             return GST_BUS_PASS;
 
         default:
@@ -259,9 +310,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pBin)
+        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pGstPipeline)
         {
-            return false;
+            LOG_ERROR("Message from invalid Source");
+//            return false;
         }
 
         GstState oldstate, newstate;
@@ -280,6 +332,26 @@ namespace DSL
 //        }
         return true;
     }
+    
+    void PipelineBintr::_handleErrorMessage(GstMessage* pMessage)
+    {
+        LOG_FUNC();
+        
+        GError* error = NULL;
+        gchar* debugInfo = NULL;
+        gst_message_parse_error(pMessage, &error, &debugInfo);
+
+        LOG_ERROR("Error message '" << error->message << "' received from '" 
+            << GST_OBJECT_NAME(pMessage->src) << "'");
+            
+        if (debugInfo)
+        {
+            LOG_DEBUG("Debug info: " << debugInfo);
+        }
+
+        g_error_free(error);
+        g_free (debugInfo);
+    }    
     
     void PipelineBintr::_initMaps()
     {

@@ -93,18 +93,20 @@ namespace DSL
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
 
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+        
         bool Pause();
         bool Play();
         
         /**
-         * @brief 
-         * @param pSourceBintr
+         * @brief adds a single Source Bintr to this Pipeline 
+         * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
         void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
-         * @brief 
-         * @param[in] pSinkBintr
+         * @brief adds a single Sink Bintr to this Pipeline 
+         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
         void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
         {
@@ -112,8 +114,8 @@ namespace DSL
         }
 
         /**
-         * @brief 
-         * @param[in] pOsdBintr
+         * @brief adds a single OSD Bintr to this Pipeline 
+         * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
         void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
         {
@@ -121,14 +123,14 @@ namespace DSL
         }
         
         /**
-         * @brief 
-         * @param[in] pGieBintr
+         * @brief adds a single GIE Bintr to this Pipeline 
+         * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
         void AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr);
 
         /**
-         * @brief 
-         * @param[in] pDisplayBintr
+         * @brief adds a single Display Bintr to this Pipeline 
+         * @param[in] pDisplayBintr shared pointer to Display Bintr to add
          */
         void AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr);
         
@@ -140,8 +142,20 @@ namespace DSL
          * @param[in] width
          * @param[in] height
          */
-        void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height);
+         
+        /**
+         * @brief
+         */
+        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
+            guint width, guint height)
+        {
+            m_pSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
+                batchSize, batchTimeout, width, height);
+        }
+        
+        void LinkComponents();
+        
+        void UnlinkComponents();
             
         /**
          * @brief handles incoming Message Packets received
@@ -183,6 +197,12 @@ namespace DSL
          * @brief the one and only Display for this Pipeline
          */
         std::shared_ptr<Bintr> m_pDisplayBintr;
+                
+        /**
+         * @brief true if the components in the Pipeline are in a state 
+         * of linked, false if unlinked. 
+         */
+        bool m_areComponentsLinked;
 
         /**
          * @brief mutex to protect critical pipeline code
@@ -220,6 +240,8 @@ namespace DSL
         std::map<GstMessageType, std::string> m_mapMessageTypes;
 
         bool HandleStateChanged(GstMessage* pMessage);
+        
+        void _handleErrorMessage(GstMessage* pMessage);        
         /**
          * @brief initializes the "constant-value-to-string" maps
          */

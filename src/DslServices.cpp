@@ -93,7 +93,7 @@ DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
 }    
 DslReturnType dsl_pipeline_pause(const char* pipeline)
 {
-    return DSL::Services::GetServices()->PipelineGetState(pipeline);
+    return DSL::Services::GetServices()->PipelinePause(pipeline);
 }
 
 DslReturnType dsl_pipeline_play(const char* pipeline)
@@ -175,6 +175,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        // ensure component name uniqueness 
         if (m_components[source])
         {   
             LOG_ERROR("Source name '" << source << "' is not unique");
@@ -201,6 +202,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        // ensure component name uniqueness 
         if (m_components[sink])
         {   
             LOG_ERROR("Sink name '" << sink << "' is not unique");
@@ -226,6 +228,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        // ensure component name uniqueness 
         if (m_components[osd])
         {   
             LOG_ERROR("OSD name '" << osd << "' is not unique");
@@ -252,6 +255,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        // ensure component name uniqueness 
         if (m_components[display])
         {   
             LOG_ERROR("Display name '" << display << "' is not unique");
@@ -280,6 +284,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
 
+        // ensure component name uniqueness 
         if (m_components[gie])
         {   
             LOG_ERROR("GIE name '" << gie << "' is not unique");
@@ -397,8 +402,8 @@ namespace DSL
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
         
-        // iterate through the list of components to verifiy the existence
-        //  of each... before making any updates to the pipeline.
+        // iterate through the list of provided components to verifiy the
+        //  existenceof each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
 
@@ -408,9 +413,12 @@ namespace DSL
                 return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
             }
         }
-        LOG_INFO("All listed components found");
+        LOG_DEBUG("All listed components found");
+        
+        // ensure that all current commponents are unlinked first
+        m_pipelines[pipeline]->UnlinkComponents();
 
-        // iterate through the list of components a second time
+        // iterate through the list of provided components a second time
         // adding each to the named pipeline individually.
         for (const char** component = components; *component; component++)
         {
@@ -427,6 +435,10 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
             }
         }
+        
+        // link all components, previous and those just added
+        m_pipelines[pipeline]->LinkComponents();
+
         return DSL_RESULT_SUCCESS;
     }
 
@@ -478,13 +490,13 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        if (!m_components[pipeline])
+        if (!m_pipelines[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
             return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
         }
 
-        if (!std::dynamic_pointer_cast<PipelineBintr>(m_components[pipeline])->Play())
+        if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
             return DSL_RESULT_PIPELINE_FAILED_TO_PLAY;
         }

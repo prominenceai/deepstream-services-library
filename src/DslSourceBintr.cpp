@@ -72,7 +72,7 @@ namespace DSL
         
         // Retrieve the sink pad - from the Streammux element - 
         // to link to the Source component being added
-        RequestPadtr SinkPadtr(m_pStreamMux, "sink_1");
+        RequestPadtr SinkPadtr(m_pStreamMux, "sink_0");
      
         if (gst_pad_link(SourcePadtr.m_pPad, SinkPadtr.m_pPad) != GST_PAD_LINK_OK)
         {
@@ -82,6 +82,20 @@ namespace DSL
         }
         
         LOG_INFO("Source '" << pChildBintr->m_name << "' linked to Stream Muxer");
+    }
+    
+    void SourcesBintr::AddSourceGhostPad()
+    {
+        LOG_FUNC();
+        
+        // get Source pad for Stream Muxer element
+        StaticPadtr SourcePadtr(m_pStreamMux, "src");
+
+        // create a new ghost pad with Source pad and add to this Bintr's bin
+        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
+        {
+            LOG_ERROR("Failed to add Source Pad for '" << m_name);
+        }
     }
 
     void SourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
@@ -133,6 +147,10 @@ namespace DSL
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", LINK_TRUE);
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
 
+        g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
+
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
             "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
@@ -141,10 +159,6 @@ namespace DSL
             LOG_ERROR("Failed to create new Simple Capabilities for '" << source << "'");
             throw;  
         }
-
-        g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
-        g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
-        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 1, NULL);
 
         GstCapsFeatures *feature = NULL;
         feature = gst_caps_features_new("memory:NVMM", NULL);
@@ -156,6 +170,7 @@ namespace DSL
         
         // Src Ghost Pad only
         AddSourceGhostPad();
+//        AddGhostPads();
     }
 
     SourceBintr::~SourceBintr()
