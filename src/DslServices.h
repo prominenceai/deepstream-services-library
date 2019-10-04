@@ -51,7 +51,10 @@ namespace DSL {
          */
         static Services* GetServices();
         
-        DslReturnType SourceNew(const char* source, gboolean live, 
+        DslReturnType SourceCsiNew(const char* source, 
+            guint width, guint height, guint fps_n, guint fps_d);
+        
+        DslReturnType SourceUriNew(const char* source, 
             guint width, guint height, guint fps_n, guint fps_d);
         
         DslReturnType StreamMuxNew(const char* streammux, gboolean live, 

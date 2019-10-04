@@ -164,13 +164,19 @@ namespace DSL
         LOG_INFO("Child bin '" << pChildBintr->m_name <<"' add to '" << m_name <<"'");
     };
     
-    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pBintr)
+    void PipelineBintr::AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr)
     {
         LOG_FUNC();
         
-        m_pSourcesBintr->AddChild(pBintr);
+        m_pSourcesBintr->AddChild(pCsiSourceBintr);
     }
 
+    void PipelineBintr::AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr)
+    {
+        LOG_FUNC();
+        
+        m_pSourcesBintr->AddChild(pUriSourceBintr);
+    }
 
     void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
     {

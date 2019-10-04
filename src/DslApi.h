@@ -114,9 +114,19 @@ THE SOFTWARE.
 
 
 /**
- * @brief creates a new, uniquely named Source obj
+ * @brief creates a new, uniquely named CSI Camera Source obj
  * @param source unique name for the new Source
- * @param type value of DSL_SOURCE_TYPE
+ * @param width width of the source in pixels
+ * @param height height of the source in pixels
+ * @param fps-n
+ * @param fps-d
+ * @return DSL_RESULT_SOURCE_RESULT
+ */
+DslReturnType dsl_source_csi_new(const char* source,
+    guint width, guint height, guint fps_n, guint fps_d);
+
+/**
+ * @brief creates a new, uniquely named URI Source obj
  * @param live specifies if source is live [DSL_TRUE | DSL_FLASE]
  * @param width width of the source in pixels
  * @param height height of the source in pixels
@@ -124,7 +134,7 @@ THE SOFTWARE.
  * @param fps-d
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_new(const char* source, gboolean live, 
+DslReturnType dsl_source_uri_new(const char* source,
     guint width, guint height, guint fps_n, guint fps_d);
 
 /**

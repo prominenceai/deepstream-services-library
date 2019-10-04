@@ -82,17 +82,17 @@ namespace DSL
 
 
     /**
-     * @class SourceBintr
+     * @class CsiSourceBintr
      * @brief 
      */
-    class SourceBintr : public Bintr
+    class CsiSourceBintr : public Bintr
     {
     public: 
     
-        SourceBintr(const char* source, gboolean live, 
-            guint width, guint height, guint fps_n, guint fps_d);
+        CsiSourceBintr(const char* source, guint width, guint height, 
+            guint fps_n, guint fps_d);
 
-        ~SourceBintr();
+        ~CsiSourceBintr();
         
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
 
@@ -147,6 +147,86 @@ namespace DSL
          @brief
          */
         GstElement * m_pCapsFilter;
+    };
+}
+
+    /**
+     * @class UriSourceBintr
+     * @brief 
+     */
+    class UriSourceBintr : public Bintr
+    {
+    public: 
+    
+        UriSourceBintr(const char* source, guint width, guint height, 
+            guint fps_n, guint fps_d);
+
+        ~UriSourceBintr();
+        
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
+    private:
+
+        /**
+         @brief
+         */
+        std::string m_uri; 
+    
+        /**
+         @brief
+         */
+        gboolean m_isLive;
+
+        /**
+         @brief
+         */
+        guint m_width;
+
+        /**
+         @brief
+         */
+        guint m_height;
+
+        /**
+         @brief
+         */
+        guint m_fps_n;
+
+        /**
+         @brief
+         */
+        guint m_fps_d;
+
+        /**
+         @brief
+         */
+        guint m_latency;
+
+        /**
+         @brief
+         */
+        guint m_numDecodeSurfaces;
+
+        /**
+         @brief
+         */
+        guint m_numExtraSurfaces;
+
+        /**
+         @brief
+         */
+        GstElement* m_pSourceElement;
+        
+        /**
+         @brief
+         */
+        GstElement* m_pCapsFilter;
+        
+        /**
+         @brief
+         */
+        GstElement* m_pTee;
+        
     };
 }
 

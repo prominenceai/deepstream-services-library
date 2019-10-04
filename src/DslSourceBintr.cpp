@@ -95,7 +95,9 @@ namespace DSL
         if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
         {
             LOG_ERROR("Failed to add Source Pad for '" << m_name);
+            throw;
         }
+        LOG_INFO("Source ghost pad added to Sources' Stream Muxer"); 
     }
 
     void SourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
@@ -124,13 +126,14 @@ namespace DSL
             g_object_set(G_OBJECT(m_pStreamMux), "width", m_streamMuxWidth, NULL);
             g_object_set(G_OBJECT(m_pStreamMux), "height", m_streamMuxHeight, NULL);
         }
+        LOG_INFO("Sources' Stream Muxer properties updated"); 
     }
 
     
-    SourceBintr::SourceBintr(const char* source, gboolean live, 
+    CsiSourceBintr::CsiSourceBintr(const char* source, 
         guint width, guint height, guint fps_n, guint fps_d)
         : Bintr(source)
-        , m_isLive(live)
+        , m_isLive(TRUE)
         , m_width(width)
         , m_height(height)
         , m_fps_n(fps_n)
@@ -170,21 +173,111 @@ namespace DSL
         
         // Src Ghost Pad only
         AddSourceGhostPad();
-//        AddGhostPads();
     }
 
-    SourceBintr::~SourceBintr()
+    CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
 
     }
 
-    void SourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    void CsiSourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' Source to the Parent Pipeline 
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
-            AddSourceBintr(shared_from_this());
+            AddCsiSourceBintr(shared_from_this());
     }
+
+    UriSourceBintr::UriSourceBintr(const char* source, const char* uri,
+        guint width, guint height, guint fps_n, guint fps_d)
+        : Bintr(source)
+        , m_isLive(TRUE)
+        , m_width(width)
+        , m_height(height)
+        , m_fps_n(fps_n)
+        , m_fps_d(fps_d)
+        , m_latency(100)
+        , m_numDecodeSurfaces(N_DECODE_SURFACES)
+        , m_numExtraSurfaces(N_EXTRA_SURFACES)
+        , m_pSourceElement(NULL)
+        , m_pCapsFilter(NULL)
+    {
+        LOG_FUNC();
+        
+        m_uri = uri;
+              
+        // Create Source Element and Caps filter - Order is specific
+        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_URI, "src_elem", LINK_TRUE);
+
+        g_object_set(G_OBJECT(m_pSourceElement), "uri", config->uri, NULL);
+        g_signal_connect(G_OBJECT(m_pSourceElement), "pad-added", 
+            G_CALLBACK(cb_newpad), bin);
+        g_signal_connect(G_OBJECT(m_pSourceElement), "child-added", 
+            G_CALLBACK(decodebin_child_added), bin);
+        g_signal_connect (G_OBJECT (bin->src_elem), "source-setup",
+            G_CALLBACK(cb_sourcesetup), bin);
+        
+        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
+
+        g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
+
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << source << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+
+        gst_caps_set_features(pCaps, 0, feature);
+        g_object_set(G_OBJECT(m_pCapsFilter), "caps", pCaps, NULL);
+        
+        gst_caps_unref(pCaps);        
+        
+        // Src Ghost Pad only
+        AddSourceGhostPad();
+    }
+
+    UriSourceBintr::~UriSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    void UriSourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Source to the Parent Pipeline 
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+            AddUriSourceBintr(shared_from_this());
+    }
+    
+    static void newpad(GstElement* pBin, GstPad* pPad, gpointer pSource)
+    {
+        LOG_FUNC();
+        
+        std:shared_ptr<UriSourceBintr> pUriSourceBintr = 
+            std::dynamic_pointer_cast<UriSourceBintr>(pSource);
+        
+        // get Sink pad for first child element in the ordered list
+        StaticPadtr sinkPadtr(pUriSourceBintr->m_pTee, "sink");
+        
+        if (gst_pad_link(pPad, sinkPadtr->m_pPad) != GST_PAD_LINK_OK) 
+        {
+            LOG_ERROR("Failed to link decodebin to pipeline");
+        }
+        else
+        {
+            LOG_INFO("Decodebin linked to pipeline");
+        }
+    }
+    
 }
