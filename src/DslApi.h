@@ -112,14 +112,18 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001001
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
 
+#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
+#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
+#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
- * @param source unique name for the new Source
- * @param width width of the source in pixels
- * @param height height of the source in pixels
- * @param fps-n
- * @param fps-d
+ * @param[in] source unique name for the new Source
+ * @param[in] width width of the source in pixels
+ * @param[in] height height of the source in pixels
+ * @param[in] fps-n frames/second fraction numerator
+ * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SOURCE_RESULT
  */
 DslReturnType dsl_source_csi_new(const char* source,
@@ -127,25 +131,27 @@ DslReturnType dsl_source_csi_new(const char* source,
 
 /**
  * @brief creates a new, uniquely named URI Source obj
- * @param live specifies if source is live [DSL_TRUE | DSL_FLASE]
- * @param width width of the source in pixels
- * @param height height of the source in pixels
- * @param fps-n
- * @param fps-d
+ * @param[in] uri Unique Resource Identifier (file or live)
+ * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
+ * @param[in] width width of the source in pixels
+ * @param[in] height height of the source in pixels
+ * @param[in] fps-n frames/second fraction numerator
+ * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_uri_new(const char* source,
+DslReturnType dsl_source_uri_new(const char* source, 
+    const char* uri, guint cudadec_mem_type, guint intra_decode,
     guint width, guint height, guint fps_n, guint fps_d);
 
 /**
  * @brief creates a new, uniquely named Sink obj
- * @param sink unique name for the new Sink
- * @param displayId
- * @param overlatId
- * @param offsetX
- * @param offsetY
- * @param width width of the Sink
- * @param heigth height of the Sink
+ * @param[in] sink unique name for the new Sink
+ * @param[in] displayId
+ * @param[in] overlatId
+ * @param[in] offsetX
+ * @param[in] offsetY
+ * @param[in] width width of the Sink
+ * @param[in] heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_new(const char* sink, guint displayId, 
@@ -153,22 +159,22 @@ DslReturnType dsl_sink_new(const char* sink, guint displayId,
 
 /**
  * @brief creates a new, uniquely named OSD obj
- * @param osd unique name for the new Sink
- * @param isClockEnabled true if clock is visible
+ * @param[in] osd unique name for the new Sink
+ * @param[in] isClockEnabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
- * @param gie unique name for the new GIE object
- * @param inferConfigFile name of the Infer Config file to use
- * @param batchSize
- * @param interval
- * @param uniqueId
- * @param gpuId
- * @param modelEngineFile name of the Model Engine file to use
- * @param rawOutputDir
+ * @param[in] gie unique name for the new GIE object
+ * @param[in] inferConfigFile name of the Infer Config file to use
+ * @param[in] batchSize
+ * @param[in] interval
+ * @param[in] uniqueId
+ * @param[in] gpuId
+ * @param[in] modelEngineFile name of the Model Engine file to use
+ * @param[in] rawOutputDir
  * @return DSL_RESULT_GIE_RESULT
  */
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
@@ -177,11 +183,11 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
 
 /**
  * @brief creates a new, uniquely named Display obj
- * @param display unique name for the new Display
- * @param rows number of horizotal display rows
- * @param columns number of vertical display columns
- * @param width width of each column in pixals
- * @param height height of each row in pix  als
+ * @param[in] display unique name for the new Display
+ * @param[in] rows number of horizotal display rows
+ * @param[in] columns number of vertical display columns
+ * @param[in] width width of each column in pixals
+ * @param[in] height height of each row in pix  als
  * @return DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_display_new(const char* display, 
@@ -189,7 +195,7 @@ DslReturnType dsl_display_new(const char* display,
 
 /**
  * @brief deletes a Component object by name
- * @param name of the Component object to delete
+ * @param[in] name of the Component object to delete
  * @return DSL_RESULT_COMPONENT_RESULT
  */
 DslReturnType dsl_component_delete(const char* component);
@@ -205,7 +211,7 @@ DslReturnType dsl_pipeline_new(const char* pipeline);
 /**
  * @brief deletes a Pipeline object by name.
  * Does NOT delete the Pipeline object used to create the pipeline
- * @param pipeline unique name of the Pipeline to delete.
+ * @param[in] pipeline unique name of the Pipeline to delete.
  * @return DSL_RESULT_PIPELINE_RESULT.
  */
 DslReturnType dsl_pipeline_delete(const char* pipeline);
@@ -238,21 +244,21 @@ DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
 
 /**
  * @brief pauses a Pipeline if in a state of playing
- * @param pipeline unique name of the Pipeline to pause.
+ * @param[in] pipeline unique name of the Pipeline to pause.
  * @return DSL_RESULT.
  */
 DslReturnType dsl_pipeline_pause(const char* pipeline);
 
 /**
  * @brief plays a Pipeline if in a state of paused
- * @param pipeline unique name of the Pipeline to play.
+ * @param[in] pipeline unique name of the Pipeline to play.
  * @return DSL_RESULT_PIPELINE_RESULT.
  */
 DslReturnType dsl_pipeline_play(const char* pipeline);
 
 /**
  * @brief gets the current state of a Pipeline
- * @param pipeline unique name of the Pipeline to query
+ * @param[in] pipeline unique name of the Pipeline to query
  * @return DSL_RESULT_PIPELINE_PAUSED | DSL_RESULT_PIPELINE_PLAYING
  */
 DslReturnType dsl_pipeline_get_state(const char* pipeline);

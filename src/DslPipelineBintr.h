@@ -99,10 +99,16 @@ namespace DSL
         bool Play();
         
         /**
-         * @brief adds a single Source Bintr to this Pipeline 
-         * @param[in] pSourceBintr shared pointer to Source Bintr to add
+         * @brief adds a single CSI Source Bintr to this Pipeline 
+         * @param[in] pCsiSourceBintr shared pointer to Source Bintr to add
          */
-        void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
+        void AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr);
+
+        /**
+         * @brief adds a single URI Source Bintr to this Pipeline 
+         * @param[in] pUriSourceBintr shared pointer to Source Bintr to add
+         */
+        void AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr);
 
         /**
          * @brief adds a single Sink Bintr to this Pipeline 

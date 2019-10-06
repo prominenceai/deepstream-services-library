@@ -43,7 +43,7 @@ namespace DSL
         
         void AddSourceGhostPad();
         
-        void SetStreamMuxProperties(gboolean m_areSourcesLive, guint batchSize, guint batchTimeout, 
+        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height);
 
     private:
@@ -80,12 +80,84 @@ namespace DSL
         gboolean m_enablePadding;
     };
 
+    /**
+     * @class SourceBintr
+     * @brief Implements a base Source Bintr for all derived Source types.
+     * CSI, V4L2, URI, and RTSP
+     */
+    class SourceBintr : public Bintr
+    {
+    public: 
+    
+        SourceBintr(const char* source, guint width, guint height, 
+            guint fps_n, guint fps_d);
+
+        ~SourceBintr();
+        
+        /**
+         * @brief unique stream source identifier managed by the 
+         * parent pipeline from Source add until removed
+         */
+        guint m_sourceId;
+
+    public:
+            
+        /**
+         * @brief
+         */
+        gboolean m_isLive;
+
+        /**
+         * @brief
+         */
+        guint m_width;
+
+        /**
+         * @brief
+         */
+        guint m_height;
+
+        /**
+         * @brief
+         */
+        guint m_fps_n;
+
+        /**
+         * @brief
+         */
+        guint m_fps_d;
+
+        /**
+         * @brief
+         */
+        guint m_latency;
+
+        /**
+         * @brief
+         */
+        guint m_numDecodeSurfaces;
+
+        /**
+         * @brief
+         */
+        guint m_numExtraSurfaces;
+
+        /**
+         * @brief
+         */
+        GstElement * m_pSourceElement;
+        
+        /**
+         * @brief
+         */
+        GstElement * m_pCapsFilter;
+    };
 
     /**
      * @class CsiSourceBintr
      * @brief 
      */
-    class CsiSourceBintr : public Bintr
+    class CsiSourceBintr : public SourceBintr
     {
     public: 
     
@@ -98,136 +170,106 @@ namespace DSL
 
     private:
     
-        /**
-         @brief
-         */
-        gboolean m_isLive;
-
-        /**
-         @brief
-         */
-        guint m_width;
-
-        /**
-         @brief
-         */
-        guint m_height;
-
-        /**
-         @brief
-         */
-        guint m_fps_n;
-
-        /**
-         @brief
-         */
-        guint m_fps_d;
-
-        /**
-         @brief
-         */
-        guint m_latency;
-
-        /**
-         @brief
-         */
-        guint m_numDecodeSurfaces;
-
-        /**
-         @brief
-         */
-        guint m_numExtraSurfaces;
-
-        /**
-         @brief
-         */
-        GstElement * m_pSourceElement;
-        
-        /**
-         @brief
-         */
-        GstElement * m_pCapsFilter;
     };
-}
+
 
     /**
      * @class UriSourceBintr
      * @brief 
      */
-    class UriSourceBintr : public Bintr
+    class UriSourceBintr : public SourceBintr
     {
     public: 
     
-        UriSourceBintr(const char* source, guint width, guint height, 
-            guint fps_n, guint fps_d);
+        UriSourceBintr(const char* source, const char* uri, 
+            guint cudadecMemType, guint intraDecode,
+            guint width, guint height, guint fps_n, guint fps_d);
 
         ~UriSourceBintr();
         
+        /**
+         * @brief 
+         * @param pParentBintr
+         */
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-
+        
+        /**
+         * @brief 
+         * @param pBin
+         * @param pPad
+         */
+        void HandleOnPadAdded(GstElement* pBin, GstPad* pPad);
+        
+        /**
+         * @brief 
+         * @param pChildProxy
+         * @param pObject
+         * @param name
+         */
+        void HandleOnChildAdded(GstChildProxy* pChildProxy, 
+            GObject* pObject, gchar* name);
+        
+        /**
+         * @brief 
+         * @param pObject
+         * @param arg0
+         */
+        void HandleOnSourceSetup(GstElement* pObject, GstElement* arg0);
+        
     private:
 
         /**
          @brief
          */
-        std::string m_uri; 
-    
-        /**
-         @brief
-         */
-        gboolean m_isLive;
-
-        /**
-         @brief
-         */
-        guint m_width;
-
-        /**
-         @brief
-         */
-        guint m_height;
-
-        /**
-         @brief
-         */
-        guint m_fps_n;
-
-        /**
-         @brief
-         */
-        guint m_fps_d;
-
-        /**
-         @brief
-         */
-        guint m_latency;
-
-        /**
-         @brief
-         */
-        guint m_numDecodeSurfaces;
-
-        /**
-         @brief
-         */
-        guint m_numExtraSurfaces;
-
-        /**
-         @brief
-         */
-        GstElement* m_pSourceElement;
+        std::string m_uriString; 
         
         /**
          @brief
          */
-        GstElement* m_pCapsFilter;
+        guint m_cudadecMemtype;
+        
+        /**
+         @brief
+         */
+        guint m_intraDecode;
+        
+        /**
+         @brief
+         */
+        guint m_dropFrameInterval;
         
         /**
          @brief
          */
         GstElement* m_pTee;
-        
     };
+
+    /**
+     * @brief 
+     * @param[in] pBin
+     * @param[in] pPad
+     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     */
+    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param[in] pChildProxy
+     * @param[in] pObject
+     * @param[in] name
+     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     */
+    static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
+        gchar* name, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param[in] pObject
+     * @param[in] arg0
+     * @param[in] pSource
+     */
+    static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
+
 }
 
 #endif // _DSL_SOURCE_BINTR_H

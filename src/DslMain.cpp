@@ -73,25 +73,36 @@ int main(int argc, char **argv)
     // initialize the GStreamer library
     gst_init(&argc, &argv);
     
-    // Install the custom Program Interrup Signal ISR
+    // Install the custom Program Interrupt Signal ISR
     PrgItrSigIsrInstall();    
     
-    if (dsl_source_new(
-        "source1",          // name for new Source 
-        TRUE,               // live?
-        1280, 720,          // width and height in pixels
-        30, 1)              // fps-n and fps-d
+    if (dsl_source_csi_new(
+        "csi-source1",              // name for new Source 
+        1280, 720,                  // width and height in pixels
+        30, 1)                      // fps-numerator and fps-denominator
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+    
+    if (dsl_source_uri_new(
+        "uri-source1",              // name for new Source 
+        "sample_1080p_h264.mp4",    // URI source file - using default stream director
+        DSL_CUDADEC_MEMTYPE_DEVICE, // Cudadec memory type to use
+        0,                          // Intra
+        1280, 720,                  // width and height in pixels
+        30, 1)                      // fps-numerator and fps-denominator
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
     
     if (dsl_sink_new(
-        "sink1",            // name for new Sink
-        0,                  // display Id
-        1,                  // overlay Id
-        0, 0,               // X and Y offsets
-        0, 0)               // width and height in pixels
+        "sink1",                    // name for new Sink
+        0,                          // display Id
+        1,                          // overlay Id
+        0, 0,                       // X and Y offsets
+        0, 0)                       // width and height in pixels
         != DSL_RESULT_SUCCESS)
     {
         return EXIT_FAILURE;

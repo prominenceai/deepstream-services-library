@@ -383,13 +383,13 @@ namespace DSL
     static gboolean bus_watch(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<PipelineBintr *>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineBintr*>(pData)->HandleBusWatchMessage(pMessage);
     }    
     
     static GstBusSyncReply bus_sync_handler(
         GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<PipelineBintr *>(pData)->HandleBusSyncMessage(pMessage);
+        return static_cast<PipelineBintr*>(pData)->HandleBusSyncMessage(pMessage);
     }
     
 

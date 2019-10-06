@@ -55,6 +55,7 @@ namespace DSL {
             guint width, guint height, guint fps_n, guint fps_d);
         
         DslReturnType SourceUriNew(const char* source, 
+            const char* uri, guint cudadecMemType, guint intraDecode,
             guint width, guint height, guint fps_n, guint fps_d);
         
         DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
@@ -122,9 +123,9 @@ namespace DSL {
         static Services* m_pInstatnce;
         
         /**
-         * @brief mutex to prevent driver reentry
+         * @brief mutex to prevent Services reentry
         */
-        GMutex m_driverMutex;
+        GMutex m_servicesMutex;
 
         /**
          * @brief mutex for all display critical code
@@ -151,6 +152,8 @@ namespace DSL {
         static std::string m_configFileDir;
         
         static std::string m_modelFileDir;
+        
+        static std::string m_streamFileDir;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

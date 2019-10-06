@@ -25,11 +25,19 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-DslReturnType dsl_source_new(const char* source, gboolean live, 
+DslReturnType dsl_source_csi_new(const char* source, 
     guint width, guint height, guint fps_n, guint fps_d)
 {
-    return DSL::Services::GetServices()->SourceNew(source, live, 
+    return DSL::Services::GetServices()->SourceCsiNew(source, 
         width, height, fps_n, fps_d);
+}
+
+DslReturnType dsl_source_uri_new(const char* source, 
+    const char* uri, guint cudadec_mem_type, guint intra_decode,
+    guint width, guint height, guint fps_n, guint fps_d)
+{
+    return DSL::Services::GetServices()->SourceUriNew(source,
+        uri, cudadec_mem_type, intra_decode, width, height, fps_n, fps_d);
 }
 
 DslReturnType dsl_sink_new(const char* sink, guint displayId, 
@@ -117,7 +125,8 @@ namespace DSL
     Services* Services::m_pInstatnce = NULL;
 
     std::string Services::m_configFileDir = DS_CONFIG_DIR;
-    std::string Services::m_modelFileDir = DS_MODEL_DIR;
+    std::string Services::m_modelFileDir = DS_MODELS_DIR;
+    std::string Services::m_streamFileDir = DS_STREAMS_DIR;
     
     Services* Services::GetServices()
     {
@@ -139,7 +148,7 @@ namespace DSL
         LOG_FUNC();
         
         // Initialize all 
-        g_mutex_init(&m_driverMutex);
+        g_mutex_init(&m_servicesMutex);
         g_mutex_init(&m_displayMutex);
 
         // Add the event thread
@@ -156,7 +165,7 @@ namespace DSL
         LOG_FUNC();
         
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
             
             if (m_pMainLoop)
             {
@@ -166,14 +175,14 @@ namespace DSL
         }
         
         g_mutex_clear(&m_displayMutex);
-        g_mutex_clear(&m_driverMutex);
+        g_mutex_clear(&m_servicesMutex);
     }
 
-    DslReturnType Services::SourceNew(const char* source, gboolean live, 
+    DslReturnType Services::SourceCsiNew(const char* source,
         guint width, guint height, guint fps_n, guint fps_d)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
         if (m_components[source])
@@ -183,24 +192,52 @@ namespace DSL
         }
         try
         {
-            m_components[source] = std::shared_ptr<SourceBintr>(new SourceBintr(
-                source, live, width, height, fps_n, fps_d));
+//            m_components[source] = std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(
+//                source, width, height, fps_n, fps_d));
         }
         catch(...)
         {
-            LOG_ERROR("New Source '" << source << "' threw exception on create");
+            LOG_ERROR("New CSI Source '" << source << "' threw exception on create");
             return DSL_RESULT_SOURCE_NEW_EXCEPTION;
         }
-        LOG_INFO("new source '" << source << "' created successfully");
+        LOG_INFO("new CSI Source '" << source << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
-                
+    
+    DslReturnType Services::SourceUriNew(const char* source,
+        const char* uri, guint cudadecMemType, guint intraDecode,
+        guint width, guint height, guint fps_n, guint fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[source])
+        {   
+            LOG_ERROR("Source name '" << source << "' is not unique");
+            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+//            m_components[source] = std::shared_ptr<UriSourceBintr>(new UriSourceBintr(
+//                source, uri, cudadecMemType, intraDecode, width, height, fps_n, fps_d));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New URI Source '" << source << "' threw exception on create");
+            return DSL_RESULT_SOURCE_NEW_EXCEPTION;
+        }
+        LOG_INFO("new URI Source '" << source << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::SinkNew(const char* sink, guint displayId, guint overlayId,
         guint offsetX, guint offsetY, guint width, guint height)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
         if (m_components[sink])
@@ -226,7 +263,7 @@ namespace DSL
     DslReturnType Services::OsdNew(const char* osd, gboolean isClockEnabled)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
         if (m_components[osd])
@@ -253,7 +290,7 @@ namespace DSL
         guint rows, guint columns, guint width, guint height)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
         if (m_components[display])
@@ -282,7 +319,7 @@ namespace DSL
         const char* modelEngineFile, const char* rawOutputDir)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
         if (m_components[gie])
@@ -334,7 +371,7 @@ namespace DSL
     DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         if (!m_components[component])
         {   
@@ -351,7 +388,7 @@ namespace DSL
     DslReturnType Services::PipelineNew(const char* pipeline)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         if (m_pipelines[pipeline])
         {   
@@ -375,7 +412,7 @@ namespace DSL
     DslReturnType Services::PipelineDelete(const char* pipeline)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         if (!m_pipelines[pipeline])
         {   
@@ -394,7 +431,7 @@ namespace DSL
         const char** components)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         if (!m_pipelines[pipeline])
         {   
@@ -446,7 +483,7 @@ namespace DSL
         const char** components)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -476,7 +513,7 @@ namespace DSL
     DslReturnType Services::PipelinePause(const char* pipeline)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -484,7 +521,7 @@ namespace DSL
     DslReturnType Services::PipelinePlay(const char* pipeline)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // flush the output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
@@ -507,14 +544,14 @@ namespace DSL
     DslReturnType Services::PipelineGetState(const char* pipeline)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
         
     bool Services::HandleXWindowEvents()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_driverMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         XEvent xEvent;
 

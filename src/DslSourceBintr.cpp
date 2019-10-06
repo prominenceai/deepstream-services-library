@@ -58,7 +58,11 @@ namespace DSL
             std::dynamic_pointer_cast<Bintr>(shared_from_this());
 
         m_pChildBintrs.push_back(pChildBintr);
-                        
+
+        // set the source ID based on the new count of sources
+        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
+            m_sourceId = m_pChildBintrs.size();
+                                
         if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
         {
             LOG_ERROR("Failed to add '" << pChildBintr->m_name 
@@ -68,13 +72,13 @@ namespace DSL
 
         // Get the static source pad - from the Source component
         // being added - to link to Streammux element
-        StaticPadtr SourcePadtr(pChildBintr->m_pBin, "src");
+        StaticPadtr sourcePadtr(pChildBintr->m_pBin, "src");
         
         // Retrieve the sink pad - from the Streammux element - 
         // to link to the Source component being added
-        RequestPadtr SinkPadtr(m_pStreamMux, "sink_0");
+        RequestPadtr sinkPadtr(m_pStreamMux, "sink_0");
      
-        if (gst_pad_link(SourcePadtr.m_pPad, SinkPadtr.m_pPad) != GST_PAD_LINK_OK)
+        if (gst_pad_link(sourcePadtr.m_pPad, sinkPadtr.m_pPad) != GST_PAD_LINK_OK)
         {
             LOG_ERROR("Failed to link '" << pChildBintr->m_name 
                 << "' to Stream Muxer" << m_name << "'");
@@ -89,10 +93,10 @@ namespace DSL
         LOG_FUNC();
         
         // get Source pad for Stream Muxer element
-        StaticPadtr SourcePadtr(m_pStreamMux, "src");
+        StaticPadtr sourcePadtr(m_pStreamMux, "src");
 
         // create a new ghost pad with Source pad and add to this Bintr's bin
-        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
+        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", sourcePadtr.m_pPad)))
         {
             LOG_ERROR("Failed to add Source Pad for '" << m_name);
             throw;
@@ -129,10 +133,10 @@ namespace DSL
         LOG_INFO("Sources' Stream Muxer properties updated"); 
     }
 
-    
-    CsiSourceBintr::CsiSourceBintr(const char* source, 
-        guint width, guint height, guint fps_n, guint fps_d)
+    SourceBintr::SourceBintr(const char* source, guint width, guint height, 
+        guint fps_n, guint fps_d)
         : Bintr(source)
+        , m_sourceId((guint)-1)
         , m_isLive(TRUE)
         , m_width(width)
         , m_height(height)
@@ -145,10 +149,23 @@ namespace DSL
         , m_pCapsFilter(NULL)
     {
         LOG_FUNC();
-              
+        
         // Create Source Element and Caps filter - Order is specific
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", LINK_TRUE);
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
+    }
+
+    SourceBintr::~SourceBintr()
+    {
+        LOG_FUNC();
+
+    }
+
+    CsiSourceBintr::CsiSourceBintr(const char* source, 
+        guint width, guint height, guint fps_n, guint fps_d)
+        : SourceBintr(source, width, height, fps_n, fps_d)
+    {
+        LOG_FUNC();
 
         g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
@@ -191,36 +208,33 @@ namespace DSL
     }
 
     UriSourceBintr::UriSourceBintr(const char* source, const char* uri,
+        guint cudadecMemType, guint intraDecode,
         guint width, guint height, guint fps_n, guint fps_d)
-        : Bintr(source)
-        , m_isLive(TRUE)
-        , m_width(width)
-        , m_height(height)
-        , m_fps_n(fps_n)
-        , m_fps_d(fps_d)
-        , m_latency(100)
-        , m_numDecodeSurfaces(N_DECODE_SURFACES)
-        , m_numExtraSurfaces(N_EXTRA_SURFACES)
-        , m_pSourceElement(NULL)
-        , m_pCapsFilter(NULL)
+        : SourceBintr(source, width, height, fps_n, fps_d)
+        , m_uriString(uri)
+        , m_cudadecMemtype(cudadecMemType)
+        , m_intraDecode(intraDecode)
+        , m_pTee(NULL)
     {
         LOG_FUNC();
         
-        m_uri = uri;
+        m_uriString = uri;
               
         // Create Source Element and Caps filter - Order is specific
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_URI, "src_elem", LINK_TRUE);
-
-        g_object_set(G_OBJECT(m_pSourceElement), "uri", config->uri, NULL);
-        g_signal_connect(G_OBJECT(m_pSourceElement), "pad-added", 
-            G_CALLBACK(cb_newpad), bin);
-        g_signal_connect(G_OBJECT(m_pSourceElement), "child-added", 
-            G_CALLBACK(decodebin_child_added), bin);
-        g_signal_connect (G_OBJECT (bin->src_elem), "source-setup",
-            G_CALLBACK(cb_sourcesetup), bin);
-        
         m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
 
+        g_object_set(G_OBJECT(m_pSourceElement), "uri", (gchar*)uri, NULL);
+
+        g_signal_connect(G_OBJECT(m_pSourceElement), "pad-added", 
+            G_CALLBACK(OnPadAddedCB), m_pBin);
+            
+        g_signal_connect(G_OBJECT(m_pSourceElement), "child-added", 
+            G_CALLBACK(OnChildAddedCB), m_pBin);
+            
+        g_signal_connect(G_OBJECT(m_pSourceElement), "source-setup",
+            G_CALLBACK(OnSourceSetupCB), m_pBin);
+        
         g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
@@ -259,18 +273,13 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
             AddUriSourceBintr(shared_from_this());
     }
-    
-    static void newpad(GstElement* pBin, GstPad* pPad, gpointer pSource)
+
+    void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)
     {
-        LOG_FUNC();
-        
-        std:shared_ptr<UriSourceBintr> pUriSourceBintr = 
-            std::dynamic_pointer_cast<UriSourceBintr>(pSource);
-        
         // get Sink pad for first child element in the ordered list
-        StaticPadtr sinkPadtr(pUriSourceBintr->m_pTee, "sink");
+        StaticPadtr sinkPadtr(m_pTee, "sink");
         
-        if (gst_pad_link(pPad, sinkPadtr->m_pPad) != GST_PAD_LINK_OK) 
+        if (gst_pad_link(pPad, sinkPadtr.m_pPad) != GST_PAD_LINK_OK) 
         {
             LOG_ERROR("Failed to link decodebin to pipeline");
         }
@@ -279,5 +288,93 @@ namespace DSL
             LOG_INFO("Decodebin linked to pipeline");
         }
     }
+
+    void UriSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
+        gchar* name)
+    {
+        LOG_FUNC();
+        
+        std::string strName = name;
+
+        LOG_DEBUG("Child object with name '" << strName << "'");
+        
+        if (strName.find("decodebin") != std::string::npos)
+        {
+        }
+
+        else if (strName.find("nvcuvid") != std::string::npos)
+        {
+            g_object_set(pObject, "gpu-id", m_gpuId, NULL);
+            g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
+            g_object_set(pObject, "source-id", m_sourceId, NULL);
+            g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
+            
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "Intra-decode", m_intraDecode, NULL);
+            }
+        }
+
+        else if ((strName.find("omx") != std::string::npos) && m_intraDecode)
+        {
+            g_object_set(pObject, "skip-frames", 2, NULL);
+            g_object_set(pObject, "disable-dvfs", TRUE, NULL);
+        }
+
+        else if (strName.find("nvjpegdec") != std::string::npos)
+        {
+            g_object_set(pObject, "DeepStream", TRUE, NULL);
+        }
+
+        else if ((strName.find("nvv4l2decoder") != std::string::npos) && m_intraDecode)
+        {
+            g_object_set (pObject, "skip-frames", 2, NULL);
+#ifdef __aarch64__
+            g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            g_object_set(pObject, "bufapi-version", TRUE, NULL);
+#else
+            g_object_set(pObject, "gpu-id", pUriSourceBintr->gpuId, NULL);
+            g_object_set(G_OBJECT(pObject), "cudadec-memtype", m_cudadecMemtype, NULL);
+#endif
+            g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
+            g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
+
+            // Seek only if the source is a file.
+//                if (config->loop && g_strstr_len(config->uri, -1, "file:/") == config->uri)
+//                {
+//                  NVGSTDS_ELEM_ADD_PROBE (bin->src_buffer_probe, GST_ELEMENT(pObject),
+//                      "sink", restart_stream_buf_prob,
+//                      (GstPadProbeType) (GST_PAD_PROBE_TYPE_EVENT_BOTH |
+//                          GST_PAD_PROBE_TYPE_EVENT_FLUSH | GST_PAD_PROBE_TYPE_BUFFER),
+//                      bin);
+//                }
+        }
+    }
+
+    void UriSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
+    {
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(arg0), "latency")) 
+        {
+            g_object_set(G_OBJECT(arg0), 
+                "latency", "cb_sourcesetup set %d latency\n", NULL);
+        }
+    }
     
-}
+    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
+    {
+        static_cast<UriSourceBintr*>(pSource)->HandleOnPadAdded(pBin, pPad);
+    }
+    
+    static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
+        gchar* name, gpointer pSource)
+    {
+        static_cast<UriSourceBintr*>(pSource)->HandleOnChildAdded(pChildProxy, pObject, name);
+    }
+    
+    static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, 
+        gpointer pSource)
+    {
+        static_cast<UriSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
+    }
+
+} // SDL namespace
