@@ -43,7 +43,8 @@ namespace DSL
          * @param[in] name of the static pad to retrieve
          */
         StaticPadtr(GstElement* pElement, const char* name)
-        : m_pPad(NULL)
+        : m_name(name)
+        , m_pPad(NULL)
         {
             LOG_FUNC();
             
@@ -69,6 +70,11 @@ namespace DSL
         };
         
         /**
+         * @brief named for request pad
+         */
+        std::string m_name;
+        
+        /**
          * @brief pointer to the contained static pad
          */
         GstPad* m_pPad;
@@ -88,7 +94,8 @@ namespace DSL
          * @param[in] name of the static pad to retrieve
          */
         RequestPadtr(GstElement* pElement, const char* name)
-            : m_pPad(NULL)
+            : m_name(name)
+            , m_pPad(NULL)
             , m_pElement(pElement)
         {
             LOG_FUNC();
@@ -97,6 +104,27 @@ namespace DSL
             if (!m_pPad)
             {
                 LOG_ERROR("Failed to get Request Pad for '" << name <<" '");
+                throw;
+            }
+        };
+
+        /**
+         * @brief ctor for the RequestPadtr class
+         * @param[in] pElement element to retreive the static pad from
+         * @param[in] pPadTemplate
+         * @param[in] name of the static pad to retrieve
+         */
+        RequestPadtr(GstElement* pElement, GstPadTemplate* pPadTemplate, const char* name)
+            : m_name(name)
+            , m_pPad(NULL)
+            , m_pElement(pElement)
+        {
+            LOG_FUNC();
+            
+            m_pPad = gst_element_request_pad(pElement, pPadTemplate, NULL, NULL);
+            if (!m_pPad)
+            {
+                LOG_ERROR("Failed to get Pad for '" << name <<" '");
                 throw;
             }
         };
@@ -113,6 +141,21 @@ namespace DSL
                 gst_element_release_request_pad(m_pElement, m_pPad);
             }
         };
+
+        void LinkTo(StaticPadtr& staticPadtr)
+        {
+            if (gst_pad_link(m_pPad, staticPadtr.m_pPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("Failed to link request pad '" << m_name 
+                    << "' to static pad '" << staticPadtr.m_name << "'");
+                throw;
+            }
+        }
+        
+        /**
+         * @brief named for request pad
+         */
+        std::string m_name;
         
         /**
          * @brief pointer to the contained request pad

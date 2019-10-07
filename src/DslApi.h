@@ -49,6 +49,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
 #define DSL_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
+#define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
 
 /**
  * StreamMux Object Return Values
@@ -133,15 +134,10 @@ DslReturnType dsl_source_csi_new(const char* source,
  * @brief creates a new, uniquely named URI Source obj
  * @param[in] uri Unique Resource Identifier (file or live)
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] width width of the source in pixels
- * @param[in] height height of the source in pixels
- * @param[in] fps-n frames/second fraction numerator
- * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SOURCE_RESULT
  */
 DslReturnType dsl_source_uri_new(const char* source, 
-    const char* uri, guint cudadec_mem_type, guint intra_decode,
-    guint width, guint height, guint fps_n, guint fps_d);
+    const char* uri, guint cudadec_mem_type, guint intra_decode);
 
 /**
  * @brief creates a new, uniquely named Sink obj

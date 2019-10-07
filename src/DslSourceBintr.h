@@ -89,6 +89,8 @@ namespace DSL
     {
     public: 
     
+        SourceBintr(const char* source);
+
         SourceBintr(const char* source, guint width, guint height, 
             guint fps_n, guint fps_d);
 
@@ -146,11 +148,6 @@ namespace DSL
          * @brief
          */
         GstElement * m_pSourceElement;
-        
-        /**
-         * @brief
-         */
-        GstElement * m_pCapsFilter;
     };
 
     /**
@@ -169,7 +166,10 @@ namespace DSL
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
 
     private:
-    
+        /**
+         * @brief
+         */
+        GstElement * m_pCapsFilter;
     };
 
 
@@ -182,8 +182,7 @@ namespace DSL
     public: 
     
         UriSourceBintr(const char* source, const char* uri, 
-            guint cudadecMemType, guint intraDecode,
-            guint width, guint height, guint fps_n, guint fps_d);
+            guint cudadecMemType, guint intraDecode);
 
         ~UriSourceBintr();
         
@@ -219,29 +218,44 @@ namespace DSL
     private:
 
         /**
-         @brief
+         * @brief
          */
         std::string m_uriString; 
         
         /**
-         @brief
+         * @brief
          */
         guint m_cudadecMemtype;
         
         /**
-         @brief
+         * @brief
          */
         guint m_intraDecode;
         
         /**
-         @brief
+         * @brief
          */
         guint m_dropFrameInterval;
-        
+
+        /**
+         * @brief
+         */
+        GstElement* m_pTee;
+
         /**
          @brief
          */
-        GstElement* m_pTee;
+        GstElement* m_pSourceQueue;
+
+        /**
+         * @brief
+         */
+        GstElement* m_pFakeSink;
+
+        /**
+         * @brief
+         */
+        GstElement* m_pFakeSinkQueue;
     };
 
     /**

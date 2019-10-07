@@ -55,8 +55,7 @@ namespace DSL {
             guint width, guint height, guint fps_n, guint fps_d);
         
         DslReturnType SourceUriNew(const char* source, 
-            const char* uri, guint cudadecMemType, guint intraDecode,
-            guint width, guint height, guint fps_n, guint fps_d);
+            const char* uri, guint cudadecMemType, guint intraDecode);
         
         DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
             guint batchSize, guint batchTimeout, guint width, guint height);

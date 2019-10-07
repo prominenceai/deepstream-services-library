@@ -33,11 +33,10 @@ DslReturnType dsl_source_csi_new(const char* source,
 }
 
 DslReturnType dsl_source_uri_new(const char* source, 
-    const char* uri, guint cudadec_mem_type, guint intra_decode,
-    guint width, guint height, guint fps_n, guint fps_d)
+    const char* uri, guint cudadec_mem_type, guint intra_decode)
 {
     return DSL::Services::GetServices()->SourceUriNew(source,
-        uri, cudadec_mem_type, intra_decode, width, height, fps_n, fps_d);
+        uri, cudadec_mem_type, intra_decode);
 }
 
 DslReturnType dsl_sink_new(const char* sink, guint displayId, 
@@ -206,8 +205,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceUriNew(const char* source,
-        const char* uri, guint cudadecMemType, guint intraDecode,
-        guint width, guint height, guint fps_n, guint fps_d)
+        const char* uri, guint cudadecMemType, guint intraDecode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -218,10 +216,23 @@ namespace DSL
             LOG_ERROR("Source name '" << source << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
+
+        std::string streamFilePathSpec = m_streamFileDir;
+        streamFilePathSpec.append("/");
+        streamFilePathSpec.append(uri);
+        
+        std::ifstream streamFile(streamFilePathSpec.c_str());
+        if (!streamFile.good())
+        {
+            LOG_ERROR("URI stream file not found");
+            return DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND;
+        }
+        streamFilePathSpec.insert(0,"file:");
+        LOG_INFO("URI stream file: " << streamFilePathSpec);
         try
         {
-//            m_components[source] = std::shared_ptr<UriSourceBintr>(new UriSourceBintr(
-//                source, uri, cudadecMemType, intraDecode, width, height, fps_n, fps_d));
+            m_components[source] = std::shared_ptr<UriSourceBintr>(new UriSourceBintr(
+                source, streamFilePathSpec.c_str(), cudadecMemType, intraDecode));
         }
         catch(...)
         {
