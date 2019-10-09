@@ -51,6 +51,8 @@ namespace DSL {
          */
         static Services* GetServices();
         
+        DslReturnType SetDumpDotDir(const char* dir);
+        
         DslReturnType SourceCsiNew(const char* source, 
             guint width, guint height, guint fps_n, guint fps_d);
         

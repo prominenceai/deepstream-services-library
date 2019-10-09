@@ -216,8 +216,8 @@ namespace DSL
 //        m_pProcessBintr->AddSinkGhostPad();
         
         // Link together all components 
-//        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
-//        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
+        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
+        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
 //        m_pSourcesBintr->LinkTo(m_pDisplayBintr);
 //        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
 //        m_pDisplayBintr->LinkTo(m_pProcessBintr);
@@ -231,13 +231,12 @@ namespace DSL
         
         if (!m_areComponentsLinked)
         {
-            LOG_WARN("Components for Pipeline '" << m_name << "' were unlinked");
+            LOG_WARN("Components for Pipeline '" << m_name << "' not linked");
             return;
         }
 
         m_areComponentsLinked = false;
     }
-
 
     bool PipelineBintr::Pause()
     {
@@ -259,13 +258,19 @@ namespace DSL
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
-        LOG_FUNC();
+//        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
-        
-        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
         
         switch (GST_MESSAGE_TYPE(pMessage))
         {
+        case GST_MESSAGE_ELEMENT:
+        case GST_MESSAGE_STREAM_STATUS:
+        case GST_MESSAGE_DURATION_CHANGED:
+        case GST_MESSAGE_QOS:
+        case GST_MESSAGE_NEW_CLOCK:
+        case GST_MESSAGE_ASYNC_DONE:
+            LOG_INFO("Message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
+            return true;
         case GST_MESSAGE_INFO:
             return true;
         case GST_MESSAGE_WARNING:
@@ -274,21 +279,21 @@ namespace DSL
             _handleErrorMessage(pMessage);            
             return true;
         case GST_MESSAGE_STATE_CHANGED:
-            return HandleStateChanged(pMessage);
+            HandleStateChanged(pMessage);
+            return true;
         case GST_MESSAGE_EOS:
             return false;
         default:
-            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
+            LOG_INFO("Unhandled message type:: " << GST_MESSAGE_TYPE(pMessage));
         }
         return true;
     }
 
     GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
-        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
 
-        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
+//        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -302,24 +307,24 @@ namespace DSL
                 structure = gst_message_get_structure(pMessage);
             }
             return GST_BUS_PASS;
-        case GST_MESSAGE_STATE_CHANGED:
-            HandleStateChanged(pMessage);
-            return GST_BUS_PASS;
+//        case GST_MESSAGE_STATE_CHANGED:
+//            HandleStateChanged(pMessage);
+//            return GST_BUS_PASS;
 
         default:
-            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
+            break;
+//            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }
         return GST_BUS_PASS;
     }
     
     bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
-        LOG_FUNC();
+//        LOG_FUNC();
 
         if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pGstPipeline)
         {
-            LOG_ERROR("Message from invalid Source");
-//            return false;
+            return false;
         }
 
         GstState oldstate, newstate;
@@ -328,14 +333,24 @@ namespace DSL
         
         LOG_INFO(m_mapPipelineStates[oldstate] << " => " << m_mapPipelineStates[newstate]);
             
-//        switch(newstate)
-//        {
-//        case GST_STATE_NULL:
-//        case GST_STATE_PLAYING:
-//        case GST_STATE_READY:
-//        case GST_STATE_PAUSED:
-//        default:
-//        }
+        switch(newstate)
+        {
+        case GST_STATE_NULL:
+            break;
+        case GST_STATE_PLAYING:
+            LOG_INFO("saving bin to dot file pipeline-playing");
+            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
+                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-playing");
+            break;
+        case GST_STATE_READY:
+            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
+                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-ready");
+            break;
+        case GST_STATE_PAUSED:
+            break;
+        default:
+            break;
+        }
         return true;
     }
     
@@ -362,6 +377,7 @@ namespace DSL
     void PipelineBintr::_initMaps()
     {
         m_mapMessageTypes[GST_MESSAGE_UNKNOWN] = "GST_MESSAGE_UNKNOWN";
+        m_mapMessageTypes[GST_MESSAGE_ELEMENT] = "GST_MESSAGE_ELEMENT";
         m_mapMessageTypes[GST_MESSAGE_EOS] = "GST_MESSAGE_EOS";
         m_mapMessageTypes[GST_MESSAGE_INFO] = "GST_MESSAGE_INFO";
         m_mapMessageTypes[GST_MESSAGE_WARNING] = "GST_MESSAGE_WARNING";
@@ -373,6 +389,9 @@ namespace DSL
         m_mapMessageTypes[GST_MESSAGE_CLOCK_LOST] = "GST_MESSAGE_CLOCK_LOST";
         m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
         m_mapMessageTypes[GST_MESSAGE_STREAM_STATUS] = "GST_MESSAGE_STREAM_STATUS";
+        m_mapMessageTypes[GST_MESSAGE_DURATION_CHANGED] = "GST_MESSAGE_DURATION_CHANGED";
+        m_mapMessageTypes[GST_MESSAGE_QOS] = "GST_MESSAGE_QOS";
+        m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
 
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
         m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";

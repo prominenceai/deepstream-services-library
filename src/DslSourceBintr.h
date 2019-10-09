@@ -82,7 +82,7 @@ namespace DSL
 
     /**
      * @class SourceBintr
-     * @brief Implements a base Source Bintr for all derived Source types.
+     * @brief Implements a Source Bintr for all derived Source types.
      * CSI, V4L2, URI, and RTSP
      */
     class SourceBintr : public Bintr
@@ -214,6 +214,20 @@ namespace DSL
          * @param arg0
          */
         void HandleOnSourceSetup(GstElement* pObject, GstElement* arg0);
+
+        /**
+         * @brief 
+         * @param pPad
+         * @param pInfo
+         * @return 
+         */
+        GstPadProbeReturn HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo);
+        
+        /**
+         * @brief 
+         * @return 
+         */
+        gboolean HandleStreamBufferSeek();
         
     private:
 
@@ -236,6 +250,21 @@ namespace DSL
          * @brief
          */
         guint m_dropFrameInterval;
+        
+        /**
+         * @brief
+         */
+        guint m_accumulatedBase;
+
+        /**
+         * @brief
+         */
+        guint m_prevAccumulatedBase;
+        
+        /**
+         * @brief
+         */
+        guint m_bufferProbeId;
 
         /**
          * @brief
@@ -284,6 +313,28 @@ namespace DSL
      */
     static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
 
+    /**
+     * Probe function to drop certain events to support custom
+     * logic of looping of each source stream.
+     */
+
+    /**
+     * @brief Probe function to drop certain events to support
+     * custom logic of looping of each URI source (file) stream.
+     * @param pPad
+     * @param pInfo
+     * @param pSource
+     * @return 
+     */
+    static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param pSource
+     * @return 
+     */
+    static gboolean StreamBufferSeekCB(gpointer pSource);
 }
 
 #endif // _DSL_SOURCE_BINTR_H

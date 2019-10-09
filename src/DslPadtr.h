@@ -69,6 +69,13 @@ namespace DSL
             }
         };
         
+        guint AddPad(GstPadProbeType mask, GstPadProbeCallback callback, gpointer pData)
+        {
+            LOG_FUNC();
+            
+            return gst_pad_add_probe(m_pPad, mask, callback, pData, NULL);
+        }
+        
         /**
          * @brief named for request pad
          */

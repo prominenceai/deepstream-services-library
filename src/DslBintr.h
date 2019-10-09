@@ -189,6 +189,7 @@ namespace DSL
             if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", SinkPadtr.m_pPad)))
             {
                 LOG_ERROR("Failed to add Sink Pad for '" << m_name);
+                throw;
             }
         };
         
@@ -215,6 +216,7 @@ namespace DSL
             if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
             {
                 LOG_ERROR("Failed to add Source Pad for '" << m_name);
+                throw;
             }
             
         };

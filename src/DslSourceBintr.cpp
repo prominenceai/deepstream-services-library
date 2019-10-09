@@ -36,6 +36,8 @@ namespace DSL
     {
         LOG_FUNC();
 
+        g_object_set(m_pBin, "message-forward", TRUE, NULL);
+  
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
 
@@ -60,8 +62,8 @@ namespace DSL
         m_pChildBintrs.push_back(pChildBintr);
 
         // set the source ID based on the new count of sources
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_sourceId = m_pChildBintrs.size();
+//        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
+//            m_sourceId = m_pChildBintrs.size();
                                 
         if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
         {
@@ -112,6 +114,7 @@ namespace DSL
         m_batchTimeout = batchTimeout;
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
+        m_enablePadding = FALSE;
         
         g_object_set(G_OBJECT(m_pStreamMux), "gpu-id", m_gpuId, NULL);
         g_object_set(G_OBJECT(m_pStreamMux), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
@@ -165,6 +168,7 @@ namespace DSL
     {
         LOG_FUNC();
     }
+    
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
@@ -227,6 +231,8 @@ namespace DSL
         , m_uriString(uri)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
+        , m_accumulatedBase(0)
+        , m_prevAccumulatedBase(0)
         , m_pSourceQueue(NULL)
         , m_pTee(NULL)
         , m_pFakeSink(NULL)
@@ -240,6 +246,7 @@ namespace DSL
               
         // Create Source Element - without linking at this time.
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_URI, "src_elem", LINK_FALSE);
+        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
         
         g_object_set(G_OBJECT(m_pSourceElement), "uri", (gchar*)uri, NULL);
 
@@ -278,12 +285,12 @@ namespace DSL
         
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
         
-        // request a pad from the Tee element 
+        // get a pad from the Tee element and link to the "source queuue"
         RequestPadtr teeSourcePadtr1(m_pTee, padtemplate, "src");
         StaticPadtr sourceQueueSinkPadtr(m_pSourceQueue, "sink");
         teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
 
-        // request a second pad from the Tee element 
+        // get a second pad from the Tee element and link to the "fake sink queue"
         RequestPadtr teeSourcePadtr2(m_pTee, padtemplate, "src");
         StaticPadtr fakeSinkQueueSinkPadtr(m_pFakeSinkQueue, "sink");
         teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
@@ -302,7 +309,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' Source to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddUriSourceBintr(shared_from_this());
     }
 
@@ -311,9 +318,9 @@ namespace DSL
         LOG_FUNC();
 
         // The "pad-added" callback will be called twice for each URI source,
-        // once for the decoded Audio and once for the Video 
-        // Since we only want to link to the Video source pad, we need to know
-        // which of the two pads/calls this is for.
+        // once each for the decoded Audio and Video streams. Since we only 
+        // want to link to the Video source pad, we need to know which of the
+        // two pads/calls this is for.
         GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
         GstStructure* structure = gst_caps_get_structure(pCaps, 0);
         std::string name = gst_structure_get_name(structure);
@@ -350,6 +357,8 @@ namespace DSL
         
         if (strName.find("decodebin") != std::string::npos)
         {
+            g_signal_connect(G_OBJECT(pObject), "child-added",
+                G_CALLBACK(OnChildAddedCB), this);
         }
 
         else if (strName.find("nvcuvid") != std::string::npos)
@@ -389,26 +398,91 @@ namespace DSL
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
             g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
 
-            // Seek only if the source is a file.
-//                if (config->loop && g_strstr_len(config->uri, -1, "file:/") == config->uri)
-//                {
-//                  NVGSTDS_ELEM_ADD_PROBE (bin->src_buffer_probe, GST_ELEMENT(pObject),
-//                      "sink", restart_stream_buf_prob,
-//                      (GstPadProbeType) (GST_PAD_PROBE_TYPE_EVENT_BOTH |
-//                          GST_PAD_PROBE_TYPE_EVENT_FLUSH | GST_PAD_PROBE_TYPE_BUFFER),
-//                      bin);
-//                }
+            // if the source is from file, then setup Stream buffer probe function
+            // to handle the stream restart/loop on GST_EVENT_EOS.
+            if (!m_isLive)
+            {
+                GstPadProbeType mask = (GstPadProbeType) 
+                    (GST_PAD_PROBE_TYPE_EVENT_BOTH |
+                    GST_PAD_PROBE_TYPE_EVENT_FLUSH | 
+                    GST_PAD_PROBE_TYPE_BUFFER);
+                    
+                StaticPadtr sinkPadtr(GST_ELEMENT(pObject), "sink");
+                
+                m_bufferProbeId = sinkPadtr.AddPad(mask, StreamBufferRestartProbCB, this);
+            }
         }
+    }
+    
+    GstPadProbeReturn UriSourceBintr::HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo)
+    {
+        LOG_FUNC();
+        
+        GstEvent* event = GST_EVENT(pInfo->data);
+
+        if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
+        {
+            GST_BUFFER_PTS(GST_BUFFER(pInfo->data)) += m_prevAccumulatedBase;
+        }
+        
+        else if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_BOTH)
+        {
+            if (GST_EVENT_TYPE(event) == GST_EVENT_EOS)
+            {
+                g_timeout_add(1, StreamBufferSeekCB, this);
+            }
+            else if (GST_EVENT_TYPE(event) == GST_EVENT_SEGMENT)
+            {
+                GstSegment* segment;
+
+                gst_event_parse_segment(event, (const GstSegment**)&segment);
+                segment->base = m_accumulatedBase;
+                m_prevAccumulatedBase = m_accumulatedBase;
+                m_accumulatedBase += segment->stop;
+            }
+            switch (GST_EVENT_TYPE (event))
+            {
+            case GST_EVENT_EOS:
+            // QOS events from downstream sink elements cause decoder to drop
+            // frames after looping the file since the timestamps reset to 0.
+            // We should drop the QOS events since we have custom logic for
+            // looping individual sources.
+            case GST_EVENT_QOS:
+            case GST_EVENT_SEGMENT:
+            case GST_EVENT_FLUSH_START:
+            case GST_EVENT_FLUSH_STOP:
+                return GST_PAD_PROBE_DROP;
+            default:
+                break;
+            }
+        }
+        return GST_PAD_PROBE_OK;
     }
 
     void UriSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
     {
         if (g_object_class_find_property(G_OBJECT_GET_CLASS(arg0), "latency")) 
         {
-            g_object_set(G_OBJECT(arg0), 
-                "latency", "cb_sourcesetup set %d latency\n", NULL);
+            g_object_set(G_OBJECT(arg0), "latency", "cb_sourcesetup set %d latency\n", NULL);
         }
     }
+    
+    gboolean UriSourceBintr::HandleStreamBufferSeek()
+    {
+        gst_element_set_state(m_pBin, GST_STATE_PAUSED);
+
+        gboolean retval = gst_element_seek(m_pBin, 1.0, GST_FORMAT_TIME,
+            (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
+            GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+
+        if (!retval)
+        {
+            LOG_WARN("Failure to seek");
+        }
+
+        gst_element_set_state(m_pBin, GST_STATE_PLAYING);
+    }
+    
     
     static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
@@ -426,5 +500,16 @@ namespace DSL
     {
         static_cast<UriSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
     }
+    
+    static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pSource)
+    {
+        return static_cast<UriSourceBintr*>(pSource)->
+            HandleStreamBufferRestart(pPad, pInfo);
+    }
 
+    static gboolean StreamBufferSeekCB(gpointer pSource)
+    {
+        return static_cast<UriSourceBintr*>(pSource)->HandleStreamBufferSeek();
+    }
 } // SDL namespace

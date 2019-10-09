@@ -76,6 +76,7 @@ int main(int argc, char **argv)
     // Install the custom Program Interrupt Signal ISR
     PrgItrSigIsrInstall();    
     
+   
 //    if (dsl_source_csi_new(
 //        "csi-source1",              // name for new Source 
 //        1280, 720,                  // width and height in pixels
@@ -114,26 +115,26 @@ int main(int argc, char **argv)
 //        return EXIT_FAILURE;
 //    }
 
-//    if (dsl_gie_new(
-//        "gie1",                                 // name for new GIE
-//        "config_infer_primary.txt",             // Config File with defaults
-//        1, 1,                                   // batch size and interval
-//        1, 0,                                   // unique Id and gpu Id
-//        "resnet10.caffemodel_b1_fp16.engine",   // model engine file
-//        "")                                     // raw output folder
-//        != DSL_RESULT_SUCCESS)
-//    {
-//        return EXIT_FAILURE;
-//    }
+    if (dsl_gie_new(
+        "gie1",                                 // name for new GIE
+        "config_infer_primary.txt",             // Config File with defaults
+        1, 1,                                   // batch size and interval
+        0, 0,                                   // unique Id and gpu Id
+        "resnet10.caffemodel_b1_fp16.engine",   // model engine file
+        "")                                     // raw output folder
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
-//    if (dsl_display_new(
-//        "display",                  // name for new display
-//        1, 1,                       // rows and columns
-//        1280, 720)                  // width and height in pixels
-//        != DSL_RESULT_SUCCESS)
-//    {
-//        return EXIT_FAILURE;
-//    }
+    if (dsl_display_new(
+        "display",                  // name for new display
+        1, 1,                       // rows and columns
+        1280, 720)                  // width and height in pixels
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
     
     if (dsl_pipeline_new(
         "pipeline1")                // name for new pipeline
@@ -143,7 +144,7 @@ int main(int argc, char **argv)
     }
     
 //    const char* components[] = {"source1", "sink1", "osd1", "gie1", "display", NULL};
-    const char* components[] = {"uri_file_1280_720_30fs", NULL};
+    const char* components[] = {"uri_file_1280_720_30fs", "gie1", "display", NULL};
     
     if (dsl_pipeline_components_add(
         "pipeline1",                // name of the Pipeline to update

@@ -117,7 +117,6 @@ THE SOFTWARE.
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
-
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
  * @param[in] source unique name for the new Source
@@ -195,7 +194,6 @@ DslReturnType dsl_display_new(const char* display,
  * @return DSL_RESULT_COMPONENT_RESULT
  */
 DslReturnType dsl_component_delete(const char* component);
-
 
 /**
  * @brief creates a new, uniquely named Pipeline

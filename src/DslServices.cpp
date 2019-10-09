@@ -176,7 +176,7 @@ namespace DSL
         g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_servicesMutex);
     }
-
+    
     DslReturnType Services::SourceCsiNew(const char* source,
         guint width, guint height, guint fps_n, guint fps_d)
     {
