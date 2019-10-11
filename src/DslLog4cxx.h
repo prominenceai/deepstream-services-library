@@ -27,17 +27,6 @@ THE SOFTWARE.
 
 #include <log4cxx/logger.h>
 
-inline std::string methodName(const std::string& prettyFunction)
-{
-    size_t colons = prettyFunction.find("::");
-    size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
-    size_t end = prettyFunction.rfind("(") - begin;
-
-    return prettyFunction.substr(begin,end) + "()";
-}
-
-#define __METHOD_NAME__ methodName(__PRETTY_FUNCTION__)
-
 /**
  * returns a pointer to a log4cxx logger, specific to the calling function.
  * Each function will create a new logger on first use.
@@ -55,39 +44,14 @@ inline std::string methodName(const std::string& prettyFunction)
  */
 #define LOG_FUNC() LogFunc lf(__METHOD_NAME__)
 
-/**
- * Logs a message with the DEBUG level.
- * 
- * @param[in] message the message string to log.
- */
 #define LOG_DEBUG(message) LOG4CXX_DEBUG(LOG4CXX_LOGGER, message)
 
-/**
- * Logs a message with the INFO level.
- * 
- * @param[in] message the message string to log.
- */
 #define LOG_INFO(message) LOG4CXX_INFO(LOG4CXX_LOGGER, message)
 
-/**
- * Logs a message with the WARN level.
- * 
- * @param[in] message the message string to log.
- */
 #define LOG_WARN(message) LOG4CXX_WARN(LOG4CXX_LOGGER, message)
 
-/**
- * Logs a message with the ERROR level.
- * 
- * @param[in] message the message string to log.
- */
 #define LOG_ERROR(message) LOG4CXX_ERROR(LOG4CXX_LOGGER, message)
 
-/**
- * Logs a message with the FATAL level.
- * 
- * @param[in] message the message string to log.
- */
 #define LOG_FATAL(message) LOG4CXX_FATAL(LOG4CXX_LOGGER, message)
 
  
@@ -144,5 +108,6 @@ namespace DSL
     };
 
 } // namespace 
+
 
 #endif // _DSL_LOG4CXX_H

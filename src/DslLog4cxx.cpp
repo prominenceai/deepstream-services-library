@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#if defined(DSL_LOGGER_C4XX)
+
 #include <log4cxx/basicconfigurator.h>
 
 #include "DslLog4cxx.h"
@@ -34,10 +36,7 @@ namespace DSL
     LogMgr* LogMgr::Ptr()
     {
         if (!m_pInstatnce)
-        {
-            // Set up a simple configuration that logs on the console.
-            log4cxx::BasicConfigurator::configure();
-            
+        {            
             m_pInstatnce = new LogMgr;
         }
         return m_pInstatnce;
@@ -60,3 +59,5 @@ namespace DSL
     }
 
 } // namespace 
+
+#endif

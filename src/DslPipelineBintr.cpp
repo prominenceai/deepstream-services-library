@@ -231,7 +231,7 @@ namespace DSL
         
         if (!m_areComponentsLinked)
         {
-            LOG_WARN("Components for Pipeline '" << m_name << "' not linked");
+            LOG_INFO("Components for Pipeline '" << m_name << "' not linked");
             return;
         }
 
@@ -291,9 +291,8 @@ namespace DSL
 
     GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
+//        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
-
-//        LOG_INFO(m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)] << " received");
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -307,20 +306,15 @@ namespace DSL
                 structure = gst_message_get_structure(pMessage);
             }
             return GST_BUS_PASS;
-//        case GST_MESSAGE_STATE_CHANGED:
-//            HandleStateChanged(pMessage);
-//            return GST_BUS_PASS;
 
         default:
             break;
-//            LOG_INFO("Unhandled message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
         }
         return GST_BUS_PASS;
     }
     
     bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
-//        LOG_FUNC();
 
         if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pGstPipeline)
         {
@@ -391,7 +385,6 @@ namespace DSL
         m_mapMessageTypes[GST_MESSAGE_STREAM_STATUS] = "GST_MESSAGE_STREAM_STATUS";
         m_mapMessageTypes[GST_MESSAGE_DURATION_CHANGED] = "GST_MESSAGE_DURATION_CHANGED";
         m_mapMessageTypes[GST_MESSAGE_QOS] = "GST_MESSAGE_QOS";
-        m_mapMessageTypes[GST_MESSAGE_NEW_CLOCK] = "GST_MESSAGE_NEW_CLOCK";
 
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
         m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";

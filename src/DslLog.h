@@ -25,6 +25,17 @@ THE SOFTWARE.
 #ifndef _DSL_LOG_H
 #define _DSL_LOG_H
 
+inline std::string methodName(const std::string& prettyFunction)
+{
+    size_t colons = prettyFunction.find("::");
+    size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+    size_t end = prettyFunction.rfind("(") - begin;
+
+    return prettyFunction.substr(begin,end) + "()";
+}
+
+#define __METHOD_NAME__ methodName(__PRETTY_FUNCTION__)
+
 #if defined(DSL_LOGGER_IMP)
     #include DSL_LOGGER_IMP
 #else
@@ -63,13 +74,6 @@ THE SOFTWARE.
     @param[in] message the message string to log.
     */
     #define LOG_ERROR(message)
-
-    /**
-    Logs a message with the FATAL level.
-
-    @param[in] message the message string to log.
-    */
-    #define LOG_FATAL(message)
     
 #endif // !DSL_LOGGER_IMP
 

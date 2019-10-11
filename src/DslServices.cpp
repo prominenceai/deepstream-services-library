@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
+GST_DEBUG_CATEGORY(GST_CAT_DSL);
+
 DslReturnType dsl_source_csi_new(const char* source, 
     guint width, guint height, guint fps_n, guint fps_d)
 {
@@ -130,10 +132,15 @@ namespace DSL
     Services* Services::GetServices()
     {
         
+        // conditional initialize the single instance pointer
         if (!m_pInstatnce)
         {
-            LOG_INFO("Services Initialization");
+            // Initialize the single debug category used by the lib
+            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "Deepstreem Services");
             
+            // Safe to start logging
+            LOG_INFO("Services Initialization");
+
             m_pInstatnce = new Services();
         }
         return m_pInstatnce;
