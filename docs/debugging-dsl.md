@@ -44,7 +44,7 @@ DSL calls `GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS()` on transition to `GST_STATE_READ
 The macro generates `.dot` files under `GST_DEBUG_DUMP_DOT_DIR` when the environment variable is set to a valid directory. 
 
 ```
-$ export GST_DEBUG_DUMP_DOT_DIR ./.dot
+$ export GST_DEBUG_DUMP_DOT_DIR=./.dot
 ```
 ```
 $ mkdir -p $GST_DEBUG_DUMP_DOT_DIR
