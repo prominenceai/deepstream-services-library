@@ -2,39 +2,14 @@
 
 ![](/Images/under-construction.png)
 
-DSL implements a simple services API for the NVIDA® Jetson™ Platform. Written in C++ 11, DSS is built on the following SDK's.
+DSL is described as _"the NVIDIA DeepStream sample application, `deepstream-app`, redeveloped as a static library - implementing an API for DeepStream pipeline services"._
 
-* [DeepStream](https://developer.nvidia.com/deepstream-sdk) - _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_
-* [NVIDIA Container Runtime](https://github.com/NVIDIA/nvidia-docker/wiki/NVIDIA-Container-Runtime-on-Jetson) - _"Enables users to run GPU accelerated Deep Learning and HPC containers on Jetson devices."_
+Written in C++ 11, DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_, 
 
-Setting up and playing pipeline
-
-```
-    dsl_csi_source_new("source1", 5, TRUE, 1280, 720, 30, 1);
-    dsl_streammux_new("streammux1", TRUE, 1, 40000, 1280, 720);
-    dsl_sink_new("sink1", 0, 1, 0, 0, 0, 0);
-    dsl_osd1_new("osd1", 0, 1, 0, 0, 0, 0);
-    dsl_display_new("display1", 1, 1, 1280, 720);
-    dsl_gie_new("gie1", "resnet10.caffemodel_b30_int8.engine", 
-        "config_infer_primary.txt", 1, 1, 1, 1, 1);
-
-    dsl_pipeline_new("pipeline1");
-
-    char* comp_list[] =  {"source1", "streammux1", "sink1", "osd1", "gie1", "display1"};
-    
-    dsl_pipeline_add_components("pipeline1", comp_list);
-    
-    dsl_pipeline_play("pipeline1");
-
-```
-
-![System Components](https://github.com/canammex-tech/getting-started/blob/master/images/system-image.png)
-
-
-[![IMAGE ALT TEXT](/Images/deepstream-on-jetson-nano.png)](https://www.youtube.com/watch?time_continue=2&v=Y43W04sMK7I)
+The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
 ## Contributing
-DSL is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBD. 
+DSL is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
 ## Installing Dependencies
 
@@ -53,24 +28,6 @@ To install Doxygen on Ubuntu
 ```
 $ sudo apt-get install doxygen
 ```
+## DSL Users Guide
 
-### Logging Dependencies
-The active Logging implementation is controlled by the `-DDSS_LOG_IMP` define, set in the `\on-target\MakeFile`. With the current setting of `DDSS_LOG_IMP=dss_log4cxx.h` you will need to install the below Apache packages. 
-
-Libs`-llog4cxx -laprutil-1 -lapr-1`are required to build with `dss_log4cxx.h/cpp`
-
-#### Installing the Apache Portable Runtime (APR)
-Installing APR and APR util
-```
-sudo apt-get install apache2-dev libapr1-dev libaprutil1-dev
-```
-#### Installing Apache log4cxx
-Clone or download the (TBD)
-Source pulled from log4cxx-0.10.0 [trunk]( http://svn.apache.org/repos/asf/incubator/log4cxx/trunk)
-```
-$ cd apache-log4cxx-0.10.0
-$ ./configure --build=x86_64-unknown-linux-gnu
-$ make
-$ make check
-$ sudo make install
-```
+* [Logging and Debugging](/docs/debugging-dsl.md)
