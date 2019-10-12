@@ -3,6 +3,7 @@ Refer to the GStreamer [Tutorial on Debugging tools](https://gstreamer.freedeskt
 
 ## Building DSL as an app with a main function
 NOTE: this is the current default during initial construction
+
 Invoke the make file with the `app` option to change the build type from static lib to 
 application. `main/DslMain.cpp` will be added to the list of SRCS.
 ```
