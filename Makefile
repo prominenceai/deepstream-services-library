@@ -77,7 +77,6 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
-	-llog4cxx  \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
