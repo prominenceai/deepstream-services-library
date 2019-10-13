@@ -145,7 +145,7 @@ namespace DSL
 
             if (m_pPad)
             {
-                gst_element_release_request_pad(m_pElement, m_pPad);
+//                gst_element_release_request_pad(m_pElement, m_pPad);
             }
         };
 

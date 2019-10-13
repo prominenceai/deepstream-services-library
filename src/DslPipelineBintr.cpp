@@ -213,14 +213,12 @@ namespace DSL
         }
         
         // Ghost pad added to OSD Bintr, if OSD exists, to Sinks Bintr otherwise.
-//        m_pProcessBintr->AddSinkGhostPad();
+        m_pProcessBintr->AddSinkGhostPad();
         
         // Link together all components 
         m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
         m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
-//        m_pSourcesBintr->LinkTo(m_pDisplayBintr);
-//        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
-//        m_pDisplayBintr->LinkTo(m_pProcessBintr);
+        m_pDisplayBintr->LinkTo(m_pProcessBintr);
        
         m_areComponentsLinked = true;
     }

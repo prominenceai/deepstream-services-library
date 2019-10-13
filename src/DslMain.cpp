@@ -76,25 +76,16 @@ int main(int argc, char **argv)
     // Install the custom Program Interrupt Signal ISR
     PrgItrSigIsrInstall();    
     
-   
-//    if (dsl_source_csi_new(
-//        "csi-source1",              // name for new Source 
-//        1280, 720,                  // width and height in pixels
-//        30, 1)                      // fps-numerator and fps-denominator
+       
+//    if (dsl_source_uri_new(
+//        "uri_file_1280_720_30fs",           // name for new Source 
+//        "sample_1080p_h264.mp4",            // URI source file - using default stream director
+//        DSL_CUDADEC_MEMTYPE_DEVICE,         // Cudadec memory type to use
+//        0)                                  // Intra decode
 //        != DSL_RESULT_SUCCESS)
 //    {
 //        return EXIT_FAILURE;
 //    }
-    
-    if (dsl_source_uri_new(
-        "uri_file_1280_720_30fs",           // name for new Source 
-        "sample_1080p_h264.mp4",            // URI source file - using default stream director
-        DSL_CUDADEC_MEMTYPE_DEVICE,         // Cudadec memory type to use
-        0)                                  // Intra decode
-        != DSL_RESULT_SUCCESS)
-    {
-        return EXIT_FAILURE;
-    }
     
 //    if (dsl_sink_new(
 //        "sink1",                    // name for new Sink
@@ -106,14 +97,31 @@ int main(int argc, char **argv)
 //    {
 //        return EXIT_FAILURE;
 //    }
+//
+    
+    if (dsl_pipeline_new(
+        "pipeline1")                // name for new pipeline
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
-//    if (dsl_osd_new(
-//        "osd1",                     // name for new OSD
-//        TRUE)                       // clock enabled?
-//        != DSL_RESULT_SUCCESS)
-//    {
-//        return EXIT_FAILURE;
-//    }
+    if (dsl_osd_new(
+        "osd1",                     // name for new OSD
+        TRUE)                       // clock enabled?
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if (dsl_source_csi_new(
+        "csi-source1",              // name for new Source 
+        1280, 720,                  // width and height in pixels
+        30, 1)                      // fps-numerator and fps-denominator
+        != DSL_RESULT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
 
     if (dsl_gie_new(
         "gie1",                                 // name for new GIE
@@ -136,16 +144,9 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     
-    if (dsl_pipeline_new(
-        "pipeline1")                // name for new pipeline
-        != DSL_RESULT_SUCCESS)
-    {
-        return EXIT_FAILURE;
-    }
-    
-//    const char* components[] = {"source1", "sink1", "osd1", "gie1", "display", NULL};
-    const char* components[] = {"uri_file_1280_720_30fs", "gie1", "display", NULL};
-    
+    const char* components[] = {"csi-source1", "gie1", "osd1", "display", NULL};
+//    const char* components[] = {"uri_file_1280_720_30fs", "gie1", "display", NULL};
+
     if (dsl_pipeline_components_add(
         "pipeline1",                // name of the Pipeline to update
         components)                 // NULL terminated array of component names

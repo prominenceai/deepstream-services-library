@@ -1,0 +1,85 @@
+
+0:00:00.052301624  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:58:Bintr:  : New bintr:: pipeline1
+0:00:00.052351626  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "bin" named "pipeline1"
+0:00:00.052461630  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "pipeline" named "pipeline1"
+0:00:00.052577884  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:58:Bintr:  : New bintr:: sources-bin
+0:00:00.052605958  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "bin" named "sources-bin"
+0:00:00.117013787  4545   0x5588c80400 INFO      GST_PLUGIN_LOADING gstplugin.c:901:_priv_gst_plugin_load_file_for_registry: plugin "/usr/lib/aarch64-linux-gnu/gstreamer-1.0/deepstream/libnvdsgst_multistream.so" loaded
+0:00:00.117094676  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "nvstreammux" named "stream_muxer"
+0:00:00.117509638  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstNvStreamMux@0x5588f720a0> adding pad 'src'
+0:00:00.117640216  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:920:gst_element_get_static_pad: found pad stream_muxer:src
+0:00:00.117765793  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link stream_muxer:src and src:proxypad0
+0:00:00.117797617  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked stream_muxer:src and src:proxypad0, successful
+0:00:00.117813763  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.117832306  4545   0x5588c80400 INFO               GST_EVENT gstpad.c:5808:gst_pad_send_event_unchecked:<stream_muxer:src> Received event on flushing pad. Discarding
+0:00:00.117879234  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<sources-bin> adding pad 'src'
+0:00:00.117911996  4545   0x5588c80400 INFO                     DSL src/DslSourceBintr.cpp:106:AddSourceGhostPad:  : Source ghost pad added to Sources' Stream Muxer
+0:00:00.117953924  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:58:Bintr:  : New bintr:: process-bin
+0:00:00.117983821  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "bin" named "process-bin"
+0:00:00.118041792  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:58:Bintr:  : New bintr:: sinks-bin
+0:00:00.118068564  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "bin" named "sinks-bin"
+0:00:00.119393819  4545   0x5588c80400 INFO      GST_PLUGIN_LOADING gstplugin.c:901:_priv_gst_plugin_load_file_for_registry: plugin "/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstcoreelements.so" loaded
+0:00:00.119434758  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "queue" named "sink_bin_queue"
+0:00:00.119644921  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstQueue@0x5588f723a0> adding pad 'sink'
+0:00:00.119704715  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstQueue@0x5588f723a0> adding pad 'src'
+0:00:00.119798260  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "tee" named "sink_bin_tee"
+0:00:00.119957380  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstTee@0x5588f85000> adding pad 'sink'
+0:00:00.120028060  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstutils.c:1774:gst_element_link_pads_full: trying to link element sink_bin_queue:(any) to element sink_bin_tee:(any)
+0:00:00.120061082  4545   0x5588c80400 INFO                GST_PADS gstutils.c:1035:gst_pad_check_link: trying to link sink_bin_queue:src and sink_bin_tee:sink
+0:00:00.120098010  4545   0x5588c80400 INFO                GST_PADS gstpad.c:4232:gst_pad_peer_query:<sink_bin_queue:sink> pad has no peer
+0:00:00.120139261  4545   0x5588c80400 INFO                GST_PADS gstutils.c:1588:prepare_link_maybe_ghosting: sink_bin_queue and sink_bin_tee in same bin, no need for ghost pads
+0:00:00.120175929  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link sink_bin_queue:src and sink_bin_tee:sink
+0:00:00.120206556  4545   0x5588c80400 INFO                GST_PADS gstpad.c:4232:gst_pad_peer_query:<sink_bin_queue:sink> pad has no peer
+0:00:00.120244213  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked sink_bin_queue:src and sink_bin_tee:sink, successful
+0:00:00.120263849  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.120285256  4545   0x5588c80400 INFO               GST_EVENT gstpad.c:5808:gst_pad_send_event_unchecked:<sink_bin_queue:src> Received event on flushing pad. Discarding
+0:00:00.120324372  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:162:MakeElement:  : Successfully linked new element sink_bin_tee for sinks-bin
+0:00:00.120364894  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:920:gst_element_get_static_pad: found pad sink_bin_queue:sink
+0:00:00.120426407  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link sink:proxypad1 and sink_bin_queue:sink
+0:00:00.120454220  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked sink:proxypad1 and sink_bin_queue:sink, successful
+0:00:00.120472450  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.120505368  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<sinks-bin> adding pad 'sink'
+0:00:00.120583756  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:123:AddChild:  : Child bin 'sinks-bin' add to 'process-bin'
+0:00:00.120648758  4545   0x5588c80400 INFO                     DSL src/DslPipelineBintr.cpp:164:AddChild:  : Child bin 'sources-bin' add to 'pipeline1'
+0:00:00.120715323  4545   0x5588c80400 INFO                     DSL src/DslPipelineBintr.cpp:164:AddChild:  : Child bin 'process-bin' add to 'pipeline1'
+0:00:00.120806524  4545   0x5588c80400 INFO                     DSL src/DslServices.cpp:425:PipelineNew:  : new PIPELINE 'pipeline1' created successfully
+0:00:00.120918560  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:58:Bintr:  : New bintr:: csi-source1
+0:00:00.120983197  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "bin" named "csi-source1"
+0:00:00.133089663  4545   0x5588c80400 INFO      GST_PLUGIN_LOADING gstplugin.c:901:_priv_gst_plugin_load_file_for_registry: plugin "/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstnvarguscamerasrc.so" loaded
+0:00:00.133161749  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "nvarguscamerasrc" named "src_elem"
+0:00:00.133534366  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstBaseSrc@0x5588fa3b70> adding pad 'src'
+0:00:00.133647495  4545   0x5588c80400 INFO     GST_ELEMENT_FACTORY gstelementfactory.c:359:gst_element_factory_create: creating element "capsfilter" named "src_cap_filter"
+0:00:00.133815730  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstBaseTransform@0x5588fa6240> adding pad 'sink'
+0:00:00.133861878  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<GstBaseTransform@0x5588fa6240> adding pad 'src'
+0:00:00.133920630  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstutils.c:1774:gst_element_link_pads_full: trying to link element src_elem:(any) to element src_cap_filter:(any)
+0:00:00.133952558  4545   0x5588c80400 INFO                GST_PADS gstutils.c:1035:gst_pad_check_link: trying to link src_elem:src and src_cap_filter:sink
+0:00:00.133986257  4545   0x5588c80400 INFO                GST_PADS gstpad.c:4232:gst_pad_peer_query:<src_cap_filter:src> pad has no peer
+0:00:00.134021102  4545   0x5588c80400 INFO                GST_PADS gstutils.c:1588:prepare_link_maybe_ghosting: src_elem and src_cap_filter in same bin, no need for ghost pads
+0:00:00.134059905  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link src_elem:src and src_cap_filter:sink
+0:00:00.134088552  4545   0x5588c80400 INFO                GST_PADS gstpad.c:4232:gst_pad_peer_query:<src_cap_filter:src> pad has no peer
+0:00:00.134122095  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked src_elem:src and src_cap_filter:sink, successful
+0:00:00.134143554  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.134161159  4545   0x5588c80400 INFO               GST_EVENT gstpad.c:5808:gst_pad_send_event_unchecked:<src_elem:src> Received event on flushing pad. Discarding
+0:00:00.134201108  4545   0x5588c80400 INFO                     DSL src/DslBintr.h:162:MakeElement:  : Successfully linked new element src_cap_filter for csi-source1
+0:00:00.134265173  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.134319654  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:920:gst_element_get_static_pad: found pad src_cap_filter:src
+0:00:00.134406063  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link src_cap_filter:src and src:proxypad2
+0:00:00.134441221  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked src_cap_filter:src and src:proxypad2, successful
+0:00:00.134461951  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.134484400  4545   0x5588c80400 INFO               GST_EVENT gstpad.c:5808:gst_pad_send_event_unchecked:<src_cap_filter:src> Received event on flushing pad. Discarding
+0:00:00.134521953  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<csi-source1> adding pad 'src'
+0:00:00.134569871  4545   0x5588c80400 INFO                     DSL src/DslServices.cpp:209:SourceCsiNew:  : new CSI Source 'csi-source1' created successfully
+0:00:00.134621644  4545   0x5588c80400 INFO                     DSL src/DslPipelineBintr.cpp:234:UnlinkComponents:  : Components for Pipeline 'pipeline1' not linked
+0:00:00.134737065  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:920:gst_element_get_static_pad: found pad csi-source1:src
+0:00:00.134781597  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:917:gst_element_get_static_pad: no such pad 'sink_0' in element "stream_muxer"
+0:00:00.134902227  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:670:gst_element_add_pad:<stream_muxer> adding pad 'sink_0'
+0:00:00.134953895  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2378:gst_pad_link_prepare: trying to link csi-source1:src and stream_muxer:sink_0
+0:00:00.135051086  4545   0x5588c80400 INFO                GST_PADS gstpad.c:4232:gst_pad_peer_query:<sources-bin:src> pad has no peer
+0:00:00.135168226  4545   0x5588c80400 INFO                GST_PADS gstpad.c:2586:gst_pad_link_full: linked csi-source1:src and stream_muxer:sink_0, successful
+0:00:00.135191872  4545   0x5588c80400 INFO               GST_EVENT gstevent.c:1517:gst_event_new_reconfigure: creating reconfigure event
+0:00:00.135215675  4545   0x5588c80400 INFO               GST_EVENT gstpad.c:5808:gst_pad_send_event_unchecked:<csi-source1:src> Received event on flushing pad. Discarding
+0:00:00.135260625  4545   0x5588c80400 INFO                     DSL src/DslSourceBintr.cpp:90:AddChild:  : Source 'csi-source1' linked to Stream Muxer
+0:00:00.135315627  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstelement.c:789:gst_element_remove_pad:<stream_muxer> removing pad 'sink_0'
+0:00:00.135346826  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstpad.c:2134:gst_pad_unlink: unlinking csi-source1:src(0x5588f78680) and stream_muxer:sink_0(0x5588f75190)
+0:00:00.135385056  4545   0x5588c80400 INFO        GST_ELEMENT_PADS gstpad.c:2188:gst_pad_unlink: unlinked csi-source1:src and stream_muxer:sink_0
+0:00:00.135436985  4545   0x5588c80400 INFO                     DSL src/DslServices.cpp:484:PipelineComponentsAdd:  : Component 'csi-source1' was added to Pipeline 'pipeline1' successfully

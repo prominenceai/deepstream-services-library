@@ -198,8 +198,8 @@ namespace DSL
         }
         try
         {
-//            m_components[source] = std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(
-//                source, width, height, fps_n, fps_d));
+            m_components[source] = std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(
+                source, width, height, fps_n, fps_d));
         }
         catch(...)
         {
