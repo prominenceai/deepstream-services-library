@@ -47,6 +47,8 @@ SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
 
 INCS:= $(wildcard ./src/*.h)
+INCS+= $(wildcard ./test/*.hpp)
+INCS+= $(wildcard ./test/api/*.h)
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
