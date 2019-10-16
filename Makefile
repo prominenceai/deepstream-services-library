@@ -26,7 +26,6 @@
 
 APP:= dsl-app
 
-CXX = g++
 CC = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
@@ -44,7 +43,8 @@ CFG_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/confi
 MDL_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/models/Primary_Detector
 STR_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/streams
 
-SRCS+= $(wildcard ./src/*.cpp) 
+SRCS+= $(wildcard ./src/*.cpp)
+SRCS+= $(wildcard ./test/*.cpp)
 
 INCS:= $(wildcard ./src/*.h)
 
@@ -69,6 +69,9 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
 	-I/usr/lib/aarch64-linux-gnu/glib-$(GLIB_VERSION)/include \
+	-I./src \
+	-I./test \
+	-I./test/ap \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
 	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
@@ -97,11 +100,8 @@ LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 
-%.o: %.c $(INC_INSTALL_DIR) Makefile
-	$(CC) -c -o $@ $(CFLAGS) $<
-
 %.o: %.cpp $(INCS) Makefile
-	$(CXX) -c -o $@ $(CFLAGS) $<
+	$(CC) -c -o $@ $(CFLAGS) $<
 
 $(APP): $(OBJS) Makefile
 	@echo $(SRCS)
@@ -109,7 +109,7 @@ $(APP): $(OBJS) Makefile
 
 lib:
 	ar rcs dsl-lib.a $(OBJS)
-	ar dv dsl-lib.a DslMain.o
+	ar dv dsl-lib.a DslCatch.o
 
 clean:
 	rm -rf $(OBJS) $(APP) dsl-lib.a

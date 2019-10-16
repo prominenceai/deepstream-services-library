@@ -132,11 +132,21 @@ namespace DSL
     Services* Services::GetServices()
     {
         
-        // conditional initialize the single instance pointer
+        // one time initialization of the single instance pointer
         if (!m_pInstatnce)
         {
+            // If gst has not been initialized by the client software
+            if (!gst_is_initialized())
+            {
+                int argc = 0;
+                char** argv = NULL;
+                
+                // initialize the GStreamer library
+                gst_init(&argc, &argv);
+            }
+
             // Initialize the single debug category used by the lib
-            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "Deepstreem Services");
+            GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
