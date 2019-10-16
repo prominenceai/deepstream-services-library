@@ -1,0 +1,9 @@
+0:00:04.949390191 [331m20706[00m   0x55ba29c8a0 [33;01mWARN   [00m [00m             nvinfer gstnvinfer.cpp:1830:gst_nvinfer_output_loop:<primary_gie_classifier>[00m error: Internal data stream error.
+0:00:04.949456806 [331m20706[00m   0x55ba29c8a0 [33;01mWARN   [00m [00m             nvinfer gstnvinfer.cpp:1830:gst_nvinfer_output_loop:<primary_gie_classifier>[00m error: streaming stopped, reason not-linked (-1)
+0:00:04.949628945 [331m20706[00m   0x55e1ac8c40 [31;01mERROR  [00m [00m                 DSL src/DslPipelineBintr.cpp:358:_handleErrorMessage:[00m  : Error message 'Internal data stream error.' received from 'primary_gie_classifier'
+0:00:05.051253077 [331m20706[00m   0x55ba29c800 [33;01mWARN   [00m [00m             basesrc gstbasesrc.c:3055:gst_base_src_loop:<src_elem>[00m error: Internal data stream error.
+0:00:05.051291515 [331m20706[00m   0x55ba29c800 [33;01mWARN   [00m [00m             basesrc gstbasesrc.c:3055:gst_base_src_loop:<src_elem>[00m error: streaming stopped, reason not-linked (-1)
+0:00:05.051512873 [331m20706[00m   0x55e1ac8c40 [31;01mERROR  [00m [00m                 DSL src/DslPipelineBintr.cpp:358:_handleErrorMessage:[00m  : Error message 'Internal data stream error.' received from 'src_elem'
+0:00:05.053169566 [331m20706[00m   0x7f34004e30 [33;01mWARN   [00m [00m               queue gstqueue.c:988:gst_queue_handle_sink_event:<primary_gie_queue>[00m error: Internal data stream error.
+0:00:05.053197431 [331m20706[00m   0x7f34004e30 [33;01mWARN   [00m [00m               queue gstqueue.c:988:gst_queue_handle_sink_event:<primary_gie_queue>[00m error: streaming stopped, reason not-linked (-1)
+0:00:05.053310402 [331m20706[00m   0x55e1ac8c40 [31;01mERROR  [00m [00m                 DSL src/DslPipelineBintr.cpp:358:_handleErrorMessage:[00m  : Error message 'Internal data stream error.' received from 'primary_gie_queue'
