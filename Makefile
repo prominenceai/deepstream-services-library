@@ -107,5 +107,9 @@ $(APP): $(OBJS) Makefile
 	@echo $(SRCS)
 	$(CC) -o $(APP) $(OBJS) $(LIBS)
 
+lib:
+	ar rcs dsl-lib.a $(OBJS)
+	ar dv dsl-lib.a DslMain.o
+
 clean:
-	rm -rf $(OBJS) $(APP)
+	rm -rf $(OBJS) $(APP) dsl-lib.a
