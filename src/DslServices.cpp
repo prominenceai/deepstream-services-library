@@ -438,11 +438,15 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         m_componentNames.clear();
-        m_componentNames.reserve(m_components.size());
+        
+        // reserve to avoid resizing - plus 1 for the NULL terminator
+        m_componentNames.reserve(m_components.size() + 1);
         for(auto const& imap: m_components)
         {
             m_componentNames.push_back(imap.first.c_str());
         }
+        m_componentNames.push_back(NULL);
+        
         return (const char**)&m_componentNames[0];
     }
     

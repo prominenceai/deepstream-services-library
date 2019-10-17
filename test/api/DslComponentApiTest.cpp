@@ -28,24 +28,38 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "Component uniqueness is managed correctly", "[component]" )
+SCENARIO( "A single Component is created and deleted correctly", "[component]" )
 {
+    std::string actualName  = "csi_source";
 
     GIVEN( "An empty list of components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_component_list_all() == NULL );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
+
     WHEN( "A new component is created" ) 
     {
-        char name[] = "csi_source";
 
-        REQUIRE( dsl_source_csi_new(name, 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(actualName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
 
-        THEN( "the list size and contents are updated correctly" ) 
+        THEN( "The list size and contents are updated correctly" ) 
         {
             REQUIRE( dsl_component_list_size() == 1 );
-            REQUIRE( dsl_component_list_all() != NULL );
+            REQUIRE( *(dsl_component_list_all()) != NULL );
+            
+            std::string returnedName = *(dsl_component_list_all());
+            REQUIRE( returnedName == actualName );
+        }
+    }
+    WHEN( "The component is deleted")
+    {
+        REQUIRE( dsl_component_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        THEN( "The list and contents are updated correctly")
+        {
+            REQUIRE( dsl_component_list_size() == 0 );
+            REQUIRE( *(dsl_component_list_all()) == NULL );
         }
     }
 }

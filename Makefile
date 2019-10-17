@@ -45,10 +45,10 @@ STR_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/strea
 
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
+SRCS+= $(wildcard ./test/api/*.cpp)
 
 INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
-INCS+= $(wildcard ./test/api/*.h)
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
@@ -73,7 +73,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/lib/aarch64-linux-gnu/glib-$(GLIB_VERSION)/include \
 	-I./src \
 	-I./test \
-	-I./test/ap \
+	-I./test/api \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
 	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \

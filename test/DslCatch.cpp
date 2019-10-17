@@ -24,5 +24,3 @@ THE SOFTWARE.
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-
-#include "api/DslComponentApiTest.h"
