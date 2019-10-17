@@ -76,6 +76,10 @@ namespace DSL {
         
         DslReturnType ComponentDelete(const char* component);
         
+        uint ComponentListSize();
+        
+        const char** ComponentListAll();
+        
         DslReturnType PipelineNew(const char* pipeline);
         
         DslReturnType PipelineDelete(const char* pipeline);
@@ -145,10 +149,20 @@ namespace DSL {
         
         GThread* m_pXWindowEventThread;
         
-
+        /**
+         * @brief map of all pipelines creaated by the client, key=name
+         */
         std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
         
+        /**
+         * @brief map of all pipeline components creaated by the client, key=name
+         */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+        
+        /**
+         * @brief used to return a list of all component names to the client
+         */
+        std::vector<const char*> m_componentNames;
         
         static std::string m_configFileDir;
         

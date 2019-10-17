@@ -28,17 +28,26 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "CSI source uniqueness is managed correctly", "[source]" ) 
+SCENARIO( "Component uniqueness is managed correctly", "[component]" )
 {
 
     GIVEN( "An empty list of components" ) 
     {
-        REQUIRE( dsl_component_list_all() == NULL);
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_component_list_all() == NULL );
     }
+    WHEN( "A new component is created" ) 
+    {
+        char name[] = "csi_source";
 
-//        char name[] = "csi_source";
-//
-//        REQUIRE( dsl_source_csi_new(name, 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(name, 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+
+        THEN( "the list size and contents are updated correctly" ) 
+        {
+            REQUIRE( dsl_component_list_size() == 1 );
+            REQUIRE( dsl_component_list_all() != NULL );
+        }
+    }
 }
 
 #endif // _DSL_COMPONENT_API_TEST_H

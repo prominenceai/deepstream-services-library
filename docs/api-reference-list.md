@@ -25,11 +25,12 @@
 * [dsl_pipeline_display_event_handler_remove](#)
 
 #### Component API:
-* [dsl_component_copy](#)
-* [dsl_component_delete](#)
-* [dsl_component_delete_many](#)
-* [dsl_component_delete_all](#)
-* [dsl_component_list_all](#)
+* [dsl_component_copy](#dsl_component_copy)
+* [dsl_component_delete](#dsl_component_delete)
+* [dsl_component_delete_many](#dsl_component_delete_many)
+* [dsl_component_delete_all](#dsl_component_delete_all)
+* [dsl_component_list_size](#dsl_component_list_size)
+* [dsl_component_list_all](#dsl_component_list_all)
 
 #### Source API:
 * [dsl_source_csi_new](#dsl_source_csi_new)
