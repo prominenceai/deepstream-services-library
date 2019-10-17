@@ -196,6 +196,18 @@ DslReturnType dsl_display_new(const char* display,
 DslReturnType dsl_component_delete(const char* component);
 
 /**
+ * @brief returns the current number of components
+ * @return size of the list of components
+ */
+uint dsl_component_list_size();
+
+/**
+ * @brief returns the list of components
+ * @return a NULL terminated array of char* component names
+ */
+const char** dsl_component_list_all();
+
+/**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
  * @return DSL_RESULT_PIPELINE_RESULT

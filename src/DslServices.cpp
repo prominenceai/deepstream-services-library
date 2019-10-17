@@ -72,6 +72,17 @@ DslReturnType dsl_component_delete(const char* component)
     return DSL::Services::GetServices()->ComponentDelete(component);
 }
 
+uint dsl_component_list_size()
+{
+    return DSL::Services::GetServices()->ComponentListSize();
+}
+
+const char** dsl_component_list_all()
+{
+    return DSL::Services::GetServices()->ComponentListAll();
+}
+
+
 DslReturnType dsl_pipeline_new(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineNew(pipeline);
@@ -411,6 +422,28 @@ namespace DSL
         LOG_INFO("Component '" << component << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+    
+    uint Services::ComponentListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_components.size();
+    }
+    
+    const char** Services::ComponentListAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_componentNames.clear();
+        m_componentNames.reserve(m_components.size());
+        for(auto const& imap: m_components)
+        {
+            m_componentNames.push_back(imap.first.c_str());
+        }
+        return (const char**)&m_componentNames[0];
     }
     
     DslReturnType Services::PipelineNew(const char* pipeline)
