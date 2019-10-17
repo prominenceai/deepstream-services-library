@@ -25,7 +25,15 @@ THE SOFTWARE.
 #ifndef _DSL_API_H
 #define _DSL_API_H
 
-#include "DslServices.h"
+//#include "DslServices.h"
+
+#ifdef __cplusplus
+#define EXTERN_C_BEGIN extern "C" {
+#define EXTERN_C_END   }
+#else
+#define EXTERN_C_BEGIN
+#define EXTERN_C_END
+#endif
 
 #define DSL_FALSE                                                   0
 #define DSL_TRUE                                                    1
@@ -117,6 +125,11 @@ THE SOFTWARE.
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
+typedef uint DslReturnType;
+typedef uint boolean;
+
+
+EXTERN_C_BEGIN
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
  * @param[in] source unique name for the new Source
@@ -127,7 +140,7 @@ THE SOFTWARE.
  * @return DSL_RESULT_SOURCE_RESULT
  */
 DslReturnType dsl_source_csi_new(const char* source,
-    guint width, guint height, guint fps_n, guint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 
 /**
  * @brief creates a new, uniquely named URI Source obj
@@ -136,7 +149,7 @@ DslReturnType dsl_source_csi_new(const char* source,
  * @return DSL_RESULT_SOURCE_RESULT
  */
 DslReturnType dsl_source_uri_new(const char* source, 
-    const char* uri, guint cudadec_mem_type, guint intra_decode);
+    const char* uri, uint cudadec_mem_type, uint intra_decode);
 
 /**
  * @brief creates a new, uniquely named Sink obj
@@ -149,8 +162,8 @@ DslReturnType dsl_source_uri_new(const char* source,
  * @param[in] heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_new(const char* sink, guint displayId, 
-    guint overlayId, guint offsetX, guint offsetY, guint width, guint height);
+DslReturnType dsl_sink_new(const char* sink, uint displayId, 
+    uint overlayId, uint offsetX, uint offsetY, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -158,7 +171,7 @@ DslReturnType dsl_sink_new(const char* sink, guint displayId,
  * @param[in] isClockEnabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
+DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
@@ -173,7 +186,7 @@ DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled);
  * @return DSL_RESULT_GIE_RESULT
  */
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-    guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+    uint batchSize, uint interval, uint uniqueId, uint gpuId, 
     const char* modelEngineFile, const char* rawOutputDir);
 
 /**
@@ -186,7 +199,7 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
  * @return DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_display_new(const char* display, 
-    guint rows, guint columns, guint width, guint height);
+    uint rows, uint columns, uint width, uint height);
 
 /**
  * @brief deletes a Component object by name
@@ -246,7 +259,7 @@ DslReturnType dsl_pipeline_components_remove(const char* pipeline,
  * @return 
  */
 DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height);
+    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height);
 
 /**
  * @brief pauses a Pipeline if in a state of playing
@@ -275,4 +288,6 @@ DslReturnType dsl_pipeline_get_state(const char* pipeline);
  */
 void dsl_main_loop_run();
 
-#endif // _DSL_API_H
+EXTERN_C_END
+
+#endif /* _DSL_API_H */

@@ -24,43 +24,44 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslServices.h"
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
 DslReturnType dsl_source_csi_new(const char* source, 
-    guint width, guint height, guint fps_n, guint fps_d)
+    uint width, uint height, uint fps_n, uint fps_d)
 {
     return DSL::Services::GetServices()->SourceCsiNew(source, 
         width, height, fps_n, fps_d);
 }
 
 DslReturnType dsl_source_uri_new(const char* source, 
-    const char* uri, guint cudadec_mem_type, guint intra_decode)
+    const char* uri, uint cudadec_mem_type, uint intra_decode)
 {
     return DSL::Services::GetServices()->SourceUriNew(source,
         uri, cudadec_mem_type, intra_decode);
 }
 
-DslReturnType dsl_sink_new(const char* sink, guint displayId, 
-    guint overlayId, guint offsetX, guint offsetY, guint width, guint height)
+DslReturnType dsl_sink_new(const char* sink, uint displayId, 
+    uint overlayId, uint offsetX, uint offsetY, uint width, uint height)
 {
     return DSL::Services::GetServices()->SinkNew(sink, 
         displayId, overlayId, offsetX, offsetY, width, height);
 }
 
-DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled)
+DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
 {
     return DSL::Services::GetServices()->OsdNew(osd, isClockEnabled);
 }
 
 DslReturnType dsl_display_new(const char* display, 
-        guint rows, guint columns, guint width, guint height)
+        uint rows, uint columns, uint width, uint height)
 {
     return DSL::Services::GetServices()->DisplayNew(display, rows, columns, width, height);
 }
 
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-    guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+    uint batchSize, uint interval, uint uniqueId, uint gpuId, 
     const char* modelEngineFile, const char* rawOutputDir)
 {
     return DSL::Services::GetServices()->GieNew(gie, inferConfigFile, batchSize, 
@@ -106,7 +107,7 @@ DslReturnType dsl_pipeline_components_remove(const char* pipeline,
 }
 
 DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)
+    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)
 {
     return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
         areSourcesLive, batchSize, batchTimeout, width, height);
@@ -206,7 +207,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceCsiNew(const char* source,
-        guint width, guint height, guint fps_n, guint fps_d)
+        uint width, uint height, uint fps_n, uint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -233,7 +234,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceUriNew(const char* source,
-        const char* uri, guint cudadecMemType, guint intraDecode)
+        const char* uri, uint cudadecMemType, uint intraDecode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -272,8 +273,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkNew(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height)
+    DslReturnType Services::SinkNew(const char* sink, uint displayId, uint overlayId,
+        uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -299,7 +300,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OsdNew(const char* osd, gboolean isClockEnabled)
+    DslReturnType Services::OsdNew(const char* osd, boolean isClockEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -326,7 +327,7 @@ namespace DSL
     }
     
     DslReturnType Services::DisplayNew(const char* display, 
-        guint rows, guint columns, guint width, guint height)
+        uint rows, uint columns, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -353,8 +354,8 @@ namespace DSL
     }
         
     DslReturnType Services::GieNew(const char* gie, 
-        const char* inferConfigFile, guint batchSize, 
-        guint interval, guint uniqueId, guint gpuId, 
+        const char* inferConfigFile, uint batchSize, 
+        uint interval, uint uniqueId, uint gpuId, 
         const char* modelEngineFile, const char* rawOutputDir)
     {
         LOG_FUNC();
@@ -554,7 +555,7 @@ namespace DSL
     }
     
     DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
-        gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)    
+        boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)    
     {
         if (!m_pipelines[pipeline])
         {   
