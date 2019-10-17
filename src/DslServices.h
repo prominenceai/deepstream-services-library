@@ -32,8 +32,6 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
 
-typedef int DslReturnType;
-
 namespace DSL {
     
     /**
@@ -54,25 +52,25 @@ namespace DSL {
         DslReturnType SetDumpDotDir(const char* dir);
         
         DslReturnType SourceCsiNew(const char* source, 
-            guint width, guint height, guint fps_n, guint fps_d);
+            uint width, uint height, uint fps_n, uint fps_d);
         
         DslReturnType SourceUriNew(const char* source, 
-            const char* uri, guint cudadecMemType, guint intraDecode);
+            const char* uri, uint cudadecMemType, uint intraDecode);
         
-        DslReturnType StreamMuxNew(const char* streammux, gboolean live, 
-            guint batchSize, guint batchTimeout, guint width, guint height);
+        DslReturnType StreamMuxNew(const char* streammux, boolean live, 
+            uint batchSize, uint batchTimeout, uint width, uint height);
         
-        DslReturnType SinkNew(const char* sink, guint displayId, guint overlayId,
-            guint offsetX, guint offsetY, guint width, guint height);
+        DslReturnType SinkNew(const char* sink, uint displayId, uint overlayId,
+            uint offsetX, uint offsetY, uint width, uint height);
         
-        DslReturnType OsdNew(const char* osd, gboolean isClockEnabled);
+        DslReturnType OsdNew(const char* osd, boolean isClockEnabled);
         
         DslReturnType GieNew(const char* gie, const char* configFilePath, 
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+            uint batchSize, uint interval, uint uniqueId, uint gpuId, 
             const char* modelEngineFile, const char* rawOutputDir);
         
         DslReturnType DisplayNew(const char* display, 
-            guint rows, guint columns, guint width, guint height);
+            uint rows, uint columns, uint width, uint height);
         
         DslReturnType ComponentDelete(const char* component);
         
@@ -89,7 +87,7 @@ namespace DSL {
         DslReturnType PipelineComponentsRemove(const char* pipeline, const char** components);
         
         DslReturnType PipelineStreamMuxPropertiesSet(const char* pipeline,
-            gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height);
+            boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height);
 
         DslReturnType PipelinePause(const char* pipeline);
         
