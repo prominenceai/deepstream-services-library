@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 SCENARIO( "A single Component is created and deleted correctly", "[component]" )
 {
-    std::string actualName  = "csi_source";
+    std::string actualName  = "csi-source";
 
     GIVEN( "An empty list of components" ) 
     {
@@ -66,8 +66,8 @@ SCENARIO( "A single Component is created and deleted correctly", "[component]" )
 
 SCENARIO( "A Component in use can't be deleted", "[component]" )
 {
-    std::string source  = "csi_source";
-    std::string pipeline  = "test_pipeline";
+    std::string source  = "csi-source";
+    std::string pipeline  = "test-pipeline";
 
     GIVEN( "A new Component and new pPipeline" ) 
     {

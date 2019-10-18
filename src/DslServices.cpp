@@ -93,7 +93,6 @@ const char** dsl_component_list_all()
     return DSL::Services::GetServices()->ComponentListAll();
 }
 
-
 DslReturnType dsl_pipeline_new(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineNew(pipeline);
@@ -102,6 +101,26 @@ DslReturnType dsl_pipeline_new(const char* pipeline)
 DslReturnType dsl_pipeline_delete(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineDelete(pipeline);
+}
+
+DslReturnType dsl_pipeline_delete_many(const char** pipelines)
+{
+    return DSL::Services::GetServices()->PipelineDeleteMany(pipelines);
+}
+
+DslReturnType dsl_pipeline_delete_all()
+{
+    return DSL::Services::GetServices()->PipelineDeleteAll();
+}
+
+uint dsl_pipeline_list_size()
+{
+    return DSL::Services::GetServices()->PipelineListSize();
+}
+
+const char** dsl_pipeline_list_all()
+{
+    return DSL::Services::GetServices()->PipelineListAll();
 }
 
 DslReturnType dsl_pipeline_component_add(const char* pipeline, 
@@ -560,6 +579,71 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::PipelineDeleteMany(const char** pipelines)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // iterate through the list of provided pipelines to verifiy the
+        // existence of each before making any updates to the list of pipelines.
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+
+            if (!m_pipelines[*pipeline])
+            {   
+                LOG_ERROR("Pipeline name '" << *pipeline << "' was not found");
+                return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+            }
+        }
+        LOG_DEBUG("All listed pipelines found");
+        
+        // iterate through the list a second time erasing each
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+            m_pipelines.erase(*pipeline);
+        }
+
+        LOG_INFO("All Pipelines deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        m_pipelines.clear();
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::PipelineListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_pipelines.size();
+    }
+    
+    const char** Services::PipelineListAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pipelineNames.clear();
+        
+        // reserve to avoid resizing - plus 1 for the NULL terminator
+        m_pipelineNames.reserve(m_pipelines.size() + 1);
+        for(auto const& imap: m_pipelines)
+        {
+            m_pipelineNames.push_back(imap.first.c_str());
+        }
+        m_pipelineNames.push_back(NULL);
+        
+        return (const char**)&m_pipelineNames[0];
+    }
+    
     DslReturnType Services::PipelineComponentAdd(const char* pipeline, 
         const char* component)
     {

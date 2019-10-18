@@ -245,11 +245,45 @@ DslReturnType dsl_pipeline_new(const char* pipeline);
 
 /**
  * @brief deletes a Pipeline object by name.
- * Does NOT delete the Pipeline object used to create the pipeline
  * @param[in] pipeline unique name of the Pipeline to delete.
  * @return DSL_RESULT_PIPELINE_RESULT.
+ * @info any/all components owned by the pipeline move
+ * to a state of not-in-use.
  */
 DslReturnType dsl_pipeline_delete(const char* pipeline);
+
+/**
+ * @brief deletes a NULL terminated list of pipelines
+ * @param pipelines NULL terminated list of names to delete
+ * @return DSL_RESULT_PIPELINE_RESULT
+ * @info the function ensures the existance of all pipelines
+ * in the list before making any updates, and returns
+ * DSL_RESULT_PIPELINE_NAME_NOT_FOUND on failure without
+ * making updates to the pipeline list
+ * @info any/all components owned by the pipelines move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_pipeline_delete_many(const char** pipelines);
+
+/**
+ * @brief deletes all pipelines in memory
+ * @return DSL_RESULT_COMPONENT_RESULT
+ * @info any/all components owned by the pipelines move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_pipeline_delete_all();
+
+/**
+ * @brief returns the current number of pipelines
+ * @return size of the list of pipelines
+ */
+uint dsl_pipeline_list_size();
+
+/**
+ * @brief returns the list of pipelines
+ * @return a NULL terminated array of char* pipeline names
+ */
+const char** dsl_pipeline_list_all();
 
 /**
  * @brief adds a single components to a Pipeline 
@@ -266,7 +300,7 @@ DslReturnType dsl_pipeline_component_add(const char* pipeline,
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_components_add(const char* pipeline, 
+DslReturnType dsl_pipeline_component_add_many(const char* pipeline, 
     const char** components);
 
 /**
