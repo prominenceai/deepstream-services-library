@@ -73,6 +73,10 @@ namespace DSL {
             uint rows, uint columns, uint width, uint height);
         
         DslReturnType ComponentDelete(const char* component);
+
+        DslReturnType ComponentDeleteMany(const char** components);
+
+        DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
         
@@ -82,9 +86,13 @@ namespace DSL {
         
         DslReturnType PipelineDelete(const char* pipeline);
         
-        DslReturnType PipelineComponentsAdd(const char* pipeline, const char** components);
+        DslReturnType PipelineComponentAdd(const char* pipeline, const char* component);
+
+        DslReturnType PipelineComponentAddMany(const char* pipeline, const char** components);
         
-        DslReturnType PipelineComponentsRemove(const char* pipeline, const char** components);
+        DslReturnType PipelineComponentRemove(const char* pipeline, const char* component);
+
+        DslReturnType PipelineComponentRemoveMany(const char* pipeline, const char** components);
         
         DslReturnType PipelineStreamMuxPropertiesSet(const char* pipeline,
             boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height);
