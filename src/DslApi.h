@@ -25,8 +25,6 @@ THE SOFTWARE.
 #ifndef _DSL_API_H
 #define _DSL_API_H
 
-//#include "DslServices.h"
-
 #ifdef __cplusplus
 #define EXTERN_C_BEGIN extern "C" {
 #define EXTERN_C_END   }
@@ -42,15 +40,16 @@ THE SOFTWARE.
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000001
 
 /**
- * Clock Object Return Values
+ * Component API Return Values
  */
 #define DSL_RESULT_COMPONENT_RESULT                                 0x00010000
 #define DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE                        0x00010001
 #define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010010
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010011
+#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010100
 
 /**
- * Source Object Return Values
+ * Source API Return Values
  */
 #define DSL_RESULT_SOURCE_RESULT                                    0x00100000
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
@@ -58,15 +57,6 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
 #define DSL_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
 #define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
-
-/**
- * StreamMux Object Return Values
- */
-#define DSL_RESULT_STREAMMUX_RESULT                                 0x00110000
-#define DSL_RESULT_STREAMMUX_NAME_NOT_UNIQUE                        0x00110001
-#define DSL_RESULT_STREAMMUX_NAME_NOT_FOUND                         0x00110010
-#define DSL_RESULT_STREAMMUX_NAME_BAD_FORMAT                        0x00110011
-#define DSL_RESULT_STREAMMUX_NEW_EXCEPTION                          0x00110100
 
 /**
  * Sink Object Return Values
@@ -128,8 +118,8 @@ THE SOFTWARE.
 typedef uint DslReturnType;
 typedef uint boolean;
 
-
 EXTERN_C_BEGIN
+
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
  * @param[in] source unique name for the new Source
@@ -191,22 +181,48 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
 
 /**
  * @brief creates a new, uniquely named Display obj
- * @param[in] display unique name for the new Display
+ * @param[in] name unique name for the new Display
  * @param[in] rows number of horizotal display rows
  * @param[in] columns number of vertical display columns
  * @param[in] width width of each column in pixals
  * @param[in] height height of each row in pix  als
  * @return DSL_RESULT_DISPLAY_RESULT
  */
-DslReturnType dsl_display_new(const char* display, 
+DslReturnType dsl_display_new(const char* name, 
     uint rows, uint columns, uint width, uint height);
 
 /**
  * @brief deletes a Component object by name
- * @param[in] name of the Component object to delete
+ * @param[in] component name of the Component object to delete
  * @return DSL_RESULT_COMPONENT_RESULT
+ * @info the function checks that the component is not 
+ * owned by a pipeline before deleting, and returns
+ * DSL_RESULT_COMPONENT_IN_USE on failure
  */
 DslReturnType dsl_component_delete(const char* component);
+
+/**
+ * @brief deletes a NULL terminated list of components
+ * @param components NULL terminated list of names to delete
+ * @return DSL_RESULT_COMPONENT_RESULT
+ * @info the function ensures the existance of all components
+ * in the list before making any updates, and returns
+ * DSL_RESULT_COMPONENT_NAME_NOT_FOUND on failure without
+ * making updates to the component list
+ * @info the function checks that all components are not 
+ * owned by a pipeline before deleting, and returns
+ * DSL_RESULT_COMPONENT_IN_USE on failure
+ */
+DslReturnType dsl_component_delete_many(const char** components);
+
+/**
+ * @brief deletes all components in memory
+ * @return DSL_RESULT_COMPONENT_RESULT
+ * @info the function checks that all components are not 
+ * owned by a pipeline before deleting, and returns
+ * DSL_RESULT_COMPONENT_IN_USE on failure
+ */
+DslReturnType dsl_component_delete_all();
 
 /**
  * @brief returns the current number of components
@@ -236,8 +252,17 @@ DslReturnType dsl_pipeline_new(const char* pipeline);
 DslReturnType dsl_pipeline_delete(const char* pipeline);
 
 /**
- * @brief adds a list of components to a Pipeline 
+ * @brief adds a single components to a Pipeline 
  * @param[in] pipeline name of the pipepline to update
+ * @param[in] components NULL terminated array of component names to add
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_component_add(const char* pipeline, 
+    const char* component);
+
+/**
+ * @brief adds a list of components to a Pipeline 
+ * @param[in] name name of the pipepline to update
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_PIPELINE_RESULT
  */
@@ -245,8 +270,17 @@ DslReturnType dsl_pipeline_components_add(const char* pipeline,
     const char** components);
 
 /**
- * @brief removes a list of names components from a Pipeline
- * @param[in] pipeline name of the pipepline to update
+ * @brief removes a Component from a Pipeline
+ * @param[in] pipeline name of the Pipepline to update
+ * @param[in] component name of the Component to remove
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_component_remove(const char* pipeline, 
+    const char* component);
+
+/**
+ * @brief removes a list of Components from a Pipeline
+ * @param[in] pipeline name of the Pipeline to update
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */

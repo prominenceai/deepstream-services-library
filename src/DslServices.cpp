@@ -73,6 +73,16 @@ DslReturnType dsl_component_delete(const char* component)
     return DSL::Services::GetServices()->ComponentDelete(component);
 }
 
+DslReturnType dsl_component_delete_many(const char** names)
+{
+    return DSL::Services::GetServices()->ComponentDeleteMany(names);
+}
+
+DslReturnType dsl_component_delete_all()
+{
+    return DSL::Services::GetServices()->ComponentDeleteAll();
+}
+
 uint dsl_component_list_size()
 {
     return DSL::Services::GetServices()->ComponentListSize();
@@ -94,16 +104,28 @@ DslReturnType dsl_pipeline_delete(const char* pipeline)
     return DSL::Services::GetServices()->PipelineDelete(pipeline);
 }
 
-DslReturnType dsl_pipeline_components_add(const char* pipeline, 
-    const char** components)
+DslReturnType dsl_pipeline_component_add(const char* pipeline, 
+    const char* component)
 {
-    return DSL::Services::GetServices()->PipelineComponentsAdd(pipeline, components);
+    return DSL::Services::GetServices()->PipelineComponentAdd(pipeline, component);
 }
 
-DslReturnType dsl_pipeline_components_remove(const char* pipeline, 
+DslReturnType dsl_pipeline_component_add_many(const char* pipeline, 
     const char** components)
 {
-    return DSL::Services::GetServices()->PipelineComponentsRemove(pipeline, components);
+    return DSL::Services::GetServices()->PipelineComponentAddMany(pipeline, components);
+}
+
+DslReturnType dsl_pipeline_component_remove(const char* pipeline, 
+    const char* component)
+{
+    return DSL::Services::GetServices()->PipelineComponentRemove(pipeline, component);
+}
+
+DslReturnType dsl_pipeline_component_remove_many(const char* pipeline, 
+    const char** components)
+{
+    return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
 }
 
 DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
@@ -111,7 +133,8 @@ DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
 {
     return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
         areSourcesLive, batchSize, batchTimeout, width, height);
-}    
+}
+ 
 DslReturnType dsl_pipeline_pause(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelinePause(pipeline);
@@ -425,6 +448,51 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::ComponentDeleteMany(const char** components)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // iterate through the list of provided components to verifiy the
+        // existence of each... AND that each is not owned by a pipeline 
+        // before making any updates to the list of components.
+        for (const char** component = components; *component; component++)
+        {
+
+            if (!m_components[*component])
+            {   
+                LOG_ERROR("Component name '" << *component << "' was not found");
+                return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
+            }
+            if (m_components[*component]->IsInUse())
+            {   
+                LOG_ERROR("Component '" << *component << "' is currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+        }
+        LOG_DEBUG("All listed components found and un-owned");
+        
+        // iterate through the list a second time erasing each
+        for (const char** component = components; *component; component++)
+        {
+            m_components.erase(*component);
+        }
+
+        LOG_INFO("All Components deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::ComponentDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        LOG_INFO("All Components deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     uint Services::ComponentListSize()
     {
         LOG_FUNC();
@@ -491,9 +559,41 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::PipelineComponentAdd(const char* pipeline, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        if (!m_pipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+
+        if (!m_components[component])
+        {   
+            LOG_ERROR("Component name '" << component << "' was not found");
+            return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
+        }
+
+        try
+        {
+            m_components[component]->AddToParent(m_pipelines[pipeline]);
+            LOG_INFO("Component '" << component 
+                << "' was added to Pipeline '" << pipeline << "' successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw exception adding component '" << component << "'");
+            return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+        }
+    }    
         
     
-    DslReturnType Services::PipelineComponentsAdd(const char* pipeline, 
+    DslReturnType Services::PipelineComponentAddMany(const char* pipeline, 
         const char** components)
     {
         LOG_FUNC();
@@ -506,7 +606,7 @@ namespace DSL
         }
         
         // iterate through the list of provided components to verifiy the
-        //  existenceof each - before making any updates to the pipeline.
+        //  existence of each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
 
@@ -545,7 +645,16 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PipelineComponentsRemove(const char* pipeline, 
+    DslReturnType Services::PipelineComponentRemove(const char* pipeline, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        return DSL_RESULT_API_NOT_IMPLEMENTED;
+    }
+    
+    DslReturnType Services::PipelineComponentRemoveMany(const char* pipeline, 
         const char** components)
     {
         LOG_FUNC();

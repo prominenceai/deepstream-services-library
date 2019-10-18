@@ -64,4 +64,38 @@ SCENARIO( "A single Component is created and deleted correctly", "[component]" )
     }
 }
 
+SCENARIO( "A Component in use can't be deleted", "[component]" )
+{
+    std::string source  = "csi_source";
+    std::string pipeline  = "test_pipeline";
+
+    GIVEN( "A new Component and new pPipeline" ) 
+    {
+        REQUIRE( dsl_source_csi_new(source.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline.c_str()) == DSL_RESULT_SUCCESS );
+    }
+
+    WHEN( "The Component is added to the Pipeline" ) 
+    {
+        REQUIRE ( dsl_pipeline_component_add(pipeline.c_str(), 
+            source.c_str()) == DSL_RESULT_SUCCESS );
+
+        THEN( "The component cannot be deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(source.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+        }
+    }
+    WHEN( "The Component is removed from the Pipeline")
+    {
+        REQUIRE( dsl_pipeline_component_remove(pipeline.c_str(), 
+            source.c_str()) == DSL_RESULT_SUCCESS );
+        
+        THEN( "The component can be deleted" )
+        {
+            REQUIRE( dsl_component_delete(source.c_str()) == DSL_RESULT_SUCCESS );
+        }
+        REQUIRE( dsl_pipeline_delete(pipeline.c_str()) == DSL_RESULT_SUCCESS );
+    }
+}
+
 #endif // _DSL_COMPONENT_API_TEST_H

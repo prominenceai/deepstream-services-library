@@ -88,6 +88,13 @@ namespace DSL
             g_mutex_clear(&m_bintrMutex);
         };
         
+        bool IsInUse()
+        {
+            LOG_FUNC();
+            
+            return (bool)m_pParentBintr;
+        }
+        
         void LinkTo(std::shared_ptr<Bintr> pDestBintr)
         { 
             LOG_FUNC();
