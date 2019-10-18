@@ -86,6 +86,14 @@ namespace DSL {
         
         DslReturnType PipelineDelete(const char* pipeline);
         
+        DslReturnType PipelineDeleteMany(const char** pipelines);
+
+        DslReturnType PipelineDeleteAll();
+
+        uint PipelineListSize();
+        
+        const char** PipelineListAll();
+
         DslReturnType PipelineComponentAdd(const char* pipeline, const char* component);
 
         DslReturnType PipelineComponentAddMany(const char* pipeline, const char** components);
@@ -159,6 +167,11 @@ namespace DSL {
          * @brief map of all pipelines creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
+        
+        /**
+         * @brief used to return a list of all pipeline names to the client
+         */
+        std::vector<const char*> m_pipelineNames;
         
         /**
          * @brief map of all pipeline components creaated by the client, key=name
