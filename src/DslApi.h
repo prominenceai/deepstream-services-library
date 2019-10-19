@@ -351,6 +351,27 @@ DslReturnType dsl_pipeline_play(const char* pipeline);
 DslReturnType dsl_pipeline_get_state(const char* pipeline);
 
 /**
+ * @brief dumps a Pipeline's graph to dot file.
+ * @param[in] pipeline unique name of the Pipeline to dump
+ * @param[in] filename name of the file without extention.
+ * The caller is responsible for providing a correctly formated filename
+ * The diretory location is specified by the GStreamer debug 
+ * environment variable GST_DEBUG_DUMP_DOT_DIR
+ */ 
+DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* file);
+
+/**
+ * @brief dumps a Pipeline's graph to dot file prefixed
+ * with the current timestamp.  
+ * @param[in] pipeline unique name of the Pipeline to dump
+ * @param[in] filename name of the file without extention.
+ * The caller is responsible for providing a correctly formated filename
+ * The diretory location is specified by the GStreamer debug 
+ * environment variable GST_DEBUG_DUMP_DOT_DIR
+ */ 
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* file);
+
+/**
  * @brief entry point to the GST Main Loop
  * Note: This is a blocking call - executes an endless loop
  */

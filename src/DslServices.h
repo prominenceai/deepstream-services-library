@@ -110,6 +110,10 @@ namespace DSL {
         DslReturnType PipelinePlay(const char* pipeline);
         
         DslReturnType PipelineGetState(const char* pipeline);
+        
+        DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
+        
+        DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
                         
         /** 
          * @brief Handles all pending events

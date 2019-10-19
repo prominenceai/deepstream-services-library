@@ -148,10 +148,6 @@ namespace DSL
          * @param[in] width
          * @param[in] height
          */
-         
-        /**
-         * @brief
-         */
         void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height)
         {
@@ -162,6 +158,11 @@ namespace DSL
         void LinkComponents();
         
         void UnlinkComponents();
+        
+        
+        void DumpToDot(char* filename);
+        
+        void DumpToDotWithTs(char* filename);
             
         /**
          * @brief handles incoming Message Packets received
@@ -180,7 +181,7 @@ namespace DSL
     private:
 
         /**
-         * @brief GStream Pipeline wrapped by this pipeline bintr
+         * @brief GStreamer Pipeline contained by this pipeline bintr
          */
         GstElement* m_pGstPipeline; 
 
