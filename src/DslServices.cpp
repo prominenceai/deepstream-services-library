@@ -169,6 +169,16 @@ DslReturnType dsl_pipeline_get_state(const char* pipeline)
     return DSL::Services::GetServices()->PipelineGetState(pipeline);
 }
 
+DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename)
+{
+    return DSL::Services::GetServices()->PipelineDumpToDot(pipeline, filename);
+}
+
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename)
+{
+    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(pipeline, filename);    
+}
+
 void dsl_main_loop_run()
 {
     g_main_loop_run(DSL::Services::GetServices()->m_pMainLoop);
@@ -750,6 +760,9 @@ namespace DSL
     DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
         boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)    
     {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
         if (!m_pipelines[pipeline])
         {   
             LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
@@ -808,9 +821,43 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
         
+    DslReturnType Services::PipelineDumpToDot(const char* pipeline, char* filename)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        if (!m_pipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        // TODO check state of debug env var and return NON-success if not set
+
+        m_pipelines[pipeline]->DumpToDot(filename);
+        
+        return DSL_RESULT_SUCCESS;
+    }   
+    
+    DslReturnType Services::PipelineDumpToDotWithTs(const char* pipeline, char* filename)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        if (!m_pipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        // TODO check state of debug env var and return NON-success if not set
+
+        m_pipelines[pipeline]->DumpToDot(filename);
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     bool Services::HandleXWindowEvents()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         XEvent xEvent;
 

@@ -239,7 +239,6 @@ namespace DSL
     bool PipelineBintr::Pause()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
         
         return (gst_element_set_state(m_pBin, 
             GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
@@ -248,10 +247,25 @@ namespace DSL
     bool PipelineBintr::Play()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
                 
         return (gst_element_set_state(m_pGstPipeline, 
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
+    }
+
+    void PipelineBintr::DumpToDot(char* filename)
+    {
+        LOG_FUNC();
+        
+        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(m_pGstPipeline), 
+            GST_DEBUG_GRAPH_SHOW_ALL, filename);
+    }
+    
+    void PipelineBintr::DumpToDotWithTs(char* filename)
+    {
+        LOG_FUNC();
+        
+        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
+            GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
@@ -330,13 +344,8 @@ namespace DSL
         case GST_STATE_NULL:
             break;
         case GST_STATE_PLAYING:
-            LOG_INFO("saving bin to dot file pipeline-playing");
-            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
-                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-playing");
             break;
         case GST_STATE_READY:
-            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
-                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-ready");
             break;
         case GST_STATE_PAUSED:
             break;
