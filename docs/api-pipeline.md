@@ -110,6 +110,8 @@ correctly formatted and unused filename.
 * `pipeline` - unique name of the Pipeline to dump
 * `filename` - name of the file without extension.
 
+**Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
+
 ### *dsl_pipeline_dump_to_dot_with_ts*
 ```C++
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
