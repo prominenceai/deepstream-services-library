@@ -16,3 +16,11 @@ DSL is released under the MIT license. Contributions are welcome and greatly app
 * [Installing Dependencies](/docs/installing-dependencies.md)
 * [Logging and Debugging](/docs/debugging-dsl.md)
 * [API Reference](/docs/api-reference-list.md)
+  * [Pipeline](/docs/api-pipeline.md)
+  * [Component](/docs/api-component.md)
+  * [Source](/docs/api-source.md)
+  * Primary GIE
+  * Secondary GIE
+  * Tiled Display
+  * On Screen Display
+  * Sink
