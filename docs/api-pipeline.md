@@ -39,7 +39,7 @@ The constructor creates a uniquely named Pipeline. Construction will fail
 if the name is currently in use.
 
 **Parameters**
-`* pipeline` - unique name for the Pipeline to create.
+* `pipeline` - unique name for the Pipeline to create.
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
