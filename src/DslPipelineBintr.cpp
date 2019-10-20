@@ -267,6 +267,30 @@ namespace DSL
         GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
+
+    DslReturnType PipelineBintr::AddStateChangeListener(state_change_listener_cb listener, void* userdata)
+    {
+        if (m_stateChangeListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener is not unique");
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+        }
+        m_stateChangeListeners[listener] = userdata;
+        
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType PipelineBintr::RemoveStateChangeListener(state_change_listener_cb listener)
+    {
+        if (!m_stateChangeListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener was not found");
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+        }
+        m_stateChangeListeners.erase(listener);
+        
+        return DSL_RESULT_SUCCESS;
+    }
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {

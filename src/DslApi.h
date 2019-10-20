@@ -110,13 +110,21 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED                  0x11001000
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001001
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001011
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001100
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
+#define DSL_PIPELINE_STATE_NULL                                     0
+#define DSL_PIPELINE_STATE_READY                                    1
+#define DSL_PIPELINE_STATE_PLAYING                                  2
+#define DSL_PIPELINE_STATE_PAUSED                                   4
+
 typedef uint DslReturnType;
 typedef uint boolean;
+
 
 EXTERN_C_BEGIN
 
@@ -358,7 +366,7 @@ DslReturnType dsl_pipeline_get_state(const char* pipeline);
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  */ 
-DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* file);
+DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
 
 /**
  * @brief dumps a Pipeline's graph to dot file prefixed
@@ -369,7 +377,35 @@ DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* file);
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  */ 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* file);
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
+
+/**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline changes state.
+ * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
+ * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
+ * @param[in] user_data opaque pointer to client's data
+ */
+typedef void (*state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
+
+/**
+ * @brief adds a callback to be notified on change of Pipeline state
+ * @param[in] pipeline name of the pipepline to update
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
+    state_change_listener_cb listener, void* userdata);
+
+/**
+ * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
+ * @param[in] pipeline name of the pipepline to update
+ * @param[in] listener pointer to the client's function to remove
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
+    state_change_listener_cb listener);
 
 /**
  * @brief entry point to the GST Main Loop
