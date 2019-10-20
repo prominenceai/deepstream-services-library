@@ -28,6 +28,25 @@ THE SOFTWARE.
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
+#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
+{ \
+    if (!pipelines[name]) \
+    { \
+        LOG_ERROR("Pipeline name '" << pipeline << "' was not found"); \
+        return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
+#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
+{ \
+    if (!components[name]) \
+    { \
+        LOG_ERROR("Component name '" << component << "' was not found"); \
+        return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
+
 DslReturnType dsl_source_csi_new(const char* source, 
     uint width, uint height, uint fps_n, uint fps_d)
 {
@@ -177,6 +196,20 @@ DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename)
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename)
 {
     return DSL::Services::GetServices()->PipelineDumpToDotWithTs(pipeline, filename);    
+}
+
+DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
+    state_change_listener_cb listener, void* userdata)
+{
+    return DSL::Services::GetServices()->
+        PipelineStateChangeListenerAdd(pipeline, listener, userdata);
+}
+
+DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
+    state_change_listener_cb listener)
+{
+    return DSL::Services::GetServices()->
+        PipelineStateChangeListenerRemove(pipeline, listener);
 }
 
 void dsl_main_loop_run()
@@ -464,12 +497,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
-        if (!m_components[component])
-        {   
-            LOG_ERROR("Component name '" << component << "' was not found");
-            return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
-        }
         m_components.erase(component);
 
         LOG_INFO("Component '" << component << "' deleted successfully");
@@ -487,12 +516,8 @@ namespace DSL
         // before making any updates to the list of components.
         for (const char** component = components; *component; component++)
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
 
-            if (!m_components[*component])
-            {   
-                LOG_ERROR("Component name '" << *component << "' was not found");
-                return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
-            }
             if (m_components[*component]->IsInUse())
             {   
                 LOG_ERROR("Component '" << *component << "' is currently in use");
@@ -576,12 +601,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
         m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
@@ -598,12 +619,7 @@ namespace DSL
         // existence of each before making any updates to the list of pipelines.
         for (const char** pipeline = pipelines; *pipeline; pipeline++)
         {
-
-            if (!m_pipelines[*pipeline])
-            {   
-                LOG_ERROR("Pipeline name '" << *pipeline << "' was not found");
-                return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-            }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, *pipeline);
         }
         LOG_DEBUG("All listed pipelines found");
         
@@ -659,18 +675,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
-
-        if (!m_components[component])
-        {   
-            LOG_ERROR("Component name '" << component << "' was not found");
-            return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
-        }
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
         try
         {
@@ -692,23 +698,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         // iterate through the list of provided components to verifiy the
         //  existence of each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
-
-            if (!m_components[*component])
-            {   
-                LOG_ERROR("Component name '" << *component << "' was not found");
-                return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
-            }
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
         }
         LOG_DEBUG("All listed components found");
         
@@ -744,6 +740,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -753,6 +751,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -762,12 +761,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
         try
         {
             m_pipelines[pipeline]->SetStreamMuxProperties(areSourcesLive, 
@@ -786,6 +781,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -794,16 +790,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // flush the output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
@@ -854,6 +846,27 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::PipelineStateChangeListenerAdd(const char* pipeline, 
+        state_change_listener_cb listener, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        return m_pipelines[pipeline]->AddStateChangeListener(listener, user_data);
+    }
+    
+    DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
+        state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
+    }
+    
     
     bool Services::HandleXWindowEvents()
     {

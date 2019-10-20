@@ -114,6 +114,12 @@ namespace DSL {
         DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
         
         DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
+        
+        DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
+            state_change_listener_cb listener, void* userdata);
+        
+        DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
+            state_change_listener_cb listener);
                         
         /** 
          * @brief Handles all pending events

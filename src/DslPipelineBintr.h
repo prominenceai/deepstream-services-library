@@ -25,6 +25,7 @@ THE SOFTWARE.
 #ifndef _DSL_PIPELINE_H
 #define _DSL_PIPELINE_H
 
+#include "DslApi.h"
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
@@ -159,10 +160,39 @@ namespace DSL
         
         void UnlinkComponents();
         
-        
+        /**
+         * @brief dumps a Pipeline's graph to dot file.
+         * @param[in] filename name of the file without extention.
+         * The caller is responsible for providing a correctly formated filename
+         * The diretory location is specified by the GStreamer debug 
+         * environment variable GST_DEBUG_DUMP_DOT_DIR
+         */ 
         void DumpToDot(char* filename);
         
+        /**
+         * @brief dumps a Pipeline's graph to dot file prefixed
+         * with the current timestamp.  
+         * @param[in] filename name of the file without extention.
+         * The caller is responsible for providing a correctly formated filename
+         * The diretory location is specified by the GStreamer debug 
+         * environment variable GST_DEBUG_DUMP_DOT_DIR
+         */ 
         void DumpToDotWithTs(char* filename);
+        
+        /**
+         * @brief adds a callback to be notified on change of Pipeline state
+         * @param[in] listener pointer to the client's function to call on state change
+         * @param[in] userdata opaque pointer to client data passed into the listner function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType AddStateChangeListener(state_change_listener_cb listener, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType RemoveStateChangeListener(state_change_listener_cb listener);
             
         /**
          * @brief handles incoming Message Packets received
@@ -210,6 +240,8 @@ namespace DSL
          * of linked, false if unlinked. 
          */
         bool m_areComponentsLinked;
+        
+        std::map<state_change_listener_cb, void*>m_stateChangeListeners;
 
         /**
          * @brief mutex to protect critical pipeline code
