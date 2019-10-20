@@ -9,8 +9,8 @@
 * dsl_pipeline_play
 * dsl_pipeline_pause
 * dsl_pipeline_state_is
-* dsl_pipeline_dump_to_dot
-* dsl_pipeline_dump_to_dot_ts
+* [dsl_pipeline_dump_to_dot](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot)
+* [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
 * dsl_pipeline_component_add
 * dsl_pipeline_component_add_many
 * dsl_pipeline_component_remove
@@ -19,18 +19,18 @@
 * dsl_pipeline_component_list_all
 * dsl_pipeline_message_subscriber_add
 * dsl_pipeline_message_subscriber_remove
-* dsl_pipeline_state_change_listener_add
-* dsl_pipeline_state_change_listener_remove
+* [dsl_pipeline_state_change_listener_add](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_add)
+* [dsl_pipeline_state_change_listener_remove](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_remove)
 * dsl_pipeline_display_event_handler_add
 * dsl_pipeline_display_event_handler_remove
 
 #### Component API:
 * dsl_component_copy
 * [dsl_component_delete](/docs/api-component.md#dsl_component_delete)
-* [dsl_component_delete_many](/docs/api-component.md##dsl_component_delete_many)
-* [dsl_component_delete_all](/docs/api-component.md##dsl_component_delete_all)
-* [dsl_component_list_size](/docs/api-component.md##dsl_component_list_size)
-* [dsl_component_list_all](/docs/api-component.md##dsl_component_list_all)
+* [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many)
+* [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+* [dsl_component_list_size](/docs/api-component.md#dsl_component_list_size)
+* [dsl_component_list_all](/docs/api-component.md#dsl_component_list_all)
 
 #### Source API:
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
