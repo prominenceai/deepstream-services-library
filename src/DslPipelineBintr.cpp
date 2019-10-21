@@ -390,19 +390,11 @@ namespace DSL
         gst_message_parse_state_changed(pMessage, &oldstate, &newstate, NULL);
         
         LOG_INFO(m_mapPipelineStates[oldstate] << " => " << m_mapPipelineStates[newstate]);
-            
-        switch(newstate)
+
+        // iterate through the map of state-change-listeners calling each
+        for(auto const& imap: m_stateChangeListeners)
         {
-        case GST_STATE_NULL:
-            break;
-        case GST_STATE_PLAYING:
-            break;
-        case GST_STATE_READY:
-            break;
-        case GST_STATE_PAUSED:
-            break;
-        default:
-            break;
+            imap.first((uint)oldstate, (uint)newstate, imap.second);
         }
         return true;
     }
