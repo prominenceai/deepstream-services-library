@@ -25,46 +25,52 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp", "[pipeline]" )
-{
-    std::string pipelineName  = "test-pipeline";
-    std::string sourceName = "csi-source";
-    char fileName[] = "test-dot-file-sans-ts";
+#define LISTENER_1_DATA 0x11111111
+#define LISTENER_2_DATA 0x22222222
 
-    GIVEN( "A Pipeline in memory with at least one component" ) 
+void StateChangeListener1(uint oldstate, uint newstate, void* userdata)
+{
+    REQUIRE(userdata == (void*)LISTENER_1_DATA);
+}
+
+void StateChangeListener2(uint oldstate, uint newstate, void* userdata)
+{
+    REQUIRE(userdata == (void*)LISTENER_2_DATA);
+}
+
+SCENARIO( "All state-change-listeners are called on change of state", "[pipeline]" )
+{
+    std::string pipelineName = "test-pipeline";
+    std::string sourceName  = "csi-source";
+
+    GIVEN( "A Pipeline with two state-change-listeners" ) 
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             sourceName.c_str()) == DSL_RESULT_SUCCESS );
-            
+        REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
+            (dsl_state_change_listener_cb)StateChangeListener1, (void*)LISTENER_1_DATA) 
+            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
+            (dsl_state_change_listener_cb)StateChangeListener2, (void*)LISTENER_2_DATA) 
+            == DSL_RESULT_SUCCESS );
+    }
+    WHEN( "When the Pipeline is requested to change state" )
+    {
+//        REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
         // ** NOTE ** This test is incomplete... the Pipeline must transition into 
-        // a ready or playing state to generate a graph before one can be dumped to
-        // file. This scenario only is only testing the service execution at thsi time.
+        // a newstate successfully
+        // TODO - need to sync with callbacks before proceeding
+    }
+    WHEN( "All test resources are deleted")
+    {
+        REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
+            (dsl_state_change_listener_cb)StateChangeListener1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
+            (dsl_state_change_listener_cb)StateChangeListener2) == DSL_RESULT_SUCCESS );
         
-    }
-    WHEN( "A Pipeline is called to dump its graph to .dot file with timestamp" )
-    {
-        REQUIRE( dsl_pipeline_dump_to_dot_with_ts(pipelineName.c_str(),
-            fileName) == DSL_RESULT_SUCCESS );
-
-        THEN( "The new file is created successfully" ) 
-        {
-            
-        }
-    }
-    WHEN( "A Pipeline is called to dump its graph to .dot file without timestamp" )
-    {
-        REQUIRE( dsl_pipeline_dump_to_dot(pipelineName.c_str(),
-            fileName) == DSL_RESULT_SUCCESS );
-
-        THEN( "The new file is created successfully" ) 
-        {
-            
-        }
-    }
-    WHEN( "The Pipeline and Component are deleted")
-    {
         REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
         

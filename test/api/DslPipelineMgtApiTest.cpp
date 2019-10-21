@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_PIPELINE_MGT_API_TEST_H
-#define _DSL_PIPELINE_MGT_API_TEST_H
-
 #include "catch.hpp"
 #include "DslApi.h"
 
@@ -105,5 +102,3 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
         }
     }
 }
-
-#endif // __DSL_PIPELINE_MGT_API_TEST_H

@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_PIPELINE_DBG_API_TEST_H
-#define _DSL_PIPELINE_DBG_API_TEST_H
-
 #include "catch.hpp"
 #include "DslApi.h"
 
@@ -114,5 +111,3 @@ SCENARIO( "An event handler can be added and removed", "[pipeline]" )
         }
     }
 }
-
-#endif // _DSL_PIPELINE_DBG_API_TEST_H
