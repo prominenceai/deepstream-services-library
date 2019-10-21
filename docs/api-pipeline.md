@@ -30,6 +30,10 @@ The following return codes are used by the Pipeline API
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
 #define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001011
 #define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001100
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001101
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11001110
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
 ```
 
 ## Constructors
