@@ -199,17 +199,31 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filen
 }
 
 DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
-    state_change_listener_cb listener, void* userdata)
+    dsl_state_change_listener_cb listener, void* userdata)
 {
     return DSL::Services::GetServices()->
         PipelineStateChangeListenerAdd(pipeline, listener, userdata);
 }
 
 DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
-    state_change_listener_cb listener)
+    dsl_state_change_listener_cb listener)
 {
     return DSL::Services::GetServices()->
         PipelineStateChangeListenerRemove(pipeline, listener);
+}
+
+DslReturnType dsl_pipeline_display_event_handler_add(const char* pipeline, 
+    dsl_display_event_handler_cb handler, void* userdata)
+{
+    return DSL::Services::GetServices()->
+        PipelineDisplayEventHandlerAdd(pipeline, handler, userdata);
+}    
+
+DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline, 
+    dsl_display_event_handler_cb handler)
+{
+    return DSL::Services::GetServices()->
+        PipelineDisplayEventHandlerRemove(pipeline, handler);
 }
 
 void dsl_main_loop_run()
@@ -848,17 +862,17 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStateChangeListenerAdd(const char* pipeline, 
-        state_change_listener_cb listener, void* user_data)
+        dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        return m_pipelines[pipeline]->AddStateChangeListener(listener, user_data);
+        return m_pipelines[pipeline]->AddStateChangeListener(listener, userdata);
     }
     
     DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
-        state_change_listener_cb listener)
+        dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -867,6 +881,26 @@ namespace DSL
         return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
     }
     
+    DslReturnType Services::PipelineDisplayEventHandlerAdd(const char* pipeline, 
+        dsl_display_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
+    }
+        
+
+    DslReturnType Services::PipelineDisplayEventHandlerRemove(const char* pipeline, 
+        dsl_display_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
+    }
     
     bool Services::HandleXWindowEvents()
     {

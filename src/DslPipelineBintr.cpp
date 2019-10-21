@@ -268,7 +268,7 @@ namespace DSL
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
 
-    DslReturnType PipelineBintr::AddStateChangeListener(state_change_listener_cb listener, void* userdata)
+    DslReturnType PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
     {
         if (m_stateChangeListeners[listener])
         {   
@@ -280,7 +280,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType PipelineBintr::RemoveStateChangeListener(state_change_listener_cb listener)
+    DslReturnType PipelineBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
     {
         if (!m_stateChangeListeners[listener])
         {   
@@ -288,6 +288,34 @@ namespace DSL
             return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
         }
         m_stateChangeListeners.erase(listener);
+        
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType PipelineBintr::AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+
+        if (m_displayEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+        }
+        m_displayEventHandlers[handler] = userdata;
+        
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType PipelineBintr::RemoveDisplayEventHandler(dsl_display_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (!m_displayEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+        }
+        m_displayEventHandlers.erase(handler);
         
         return DSL_RESULT_SUCCESS;
     }

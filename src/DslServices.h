@@ -116,10 +116,17 @@ namespace DSL {
         DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
         
         DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
-            state_change_listener_cb listener, void* userdata);
+            dsl_state_change_listener_cb listener, void* userdata);
         
         DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
-            state_change_listener_cb listener);
+            dsl_state_change_listener_cb listener);
+                        
+        DslReturnType PipelineDisplayEventHandlerAdd(const char* pipeline, 
+            dsl_display_event_handler_cb handler, void* userdata);
+
+        DslReturnType PipelineDisplayEventHandlerRemove(const char* pipeline, 
+            dsl_display_event_handler_cb handler);
+
                         
         /** 
          * @brief Handles all pending events

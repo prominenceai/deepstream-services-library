@@ -185,14 +185,29 @@ namespace DSL
          * @param[in] userdata opaque pointer to client data passed into the listner function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType AddStateChangeListener(state_change_listener_cb listener, void* userdata);
+        DslReturnType AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
 
         /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType RemoveStateChangeListener(state_change_listener_cb listener);
+        DslReturnType RemoveStateChangeListener(dsl_state_change_listener_cb listener);
+            
+        /**
+         * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+         * @param[in] handler pointer to the client's function to call on Display event
+         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType RemoveDisplayEventHandler(dsl_display_event_handler_cb handler);
             
         /**
          * @brief handles incoming Message Packets received
@@ -241,7 +256,17 @@ namespace DSL
          */
         bool m_areComponentsLinked;
         
-        std::map<state_change_listener_cb, void*>m_stateChangeListeners;
+        /**
+         * @brief map of all currently registered state-change-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
+        
+        /**
+         * @brief map of all currently registered display-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_display_event_handler_cb, void*>m_displayEventHandlers;
 
         /**
          * @brief mutex to protect critical pipeline code

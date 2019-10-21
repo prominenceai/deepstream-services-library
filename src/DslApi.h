@@ -112,6 +112,10 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
 #define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001011
 #define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001100
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001101
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11001110
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -386,7 +390,7 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filen
  * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
  * @param[in] user_data opaque pointer to client's data
  */
-typedef void (*state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
  * @brief adds a callback to be notified on change of Pipeline state
@@ -396,7 +400,7 @@ typedef void (*state_change_listener_cb)(uint prev_state, uint curr_state, void*
  * @return DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
-    state_change_listener_cb listener, void* userdata);
+    dsl_state_change_listener_cb listener, void* userdata);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
@@ -405,7 +409,35 @@ DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline,
  * @return DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
-    state_change_listener_cb listener);
+    dsl_state_change_listener_cb listener);
+
+/**
+ * @brief callback typedef for a client event handler function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline receives window events for the Tiled Display.
+ * @param[in] 
+ * @param[in] 
+ * @param[in] user_data opaque pointer to client's data
+ */
+typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
+
+/**
+ * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+ * @param[in] pipeline name of the pipepline to update
+ * @param[in] handler pointer to the client's function to call to handle window events.
+ * @param[in] user_data opaque pointer to client data passed into the listner function.
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_display_event_handler_add(const char* pipeline, 
+    dsl_display_event_handler_cb handler, void* user_data);
+
+/**
+ * @brief removes a callback previously added with dsl_display_event_handler_add
+ * @param[in] pipeline name of the pipepline to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline, 
+    dsl_display_event_handler_cb handler);
 
 /**
  * @brief entry point to the GST Main Loop
