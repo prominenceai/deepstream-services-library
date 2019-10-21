@@ -21,8 +21,8 @@
 * dsl_pipeline_message_subscriber_remove
 * [dsl_pipeline_state_change_listener_add](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_remove)
-* dsl_pipeline_display_event_handler_add
-* dsl_pipeline_display_event_handler_remove
+* [dsl_pipeline_display_event_handler_add](/docs/api-pipeline.md#dsl_pipeline_display_event_handler_add)
+* [dsl_pipeline_display_event_handler_remove](/docs/api-pipeline.md#dsl_pipeline_display_event_handler_remove)
 
 #### Component API:
 * dsl_component_copy
