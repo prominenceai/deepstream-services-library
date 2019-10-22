@@ -112,13 +112,7 @@ namespace DSL
             LOG_ERROR("Failed to create new GST Pipeline for '" << pipeline << "'");
             throw;
         }
-        
-        m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
-        m_pProcessBintr = std::shared_ptr<ProcessBintr>(new ProcessBintr("process-bin"));
-        
-        AddChild(m_pSourcesBintr);
-        AddChild(m_pProcessBintr);
-        
+                
         // Initialize "constant-to-string" maps
         _initMaps();
         
@@ -154,7 +148,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pChildBintrs.push_back(pChildBintr);
+        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                         
         if (!gst_bin_add(GST_BIN(m_pGstPipeline), pChildBintr->m_pBin))
         {
@@ -164,18 +158,25 @@ namespace DSL
         LOG_INFO("Child bin '" << pChildBintr->m_name <<"' add to '" << m_name <<"'");
     };
     
-    void PipelineBintr::AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr)
+    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
     {
         LOG_FUNC();
-        
-        m_pSourcesBintr->AddChild(pCsiSourceBintr);
+
+        // Create the shared sources bintr if it doesn't exist
+        if (!m_pSourcesBintr)
+        {
+            m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
+            AddChild(m_pSourcesBintr);
+        }
+
+        m_pSourcesBintr->AddChild(pSourceBintr);
     }
 
-    void PipelineBintr::AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr)
+    void PipelineBintr::RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
     {
         LOG_FUNC();
-        
-        m_pSourcesBintr->AddChild(pUriSourceBintr);
+
+        m_pSourcesBintr->RemoveChild(pSourceBintr);
     }
 
     void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)

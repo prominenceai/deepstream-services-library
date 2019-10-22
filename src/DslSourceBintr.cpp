@@ -41,7 +41,7 @@ namespace DSL
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
 
-        // Each Source added will be linked to the Stream Muxer
+        // Each Source will be linked to the Stream Muxer later, on Source add
         
         // Setup Src Ghost Pad for Stream Muxer element 
         AddSourceGhostPad();
@@ -59,7 +59,7 @@ namespace DSL
         pChildBintr->m_pParentBintr = 
             std::dynamic_pointer_cast<Bintr>(shared_from_this());
 
-        m_pChildBintrs.push_back(pChildBintr);
+        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
 
         // set the source ID based on the new count of sources
 //        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
@@ -72,24 +72,27 @@ namespace DSL
             throw;
         }
 
-        // Get the static source pad - from the Source component
-        // being added - to link to Streammux element
-        StaticPadtr sourcePadtr(pChildBintr->m_pBin, "src");
-        
         // Retrieve the sink pad - from the Streammux element - 
         // to link to the Source component being added
-        RequestPadtr sinkPadtr(m_pStreamMux, "sink_0");
-     
-        if (gst_pad_link(sourcePadtr.m_pPad, sinkPadtr.m_pPad) != GST_PAD_LINK_OK)
-        {
-            LOG_ERROR("Failed to link '" << pChildBintr->m_name 
-                << "' to Stream Muxer" << m_name << "'");
-            throw;
-        }
+        std::shared_ptr<RequestPadtr> pSinkPadtr = 
+            std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, "sink_0"));
+        
+        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
+            m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
         
         LOG_INFO("Source '" << pChildBintr->m_name << "' linked to Stream Muxer");
     }
-    
+
+    void SourcesBintr::RemoveChild(std::shared_ptr<Bintr> pChildBintr)
+    {
+        LOG_FUNC();
+
+        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
+            m_pStaticSourcePadtr->Unlink();
+        
+        Bintr::RemoveChild(pChildBintr);
+    }
+
     void SourcesBintr::AddSourceGhostPad()
     {
         LOG_FUNC();
@@ -173,6 +176,25 @@ namespace DSL
     {
         LOG_FUNC();
     }
+    
+    void SourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Source to the Parent Pipeline 
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            AddSourceBintr(shared_from_this());
+    }
+
+    void SourceBintr::RemoveFromParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' Source from the Parent Pipeline 
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            RemoveSourceBintr(shared_from_this());
+    }
+
 
     CsiSourceBintr::CsiSourceBintr(const char* source, 
         guint width, guint height, guint fps_n, guint fps_d)
@@ -206,23 +228,16 @@ namespace DSL
         
         gst_caps_unref(pCaps);        
         
-        // Src Ghost Pad only
+        // Add Ghost Pad and create Static Padtr to link to StreamMuxer
         AddSourceGhostPad();
+
+        m_pStaticSourcePadtr = std::shared_ptr<StaticPadtr>(new StaticPadtr(m_pBin, "src"));
     }
 
     CsiSourceBintr::~CsiSourceBintr()
     {
         LOG_FUNC();
 
-    }
-
-    void CsiSourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' Source to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
-            AddCsiSourceBintr(shared_from_this());
     }
 
     UriSourceBintr::UriSourceBintr(const char* source, const char* uri,
@@ -288,12 +303,12 @@ namespace DSL
         // get a pad from the Tee element and link to the "source queuue"
         RequestPadtr teeSourcePadtr1(m_pTee, padtemplate, "src");
         StaticPadtr sourceQueueSinkPadtr(m_pSourceQueue, "sink");
-        teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
+//        teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
 
         // get a second pad from the Tee element and link to the "fake sink queue"
         RequestPadtr teeSourcePadtr2(m_pTee, padtemplate, "src");
         StaticPadtr fakeSinkQueueSinkPadtr(m_pFakeSinkQueue, "sink");
-        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
+//        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
 
         g_object_set(G_OBJECT(m_pFakeSink), "sync", FALSE, "async", FALSE, NULL);
         
@@ -302,15 +317,6 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
-    }
-
-    void UriSourceBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' Source to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddUriSourceBintr(shared_from_this());
     }
 
     void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)

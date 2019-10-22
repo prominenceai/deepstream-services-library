@@ -512,6 +512,12 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_INFO("Component '" << component << "' is in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
+        }
 
         m_components.erase(component);
 

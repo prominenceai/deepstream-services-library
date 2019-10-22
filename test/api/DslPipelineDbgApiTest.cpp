@@ -65,6 +65,8 @@ SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp",
     }
     WHEN( "The Pipeline and Component are deleted")
     {
+        REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(), 
+            sourceName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
         

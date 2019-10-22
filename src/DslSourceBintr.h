@@ -31,55 +31,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    class SourcesBintr : public Bintr
-    {
-    public: 
-    
-        SourcesBintr(const char* name);
-
-        ~SourcesBintr();
-        
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
-        
-        void AddSourceGhostPad();
-        
-        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height);
-
-    private:
-
-        GstElement* m_pStreamMux;
-        
-        /**
-         @brief
-         */
-        gboolean m_areSourcesLive;
-
-        /**
-         @brief
-         */
-        gint m_batchSize;
-
-        /**
-         @brief
-         */
-        gint m_batchTimeout;
-        /**
-         @brief
-         */
-        gint m_streamMuxWidth;
-
-        /**
-         @brief
-         */
-        gint m_streamMuxHeight;
-
-        /**
-         @brief
-         */
-        gboolean m_enablePadding;
-    };
-
     /**
      * @class SourceBintr
      * @brief Implements a Source Bintr for all derived Source types.
@@ -95,6 +46,10 @@ namespace DSL
             guint fps_n, guint fps_d);
 
         ~SourceBintr();
+
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+                
+        void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr);
         
         /**
          * @brief unique stream source identifier managed by the 
@@ -104,6 +59,8 @@ namespace DSL
 
     public:
             
+        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;
+        
         /**
          * @brief
          */
@@ -163,8 +120,6 @@ namespace DSL
 
         ~CsiSourceBintr();
         
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-
     private:
         /**
          * @brief
@@ -185,12 +140,6 @@ namespace DSL
             guint cudadecMemType, guint intraDecode);
 
         ~UriSourceBintr();
-        
-        /**
-         * @brief 
-         * @param pParentBintr
-         */
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
         
         /**
          * @brief 
@@ -287,6 +236,57 @@ namespace DSL
         GstElement* m_pFakeSinkQueue;
     };
 
+    class SourcesBintr : public Bintr
+    {
+    public: 
+    
+        SourcesBintr(const char* name);
+
+        ~SourcesBintr();
+        
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+        
+        void RemoveChild(std::shared_ptr<Bintr> pChildBintr);
+        
+        void AddSourceGhostPad();
+        
+        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
+            guint width, guint height);
+
+    private:
+
+        GstElement* m_pStreamMux;
+        
+        /**
+         @brief
+         */
+        gboolean m_areSourcesLive;
+
+        /**
+         @brief
+         */
+        gint m_batchSize;
+
+        /**
+         @brief
+         */
+        gint m_batchTimeout;
+        /**
+         @brief
+         */
+        gint m_streamMuxWidth;
+
+        /**
+         @brief
+         */
+        gint m_streamMuxHeight;
+
+        /**
+         @brief
+         */
+        gboolean m_enablePadding;
+    };
+
     /**
      * @brief 
      * @param[in] pBin
@@ -335,6 +335,7 @@ namespace DSL
      * @return 
      */
     static gboolean StreamBufferSeekCB(gpointer pSource);
+
 }
 
 #endif // _DSL_SOURCE_BINTR_H
