@@ -101,6 +101,7 @@ namespace DSL
         : Bintr(pipeline)
         , m_pGstPipeline(NULL)
         , m_areComponentsLinked(false)
+        , m_pSourcesBintr(nullptr)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
     {
@@ -112,13 +113,7 @@ namespace DSL
             LOG_ERROR("Failed to create new GST Pipeline for '" << pipeline << "'");
             throw;
         }
-        
-        m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
-        m_pProcessBintr = std::shared_ptr<ProcessBintr>(new ProcessBintr("process-bin"));
-        
-        AddChild(m_pSourcesBintr);
-        AddChild(m_pProcessBintr);
-        
+                
         // Initialize "constant-to-string" maps
         _initMaps();
         
@@ -142,6 +137,13 @@ namespace DSL
 
         gst_element_set_state(m_pGstPipeline, GST_STATE_NULL);
         
+        // release all sources.. returning them to a state of not-in-use
+        if (m_pSourcesBintr)
+        {
+            m_pSourcesBintr->RemoveAllChildren();
+            m_pSourcesBintr = nullptr;            
+        }
+        
         // cleanup all resources
         gst_object_unref(m_pGstBus);
 
@@ -154,7 +156,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pChildBintrs.push_back(pChildBintr);
+        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                         
         if (!gst_bin_add(GST_BIN(m_pGstPipeline), pChildBintr->m_pBin))
         {
@@ -164,18 +166,33 @@ namespace DSL
         LOG_INFO("Child bin '" << pChildBintr->m_name <<"' add to '" << m_name <<"'");
     };
     
-    void PipelineBintr::AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr)
+    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
     {
         LOG_FUNC();
-        
-        m_pSourcesBintr->AddChild(pCsiSourceBintr);
+
+        // Create the shared sources bintr if it doesn't exist
+        if (!m_pSourcesBintr)
+        {
+            m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
+            AddChild(m_pSourcesBintr);
+        }
+
+        m_pSourcesBintr->AddChild(pSourceBintr);
     }
 
-    void PipelineBintr::AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr)
+    bool PipelineBintr::IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr)
     {
         LOG_FUNC();
-        
-        m_pSourcesBintr->AddChild(pUriSourceBintr);
+
+        return (pSourceBintr->m_pParentBintr == m_pSourcesBintr);
+    }
+
+
+    void PipelineBintr::RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
+    {
+        LOG_FUNC();
+
+        m_pSourcesBintr->RemoveChild(pSourceBintr);
     }
 
     void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
@@ -239,7 +256,6 @@ namespace DSL
     bool PipelineBintr::Pause()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
         
         return (gst_element_set_state(m_pBin, 
             GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
@@ -248,10 +264,96 @@ namespace DSL
     bool PipelineBintr::Play()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_pipelineMutex);
                 
         return (gst_element_set_state(m_pGstPipeline, 
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
+    }
+
+    void PipelineBintr::DumpToDot(char* filename)
+    {
+        LOG_FUNC();
+        
+        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(m_pGstPipeline), 
+            GST_DEBUG_GRAPH_SHOW_ALL, filename);
+    }
+    
+    void PipelineBintr::DumpToDotWithTs(char* filename)
+    {
+        LOG_FUNC();
+        
+        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
+            GST_DEBUG_GRAPH_SHOW_ALL, filename);
+    }
+
+    DslReturnType PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        
+        if (m_stateChangeListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener is not unique");
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+        }
+        m_stateChangeListeners[listener] = userdata;
+        
+        return DSL_RESULT_SUCCESS;
+    }
+
+    bool PipelineBintr::IsChildStateChangeListener(dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        return (bool)m_stateChangeListeners[listener];
+    }
+    
+    DslReturnType PipelineBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        if (!m_stateChangeListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener was not found");
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+        }
+        m_stateChangeListeners.erase(listener);
+        
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType PipelineBintr::AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+
+        if (m_displayEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+        }
+        m_displayEventHandlers[handler] = userdata;
+        
+        return DSL_RESULT_SUCCESS;
+    }
+
+    bool PipelineBintr::IsChildDisplayEventHandler(dsl_state_change_listener_cb handler)
+    {
+        LOG_FUNC();
+
+        return (bool)m_displayEventHandlers[handler];
+        
+    }
+
+    DslReturnType PipelineBintr::RemoveDisplayEventHandler(dsl_display_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (!m_displayEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+        }
+        m_displayEventHandlers.erase(handler);
+        
+        return DSL_RESULT_SUCCESS;
     }
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
@@ -324,24 +426,11 @@ namespace DSL
         gst_message_parse_state_changed(pMessage, &oldstate, &newstate, NULL);
         
         LOG_INFO(m_mapPipelineStates[oldstate] << " => " << m_mapPipelineStates[newstate]);
-            
-        switch(newstate)
+
+        // iterate through the map of state-change-listeners calling each
+        for(auto const& imap: m_stateChangeListeners)
         {
-        case GST_STATE_NULL:
-            break;
-        case GST_STATE_PLAYING:
-            LOG_INFO("saving bin to dot file pipeline-playing");
-            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
-                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-playing");
-            break;
-        case GST_STATE_READY:
-            GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstPipeline), 
-                GST_DEBUG_GRAPH_SHOW_ALL,"pipeline-ready");
-            break;
-        case GST_STATE_PAUSED:
-            break;
-        default:
-            break;
+            imap.first((uint)oldstate, (uint)newstate, imap.second);
         }
         return true;
     }

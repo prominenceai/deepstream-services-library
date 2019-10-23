@@ -25,6 +25,7 @@ THE SOFTWARE.
 #ifndef _DSL_PIPELINE_H
 #define _DSL_PIPELINE_H
 
+#include "DslApi.h"
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
@@ -99,16 +100,18 @@ namespace DSL
         bool Play();
         
         /**
-         * @brief adds a single CSI Source Bintr to this Pipeline 
-         * @param[in] pCsiSourceBintr shared pointer to Source Bintr to add
+         * @brief adds a single Source Bintr to this Pipeline 
+         * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr);
+        void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
+
+        bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
-         * @brief adds a single URI Source Bintr to this Pipeline 
-         * @param[in] pUriSourceBintr shared pointer to Source Bintr to add
+         * @brief removes a single Source Bintr from this Pipeline 
+         * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr);
+        void RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
          * @brief adds a single Sink Bintr to this Pipeline 
@@ -148,10 +151,6 @@ namespace DSL
          * @param[in] width
          * @param[in] height
          */
-         
-        /**
-         * @brief
-         */
         void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height)
         {
@@ -162,6 +161,69 @@ namespace DSL
         void LinkComponents();
         
         void UnlinkComponents();
+        
+        /**
+         * @brief dumps a Pipeline's graph to dot file.
+         * @param[in] filename name of the file without extention.
+         * The caller is responsible for providing a correctly formated filename
+         * The diretory location is specified by the GStreamer debug 
+         * environment variable GST_DEBUG_DUMP_DOT_DIR
+         */ 
+        void DumpToDot(char* filename);
+        
+        /**
+         * @brief dumps a Pipeline's graph to dot file prefixed
+         * with the current timestamp.  
+         * @param[in] filename name of the file without extention.
+         * The caller is responsible for providing a correctly formated filename
+         * The diretory location is specified by the GStreamer debug 
+         * environment variable GST_DEBUG_DUMP_DOT_DIR
+         */ 
+        void DumpToDotWithTs(char* filename);
+        
+        /**
+         * @brief adds a callback to be notified on change of Pipeline state
+         * @param[in] listener pointer to the client's function to call on state change
+         * @param[in] userdata opaque pointer to client data passed into the listner function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
+
+        /**
+         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
+         * @param listener calback to check if in use
+         * @return true if currently a child in use
+         */
+        bool IsChildStateChangeListener(dsl_state_change_listener_cb listener);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType RemoveStateChangeListener(dsl_state_change_listener_cb listener);
+            
+        /**
+         * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+         * @param[in] handler pointer to the client's function to call on Display event
+         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata);
+
+        /**
+         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
+         * @param handler calback to check if in use
+         * @return true if currently a child in use
+         */
+        bool IsChildDisplayEventHandler(dsl_state_change_listener_cb handler);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        DslReturnType RemoveDisplayEventHandler(dsl_display_event_handler_cb handler);
             
         /**
          * @brief handles incoming Message Packets received
@@ -180,7 +242,7 @@ namespace DSL
     private:
 
         /**
-         * @brief GStream Pipeline wrapped by this pipeline bintr
+         * @brief GStreamer Pipeline contained by this pipeline bintr
          */
         GstElement* m_pGstPipeline; 
 
@@ -209,6 +271,18 @@ namespace DSL
          * of linked, false if unlinked. 
          */
         bool m_areComponentsLinked;
+        
+        /**
+         * @brief map of all currently registered state-change-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
+        
+        /**
+         * @brief map of all currently registered display-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_display_event_handler_cb, void*>m_displayEventHandlers;
 
         /**
          * @brief mutex to protect critical pipeline code

@@ -24,43 +24,63 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslServices.h"
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
+#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
+{ \
+    if (!pipelines[name]) \
+    { \
+        LOG_ERROR("Pipeline name '" << pipeline << "' was not found"); \
+        return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
+#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
+{ \
+    if (!components[name]) \
+    { \
+        LOG_ERROR("Component name '" << component << "' was not found"); \
+        return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
+
 DslReturnType dsl_source_csi_new(const char* source, 
-    guint width, guint height, guint fps_n, guint fps_d)
+    uint width, uint height, uint fps_n, uint fps_d)
 {
     return DSL::Services::GetServices()->SourceCsiNew(source, 
         width, height, fps_n, fps_d);
 }
 
 DslReturnType dsl_source_uri_new(const char* source, 
-    const char* uri, guint cudadec_mem_type, guint intra_decode)
+    const char* uri, uint cudadec_mem_type, uint intra_decode)
 {
     return DSL::Services::GetServices()->SourceUriNew(source,
         uri, cudadec_mem_type, intra_decode);
 }
 
-DslReturnType dsl_sink_new(const char* sink, guint displayId, 
-    guint overlayId, guint offsetX, guint offsetY, guint width, guint height)
+DslReturnType dsl_sink_new(const char* sink, uint displayId, 
+    uint overlayId, uint offsetX, uint offsetY, uint width, uint height)
 {
     return DSL::Services::GetServices()->SinkNew(sink, 
         displayId, overlayId, offsetX, offsetY, width, height);
 }
 
-DslReturnType dsl_osd_new(const char* osd, gboolean isClockEnabled)
+DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
 {
     return DSL::Services::GetServices()->OsdNew(osd, isClockEnabled);
 }
 
 DslReturnType dsl_display_new(const char* display, 
-        guint rows, guint columns, guint width, guint height)
+        uint rows, uint columns, uint width, uint height)
 {
     return DSL::Services::GetServices()->DisplayNew(display, rows, columns, width, height);
 }
 
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-    guint batchSize, guint interval, guint uniqueId, guint gpuId, 
+    uint batchSize, uint interval, uint uniqueId, uint gpuId, 
     const char* modelEngineFile, const char* rawOutputDir)
 {
     return DSL::Services::GetServices()->GieNew(gie, inferConfigFile, batchSize, 
@@ -70,6 +90,16 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
 DslReturnType dsl_component_delete(const char* component)
 {
     return DSL::Services::GetServices()->ComponentDelete(component);
+}
+
+DslReturnType dsl_component_delete_many(const char** names)
+{
+    return DSL::Services::GetServices()->ComponentDeleteMany(names);
+}
+
+DslReturnType dsl_component_delete_all()
+{
+    return DSL::Services::GetServices()->ComponentDeleteAll();
 }
 
 uint dsl_component_list_size()
@@ -82,7 +112,6 @@ const char** dsl_component_list_all()
     return DSL::Services::GetServices()->ComponentListAll();
 }
 
-
 DslReturnType dsl_pipeline_new(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineNew(pipeline);
@@ -93,24 +122,57 @@ DslReturnType dsl_pipeline_delete(const char* pipeline)
     return DSL::Services::GetServices()->PipelineDelete(pipeline);
 }
 
-DslReturnType dsl_pipeline_components_add(const char* pipeline, 
-    const char** components)
+DslReturnType dsl_pipeline_delete_many(const char** pipelines)
 {
-    return DSL::Services::GetServices()->PipelineComponentsAdd(pipeline, components);
+    return DSL::Services::GetServices()->PipelineDeleteMany(pipelines);
 }
 
-DslReturnType dsl_pipeline_components_remove(const char* pipeline, 
+DslReturnType dsl_pipeline_delete_all()
+{
+    return DSL::Services::GetServices()->PipelineDeleteAll();
+}
+
+uint dsl_pipeline_list_size()
+{
+    return DSL::Services::GetServices()->PipelineListSize();
+}
+
+const char** dsl_pipeline_list_all()
+{
+    return DSL::Services::GetServices()->PipelineListAll();
+}
+
+DslReturnType dsl_pipeline_component_add(const char* pipeline, 
+    const char* component)
+{
+    return DSL::Services::GetServices()->PipelineComponentAdd(pipeline, component);
+}
+
+DslReturnType dsl_pipeline_component_add_many(const char* pipeline, 
     const char** components)
 {
-    return DSL::Services::GetServices()->PipelineComponentsRemove(pipeline, components);
+    return DSL::Services::GetServices()->PipelineComponentAddMany(pipeline, components);
+}
+
+DslReturnType dsl_pipeline_component_remove(const char* pipeline, 
+    const char* component)
+{
+    return DSL::Services::GetServices()->PipelineComponentRemove(pipeline, component);
+}
+
+DslReturnType dsl_pipeline_component_remove_many(const char* pipeline, 
+    const char** components)
+{
+    return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
 }
 
 DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)
+    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)
 {
     return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
         areSourcesLive, batchSize, batchTimeout, width, height);
-}    
+}
+ 
 DslReturnType dsl_pipeline_pause(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelinePause(pipeline);
@@ -124,6 +186,44 @@ DslReturnType dsl_pipeline_play(const char* pipeline)
 DslReturnType dsl_pipeline_get_state(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineGetState(pipeline);
+}
+
+DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename)
+{
+    return DSL::Services::GetServices()->PipelineDumpToDot(pipeline, filename);
+}
+
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename)
+{
+    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(pipeline, filename);    
+}
+
+DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
+    dsl_state_change_listener_cb listener, void* userdata)
+{
+    return DSL::Services::GetServices()->
+        PipelineStateChangeListenerAdd(pipeline, listener, userdata);
+}
+
+DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
+    dsl_state_change_listener_cb listener)
+{
+    return DSL::Services::GetServices()->
+        PipelineStateChangeListenerRemove(pipeline, listener);
+}
+
+DslReturnType dsl_pipeline_display_event_handler_add(const char* pipeline, 
+    dsl_display_event_handler_cb handler, void* userdata)
+{
+    return DSL::Services::GetServices()->
+        PipelineDisplayEventHandlerAdd(pipeline, handler, userdata);
+}    
+
+DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline, 
+    dsl_display_event_handler_cb handler)
+{
+    return DSL::Services::GetServices()->
+        PipelineDisplayEventHandlerRemove(pipeline, handler);
 }
 
 void dsl_main_loop_run()
@@ -206,7 +306,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceCsiNew(const char* source,
-        guint width, guint height, guint fps_n, guint fps_d)
+        uint width, uint height, uint fps_n, uint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -233,7 +333,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceUriNew(const char* source,
-        const char* uri, guint cudadecMemType, guint intraDecode)
+        const char* uri, uint cudadecMemType, uint intraDecode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -272,8 +372,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkNew(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height)
+    DslReturnType Services::SinkNew(const char* sink, uint displayId, uint overlayId,
+        uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -299,7 +399,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OsdNew(const char* osd, gboolean isClockEnabled)
+    DslReturnType Services::OsdNew(const char* osd, boolean isClockEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -326,7 +426,7 @@ namespace DSL
     }
     
     DslReturnType Services::DisplayNew(const char* display, 
-        guint rows, guint columns, guint width, guint height)
+        uint rows, uint columns, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -353,8 +453,8 @@ namespace DSL
     }
         
     DslReturnType Services::GieNew(const char* gie, 
-        const char* inferConfigFile, guint batchSize, 
-        guint interval, guint uniqueId, guint gpuId, 
+        const char* inferConfigFile, uint batchSize, 
+        uint interval, uint uniqueId, uint gpuId, 
         const char* modelEngineFile, const char* rawOutputDir)
     {
         LOG_FUNC();
@@ -411,12 +511,14 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        if (!m_components[component])
-        {   
-            LOG_ERROR("Component name '" << component << "' was not found");
-            return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_INFO("Component '" << component << "' is in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
         }
+
         m_components.erase(component);
 
         LOG_INFO("Component '" << component << "' deleted successfully");
@@ -424,6 +526,61 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::ComponentDeleteMany(const char** components)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // iterate through the list of provided components to verifiy the
+        // existence of each... AND that each is not owned by a pipeline 
+        // before making any updates to the list of components.
+        for (const char** component = components; *component; component++)
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
+
+            if (m_components[*component]->IsInUse())
+            {   
+                LOG_ERROR("Component '" << *component << "' is currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+        }
+        LOG_DEBUG("All listed components found and un-owned");
+        
+        // iterate through the list a second time erasing each
+        for (const char** component = components; *component; component++)
+        {
+            m_components.erase(*component);
+        }
+
+        LOG_INFO("All Components deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::ComponentDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        for (auto const& imap: m_components)
+        {
+            if (imap.second->IsInUse())
+            {
+                LOG_ERROR("Component '" << imap.second->m_name << "' is currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+        }
+        LOG_DEBUG("All components are un-owned and will be deleted");
+
+        for (auto const& imap: m_components)
+        {
+            m_components.erase(imap.second->m_name);
+        }
+        LOG_INFO("All Components deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     uint Services::ComponentListSize()
     {
         LOG_FUNC();
@@ -478,42 +635,114 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
         m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
-        
-    
-    DslReturnType Services::PipelineComponentsAdd(const char* pipeline, 
-        const char** components)
+
+    DslReturnType Services::PipelineDeleteMany(const char** pipelines)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        // iterate through the list of provided pipelines to verifiy the
+        // existence of each before making any updates to the list of pipelines.
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, *pipeline);
         }
+        LOG_DEBUG("All listed pipelines found");
+        
+        // iterate through the list a second time erasing each
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+            m_pipelines.erase(*pipeline);
+        }
+
+        LOG_INFO("All Pipelines deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto &imap: m_pipelines)
+        {
+            imap.second = nullptr;
+        }
+        m_pipelines.clear();
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::PipelineListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_pipelines.size();
+    }
+    
+    const char** Services::PipelineListAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pipelineNames.clear();
+        
+        // reserve to avoid resizing - plus 1 for the NULL terminator
+        m_pipelineNames.reserve(m_pipelines.size() + 1);
+        for(auto const& imap: m_pipelines)
+        {
+            m_pipelineNames.push_back(imap.first.c_str());
+        }
+        m_pipelineNames.push_back(NULL);
+        
+        return (const char**)&m_pipelineNames[0];
+    }
+    
+    DslReturnType Services::PipelineComponentAdd(const char* pipeline, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+
+        try
+        {
+            m_components[component]->AddToParent(m_pipelines[pipeline]);
+            LOG_INFO("Component '" << component 
+                << "' was added to Pipeline '" << pipeline << "' successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw exception adding component '" << component << "'");
+            return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+        }
+    }    
+        
+    
+    DslReturnType Services::PipelineComponentAddMany(const char* pipeline, 
+        const char** components)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         // iterate through the list of provided components to verifiy the
-        //  existenceof each - before making any updates to the pipeline.
+        //  existence of each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
-
-            if (!m_components[*component])
-            {   
-                LOG_ERROR("Component name '" << *component << "' was not found");
-                return DSL_RESULT_COMPONENT_NAME_NOT_FOUND;
-            }
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
         }
         LOG_DEBUG("All listed components found");
         
@@ -544,23 +773,50 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PipelineComponentsRemove(const char* pipeline, 
+    DslReturnType Services::PipelineComponentRemove(const char* pipeline, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+
+        if (!m_components[component]->IsMyParent(m_pipelines[pipeline]))
+        {
+            LOG_ERROR("Component '" << component << 
+                "' is not in use by Pipeline '" << pipeline << "'");
+            return DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE;
+        }
+        try
+        {
+            m_components[component]->RemoveFromParent(m_pipelines[pipeline]);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing component");
+            return DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+}
+    
+    DslReturnType Services::PipelineComponentRemoveMany(const char* pipeline, 
         const char** components)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
     DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
-        gboolean areSourcesLive, guint batchSize, guint batchTimeout, guint width, guint height)    
+        boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)    
     {
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
         try
         {
             m_pipelines[pipeline]->SetStreamMuxProperties(areSourcesLive, 
@@ -579,6 +835,7 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
@@ -587,16 +844,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // flush the output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
@@ -614,9 +867,96 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
         
+    DslReturnType Services::PipelineDumpToDot(const char* pipeline, char* filename)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        if (!m_pipelines[pipeline])
+        {   
+            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
+            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
+        }
+        // TODO check state of debug env var and return NON-success if not set
+
+        m_pipelines[pipeline]->DumpToDot(filename);
+        
+        return DSL_RESULT_SUCCESS;
+    }   
+    
+    DslReturnType Services::PipelineDumpToDotWithTs(const char* pipeline, char* filename)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        // TODO check state of debug env var and return NON-success if not set
+
+        m_pipelines[pipeline]->DumpToDot(filename);
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineStateChangeListenerAdd(const char* pipeline, 
+        dsl_state_change_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        if (m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+        }
+        return m_pipelines[pipeline]->AddStateChangeListener(listener, userdata);
+    }
+        
+    DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
+        dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+    
+        if (!m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+        }
+        return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
+    }
+    
+    DslReturnType Services::PipelineDisplayEventHandlerAdd(const char* pipeline, 
+        dsl_display_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        if (m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+        }
+        return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
+    }
+        
+
+    DslReturnType Services::PipelineDisplayEventHandlerRemove(const char* pipeline, 
+        dsl_display_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        if (!m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+        }
+        return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
+    }
+    
     bool Services::HandleXWindowEvents()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         XEvent xEvent;
 

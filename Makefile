@@ -46,6 +46,7 @@ STR_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/strea
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
 SRCS+= $(wildcard ./test/api/*.cpp)
+SRCS+= $(wildcard ./test/unit/*.cpp)
 
 INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
