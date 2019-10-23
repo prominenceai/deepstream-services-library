@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslOsdBintr.h"
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
+#include "DslPipelineSourcesBintr.h"
     
 namespace DSL 
 {
@@ -154,7 +155,7 @@ namespace DSL
         void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height)
         {
-            m_pSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
+            m_pPipelineSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
                 batchSize, batchTimeout, width, height);
         }
         
@@ -249,7 +250,7 @@ namespace DSL
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */
-        std::shared_ptr<SourcesBintr> m_pSourcesBintr;
+        std::shared_ptr<PipelineSourcesBintr> m_pPipelineSourcesBintr;
         
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline

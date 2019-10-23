@@ -48,12 +48,13 @@ namespace DSL
         m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "tiled_display_queue", LINK_TRUE);
         m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler", LINK_TRUE);
 
-        g_object_set(G_OBJECT(m_pTiler), "width", m_width, NULL);
-        g_object_set(G_OBJECT(m_pTiler), "height", m_height, NULL);
-        g_object_set(G_OBJECT(m_pTiler), "rows", m_rows, NULL);
-        g_object_set(G_OBJECT(m_pTiler), "columns", m_columns, NULL);
-        g_object_set(G_OBJECT(m_pTiler), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pTiler), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        g_object_set(G_OBJECT(m_pTiler), 
+            "width", m_width,
+            "height", m_height,
+            "rows", m_rows,
+            "columns", m_columns,
+            "gpu-id", m_gpuId,
+            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         // Add Sink and Source pads for Queue and Tiler
         AddGhostPads();

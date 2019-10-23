@@ -58,13 +58,18 @@ namespace DSL
 //        gst_caps_set_features(caps, 0, feature);
 //        g_object_set(G_OBJECT(m_pCapsFilter), "caps", caps, NULL);
 
-        g_object_set(G_OBJECT(m_pOsd), "display-clock", m_isClockEnabled,
-            "clock-font", (gchar*)m_sClockFont.c_str(), "x-clock-offset", m_sClockOffsetX,
-            "y-clock-offset", m_sClockOffsetY, "clock-color", m_sClockColor,
-            "clock-font-size", m_sClockFontSize, "process-mode", m_processMode, NULL);
+        g_object_set(G_OBJECT(m_pOsd), 
+            "display-clock", m_isClockEnabled,
+            "clock-font", (gchar*)m_sClockFont.c_str(), 
+            "x-clock-offset", m_sClockOffsetX,
+            "y-clock-offset", m_sClockOffsetY, 
+            "clock-color", m_sClockColor,
+            "clock-font-size", m_sClockFontSize, 
+            "process-mode", m_processMode, NULL);
 
-        g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        g_object_set(G_OBJECT(m_pVidConv), 
+            "gpu-id", m_gpuId,
+            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pOsd), "gpu-id", m_gpuId, NULL);
 

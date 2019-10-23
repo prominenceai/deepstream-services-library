@@ -101,7 +101,7 @@ namespace DSL
         : Bintr(pipeline)
         , m_pGstPipeline(NULL)
         , m_areComponentsLinked(false)
-        , m_pSourcesBintr(nullptr)
+        , m_pPipelineSourcesBintr(nullptr)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
     {
@@ -138,10 +138,10 @@ namespace DSL
         gst_element_set_state(m_pGstPipeline, GST_STATE_NULL);
         
         // release all sources.. returning them to a state of not-in-use
-        if (m_pSourcesBintr)
+        if (m_pPipelineSourcesBintr)
         {
-            m_pSourcesBintr->RemoveAllChildren();
-            m_pSourcesBintr = nullptr;            
+            m_pPipelineSourcesBintr->RemoveAllChildren();
+            m_pPipelineSourcesBintr = nullptr;            
         }
         
         // cleanup all resources
@@ -171,20 +171,20 @@ namespace DSL
         LOG_FUNC();
 
         // Create the shared sources bintr if it doesn't exist
-        if (!m_pSourcesBintr)
+        if (!m_pPipelineSourcesBintr)
         {
-            m_pSourcesBintr = std::shared_ptr<SourcesBintr>(new SourcesBintr("sources-bin"));
-            AddChild(m_pSourcesBintr);
+            m_pPipelineSourcesBintr = std::shared_ptr<PipelineSourcesBintr>(new PipelineSourcesBintr("sources-bin"));
+            AddChild(m_pPipelineSourcesBintr);
         }
 
-        m_pSourcesBintr->AddChild(pSourceBintr);
+        m_pPipelineSourcesBintr->AddChild(pSourceBintr);
     }
 
     bool PipelineBintr::IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr)
     {
         LOG_FUNC();
 
-        return (pSourceBintr->m_pParentBintr == m_pSourcesBintr);
+        return (pSourceBintr->m_pParentBintr == m_pPipelineSourcesBintr);
     }
 
 
@@ -192,7 +192,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pSourcesBintr->RemoveChild(pSourceBintr);
+        m_pPipelineSourcesBintr->RemoveChild(pSourceBintr);
     }
 
     void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
@@ -233,7 +233,7 @@ namespace DSL
         m_pProcessBintr->AddSinkGhostPad();
         
         // Link together all components 
-        m_pSourcesBintr->LinkTo(m_pPrimaryGieBintr);
+        m_pPipelineSourcesBintr->LinkTo(m_pPrimaryGieBintr);
         m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
         m_pDisplayBintr->LinkTo(m_pProcessBintr);
        

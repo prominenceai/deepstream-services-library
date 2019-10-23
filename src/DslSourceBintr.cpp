@@ -31,146 +31,10 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    SourcesBintr::SourcesBintr(const char* name)
-        : Bintr(name)
-    {
-        LOG_FUNC();
-
-        g_object_set(m_pBin, "message-forward", TRUE, NULL);
-  
-        // Single Stream Muxer element for all Sources 
-        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
-
-        // Each Source will be linked to the Stream Muxer later, on Source add
-        
-        // Setup Src Ghost Pad for Stream Muxer element 
-        AddSourceGhostPad();
-    }
-    
-    SourcesBintr::~SourcesBintr()
-    {
-        LOG_FUNC();
-        
-        // Removed sources will be reset to not-in-use
-        for (auto const& imap: m_pChildBintrs)
-        {
-            RemoveChild(imap.second);
-        }
-    }
-     
-    void SourcesBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
-    {
-        LOG_FUNC();
-        
-        pChildBintr->m_pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(shared_from_this());
-
-        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
-
-        // set the source ID based on the new count of sources
-//        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-//            m_sourceId = m_pChildBintrs.size();
-                                
-        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
-        {
-            LOG_ERROR("Failed to add '" << pChildBintr->m_name 
-                << "' to " << m_name << "'");
-            throw;
-        }
-
-        // Retrieve the sink pad - from the Streammux element - 
-        // to link to the Source component being added
-        std::shared_ptr<RequestPadtr> pSinkPadtr = 
-            std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, "sink_0"));
-        
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
-        
-        LOG_INFO("Source '" << pChildBintr->m_name << "' linked to Stream Muxer");
-    }
-
-    void SourcesBintr::RemoveChild(std::shared_ptr<Bintr> pChildBintr)
-    {
-        LOG_FUNC();
-
-        // unlink from the Streammuxer
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_pStaticSourcePadtr->Unlink();
-        
-        // call the base function to complete the remove
-        Bintr::RemoveChild(pChildBintr);
-    }
-
-    void SourcesBintr::RemoveAllChildren()
-    {
-        LOG_FUNC();
-        
-        if (!m_pChildBintrs.size())
-        {
-            return;
-        }
-        // Removed sources will be reset to not-in-use
-        for (auto &imap: m_pChildBintrs)
-        {
-            // unlink from the Streammuxer
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticSourcePadtr->Unlink();
-            
-            // call the base function to complete the remove
-            Bintr::RemoveChild(imap.second);
-        }
-    }
-
-    void SourcesBintr::AddSourceGhostPad()
-    {
-        LOG_FUNC();
-        
-        // get Source pad for Stream Muxer element
-        StaticPadtr sourcePadtr(m_pStreamMux, "src");
-
-        // create a new ghost pad with Source pad and add to this Bintr's bin
-        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", sourcePadtr.m_pPad)))
-        {
-            LOG_ERROR("Failed to add Source Pad for '" << m_name);
-            throw;
-        }
-        LOG_INFO("Source ghost pad added to Sources' Stream Muxer"); 
-    }
-
-    void SourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
-        guint batchSize, guint batchTimeout, guint width, guint height)
-    {
-        m_areSourcesLive = areSourcesLive;
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-        m_streamMuxWidth = width;
-        m_streamMuxHeight = height;
-        m_enablePadding = FALSE;
-        
-        g_object_set(G_OBJECT(m_pStreamMux), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pStreamMux), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
-        g_object_set(G_OBJECT(m_pStreamMux), "live-source", m_areSourcesLive, NULL);
-        g_object_set(G_OBJECT(m_pStreamMux), "batched-push-timeout", m_batchTimeout, NULL);
-
-        if ((gboolean)m_batchSize)
-        {
-            g_object_set(G_OBJECT(m_pStreamMux), "batch-size", m_batchSize, NULL);
-        }
-
-        g_object_set(G_OBJECT(m_pStreamMux), "enable-padding", m_enablePadding, NULL);
-
-        if (m_streamMuxWidth && m_streamMuxHeight)
-        {
-            g_object_set(G_OBJECT(m_pStreamMux), "width", m_streamMuxWidth, NULL);
-            g_object_set(G_OBJECT(m_pStreamMux), "height", m_streamMuxHeight, NULL);
-        }
-        LOG_INFO("Sources' Stream Muxer properties updated"); 
-    }
-
     SourceBintr::SourceBintr(const char* source, guint width, guint height, 
         guint fps_n, guint fps_d)
         : Bintr(source)
-        , m_sourceId((guint)-1)
+        , m_sensorId(-1)
         , m_isLive(TRUE)
         , m_width(width)
         , m_height(height)
@@ -186,7 +50,7 @@ namespace DSL
 
     SourceBintr::SourceBintr(const char* source)
         : Bintr(source)
-        , m_sourceId((guint)-1)
+        , m_sensorId(-1)
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -232,6 +96,26 @@ namespace DSL
             RemoveSourceBintr(shared_from_this());
     }
 
+    int SourceBintr::GetSensorId()
+    {
+        LOG_FUNC();
+        
+        return m_sensorId;
+    }
+
+    bool SourceBintr::SetSensorId(int id)
+    {
+        LOG_FUNC();
+        
+        int sensorId;
+        m_sensorId = id;
+
+        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", m_sensorId, NULL);
+        g_object_get(G_OBJECT(m_pSourceElement), "sensor-id", &sensorId, NULL);
+        
+        return (sensorId == m_sensorId);
+    }
+    
     CsiSourceBintr::CsiSourceBintr(const char* source, 
         guint width, guint height, guint fps_n, guint fps_d)
         : SourceBintr(source, width, height, fps_n, fps_d)
@@ -245,7 +129,6 @@ namespace DSL
 
         g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
         g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
-        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -297,7 +180,6 @@ namespace DSL
               
         // Create Source Element - without linking at this time.
         m_pSourceElement = MakeElement(NVDS_ELEM_SRC_URI, "src_elem", LINK_FALSE);
-        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", 0, NULL);
         
         g_object_set(G_OBJECT(m_pSourceElement), "uri", (gchar*)uri, NULL);
 
@@ -407,7 +289,7 @@ namespace DSL
         {
             g_object_set(pObject, "gpu-id", m_gpuId, NULL);
             g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
-            g_object_set(pObject, "source-id", m_sourceId, NULL);
+            g_object_set(pObject, "source-id", m_sensorId, NULL);
             g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
             
             if (m_intraDecode)
