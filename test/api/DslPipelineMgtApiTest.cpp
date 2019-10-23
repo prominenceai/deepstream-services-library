@@ -79,7 +79,7 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
                 REQUIRE( *(dsl_pipeline_list_all()) != NULL );
             }
         }
-        REQUIRE( dsl_pipeline_delete_all() );
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }

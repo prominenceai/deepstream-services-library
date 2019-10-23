@@ -287,6 +287,8 @@ namespace DSL
 
     DslReturnType PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
     {
+        LOG_FUNC();
+        
         if (m_stateChangeListeners[listener])
         {   
             LOG_ERROR("Pipeline listener is not unique");
@@ -296,9 +298,18 @@ namespace DSL
         
         return DSL_RESULT_SUCCESS;
     }
+
+    bool PipelineBintr::IsChildStateChangeListener(dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        return (bool)m_stateChangeListeners[listener];
+    }
     
     DslReturnType PipelineBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
     {
+        LOG_FUNC();
+        
         if (!m_stateChangeListeners[listener])
         {   
             LOG_ERROR("Pipeline listener was not found");
@@ -321,6 +332,14 @@ namespace DSL
         m_displayEventHandlers[handler] = userdata;
         
         return DSL_RESULT_SUCCESS;
+    }
+
+    bool PipelineBintr::IsChildDisplayEventHandler(dsl_state_change_listener_cb handler)
+    {
+        LOG_FUNC();
+
+        return (bool)m_displayEventHandlers[handler];
+        
     }
 
     DslReturnType PipelineBintr::RemoveDisplayEventHandler(dsl_display_event_handler_cb handler)

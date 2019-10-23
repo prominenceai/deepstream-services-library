@@ -55,17 +55,16 @@ SCENARIO( "All state-change-listeners are called on change of state", "[pipeline
         REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
             (dsl_state_change_listener_cb)StateChangeListener2, (void*)LISTENER_2_DATA) 
             == DSL_RESULT_SUCCESS );
-    }
-    WHEN( "When the Pipeline is requested to change state" )
-    {
-//        REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        // ** NOTE ** This test is incomplete... the Pipeline must transition into 
-        // a newstate successfully
-        // TODO - need to sync with callbacks before proceeding
-    }
-    WHEN( "All test resources are deleted")
-    {
+        WHEN( "When the Pipeline is requested to change state" )
+        {
+    //        REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+            // ** NOTE ** This test is incomplete... the Pipeline must transition into 
+            // a newstate successfully
+            // TODO - need to sync with callbacks before proceeding
+        }
+
         REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
             (dsl_state_change_listener_cb)StateChangeListener1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
@@ -73,13 +72,9 @@ SCENARIO( "All state-change-listeners are called on change of state", "[pipeline
         
         REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "the containers are updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-            REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( *(dsl_component_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }

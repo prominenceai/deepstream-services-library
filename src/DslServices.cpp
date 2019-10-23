@@ -904,16 +904,24 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
+        if (m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+        }
         return m_pipelines[pipeline]->AddStateChangeListener(listener, userdata);
     }
-    
+        
     DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
         dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-        
+    
+        if (!m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+        }
         return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
     }
     
@@ -924,6 +932,10 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
+        if (m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+        }
         return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
     }
         
@@ -935,6 +947,10 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
+        if (!m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+        }
         return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
     }
     
