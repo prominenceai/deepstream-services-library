@@ -54,14 +54,28 @@ namespace DSL
         void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr);
         
         /**
+         * @brief returns the current, sensor Id as managed by the Parent pipeline
+         * @return -1 when source Id is not assigned, i.e. source is not currently in use
+         * Unique source Id [0...MAX] when the source is in use.
+         */
+        int GetSensorId();
+        
+        /**
+         * @brief Sets the unique sensor id for this Source bintr
+         * @param id value to assign [0...MAX]
+         * @return true if the value was set correctly. 
+         */
+        bool SetSensorId(int id);
+        
+        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
+
+    protected:
+            
+        /**
          * @brief unique stream source identifier managed by the 
          * parent pipeline from Source add until removed
          */
-        guint m_sourceId;
-
-    public:
-            
-        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;
+        int m_sensorId;
         
         /**
          * @brief
@@ -107,6 +121,7 @@ namespace DSL
          * @brief
          */
         GstElement * m_pSourceElement;
+        
     };
 
     /**
@@ -237,109 +252,6 @@ namespace DSL
          */
         GstElement* m_pFakeSinkQueue;
     };
-
-    class SourcesBintr : public Bintr
-    {
-    public: 
-    
-        SourcesBintr(const char* name);
-
-        ~SourcesBintr();
-        
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
-        
-        void RemoveChild(std::shared_ptr<Bintr> pChildBintr);
-        
-        void RemoveAllChildren();
-        
-        void AddSourceGhostPad();
-        
-        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height);
-
-    private:
-
-        GstElement* m_pStreamMux;
-        
-        /**
-         @brief
-         */
-        gboolean m_areSourcesLive;
-
-        /**
-         @brief
-         */
-        gint m_batchSize;
-
-        /**
-         @brief
-         */
-        gint m_batchTimeout;
-        /**
-         @brief
-         */
-        gint m_streamMuxWidth;
-
-        /**
-         @brief
-         */
-        gint m_streamMuxHeight;
-
-        /**
-         @brief
-         */
-        gboolean m_enablePadding;
-    };
-
-    /**
-     * @brief 
-     * @param[in] pBin
-     * @param[in] pPad
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
-     */
-    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param[in] pChildProxy
-     * @param[in] pObject
-     * @param[in] name
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
-     */
-    static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
-        gchar* name, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param[in] pObject
-     * @param[in] arg0
-     * @param[in] pSource
-     */
-    static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
-
-    /**
-     * Probe function to drop certain events to support custom
-     * logic of looping of each source stream.
-     */
-
-    /**
-     * @brief Probe function to drop certain events to support
-     * custom logic of looping of each URI source (file) stream.
-     * @param pPad
-     * @param pInfo
-     * @param pSource
-     * @return 
-     */
-    static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param pSource
-     * @return 
-     */
-    static gboolean StreamBufferSeekCB(gpointer pSource);
-
 }
 
 #endif // _DSL_SOURCE_BINTR_H

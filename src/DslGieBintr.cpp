@@ -50,8 +50,9 @@ namespace DSL
         m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", LINK_TRUE);
         m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier", LINK_TRUE);
 
-        g_object_set(G_OBJECT(m_pVidConv), "gpu-id", m_gpuId, NULL);
-        g_object_set(G_OBJECT(m_pVidConv), "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        g_object_set(G_OBJECT(m_pVidConv), 
+            "gpu-id", m_gpuId,
+            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         g_object_set(G_OBJECT(m_pClassifier), "config-file-path", 
             (gchar*)inferConfigFile, "process-mode", 1, NULL);
@@ -80,7 +81,6 @@ namespace DSL
         {
             g_object_set(G_OBJECT(m_pClassifier), "model-engine-file",
                 (gchar*)m_modelEngineFile.c_str(), NULL);
-//                GET_FILE_PATH((gchar*)m_modelEngineFile), NULL);
         }
 
         if (m_rawOutputDir.length())
