@@ -105,6 +105,8 @@ namespace DSL
          */
         void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
+        bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
+
         /**
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add

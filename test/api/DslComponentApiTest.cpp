@@ -28,38 +28,53 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "A single Component is created and deleted correctly", "[component]" )
+SCENARIO( "The Components container is updated correctly on new component", "[component]" )
 {
-    std::string actualName  = "csi-source";
+    std::string componentName  = "csi-source";
 
     GIVEN( "An empty list of components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
-    }
 
-    WHEN( "A new component is created" ) 
-    {
-
-        REQUIRE( dsl_source_csi_new(actualName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-
-        THEN( "The list size and contents are updated correctly" ) 
+        WHEN( "A new component is created" ) 
         {
-            REQUIRE( dsl_component_list_size() == 1 );
-            REQUIRE( *(dsl_component_list_all()) != NULL );
-            
-            std::string returnedName = *(dsl_component_list_all());
-            REQUIRE( returnedName == actualName );
+
+            REQUIRE( dsl_source_csi_new(componentName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( *(dsl_component_list_all()) != NULL );
+                
+                std::string returnedName = *(dsl_component_list_all());
+                REQUIRE( returnedName == componentName );
+            }
         }
-    }
-    WHEN( "The component is deleted")
-    {
-        REQUIRE( dsl_component_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
         
-        THEN( "The list and contents are updated correctly")
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
+    }
+}    
+    
+SCENARIO( "The Components container is updated correctly on Component Delete", "[component]" )
+{
+    std::string sourceName  = "csi-source";
+
+    GIVEN( "One component im memory" ) 
+    {
+        REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( *(dsl_component_list_all()) != NULL );
+        
+        WHEN( "The component is deleted")
         {
-            REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( *(dsl_component_list_all()) == NULL );
+            REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list and contents are updated correctly")
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( *(dsl_component_list_all()) == NULL );
+            }
         }
     }
 }
@@ -73,37 +88,46 @@ SCENARIO( "A Component in use can't be deleted", "[component]" )
     {
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-    }
 
-    WHEN( "The Component is added to the Pipeline" ) 
-    {
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            sourceName.c_str()) == DSL_RESULT_SUCCESS );
+        WHEN( "The Component is added to the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
 
-        THEN( "The component cannot be deleted" ) 
-        {
-            REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+            THEN( "The component can't be deleted" ) 
+            {
+                REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+            }
         }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
     }
-    WHEN( "The Component is removed from the Pipeline")
+}
+
+SCENARIO( "A Component removed from a Pipeline can be deleted", "[component]" )
+{
+    std::string sourceName  = "csi-source";
+    std::string pipelineName  = "test-pipeline";
+
+    GIVEN( "A new Component and new pPipeline" ) 
     {
-        REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(), 
-            sourceName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "The component can be deleted" )
+        REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Component is added to and then removed from the Pipeline" ) 
         {
-            REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The component can't be deleted" ) 
+            {
+                REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            }
         }
-    }
-    WHEN( "The Pipeline is deleted")
-    {
-        REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "The list and contents are updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
     }
 }
 

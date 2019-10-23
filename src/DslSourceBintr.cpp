@@ -50,6 +50,12 @@ namespace DSL
     SourcesBintr::~SourcesBintr()
     {
         LOG_FUNC();
+        
+        // Removed sources will be reset to not-in-use
+        for (auto const& imap: m_pChildBintrs)
+        {
+            RemoveChild(imap.second);
+        }
     }
      
     void SourcesBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
@@ -87,10 +93,32 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // unlink from the Streammuxer
         std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
             m_pStaticSourcePadtr->Unlink();
         
+        // call the base function to complete the remove
         Bintr::RemoveChild(pChildBintr);
+    }
+
+    void SourcesBintr::RemoveAllChildren()
+    {
+        LOG_FUNC();
+        
+        if (!m_pChildBintrs.size())
+        {
+            return;
+        }
+        // Removed sources will be reset to not-in-use
+        for (auto &imap: m_pChildBintrs)
+        {
+            // unlink from the Streammuxer
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
+                m_pStaticSourcePadtr->Unlink();
+            
+            // call the base function to complete the remove
+            Bintr::RemoveChild(imap.second);
+        }
     }
 
     void SourcesBintr::AddSourceGhostPad()
@@ -186,6 +214,15 @@ namespace DSL
             AddSourceBintr(shared_from_this());
     }
 
+    bool SourceBintr::IsMyParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // check if 'this' Source is child of Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            IsSourceBintrChild(shared_from_this());
+    }
+
     void SourceBintr::RemoveFromParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
@@ -194,7 +231,6 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(shared_from_this());
     }
-
 
     CsiSourceBintr::CsiSourceBintr(const char* source, 
         guint width, guint height, guint fps_n, guint fps_d)

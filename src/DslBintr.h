@@ -50,9 +50,9 @@ namespace DSL
             , m_nvbufMemoryType(0)
             , m_pSinkPad(NULL)
             , m_pSourcePad(NULL)
-            , m_pParentBintr(NULL)
-            , m_pSourceBintr(NULL)
-            , m_pDestBintr(NULL)
+            , m_pParentBintr(nullptr)
+            , m_pSourceBintr(nullptr)
+            , m_pDestBintr(nullptr)
         { 
             LOG_FUNC(); 
             LOG_INFO("New bintr:: " << name);
@@ -92,7 +92,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return (bool)m_pParentBintr;
+            return (m_pParentBintr != nullptr);
         }
         
         void LinkTo(std::shared_ptr<Bintr> pDestBintr)
@@ -135,13 +135,13 @@ namespace DSL
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
-            if (!m_pChildBintrs[pChildBintr->m_name])
+            if (m_pChildBintrs[pChildBintr->m_name] != pChildBintr)
             {
                 LOG_ERROR("'" << pChildBintr->m_name << "' is not a child of '" << m_name <<"'");
                 throw;
             }
                             
-            pChildBintr->m_pParentBintr = NULL;
+            pChildBintr->m_pParentBintr = nullptr;
 
             if (!gst_bin_remove(GST_BIN(m_pBin), pChildBintr->m_pBin))
             {
@@ -158,6 +158,20 @@ namespace DSL
             LOG_FUNC();
                 
             pParentBintr->AddChild(shared_from_this());
+        }
+
+        virtual bool IsMyParent(std::shared_ptr<Bintr> pParentBintr)
+        {
+            LOG_FUNC();
+            
+            return (m_pParentBintr == pParentBintr);
+        }        
+        
+        virtual void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr)
+        {
+            LOG_FUNC();
+                
+            pParentBintr->RemoveChild(shared_from_this());
         }
 
         GstElement* MakeElement(const gchar * factoryname, const gchar * name, bool linkToPrev)

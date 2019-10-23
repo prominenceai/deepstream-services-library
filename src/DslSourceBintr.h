@@ -48,7 +48,9 @@ namespace DSL
         ~SourceBintr();
 
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-                
+
+        bool IsMyParent(std::shared_ptr<Bintr> pParentBintr);
+                        
         void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr);
         
         /**
@@ -247,6 +249,8 @@ namespace DSL
         void AddChild(std::shared_ptr<Bintr> pChildBintr);
         
         void RemoveChild(std::shared_ptr<Bintr> pChildBintr);
+        
+        void RemoveAllChildren();
         
         void AddSourceGhostPad();
         

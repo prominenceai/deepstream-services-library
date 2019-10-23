@@ -101,6 +101,7 @@ namespace DSL
         : Bintr(pipeline)
         , m_pGstPipeline(NULL)
         , m_areComponentsLinked(false)
+        , m_pSourcesBintr(nullptr)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
     {
@@ -135,6 +136,13 @@ namespace DSL
         LOG_FUNC();
 
         gst_element_set_state(m_pGstPipeline, GST_STATE_NULL);
+        
+        // release all sources.. returning them to a state of not-in-use
+        if (m_pSourcesBintr)
+        {
+            m_pSourcesBintr->RemoveAllChildren();
+            m_pSourcesBintr = nullptr;            
+        }
         
         // cleanup all resources
         gst_object_unref(m_pGstBus);
@@ -171,6 +179,14 @@ namespace DSL
 
         m_pSourcesBintr->AddChild(pSourceBintr);
     }
+
+    bool PipelineBintr::IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr)
+    {
+        LOG_FUNC();
+
+        return (pSourceBintr->m_pParentBintr == m_pSourcesBintr);
+    }
+
 
     void PipelineBintr::RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
     {
