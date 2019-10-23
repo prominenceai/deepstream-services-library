@@ -33,31 +33,24 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[pipeline]" )
     {
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-    }
 
-    WHEN( "A new Pipeline is created" ) 
-    {
-
-        REQUIRE( dsl_pipeline_new(actualName.c_str()) == DSL_RESULT_SUCCESS );
-
-        THEN( "The list size and contents are updated correctly" ) 
+        WHEN( "A new Pipeline is created" ) 
         {
-            REQUIRE( dsl_pipeline_list_size() == 1 );
-            REQUIRE( *(dsl_pipeline_list_all()) != NULL );
-            
-            std::string returnedName = *(dsl_pipeline_list_all());
-            REQUIRE( returnedName == actualName );
+
+            REQUIRE( dsl_pipeline_new(actualName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_pipeline_list_size() == 1 );
+                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
+                
+                std::string returnedName = *(dsl_pipeline_list_all());
+                REQUIRE( returnedName == actualName );
+            }
         }
-    }
-    WHEN( "The Pipeline is deleted")
-    {
         REQUIRE( dsl_pipeline_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "The list and contents are updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
@@ -73,32 +66,21 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
         }
         REQUIRE( dsl_pipeline_list_size() == sampleSize );
         REQUIRE( *(dsl_pipeline_list_all()) != NULL );
-    }
 
-    WHEN( "Multiple Pipelines are deleted" ) 
-    {
-
-        const char* pipelineList[] = {"1","3", NULL};
-        
-        REQUIRE( dsl_pipeline_delete_many(pipelineList) == DSL_RESULT_SUCCESS );
-
-        THEN( "The list size and contents are updated correctly" ) 
+        WHEN( "Multiple Pipelines are deleted" ) 
         {
-            REQUIRE( dsl_pipeline_list_size() == sampleSize - 2 );
-            REQUIRE( *(dsl_pipeline_list_all()) != NULL );
+            const char* pipelineList[] = {"1","3", NULL};
             
-//            std::string returnedName = *(dsl_pipeline_list_all());
-//            REQUIRE( returnedName == actualName );
+            REQUIRE( dsl_pipeline_delete_many(pipelineList) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_pipeline_list_size() == sampleSize - 2 );
+                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
+            }
         }
-    }
-    WHEN( "All remaining Pipelines are deleted")
-    {
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-        
-        THEN( "The list and contents are updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }

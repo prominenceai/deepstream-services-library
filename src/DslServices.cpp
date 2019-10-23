@@ -512,6 +512,12 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_INFO("Component '" << component << "' is in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
+        }
 
         m_components.erase(component);
 
@@ -555,7 +561,21 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        for (auto const& imap: m_components)
+        {
+            if (imap.second->IsInUse())
+            {
+                LOG_ERROR("Component '" << imap.second->m_name << "' is currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+        }
+        LOG_DEBUG("All components are un-owned and will be deleted");
 
+        for (auto const& imap: m_components)
+        {
+            m_components.erase(imap.second->m_name);
+        }
         LOG_INFO("All Components deleted successfully");
 
         return DSL_RESULT_SUCCESS;
@@ -653,6 +673,10 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
+        for (auto &imap: m_pipelines)
+        {
+            imap.second = nullptr;
+        }
         m_pipelines.clear();
 
         return DSL_RESULT_SUCCESS;
@@ -757,8 +781,24 @@ namespace DSL
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
-        return DSL_RESULT_API_NOT_IMPLEMENTED;
-    }
+        if (!m_components[component]->IsMyParent(m_pipelines[pipeline]))
+        {
+            LOG_ERROR("Component '" << component << 
+                "' is not in use by Pipeline '" << pipeline << "'");
+            return DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE;
+        }
+        try
+        {
+            m_components[component]->RemoveFromParent(m_pipelines[pipeline]);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing component");
+            return DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+}
     
     DslReturnType Services::PipelineComponentRemoveMany(const char* pipeline, 
         const char** components)
@@ -848,12 +888,8 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        if (!m_pipelines[pipeline])
-        {   
-            LOG_ERROR("Pipeline name '" << pipeline << "' was not found");
-            return DSL_RESULT_PIPELINE_NAME_NOT_FOUND;
-        }
         // TODO check state of debug env var and return NON-success if not set
 
         m_pipelines[pipeline]->DumpToDot(filename);
@@ -868,16 +904,24 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
+        if (m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+        }
         return m_pipelines[pipeline]->AddStateChangeListener(listener, userdata);
     }
-    
+        
     DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
         dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-        
+    
+        if (!m_pipelines[pipeline]->IsChildStateChangeListener(listener))
+        {
+            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+        }
         return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
     }
     
@@ -888,6 +932,10 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
+        if (m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+        }
         return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
     }
         
@@ -899,6 +947,10 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
+        if (!m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
+        {
+            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+        }
         return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
     }
     

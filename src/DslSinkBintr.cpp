@@ -56,7 +56,7 @@ namespace DSL
         pChildBintr->m_pParentBintr = 
             std::dynamic_pointer_cast<Bintr>(shared_from_this());
 
-        m_pChildBintrs.push_back(pChildBintr);
+        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                         
         if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
         {

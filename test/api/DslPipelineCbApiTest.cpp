@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 
-SCENARIO( "A state-change-listener can be added and removed", "[pipeline]" )
+SCENARIO( "A state-change-listener must be unique", "[pipeline]" )
 {
     std::string pipelineName = "test-pipeline";
     dsl_state_change_listener_cb listener;
@@ -34,42 +34,53 @@ SCENARIO( "A state-change-listener can be added and removed", "[pipeline]" )
     GIVEN( "A Pipeline in memory" ) 
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A state-change-listner is added" )
+        {
+            REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
+                listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same listner can't be added again" ) 
+            {
+                REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
+                    listener, NULL) == DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
-    WHEN( "A state-change-listner is added" )
+}    
+
+SCENARIO( "A state-change-listener can be removed", "[pipeline]" )
+{
+    std::string pipelineName = "test-pipeline";
+    dsl_state_change_listener_cb listener;
+
+    GIVEN( "A Pipeline with one state-change-listener" )
     {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
             listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-        THEN( "The same listner can't be added again" ) 
-        {
-            REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
-                listener, NULL) == DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE );
-        }
-    }
-    WHEN( "A state-change-listner is removed" )
-    {
-        REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
-            listener) == DSL_RESULT_SUCCESS );
-
-        THEN( "The same handler can't be removed again" ) 
+        WHEN( "A state-change-listner is removed" )
         {
             REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
-                listener) == DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND );
+                listener) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same handler can't be removed again" ) 
+            {
+                REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
+                    listener) == DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND );
+            }
         }
-    }
-    WHEN( "The Pipeline is deleted")
-    {
-        REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "the container is updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
-SCENARIO( "An event handler can be added and removed", "[pipeline]" )
+SCENARIO( "An event-handler must be unique", "[pipeline]" )
 {
     std::string pipelineName = "test-pipeline";
     dsl_display_event_handler_cb handler;
@@ -77,37 +88,49 @@ SCENARIO( "An event handler can be added and removed", "[pipeline]" )
     GIVEN( "A Pipeline in memory" ) 
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-    }
-    WHEN( "An event handler is added" )
-    {
-        REQUIRE( dsl_pipeline_display_event_handler_add(pipelineName.c_str(),
-            handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
-
-        THEN( "The same handler can't be added again" ) 
+        
+        WHEN( "An event handler is added" )
         {
             REQUIRE( dsl_pipeline_display_event_handler_add(pipelineName.c_str(),
-                handler, NULL) == DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE );
-        }
-    }
-    WHEN( "An event handler is removed" )
-    {
-        REQUIRE( dsl_pipeline_display_event_handler_remove(pipelineName.c_str(),
-            handler) == DSL_RESULT_SUCCESS );
+                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-        THEN( "The same handler can't be removed again" ) 
+            THEN( "The same handler can't be added again" ) 
+            {
+                REQUIRE( dsl_pipeline_display_event_handler_add(pipelineName.c_str(),
+                    handler, NULL) == DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+    }
+}
+   
+SCENARIO( "An event-handler can be removed", "[pipeline]" )
+{
+
+    std::string pipelineName = "test-pipeline";
+    dsl_display_event_handler_cb handler;
+
+    GIVEN( "A Pipeline with one event handler" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_display_event_handler_add(pipelineName.c_str(),
+            handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+            
+        WHEN( "An event handler is removed" )
         {
             REQUIRE( dsl_pipeline_display_event_handler_remove(pipelineName.c_str(),
-                handler) == DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND );
+                handler) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same handler can't be removed again" ) 
+            {
+                REQUIRE( dsl_pipeline_display_event_handler_remove(pipelineName.c_str(),
+                    handler) == DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND );
+            }
         }
-    }
-    WHEN( "The Pipeline is deleted")
-    {
-        REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        THEN( "the container is updated correctly")
-        {
-            REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
-        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }

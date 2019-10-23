@@ -100,16 +100,18 @@ namespace DSL
         bool Play();
         
         /**
-         * @brief adds a single CSI Source Bintr to this Pipeline 
-         * @param[in] pCsiSourceBintr shared pointer to Source Bintr to add
+         * @brief adds a single Source Bintr to this Pipeline 
+         * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddCsiSourceBintr(std::shared_ptr<Bintr> pCsiSourceBintr);
+        void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
+
+        bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
-         * @brief adds a single URI Source Bintr to this Pipeline 
-         * @param[in] pUriSourceBintr shared pointer to Source Bintr to add
+         * @brief removes a single Source Bintr from this Pipeline 
+         * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddUriSourceBintr(std::shared_ptr<Bintr> pUriSourceBintr);
+        void RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
          * @brief adds a single Sink Bintr to this Pipeline 
@@ -188,6 +190,13 @@ namespace DSL
         DslReturnType AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
 
         /**
+         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
+         * @param listener calback to check if in use
+         * @return true if currently a child in use
+         */
+        bool IsChildStateChangeListener(dsl_state_change_listener_cb listener);
+
+        /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
          * @return DSL_RESULT_PIPELINE_RESULT
@@ -201,6 +210,13 @@ namespace DSL
          * @return DSL_RESULT_PIPELINE_RESULT
          */
         DslReturnType AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata);
+
+        /**
+         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
+         * @param handler calback to check if in use
+         * @return true if currently a child in use
+         */
+        bool IsChildDisplayEventHandler(dsl_state_change_listener_cb handler);
 
         /**
          * @brief removes a previously added callback
