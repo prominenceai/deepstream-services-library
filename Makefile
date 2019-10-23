@@ -80,7 +80,8 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
 	-DDS_MODELS_DIR='"$(MDL_INSTALL_DIR)"' \
 	-DDS_STREAMS_DIR='"$(STR_INSTALL_DIR)"' \
-    -DDSL_LOGGER_IMP='"DslLogGst.h"'
+    -DDSL_LOGGER_IMP='"DslLogGst.h"'\
+    -fPIC
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
@@ -113,6 +114,10 @@ $(APP): $(OBJS) Makefile
 lib:
 	ar rcs dsl-lib.a $(OBJS)
 	ar dv dsl-lib.a DslCatch.o
+	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
+
+so_lib:
+	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
 
 clean:
-	rm -rf $(OBJS) $(APP) dsl-lib.a
+	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so
