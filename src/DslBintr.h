@@ -95,6 +95,13 @@ namespace DSL
             return (m_pParentBintr != nullptr);
         }
         
+        uint GetNumChildren()
+        {
+            LOG_FUNC();
+            
+            return m_pChildBintrs.size();
+        }
+        
         void LinkTo(std::shared_ptr<Bintr> pDestBintr)
         { 
             LOG_FUNC();
