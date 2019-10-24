@@ -73,16 +73,6 @@ namespace DSL
                 << "' to " << m_name << "'");
             throw;
         }
-
-        // Retrieve the sink pad - from the Streammux element - 
-        // to link to the Source component being added
-        std::shared_ptr<RequestPadtr> pSinkPadtr = 
-            std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, "sink_0"));
-        
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
-        
-        LOG_INFO("Source '" << pChildBintr->m_name << "' linked to Stream Muxer");
     }
 
     void PipelineSourcesBintr::RemoveChild(std::shared_ptr<Bintr> pChildBintr)
@@ -101,10 +91,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_pChildBintrs.size())
-        {
-            return;
-        }
         // Removed sources will be reset to not-in-use
         for (auto &imap: m_pChildBintrs)
         {
@@ -133,7 +119,7 @@ namespace DSL
         LOG_INFO("Source ghost pad added to Sources' Stream Muxer"); 
     }
 
-    void PipelineSourcesBintr::UpdateSensorIds()
+    void PipelineSourcesBintr::LinkAll()
     {
         LOG_FUNC();
         
@@ -141,7 +127,29 @@ namespace DSL
         
         for (auto const& imap: m_pChildBintrs)
         {
+            std::string sinkPadName = "sink_" + id;
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(id++);
+            // Retrieve the sink pad - from the Streammux element - 
+            // to link to the Source component being added
+//            std::shared_ptr<RequestPadtr> pSinkPadtr = 
+//                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, (gchar*)sinkPadName.c_str()));
+//            
+//            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
+//                m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
+        }
+    }
+
+    void PipelineSourcesBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        for (auto const& imap: m_pChildBintrs)
+        {
+            // unlink from the Streammuxer
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
+                m_pStaticSourcePadtr->Unlink();
+            // reset the Sensor ID to unlinked     
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(-1);
         }
     }
 

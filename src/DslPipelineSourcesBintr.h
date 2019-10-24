@@ -48,9 +48,16 @@ namespace DSL
         void AddSourceGhostPad();
         
         /**
-         * @brief interates through the list of child source bintrs setting their Sensor Id's
+         * @brief interates through the list of child source bintrs setting 
+         * their Sensor Id's and linking to the StreamMux
          */
-        void UpdateSensorIds();
+        void LinkAll();
+        
+        /**
+         * @brief interates through the list of child source bintrs unlinking
+         * them from the StreamMux and reseting their Sensor Id's
+         */
+        void UnlinkAll();
         
         void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
             guint width, guint height);
