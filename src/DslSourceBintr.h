@@ -67,6 +67,13 @@ namespace DSL
          */
         bool SetSensorId(int id);
         
+        bool IsLive()
+        {
+            LOG_FUNC();
+            
+            return m_isLive;
+        }
+        
         std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
 
     protected:
@@ -80,27 +87,27 @@ namespace DSL
         /**
          * @brief
          */
-        gboolean m_isLive;
+        bool m_isLive;
 
         /**
          * @brief
          */
-        guint m_width;
+        uint m_width;
 
         /**
          * @brief
          */
-        guint m_height;
+        uint m_height;
 
         /**
          * @brief
          */
-        guint m_fps_n;
+        uint m_fps_n;
 
         /**
          * @brief
          */
-        guint m_fps_d;
+        uint m_fps_d;
 
         /**
          * @brief
@@ -110,12 +117,12 @@ namespace DSL
         /**
          * @brief
          */
-        guint m_numDecodeSurfaces;
+        uint m_numDecodeSurfaces;
 
         /**
          * @brief
          */
-        guint m_numExtraSurfaces;
+        uint m_numExtraSurfaces;
 
         /**
          * @brief
@@ -252,6 +259,55 @@ namespace DSL
          */
         GstElement* m_pFakeSinkQueue;
     };
+    /**
+     * @brief 
+     * @param[in] pBin
+     * @param[in] pPad
+     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     */
+    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param[in] pChildProxy
+     * @param[in] pObject
+     * @param[in] name
+     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     */
+    static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
+        gchar* name, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param[in] pObject
+     * @param[in] arg0
+     * @param[in] pSource
+     */
+    static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
+
+    /**
+     * Probe function to drop certain events to support custom
+     * logic of looping of each source stream.
+     */
+
+    /**
+     * @brief Probe function to drop certain events to support
+     * custom logic of looping of each URI source (file) stream.
+     * @param pPad
+     * @param pInfo
+     * @param pSource
+     * @return 
+     */
+    static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param pSource
+     * @return 
+     */
+    static gboolean StreamBufferSeekCB(gpointer pSource);
+
 }
 
 #endif // _DSL_SOURCE_BINTR_H

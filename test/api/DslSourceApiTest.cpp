@@ -49,7 +49,7 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
             }
         }
         
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
     
@@ -63,11 +63,11 @@ SCENARIO( "The Components container is updated correctly on Source Delete", "[so
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( *(dsl_component_list_all()) != NULL );
         
-        WHEN( "The Source is deleted")
+        WHEN( "The Source is deleted" )
         {
             REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
             
-            THEN( "The list and contents are updated correctly")
+            THEN( "The list and contents are updated correctly" )
             {
                 REQUIRE( dsl_component_list_size() == 0 );
                 REQUIRE( *(dsl_component_list_all()) == NULL );
@@ -96,8 +96,8 @@ SCENARIO( "A Source in use can't be deleted", "[source]" )
                 REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
             }
         }
-        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS);
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
@@ -105,33 +105,143 @@ SCENARIO( "A Source in use can't be deleted", "[source]" )
     }
 }
 
-SCENARIO( "A Component removed from a Pipeline can be deleted", "[component]" )
+SCENARIO( "A Source removed from a Pipeline can be deleted", "[source]" )
 {
     std::string sourceName  = "csi-source";
     std::string pipelineName  = "test-pipeline";
 
-    GIVEN( "A new Component and new pPipeline" ) 
+    GIVEN( "A new Source and new Pipeline" ) 
     {
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The Component is added to and then removed from the Pipeline" ) 
+        WHEN( "The Source is added to the Pipeline and then removed " ) 
         {
             REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
                 sourceName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
                 sourceName.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "The component can't be deleted" ) 
+            THEN( "The Source can't be deleted" ) 
             {
                 REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
             }
         }
-        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS);
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
+    }
+}
+
+SCENARIO( "A Client is able to update the Source in-use max" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
+        REQUIRE( dsl_source_get_num_in_use_max() == DSL_DEFAULT_SOURCE_IN_USE_MAX );
+        REQUIRE( dsl_source_get_num_in_use() == 0 );
+        
+        WHEN( "The in-use-max is updated by the client" )   
+        {
+            uint new_max = 128;
+            
+            dsl_source_set_num_in_use_max(new_max);
+            
+            THEN( "The new in-use-max will be returned to the client on get" )
+            {
+                REQUIRE( dsl_source_get_num_in_use_max() == new_max );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source]" )
+{
+    std::string sourceName  = "csi-source";
+    std::string pipelineName  = "test-pipeline";
+
+    GIVEN( "A new Source and new Pipeline" )
+    {
+        REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_get_num_in_use() == 0 );
+
+        WHEN( "The Source is added to the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_source_get_num_in_use() == 1 );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}
+
+SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source]" )
+{
+    std::string sourceName  = "csi-source";
+    std::string pipelineName  = "test-pipeline";
+
+    GIVEN( "A new Source and new pPipeline" ) 
+    {
+        REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_get_num_in_use() == 0 );
+
+        WHEN( "The Source is added to, and then removed from, the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_source_get_num_in_use() == 0 );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}    
+
+SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[source]" )
+{
+    std::string sourceName1  = "csi-source1";
+    std::string pipelineName1  = "test-pipeline1";
+    std::string sourceName2  = "csi-source2";
+    std::string pipelineName2  = "test-pipeline2";
+
+    GIVEN( "Two new Sources and two new Pipeline" )
+    {
+        REQUIRE( dsl_source_csi_new(sourceName1.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(sourceName2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_get_num_in_use() == 0 );
+
+        WHEN( "Each Sources is added to a different Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
+                sourceName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
+                sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_source_get_num_in_use() == 2 );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_get_num_in_use() == 0 );
     }
 }

@@ -61,6 +61,21 @@ DslReturnType dsl_source_uri_new(const char* source,
         uri, cudadec_mem_type, intra_decode);
 }
 
+uint dsl_source_get_num_in_use()
+{
+    return DSL::Services::GetServices()->GetNumSourceInUse();
+}
+
+uint dsl_source_get_num_in_use_max()
+{
+    return DSL::Services::GetServices()->GetNumSourceInUseMax();
+}
+
+void dsl_source_set_num_in_use_max(uint max)
+{
+    return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
+}
+
 DslReturnType dsl_sink_new(const char* sink, uint displayId, 
     uint overlayId, uint offsetX, uint offsetY, uint width, uint height)
 {
@@ -166,11 +181,18 @@ DslReturnType dsl_pipeline_component_remove_many(const char* pipeline,
     return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
 }
 
-DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)
+DslReturnType dsl_pipeline_streammux_set_batch_properties(const char* pipeline, 
+    uint batchSize, uint batchTimeout)
 {
-    return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
-        areSourcesLive, batchSize, batchTimeout, width, height);
+    return DSL::Services::GetServices()->PipelineStreamMuxSetBatchProperties(pipeline,
+        batchSize, batchTimeout);
+}
+
+DslReturnType dsl_pipeline_streammux_set_output_size(const char* pipeline, 
+    uint width, uint height)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxSetOutputSize(pipeline,
+        width, height);
 }
  
 DslReturnType dsl_pipeline_pause(const char* pipeline)
@@ -271,6 +293,7 @@ namespace DSL
         : m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_pXDisplay(XOpenDisplay(NULL))
         , m_pXWindowEventThread(NULL)
+        , m_numSourceInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
     {
         LOG_FUNC();
         
@@ -370,6 +393,35 @@ namespace DSL
         LOG_INFO("new URI Source '" << source << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::GetNumSourceInUse()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSourceInUse();
+        }
+        return numInUse;
+    }
+    
+    uint Services::GetNumSourceInUseMax()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_numSourceInUseMax;
+    }
+    
+    void Services::SetNumSourceInUseMax(uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        m_numSourceInUseMax = max;
     }
 
     DslReturnType Services::SinkNew(const char* sink, uint displayId, uint overlayId,
@@ -810,8 +862,8 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
-    DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
-        boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)    
+    DslReturnType Services::PipelineStreamMuxSetBatchProperties(const char* pipeline,
+        uint batchSize, uint batchTimeout)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -819,14 +871,33 @@ namespace DSL
 
         try
         {
-            m_pipelines[pipeline]->SetStreamMuxProperties(areSourcesLive, 
-                batchSize, batchTimeout, width, height);
+            m_pipelines[pipeline]->SetStreamMuxBatchProperties(batchSize, batchTimeout);
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline 
-                << "' threw an exception setting the Stream Muxer properties");
-            return DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED;
+                << "' threw an exception setting the Stream Muxer batch_properties");
+            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineStreamMuxSetOutputSize(const char* pipeline,
+        uint width, uint height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            m_pipelines[pipeline]->SetStreamMuxOutputSize(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception setting the Stream Muxer output size");
+            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
         }
         return DSL_RESULT_SUCCESS;
     }
