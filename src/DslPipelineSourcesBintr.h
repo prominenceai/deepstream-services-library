@@ -58,9 +58,24 @@ namespace DSL
          * them from the StreamMux and reseting their Sensor Id's
          */
         void UnlinkAll();
+
+        void SetStreamMuxPlayType(bool areSourcesLive);        
         
-        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height);
+        void SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout);
+        
+        void SetStreamMuxOutputSize(uint width, uint height);
+
+        /**
+         * @brief Returns the number sources currently owned by this Sources Bintr
+         * @return 
+         */
+        uint GetNumSourceInUse()
+        {
+            LOG_FUNC();
+            
+            return m_pChildBintrs.size();
+        }
+        
 
     private:
 
@@ -69,7 +84,7 @@ namespace DSL
         /**
          @brief
          */
-        gboolean m_areSourcesLive;
+        bool m_areSourcesLive;
 
         /**
          @brief
@@ -96,54 +111,6 @@ namespace DSL
         gboolean m_enablePadding;
     };
 
-    /**
-     * @brief 
-     * @param[in] pBin
-     * @param[in] pPad
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
-     */
-    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param[in] pChildProxy
-     * @param[in] pObject
-     * @param[in] name
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
-     */
-    static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
-        gchar* name, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param[in] pObject
-     * @param[in] arg0
-     * @param[in] pSource
-     */
-    static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
-
-    /**
-     * Probe function to drop certain events to support custom
-     * logic of looping of each source stream.
-     */
-
-    /**
-     * @brief Probe function to drop certain events to support
-     * custom logic of looping of each URI source (file) stream.
-     * @param pPad
-     * @param pInfo
-     * @param pSource
-     * @return 
-     */
-    static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pSource);
-
-    /**
-     * @brief 
-     * @param pSource
-     * @return 
-     */
-    static gboolean StreamBufferSeekCB(gpointer pSource);
     
 }
 

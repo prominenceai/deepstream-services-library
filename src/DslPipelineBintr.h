@@ -109,6 +109,19 @@ namespace DSL
         bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
 
         /**
+         * @brief returns the number of Sources currently in use by
+         * this Pipeline
+         */
+        uint GetNumSourceInUse()
+        {
+            if (!m_pPipelineSourcesBintr)
+            {
+                return 0;
+            }
+            return m_pPipelineSourcesBintr->GetNumSourceInUse();
+        } 
+
+        /**
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
@@ -146,17 +159,26 @@ namespace DSL
         
         /**
          * @brief 
-         * @param[in] m_areSourcesLive
          * @param[in] batchSize
          * @param[in] batchTimeout
          * @param[in] width
          * @param[in] height
          */
-        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height)
+        void SetStreamMuxBatchProperties(guint batchSize, guint batchTimeout) 
         {
-            m_pPipelineSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
-                batchSize, batchTimeout, width, height);
+            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(
+                batchSize, batchTimeout);
+        };
+
+        /**
+         * @brief 
+         * @param[in] width
+         * @param[in] height
+         */
+        void SetStreamMuxOutputSize(uint width, uint height)
+        {
+            m_pPipelineSourcesBintr->SetStreamMuxOutputSize(
+                width, height);
         }
         
         void LinkComponents();

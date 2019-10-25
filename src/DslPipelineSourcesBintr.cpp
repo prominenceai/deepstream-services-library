@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslPipelineSourcesBintr.h"
 
 namespace DSL
@@ -36,8 +37,10 @@ namespace DSL
   
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
+        
+        SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
-        // Each Source will be linked to the Stream Muxer later, on Source add
+        // Each Source will be linked to the Stream Muxer on Source-add
         
         // Setup Src Ghost Pad for Stream Muxer element 
         AddSourceGhostPad();
@@ -60,12 +63,15 @@ namespace DSL
         
         pChildBintr->m_pParentBintr = 
             std::dynamic_pointer_cast<Bintr>(shared_from_this());
+            
+        // Set the play type based on the first source added
+        if (m_pChildBintrs.size() == 0)
+        {
+            SetStreamMuxPlayType(
+                std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->IsLive());
+        }
 
         m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
-
-        // set the source ID based on the new count of sources
-//        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-//            m_sensorId = m_pChildBintrs.size();
                                 
         if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
         {
@@ -127,16 +133,20 @@ namespace DSL
         
         for (auto const& imap: m_pChildBintrs)
         {
-            std::string sinkPadName = "sink_" + id;
+            std::string sinkPadName = "sink_" + std::to_string(id);
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(id++);
             // Retrieve the sink pad - from the Streammux element - 
             // to link to the Source component being added
-//            std::shared_ptr<RequestPadtr> pSinkPadtr = 
-//                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, (gchar*)sinkPadName.c_str()));
-//            
-//            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-//                m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
+            std::shared_ptr<RequestPadtr> pSinkPadtr = 
+                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, (gchar*)sinkPadName.c_str()));
+            
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
+                m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
         }
+        
+        // Set the Batch size to the nuber of sources owned
+        // TODO add support for managing batch timeout
+        SetStreamMuxBatchProperties(m_pChildBintrs.size(), 4000);
     }
 
     void PipelineSourcesBintr::UnlinkAll()
@@ -153,30 +163,38 @@ namespace DSL
         }
     }
 
-    void PipelineSourcesBintr::SetStreamMuxProperties(gboolean areSourcesLive, 
-        guint batchSize, guint batchTimeout, guint width, guint height)
+    void PipelineSourcesBintr::SetStreamMuxPlayType(bool areSourcesLive)
     {
+        LOG_FUNC();
+        
         m_areSourcesLive = areSourcesLive;
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-        m_streamMuxWidth = width;
-        m_streamMuxHeight = height;
-        m_enablePadding = FALSE;
         
         g_object_set(G_OBJECT(m_pStreamMux), 
-            "gpu-id", m_gpuId,
-            "nvbuf-memory-type", m_nvbufMemoryType,
-            "live-source", m_areSourcesLive,
-            "enable-padding", m_enablePadding,
+            "live-source", m_areSourcesLive, NULL);
+        
+    }
+
+    void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
+    {
+        LOG_FUNC();
+        
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+
+        g_object_set(G_OBJECT(m_pStreamMux),
             "batch-size", m_batchSize,
             "batched-push-timeout", m_batchTimeout, NULL);
+    }
 
-        if (m_streamMuxWidth && m_streamMuxHeight)
-        {
-            g_object_set(G_OBJECT(m_pStreamMux),
-                "width", m_streamMuxWidth,
-                "height", m_streamMuxHeight, NULL);
-        }
-        LOG_INFO("Sources' Stream Muxer properties updated"); 
+    void PipelineSourcesBintr::SetStreamMuxOutputSize(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        m_streamMuxWidth = width;
+        m_streamMuxHeight = height;
+
+        g_object_set(G_OBJECT(m_pStreamMux),
+            "width", m_streamMuxWidth,
+            "height", m_streamMuxHeight, NULL);
     }
 }
