@@ -56,7 +56,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
-#define DSL_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00100100
 #define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
 
 /**
@@ -162,6 +162,13 @@ DslReturnType dsl_source_csi_new(const char* source,
  */
 DslReturnType dsl_source_uri_new(const char* source, 
     const char* uri, uint cudadec_mem_type, uint intra_decode);
+
+/**
+ * @brief returns whether the source stream live or not
+ * @param source the name of Source component to query
+ * @return True if the source's stream is live
+ */
+boolean dsl_source_is_live(const char* source);
 
 /**
  * @brief returns the number of sources currently in use by 

@@ -48,7 +48,6 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
                 REQUIRE( returnedName == sourceName );
             }
         }
-        
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
@@ -135,6 +134,31 @@ SCENARIO( "A Source removed from a Pipeline can be deleted", "[source]" )
         REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
+
+SCENARIO( "A new CSI Camaera Source is live", "[source]" )
+{
+    std::string sourceName  = "csi-source";
+
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
+
+        WHEN( "A new Source is created" ) 
+        {
+
+            REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
+            }
+        }
+        
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}    
+
 
 SCENARIO( "A Client is able to update the Source in-use max" )
 {

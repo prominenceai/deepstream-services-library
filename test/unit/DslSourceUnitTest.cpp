@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslSourceBintr.h"
 
-SCENARIO( "Set Sensor Id updates Source correctly" )
+SCENARIO( "Set Sensor Id updates Source correctly",  "[source]" )
 {
     GIVEN( "A new Source in memory" ) 
     {
@@ -47,6 +47,28 @@ SCENARIO( "Set Sensor Id updates Source correctly" )
             {
                 REQUIRE( pSourceBintr->GetSensorId() == sensorId );
                 
+            }
+        }
+    }
+}
+
+SCENARIO( "CSI Source returns the correct play-type on new",  "[source]" )
+{
+    std::string sourceName  = "csi-source";
+
+    GIVEN( "No setup requirements" ) 
+    {
+
+        WHEN( "A new CSI Camera Source is created" ) 
+        {
+
+            std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
+                std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+                sourceName.c_str(), 1280, 720, 30, 1));
+            
+            THEN( "The Source is correctly created as live")
+            {
+                REQUIRE( pSourceBintr->IsLive() == true );
             }
         }
     }
