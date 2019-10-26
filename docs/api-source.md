@@ -99,7 +99,6 @@ DslReturnType dsl_source_play(const char* source);
 Sets the state of the Source component to Playing. This method tries to change the state of an *in-use* Source component to a  state of DSL_STATE_PLAYING. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
 state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
 
-</b>
 ### *dsl_source_pause*
 ```C++
 DslReturnType dsl_source_pause(const char* source);
