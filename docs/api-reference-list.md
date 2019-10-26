@@ -2,6 +2,7 @@
 
 #### Pipeline API:
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
+* [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
 * [dsl_pipeline_delete](/docs/api-pipeline.md#dsl_pipeline_delete)
 * [dsl_pipeline_delete_many](/docs/api-pipeline.md#dsl_pipeline_delete_many)
 * [dsl_pipeline_delete_all](/docs/api-pipeline.md#dsl_pipeline_list_size)
@@ -40,6 +41,9 @@
 * [dsl_source_pause](/docs/api-source.md#dsl_source_pause)
 * [dsl_source_play](/docs/api-source.md#dsl_source_play)
 * [dsl_source_state_is](/docs/api-source.md#dsl_source_state_is)
+* [dsl_source_get_num_in_use](/docs/api-source.md#dsl_source_get_num_in_use)
+* [dsl_source_get_num_in_use_max](/docs/api-source.md#dsl_source_get_num_in_use_max)
+* [dsl_source_set_num_in_use_max](/docs/api-source.md#dsl_source_set_num_in_use_max)
 
 #### Infer Engine (GIE):
 * dsl_gie_primary_new
