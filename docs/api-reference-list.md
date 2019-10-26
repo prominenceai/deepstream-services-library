@@ -41,6 +41,8 @@
 * [dsl_source_pause](/docs/api-source.md#dsl_source_pause)
 * [dsl_source_play](/docs/api-source.md#dsl_source_play)
 * [dsl_source_state_is](/docs/api-source.md#dsl_source_state_is)
+* [dsl_source_is_in_use](/docs/api-source.md#dsl_source_is_in_use)
+* [dsl_source_is_live](/docs/api-source.md#dsl_source_is_live)
 * [dsl_source_get_num_in_use](/docs/api-source.md#dsl_source_get_num_in_use)
 * [dsl_source_get_num_in_use_max](/docs/api-source.md#dsl_source_get_num_in_use_max)
 * [dsl_source_set_num_in_use_max](/docs/api-source.md#dsl_source_set_num_in_use_max)
