@@ -61,9 +61,11 @@ Creates a new, uniquely named CSI Camera Source object
 
 **Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
 
+<br>
 ### *dsl_source_v4l2_new*
 TBI
 
+<br>
 ### *dsl_source_uri_new*
 ```C++
 DslReturnType dsl_source_uri_new(const char* name, 
@@ -83,6 +85,7 @@ Cuda decode memory types
 ```
 **Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
 
+<br>
 ### *dsl_source_rtmp_new*
 TBI
 
@@ -103,6 +106,7 @@ state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused 
 
 **Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
 
+<br>
 ### *dsl_source_pause*
 ```C++
 DslReturnType dsl_source_pause(const char* source);
@@ -114,6 +118,7 @@ Sets the state of the Source component to Paused. This method tries to change th
 
 **Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
 
+<br>
 ### *dsl_source_state_is*
 ```C++
 uint dsl_source_state_is(const char* source);
@@ -125,7 +130,7 @@ Returns a Source component's current state as defined by the [DSL_STATE](#DSL_ST
 
 **Returns**  - One of [DSL_STATE](#) values.
 
-
+<br>
 ### *dsl_source_is_live*
 ```C++
 boolean dsl_source_is_live(const char* source);
@@ -137,7 +142,7 @@ Returns `True` if the Source component's stream is live. CSI and V4L2 Camera sou
 
 **Returns**  - `True` if Source component's stream is live, `False` otherwise
 
-
+<br>
 ### *dsl_source_get_num_in_use*
 ```C++
 uint dsl_source_get_num_in_use();
@@ -146,6 +151,7 @@ Queries DSL for the number of Source components currently in-use by all Pipeline
 
 **Returns**  - The number of Source components in use.
 
+<br>
 ### *dsl_source_get_num_in_use_max*
 ```C++
 uint dsl_source_get_num_in_use_max();
@@ -154,6 +160,7 @@ Queries DSL for the number maximum number of in-use sources that can be serviced
 
 **Returns**  - The maximum number of Source components that can be in-use.
 
+<br>
 ### *dsl_source_set_num_in_use_max*
 ```C++
 void dsl_source_set_num_in_use_max(uint max);
