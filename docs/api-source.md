@@ -1,5 +1,5 @@
-# Streaming Sources
-DSL supports four types of Streaming Sources
+# Sources
+A Streaming Source(s) is the head component for any DSL GStreamer Pipeline. At minimum, a Pipeline must have one source in use for a Pipeline to be able to play. DSL supports four types of Streaming Sources:
 1. Camera Serial Interface ( CSI )
 2. Video For Linux ( V4L2 )
 2. Uniform Resource Identifier ( URI )
@@ -11,7 +11,9 @@ Streaming Sources are added to a Pipeline by calling [dsl_pipeline_component_add
 
 The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. Sources are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many)
 
-There is no practicle limit to the number of Sources that can be created. There is a limit - impossed by hardware - to the number of Sources that can be `In-Use` by one or more Pipelines at any one time. The max number is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` first call to DSL, which can be obtained by calling [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max) and updated with [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use)
+There is no (practicle) limit to the number of Sources that can be created, just to the number of Sources that can be **in use** by a Pipeline at any one time. The in-use limit is imposed by the Jetson Model in use. 
+
+The max number is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` on DSL initialization. The value can be obtained by calling [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max) and updated with [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use). 
 
 
 ## Source API
@@ -22,6 +24,8 @@ There is no practicle limit to the number of Sources that can be created. There 
 * [dsl_source_pause](#dsl_source_pause)
 * [dsl_source_play](#dsl_source_play)
 * [dsl_source_state_is](#dsl_source_state_is)
+* [dsl_source_is_in_use](#dsl_source_is_in_use)
+* [dsl_source_is_live](#dsl_source_is_live)
 * [dsl_source_get_num_in_use](#dsl_source_get_num_in_use)
 * [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max)
 * [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max)
@@ -83,18 +87,24 @@ Cuda decode memory types
 ### *dsl_source_rtmp_new*
 TBI
 
-### *dsl_source_pause*
-TBI
-
-### *dsl_source_pause*
-TBI
-
 ## Destructors
-As with all Pipeline components, ***dsl_component_delete*** is used to destroy a Streaming Source once created. 
-```C++
-DslReturnType dsl_component_delete(const char* name);
-```
+As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many).
+
 ## Methods
+
+### *dsl_source_play*
+```C++
+DslReturnType dsl_source_play(const char* source);
+```
+Sets the state of the Source component to Playing. This method tries to change the state of an *in-use* Source component to a  state of DSL_STATE_PLAYING. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
+state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
+
+</b>
+### *dsl_source_pause*
+```C++
+DslReturnType dsl_source_pause(const char* source);
+```
+Sets the state of the Source of Paused. This method tries to change the state of an *in-use* Source component to a state of `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
 
 ### *dsl_source_get_num_in_use*
 ```C++
