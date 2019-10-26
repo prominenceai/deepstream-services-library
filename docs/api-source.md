@@ -96,26 +96,47 @@ As with all Pipeline components, Sources are deleted by calling [dsl_component_d
 ```C++
 DslReturnType dsl_source_play(const char* source);
 ```
-Sets the state of the Source component to Playing. This method tries to change the state of an *in-use* Source component to a  state of DSL_STATE_PLAYING. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
+Sets the state of the Source component to Playing. This method tries to change the state of an *in-use* Source component to DSL_STATE_PLAYING. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
 state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
 
 ### *dsl_source_pause*
 ```C++
 DslReturnType dsl_source_pause(const char* source);
 ```
-Sets the state of the Source of Paused. This method tries to change the state of an *in-use* Source component to a state of `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
+Sets the state of the Source component to Paused. This method tries to change the state of an *in-use* Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
+
+### *dsl_source_state_is*
+```C++
+uint dsl_source_state_is(const char* source);
+```
+Returns a Source component's current state as defined by the [DSL_STATE](#DSL_STATE) values.
+
+### *dsl_source_is_in_use*
+```C++
+boolean dsl_source_is_in_use(const char* source);
+```
+Returns `True` if the Source component is currently is-use by a Pipelne. A Source in-use can not be deleted or re-used by another Pipeline. Deleting a Pipeline will set all of its child Sources to not-in-use.
+
+### *dsl_source_is_live*
+```C++
+boolean dsl_source_is_in_use(const char* source);
+```
+Returns `True` if the Source component's stream is live. CSI and V4L2 Camera sources will always return `true`.
 
 ### *dsl_source_get_num_in_use*
 ```C++
 uint dsl_source_get_num_in_use();
 ```
+Returns the number of Source components currently in-use by all Pipelines.
 
 ### *dsl_source_get_num_in_use_max*
 ```C++
 uint dsl_source_get_num_in_use_max();
 ```
+Returns the number maximum number of in-use sources that can be serviced, as limited by Hardware, 
 
 ### *dsl_source_set_num_in_use_max*
 ```C++
 void dsl_source_set_num_in_use_max(uint max);
 ```
+Sets the maximum number of in-use sources that can be serviced.
