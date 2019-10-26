@@ -28,20 +28,20 @@ THE SOFTWARE.
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
-#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
+#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(_pipelines_, _name_) do \
 { \
-    if (!pipelines[name]) \
+    if (!_pipelines_[_name_]) \
     { \
-        LOG_ERROR("Pipeline name '" << pipeline << "' was not found"); \
+        LOG_ERROR("Pipeline name '" << _name_ << "' was not found"); \
         return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
     } \
 }while(0); 
     
-#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
+#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(_components_, _name_) do \
 { \
-    if (!components[name]) \
+    if (!_components_[_name_]) \
     { \
-        LOG_ERROR("Component name '" << component << "' was not found"); \
+        LOG_ERROR("Component name '" << _name_ << "' was not found"); \
         return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
     } \
 }while(0); 
@@ -59,6 +59,11 @@ DslReturnType dsl_source_uri_new(const char* source,
 {
     return DSL::Services::GetServices()->SourceUriNew(source,
         uri, cudadec_mem_type, intra_decode);
+}
+
+boolean dsl_source_is_live(const char* source)
+{
+    return DSL::Services::GetServices()->SourceIsLive(source);
 }
 
 uint dsl_source_get_num_in_use()
@@ -353,7 +358,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New CSI Source '" << source << "' threw exception on create");
-            return DSL_RESULT_SOURCE_NEW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new CSI Source '" << source << "' created successfully");
 
@@ -393,13 +398,30 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New URI Source '" << source << "' threw exception on create");
-            return DSL_RESULT_SOURCE_NEW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new URI Source '" << source << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
+    boolean Services::SourceIsLive(const char* source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+        
+        try
+        {
+            return std::dynamic_pointer_cast<SourceBintr>(m_components[source])->IsLive();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << source << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     uint Services::GetNumSourceInUse()
     {
         LOG_FUNC();

@@ -57,6 +57,8 @@ namespace DSL {
         DslReturnType SourceUriNew(const char* source, 
             const char* uri, uint cudadecMemType, uint intraDecode);
             
+        boolean SourceIsLive(const char* source);
+        
         uint GetNumSourceInUse();
         
         uint GetNumSourceInUseMax();
@@ -77,6 +79,8 @@ namespace DSL {
         
         DslReturnType DisplayNew(const char* display, 
             uint rows, uint columns, uint width, uint height);
+        
+        boolean ComponentIsInUse(const char* component);
         
         DslReturnType ComponentDelete(const char* component);
 
