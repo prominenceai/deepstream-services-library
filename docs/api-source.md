@@ -5,13 +5,14 @@ DSL supports four types of Streaming Sources
 2. Uniform Resource Identifier ( URI )
 4. Real-time Messaging Protocol ( RTMP )
 
-Sources are created using one of four type-specific constructors. As with all components, Streaming Sources must be uniquely named 
-from all other Pipeline components created. Streaming Sources are added to a Pipeline by calling 
-[dsl_pipeline_component_add](#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many) 
-and removed with [dsl_pipeline_component_remove](#dsl_pipeline_component_remove) or 
-[dsl_pipeline_component_remove_many](dsl_pipeline_component_remove_many). The relation ship between Pipelines and Sources is 
-one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. Sources are deleted by calling 
-[dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many)
+Sources are created using one of four type-specific constructors. As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
+
+Streaming Sources are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](#dsl_pipeline_component_remove) or [dsl_pipeline_component_remove_many](dsl_pipeline_component_remove_many). 
+
+The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. Sources are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many)
+
+There is no practicle limit to the number of Sources that can be created. There is a limit - impossed by hardware - to the number of Sources that can be `In-Use` by one or more Pipelines at any one time. The max number is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` first call to DSL, which can be obtained by calling [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max) and updated with [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use)
+
 
 ## Source API
 * [dsl_source_csi_new](#dsl_source_csi_new)
@@ -21,6 +22,9 @@ one-to-many. Once added to a Pipeline, a Source must be removed before it can us
 * [dsl_source_pause](#dsl_source_pause)
 * [dsl_source_play](#dsl_source_play)
 * [dsl_source_state_is](#dsl_source_state_is)
+* [dsl_source_get_num_in_use](#dsl_source_get_num_in_use)
+* [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max)
+* [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max)
 
 ## Return Values
 Streaming Source Methods use the following return codes
@@ -89,4 +93,20 @@ TBI
 As with all Pipeline components, ***dsl_component_delete*** is used to destroy a Streaming Source once created. 
 ```C++
 DslReturnType dsl_component_delete(const char* name);
+```
+## Methods
+
+### *dsl_source_get_num_in_use*
+```C++
+uint dsl_source_get_num_in_use();
+```
+
+### *dsl_source_get_num_in_use_max*
+```C++
+uint dsl_source_get_num_in_use_max();
+```
+
+### *dsl_source_set_num_in_use_max*
+```C++
+void dsl_source_set_num_in_use_max(uint max);
 ```
