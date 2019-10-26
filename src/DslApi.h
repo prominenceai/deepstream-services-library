@@ -290,6 +290,13 @@ const char** dsl_component_list_all();
 DslReturnType dsl_pipeline_new(const char* pipeline);
 
 /**
+ * @brief creates a new Pipeline for each name pipelines array
+ * @param pipelines a NULL terminated array of unique Pipeline names
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_new_many(const char** pipelines);
+
+/**
  * @brief deletes a Pipeline object by name.
  * @param[in] pipeline unique name of the Pipeline to delete.
  * @return DSL_RESULT_PIPELINE_RESULT.

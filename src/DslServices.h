@@ -90,6 +90,8 @@ namespace DSL {
         
         DslReturnType PipelineNew(const char* pipeline);
         
+        DslReturnType PipelineNewMany(const char** pipelines);
+        
         DslReturnType PipelineDelete(const char* pipeline);
         
         DslReturnType PipelineDeleteMany(const char** pipelines);

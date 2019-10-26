@@ -132,6 +132,11 @@ DslReturnType dsl_pipeline_new(const char* pipeline)
     return DSL::Services::GetServices()->PipelineNew(pipeline);
 }
 
+DslReturnType dsl_pipeline_new_many(const char** pipelines)
+{
+    return DSL::Services::GetServices()->PipelineNewMany(pipelines);
+}
+
 DslReturnType dsl_pipeline_delete(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineDelete(pipeline);
@@ -681,6 +686,31 @@ namespace DSL
         LOG_INFO("new PIPELINE '" << pipeline << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineNewMany(const char** pipelines)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+            if (m_pipelines[*pipeline])
+            {   
+                LOG_ERROR("Pipeline name '" << *pipeline << "' is not unique");
+                return DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE;
+            }
+            try
+            {
+                m_pipelines[*pipeline] = std::shared_ptr<PipelineBintr>(new PipelineBintr(*pipeline));
+            }
+            catch(...)
+            {
+                LOG_ERROR("New Pipeline '" << *pipeline << "' threw exception on create");
+                return DSL_RESULT_PIPELINE_NEW_EXCEPTION;
+            }
+            LOG_INFO("new PIPELINE '" << *pipeline << "' created successfully");
+        }
     }
     
     DslReturnType Services::PipelineDelete(const char* pipeline)
