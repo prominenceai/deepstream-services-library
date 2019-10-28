@@ -93,10 +93,9 @@ DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
     return DSL::Services::GetServices()->OsdNew(osd, isClockEnabled);
 }
 
-DslReturnType dsl_display_new(const char* display, 
-        uint rows, uint columns, uint width, uint height)
+DslReturnType dsl_display_new(const char* display, uint width, uint height)
 {
-    return DSL::Services::GetServices()->DisplayNew(display, rows, columns, width, height);
+    return DSL::Services::GetServices()->DisplayNew(display, width, height);
 }
 
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
@@ -301,23 +300,11 @@ namespace DSL
         
     Services::Services()
         : m_pMainLoop(g_main_loop_new(NULL, FALSE))
-        , m_pXDisplay(XOpenDisplay(NULL))
-        , m_pXWindowEventThread(NULL)
         , m_numSourceInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
     {
         LOG_FUNC();
         
-        // Initialize all 
         g_mutex_init(&m_servicesMutex);
-        g_mutex_init(&m_displayMutex);
-
-        // Add the event thread
-        g_timeout_add(40, EventThread, NULL);
-        
-        // Start the X window event thread
-        m_pXWindowEventThread = g_thread_new("dsl-x-window-event-thread",
-            XWindowEventThread, NULL);
-
     }
 
     Services::~Services()
@@ -334,7 +321,6 @@ namespace DSL
             }
         }
         
-        g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_servicesMutex);
     }
     
@@ -505,7 +491,7 @@ namespace DSL
     }
     
     DslReturnType Services::DisplayNew(const char* display, 
-        uint rows, uint columns, uint width, uint height)
+        uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -519,7 +505,7 @@ namespace DSL
         try
         {
             m_components[display] = std::shared_ptr<Bintr>(new DisplayBintr(
-                display, m_pXDisplay, rows, columns, width, height));
+                display, width, height));
         }
         catch(...)
         {
@@ -741,6 +727,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
+        m_pipelines[pipeline]->RemoveAllChildren();
         m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
@@ -764,6 +751,7 @@ namespace DSL
         // iterate through the list a second time erasing each
         for (const char** pipeline = pipelines; *pipeline; pipeline++)
         {
+            m_pipelines[*pipeline]->RemoveAllChildren();
             m_pipelines.erase(*pipeline);
         }
 
@@ -779,6 +767,7 @@ namespace DSL
 
         for (auto &imap: m_pipelines)
         {
+            imap.second->RemoveAllChildren();
             imap.second = nullptr;
         }
         m_pipelines.clear();
@@ -850,9 +839,6 @@ namespace DSL
         }
         LOG_DEBUG("All listed components found");
         
-        // ensure that all current commponents are unlinked first
-        m_pipelines[pipeline]->UnlinkComponents();
-
         // iterate through the list of provided components a second time
         // adding each to the named pipeline individually.
         for (const char** component = components; *component; component++)
@@ -871,9 +857,6 @@ namespace DSL
             }
         }
         
-        // link all components, previous and those just added
-        m_pipelines[pipeline]->LinkComponents();
-
         return DSL_RESULT_SUCCESS;
     }
 
@@ -968,11 +951,6 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-
-        // flush the output buffer and then wait until all requests have been 
-        // received and processed by the X server. TRUE = Discard all queued events
-        XSync(m_pXDisplay, TRUE);       
-
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
@@ -1077,54 +1055,5 @@ namespace DSL
         return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
     }
     
-    bool Services::HandleXWindowEvents()
-    {
-//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        XEvent xEvent;
-
-        while (XPending (m_pXDisplay)) 
-        {
-            
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            
-            XNextEvent(m_pXDisplay, &xEvent);
-            switch (xEvent.type) 
-            {
-            case ButtonPress:                
-                LOG_INFO("Button pressed");
-                break;
-                
-            case KeyPress:
-                LOG_INFO("Key pressed"); 
-                
-                // wait for key release to process
-                break;
-
-            case KeyRelease:
-                LOG_INFO("Key released");
-                
-                break;
-            }
-        }
-        return true;
-    }
-    
-    static gboolean EventThread(gpointer arg)
-    {
-        Services* pServices = Services::GetServices();
-        
-        return true;
-    }
-    
-
-    static gpointer XWindowEventThread(gpointer arg)
-    {
-        Services* pServices = Services::GetServices();
-
-        pServices->HandleXWindowEvents();
-       
-        return NULL;
-    }
 
 } // namespace 

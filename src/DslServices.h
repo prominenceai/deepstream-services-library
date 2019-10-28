@@ -77,8 +77,7 @@ namespace DSL {
             uint batchSize, uint interval, uint uniqueId, uint gpuId, 
             const char* modelEngineFile, const char* rawOutputDir);
         
-        DslReturnType DisplayNew(const char* display, 
-            uint rows, uint columns, uint width, uint height);
+        DslReturnType DisplayNew(const char* display, uint width, uint height);
         
         boolean ComponentIsInUse(const char* component);
         
@@ -179,27 +178,11 @@ namespace DSL {
         GMutex m_servicesMutex;
 
         /**
-         * @brief mutex for all display critical code
-        */
-        GMutex m_displayMutex;
-        
-        /**
          * @brief maximum number of sources that can be in use at one time
          * Set to the default in service contructor, the value can be read
          * and updated as the first call to DSL.
          */
         uint m_numSourceInUseMax;
-        
-        /**
-         * @brief a single display for the driver
-        */
-        Display* m_pXDisplay;
-        
-        /**
-         * @brief handle to the X Window event thread, 
-         * active for the life of the driver
-        */
-        GThread* m_pXWindowEventThread;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name
@@ -229,16 +212,6 @@ namespace DSL {
     };  
 
     static gboolean MainLoopThread(gpointer arg);
-
-    /**
-     * @brief 
-     * @param arg
-     * @return 
-     */
-    static gboolean EventThread(gpointer arg);
-    
-    static gpointer XWindowEventThread(gpointer arg);
-
 }
 
 

@@ -235,14 +235,11 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
 /**
  * @brief creates a new, uniquely named Display obj
  * @param[in] name unique name for the new Display
- * @param[in] rows number of horizotal display rows
- * @param[in] columns number of vertical display columns
- * @param[in] width width of each column in pixals
- * @param[in] height height of each row in pix  als
+ * @param[in] width width of the Display in pixels
+ * @param[in] height height of the Display in pixels
  * @return DSL_RESULT_DISPLAY_RESULT
  */
-DslReturnType dsl_display_new(const char* name, 
-    uint rows, uint columns, uint width, uint height);
+DslReturnType dsl_display_new(const char* name, uint width, uint height);
 
 /**
  * @brief deletes a Component object by name
