@@ -43,7 +43,22 @@ namespace DSL
     public:
 
         /**
-         * @brief 
+         * @brief basic container ctor without name and Bin initialization
+         */
+        Bintr()
+            : m_gpuId(0)
+            , m_nvbufMemoryType(0)
+            , m_pSinkPad(NULL)
+            , m_pSourcePad(NULL)
+            , m_pParentBintr(nullptr)
+            , m_pSourceBintr(nullptr)
+            , m_pDestBintr(nullptr)
+        { 
+            LOG_FUNC(); 
+        };
+
+        /**
+         * @brief named container ctor with new Bin 
          */
         Bintr(const char* name)
             : m_gpuId(0)
@@ -66,9 +81,11 @@ namespace DSL
                 throw;  
             }
             
-            g_mutex_init(&m_bintrMutex);
         };
         
+        /**
+         * @brief Bintr dtor to release all GST references
+         */
         ~Bintr()
         {
             LOG_FUNC();
@@ -85,16 +102,28 @@ namespace DSL
                 gst_object_unref(m_pSourcePad);
             }
 
-            g_mutex_clear(&m_bintrMutex);
+            if (GST_OBJECT_REFCOUNT_VALUE(m_pBin))
+            {
+                gst_object_unref(m_pBin);
+            }
         };
         
+        /**
+         * @brief returns whether the Bintr object is in-use 
+         * @return True if the Bintr has a parent 
+         */
         bool IsInUse()
         {
             LOG_FUNC();
             
             return (m_pParentBintr != nullptr);
         }
+
         
+        /**
+         * @brief returns the current number of child Bintrs in-use
+         * @return number of children 
+         */
         uint GetNumChildren()
         {
             LOG_FUNC();
@@ -102,10 +131,13 @@ namespace DSL
             return m_pChildBintrs.size();
         }
         
+        /**
+         * @brief links this Bintr as source to a destination Bintr as sink
+         * @param pDestBintr to link to
+         */
         void LinkTo(std::shared_ptr<Bintr> pDestBintr)
         { 
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             m_pDestBintr = pDestBintr;
 
@@ -120,10 +152,14 @@ namespace DSL
             }
         };
 
+        /**
+         * @brief adds a child Bintr to this parent Bintr
+         * @param pChildBintr to add. Once added, calling InUse()
+         *  on the Child Bintr will return true
+         */
         virtual void AddChild(std::shared_ptr<Bintr> pChildBintr)
         {
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             pChildBintr->m_pParentBintr = shared_from_this();
 
@@ -137,10 +173,14 @@ namespace DSL
             LOG_INFO("Child bin '" << pChildBintr->m_name <<"' added to '" << m_name <<"'");
         };
         
+        /**
+         * @brief removes a child Bintr from this parent Bintr
+         * @param pChildBintr to remove. Once removed, calling InUse()
+         *  on the Child Bintr will return false
+         */
         virtual void RemoveChild(std::shared_ptr<Bintr> pChildBintr)
         {
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             if (m_pChildBintrs[pChildBintr->m_name] != pChildBintr)
             {
@@ -159,14 +199,23 @@ namespace DSL
             
             LOG_INFO("Child bin '" << pChildBintr->m_name <<"' removed from '" << m_name <<"'");
         };
-        
+
+        /**
+         * @brief Adds this Bintr as a child to a ParentBinter
+         * @param pParentBintr to add to
+         */
         virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr)
         {
             LOG_FUNC();
                 
             pParentBintr->AddChild(shared_from_this());
         }
-
+        
+        /**
+         * @brief determines whether this Bintr is a child of pParentBintr
+         * @param pParentBintr the Bintr to check for a Parental relationship
+         * @return True if the provided Bintr is this Bintr's Parent
+         */
         virtual bool IsMyParent(std::shared_ptr<Bintr> pParentBintr)
         {
             LOG_FUNC();
@@ -174,6 +223,10 @@ namespace DSL
             return (m_pParentBintr == pParentBintr);
         }        
         
+        /**
+         * @brief removes this Bintr from the provided pParentBintr
+         * @param pParentBintr Bintr to remove from
+         */
         virtual void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr)
         {
             LOG_FUNC();
@@ -181,10 +234,18 @@ namespace DSL
             pParentBintr->RemoveChild(shared_from_this());
         }
 
+        /**
+         * @brief Creates a new GST Element and adds it to This Bintr's 
+         * ordered list of child elements
+         * @param factoryname defines the type of element to create
+         * @param name name to give the new GST element
+         * @param linkToPrev if true, this Element is linked to the 
+         * previously created Element that was linked
+         * @return a handle to the new GST Element
+         */
         GstElement* MakeElement(const gchar * factoryname, const gchar * name, bool linkToPrev)
         {
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
 
             GstElement* pElement = gst_element_factory_make(factoryname, name);
             if (!pElement)
@@ -210,7 +271,7 @@ namespace DSL
                         LOG_ERROR("Failed to link new element " << name << " for " << m_name);
                         throw;
                     }
-                    LOG_INFO("Successfully linked new element " << name << " for " << m_name);
+                    LOG_DEBUG("Successfully linked new element " << name << " for " << m_name);
                 }
                 m_pLinkedChildElements.push_back(pElement);
             }
@@ -225,7 +286,6 @@ namespace DSL
         virtual void AddSinkGhostPad()
         {
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             if (!m_pLinkedChildElements.size())
             {
@@ -252,7 +312,6 @@ namespace DSL
         virtual void AddSourceGhostPad()
         {
             LOG_FUNC();
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_bintrMutex);
             
             if (!m_pLinkedChildElements.size())
             {
@@ -269,9 +328,11 @@ namespace DSL
                 LOG_ERROR("Failed to add Source Pad for '" << m_name);
                 throw;
             }
-            
         };
 
+        /**
+         * @brief bundles both AddSink and AddSource into a single call for convenience
+         */
         void AddGhostPads()
         {
             AddSinkGhostPad();
@@ -281,17 +342,17 @@ namespace DSL
     public:
 
         /**
-         @brief
+         @brief unique name for this Bintr
          */
         std::string m_name;
 
         /**
-         @brief
+         @brief pointer to the contained GST Bin for the Bintr
          */
         GstElement* m_pBin;
         
         /**
-         @brief
+         @brief vector of created and linked child elements
          */
         std::vector<GstElement*> m_pLinkedChildElements;
         
@@ -316,17 +377,17 @@ namespace DSL
         GstPad *m_pSourcePad; 
         
         /**
-         @brief
+         @brief Parent of this Bintr if one exists. NULL otherwise
          */
         std::shared_ptr<Bintr> m_pParentBintr;
         
         /**
-         @brief
+         @brief map of Child Bintrs in-use by this Bintr
          */
         std::map<std::string, std::shared_ptr<Bintr>> m_pChildBintrs;
         
         /**
-         @brief
+         @brief 
          */
         std::shared_ptr<Bintr> m_pSourceBintr;
 
@@ -334,11 +395,6 @@ namespace DSL
          @brief
          */
         std::shared_ptr<Bintr> m_pDestBintr;
-        
-        /**
-         * @brief mutex to protect bintr reentry
-         */
-        GMutex m_bintrMutex;
         
     };
 

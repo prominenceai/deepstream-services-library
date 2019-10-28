@@ -29,18 +29,15 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    DisplayBintr::DisplayBintr(const char* display, Display* pXDisplay,
-        guint rows, guint columns, guint width, guint height)
+    DisplayBintr::DisplayBintr(const char* display, guint width, guint height)
         : Bintr(display)
-        , m_pXDisplay(pXDisplay)
-        , m_rows(rows)
-        , m_columns(columns)
+        , m_rows(1)
+        , m_columns(1)
         , m_width(width)
         , m_height(height)
         , m_enablePadding(FALSE)
         , m_pQueue(NULL) 
         , m_pTiler(NULL)
-        , m_window(0)
     {
         LOG_FUNC();
 
@@ -49,37 +46,11 @@ namespace DSL
         m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler", LINK_TRUE);
 
         g_object_set(G_OBJECT(m_pTiler), 
-            "width", m_width,
-            "height", m_height,
-            "rows", m_rows,
-            "columns", m_columns,
             "gpu-id", m_gpuId,
             "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
         // Add Sink and Source pads for Queue and Tiler
         AddGhostPads();
-        
-        m_window = XCreateSimpleWindow(m_pXDisplay, 
-            RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-            0, 0, m_width, m_height, 2, 0x00000000, 0x00000000);            
-
-        if (!m_window)
-        {
-            LOG_ERROR("Failed to create new X Window for Display '" << display <<" '");
-            throw;
-        }
-
-        XSetWindowAttributes attr = {0};
-        
-        attr.event_mask = ButtonPress | KeyRelease;
-        XChangeWindowAttributes(m_pXDisplay, m_window, CWEventMask, &attr);
-
-        Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
-        if (wmDeleteMessage != None)
-        {
-            XSetWMProtocols(m_pXDisplay, m_window, &wmDeleteMessage, 1);
-        }
-        XMapRaised(m_pXDisplay, m_window);
     }    
 
     DisplayBintr::~DisplayBintr()
@@ -95,5 +66,44 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
             AddDisplayBintr(shared_from_this());
     }
+
+    void DisplayBintr::SetTiles(uint rows, uint columns)
+    {
+        LOG_FUNC();
+
+        m_rows = rows;
+        m_columns = columns;
     
+        g_object_set(G_OBJECT(m_pTiler), 
+            "rows", m_rows,
+            "columns", m_columns, NULL);
+    }
+    
+    void DisplayBintr::GetTiles(uint& rows, uint& columns)
+    {
+        LOG_FUNC();
+        
+        rows = m_rows;
+        columns = m_columns;
+    }
+    
+    void DisplayBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_width = width;
+        m_height = height;
+
+        g_object_set(G_OBJECT(m_pTiler), 
+            "width", m_width,
+            "height", m_height, NULL);
+    }
+    
+    void DisplayBintr::GetDimensions(uint& width, uint& height)
+    {
+        LOG_FUNC();
+        
+        width = m_width;
+        height = m_height;
+    }
 }
