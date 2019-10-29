@@ -29,7 +29,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    
     ProcessBintr::ProcessBintr(const char* name)
         : Bintr(name)
         , m_pSinksBintr(NULL)
@@ -137,6 +136,10 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (m_pXWindow)
+        {
+            XDestroyWindow(m_pXDisplay, m_pXWindow);
+        }
         // cleanup all resources
         gst_object_unref(m_pGstBus);
 
@@ -452,40 +455,48 @@ namespace DSL
 
         if (m_isAssembled)
         {
-            LOG_INFO("Components for Pipeline '" << m_name << "' were linked");
+            LOG_INFO("Components for Pipeline '" << m_name << "' are already assembled");
             return;
         }
 
         if (m_pDisplayBintr)
         {
-            uint width(0), height(0);
-            m_pDisplayBintr->GetDimensions(width, height);
-            
-            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
-                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-                0, 0, width, height, 2, 0x00000000, 0x00000000);            
-
             if (!m_pXWindow)
             {
-                LOG_ERROR("Failed to create new X Window for Pipeline '" << m_name << "' ");
-                throw;
+                uint width(0), height(0);
+                m_pDisplayBintr->GetDimensions(width, height);
+                
+                m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                    RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                    0, 0, width, height, 2, 0x00000000, 0x00000000);            
+
+                if (!m_pXWindow)
+                {
+                    LOG_ERROR("Failed to create new X Window for Pipeline '" << m_name << "' ");
+                    throw;
+                }
+                XSetWindowAttributes attr = {0};
+                
+                attr.event_mask = ButtonPress | KeyRelease;
+                XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
+     
+                Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
+                if (wmDeleteMessage != None)
+                {
+                    XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
+                }
             }
 
-            XSetWindowAttributes attr = {0};
-            
-            attr.event_mask = ButtonPress | KeyRelease;
-            XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
-
-            Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
-            if (wmDeleteMessage != None)
-            {
-                XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
-            }
             XMapRaised(m_pXDisplay, m_pXWindow);
+
+//            gst_video_overlay_set_window_handle(
+//                GST_VIDEO_OVERLAY(.sink), (gulong) m_pXWindow);
+//            gst_video_overlay_expose
+//                (GST_VIDEO_OVERLAY (.sink));
 
             // Start the X window event thread
             std::string threadName = m_name + std::string("-x-window-event-thread");
-            m_pXWindowEventThread = g_thread_new(threadName.c_str(), XWindowEventThread, NULL);
+            m_pXWindowEventThread = g_thread_new(threadName.c_str(), XWindowEventThread, this);
         }
         
         // Ghost pad added to OSD Bintr, if OSD exists, to Sinks Bintr otherwise.
@@ -557,22 +568,18 @@ namespace DSL
         m_mapPipelineStates[GST_STATE_NULL] = "GST_STATE_NULL";
     }
 
-    static gboolean bus_watch(
-        GstBus* bus, GstMessage* pMessage, gpointer pData)
+    static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
         return static_cast<PipelineBintr*>(pData)->HandleBusWatchMessage(pMessage);
     }    
     
-    static GstBusSyncReply bus_sync_handler(
-        GstBus* bus, GstMessage* pMessage, gpointer pData)
+    static GstBusSyncReply bus_sync_handler(GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
         return static_cast<PipelineBintr*>(pData)->HandleBusSyncMessage(pMessage);
     }
-       
 
     static gpointer XWindowEventThread(gpointer pData)
     {
-
         static_cast<PipelineBintr*>(pData)->HandleXWindowEvents();
        
         return NULL;
