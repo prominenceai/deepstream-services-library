@@ -41,16 +41,17 @@ SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
             displayName.c_str(), initWidth, initHeight));
 
         std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
-            std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(displayName.c_str()));
+            std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
             
         pDisplayBintr->AddToParent(pPipelineBintr);
 
         WHEN( "The Pipeline is Assembled" )
         {
-//            pPipelineBintr->_assemble();
+            pPipelineBintr->_assemble();
 
-            THEN( "The Display's new demensions are returned on Get")
+            THEN( "The Display's new demensions are returned on Get" )
             {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }
     }

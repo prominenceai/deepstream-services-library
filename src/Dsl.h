@@ -37,6 +37,8 @@ THE SOFTWARE.
 #include <map> 
 #include <memory> 
 #include <fstream>
+#include <thread>
+#include <chrono>
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>
