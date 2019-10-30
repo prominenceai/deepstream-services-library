@@ -47,16 +47,44 @@ namespace DSL
         GstElement* m_pTee;
     };
 
-    class SinkBintr : public Bintr
+    class OverlaySinkBintr : public Bintr
     {
     public: 
     
-        SinkBintr(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height);
+        OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
 
-        ~SinkBintr();
+        ~OverlaySinkBintr();
         
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
+        int GetDisplayId()
+        {
+            LOG_FUNC();
+            
+            return m_displayId;
+        }
+
+        int GetOverlayId()
+        {
+            LOG_FUNC();
+            
+            return m_overlayId;
+        }
+
+        void SetDisplayId(int id)
+        {
+            LOG_FUNC();
+            
+            m_displayId = id;
+        }
+
+        void SetOverlayId(int id)
+        {
+            LOG_FUNC();
+            
+            m_overlayId = id;
+        }
+
         
     private:
 
@@ -73,8 +101,6 @@ namespace DSL
         GstElement* m_pQueue;
         GstElement* m_pTransform;
         GstElement* m_pOverlay;
-            
-        friend class SinksBintr;
     };
 
 }

@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -23,52 +22,60 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_OSD_BINTR_H
-#define _DSL_OSD_BINTR_H
+#ifndef _DSL_PROCESS_BINTR_H
+#define _DSL_PROCESS_BINTR_H
 
-#include "Dsl.h"
-#include "DslElementr.h"
-#include "DslBintr.h"
-
-namespace DSL
+#include "DslSinkBintr.h"
+#include "DslOsdBintr.h"
+    
+namespace DSL 
 {
-    
-    class OsdBintr : public Bintr
+
+    /**
+     * @class ProcessBintr
+     * @brief 
+     */
+    class ProcessBintr : public Bintr
     {
-    public: 
+    public:
     
-        OsdBintr(const char* osd, gboolean isClockEnabled);
+        /** 
+         * 
+         */
+        ProcessBintr(const char* name);
+        ~ProcessBintr();
 
-        ~OsdBintr();
+        /**
+         * @brief Adds a Sink Bintr to this Process Bintr
+         * @param[in] pSinkBintr
+         */
+        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-        
-        void LinkAll();
-        
-        void UnlinkAll();
-        
-    private:
-
-        gboolean m_isClockEnabled;
-        
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        static guint m_sClockOffsetX;
-        static guint m_sClockOffsetY;
-        static guint m_sClockColor;
+        /**
+         * @brief 
+         * @param[in] pOsdBintr
+         */
+        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
         
         /**
-         @brief
+         * @brief 
          */
-        guint m_processMode;
+        void AddSinkGhostPad();
+
         
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pVidConv;
-        std::shared_ptr<Elementr> m_pCapsFilter;
-        std::shared_ptr<Elementr> m_pConvQueue;
-        std::shared_ptr<Elementr> m_pOsd;
+    private:
     
+        /**
+         * @brief one or more Sinks for this Process bintr
+         */
+        std::shared_ptr<SinksBintr> m_pSinksBintr;
+        
+        /**
+         * @brief optional OSD for this Process bintr
+         */
+        std::shared_ptr<OsdBintr> m_pOsdBintr;
+        
     };
 }
 
-#endif // _DSL_OSD_BINTR_H
+#endif // _DSL_PROCESS_BINTR_H

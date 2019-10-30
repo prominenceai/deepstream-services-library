@@ -47,7 +47,7 @@ SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
 
         WHEN( "The Pipeline is Assembled" )
         {
-            pPipelineBintr->_assemble();
+            REQUIRE( pPipelineBintr->_assemble() == true );
 
             THEN( "The Display's new demensions are returned on Get" )
             {

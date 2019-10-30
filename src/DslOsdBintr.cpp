@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslElementr.h"
 #include "DslOsdBintr.h"
 #include "DslPipelineBintr.h"
 
@@ -46,19 +47,17 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_queue", LINK_TRUE);
-        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "osd_conv", LINK_TRUE);
-        m_pConvQueue = MakeElement(NVDS_ELEM_QUEUE, "osd_conv_queue", LINK_TRUE);
-        m_pOsd = MakeElement(NVDS_ELEM_OSD, "nvosd0", LINK_TRUE);
-        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "osd_caps", LINK_FALSE);
-        
-//        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
-//        GstCapsFeatures *feature = gst_caps_features_new(MEMORY_FEATURES, NULL);
-//
-//        gst_caps_set_features(caps, 0, feature);
-//        g_object_set(G_OBJECT(m_pCapsFilter), "caps", caps, NULL);
+        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "osd_queue", m_pBin));
+        m_pVidConv = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_VIDEO_CONV, "osd_conv", m_pBin));
+        m_pConvQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "osd_conv_queue", m_pBin));
+        m_pOsd = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_OSD, "nvosd0", m_pBin));
 
-        g_object_set(G_OBJECT(m_pOsd), 
+        g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
+            "gpu-id", m_gpuId,
+            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+
+        g_object_set(G_OBJECT(m_pOsd->m_pElement),
+            "gpu-id", m_gpuId,
             "display-clock", m_isClockEnabled,
             "clock-font", (gchar*)m_sClockFont.c_str(), 
             "x-clock-offset", m_sClockOffsetX,
@@ -67,13 +66,8 @@ namespace DSL
             "clock-font-size", m_sClockFontSize, 
             "process-mode", m_processMode, NULL);
 
-        g_object_set(G_OBJECT(m_pVidConv), 
-            "gpu-id", m_gpuId,
-            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
-
-        g_object_set(G_OBJECT(m_pOsd), "gpu-id", m_gpuId, NULL);
-
-        AddGhostPads();
+        m_pQueue->AddSinkGhostPad();
+        m_pOsd->AddSourceGhostPad();
     }    
     
     OsdBintr::~OsdBintr()
@@ -88,5 +82,23 @@ namespace DSL
         // add 'this' OSD to the Parent Pipeline 
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddOsdBintr(shared_from_this());
+    }
+    
+    void OsdBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->LinkTo(m_pVidConv);
+        m_pVidConv->LinkTo(m_pConvQueue);
+        m_pConvQueue->LinkTo(m_pOsd);
+    }
+    
+    void OsdBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->Unlink();
+        m_pVidConv->Unlink();
+        m_pConvQueue->Unlink();
     }
 }    

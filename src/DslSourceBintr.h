@@ -74,7 +74,7 @@ namespace DSL
             return m_isLive;
         }
         
-        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
+//        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
 
     protected:
             

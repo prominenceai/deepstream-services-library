@@ -42,15 +42,16 @@ namespace DSL
         LOG_FUNC();
 
         // Queue and Tiler elements will be linked in the order created.
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "tiled_display_queue", LINK_TRUE);
-        m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler", LINK_TRUE);
+        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin));
+        m_pTiler = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin));
 
         g_object_set(G_OBJECT(m_pTiler), 
             "gpu-id", m_gpuId,
             "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
-        // Add Sink and Source pads for Queue and Tiler
-        AddGhostPads();
+        m_pQueue->AddSinkGhostPad();
+        m_pTiler->AddSourceGhostPad();
+
     }    
 
     DisplayBintr::~DisplayBintr()

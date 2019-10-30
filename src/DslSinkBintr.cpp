@@ -92,18 +92,14 @@ namespace DSL
         }
     };
 
-    // ********************************************************
-    //   Overlay Sink
-    
 
-    SinkBintr::SinkBintr(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height)
+    OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height)
         : Bintr(sink)
         , m_sync(FALSE)
         , m_async(FALSE)
         , m_qos(TRUE)
-        , m_displayId(displayId)
-        , m_overlayId(overlayId)
+        , m_displayId(-1)
+        , m_overlayId(0)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -114,33 +110,29 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // New Queue. Transform, amd Sink Elements for this Sink bin
-        // Note!, elements will be linked in the order they're created
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink_bin_queue", LINK_TRUE);
-//        m_pTransform = MakeElement(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform", LINK_TRUE);
+        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "sink-bin-queue", LINK_TRUE);
         m_pOverlay = MakeElement(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", LINK_TRUE);
         
-        g_object_set(G_OBJECT(m_pOverlay), "display-id", m_displayId, NULL);
-        g_object_set(G_OBJECT(m_pOverlay), "overlay", m_overlayId, NULL);
-        g_object_set(G_OBJECT(m_pOverlay), "overlay-x", m_offsetX, NULL);
-        g_object_set(G_OBJECT(m_pOverlay), "overlay-y", m_offsetY, NULL);
-        g_object_set(G_OBJECT(m_pOverlay), "overlay-w", m_width, NULL);
-        g_object_set(G_OBJECT(m_pOverlay), "overlay-h", m_height, NULL);
-
-        // TODO should "sync" and "async" be configurable
-        g_object_set(G_OBJECT(m_pOverlay), "sync", m_sync, "max-lateness", -1,
-            "async", m_async, "qos", m_qos, NULL);
+        g_object_set(G_OBJECT(m_pOverlay), 
+            "overlay-x", m_offsetX,
+            "overlay-y", m_offsetY,
+            "overlay-w", m_width,
+            "overlay-h", m_height,
+            "sync", m_sync, 
+            "max-lateness", -1,
+            "async", m_async, 
+            "qos", m_qos, NULL);
             
         // Add Sink Pad for bin only
         AddSinkGhostPad();
     }
     
-    SinkBintr::~SinkBintr()
+    OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
     }
     
-    void SinkBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    void OverlaySinkBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
@@ -148,5 +140,5 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
             AddSinkBintr(shared_from_this());
     }
-    
+        
 }    

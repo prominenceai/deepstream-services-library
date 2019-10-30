@@ -32,55 +32,10 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
+#include "DslProcessBintr.h"
     
 namespace DSL 
 {
-    /**
-     * @class ProcessBintr
-     * @brief 
-     */
-    class ProcessBintr : public Bintr
-    {
-    public:
-    
-        /** 
-         * 
-         */
-        ProcessBintr(const char* name);
-        ~ProcessBintr();
-
-        /**
-         * @brief Adds a Sink Bintr to this Process Bintr
-         * @param[in] pSinkBintr
-         */
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
-
-        /**
-         * @brief 
-         * @param[in] pOsdBintr
-         */
-        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
-        
-        /**
-         * @brief 
-         */
-        void AddSinkGhostPad();
-
-        
-    private:
-    
-        /**
-         * @brief one or more Sinks for this Process bintr
-         */
-        std::shared_ptr<SinksBintr> m_pSinksBintr;
-        
-        /**
-         * @brief optional OSD for this Process bintr
-         */
-        std::shared_ptr<OsdBintr> m_pOsdBintr;
-        
-    };
-
     /**
      * @class PipelineBintr
      * @brief 
@@ -266,7 +221,9 @@ namespace DSL
          */
         void HandleXWindowEvents();
 
-        void _assemble();
+        bool _createWindow();
+        
+        bool _assemble();
         
         void _disassemble();
 
