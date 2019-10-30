@@ -26,9 +26,9 @@ THE SOFTWARE.
 #include "DslDisplayBintr.h"
 #include "DslPipelineBintr.h"
 
-SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
+SCENARIO( "A Pipeline fails to assemble without one Source component ", "[pipeline]" )
 {
-    GIVEN( "A Pipeline with a Tiled Display" ) 
+    GIVEN( "A Pipeline and a Tiled Display only" ) 
     {
         std::string displayName = "tiled-display";
         std::string pipelineName = "pipeline";
@@ -43,15 +43,14 @@ SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
         std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
             std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
             
-        pDisplayBintr->AddToParent(pPipelineBintr);
-
-        WHEN( "The Pipeline is Assembled" )
+        WHEN( "The Pipeline is setup without a Source Component" )
         {
-            REQUIRE( pPipelineBintr->_assemble() == true );
+            pDisplayBintr->AddToParent(pPipelineBintr);
 
-            THEN( "The Display's new demensions are returned on Get" )
+            THEN( "The Pipeline fails to assemble" )
             {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                REQUIRE( pPipelineBintr->_assemble() == false );
+//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }
     }

@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslElementr.h"
 
 namespace DSL
 {
@@ -41,20 +42,46 @@ namespace DSL
         
         void AddChild(std::shared_ptr<Bintr> pChildBintr);
 
+//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+
     private:
 
-        GstElement* m_pQueue;
-        GstElement* m_pTee;
+        std::shared_ptr<Elementr> m_pQueue;
+        std::shared_ptr<Elementr> m_pTee;
     };
 
-    class OverlaySinkBintr : public Bintr
+    class SinkBintr : public Bintr
+    {
+    public: 
+    
+        SinkBintr(const char* sink)
+            : Bintr(sink) 
+        {
+            LOG_FUNC();
+        };
+
+        ~SinkBintr()
+        {
+            LOG_FUNC();
+        };
+  
+        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+    };
+
+    class OverlaySinkBintr : public SinkBintr
     {
     public: 
     
         OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
 
         ~OverlaySinkBintr();
+  
+        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+      
+        void LinkAll();
         
+        void UnlinkAll();
+
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
 
         int GetDisplayId()
@@ -98,9 +125,9 @@ namespace DSL
         guint m_width;
         guint m_height;
 
-        GstElement* m_pQueue;
-        GstElement* m_pTransform;
-        GstElement* m_pOverlay;
+        std::shared_ptr<Elementr> m_pQueue;
+        std::shared_ptr<Elementr> m_pTransform;
+        std::shared_ptr<Elementr> m_pOverlay;
     };
 
 }

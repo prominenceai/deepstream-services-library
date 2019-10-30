@@ -81,11 +81,6 @@ namespace DSL
             {
                 gst_object_unref(m_pSourcePad);
             }
-            
-            if (m_pElement and GST_OBJECT_REFCOUNT_VALUE(m_pElement))
-            {
-                gst_object_unref(m_pElement);
-            }
         };
 
         

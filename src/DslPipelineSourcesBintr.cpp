@@ -36,7 +36,7 @@ namespace DSL
         g_object_set(m_pBin, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
-        m_pStreamMux = MakeElement(NVDS_ELEM_STREAM_MUX, "stream_muxer", LINK_TRUE);
+        m_pStreamMux = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_STREAM_MUX, "stream_muxer", m_pBin));
         
         SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
@@ -114,7 +114,7 @@ namespace DSL
         LOG_FUNC();
         
         // get Source pad for Stream Muxer element
-        StaticPadtr sourcePadtr(m_pStreamMux, "src");
+        StaticPadtr sourcePadtr(m_pStreamMux->m_pElement, "src");
 
         // create a new ghost pad with Source pad and add to this Bintr's bin
         if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", sourcePadtr.m_pPad)))
@@ -138,7 +138,7 @@ namespace DSL
             // Retrieve the sink pad - from the Streammux element - 
             // to link to the Source component being added
             std::shared_ptr<RequestPadtr> pSinkPadtr = 
-                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux, (gchar*)sinkPadName.c_str()));
+                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux->m_pElement, (gchar*)sinkPadName.c_str()));
             
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->
                 m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
@@ -169,7 +169,7 @@ namespace DSL
         
         m_areSourcesLive = areSourcesLive;
         
-        g_object_set(G_OBJECT(m_pStreamMux), 
+        g_object_set(G_OBJECT(m_pStreamMux->m_pElement), 
             "live-source", m_areSourcesLive, NULL);
         
     }
@@ -181,7 +181,7 @@ namespace DSL
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
 
-        g_object_set(G_OBJECT(m_pStreamMux),
+        g_object_set(G_OBJECT(m_pStreamMux->m_pElement),
             "batch-size", m_batchSize,
             "batched-push-timeout", m_batchTimeout, NULL);
     }
@@ -193,7 +193,7 @@ namespace DSL
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
 
-        g_object_set(G_OBJECT(m_pStreamMux),
+        g_object_set(G_OBJECT(m_pStreamMux->m_pElement),
             "width", m_streamMuxWidth,
             "height", m_streamMuxHeight, NULL);
     }

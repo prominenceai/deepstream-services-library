@@ -81,10 +81,28 @@ namespace DSL
             LOG_FUNC();
             LOG_INFO("Delete bintr:: " << m_name);
 
-            if (m_pBin and GST_OBJECT_REFCOUNT_VALUE(m_pBin))
-            {
-                gst_object_unref(m_pBin);
-            }
+//            if (m_pBin and GST_OBJECT_REFCOUNT_VALUE(m_pBin))
+//            {
+//                gst_object_unref(m_pBin);
+//            }
+        };
+
+        /**
+         * @brief virtual function for derived classes to implement
+         * a Bintr type specific function to link all child elements.
+         */
+        virtual void LinkAll()
+        {
+            LOG_FUNC();
+        };
+        
+        /**
+         * @brief virtual function for derived classes to implement
+         * a Bintr type specific function to unlink all child elements.
+         */
+        virtual void UnlinkAll()
+        {
+            LOG_FUNC();
         };
         
         /**
@@ -213,15 +231,6 @@ namespace DSL
             pParentBintr->RemoveChild(shared_from_this());
         }
         
-        virtual void LinkAll()
-        {
-            LOG_FUNC();
-        }
-
-        virtual void UnlinkAll()
-        {
-            LOG_FUNC();
-        }
 
     public:
 

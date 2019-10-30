@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_DISPLAY_BINTR_H
 
 #include "Dsl.h"
+#include "DslElementr.h"
 #include "DslBintr.h"
 
 namespace DSL

@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslElementr.h"
 
 namespace DSL
 {
@@ -42,10 +43,20 @@ namespace DSL
     
         SourceBintr(const char* source);
 
-        SourceBintr(const char* source, guint width, guint height, 
-            guint fps_n, guint fps_d);
+        SourceBintr(const char* source, uint width, uint height, 
+            uint fps_n, uint fps_d);
 
         ~SourceBintr();
+
+//        void LinkAll()
+//        {
+//            LOG_FUNC();
+//        };
+//        
+//        void UnlinkAll()
+//        {
+//            LOG_FUNC();
+//        };
 
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
 
@@ -74,7 +85,7 @@ namespace DSL
             return m_isLive;
         }
         
-//        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
+        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
 
     protected:
             
@@ -127,7 +138,7 @@ namespace DSL
         /**
          * @brief
          */
-        GstElement * m_pSourceElement;
+        std::shared_ptr<Elementr> m_pSourceElement;
         
     };
 
@@ -139,16 +150,20 @@ namespace DSL
     {
     public: 
     
-        CsiSourceBintr(const char* source, guint width, guint height, 
-            guint fps_n, guint fps_d);
+        CsiSourceBintr(const char* source, uint width, uint height, 
+            uint fps_n, guint fps_d);
 
         ~CsiSourceBintr();
+
+        void LinkAll();
+        
+        void UnlinkAll();
         
     private:
         /**
          * @brief
          */
-        GstElement * m_pCapsFilter;
+        std::shared_ptr<Elementr> m_pCapsFilter;
     };
 
 
@@ -164,6 +179,10 @@ namespace DSL
             guint cudadecMemType, guint intraDecode);
 
         ~UriSourceBintr();
+
+        void LinkAll();
+        
+        void UnlinkAll();
         
         /**
          * @brief 
@@ -242,23 +261,24 @@ namespace DSL
         /**
          * @brief
          */
-        GstElement* m_pTee;
+        std::shared_ptr<Elementr> m_pTee;
 
         /**
          @brief
          */
-        GstElement* m_pSourceQueue;
+        std::shared_ptr<Elementr> m_pSourceQueue;
 
         /**
          * @brief
          */
-        GstElement* m_pFakeSink;
+        std::shared_ptr<Elementr> m_pFakeSink;
 
         /**
          * @brief
          */
-        GstElement* m_pFakeSinkQueue;
+        std::shared_ptr<Elementr> m_pFakeSinkQueue;
     };
+    
     /**
      * @brief 
      * @param[in] pBin

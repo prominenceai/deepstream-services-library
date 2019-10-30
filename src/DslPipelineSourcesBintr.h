@@ -79,7 +79,7 @@ namespace DSL
 
     private:
 
-        GstElement* m_pStreamMux;
+        std::shared_ptr<Elementr> m_pStreamMux;
         
         /**
          @brief

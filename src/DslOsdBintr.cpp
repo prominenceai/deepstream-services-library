@@ -39,11 +39,6 @@ namespace DSL
         : Bintr(osd)
         , m_isClockEnabled(isClockEnabled)
         , m_processMode(0)
-        , m_pQueue(NULL)
-        , m_pVidConv(NULL)
-        , m_pCapsFilter(NULL)
-        , m_pConvQueue(NULL)
-        , m_pOsd(NULL)
     {
         LOG_FUNC();
         
@@ -73,17 +68,9 @@ namespace DSL
     OsdBintr::~OsdBintr()
     {
         LOG_FUNC();
+        
     }
 
-    void OsdBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' OSD to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddOsdBintr(shared_from_this());
-    }
-    
     void OsdBintr::LinkAll()
     {
         LOG_FUNC();
@@ -101,4 +88,14 @@ namespace DSL
         m_pVidConv->Unlink();
         m_pConvQueue->Unlink();
     }
+
+    void OsdBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' OSD to the Parent Pipeline 
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            AddOsdBintr(shared_from_this());
+    }
+    
 }    
