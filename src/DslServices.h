@@ -56,6 +56,14 @@ namespace DSL {
         
         DslReturnType SourceUriNew(const char* source, 
             const char* uri, uint cudadecMemType, uint intraDecode);
+            
+        boolean SourceIsLive(const char* source);
+        
+        uint GetNumSourceInUse();
+        
+        uint GetNumSourceInUseMax();
+        
+        void SetNumSourceInUseMax(uint max);
         
         DslReturnType StreamMuxNew(const char* streammux, boolean live, 
             uint batchSize, uint batchTimeout, uint width, uint height);
@@ -69,8 +77,9 @@ namespace DSL {
             uint batchSize, uint interval, uint uniqueId, uint gpuId, 
             const char* modelEngineFile, const char* rawOutputDir);
         
-        DslReturnType DisplayNew(const char* display, 
-            uint rows, uint columns, uint width, uint height);
+        DslReturnType DisplayNew(const char* display, uint width, uint height);
+        
+        boolean ComponentIsInUse(const char* component);
         
         DslReturnType ComponentDelete(const char* component);
 
@@ -83,6 +92,8 @@ namespace DSL {
         const char** ComponentListAll();
         
         DslReturnType PipelineNew(const char* pipeline);
+        
+        DslReturnType PipelineNewMany(const char** pipelines);
         
         DslReturnType PipelineDelete(const char* pipeline);
         
@@ -102,8 +113,11 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemoveMany(const char* pipeline, const char** components);
         
-        DslReturnType PipelineStreamMuxPropertiesSet(const char* pipeline,
-            boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height);
+        DslReturnType PipelineStreamMuxSetBatchProperties(const char* pipeline,
+            uint batchSize, uint batchTimeout);
+
+        DslReturnType PipelineStreamMuxSetOutputSize(const char* pipeline,
+            uint width, uint height);
 
         DslReturnType PipelinePause(const char* pipeline);
         
@@ -164,21 +178,11 @@ namespace DSL {
         GMutex m_servicesMutex;
 
         /**
-         * @brief mutex for all display critical code
-        */
-        GMutex m_displayMutex;
-        
-        /**
-         * @brief handle to the X Window event thread, 
-         * active for the life of the driver
-        */
-
-        /**
-         * @brief a single display for the driver
-        */
-        Display* m_pXDisplay;
-        
-        GThread* m_pXWindowEventThread;
+         * @brief maximum number of sources that can be in use at one time
+         * Set to the default in service contructor, the value can be read
+         * and updated as the first call to DSL.
+         */
+        uint m_numSourceInUseMax;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name
@@ -208,16 +212,6 @@ namespace DSL {
     };  
 
     static gboolean MainLoopThread(gpointer arg);
-
-    /**
-     * @brief 
-     * @param arg
-     * @return 
-     */
-    static gboolean EventThread(gpointer arg);
-    
-    static gpointer XWindowEventThread(gpointer arg);
-
 }
 
 

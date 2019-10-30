@@ -34,12 +34,19 @@ namespace DSL
     {
     public: 
     
-        DisplayBintr(const char* display, Display* m_pXDisplay,
-            guint rows, guint columns, guint width, guint height);
+        DisplayBintr(const char* display, guint width, guint height);
 
         ~DisplayBintr();
 
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
+        void SetTiles(uint rows, uint columns);
+        
+        void GetTiles(uint& rows, uint& columns);
+        
+        void SetDimensions(uint width, uint hieght);
+        
+        void GetDimensions(uint& width, uint& height);
         
     private:
     
@@ -78,8 +85,6 @@ namespace DSL
          */
         GstElement* m_pTiler;
         
-        Window m_window;
-
         /**
          * @brief a single display for the driver
         */

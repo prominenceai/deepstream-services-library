@@ -50,6 +50,8 @@ if the name is currently in use.
 **Returns**
 `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
+<br>
+
 ## Destructors
 ### *dsl_pipeline_delete*
 ```C++
@@ -63,6 +65,8 @@ All components owned by the pipeline move to a state of `not-in-use`
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
+<br>
 
 ### *dsl_pipeline_delete_many*
 ```C++
@@ -78,6 +82,8 @@ All components owned by the Pipelines move to a state of `not-in-use`
 **Returns**
 `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
 
+<br>
+
 ### *dsl_pipeline_delete_all*
 ```C++
 DslReturnType dsl_pipeline_delete_all();
@@ -86,6 +92,8 @@ This destructor deletes all Pipelines currently in memory  All components owned
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
+<br>
 
 ## Methods
 ### *dsl_pipeline_list_size*
@@ -96,6 +104,8 @@ This method returns the Pipeline list size
 
 **Returns** the number of Pipelines currently in memory
 
+<br>
+
 ### *dsl_pipeline_list_all*
 ```C++
 const char** dsl_pipeline_list_all();
@@ -103,6 +113,8 @@ const char** dsl_pipeline_list_all();
 This method returns the list of Pipelines currently in  memory
 
 **Returns** a NULL terminated array of Pipeline (char*) names
+
+<br>
 
 ### *dsl_pipeline_dump_to_dot*
 ```C++
@@ -122,6 +134,8 @@ correctly formatted and unused filename.
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
 
+<br>
+
 ### *dsl_pipeline_dump_to_dot_with_ts*
 ```C++
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
@@ -129,6 +143,8 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filen
 This method dumps a Pipeline's graph to dot file prefixed with the current timestamp. 
 Except for the prefix, this method performs the identical service as 
 [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot).
+
+<br>
 
 ### *dsl_pipeline_state_change_listener_add*
 ```C++
@@ -148,6 +164,8 @@ registered with one Pipeline, and one callback function can be registered with m
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+<br>
+
 ### *dsl_pipeline_state_change_listener_remove*
 ```C++
 DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
@@ -156,6 +174,7 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline,
 This service removes a callback function of type [state_change_listener_cb](#state_change_listener_cb) from a
 pipeline identified by it's unique name.
 
+<br>
 
 ### *dsl_pipeline_display_event_handler_add*
 ```C++
@@ -172,6 +191,7 @@ pipeline identified by it's unique name. The function will be called on every Pi
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+<br>
 
 ### *dsl_pipeline_display_event_handler_remove*
 ```C++

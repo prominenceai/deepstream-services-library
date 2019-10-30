@@ -95,7 +95,7 @@ namespace DSL
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
 
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+//        void AddChild(std::shared_ptr<Bintr> pChildBintr);
         
         bool Pause();
         bool Play();
@@ -107,6 +107,21 @@ namespace DSL
         void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
 
         bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
+
+        /**
+         * @brief returns the number of Sources currently in use by
+         * this Pipeline
+         */
+        uint GetNumSourceInUse()
+        {
+            if (!m_pPipelineSourcesBintr)
+            {
+                return 0;
+            }
+            return m_pPipelineSourcesBintr->GetNumSourceInUse();
+        } 
+        
+        void RemoveAllChildren();
 
         /**
          * @brief removes a single Source Bintr from this Pipeline 
@@ -146,22 +161,27 @@ namespace DSL
         
         /**
          * @brief 
-         * @param[in] m_areSourcesLive
          * @param[in] batchSize
          * @param[in] batchTimeout
          * @param[in] width
          * @param[in] height
          */
-        void SetStreamMuxProperties(gboolean areSourcesLive, guint batchSize, guint batchTimeout, 
-            guint width, guint height)
+        void SetStreamMuxBatchProperties(guint batchSize, guint batchTimeout) 
         {
-            m_pPipelineSourcesBintr->SetStreamMuxProperties(areSourcesLive, 
-                batchSize, batchTimeout, width, height);
+            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(
+                batchSize, batchTimeout);
+        };
+
+        /**
+         * @brief 
+         * @param[in] width
+         * @param[in] height
+         */
+        void SetStreamMuxOutputSize(uint width, uint height)
+        {
+            m_pPipelineSourcesBintr->SetStreamMuxOutputSize(
+                width, height);
         }
-        
-        void LinkComponents();
-        
-        void UnlinkComponents();
         
         /**
          * @brief dumps a Pipeline's graph to dot file.
@@ -239,13 +259,18 @@ namespace DSL
          * @return [GST_BUS_PASS|GST_BUS_FAIL]
          */
         GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
-    
-    private:
 
         /**
-         * @brief GStreamer Pipeline contained by this pipeline bintr
+         * @brief handles incoming window KEY & BUTTON events by calling
+         * all client installed event handlers for each queued event.
          */
-        GstElement* m_pGstPipeline; 
+        void HandleXWindowEvents();
+
+        void _assemble();
+        
+        void _disassemble();
+
+    private:
 
         /**
          * @brief parent bin for all Source bins in this Pipeline
@@ -265,14 +290,8 @@ namespace DSL
         /**
          * @brief the one and only Display for this Pipeline
          */
-        std::shared_ptr<Bintr> m_pDisplayBintr;
-                
-        /**
-         * @brief true if the components in the Pipeline are in a state 
-         * of linked, false if unlinked. 
-         */
-        bool m_areComponentsLinked;
-        
+        std::shared_ptr<DisplayBintr> m_pDisplayBintr;
+                        
         /**
          * @brief map of all currently registered state-change-listeners
          * callback functions mapped with the user provided data
@@ -316,13 +335,40 @@ namespace DSL
         std::map<GstState, std::string> m_mapPipelineStates;
         
         /**
+         * @brief a single display for each Pipeline
+        */
+        Display* m_pXDisplay;
+
+        /**
+         * @brief mutex for display thread
+        */
+        GMutex m_displayMutex;
+                
+        /**
+         * @brief handle to X Window
+         */
+        Window m_pXWindow;
+        /**
+         * @brief handle to the X Window event thread, 
+         * active for the life of the Pipeline
+        */
+        GThread* m_pXWindowEventThread;        
+        
+        /**
          * @brief maps a GstMessage constant value to a string for logging
          */
         std::map<GstMessageType, std::string> m_mapMessageTypes;
 
         bool HandleStateChanged(GstMessage* pMessage);
         
-        void _handleErrorMessage(GstMessage* pMessage);        
+        void _handleErrorMessage(GstMessage* pMessage);
+
+        /**
+         * @brief true if the components in the Pipeline are in a state 
+         * of assembled and read to play, false if unlinked. 
+         */
+        bool m_isAssembled;
+        
         /**
          * @brief initializes the "constant-value-to-string" maps
          */
@@ -350,7 +396,9 @@ namespace DSL
      */
     static GstBusSyncReply bus_sync_handler(
         GstBus* bus, GstMessage* pMessage, gpointer pData);
-        
+
+    static gpointer XWindowEventThread(gpointer pData);
+
     
 } // Namespace
 

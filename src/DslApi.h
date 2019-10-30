@@ -56,7 +56,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
-#define DSL_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00100100
 #define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
 
 /**
@@ -109,7 +109,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
-#define DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED                  0x11001001
+#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001001
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001010
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001011
 #define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001100
@@ -127,6 +127,14 @@ THE SOFTWARE.
 #define DSL_PIPELINE_STATE_READY                                    1
 #define DSL_PIPELINE_STATE_PLAYING                                  2
 #define DSL_PIPELINE_STATE_PAUSED                                   4
+
+/**
+ * @brief DSL_DEFAULT values initialized on first call to DSL
+ */
+//TODO move to new defaults schema
+#define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8 
+#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1280
+#define DSL_DEFAULT_STREAMMUX_HEIGHT                                720
 
 typedef uint DslReturnType;
 typedef uint boolean;
@@ -154,6 +162,37 @@ DslReturnType dsl_source_csi_new(const char* source,
  */
 DslReturnType dsl_source_uri_new(const char* source, 
     const char* uri, uint cudadec_mem_type, uint intra_decode);
+
+/**
+ * @brief returns whether the source stream live or not
+ * @param source the name of Source component to query
+ * @return True if the source's stream is live
+ */
+boolean dsl_source_is_live(const char* source);
+
+/**
+ * @brief returns the number of sources currently in use by 
+ * all of the Pipelines in memeroy. 
+ * @return number of Sources in use
+ */
+uint dsl_source_get_num_in_use();  
+
+/**
+ * @brief Get the maximum number of in-memory sources 
+ * that can be in use at any time. The maximum number is 
+ * limited by Hardware, see dsl_source_set_num_in_use_max() 
+ * @return the current max sources in use setting.
+ */
+uint dsl_source_get_num_in_use_max();  
+
+/**
+ * @brief Sets the maximum number of in-memory sources 
+ * that can be in use at any time. The function overrides 
+ * the default value on first call. The maximum number is 
+ * limited by Hardware. The caller must ensure to set the 
+ * number correctly, based on the TEGRA platform in use.
+ */
+void dsl_source_set_num_in_use_max(uint max);  
 
 /**
  * @brief creates a new, uniquely named Sink obj
@@ -196,14 +235,11 @@ DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile,
 /**
  * @brief creates a new, uniquely named Display obj
  * @param[in] name unique name for the new Display
- * @param[in] rows number of horizotal display rows
- * @param[in] columns number of vertical display columns
- * @param[in] width width of each column in pixals
- * @param[in] height height of each row in pix  als
+ * @param[in] width width of the Display in pixels
+ * @param[in] height height of the Display in pixels
  * @return DSL_RESULT_DISPLAY_RESULT
  */
-DslReturnType dsl_display_new(const char* name, 
-    uint rows, uint columns, uint width, uint height);
+DslReturnType dsl_display_new(const char* name, uint width, uint height);
 
 /**
  * @brief deletes a Component object by name
@@ -256,6 +292,13 @@ const char** dsl_component_list_all();
  * @return DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_new(const char* pipeline);
+
+/**
+ * @brief creates a new Pipeline for each name pipelines array
+ * @param pipelines a NULL terminated array of unique Pipeline names
+ * @return DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_new_many(const char** pipelines);
 
 /**
  * @brief deletes a Pipeline object by name.
@@ -340,8 +383,16 @@ DslReturnType dsl_pipeline_components_remove(const char* pipeline,
  * @param[in] pipeline name of the pipepline to update
  * @return 
  */
-DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height);
+DslReturnType dsl_pipeline_streammux_set_batch_properties(const char* pipeline, 
+    uint batchSize, uint batchTimeout);
+
+/**
+ * @brief 
+ * @param[in] pipeline name of the pipepline to update
+ * @return 
+ */
+DslReturnType dsl_pipeline_streammux_set_output_size(const char* pipeline, 
+    uint width, uint height);
 
 /**
  * @brief pauses a Pipeline if in a state of playing

@@ -27,10 +27,10 @@ THE SOFTWARE.
 
 SCENARIO( "A single Pipeline is created and deleted correctly", "[pipeline]" )
 {
-    std::string actualName  = "test-pipeline";
-
     GIVEN( "An empty list of Pipelines" ) 
     {
+        std::string actualName  = "test-pipeline";
+        
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
 
@@ -56,10 +56,10 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[pipeline]" )
 
 SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
 {
-    int sampleSize = 6;
-
     GIVEN( "A map of multiple Pipelines" ) 
     {
+        int sampleSize = 6;
+        
         for(int i = 0; i < sampleSize; i++)
         {
             REQUIRE( dsl_pipeline_new(std::to_string(i).c_str()) == DSL_RESULT_SUCCESS );
@@ -77,6 +77,79 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
             {
                 REQUIRE( dsl_pipeline_list_size() == sampleSize - 2 );
                 REQUIRE( *(dsl_pipeline_list_all()) != NULL );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+    }
+}
+
+SCENARIO( "Many Pipelines are created correctly", "[pipeline]" )
+{
+    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
+    
+    GIVEN( "An empty container of Pipelines" ) 
+    {
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+
+        WHEN( "Many Pipelines are created at once" ) 
+        {
+
+            REQUIRE( dsl_pipeline_new_many(pipelineNames) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_pipeline_list_size() == 3 );
+                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
+            }
+        }
+        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+    }
+}
+
+SCENARIO( "Many Pipelines are deleted correctly", "[pipeline]" )
+{
+    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
+    
+    GIVEN( "Many Pipelines created with an array of names" ) 
+    {
+        REQUIRE( dsl_pipeline_new_many(pipelineNames) == DSL_RESULT_SUCCESS );
+
+        WHEN( "Many Pipelines are deleted with the same array of names" ) 
+        {
+            REQUIRE( dsl_pipeline_delete_many(pipelineNames) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[pipeline]" )
+{
+    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineA", NULL};
+    
+    GIVEN( "An empty container of Pipelines" ) 
+    {
+        REQUIRE( dsl_pipeline_list_size() == 0 );
+        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
+
+        WHEN( "Many Pipelines are created at once" ) 
+        {
+
+            REQUIRE( dsl_pipeline_new_many(pipelineNames) == 
+                DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_pipeline_list_size() == 2 );
             }
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

@@ -22,29 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_H
-#define _DSL_H
+#include "catch.hpp"
+#include "DslDisplayBintr.h"
+#include "DslPipelineBintr.h"
 
-#include <cstdlib>
+SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
+{
+    GIVEN( "A Pipeline with a Tiled Display" ) 
+    {
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
 
-#include <gst/gst.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+        uint initWidth(1280);
+        uint initHeight(720);
 
-#include <iostream> 
-#include <sstream>
-#include <vector>
-#include <map> 
-#include <memory> 
-#include <fstream>
-#include <thread>
-#include <chrono>
+        std::shared_ptr<DSL::DisplayBintr> pDisplayBintr = 
+            std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(
+            displayName.c_str(), initWidth, initHeight));
 
-#include <deepstream_common.h>
-#include <deepstream_config.h>
-#include <deepstream_perf.h>
+        std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
+            std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
+            
+        pDisplayBintr->AddToParent(pPipelineBintr);
 
-#include "DslMutex.h"
-#include "DslLog.h"
+        WHEN( "The Pipeline is Assembled" )
+        {
+            pPipelineBintr->_assemble();
 
-#endif // _DSL_H
+            THEN( "The Display's new demensions are returned on Get" )
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            }
+        }
+    }
+}

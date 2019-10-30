@@ -28,20 +28,20 @@ THE SOFTWARE.
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
-#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
+#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(_pipelines_, _name_) do \
 { \
-    if (!pipelines[name]) \
+    if (!_pipelines_[_name_]) \
     { \
-        LOG_ERROR("Pipeline name '" << pipeline << "' was not found"); \
+        LOG_ERROR("Pipeline name '" << _name_ << "' was not found"); \
         return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
     } \
 }while(0); 
     
-#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
+#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(_components_, _name_) do \
 { \
-    if (!components[name]) \
+    if (!_components_[_name_]) \
     { \
-        LOG_ERROR("Component name '" << component << "' was not found"); \
+        LOG_ERROR("Component name '" << _name_ << "' was not found"); \
         return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
     } \
 }while(0); 
@@ -61,6 +61,26 @@ DslReturnType dsl_source_uri_new(const char* source,
         uri, cudadec_mem_type, intra_decode);
 }
 
+boolean dsl_source_is_live(const char* source)
+{
+    return DSL::Services::GetServices()->SourceIsLive(source);
+}
+
+uint dsl_source_get_num_in_use()
+{
+    return DSL::Services::GetServices()->GetNumSourceInUse();
+}
+
+uint dsl_source_get_num_in_use_max()
+{
+    return DSL::Services::GetServices()->GetNumSourceInUseMax();
+}
+
+void dsl_source_set_num_in_use_max(uint max)
+{
+    return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
+}
+
 DslReturnType dsl_sink_new(const char* sink, uint displayId, 
     uint overlayId, uint offsetX, uint offsetY, uint width, uint height)
 {
@@ -73,10 +93,9 @@ DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
     return DSL::Services::GetServices()->OsdNew(osd, isClockEnabled);
 }
 
-DslReturnType dsl_display_new(const char* display, 
-        uint rows, uint columns, uint width, uint height)
+DslReturnType dsl_display_new(const char* display, uint width, uint height)
 {
-    return DSL::Services::GetServices()->DisplayNew(display, rows, columns, width, height);
+    return DSL::Services::GetServices()->DisplayNew(display, width, height);
 }
 
 DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
@@ -115,6 +134,11 @@ const char** dsl_component_list_all()
 DslReturnType dsl_pipeline_new(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineNew(pipeline);
+}
+
+DslReturnType dsl_pipeline_new_many(const char** pipelines)
+{
+    return DSL::Services::GetServices()->PipelineNewMany(pipelines);
 }
 
 DslReturnType dsl_pipeline_delete(const char* pipeline)
@@ -166,11 +190,18 @@ DslReturnType dsl_pipeline_component_remove_many(const char* pipeline,
     return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
 }
 
-DslReturnType dsl_pipeline_streammux_properties_set(const char* pipeline,
-    boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)
+DslReturnType dsl_pipeline_streammux_set_batch_properties(const char* pipeline, 
+    uint batchSize, uint batchTimeout)
 {
-    return DSL::Services::GetServices()->PipelineStreamMuxPropertiesSet(pipeline,
-        areSourcesLive, batchSize, batchTimeout, width, height);
+    return DSL::Services::GetServices()->PipelineStreamMuxSetBatchProperties(pipeline,
+        batchSize, batchTimeout);
+}
+
+DslReturnType dsl_pipeline_streammux_set_output_size(const char* pipeline, 
+    uint width, uint height)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxSetOutputSize(pipeline,
+        width, height);
 }
  
 DslReturnType dsl_pipeline_pause(const char* pipeline)
@@ -269,22 +300,11 @@ namespace DSL
         
     Services::Services()
         : m_pMainLoop(g_main_loop_new(NULL, FALSE))
-        , m_pXDisplay(XOpenDisplay(NULL))
-        , m_pXWindowEventThread(NULL)
+        , m_numSourceInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
     {
         LOG_FUNC();
         
-        // Initialize all 
         g_mutex_init(&m_servicesMutex);
-        g_mutex_init(&m_displayMutex);
-
-        // Add the event thread
-        g_timeout_add(40, EventThread, NULL);
-        
-        // Start the X window event thread
-        m_pXWindowEventThread = g_thread_new("dsl-x-window-event-thread",
-            XWindowEventThread, NULL);
-
     }
 
     Services::~Services()
@@ -301,7 +321,6 @@ namespace DSL
             }
         }
         
-        g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_servicesMutex);
     }
     
@@ -325,7 +344,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New CSI Source '" << source << "' threw exception on create");
-            return DSL_RESULT_SOURCE_NEW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new CSI Source '" << source << "' created successfully");
 
@@ -365,11 +384,57 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New URI Source '" << source << "' threw exception on create");
-            return DSL_RESULT_SOURCE_NEW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new URI Source '" << source << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+
+    boolean Services::SourceIsLive(const char* source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+        
+        try
+        {
+            return std::dynamic_pointer_cast<SourceBintr>(m_components[source])->IsLive();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << source << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    uint Services::GetNumSourceInUse()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSourceInUse();
+        }
+        return numInUse;
+    }
+    
+    uint Services::GetNumSourceInUseMax()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_numSourceInUseMax;
+    }
+    
+    void Services::SetNumSourceInUseMax(uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        m_numSourceInUseMax = max;
     }
 
     DslReturnType Services::SinkNew(const char* sink, uint displayId, uint overlayId,
@@ -426,7 +491,7 @@ namespace DSL
     }
     
     DslReturnType Services::DisplayNew(const char* display, 
-        uint rows, uint columns, uint width, uint height)
+        uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -440,7 +505,7 @@ namespace DSL
         try
         {
             m_components[display] = std::shared_ptr<Bintr>(new DisplayBintr(
-                display, m_pXDisplay, rows, columns, width, height));
+                display, width, height));
         }
         catch(...)
         {
@@ -630,6 +695,31 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::PipelineNewMany(const char** pipelines)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (const char** pipeline = pipelines; *pipeline; pipeline++)
+        {
+            if (m_pipelines[*pipeline])
+            {   
+                LOG_ERROR("Pipeline name '" << *pipeline << "' is not unique");
+                return DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE;
+            }
+            try
+            {
+                m_pipelines[*pipeline] = std::shared_ptr<PipelineBintr>(new PipelineBintr(*pipeline));
+            }
+            catch(...)
+            {
+                LOG_ERROR("New Pipeline '" << *pipeline << "' threw exception on create");
+                return DSL_RESULT_PIPELINE_NEW_EXCEPTION;
+            }
+            LOG_INFO("new PIPELINE '" << *pipeline << "' created successfully");
+        }
+    }
     
     DslReturnType Services::PipelineDelete(const char* pipeline)
     {
@@ -637,6 +727,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
+        m_pipelines[pipeline]->RemoveAllChildren();
         m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
@@ -660,6 +751,7 @@ namespace DSL
         // iterate through the list a second time erasing each
         for (const char** pipeline = pipelines; *pipeline; pipeline++)
         {
+            m_pipelines[*pipeline]->RemoveAllChildren();
             m_pipelines.erase(*pipeline);
         }
 
@@ -675,6 +767,7 @@ namespace DSL
 
         for (auto &imap: m_pipelines)
         {
+            imap.second->RemoveAllChildren();
             imap.second = nullptr;
         }
         m_pipelines.clear();
@@ -746,9 +839,6 @@ namespace DSL
         }
         LOG_DEBUG("All listed components found");
         
-        // ensure that all current commponents are unlinked first
-        m_pipelines[pipeline]->UnlinkComponents();
-
         // iterate through the list of provided components a second time
         // adding each to the named pipeline individually.
         for (const char** component = components; *component; component++)
@@ -767,9 +857,6 @@ namespace DSL
             }
         }
         
-        // link all components, previous and those just added
-        m_pipelines[pipeline]->LinkComponents();
-
         return DSL_RESULT_SUCCESS;
     }
 
@@ -810,8 +897,8 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
-    DslReturnType Services::PipelineStreamMuxPropertiesSet(const char* pipeline,
-        boolean areSourcesLive, uint batchSize, uint batchTimeout, uint width, uint height)    
+    DslReturnType Services::PipelineStreamMuxSetBatchProperties(const char* pipeline,
+        uint batchSize, uint batchTimeout)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -819,14 +906,33 @@ namespace DSL
 
         try
         {
-            m_pipelines[pipeline]->SetStreamMuxProperties(areSourcesLive, 
-                batchSize, batchTimeout, width, height);
+            m_pipelines[pipeline]->SetStreamMuxBatchProperties(batchSize, batchTimeout);
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline 
-                << "' threw an exception setting the Stream Muxer properties");
-            return DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED;
+                << "' threw an exception setting the Stream Muxer batch_properties");
+            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineStreamMuxSetOutputSize(const char* pipeline,
+        uint width, uint height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            m_pipelines[pipeline]->SetStreamMuxOutputSize(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception setting the Stream Muxer output size");
+            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -845,11 +951,6 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-
-        // flush the output buffer and then wait until all requests have been 
-        // received and processed by the X server. TRUE = Discard all queued events
-        XSync(m_pXDisplay, TRUE);       
-
 
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
@@ -954,54 +1055,5 @@ namespace DSL
         return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
     }
     
-    bool Services::HandleXWindowEvents()
-    {
-//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        XEvent xEvent;
-
-        while (XPending (m_pXDisplay)) 
-        {
-            
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            
-            XNextEvent(m_pXDisplay, &xEvent);
-            switch (xEvent.type) 
-            {
-            case ButtonPress:                
-                LOG_INFO("Button pressed");
-                break;
-                
-            case KeyPress:
-                LOG_INFO("Key pressed"); 
-                
-                // wait for key release to process
-                break;
-
-            case KeyRelease:
-                LOG_INFO("Key released");
-                
-                break;
-            }
-        }
-        return true;
-    }
-    
-    static gboolean EventThread(gpointer arg)
-    {
-        Services* pServices = Services::GetServices();
-        
-        return true;
-    }
-    
-
-    static gpointer XWindowEventThread(gpointer arg)
-    {
-        Services* pServices = Services::GetServices();
-
-        pServices->HandleXWindowEvents();
-       
-        return NULL;
-    }
 
 } // namespace 
