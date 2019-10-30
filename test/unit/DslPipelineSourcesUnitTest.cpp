@@ -41,7 +41,7 @@ SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
 
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName.c_str(), 1280, 720, 30, 1));
+            sourceName.c_str(), 0, 0, 0, 1));
             
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {

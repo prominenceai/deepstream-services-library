@@ -81,11 +81,11 @@ void dsl_source_set_num_in_use_max(uint max)
     return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
 }
 
-DslReturnType dsl_sink_new(const char* sink, uint displayId, 
-    uint overlayId, uint offsetX, uint offsetY, uint width, uint height)
+DslReturnType dsl_sink_overlay_new(const char* sink,
+    uint offsetX, uint offsetY, uint width, uint height)
 {
-    return DSL::Services::GetServices()->SinkNew(sink, 
-        displayId, overlayId, offsetX, offsetY, width, height);
+    return DSL::Services::GetServices()->OverlaySinkNew(sink, 
+        offsetX, offsetY, width, height);
 }
 
 DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
@@ -437,7 +437,7 @@ namespace DSL
         m_numSourceInUseMax = max;
     }
 
-    DslReturnType Services::SinkNew(const char* sink, uint displayId, uint overlayId,
+    DslReturnType Services::OverlaySinkNew(const char* sink, 
         uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -451,8 +451,8 @@ namespace DSL
         }
         try
         {
-            m_components[sink] = std::shared_ptr<Bintr>(new SinkBintr(
-                sink, displayId, overlayId, offsetX, offsetY, width, height));
+            m_components[sink] = std::shared_ptr<Bintr>(new OverlaySinkBintr(
+                sink, offsetX, offsetY, width, height));
         }
         catch(...)
         {

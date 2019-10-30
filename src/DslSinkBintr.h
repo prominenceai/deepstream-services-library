@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslElementr.h"
 
 namespace DSL
 {
@@ -41,22 +42,76 @@ namespace DSL
         
         void AddChild(std::shared_ptr<Bintr> pChildBintr);
 
+//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+
     private:
 
-        GstElement* m_pQueue;
-        GstElement* m_pTee;
+        std::shared_ptr<Elementr> m_pQueue;
+        std::shared_ptr<Elementr> m_pTee;
     };
 
     class SinkBintr : public Bintr
     {
     public: 
     
-        SinkBintr(const char* sink, guint displayId, guint overlayId,
-        guint offsetX, guint offsetY, guint width, guint height);
+        SinkBintr(const char* sink)
+            : Bintr(sink) 
+        {
+            LOG_FUNC();
+        };
 
-        ~SinkBintr();
+        ~SinkBintr()
+        {
+            LOG_FUNC();
+        };
+  
+        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+    };
+
+    class OverlaySinkBintr : public SinkBintr
+    {
+    public: 
+    
+        OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
+
+        ~OverlaySinkBintr();
+  
+        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+      
+        void LinkAll();
         
+        void UnlinkAll();
+
         void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
+        int GetDisplayId()
+        {
+            LOG_FUNC();
+            
+            return m_displayId;
+        }
+
+        int GetOverlayId()
+        {
+            LOG_FUNC();
+            
+            return m_overlayId;
+        }
+
+        void SetDisplayId(int id)
+        {
+            LOG_FUNC();
+            
+            m_displayId = id;
+        }
+
+        void SetOverlayId(int id)
+        {
+            LOG_FUNC();
+            
+            m_overlayId = id;
+        }
+
         
     private:
 
@@ -70,11 +125,9 @@ namespace DSL
         guint m_width;
         guint m_height;
 
-        GstElement* m_pQueue;
-        GstElement* m_pTransform;
-        GstElement* m_pOverlay;
-            
-        friend class SinksBintr;
+        std::shared_ptr<Elementr> m_pQueue;
+        std::shared_ptr<Elementr> m_pTransform;
+        std::shared_ptr<Elementr> m_pOverlay;
     };
 
 }

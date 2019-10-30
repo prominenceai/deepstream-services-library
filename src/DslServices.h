@@ -68,7 +68,7 @@ namespace DSL {
         DslReturnType StreamMuxNew(const char* streammux, boolean live, 
             uint batchSize, uint batchTimeout, uint width, uint height);
         
-        DslReturnType SinkNew(const char* sink, uint displayId, uint overlayId,
+        DslReturnType OverlaySinkNew(const char* sink, 
             uint offsetX, uint offsetY, uint width, uint height);
         
         DslReturnType OsdNew(const char* osd, boolean isClockEnabled);

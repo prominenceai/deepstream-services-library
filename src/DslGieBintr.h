@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslElementr.h"
 
 namespace DSL
 {
@@ -43,8 +44,12 @@ namespace DSL
 
         ~GieBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void LinkAll();
         
+        void UnlinkAll();
+        
+        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+
     private:
 
         gboolean m_isClockEnabled;
@@ -70,12 +75,9 @@ namespace DSL
          */
         guint m_processMode;
         
-        GstElement* m_pQueue;
-        GstElement* m_pVidConv;
-        GstElement* m_pCapsFilter;
-        GstElement* m_pConvQueue;
-        GstElement* m_pClassifier;
-        GstElement* m_pOsd;
+        std::shared_ptr<Elementr>  m_pQueue;
+        std::shared_ptr<Elementr>  m_pVidConv;
+        std::shared_ptr<Elementr>  m_pClassifier;
     
     };
 }
