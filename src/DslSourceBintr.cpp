@@ -120,9 +120,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Create Source Element and Caps filter - Elements are linked in the order added
-        m_pSourceElement = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", m_pBin));
-        m_pCapsFilter = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", m_pBin));
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", m_pBin);
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", m_pBin);
 
         g_object_set(G_OBJECT(m_pSourceElement->m_pElement), 
             "bufapi-version", TRUE,
@@ -161,12 +160,14 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pSourceElement->LinkTo(m_pCapsFilter);
     }
 
     void CsiSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
+        m_pSourceElement->Unlink();
     }
 
     UriSourceBintr::UriSourceBintr(const char* source, const char* uri,
@@ -185,7 +186,7 @@ namespace DSL
         m_isLive = FALSE;
               
         // Create Source Element - without linking at this time.
-        m_pSourceElement = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_SRC_URI, "src_elem", m_pBin));
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "src_elem", m_pBin);
         
         g_object_set(G_OBJECT(m_pSourceElement->m_pElement), "uri", (gchar*)uri, NULL);
 
@@ -197,16 +198,16 @@ namespace DSL
             G_CALLBACK(OnSourceSetupCB), this);
 
         // Create a Queue for the URI source
-        m_pSourceQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "src-queue", m_pBin));
+        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue", m_pBin);
         g_object_set_data(G_OBJECT(m_pSourceQueue->m_pElement), "source", this);
         
         // Source Ghost Pad for Source Queue
         m_pSourceQueue->AddSourceGhostPad();
         
-        m_pTee = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_TEE, "tee", m_pBin));
+        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee", m_pBin);
 
-        m_pFakeSinkQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "fake-sink-queue", m_pBin));
-        m_pFakeSink = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_SINK_FAKESINK, "fake-sink", m_pBin));
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue", m_pBin);
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink", m_pBin);
 
         m_pFakeSinkQueue->LinkTo(m_pFakeSink);
 

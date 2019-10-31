@@ -39,9 +39,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Queue and Tiler elements will be linked in the order created.
-        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin));
-        m_pTiler = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin));
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin);
+        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin);
 
         g_object_set(G_OBJECT(m_pTiler->m_pElement), 
             "gpu-id", m_gpuId,

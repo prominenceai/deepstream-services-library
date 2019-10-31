@@ -28,55 +28,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-
-    SinksBintr::SinksBintr(const char* sink)
-        : Bintr(sink)
-        , m_pQueue(NULL)
-        , m_pTee(NULL)
-    {
-        LOG_FUNC();
-
-        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "sink_bin_queue", m_pBin));
-        m_pTee = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_TEE, "sink_bin_tee", m_pBin));
-        
-        m_pQueue->AddSinkGhostPad();
-    }
-    
-    SinksBintr::~SinksBintr()
-    {
-        LOG_FUNC();
-    }
-     
-    void SinksBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
-    {
-        LOG_FUNC();
-        
-        pChildBintr->m_pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(shared_from_this());
-
-        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
-                        
-        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
-        {
-            LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
-            throw;
-        }
-
-        GstPadTemplate* padtemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pElement), "src_%u");
-        if (!padtemplate)
-        {
-            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
-            throw;
-        }
-        
-        std::shared_ptr<RequestPadtr> pSourcePadtr = 
-            std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pTee->m_pElement, 
-            padtemplate, "src")); // Name is for Padr only, Pad name is derived from the Pad Template
-        
-        pSourcePadtr->LinkTo(std::dynamic_pointer_cast<SinkBintr>(pChildBintr)->m_pStaticSinkPadtr);
-    };
-
     OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, 
         guint width, guint height)
         : SinkBintr(sink)
@@ -92,8 +43,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "sink-bin-queue", m_pBin));
-        m_pOverlay = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", m_pBin));
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink-bin-queue", m_pBin);
+        m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", m_pBin);
         
         g_object_set(G_OBJECT(m_pOverlay->m_pElement), 
             "overlay-x", m_offsetX,

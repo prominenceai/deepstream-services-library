@@ -42,10 +42,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "osd_queue", m_pBin));
-        m_pVidConv = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_VIDEO_CONV, "osd_conv", m_pBin));
-        m_pConvQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "osd_conv_queue", m_pBin));
-        m_pOsd = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_OSD, "nvosd0", m_pBin));
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue", m_pBin);
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_conv", m_pBin);
+        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue", m_pBin);
+        m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0", m_pBin);
 
         g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
             "gpu-id", m_gpuId,

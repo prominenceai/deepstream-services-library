@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslElementr.h"
+using namespace DSL;
 
 SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
 {
@@ -36,9 +37,7 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
 
         WHEN( "A child Elmentr is created" )
         {
-            std::shared_ptr<DSL::Elementr> pElement = 
-                std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-                NVDS_ELEM_QUEUE, elementName.c_str(), pBin));
+            DSL_ELEMENT_PTR pElement = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, elementName.c_str(), pBin);
             
             THEN( "Its member variables are initialized correctly" )
             {
@@ -50,7 +49,7 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
     }
 }
 
-SCENARIO( "A Elementr is constructed correctly", "[Elementr]" )
+SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
 {
     GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
     {
@@ -60,12 +59,8 @@ SCENARIO( "A Elementr is constructed correctly", "[Elementr]" )
         
         GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
 
-        std::shared_ptr<DSL::Elementr> pQueue = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin));
-        std::shared_ptr<DSL::Elementr> pTee = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_TEE, teeElementName.c_str(), pBin));
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
             
         WHEN( "The Queue is Linked to the Tee" )
         {
@@ -87,12 +82,8 @@ SCENARIO( "Two Elementrs can be linked correctly", "[Elementr]" )
         
         GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
 
-        std::shared_ptr<DSL::Elementr> pQueue = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin));
-        std::shared_ptr<DSL::Elementr> pTee = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_TEE, teeElementName.c_str(), pBin));
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
             
         WHEN( "The Queue is Linked to the Tee" )
         {
@@ -117,12 +108,8 @@ SCENARIO( "Two Elementrs can be unlinked correctly", "[Elementr]" )
         
         GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
 
-        std::shared_ptr<DSL::Elementr> pQueue = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin));
-        std::shared_ptr<DSL::Elementr> pTee = 
-            std::shared_ptr<DSL::Elementr>(new DSL::Elementr(
-            NVDS_ELEM_TEE, teeElementName.c_str(), pBin));
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
 
         pQueue->Unlink();
             
