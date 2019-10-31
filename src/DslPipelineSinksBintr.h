@@ -25,8 +25,8 @@ THE SOFTWARE.
 #ifndef _DSL_PROCESS_BINTR_H
 #define _DSL_PROCESS_BINTR_H
 
-#include "DslSinkBintr.h"
-#include "DslOsdBintr.h"
+#include "DslBintr.h"
+#include "DslElementr.h"
     
 namespace DSL 
 {
@@ -35,46 +35,22 @@ namespace DSL
      * @class ProcessBintr
      * @brief 
      */
-    class ProcessBintr : public Bintr
+    class PipelineSinksBintr : public Bintr
     {
-    public:
+    public: 
     
-        /** 
-         * 
-         */
-        ProcessBintr(const char* name);
-        ~ProcessBintr();
+        PipelineSinksBintr(const char* name);
 
-        /**
-         * @brief Adds a Sink Bintr to this Process Bintr
-         * @param[in] pSinkBintr
-         */
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
-
-        /**
-         * @brief 
-         * @param[in] pOsdBintr
-         */
-        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
+        ~PipelineSinksBintr();
         
-        /**
-         * @brief 
-         */
-        void AddSinkGhostPad();
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
 
-        
+//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+
     private:
-    
-        /**
-         * @brief one or more Sinks for this Process bintr
-         */
-        std::shared_ptr<SinksBintr> m_pSinksBintr;
-        
-        /**
-         * @brief optional OSD for this Process bintr
-         */
-        std::shared_ptr<OsdBintr> m_pOsdBintr;
-        
+
+        std::shared_ptr<Elementr> m_pQueue;
+        std::shared_ptr<Elementr> m_pTee;
     };
 }
 

@@ -36,7 +36,7 @@ namespace DSL
         g_object_set(m_pBin, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
-        m_pStreamMux = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_STREAM_MUX, "stream_muxer", m_pBin));
+        m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer", m_pBin);
         
         SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 

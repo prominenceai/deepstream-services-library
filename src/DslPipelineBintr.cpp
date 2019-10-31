@@ -151,6 +151,21 @@ namespace DSL
         AddChild(pGieBintr);
     }
 
+    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
+    {
+        LOG_FUNC();
+        
+        // Create the shared Process bintr if it doesn't exist
+        if (!m_pPipelineSinksBintr)
+        {
+            m_pPipelineSinksBintr = std::shared_ptr<PipelineSinksBintr>(new PipelineSinksBintr("sinks-bin"));
+            AddChild(m_pPipelineSinksBintr);
+        }
+
+//        m_pPipelineSinksBintr->AddChild(pSinkBintr);
+        
+    }
+
     void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
     {
         LOG_FUNC();
@@ -436,7 +451,7 @@ namespace DSL
             return false;
         }
         
-        if (!m_pProcessBintr)
+        if (!m_pPipelineSinksBintr)
         {
             LOG_ERROR("Pipline has no Sink component");
             return false;

@@ -43,9 +43,9 @@ namespace DSL
         Bintr()
             : m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pParentBintr(nullptr)
-            , m_pSourceBintr(nullptr)
-            , m_pDestBintr(nullptr)
+//            , m_pParentBintr(nullptr)
+//            , m_pSourceBintr(nullptr)
+//            , m_pSinkBintr(nullptr)
         { 
             LOG_FUNC(); 
         };
@@ -57,9 +57,9 @@ namespace DSL
             : m_name(name)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pParentBintr(nullptr)
-            , m_pSourceBintr(nullptr)
-            , m_pDestBintr(nullptr)
+//            , m_pParentBintr(nullptr)
+//            , m_pSourceBintr(nullptr)
+//            , m_pSinkBintr(nullptr)
         { 
             LOG_FUNC(); 
             LOG_INFO("New bintr:: " << name);
@@ -113,7 +113,11 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return (m_pParentBintr != nullptr);
+            return (
+                (m_pParentBintr != nullptr) or
+                (m_pChildBintrs.size() != 0) or
+                (m_pSinkBintr != nullptr) or
+                (m_pSourceBintr != nullptr));
         }
 
         
@@ -130,23 +134,32 @@ namespace DSL
         
         /**
          * @brief links this Bintr as source to a destination Bintr as sink
-         * @param pDestBintr to link to
+         * @param pSinkBintr to link to
          */
-        void LinkTo(std::shared_ptr<Bintr> pDestBintr)
+        void LinkTo(std::shared_ptr<Bintr> pSinkBintr)
         { 
             LOG_FUNC();
             
-            m_pDestBintr = pDestBintr;
+            m_pSinkBintr = pSinkBintr;
 
-            pDestBintr->m_pSourceBintr = 
+            pSinkBintr->m_pSourceBintr = 
                 std::dynamic_pointer_cast<Bintr>(shared_from_this());
             
-            if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
+            if (!gst_element_link(m_pBin, m_pSinkBintr->m_pBin))
             {
                 LOG_ERROR("Failed to link " << m_name << " to "
-                    << pDestBintr->m_name);
+                    << pSinkBintr->m_name);
                 throw;
             }
+        };
+
+        void Unlink()
+        { 
+            LOG_FUNC();
+            
+            gst_element_unlink(m_pBin, m_pSinkBintr->m_pBin);
+            m_pSinkBintr->m_pSourceBintr = nullptr;
+            m_pSinkBintr = nullptr;
         };
 
         /**
@@ -158,7 +171,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            pChildBintr->m_pParentBintr = shared_from_this();
+            pChildBintr->m_pParentBintr = shared_from_this();   
 
             m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                             
@@ -272,7 +285,7 @@ namespace DSL
         /**
          @brief
          */
-        std::shared_ptr<Bintr> m_pDestBintr;
+        std::shared_ptr<Bintr> m_pSinkBintr;
         
     };
 

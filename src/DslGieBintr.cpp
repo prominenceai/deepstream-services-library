@@ -43,9 +43,9 @@ namespace DSL
         m_rawOutputDir = rawOutputDir;
         
         
-        m_pQueue = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_QUEUE, "primary_gie_queue", m_pBin));
-        m_pVidConv = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", m_pBin));
-        m_pClassifier = std::shared_ptr<Elementr>(new Elementr(NVDS_ELEM_PGIE, "primary_gie_classifier", m_pBin));
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary_gie_queue", m_pBin);
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", m_pBin);
+        m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier", m_pBin);
 
         g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
             "gpu-id", m_gpuId,

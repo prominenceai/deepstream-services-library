@@ -32,24 +32,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    class SinksBintr : public Bintr
-    {
-    public: 
-    
-        SinksBintr(const char* sink);
-
-        ~SinksBintr();
-        
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
-
-//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
-
-    private:
-
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pTee;
-    };
-
     class SinkBintr : public Bintr
     {
     public: 
