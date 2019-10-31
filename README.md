@@ -2,7 +2,7 @@
 
 ![](/Images/under-construction.png)
 
-DSL is best described as _"all the functionality of the NVIDIA DeepStream Reference Application - [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) - re-imagined as a shared library of on-demand DeepStream pipeline services"._
+DSL is best described as _"the NVIDIA DeepStream Reference Application — [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) — reimagined as a shared library of on-demand DeepStream pipeline services"._
 
 Written in C++ 11, the DSL API can be  called from both C/C++ and Python applications.
 

@@ -43,7 +43,6 @@ namespace DSL
         , m_latency(100)
         , m_numDecodeSurfaces(N_DECODE_SURFACES)
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
-        , m_pSourceElement(NULL)
     {
         LOG_FUNC();
     }
@@ -59,7 +58,6 @@ namespace DSL
         , m_latency(100)
         , m_numDecodeSurfaces(N_DECODE_SURFACES)
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
-        , m_pSourceElement(NULL)
     {
         LOG_FUNC();
     }
@@ -110,8 +108,8 @@ namespace DSL
         int sensorId;
         m_sensorId = id;
 
-        g_object_set(G_OBJECT(m_pSourceElement), "sensor-id", m_sensorId, NULL);
-        g_object_get(G_OBJECT(m_pSourceElement), "sensor-id", &sensorId, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement->m_pElement), "sensor-id", m_sensorId, NULL);
+        g_object_get(G_OBJECT(m_pSourceElement->m_pElement), "sensor-id", &sensorId, NULL);
         
         return (sensorId == m_sensorId);
     }
@@ -119,16 +117,15 @@ namespace DSL
     CsiSourceBintr::CsiSourceBintr(const char* source, 
         guint width, guint height, guint fps_n, guint fps_d)
         : SourceBintr(source, width, height, fps_n, fps_d)
-        , m_pCapsFilter(NULL)
     {
         LOG_FUNC();
 
-        // Create Source Element and Caps filter - Elements are linked in the order added
-        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", LINK_TRUE);
-        m_pCapsFilter = MakeElement(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", LINK_TRUE);
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "src_elem", m_pBin);
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_cap_filter", m_pBin);
 
-        g_object_set(G_OBJECT(m_pSourceElement), "bufapi-version", TRUE, NULL);
-        g_object_set(G_OBJECT(m_pSourceElement), "maxperf", TRUE, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement->m_pElement), 
+            "bufapi-version", TRUE,
+            "maxperf", TRUE, NULL);
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
@@ -143,12 +140,12 @@ namespace DSL
         feature = gst_caps_features_new("memory:NVMM", NULL);
 
         gst_caps_set_features(pCaps, 0, feature);
-        g_object_set(G_OBJECT(m_pCapsFilter), "caps", pCaps, NULL);
+        g_object_set(G_OBJECT(m_pCapsFilter->m_pElement), "caps", pCaps, NULL);
         
         gst_caps_unref(pCaps);        
         
         // Add Ghost Pad and create Static Padtr to link to StreamMuxer
-        AddSourceGhostPad();
+        m_pCapsFilter->AddSourceGhostPad();
 
         m_pStaticSourcePadtr = std::shared_ptr<StaticPadtr>(new StaticPadtr(m_pBin, "src"));
     }
@@ -157,6 +154,20 @@ namespace DSL
     {
         LOG_FUNC();
 
+    }
+    
+    void CsiSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->LinkTo(m_pCapsFilter);
+    }
+
+    void CsiSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->Unlink();
     }
 
     UriSourceBintr::UriSourceBintr(const char* source, const char* uri,
@@ -167,10 +178,6 @@ namespace DSL
         , m_intraDecode(intraDecode)
         , m_accumulatedBase(0)
         , m_prevAccumulatedBase(0)
-        , m_pSourceQueue(NULL)
-        , m_pTee(NULL)
-        , m_pFakeSink(NULL)
-        , m_pFakeSinkQueue(NULL)
     {
         LOG_FUNC();
         
@@ -179,37 +186,33 @@ namespace DSL
         m_isLive = FALSE;
               
         // Create Source Element - without linking at this time.
-        m_pSourceElement = MakeElement(NVDS_ELEM_SRC_URI, "src_elem", LINK_FALSE);
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "src_elem", m_pBin);
         
-        g_object_set(G_OBJECT(m_pSourceElement), "uri", (gchar*)uri, NULL);
+        g_object_set(G_OBJECT(m_pSourceElement->m_pElement), "uri", (gchar*)uri, NULL);
 
-        g_signal_connect(G_OBJECT(m_pSourceElement), "pad-added", 
+        g_signal_connect(G_OBJECT(m_pSourceElement->m_pElement), "pad-added", 
             G_CALLBACK(OnPadAddedCB), this);
-        g_signal_connect(G_OBJECT(m_pSourceElement), "child-added", 
+        g_signal_connect(G_OBJECT(m_pSourceElement->m_pElement), "child-added", 
             G_CALLBACK(OnChildAddedCB), this);
-        g_signal_connect(G_OBJECT(m_pSourceElement), "source-setup",
+        g_signal_connect(G_OBJECT(m_pSourceElement->m_pElement), "source-setup",
             G_CALLBACK(OnSourceSetupCB), this);
 
         // Create a Queue for the URI source
-        m_pSourceQueue = MakeElement(NVDS_ELEM_QUEUE, "src-queue", LINK_TRUE);
-        g_object_set_data(G_OBJECT(m_pSourceQueue), "source", this);
+        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue", m_pBin);
+        g_object_set_data(G_OBJECT(m_pSourceQueue->m_pElement), "source", this);
         
         // Source Ghost Pad for Source Queue
-        AddSourceGhostPad();
+        m_pSourceQueue->AddSourceGhostPad();
         
-        m_pTee = MakeElement(NVDS_ELEM_TEE, "tee", LINK_FALSE);
+        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee", m_pBin);
 
-        m_pFakeSinkQueue = MakeElement(NVDS_ELEM_QUEUE, "fake-sink-queue", LINK_FALSE);
-        m_pFakeSink = MakeElement(NVDS_ELEM_SINK_FAKESINK, "fake-sink", LINK_FALSE);
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue", m_pBin);
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink", m_pBin);
 
-        if (!gst_element_link(m_pFakeSinkQueue, m_pFakeSink))
-        {
-            LOG_ERROR("Failed to link Queue with Fake Sink for source '" << m_name << "'");
-            throw;
-        }
+        m_pFakeSinkQueue->LinkTo(m_pFakeSink);
 
         GstPadTemplate* padtemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee), "src_%u");
+            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pElement), "src_%u");
         if (!padtemplate)
         {
             LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
@@ -219,22 +222,34 @@ namespace DSL
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
         
         // get a pad from the Tee element and link to the "source queuue"
-        RequestPadtr teeSourcePadtr1(m_pTee, padtemplate, "src");
-        StaticPadtr sourceQueueSinkPadtr(m_pSourceQueue, "sink");
+        RequestPadtr teeSourcePadtr1(m_pTee->m_pElement, padtemplate, "src");
+        StaticPadtr sourceQueueSinkPadtr(m_pSourceQueue->m_pElement, "sink");
 //        teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
 
         // get a second pad from the Tee element and link to the "fake sink queue"
-        RequestPadtr teeSourcePadtr2(m_pTee, padtemplate, "src");
-        StaticPadtr fakeSinkQueueSinkPadtr(m_pFakeSinkQueue, "sink");
+        RequestPadtr teeSourcePadtr2(m_pTee->m_pElement, padtemplate, "src");
+        StaticPadtr fakeSinkQueueSinkPadtr(m_pFakeSinkQueue->m_pElement, "sink");
 //        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
 
-        g_object_set(G_OBJECT(m_pFakeSink), "sync", FALSE, "async", FALSE, NULL);
+        g_object_set(G_OBJECT(m_pFakeSink->m_pElement), "sync", FALSE, "async", FALSE, NULL);
         
     }
 
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
+    }
+
+    void UriSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+    }
+
+    void UriSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
     }
 
     void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)
@@ -253,7 +268,7 @@ namespace DSL
         if (name.find("video") != std::string::npos)
         {
             // get a static Sink pad for this URI source bintr's Tee element
-            StaticPadtr sinkPadtr(m_pTee, "sink");
+            StaticPadtr sinkPadtr(m_pTee->m_pElement, "sink");
             
             if (gst_pad_link(pPad, sinkPadtr.m_pPad) != GST_PAD_LINK_OK) 
             {

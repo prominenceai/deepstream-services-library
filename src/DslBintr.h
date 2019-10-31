@@ -26,11 +26,6 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
-#include "DslPadtr.h"
-
-//#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
-#define LINK_TRUE true
-#define LINK_FALSE false
 
 namespace DSL
 {
@@ -48,11 +43,9 @@ namespace DSL
         Bintr()
             : m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pSinkPad(NULL)
-            , m_pSourcePad(NULL)
-            , m_pParentBintr(nullptr)
-            , m_pSourceBintr(nullptr)
-            , m_pDestBintr(nullptr)
+//            , m_pParentBintr(nullptr)
+//            , m_pSourceBintr(nullptr)
+//            , m_pSinkBintr(nullptr)
         { 
             LOG_FUNC(); 
         };
@@ -61,18 +54,15 @@ namespace DSL
          * @brief named container ctor with new Bin 
          */
         Bintr(const char* name)
-            : m_gpuId(0)
+            : m_name(name)
+            , m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pSinkPad(NULL)
-            , m_pSourcePad(NULL)
-            , m_pParentBintr(nullptr)
-            , m_pSourceBintr(nullptr)
-            , m_pDestBintr(nullptr)
+//            , m_pParentBintr(nullptr)
+//            , m_pSourceBintr(nullptr)
+//            , m_pSinkBintr(nullptr)
         { 
             LOG_FUNC(); 
             LOG_INFO("New bintr:: " << name);
-            
-            m_name = name;
 
             m_pBin = gst_bin_new((gchar*)name);
             if (!m_pBin)
@@ -91,21 +81,28 @@ namespace DSL
             LOG_FUNC();
             LOG_INFO("Delete bintr:: " << m_name);
 
-            // Clean up all resources
-            if (m_pSinkPad)
-            {
-                gst_object_unref(m_pSinkPad);
-            }
+//            if (m_pBin and GST_OBJECT_REFCOUNT_VALUE(m_pBin))
+//            {
+//                gst_object_unref(m_pBin);
+//            }
+        };
 
-            if (m_pSourcePad)
-            {
-                gst_object_unref(m_pSourcePad);
-            }
-
-            if (GST_OBJECT_REFCOUNT_VALUE(m_pBin))
-            {
-                gst_object_unref(m_pBin);
-            }
+        /**
+         * @brief virtual function for derived classes to implement
+         * a Bintr type specific function to link all child elements.
+         */
+        virtual void LinkAll()
+        {
+            LOG_FUNC();
+        };
+        
+        /**
+         * @brief virtual function for derived classes to implement
+         * a Bintr type specific function to unlink all child elements.
+         */
+        virtual void UnlinkAll()
+        {
+            LOG_FUNC();
         };
         
         /**
@@ -116,7 +113,11 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return (m_pParentBintr != nullptr);
+            return (
+                (m_pParentBintr != nullptr) or
+                (m_pChildBintrs.size() != 0) or
+                (m_pSinkBintr != nullptr) or
+                (m_pSourceBintr != nullptr));
         }
 
         
@@ -133,23 +134,32 @@ namespace DSL
         
         /**
          * @brief links this Bintr as source to a destination Bintr as sink
-         * @param pDestBintr to link to
+         * @param pSinkBintr to link to
          */
-        void LinkTo(std::shared_ptr<Bintr> pDestBintr)
+        void LinkTo(std::shared_ptr<Bintr> pSinkBintr)
         { 
             LOG_FUNC();
             
-            m_pDestBintr = pDestBintr;
+            m_pSinkBintr = pSinkBintr;
 
-            pDestBintr->m_pSourceBintr = 
+            pSinkBintr->m_pSourceBintr = 
                 std::dynamic_pointer_cast<Bintr>(shared_from_this());
             
-            if (!gst_element_link(m_pBin, pDestBintr->m_pBin))
+            if (!gst_element_link(m_pBin, m_pSinkBintr->m_pBin))
             {
                 LOG_ERROR("Failed to link " << m_name << " to "
-                    << pDestBintr->m_name);
+                    << pSinkBintr->m_name);
                 throw;
             }
+        };
+
+        void Unlink()
+        { 
+            LOG_FUNC();
+            
+            gst_element_unlink(m_pBin, m_pSinkBintr->m_pBin);
+            m_pSinkBintr->m_pSourceBintr = nullptr;
+            m_pSinkBintr = nullptr;
         };
 
         /**
@@ -161,7 +171,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            pChildBintr->m_pParentBintr = shared_from_this();
+            pChildBintr->m_pParentBintr = shared_from_this();   
 
             m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                             
@@ -233,112 +243,8 @@ namespace DSL
                 
             pParentBintr->RemoveChild(shared_from_this());
         }
-
-        /**
-         * @brief Creates a new GST Element and adds it to This Bintr's 
-         * ordered list of child elements
-         * @param factoryname defines the type of element to create
-         * @param name name to give the new GST element
-         * @param linkToPrev if true, this Element is linked to the 
-         * previously created Element that was linked
-         * @return a handle to the new GST Element
-         */
-        GstElement* MakeElement(const gchar * factoryname, const gchar * name, bool linkToPrev)
-        {
-            LOG_FUNC();
-
-            GstElement* pElement = gst_element_factory_make(factoryname, name);
-            if (!pElement)
-            {
-                LOG_ERROR("Failed to create new Element '" << name << "'");
-                throw;  
-            }
-
-            if (!gst_bin_add(GST_BIN(m_pBin), pElement))
-            {
-                LOG_ERROR("Failed to add " << name << " to " << m_name);
-                throw;
-            }
-            
-            if (linkToPrev)
-            {
-                // If not the first element
-                if (m_pLinkedChildElements.size())
-                {
-                    // link the previous to the new element 
-                    if (!gst_element_link(m_pLinkedChildElements.back(), pElement))
-                    {
-                        LOG_ERROR("Failed to link new element " << name << " for " << m_name);
-                        throw;
-                    }
-                    LOG_DEBUG("Successfully linked new element " << name << " for " << m_name);
-                }
-                m_pLinkedChildElements.push_back(pElement);
-            }
-            return pElement;
-        };
         
-        /**
-         * @brief Creates a new Ghost Sink pad for the first Gst Element
-         * added to this Bintr's Gst Bin.
-         * @throws a general exception on failure
-         */
-        virtual void AddSinkGhostPad()
-        {
-            LOG_FUNC();
-            
-            if (!m_pLinkedChildElements.size())
-            {
-                LOG_ERROR("Failed to add Sink Pad for '" << m_name <<"' No Elements");
-                throw;
-            }
 
-            // get Sink pad for first child element in the ordered list
-            StaticPadtr SinkPadtr(m_pLinkedChildElements.front(), "sink");
-
-            // create a new ghost pad with the Sink pad and add to this bintr's bin
-            if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", SinkPadtr.m_pPad)))
-            {
-                LOG_ERROR("Failed to add Sink Pad for '" << m_name);
-                throw;
-            }
-        };
-        
-        /**
-         * @brief Creates a new Ghost Source pad for the last Gst element
-         * added to this Bintr's Gst Bin.
-         * @throws a general exception on failure
-         */
-        virtual void AddSourceGhostPad()
-        {
-            LOG_FUNC();
-            
-            if (!m_pLinkedChildElements.size())
-            {
-                LOG_ERROR("Failed to add Source Pad for '" << m_name <<"' No Elements");
-                throw;
-            }
-            
-            // get Source pad for last child element in the ordered list
-            StaticPadtr SourcePadtr(m_pLinkedChildElements.back(), "src");
-
-            // create a new ghost pad with the Source pad and add to this bintr's bin
-            if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", SourcePadtr.m_pPad)))
-            {
-                LOG_ERROR("Failed to add Source Pad for '" << m_name);
-                throw;
-            }
-        };
-
-        /**
-         * @brief bundles both AddSink and AddSource into a single call for convenience
-         */
-        void AddGhostPads()
-        {
-            AddSinkGhostPad();
-            AddSourceGhostPad();
-        };
-            
     public:
 
         /**
@@ -352,11 +258,6 @@ namespace DSL
         GstElement* m_pBin;
         
         /**
-         @brief vector of created and linked child elements
-         */
-        std::vector<GstElement*> m_pLinkedChildElements;
-        
-        /**
          @brief
          */
         guint m_gpuId;
@@ -366,16 +267,6 @@ namespace DSL
          */
         guint m_nvbufMemoryType;
 
-        /**
-         @brief
-         */
-        GstPad *m_pSinkPad;
-        
-        /**
-         @brief
-         */
-        GstPad *m_pSourcePad; 
-        
         /**
          @brief Parent of this Bintr if one exists. NULL otherwise
          */
@@ -394,7 +285,7 @@ namespace DSL
         /**
          @brief
          */
-        std::shared_ptr<Bintr> m_pDestBintr;
+        std::shared_ptr<Bintr> m_pSinkBintr;
         
     };
 

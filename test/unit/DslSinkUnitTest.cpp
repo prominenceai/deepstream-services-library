@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -23,52 +22,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_OSD_BINTR_H
-#define _DSL_OSD_BINTR_H
+#include "catch.hpp"
+#include "DslSinkBintr.h"
 
-#include "Dsl.h"
-#include "DslElementr.h"
-#include "DslBintr.h"
-
-namespace DSL
+SCENARIO( "Set Display Id updates Sink correctly",  "[overlay-sink]" )
 {
-    
-    class OsdBintr : public Bintr
+    GIVEN( "A new Overlay Sink in memory" ) 
     {
-    public: 
-    
-        OsdBintr(const char* osd, gboolean isClockEnabled);
+        std::string sinkName = "overlay-sink";
+        int displayId = 1;
 
-        ~OsdBintr();
+        std::shared_ptr<DSL::OverlaySinkBintr> pSinkBintr = 
+            std::shared_ptr<DSL::OverlaySinkBintr>(new DSL::OverlaySinkBintr(
+            sinkName.c_str(), 1280, 720, 30, 1));
+            
+        // ensure display id reflects not is use
+        REQUIRE( pSinkBintr->GetDisplayId() == -1 );
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-        
-        void LinkAll();
-        
-        void UnlinkAll();
-        
-    private:
-
-        gboolean m_isClockEnabled;
-        
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        static guint m_sClockOffsetX;
-        static guint m_sClockOffsetY;
-        static guint m_sClockColor;
-        
-        /**
-         @brief
-         */
-        guint m_processMode;
-        
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pVidConv;
-        std::shared_ptr<Elementr> m_pCapsFilter;
-        std::shared_ptr<Elementr> m_pConvQueue;
-        std::shared_ptr<Elementr> m_pOsd;
-    
-    };
+        WHEN( "The Display Id is set " )
+        {
+            pSinkBintr->SetDisplayId(displayId);
+            THEN( "The returned Display Id is correct" )
+            {
+                REQUIRE( pSinkBintr->GetDisplayId() == displayId );
+                
+            }
+        }
+    }
 }
-
-#endif // _DSL_OSD_BINTR_H

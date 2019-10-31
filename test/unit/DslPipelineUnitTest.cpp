@@ -24,11 +24,13 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslDisplayBintr.h"
+#include "DslSourceBintr.h"
+#include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
 
-SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
+SCENARIO( "A Pipeline fails to assemble without one Source component ", "[pipeline]" )
 {
-    GIVEN( "A Pipeline with a Tiled Display" ) 
+    GIVEN( "A Pipeline and a Tiled Display only" ) 
     {
         std::string displayName = "tiled-display";
         std::string pipelineName = "pipeline";
@@ -43,14 +45,61 @@ SCENARIO( "A Pipeline assembles a XWindow correctly", "[pipeline]" )
         std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
             std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
             
-        pDisplayBintr->AddToParent(pPipelineBintr);
-
-        WHEN( "The Pipeline is Assembled" )
+        WHEN( "The Pipeline is setup without a Source Component" )
         {
-            pPipelineBintr->_assemble();
+            pDisplayBintr->AddToParent(pPipelineBintr);
 
-            THEN( "The Display's new demensions are returned on Get" )
+            THEN( "The Pipeline fails to assemble" )
             {
+                REQUIRE( pPipelineBintr->_assemble() == false );
+//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to asseble with a Tiled Display component ", "[pipeline]" )
+{
+    GIVEN( "A Pipeline and a Tiled Display only" ) 
+    {
+        std::string sourceName = "csi-source";
+        std::string sinkName = "overlay-sink";
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
+
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
+            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+            sourceName.c_str(), displayW, displayH, fps_n, fps_d));
+
+        std::shared_ptr<DSL::DisplayBintr> pDisplayBintr = 
+            std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(
+            displayName.c_str(), displayW, displayH));
+
+        std::shared_ptr<DSL::OverlaySinkBintr> pSinkBintr = 
+            std::shared_ptr<DSL::OverlaySinkBintr>(new DSL::OverlaySinkBintr(
+            sinkName.c_str(), offsetX, offsetY, sinkW, sinkH));
+
+        std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
+            std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
+            
+        WHEN( "The Pipeline is setup with a Tiled Display Component" )
+        {
+            pSourceBintr->AddToParent(pPipelineBintr);
+            pDisplayBintr->AddToParent(pPipelineBintr);
+            pSinkBintr->AddToParent(pPipelineBintr);
+
+            THEN( "The Pipeline fails to assemble" )
+            {
+//                REQUIRE( pPipelineBintr->_assemble() == true );
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }

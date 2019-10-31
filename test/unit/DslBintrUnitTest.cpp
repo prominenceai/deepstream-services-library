@@ -23,26 +23,50 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslBintr.h"
+#include "Dsl.h"
 
-SCENARIO( "Parent-child releationship is setup on Add", "[pipeline]" )
+using namespace DSL; 
+
+SCENARIO( "A new Binter is created correctly", "[Bintr]" )
+{
+    GIVEN( "A name for a new Bintr" ) 
+    {
+        std::string bintrName  = "parent";
+
+        WHEN( "The Bintr is created" )
+        {
+            DSL_BINTR_PTR pBintr = DSL_BINTR_NEW(bintrName.c_str());
+                
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pBintr->m_name == bintrName );
+                REQUIRE( pBintr->m_pChildBintrs.size() == 0 );
+                
+                REQUIRE( pBintr->m_pParentBintr == nullptr );
+                REQUIRE( pBintr->m_pSinkBintr == nullptr );
+                REQUIRE( pBintr->m_pSourceBintr == nullptr );
+            }
+        }
+    }
+}
+
+SCENARIO( "Parent-child Binter releationship is setup on Add", "[Bintr]" )
 {
     GIVEN( "A new Parent and Child Bintr in memory" ) 
     {
         std::string parentBintrName  = "parent";
         std::string childBintrName = "child";
 
-        std::shared_ptr<DSL::Bintr> pParentBintr = 
-            std::shared_ptr<DSL::Bintr>(new DSL::Bintr(parentBintrName.c_str()));
-        std::shared_ptr<DSL::Bintr> pChildBintr = 
-            std::shared_ptr<DSL::Bintr>(new DSL::Bintr(childBintrName.c_str()));
+        DSL_BINTR_PTR pParentBintr = DSL_BINTR_NEW(parentBintrName.c_str());
+        DSL_BINTR_PTR pChildBintr = DSL_BINTR_NEW(childBintrName.c_str());
+        
         REQUIRE( pParentBintr->m_name == parentBintrName );
         REQUIRE( pParentBintr->m_pChildBintrs.size() == 0 );
         
         REQUIRE( pChildBintr->m_name == childBintrName );
         REQUIRE( pChildBintr->m_pParentBintr == nullptr );            
 
-        WHEN( "The Parent is called to Add and Remove Child" )
+        WHEN( "The Parent Bintr is called to add to Child" )
         {
             pParentBintr->AddChild(pChildBintr);
         
@@ -54,7 +78,7 @@ SCENARIO( "Parent-child releationship is setup on Add", "[pipeline]" )
                 REQUIRE( pChildBintr->IsInUse() == true );
             }
         }
-        WHEN( "When the Child is called to AddToParent" )
+        WHEN( "When the Child Bintr is called to add to Parent" )
         {
             pChildBintr->AddToParent(pParentBintr);
             
@@ -69,19 +93,17 @@ SCENARIO( "Parent-child releationship is setup on Add", "[pipeline]" )
     }
 }    
     
-SCENARIO( "Parent-child releationship is cleared on Remove", "[pipeline]" )
+SCENARIO( "Parent-child Bintr releationship is cleared on Remove", "[pipeline]" )
 {
     GIVEN( "A new Parent Bintr with a Child Bintr in memory" ) 
     {
         std::string parentBintrName  = "parent";
         std::string childBintrName = "child";
 
-        std::shared_ptr<DSL::Bintr> pParentBintr = 
-            std::shared_ptr<DSL::Bintr>(new DSL::Bintr(parentBintrName.c_str()));
-        std::shared_ptr<DSL::Bintr> pChildBintr = 
-            std::shared_ptr<DSL::Bintr>(new DSL::Bintr(childBintrName.c_str()));
+        DSL_BINTR_PTR pParentBintr = DSL_BINTR_NEW(parentBintrName.c_str());
+        DSL_BINTR_PTR pChildBintr = DSL_BINTR_NEW(childBintrName.c_str());
 
-            pParentBintr->AddChild(pChildBintr);
+        pParentBintr->AddChild(pChildBintr);
 
         REQUIRE( pParentBintr->m_pChildBintrs.size() == 1 );
         REQUIRE( pParentBintr->m_pChildBintrs[pChildBintr->m_name] == pChildBintr );
@@ -112,3 +134,57 @@ SCENARIO( "Parent-child releationship is cleared on Remove", "[pipeline]" )
         }
     }
 }    
+
+// TODO Add elements with sink and source pad to complete test cases..
+
+//SCENARIO( "Source-Sink Bintr releationship is setup on Link", "[pipeline]" )
+//{
+//    GIVEN( "A new Source Bintr and Sink Bintr in memory" ) 
+//    {
+//        std::string sourceBintrName  = "source";
+//        std::string sinkBintrName = "sink";
+//
+//        DSL_BINTR_PTR pSourceBintr = DSL_BINTR_NEW(sourceBintrName.c_str());
+//        DSL_BINTR_PTR pSinkBintr = DSL_BINTR_NEW(sinkBintrName.c_str());
+//
+//        WHEN( "When the Source Bintr is linked to the Sink Bintr" )
+//        {
+//            pSourceBintr->LinkTo(pSinkBintr);
+//            
+//            THEN( "The Source-Sync relationship is created" )
+//            {
+//                REQUIRE( pSourceBintr->m_pSinkBintr == pSinkBintr );            
+//                REQUIRE( pSinkBintr->m_pSourceBintr == pSourceBintr );            
+//                REQUIRE( pSourceBintr->IsInUse() == true );            
+//                REQUIRE( pSinkBintr->IsInUse() == true );            
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "Source-Sink Bintr releationship is removed on Unink", "[pipeline]" )
+//{
+//    GIVEN( "A Source Bintr linked to a Sink Bintr" ) 
+//    {
+//        std::string sourceBintrName  = "source";
+//        std::string sinkBintrName = "sink";
+//
+//        DSL_BINTR_PTR pSourceBintr = DSL_BINTR_NEW(sourceBintrName.c_str());
+//        DSL_BINTR_PTR pSinkBintr = DSL_BINTR_NEW(sinkBintrName.c_str());
+//
+//        pSourceBintr->LinkTo(pSinkBintr);
+//
+//        WHEN( "When the Source Bintr is unlinked from the Sink Bintr" )
+//        {
+//            pSourceBintr->Unlink();
+//            
+//            THEN( "The Source-Sync relationship is removed" )
+//            {
+//                REQUIRE( pSourceBintr->m_pSinkBintr == nullptr );            
+//                REQUIRE( pSinkBintr->m_pSourceBintr == nullptr );            
+//                REQUIRE( pSourceBintr->IsInUse() == false );            
+//                REQUIRE( pSinkBintr->IsInUse() == false );            
+//            }
+//        }
+//    }
+//}

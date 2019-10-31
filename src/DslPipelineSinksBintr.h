@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -23,52 +22,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_OSD_BINTR_H
-#define _DSL_OSD_BINTR_H
+#ifndef _DSL_PROCESS_BINTR_H
+#define _DSL_PROCESS_BINTR_H
 
-#include "Dsl.h"
-#include "DslElementr.h"
 #include "DslBintr.h"
-
-namespace DSL
-{
+#include "DslElementr.h"
     
-    class OsdBintr : public Bintr
+namespace DSL 
+{
+
+    /**
+     * @class ProcessBintr
+     * @brief 
+     */
+    class PipelineSinksBintr : public Bintr
     {
     public: 
     
-        OsdBintr(const char* osd, gboolean isClockEnabled);
+        PipelineSinksBintr(const char* name);
 
-        ~OsdBintr();
+        ~PipelineSinksBintr();
+        
+        void AddChild(std::shared_ptr<Bintr> pChildBintr);
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-        
-        void LinkAll();
-        
-        void UnlinkAll();
-        
+//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+
     private:
 
-        gboolean m_isClockEnabled;
-        
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        static guint m_sClockOffsetX;
-        static guint m_sClockOffsetY;
-        static guint m_sClockColor;
-        
-        /**
-         @brief
-         */
-        guint m_processMode;
-        
         std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pVidConv;
-        std::shared_ptr<Elementr> m_pCapsFilter;
-        std::shared_ptr<Elementr> m_pConvQueue;
-        std::shared_ptr<Elementr> m_pOsd;
-    
+        std::shared_ptr<Elementr> m_pTee;
     };
 }
 
-#endif // _DSL_OSD_BINTR_H
+#endif // _DSL_PROCESS_BINTR_H

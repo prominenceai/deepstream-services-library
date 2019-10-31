@@ -35,9 +35,6 @@ namespace DSL
         , m_batchSize(batchSize)
         , m_interval(interval)
         , m_uniqueId(uniqueId)
-        , m_pVidConv(NULL)
-        , m_pQueue(NULL)
-        , m_pClassifier(NULL)
     {
         LOG_FUNC();
         
@@ -46,40 +43,40 @@ namespace DSL
         m_rawOutputDir = rawOutputDir;
         
         
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "primary_gie_queue", LINK_TRUE);
-        m_pVidConv = MakeElement(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", LINK_TRUE);
-        m_pClassifier = MakeElement(NVDS_ELEM_PGIE, "primary_gie_classifier", LINK_TRUE);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary_gie_queue", m_pBin);
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", m_pBin);
+        m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier", m_pBin);
 
-        g_object_set(G_OBJECT(m_pVidConv), 
+        g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
             "gpu-id", m_gpuId,
             "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
-        g_object_set(G_OBJECT(m_pClassifier), "config-file-path", 
+        g_object_set(G_OBJECT(m_pClassifier->m_pElement), "config-file-path", 
             (gchar*)inferConfigFile, "process-mode", 1, NULL);
 
         if (m_batchSize)
         {
-            g_object_set(G_OBJECT(m_pClassifier), "batch-size", m_batchSize, NULL);
+            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "batch-size", m_batchSize, NULL);
         }
         
         if (m_interval)
         {
-            g_object_set(G_OBJECT(m_pClassifier), "interval", m_interval, NULL);
+            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "interval", m_interval, NULL);
         }
 
         if (m_uniqueId)
         {
-            g_object_set(G_OBJECT(m_pClassifier), "unique-id", m_uniqueId, NULL);
+            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "unique-id", m_uniqueId, NULL);
         }
         
         if (m_gpuId)
         {
-            g_object_set(G_OBJECT(m_pClassifier), "gpu-id", m_uniqueId, NULL);
+            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "gpu-id", m_uniqueId, NULL);
         }
 
         if (m_modelEngineFile.length())
         {
-            g_object_set(G_OBJECT(m_pClassifier), "model-engine-file",
+            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "model-engine-file",
                 (gchar*)m_modelEngineFile.c_str(), NULL);
         }
 
@@ -91,8 +88,8 @@ namespace DSL
 //                NULL);
         }
 
-
-        AddGhostPads();
+        m_pQueue->AddSinkGhostPad();
+        m_pClassifier->AddSourceGhostPad();
     }    
     
     GieBintr::~GieBintr()
@@ -100,12 +97,28 @@ namespace DSL
         LOG_FUNC();
     }
 
+    void GieBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->LinkTo(m_pVidConv);
+        m_pVidConv->LinkTo(m_pClassifier);
+    }
+    
+    void GieBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->Unlink();
+        m_pVidConv->Unlink();
+    }
+
     void GieBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddPrimaryGieBintr(shared_from_this());
     }
 }    

@@ -36,21 +36,19 @@ namespace DSL
         , m_width(width)
         , m_height(height)
         , m_enablePadding(FALSE)
-        , m_pQueue(NULL) 
-        , m_pTiler(NULL)
     {
         LOG_FUNC();
 
-        // Queue and Tiler elements will be linked in the order created.
-        m_pQueue = MakeElement(NVDS_ELEM_QUEUE, "tiled_display_queue", LINK_TRUE);
-        m_pTiler = MakeElement(NVDS_ELEM_TILER, "tiled_display_tiler", LINK_TRUE);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin);
+        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin);
 
-        g_object_set(G_OBJECT(m_pTiler), 
+        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
             "gpu-id", m_gpuId,
             "nvbuf-memory-type", m_nvbufMemoryType, NULL);
 
-        // Add Sink and Source pads for Queue and Tiler
-        AddGhostPads();
+        m_pQueue->AddSinkGhostPad();
+        m_pTiler->AddSourceGhostPad();
+
     }    
 
     DisplayBintr::~DisplayBintr()
@@ -58,12 +56,26 @@ namespace DSL
         LOG_FUNC();
     }
     
+    void DisplayBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->LinkTo(m_pTiler);
+    }
+    
+    void DisplayBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->Unlink();
+    }
+    
     void DisplayBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' display to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)-> \
+        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddDisplayBintr(shared_from_this());
     }
 
@@ -74,7 +86,7 @@ namespace DSL
         m_rows = rows;
         m_columns = columns;
     
-        g_object_set(G_OBJECT(m_pTiler), 
+        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
             "rows", m_rows,
             "columns", m_columns, NULL);
     }
@@ -94,7 +106,7 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        g_object_set(G_OBJECT(m_pTiler), 
+        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
             "width", m_width,
             "height", m_height, NULL);
     }

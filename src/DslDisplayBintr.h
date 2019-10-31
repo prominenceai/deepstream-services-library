@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_DISPLAY_BINTR_H
 
 #include "Dsl.h"
+#include "DslElementr.h"
 #include "DslBintr.h"
 
 namespace DSL
@@ -47,6 +48,10 @@ namespace DSL
         void SetDimensions(uint width, uint hieght);
         
         void GetDimensions(uint& width, uint& height);
+
+        void LinkAll();
+        
+        void UnlinkAll();
         
     private:
     
@@ -78,12 +83,12 @@ namespace DSL
         /**
          @brief
          */
-        GstElement* m_pQueue;
+        std::shared_ptr<Elementr> m_pQueue;
  
         /**
          @brief
          */
-        GstElement* m_pTiler;
+        std::shared_ptr<Elementr>  m_pTiler;
         
         /**
          * @brief a single display for the driver

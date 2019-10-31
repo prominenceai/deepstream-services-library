@@ -205,8 +205,8 @@ void dsl_source_set_num_in_use_max(uint max);
  * @param[in] heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_new(const char* sink, uint displayId, 
-    uint overlayId, uint offsetX, uint offsetY, uint width, uint height);
+DslReturnType dsl_sink_overlay_new(const char* sink, 
+    uint offsetX, uint offsetY, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named OSD obj

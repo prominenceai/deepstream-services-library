@@ -29,73 +29,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    ProcessBintr::ProcessBintr(const char* name)
-        : Bintr(name)
-        , m_pSinksBintr(NULL)
-        , m_pOsdBintr(NULL)
-    {
-        LOG_FUNC();
-
-        m_pSinksBintr = std::shared_ptr<SinksBintr>(new SinksBintr("sinks-bin"));
-        
-        AddChild(m_pSinksBintr);
-    }
-
-    ProcessBintr::~ProcessBintr()
-    {
-        LOG_FUNC();
-
-        m_pSinksBintr = NULL;
-    }
-    
-    void ProcessBintr::AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
-    {
-        LOG_FUNC();
-        
-        m_pSinksBintr->AddChild(pSinkBintr);
-    }
-    
-    void ProcessBintr::AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
-    {
-        LOG_FUNC();
-        
-        // Add the OSD bin to this Process bin before linking to Sinks bin
-        AddChild(pOsdBintr);
-
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
-
-        m_pOsdBintr->LinkTo(m_pSinksBintr);
-    }
-    
-    void ProcessBintr::AddSinkGhostPad()
-    {
-        LOG_FUNC();
-        
-        GstElement* pSinkBin;
-
-        if (m_pOsdBintr->m_pBin)
-        {
-            LOG_INFO("Adding Process bin Sink Pad for OSD '" 
-                << m_pOsdBintr->m_name);
-            pSinkBin = m_pOsdBintr->m_pBin;
-        }
-        else
-        {
-            LOG_INFO("Adding Process bin Sink Pad for Sinks '" 
-                << m_pSinksBintr->m_name);
-            pSinkBin = m_pSinksBintr->m_pBin;
-        }
-
-        StaticPadtr SinkPadtr(pSinkBin, "sink");
-        
-        // create a new ghost pad with the Sink pad and add to this bintr's bin
-        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("sink", SinkPadtr.m_pPad)))
-        {
-            LOG_ERROR("Failed to add Sink Pad for '" << m_name);
-        }
-    };
-    
-    
     PipelineBintr::PipelineBintr(const char* pipeline)
         : m_isAssembled(false)
         , m_pPipelineSourcesBintr(nullptr)
@@ -216,6 +149,21 @@ namespace DSL
         m_pPrimaryGieBintr = pGieBintr;
         
         AddChild(pGieBintr);
+    }
+
+    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
+    {
+        LOG_FUNC();
+        
+        // Create the shared Process bintr if it doesn't exist
+        if (!m_pPipelineSinksBintr)
+        {
+            m_pPipelineSinksBintr = std::shared_ptr<PipelineSinksBintr>(new PipelineSinksBintr("sinks-bin"));
+            AddChild(m_pPipelineSinksBintr);
+        }
+
+//        m_pPipelineSinksBintr->AddChild(pSinkBintr);
+        
     }
 
     void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
@@ -448,65 +396,100 @@ namespace DSL
             }
         }
     }
+
+    bool PipelineBintr::_createWindow()
+    {
+        if (!m_pDisplayBintr)
+        {
+            LOG_ERROR("_createWindow error: Miissing Display Bintr for Pipeline '" << m_name << '"');
+            return false;
+        }
+        uint width(0), height(0);
+        m_pDisplayBintr->GetDimensions(width, height);
+        
+        m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+            RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+            0, 0, width, height, 2, 0x00000000, 0x00000000);            
+
+        if (!m_pXWindow)
+        {
+            LOG_ERROR("Failed to create new X Window for Pipeline '" << m_name << "' ");
+            return false;
+        }
+        XSetWindowAttributes attr = {0};
+        
+        attr.event_mask = ButtonPress | KeyRelease;
+        XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
+
+        Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
+        if (wmDeleteMessage != None)
+        {
+            XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
+        }
+        XMapRaised(m_pXDisplay, m_pXWindow);
+
+        // Start the X window event thread
+        std::string threadName = m_name + std::string("-x-window-event-thread");
+        m_pXWindowEventThread = g_thread_new(threadName.c_str(), XWindowEventThread, this);
+        
+        return true;
+    }
     
-    void PipelineBintr::_assemble()
+    bool PipelineBintr::_assemble()
     {
         LOG_FUNC();
 
         if (m_isAssembled)
         {
             LOG_INFO("Components for Pipeline '" << m_name << "' are already assembled");
-            return;
+            return false;
+        }
+        
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipline has no Source component");
+            return false;
+        }
+        
+        if (!m_pPipelineSinksBintr)
+        {
+            LOG_ERROR("Pipline has no Sink component");
+            return false;
         }
 
-        if (m_pDisplayBintr)
-        {
-            if (!m_pXWindow)
-            {
-                uint width(0), height(0);
-                m_pDisplayBintr->GetDimensions(width, height);
-                
-                m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
-                    RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-                    0, 0, width, height, 2, 0x00000000, 0x00000000);            
-
-                if (!m_pXWindow)
-                {
-                    LOG_ERROR("Failed to create new X Window for Pipeline '" << m_name << "' ");
-                    throw;
-                }
-                XSetWindowAttributes attr = {0};
-                
-                attr.event_mask = ButtonPress | KeyRelease;
-                XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
-     
-                Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
-                if (wmDeleteMessage != None)
-                {
-                    XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
-                }
-            }
-
-            XMapRaised(m_pXDisplay, m_pXWindow);
+        m_pPipelineSourcesBintr->LinkAll();
+//        m_pProcessBintr->LinkAll();
+//        
+//        m_linkedComponents.clear();
+//        m_linkedComponents.push_back(m_pPipelineSourcesBintr);
+        
+//        if (m_pPrimaryGieBintr)
+//        {
+//            m_linkedComponents.back->LinkTo(m_pPrimaryGieBintr);
+//            m_linkedComponents.push_back(m_pPrimaryGieBintr);
+//        }
+//
+//        if (m_pDisplayBintr)
+//        {
+//            if (!m_pXDisplay and !(_createWindow()))
+//            {
+//                return false;
+//            }
+//            m_linkedComponents.back->LinkTo(m_pDisplayBintr);
+//            m_linkedComponents.push_back(m_pDisplayBintr);
+//        }
+        
+//        m_linkedComponents.back->LinkTo(m_pProcessBintr);
+//        m_linkedComponents.push_back(m_pProcessBintr);
 
 //            gst_video_overlay_set_window_handle(
 //                GST_VIDEO_OVERLAY(.sink), (gulong) m_pXWindow);
 //            gst_video_overlay_expose
 //                (GST_VIDEO_OVERLAY (.sink));
 
-            // Start the X window event thread
-            std::string threadName = m_name + std::string("-x-window-event-thread");
-            m_pXWindowEventThread = g_thread_new(threadName.c_str(), XWindowEventThread, this);
-        }
         
         // Ghost pad added to OSD Bintr, if OSD exists, to Sinks Bintr otherwise.
 //        m_pProcessBintr->AddSinkGhostPad();
-        
-        // Link together all components 
-//        m_pPipelineSourcesBintr->LinkTo(m_pPrimaryGieBintr);
-//        m_pPrimaryGieBintr->LinkTo(m_pDisplayBintr);
-//        m_pDisplayBintr->LinkTo(m_pProcessBintr);
-       
         m_isAssembled = true;
     }
     

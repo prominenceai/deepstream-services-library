@@ -32,55 +32,10 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
+#include "DslPipelineSinksBintr.h"
     
 namespace DSL 
 {
-    /**
-     * @class ProcessBintr
-     * @brief 
-     */
-    class ProcessBintr : public Bintr
-    {
-    public:
-    
-        /** 
-         * 
-         */
-        ProcessBintr(const char* name);
-        ~ProcessBintr();
-
-        /**
-         * @brief Adds a Sink Bintr to this Process Bintr
-         * @param[in] pSinkBintr
-         */
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
-
-        /**
-         * @brief 
-         * @param[in] pOsdBintr
-         */
-        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr);
-        
-        /**
-         * @brief 
-         */
-        void AddSinkGhostPad();
-
-        
-    private:
-    
-        /**
-         * @brief one or more Sinks for this Process bintr
-         */
-        std::shared_ptr<SinksBintr> m_pSinksBintr;
-        
-        /**
-         * @brief optional OSD for this Process bintr
-         */
-        std::shared_ptr<OsdBintr> m_pOsdBintr;
-        
-    };
-
     /**
      * @class PipelineBintr
      * @brief 
@@ -95,10 +50,10 @@ namespace DSL
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
 
-//        void AddChild(std::shared_ptr<Bintr> pChildBintr);
-        
         bool Pause();
         bool Play();
+
+        void RemoveAllChildren();
         
         /**
          * @brief adds a single Source Bintr to this Pipeline 
@@ -121,8 +76,6 @@ namespace DSL
             return m_pPipelineSourcesBintr->GetNumSourceInUse();
         } 
         
-        void RemoveAllChildren();
-
         /**
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
@@ -133,10 +86,7 @@ namespace DSL
          * @brief adds a single Sink Bintr to this Pipeline 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
-        {
-            m_pProcessBintr->AddSinkBintr(pSinkBintr);
-        }
+        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
 
         /**
          * @brief adds a single OSD Bintr to this Pipeline 
@@ -144,7 +94,7 @@ namespace DSL
          */
         void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
         {
-            m_pProcessBintr->AddOsdBintr(pOsdBintr);
+//            m_pProcessBintr->AddOsdBintr(pOsdBintr);
         }
         
         /**
@@ -266,7 +216,9 @@ namespace DSL
          */
         void HandleXWindowEvents();
 
-        void _assemble();
+        bool _createWindow();
+        
+        bool _assemble();
         
         void _disassemble();
 
@@ -280,7 +232,7 @@ namespace DSL
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline
          */
-        std::shared_ptr<ProcessBintr> m_pProcessBintr;
+        std::shared_ptr<PipelineSinksBintr> m_pPipelineSinksBintr;
         
         /**
          * @brief the one and only Display for this Pipeline
