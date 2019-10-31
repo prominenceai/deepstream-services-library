@@ -34,10 +34,11 @@ Description:    This program attempts to duplicate deepstream-test1-app that is
 """
 import ctypes
 import ds_consts as k
+import os
 
 dsl = ctypes.CDLL("dsl-lib.so")
 
-uri = "/home/sscsmatrix/Projects/dsl-python/sample_720p.h264"
+uri = os.path.abspath("sample_720p.h264")
 
 #####################################################
 #
