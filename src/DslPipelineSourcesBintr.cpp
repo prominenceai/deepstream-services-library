@@ -158,6 +158,7 @@ namespace DSL
             // unlink from the Streammuxer
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->
                 m_pStaticSourcePadtr->Unlink();
+                
             // reset the Sensor ID to unlinked     
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(-1);
         }
@@ -169,8 +170,7 @@ namespace DSL
         
         m_areSourcesLive = areSourcesLive;
         
-        g_object_set(G_OBJECT(m_pStreamMux->m_pElement), 
-            "live-source", m_areSourcesLive, NULL);
+        m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
         
     }
 
@@ -181,9 +181,8 @@ namespace DSL
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
 
-        g_object_set(G_OBJECT(m_pStreamMux->m_pElement),
-            "batch-size", m_batchSize,
-            "batched-push-timeout", m_batchTimeout, NULL);
+        m_pStreamMux->SetAttribute("batch-size", m_batchSize);
+        m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);
     }
 
     void PipelineSourcesBintr::SetStreamMuxOutputSize(uint width, uint height)
@@ -193,8 +192,7 @@ namespace DSL
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
 
-        g_object_set(G_OBJECT(m_pStreamMux->m_pElement),
-            "width", m_streamMuxWidth,
-            "height", m_streamMuxHeight, NULL);
+        m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
+        m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
     }
 }

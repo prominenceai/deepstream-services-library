@@ -83,12 +83,12 @@ namespace DSL
         /**
          @brief
          */
-        std::shared_ptr<Elementr> m_pQueue;
+        DSL_ELEMENT_PTR m_pQueue;
  
         /**
          @brief
          */
-        std::shared_ptr<Elementr>  m_pTiler;
+        DSL_ELEMENT_PTR  m_pTiler;
         
         /**
          * @brief a single display for the driver

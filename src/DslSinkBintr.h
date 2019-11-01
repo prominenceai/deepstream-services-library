@@ -28,7 +28,13 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
+#include "DslPadtr.h"
 #include "DslElementr.h"
+
+#define DSL_OVERLAY_SINK_PTR std::shared_ptr<DSL::OverlaySinkBintr>
+#define DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height) \
+    std::shared_ptr<DSL::OverlaySinkBintr>( \
+    new DSL::OverlaySinkBintr(name, offsetX, offsetY, width, height))
 
 namespace DSL
 {
@@ -97,19 +103,19 @@ namespace DSL
         
     private:
 
-        gboolean m_sync;
-        gboolean m_async;
-        gboolean m_qos;
-        guint m_displayId;
-        guint m_overlayId;
-        guint m_offsetX;
-        guint m_offsetY;
-        guint m_width;
-        guint m_height;
+        boolean m_sync;
+        boolean m_async;
+        boolean m_qos;
+        uint m_displayId;
+        uint m_overlayId;
+        uint m_offsetX;
+        uint m_offsetY;
+        uint m_width;
+        uint m_height;
 
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pTransform;
-        std::shared_ptr<Elementr> m_pOverlay;
+        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pTransform;
+        DSL_ELEMENT_PTR m_pOverlay;
     };
 
 }

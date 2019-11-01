@@ -101,17 +101,14 @@ namespace DSL
         return m_sensorId;
     }
 
-    bool SourceBintr::SetSensorId(int id)
+    void SourceBintr::SetSensorId(int id)
     {
         LOG_FUNC();
         
         int sensorId;
         m_sensorId = id;
 
-        g_object_set(G_OBJECT(m_pSourceElement->m_pElement), "sensor-id", m_sensorId, NULL);
-        g_object_get(G_OBJECT(m_pSourceElement->m_pElement), "sensor-id", &sensorId, NULL);
-        
-        return (sensorId == m_sensorId);
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
     }
     
     CsiSourceBintr::CsiSourceBintr(const char* source, 
@@ -185,10 +182,13 @@ namespace DSL
         
         m_isLive = FALSE;
               
-        // Create Source Element - without linking at this time.
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "src_elem", m_pBin);
+        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue", m_pBin);
+        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee", m_pBin);
+        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue", m_pBin);
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink", m_pBin);
         
-        g_object_set(G_OBJECT(m_pSourceElement->m_pElement), "uri", (gchar*)uri, NULL);
+        m_pSourceElement->SetAttribute("uri", uri);
 
         g_signal_connect(G_OBJECT(m_pSourceElement->m_pElement), "pad-added", 
             G_CALLBACK(OnPadAddedCB), this);
@@ -197,19 +197,8 @@ namespace DSL
         g_signal_connect(G_OBJECT(m_pSourceElement->m_pElement), "source-setup",
             G_CALLBACK(OnSourceSetupCB), this);
 
-        // Create a Queue for the URI source
-        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue", m_pBin);
         g_object_set_data(G_OBJECT(m_pSourceQueue->m_pElement), "source", this);
         
-        // Source Ghost Pad for Source Queue
-        m_pSourceQueue->AddSourceGhostPad();
-        
-        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee", m_pBin);
-
-        m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue", m_pBin);
-        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink", m_pBin);
-
-        m_pFakeSinkQueue->LinkTo(m_pFakeSink);
 
         GstPadTemplate* padtemplate = 
             gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pElement), "src_%u");
@@ -231,8 +220,14 @@ namespace DSL
         StaticPadtr fakeSinkQueueSinkPadtr(m_pFakeSinkQueue->m_pElement, "sink");
 //        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
 
-        g_object_set(G_OBJECT(m_pFakeSink->m_pElement), "sync", FALSE, "async", FALSE, NULL);
+        m_pFakeSink->SetAttribute("sync", false);
+        m_pFakeSink->SetAttribute("async", false);
         
+        // Source Ghost Pad for Source Queue
+        m_pSourceQueue->AddSourceGhostPad();
+        
+
+        m_pFakeSinkQueue->LinkTo(m_pFakeSink);
     }
 
     UriSourceBintr::~UriSourceBintr()

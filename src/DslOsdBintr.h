@@ -62,11 +62,11 @@ namespace DSL
          */
         guint m_processMode;
         
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pVidConv;
-        std::shared_ptr<Elementr> m_pCapsFilter;
-        std::shared_ptr<Elementr> m_pConvQueue;
-        std::shared_ptr<Elementr> m_pOsd;
+        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pVidConv;
+        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pConvQueue;
+        DSL_ELEMENT_PTR m_pOsd;
     
     };
 }

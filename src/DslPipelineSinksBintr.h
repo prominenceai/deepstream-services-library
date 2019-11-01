@@ -49,8 +49,8 @@ namespace DSL
 
     private:
 
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pTee;
+        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pTee;
     };
 }
 
