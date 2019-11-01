@@ -29,6 +29,10 @@ THE SOFTWARE.
 #include "DslElementr.h"
 #include "DslBintr.h"
 
+#define DSL_DISPLAY_PTR std::shared_ptr<DSL::DisplayBintr>
+#define DSL_DISPLAY_NEW(name, width, height) \
+    std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(name, width, height))
+
 namespace DSL
 {
     class DisplayBintr : public Bintr
@@ -83,12 +87,12 @@ namespace DSL
         /**
          @brief
          */
-        std::shared_ptr<Elementr> m_pQueue;
+        DSL_ELEMENT_PTR m_pQueue;
  
         /**
          @brief
          */
-        std::shared_ptr<Elementr>  m_pTiler;
+        DSL_ELEMENT_PTR  m_pTiler;
         
         /**
          * @brief a single display for the driver

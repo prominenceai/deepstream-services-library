@@ -26,6 +26,8 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslPipelineSourcesBintr.h"
 
+using namespace DSL;
+
 SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
 {
     GIVEN( "A new Pipeline Sources Bintr and new Source in memory" ) 
@@ -33,9 +35,8 @@ SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
         std::string sourceName = "csi-source";
         std::string pipelineSourcesName = "pipeline-sources";
 
-        std::shared_ptr<DSL::PipelineSourcesBintr> pPipelineSourcesBintr = 
-            std::shared_ptr<DSL::PipelineSourcesBintr>(
-            new DSL::PipelineSourcesBintr(pipelineSourcesName.c_str()));
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
 
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
 
@@ -63,9 +64,8 @@ SCENARIO( "Removing a single Source from a Sources Bintr is managed correctly" )
         std::string sourceName = "csi-source";
         std::string pipelineSourcesName = "pipeline-sources";
 
-        std::shared_ptr<DSL::PipelineSourcesBintr> pPipelineSourcesBintr = 
-            std::shared_ptr<DSL::PipelineSourcesBintr>(
-            new DSL::PipelineSourcesBintr(pipelineSourcesName.c_str()));
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
 
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
@@ -97,9 +97,8 @@ SCENARIO( "Linking multiple Sources to a Pipeline's StreamMux is managed correct
         std::string sourceName1 = "csi-source-1";
         std::string sourceName2 = "csi-source-2";
 
-        std::shared_ptr<DSL::PipelineSourcesBintr> pPipelineSourcesBintr = 
-            std::shared_ptr<DSL::PipelineSourcesBintr>(
-            new DSL::PipelineSourcesBintr(pipelineSourcesName.c_str()));
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
 
         std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr0 = 
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(

@@ -29,6 +29,10 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSourceBintr.h"
 
+#define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
+#define DSL_PIPELINE_SOURCES_NEW(name) \
+    std::shared_ptr<PipelineSourcesBintr>(new DSL::PipelineSourcesBintr(name))
+
 namespace DSL
 {
     class PipelineSourcesBintr : public Bintr
@@ -79,7 +83,7 @@ namespace DSL
 
     private:
 
-        std::shared_ptr<Elementr> m_pStreamMux;
+        DSL_ELEMENT_PTR m_pStreamMux;
         
         /**
          @brief

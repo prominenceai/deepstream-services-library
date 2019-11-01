@@ -46,15 +46,14 @@ namespace DSL
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink-bin-queue", m_pBin);
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay", m_pBin);
         
-        g_object_set(G_OBJECT(m_pOverlay->m_pElement), 
-            "overlay-x", m_offsetX,
-            "overlay-y", m_offsetY,
-            "overlay-w", m_width,
-            "overlay-h", m_height,
-            "sync", m_sync, 
-            "max-lateness", -1,
-            "async", m_async, 
-            "qos", m_qos, NULL);
+        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
+        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        m_pOverlay->SetAttribute("overlay-w", m_width);
+        m_pOverlay->SetAttribute("overlay-h", m_height);
+        m_pOverlay->SetAttribute("sync", m_sync);
+        m_pOverlay->SetAttribute("max-lateness", -1);
+        m_pOverlay->SetAttribute("async", m_async);
+        m_pOverlay->SetAttribute("qos", m_qos);
             
         m_pQueue->AddSinkGhostPad();
     

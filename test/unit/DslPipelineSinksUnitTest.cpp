@@ -26,6 +26,8 @@ THE SOFTWARE.
 #include "DslPipelineSinksBintr.h"
 #include "DslSinkBintr.h"
 
+using namespace DSL;
+
 SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly" )
 {
     GIVEN( "A new Pipelinks Sinks Bintr and new Sink Bintr in memory" ) 
@@ -37,13 +39,10 @@ SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly" 
         uint sinkW(0);
         uint sinkH(0);
 
-        std::shared_ptr<DSL::PipelineSinksBintr>pPipelineSinksBintr = 
-            std::shared_ptr<DSL::PipelineSinksBintr>(
-            new DSL::PipelineSinksBintr(pipelineSinksName.c_str()));
+        DSL_PIPELINE_SINKS_PTR pPipelineSinksBintr = DSL_PIPELINE_SINKS_NEW(pipelineSinksName.c_str());
             
-        std::shared_ptr<DSL::OverlaySinkBintr> pSinkBintr = 
-            std::shared_ptr<DSL::OverlaySinkBintr>(new DSL::OverlaySinkBintr(
-            sinkName.c_str(), offsetX, offsetY, sinkW, sinkH));
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
             

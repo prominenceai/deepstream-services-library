@@ -28,6 +28,11 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslElementr.h"
     
+   
+#define DSL_PIPELINE_SINKS_PTR std::shared_ptr<PipelineSinksBintr>
+#define DSL_PIPELINE_SINKS_NEW(name) \
+    std::shared_ptr<PipelineSinksBintr>(new DSL::PipelineSinksBintr(name))
+    
 namespace DSL 
 {
 
@@ -49,8 +54,8 @@ namespace DSL
 
     private:
 
-        std::shared_ptr<Elementr> m_pQueue;
-        std::shared_ptr<Elementr> m_pTee;
+        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pTee;
     };
 }
 

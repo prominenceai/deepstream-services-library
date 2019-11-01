@@ -23,7 +23,10 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
+#include "Dsl.h"
 #include "DslSinkBintr.h"
+
+using namespace DSL;
 
 SCENARIO( "Set Display Id updates Sink correctly",  "[overlay-sink]" )
 {
@@ -32,9 +35,8 @@ SCENARIO( "Set Display Id updates Sink correctly",  "[overlay-sink]" )
         std::string sinkName = "overlay-sink";
         int displayId = 1;
 
-        std::shared_ptr<DSL::OverlaySinkBintr> pSinkBintr = 
-            std::shared_ptr<DSL::OverlaySinkBintr>(new DSL::OverlaySinkBintr(
-            sinkName.c_str(), 1280, 720, 30, 1));
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 0, 0, 0, 0);
             
         // ensure display id reflects not is use
         REQUIRE( pSinkBintr->GetDisplayId() == -1 );
