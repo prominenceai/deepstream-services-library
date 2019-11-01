@@ -34,11 +34,18 @@ Description:    This program attempts to duplicate deepstream-test1-app that is
 """
 import ctypes
 import ds_consts as k
-import os
+import os,sys
+
+####################################################
+#
+#   Debug code
+#
+####################################################
+def enableDebug():
+    import faulthandler
+    faulthandler.enable()
 
 dsl = ctypes.CDLL("dsl-lib.so")
-
-uri = os.path.abspath("sample_720p.h264")
 
 #####################################################
 #
@@ -81,8 +88,6 @@ def createSource(srcName, uri):
 
     elif src == k.DSL_RESULT_SOURCE_NAME_NOT_FOUND:
         print("Source Creation error: Name not found")
-
-    elif src == k.DSL_RESULT_SOURCE_NAME_BAD_FORMAT:
         print("Source Creation error: Name nbad format")
 
     elif src == k.DSL_RESULT_SOURCE_NEW_EXCEPTION:
@@ -93,6 +98,65 @@ def createSource(srcName, uri):
         
     else:
         print("Source creation error: Unknown error: ",src)
+
+#####################################################
+#
+#   Function: createSink()
+#
+#   Description:    This creates a sink to use as
+#   an output from the pipeline.  The function has 
+#   three inputs, a source ID, width  and height
+#
+#   Input:  srcName
+#   Input:  width
+#   Input:  height
+#
+#####################################################
+def createSink(displayName,width,height):
+
+    src = dsl.dsl_display_new(displayName,width,height)
+
+    if src == 0:
+        print("Sink created")
+   
+    elif src == k.DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE:
+        print("Sink Creation error: Name not unique")
+
+    elif src == k.DSL_RESULT_DISPLAY_NAME_NOT_FOUND:
+        print("Sink Creation error: Name not found")
+
+    elif src == k.DSL_RESULT_DISPLAY_BAD_FORMAT:
+        print("Sink Creation error: Bad format")
+
+    elif src == k.DSL_RESULT_DISPLAY_NEW_EXCEPTION:
+        print("Sink Creation error: New exception")
+        
+    else:
+        print("Sink creation error: Unknown error: ",src)
+
+#####################################################
+#
+#   Function: playPipeline()
+#
+#   Description:    This plays a pipeline
+#
+#   Input:  pipeline
+#
+#####################################################
+def playPipeline(pipelineName):
+    com = dsl.dsl_pipeline_play(pipelineName)
+
+    if com == 0:
+        print("Playing...")
+
+    elif com == k.DSL_RESULT_PIPELINE_NAME_NOT_FOUND:
+        print("Pipe error: Name not found")
+
+    elif com == k.DSL_RESULT_PIPELINE_FAILED_TO_PLAY:
+        print("Pipe error: Failed to play")
+
+    else:
+        print("Pipe error: Unknown error",com)
 
 #####################################################
 #
@@ -131,6 +195,42 @@ def addComponent(pipeName,source):
 
 #####################################################
 #
+#   Function: removeComponent()
+#
+#   Description:  This function removes a component to
+#   the pipeline.  It takes two inputs a pipeName and
+#   the component source id
+#
+#   Input:  pipeName
+#   Input:  source
+#
+#####################################################
+def removeComponent(pipeName,source):
+    
+    com1 = dsl.dsl_pipeline_component_remove(pipeName,source)
+    if com1 == 0:
+        print("Component added")
+    elif com1 == k.DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE:
+        print("Component Removal error: Name not unique")
+
+    elif com1 == k.DSL_RESULT_COMPONENT_NAME_NOT_FOUND:
+        print("Component Removal error: Name not found")
+
+    elif com1 == k.DSL_RESULT_COMPONENT_NAME_BAD_FORMAT:
+        print("Component Removal error: Name bad format")
+
+    elif com1 == k.DSL_RESULT_COMPONENT_IN_USE:
+        print("Component Removal error: New exception")
+
+    elif com1 == k.DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE:
+        print("Component Removal error: stream file not found")
+        
+    else:
+        print("Component Removal error: Unknown error: ",src)
+
+
+#####################################################
+#
 #   Function: deletePipe()
 #
 #   Description:  This function deletes a pipe.  It
@@ -160,6 +260,20 @@ def deletePipe(pipeName):
 
 def test1():
 
+    uri = os.path.abspath(sys.argv[1])
+
+    #########################################
+    #   Create source
+    #########################################
+    
+    createSource("video1",uri)
+
+    #########################################
+    #   Create sink
+    #########################################
+    
+    createSink("display1",1024,768)
+
     #########################################
     #   Create pipeline1
     #########################################
@@ -167,17 +281,35 @@ def test1():
     createPipe("pipeline1")
     
     #########################################
-    #   Create source
-    #########################################
-    
-    createSource("video1",uri)
- 
-    #########################################
     # Add video1 to pipeline
     #########################################
     
     addComponent("pipeline1","video1")
+
+    #########################################
+    # Add display1 to pipeline
+    #########################################
     
+    addComponent("pipeline1","display1")
+
+    #########################################
+    # Play video 
+    #########################################
+
+    playPipeline("pipeline1")
+    
+    #########################################
+    # Remove video1 from pipeline
+    #########################################
+
+    removeComponent("pipeline1","video1")
+    
+    #########################################
+    # Remove display1 from pipeline
+    #########################################
+
+    removeComponent("pipeline1","display1")
+
     #########################################
     # Delete pipeline1
     #########################################
@@ -185,7 +317,17 @@ def test1():
     deletePipe("pipeline1")
 
 def main():
-    test1()
+    if len(sys.argv) < 2:
+        print("")
+        print("#################################################################")
+        print("#")
+        print("#    Error: Missing source file name.")
+        print("#    Calling sequence: python3 ds_test1.py <Video source file>")
+        print("#")
+        print("##################################################################")
+    else:
+        #enableDebug()
+        test1()
 
 if __name__ == '__main__':
 	main()
