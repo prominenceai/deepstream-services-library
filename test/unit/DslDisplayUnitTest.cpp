@@ -25,6 +25,8 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslDisplayBintr.h"
 
+using namespace DSL;
+
 SCENARIO( "A Tiled Display's dimensions can be updated",  "[display]" )
 {
     GIVEN( "A new Tiled Display in memory" ) 
@@ -33,9 +35,8 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[display]" )
         uint initWidth(10);
         uint initHeight(10);
 
-        std::shared_ptr<DSL::DisplayBintr> pDisplayBintr = 
-            std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(
-            displayName.c_str(), initWidth, initHeight));
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), initWidth, initHeight);
             
         uint currWidth(0);
         uint currHeight(0);
@@ -66,10 +67,11 @@ SCENARIO( "A Tiled Display's tiles can be updated",  "[display]" )
     GIVEN( "A new Tiled Display in memory" ) 
     {
         std::string displayName = "tiled-display";
+        uint width(1280);
+        uint height(720);
 
-        std::shared_ptr<DSL::DisplayBintr> pDisplayBintr = 
-            std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(
-            displayName.c_str(), 1280, 720));
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), width, height);
             
         uint currRows(0);
         uint currColumns(0);

@@ -227,12 +227,12 @@ namespace DSL
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */
-        std::shared_ptr<PipelineSourcesBintr> m_pPipelineSourcesBintr;
+        DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         
         /**
          * @brief processing bin for all Sink and OSD bins in this Pipeline
          */
-        std::shared_ptr<PipelineSinksBintr> m_pPipelineSinksBintr;
+        DSL_PIPELINE_SINKS_PTR m_pPipelineSinksBintr;
         
         /**
          * @brief the one and only Display for this Pipeline
@@ -240,9 +240,9 @@ namespace DSL
         std::shared_ptr<Bintr> m_pPrimaryGieBintr;
         
         /**
-         * @brief the one and only Display for this Pipeline
+         * @brief the one and only Tiled Display for this Pipeline
          */
-        std::shared_ptr<DisplayBintr> m_pDisplayBintr;
+        DSL_DISPLAY_PTR m_pDisplayBintr;
                         
         /**
          * @brief map of all currently registered state-change-listeners
