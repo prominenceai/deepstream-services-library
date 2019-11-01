@@ -42,7 +42,7 @@ SCENARIO( "Set Sensor Id updates Source correctly",  "[source]" )
 
         WHEN( "The Sensor Id is set " )
         {
-            REQUIRE( pSourceBintr->SetSensorId(sensorId) == true );
+            pSourceBintr->SetSensorId(sensorId);
             THEN( "The returned Sensor Id is correct")
             {
                 REQUIRE( pSourceBintr->GetSensorId() == sensorId );

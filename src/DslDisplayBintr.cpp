@@ -41,10 +41,9 @@ namespace DSL
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin);
         m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin);
-
-        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
-            "gpu-id", m_gpuId,
-            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        
+        m_pTiler->SetAttribute("gpu-id", m_gpuId);
+        m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
         m_pQueue->AddSinkGhostPad();
         m_pTiler->AddSourceGhostPad();

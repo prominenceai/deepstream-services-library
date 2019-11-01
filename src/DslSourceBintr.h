@@ -74,9 +74,8 @@ namespace DSL
         /**
          * @brief Sets the unique sensor id for this Source bintr
          * @param id value to assign [0...MAX]
-         * @return true if the value was set correctly. 
          */
-        bool SetSensorId(int id);
+        void SetSensorId(int id);
         
         bool IsLive()
         {
@@ -138,7 +137,7 @@ namespace DSL
         /**
          * @brief
          */
-        std::shared_ptr<Elementr> m_pSourceElement;
+        DSL_ELEMENT_PTR m_pSourceElement;
         
     };
 
@@ -163,7 +162,7 @@ namespace DSL
         /**
          * @brief
          */
-        std::shared_ptr<Elementr> m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pCapsFilter;
     };
 
 
@@ -261,22 +260,22 @@ namespace DSL
         /**
          * @brief
          */
-        std::shared_ptr<Elementr> m_pTee;
+        DSL_ELEMENT_PTR m_pTee;
 
         /**
          @brief
          */
-        std::shared_ptr<Elementr> m_pSourceQueue;
+        DSL_ELEMENT_PTR m_pSourceQueue;
 
         /**
          * @brief
          */
-        std::shared_ptr<Elementr> m_pFakeSink;
+        DSL_ELEMENT_PTR m_pFakeSink;
 
         /**
          * @brief
          */
-        std::shared_ptr<Elementr> m_pFakeSinkQueue;
+        DSL_ELEMENT_PTR m_pFakeSinkQueue;
     };
     
     /**

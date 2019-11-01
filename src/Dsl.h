@@ -44,18 +44,8 @@ THE SOFTWARE.
 #include <deepstream_config.h>
 #include <deepstream_perf.h>
 
+#include "DslApi.h"
 #include "DslMutex.h"
 #include "DslLog.h"
-#include "DslElementr.h"
-#include "DslBintr.h"
-
-#define DSL_ELEMENT_PTR std::shared_ptr<Elementr>
-#define DSL_ELEMENT_NEW(type, name, parent) \
-    std::shared_ptr<Elementr>(new Elementr(type, name, parent))
-    
-#define DSL_BINTR_PTR std::shared_ptr<Bintr>
-#define DSL_BINTR_NEW(name) \
-    std::shared_ptr<Bintr>(new DSL::Bintr(name))    
-
 
 #endif // _DSL_H

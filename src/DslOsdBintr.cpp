@@ -47,19 +47,17 @@ namespace DSL
         m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue", m_pBin);
         m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0", m_pBin);
 
-        g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
-            "gpu-id", m_gpuId,
-            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
-        g_object_set(G_OBJECT(m_pOsd->m_pElement),
-            "gpu-id", m_gpuId,
-            "display-clock", m_isClockEnabled,
-            "clock-font", (gchar*)m_sClockFont.c_str(), 
-            "x-clock-offset", m_sClockOffsetX,
-            "y-clock-offset", m_sClockOffsetY, 
-            "clock-color", m_sClockColor,
-            "clock-font-size", m_sClockFontSize, 
-            "process-mode", m_processMode, NULL);
+        m_pOsd->SetAttribute("gpu-id", m_gpuId);
+        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+        m_pOsd->SetAttribute("clock-font", m_sClockFont.c_str()); 
+        m_pOsd->SetAttribute("x-clock-offset", m_sClockOffsetX);
+        m_pOsd->SetAttribute("y-clock-offset", m_sClockOffsetY);
+        m_pOsd->SetAttribute("clock-color", m_sClockColor);
+        m_pOsd->SetAttribute("clock-font-size", m_sClockFontSize);
+        m_pOsd->SetAttribute("process-mode", m_processMode);
 
         m_pQueue->AddSinkGhostPad();
         m_pOsd->AddSourceGhostPad();

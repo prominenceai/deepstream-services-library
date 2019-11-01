@@ -27,6 +27,10 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 
+#define DSL_BINTR_PTR std::shared_ptr<Bintr>
+#define DSL_BINTR_NEW(name) \
+    std::shared_ptr<Bintr>(new DSL::Bintr(name))    
+
 namespace DSL
 {
     /**

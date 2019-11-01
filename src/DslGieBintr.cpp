@@ -47,46 +47,16 @@ namespace DSL
         m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", m_pBin);
         m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier", m_pBin);
 
-        g_object_set(G_OBJECT(m_pVidConv->m_pElement), 
-            "gpu-id", m_gpuId,
-            "nvbuf-memory-type", m_nvbufMemoryType, NULL);
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
-        g_object_set(G_OBJECT(m_pClassifier->m_pElement), "config-file-path", 
-            (gchar*)inferConfigFile, "process-mode", 1, NULL);
-
-        if (m_batchSize)
-        {
-            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "batch-size", m_batchSize, NULL);
-        }
-        
-        if (m_interval)
-        {
-            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "interval", m_interval, NULL);
-        }
-
-        if (m_uniqueId)
-        {
-            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "unique-id", m_uniqueId, NULL);
-        }
-        
-        if (m_gpuId)
-        {
-            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "gpu-id", m_uniqueId, NULL);
-        }
-
-        if (m_modelEngineFile.length())
-        {
-            g_object_set(G_OBJECT(m_pClassifier->m_pElement), "model-engine-file",
-                (gchar*)m_modelEngineFile.c_str(), NULL);
-        }
-
-        if (m_rawOutputDir.length())
-        {
-//            g_object_set(G_OBJECT(m_pClassifier),
-//                "raw-output-generated-callback", out_callback,
-//                "raw-output-generated-userdata", config,
-//                NULL);
-        }
+        m_pClassifier->SetAttribute("config-file-path", inferConfigFile);
+        m_pClassifier->SetAttribute("process-mode", 1);
+        m_pClassifier->SetAttribute("batch-size", m_batchSize);
+        m_pClassifier->SetAttribute("interval", m_interval);
+        m_pClassifier->SetAttribute("unique-id", m_uniqueId);
+        m_pClassifier->SetAttribute("gpu-id", m_gpuId);
+        m_pClassifier->SetAttribute("model-engine-file", m_modelEngineFile.c_str());
 
         m_pQueue->AddSinkGhostPad();
         m_pClassifier->AddSourceGhostPad();

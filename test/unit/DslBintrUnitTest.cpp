@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "Dsl.h"
+#include "DslBintr.h"
 
 using namespace DSL; 
 

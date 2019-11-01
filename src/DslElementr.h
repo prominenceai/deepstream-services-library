@@ -28,6 +28,11 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslPadtr.h"
 
+
+#define DSL_ELEMENT_PTR std::shared_ptr<Elementr>
+#define DSL_ELEMENT_NEW(type, name, parent) \
+    std::shared_ptr<Elementr>(new Elementr(type, name, parent))
+
 namespace DSL
 {
     /**
@@ -83,6 +88,28 @@ namespace DSL
             }
         };
 
+        /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a value of unit
+         * @param name name of the attribute to set
+         * @param value value to set the attribute
+         */
+        void SetAttribute(const char* name, uint value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            
+            g_object_set(G_OBJECT(m_pElement), name, value, NULL);
+        }
+        
+        void SetAttribute(const char* name, const char* value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            
+            g_object_set(G_OBJECT(m_pElement), name, value, NULL);
+        }
         
         /**
          * @brief Creates a new Ghost Sink pad for this Gst Element
