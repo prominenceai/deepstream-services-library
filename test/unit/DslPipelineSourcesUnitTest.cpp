@@ -117,9 +117,6 @@ SCENARIO( "Linking multiple Sources to a Pipeline's StreamMux is managed correct
         pPipelineSourcesBintr->AddChild(pSourceBintr2);
         
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
-        
-        // Set StreamMux properties so StreamMux can be linked
-//        pPipelineSourcesBintr->SetStreamMuxProperties(True, 3, 0, 1280, 720);
                     
         WHEN( "All Sources are linked to the StreamMux" )
         {

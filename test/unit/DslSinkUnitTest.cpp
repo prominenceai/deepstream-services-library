@@ -39,7 +39,7 @@ SCENARIO( "Set Display Id updates Sink correctly",  "[overlay-sink]" )
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 0, 0, 0, 0);
             
         // ensure display id reflects not is use
-        REQUIRE( pSinkBintr->GetDisplayId() == -1 );
+        REQUIRE( pSinkBintr->GetDisplayId() == 0 );
 
         WHEN( "The Display Id is set " )
         {

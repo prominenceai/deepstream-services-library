@@ -43,9 +43,9 @@ namespace DSL
 
         ~PipelineSourcesBintr();
         
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildBintr);
         
-        void RemoveChild(std::shared_ptr<Bintr> pChildBintr);
+        void RemoveChild(DSL_NODETR_PTR pChildBintr);
         
         void RemoveAllChildren();
         
@@ -55,7 +55,7 @@ namespace DSL
          * @brief interates through the list of child source bintrs setting 
          * their Sensor Id's and linking to the StreamMux
          */
-        void LinkAll();
+        bool LinkAll();
         
         /**
          * @brief interates through the list of child source bintrs unlinking
@@ -77,7 +77,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return m_pChildBintrs.size();
+            return m_pChildren.size();
         }
         
 

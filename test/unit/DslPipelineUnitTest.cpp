@@ -51,7 +51,7 @@ SCENARIO( "A Pipeline fails to assemble without one Source component ", "[pipeli
 
             THEN( "The Pipeline fails to assemble" )
             {
-                REQUIRE( pPipelineBintr->_assemble() == false );
+                REQUIRE( pPipelineBintr->LinkAll() == false );
 //                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }

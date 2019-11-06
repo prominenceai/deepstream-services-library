@@ -59,9 +59,9 @@ namespace DSL
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
+        void AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
-        bool IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr);
+        bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
 
         /**
          * @brief returns the number of Sources currently in use by
@@ -80,19 +80,19 @@ namespace DSL
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr);
+        void RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
         /**
          * @brief adds a single Sink Bintr to this Pipeline 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
-        void AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr);
+        void AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
         /**
          * @brief adds a single OSD Bintr to this Pipeline 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
-        void AddOsdBintr(std::shared_ptr<Bintr> pOsdBintr)
+        void AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
         {
 //            m_pProcessBintr->AddOsdBintr(pOsdBintr);
         }
@@ -101,13 +101,13 @@ namespace DSL
          * @brief adds a single GIE Bintr to this Pipeline 
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
-        void AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr);
+        void AddPrimaryGieBintr(DSL_NODETR_PTR pGieBintr);
 
         /**
          * @brief adds a single Display Bintr to this Pipeline 
          * @param[in] pDisplayBintr shared pointer to Display Bintr to add
          */
-        void AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr);
+        void AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
         
         /**
          * @brief 
@@ -218,9 +218,9 @@ namespace DSL
 
         bool _createWindow();
         
-        bool _assemble();
+        bool LinkAll();
         
-        void _disassemble();
+        void UnlinkAll();
 
     private:
 
@@ -237,7 +237,7 @@ namespace DSL
         /**
          * @brief the one and only Display for this Pipeline
          */
-        std::shared_ptr<Bintr> m_pPrimaryGieBintr;
+        DSL_NODETR_PTR m_pPrimaryGieBintr;
         
         /**
          * @brief the one and only Tiled Display for this Pipeline

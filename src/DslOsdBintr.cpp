@@ -29,11 +29,11 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    std::string OsdBintr::m_sClockFont = "Serif";
-    guint OsdBintr::m_sClockFontSize = 12;
-    guint OsdBintr::m_sClockOffsetX = 800;
-    guint OsdBintr::m_sClockOffsetY = 820;
-    guint OsdBintr::m_sClockColor = 0;
+//    std::string OsdBintr::m_sClockFont = "Serif";
+//    guint OsdBintr::m_sClockFontSize = 12;
+//    guint OsdBintr::m_sClockOffsetX = 800;
+//    guint OsdBintr::m_sClockOffsetY = 820;
+//    guint OsdBintr::m_sClockColor = 0;
     
     OsdBintr::OsdBintr(const char* osd, gboolean isClockEnabled)
         : Bintr(osd)
@@ -42,10 +42,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue", m_pBin);
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_conv", m_pBin);
-        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue", m_pBin);
-        m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0", m_pBin);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue");
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_conv");
+        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
+        m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
@@ -59,8 +59,13 @@ namespace DSL
         m_pOsd->SetAttribute("clock-font-size", m_sClockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
 
-        m_pQueue->AddSinkGhostPad();
-        m_pOsd->AddSourceGhostPad();
+        m_pQueue->AddGhostPad("sink");
+        m_pOsd->AddGhostPad("src");
+        
+        AddChild(m_pQueue);
+        AddChild(m_pVidConv);
+        AddChild(m_pVidConv);
+        AddChild(m_pOsd);
     }    
     
     OsdBintr::~OsdBintr()
@@ -69,13 +74,15 @@ namespace DSL
         
     }
 
-    void OsdBintr::LinkAll()
+    bool OsdBintr::LinkAll()
     {
         LOG_FUNC();
         
         m_pQueue->LinkTo(m_pVidConv);
         m_pVidConv->LinkTo(m_pConvQueue);
         m_pConvQueue->LinkTo(m_pOsd);
+        
+        return true;
     }
     
     void OsdBintr::UnlinkAll()
@@ -87,7 +94,7 @@ namespace DSL
         m_pConvQueue->Unlink();
     }
 
-    void OsdBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    void OsdBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         

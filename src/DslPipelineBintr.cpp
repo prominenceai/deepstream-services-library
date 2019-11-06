@@ -29,8 +29,9 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    PipelineBintr::PipelineBintr(const char* pipeline)
-        : m_isAssembled(false)
+    PipelineBintr::PipelineBintr(const char* name)
+        : Bintr(name)
+        , m_isAssembled(false)
         , m_pPipelineSourcesBintr(nullptr)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
@@ -39,11 +40,10 @@ namespace DSL
 {
         LOG_FUNC();
 
-        m_name = pipeline;
-        m_pBin = gst_pipeline_new((gchar*)pipeline);
-        if (!m_pBin)
+        m_pGstObj = GST_OBJECT(gst_pipeline_new(name));
+        if (!m_pGstObj)
         {
-            LOG_ERROR("Failed to create new GST Pipeline for '" << pipeline << "'");
+            LOG_ERROR("Failed to create new GST Pipeline for '" << name << "'");
             throw;
         }
                 
@@ -56,7 +56,7 @@ namespace DSL
         g_mutex_init(&m_displayMutex);
 
         // get the GST message bus - one per GST pipeline
-        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pBin));
+        m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstObj));
         
         // install the watch function for the message bus
         m_gstBusWatch = gst_bus_add_watch(m_pGstBus, bus_watch, this);
@@ -88,26 +88,25 @@ namespace DSL
 
         if (m_isAssembled)
         {
-            _disassemble();
+            UnlinkAll();
         }
 
         // release all sources.. returning them to a state of not-in-use
         if (m_pPipelineSourcesBintr)
         {
             m_pPipelineSourcesBintr->RemoveAllChildren();
-            m_pPipelineSourcesBintr = nullptr;            
+            RemoveChild(m_pPipelineSourcesBintr);
         }
 
         // release the display.. returning its state to not-in-use
         if (m_pDisplayBintr)
         {
             RemoveChild(m_pDisplayBintr);
-            m_pDisplayBintr = nullptr;            
         }
         
     }
     
-    void PipelineBintr::AddSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
+    void PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
@@ -121,22 +120,22 @@ namespace DSL
         m_pPipelineSourcesBintr->AddChild(pSourceBintr);
     }
 
-    bool PipelineBintr::IsSourceBintrChild(std::shared_ptr<Bintr> pSourceBintr)
+    bool PipelineBintr::IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
-        return (pSourceBintr->m_pParentBintr == m_pPipelineSourcesBintr);
+        return (pSourceBintr->m_pParent == m_pPipelineSourcesBintr);
     }
 
 
-    void PipelineBintr::RemoveSourceBintr(std::shared_ptr<Bintr> pSourceBintr)
+    void PipelineBintr::RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
         m_pPipelineSourcesBintr->RemoveChild(pSourceBintr);
     }
 
-    void PipelineBintr::AddPrimaryGieBintr(std::shared_ptr<Bintr> pGieBintr)
+    void PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pGieBintr)
     {
         LOG_FUNC();
         
@@ -151,7 +150,7 @@ namespace DSL
         AddChild(pGieBintr);
     }
 
-    void PipelineBintr::AddSinkBintr(std::shared_ptr<Bintr> pSinkBintr)
+    void PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();
         
@@ -166,7 +165,7 @@ namespace DSL
         
     }
 
-    void PipelineBintr::AddDisplayBintr(std::shared_ptr<Bintr> pDisplayBintr)
+    void PipelineBintr::AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr)
     {
         LOG_FUNC();
 
@@ -185,7 +184,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (gst_element_set_state(m_pBin, 
+        return (gst_element_set_state(GST_ELEMENT(m_pGstObj),
             GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
     }
 
@@ -197,7 +196,7 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        return (gst_element_set_state(m_pBin, 
+        return (gst_element_set_state(GST_ELEMENT(m_pGstObj),
             GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
     }
 
@@ -205,7 +204,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(m_pBin), 
+        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(m_pGstObj), 
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
     
@@ -213,7 +212,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pBin), 
+        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(m_pGstObj), 
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
 
@@ -332,7 +331,7 @@ namespace DSL
             LOG_INFO("Processing message element");
 
             // Change to sources bin.
-            if (GST_MESSAGE_SRC(pMessage) == GST_OBJECT(m_pBin))
+            if (GST_MESSAGE_SRC(pMessage) == GST_OBJECT(m_pGstObj))
             {
                 const GstStructure *structure;
                 structure = gst_message_get_structure(pMessage);
@@ -348,7 +347,7 @@ namespace DSL
     bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
 
-        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != m_pBin)
+        if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != GST_ELEMENT(m_pGstObj))
         {
             return false;
         }
@@ -435,7 +434,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::_assemble()
+    bool PipelineBintr::LinkAll()
     {
         LOG_FUNC();
 
@@ -493,7 +492,7 @@ namespace DSL
         m_isAssembled = true;
     }
     
-    void PipelineBintr::_disassemble()
+    void PipelineBintr::UnlinkAll()
     {
         LOG_FUNC();
         
@@ -502,7 +501,7 @@ namespace DSL
             return;
         }
 
-        gst_element_set_state(m_pBin, GST_STATE_NULL);
+        gst_element_set_state(GST_ELEMENT(m_pGstObj), GST_STATE_NULL);
 
         m_isAssembled = false;
     }

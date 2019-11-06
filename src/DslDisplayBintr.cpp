@@ -29,8 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    DisplayBintr::DisplayBintr(const char* display, guint width, guint height)
-        : Bintr(display)
+    DisplayBintr::DisplayBintr(const char* name, guint width, guint height)
+        : Bintr(name)
         , m_rows(1)
         , m_columns(1)
         , m_width(width)
@@ -39,27 +39,31 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue", m_pBin);
-        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler", m_pBin);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue");
+        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler");
         
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
-        m_pQueue->AddSinkGhostPad();
-        m_pTiler->AddSourceGhostPad();
-
-    }    
+        m_pQueue->AddGhostPad("sink");
+        m_pTiler->AddGhostPad("src");
+        
+        AddChild(m_pQueue);
+        AddChild(m_pTiler);
+    }
 
     DisplayBintr::~DisplayBintr()
     {
         LOG_FUNC();
     }
     
-    void DisplayBintr::LinkAll()
+    bool DisplayBintr::LinkAll()
     {
         LOG_FUNC();
         
         m_pQueue->LinkTo(m_pTiler);
+        
+        return true;
     }
     
     void DisplayBintr::UnlinkAll()
@@ -69,7 +73,7 @@ namespace DSL
         m_pQueue->Unlink();
     }
     
-    void DisplayBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    void DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -85,9 +89,8 @@ namespace DSL
         m_rows = rows;
         m_columns = columns;
     
-        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
-            "rows", m_rows,
-            "columns", m_columns, NULL);
+        m_pTiler->SetAttribute("rows", m_rows);
+        m_pTiler->SetAttribute("columns", m_rows);
     }
     
     void DisplayBintr::GetTiles(uint& rows, uint& columns)
@@ -105,9 +108,8 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        g_object_set(G_OBJECT(m_pTiler->m_pElement), 
-            "width", m_width,
-            "height", m_height, NULL);
+        m_pTiler->SetAttribute("width", m_width);
+        m_pTiler->SetAttribute("height", m_height);
     }
     
     void DisplayBintr::GetDimensions(uint& width, uint& height)

@@ -26,55 +26,41 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
-
-#define DSL_BINTR_PTR std::shared_ptr<Bintr>
-#define DSL_BINTR_NEW(name) \
-    std::shared_ptr<Bintr>(new DSL::Bintr(name))    
+#include "DslNodetr.h"
 
 namespace DSL
 {
     /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_BINTR_PTR std::shared_ptr<Bintr>
+    #define DSL_BINTR_NEW(name) \
+        std::shared_ptr<Bintr>(new Bintr(name))    
+
+    /**
      * @class Bintr
      * @brief Implements a base container class for a GST Bin
      */
-    class Bintr : public std::enable_shared_from_this<Bintr>
+    class Bintr : public Nodetr
     {
     public:
-
-        /**
-         * @brief basic container ctor without name and Bin initialization
-         */
-        Bintr()
-            : m_gpuId(0)
-            , m_nvbufMemoryType(0)
-//            , m_pParentBintr(nullptr)
-//            , m_pSourceBintr(nullptr)
-//            , m_pSinkBintr(nullptr)
-        { 
-            LOG_FUNC(); 
-        };
 
         /**
          * @brief named container ctor with new Bin 
          */
         Bintr(const char* name)
-            : m_name(name)
+            : Nodetr(name)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
-//            , m_pParentBintr(nullptr)
-//            , m_pSourceBintr(nullptr)
-//            , m_pSinkBintr(nullptr)
         { 
             LOG_FUNC(); 
-            LOG_INFO("New bintr:: " << name);
 
-            m_pBin = gst_bin_new((gchar*)name);
-            if (!m_pBin)
+            m_pGstObj = GST_OBJECT(gst_bin_new((gchar*)name));
+            if (!m_pGstObj)
             {
-                LOG_ERROR("Failed to create new bin for component'" << name << "'");
+                LOG_ERROR("Failed to create a new GST bin for Bintr '" << name << "'");
                 throw;  
             }
-            
         };
         
         /**
@@ -83,108 +69,58 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
-            LOG_INFO("Delete bintr:: " << m_name);
-
-//            if (m_pBin and GST_OBJECT_REFCOUNT_VALUE(m_pBin))
-//            {
-//                gst_object_unref(m_pBin);
-//            }
-        };
-
-        /**
-         * @brief virtual function for derived classes to implement
-         * a Bintr type specific function to link all child elements.
-         */
-        virtual void LinkAll()
-        {
-            LOG_FUNC();
         };
         
         /**
-         * @brief virtual function for derived classes to implement
-         * a Bintr type specific function to unlink all child elements.
-         */
-        virtual void UnlinkAll()
-        {
-            LOG_FUNC();
-        };
-        
-        /**
-         * @brief returns whether the Bintr object is in-use 
-         * @return True if the Bintr has a parent 
-         */
-        bool IsInUse()
-        {
-            LOG_FUNC();
-            
-            return (
-                (m_pParentBintr != nullptr) or
-                (m_pChildBintrs.size() != 0) or
-                (m_pSinkBintr != nullptr) or
-                (m_pSourceBintr != nullptr));
-        }
-
-        
-        /**
-         * @brief returns the current number of child Bintrs in-use
-         * @return number of children 
-         */
-        uint GetNumChildren()
-        {
-            LOG_FUNC();
-            
-            return m_pChildBintrs.size();
-        }
-        
-        /**
-         * @brief links this Bintr as source to a destination Bintr as sink
+         * @brief links this Bintr as source to a given Bintr as sink
          * @param pSinkBintr to link to
          */
-        void LinkTo(std::shared_ptr<Bintr> pSinkBintr)
+        void LinkTo(DSL_NODETR_PTR pSink)
         { 
             LOG_FUNC();
             
-            m_pSinkBintr = pSinkBintr;
-
-            pSinkBintr->m_pSourceBintr = 
-                std::dynamic_pointer_cast<Bintr>(shared_from_this());
-            
-            if (!gst_element_link(m_pBin, m_pSinkBintr->m_pBin))
+            // Link Source Bintr to Sink Bintr as elements 
+            if (!gst_element_link(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj)))
             {
-                LOG_ERROR("Failed to link " << m_name << " to "
-                    << pSinkBintr->m_name);
+                LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
                 throw;
             }
+            // Call the base class to complete the relationship
+            Nodetr::LinkTo(pSink);
         };
 
+        /**
+         * @brief unlinks this Bintr from a previously linked-to sink Bintr
+         */
         void Unlink()
         { 
             LOG_FUNC();
-            
-            gst_element_unlink(m_pBin, m_pSinkBintr->m_pBin);
-            m_pSinkBintr->m_pSourceBintr = nullptr;
-            m_pSinkBintr = nullptr;
+
+            if (IsLinked())
+            {
+                gst_element_unlink(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj));
+
+                // Call the base class to complete the unlink
+                Nodetr::Unlink();
+            }
         };
 
         /**
          * @brief adds a child Bintr to this parent Bintr
          * @param pChildBintr to add. Once added, calling InUse()
          *  on the Child Bintr will return true
+         * @return a shared pointer to the newly added pChild
          */
-        virtual void AddChild(std::shared_ptr<Bintr> pChildBintr)
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
-            pChildBintr->m_pParentBintr = shared_from_this();   
-
-            m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
-                            
-            if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
+            if (!gst_bin_add(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
             {
-                LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name <<"'");
+                LOG_ERROR("Failed to add " << pChild->m_name << " to " << m_name <<"'");
                 throw;
             }
-            LOG_INFO("Child bin '" << pChildBintr->m_name <<"' added to '" << m_name <<"'");
+            return Nodetr::AddChild(pChild);
         };
         
         /**
@@ -192,75 +128,61 @@ namespace DSL
          * @param pChildBintr to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
-        virtual void RemoveChild(std::shared_ptr<Bintr> pChildBintr)
+        void RemoveChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
-            if (m_pChildBintrs[pChildBintr->m_name] != pChildBintr)
+            if (!IsChild(pChild))
             {
-                LOG_ERROR("'" << pChildBintr->m_name << "' is not a child of '" << m_name <<"'");
+                LOG_ERROR("'" << pChild->m_name << "' is not a child of '" << m_name <<"'");
                 throw;
             }
                             
-            pChildBintr->m_pParentBintr = nullptr;
-
-            if (!gst_bin_remove(GST_BIN(m_pBin), pChildBintr->m_pBin))
+            if (!gst_bin_remove(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
             {
-                LOG_ERROR("Failed to remove " << pChildBintr->m_name << " from " << m_name <<"'");
+                LOG_ERROR("Failed to remove " << pChild->m_name << " from " << m_name <<"'");
                 throw;
             }
-            m_pChildBintrs.erase(pChildBintr->m_name);
-            
-            LOG_INFO("Child bin '" << pChildBintr->m_name <<"' removed from '" << m_name <<"'");
+            Nodetr::RemoveChild(pChild);
         };
 
         /**
          * @brief Adds this Bintr as a child to a ParentBinter
          * @param pParentBintr to add to
          */
-        virtual void AddToParent(std::shared_ptr<Bintr> pParentBintr)
+        virtual void AddToParent(DSL_NODETR_PTR pParent)
         {
             LOG_FUNC();
                 
-            pParentBintr->AddChild(shared_from_this());
-        }
-        
-        /**
-         * @brief determines whether this Bintr is a child of pParentBintr
-         * @param pParentBintr the Bintr to check for a Parental relationship
-         * @return True if the provided Bintr is this Bintr's Parent
-         */
-        virtual bool IsMyParent(std::shared_ptr<Bintr> pParentBintr)
-        {
-            LOG_FUNC();
-            
-            return (m_pParentBintr == pParentBintr);
-        }        
+            pParent->AddChild(shared_from_this());
+        };        
         
         /**
          * @brief removes this Bintr from the provided pParentBintr
          * @param pParentBintr Bintr to remove from
          */
-        virtual void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr)
+        virtual void RemoveFromParent(DSL_NODETR_PTR pParent)
         {
             LOG_FUNC();
                 
-            pParentBintr->RemoveChild(shared_from_this());
-        }
-        
+            pParent->RemoveChild(shared_from_this());
+        };
 
+        /**
+         * @brief virtual function for derived classes to implement
+         * a bintr type specific function to link all children.
+         */
+        virtual bool LinkAll() = 0;
+        
+        /**
+         * @brief virtual function for derived classes to implement
+         * a bintr type specific function to unlink all child elements.
+         */
+        virtual void UnlinkAll() = 0;
+        
+        
     public:
 
-        /**
-         @brief unique name for this Bintr
-         */
-        std::string m_name;
-
-        /**
-         @brief pointer to the contained GST Bin for the Bintr
-         */
-        GstElement* m_pBin;
-        
         /**
          @brief
          */
@@ -270,27 +192,6 @@ namespace DSL
          @brief
          */
         guint m_nvbufMemoryType;
-
-        /**
-         @brief Parent of this Bintr if one exists. NULL otherwise
-         */
-        std::shared_ptr<Bintr> m_pParentBintr;
-        
-        /**
-         @brief map of Child Bintrs in-use by this Bintr
-         */
-        std::map<std::string, std::shared_ptr<Bintr>> m_pChildBintrs;
-        
-        /**
-         @brief 
-         */
-        std::shared_ptr<Bintr> m_pSourceBintr;
-
-        /**
-         @brief
-         */
-        std::shared_ptr<Bintr> m_pSinkBintr;
-        
     };
 
 } // DSL

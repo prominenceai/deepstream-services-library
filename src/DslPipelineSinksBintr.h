@@ -29,12 +29,14 @@ THE SOFTWARE.
 #include "DslElementr.h"
     
    
-#define DSL_PIPELINE_SINKS_PTR std::shared_ptr<PipelineSinksBintr>
-#define DSL_PIPELINE_SINKS_NEW(name) \
-    std::shared_ptr<PipelineSinksBintr>(new DSL::PipelineSinksBintr(name))
-    
 namespace DSL 
 {
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_PIPELINE_SINKS_PTR std::shared_ptr<PipelineSinksBintr>
+    #define DSL_PIPELINE_SINKS_NEW(name) \
+        std::shared_ptr<PipelineSinksBintr>(new PipelineSinksBintr(name))
 
     /**
      * @class ProcessBintr
@@ -48,10 +50,24 @@ namespace DSL
 
         ~PipelineSinksBintr();
         
-        void AddChild(std::shared_ptr<Bintr> pChildBintr);
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildBintr);
 
-//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;     
 
+        void RemoveChild(DSL_NODETR_PTR pChildBintr);
+        
+        void RemoveAllChildren();
+
+        /** 
+         * @brief links all child Sink Bintrs and their elements
+         */ 
+        bool LinkAll();
+        
+        /**
+         * @brief unlinks all child Sink Bintrs and their Elementrs
+         */
+        void UnlinkAll();
+        
     private:
 
         DSL_ELEMENT_PTR m_pQueue;

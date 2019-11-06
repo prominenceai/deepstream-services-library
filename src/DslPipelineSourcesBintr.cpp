@@ -33,17 +33,17 @@ namespace DSL
     {
         LOG_FUNC();
 
-        g_object_set(m_pBin, "message-forward", TRUE, NULL);
+        g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
-        m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer", m_pBin);
+        m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer");
         
         SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
-        // Each Source will be linked to the Stream Muxer on Source-add
-        
         // Setup Src Ghost Pad for Stream Muxer element 
-        AddSourceGhostPad();
+        m_pStreamMux->AddGhostPad("src");
+        
+        AddChild(m_pStreamMux);
     }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
@@ -51,43 +51,36 @@ namespace DSL
         LOG_FUNC();
         
         // Removed sources will be reset to not-in-use
-        for (auto const& imap: m_pChildBintrs)
-        {
-            RemoveChild(imap.second);
-        }
+        RemoveAllChildren();
     }
      
-    void PipelineSourcesBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
+    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildBintr)
     {
         LOG_FUNC();
         
-        pChildBintr->m_pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(shared_from_this());
-            
         // Set the play type based on the first source added
-        if (m_pChildBintrs.size() == 0)
+        if (m_pChildren.size() == 0)
         {
             SetStreamMuxPlayType(
                 std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->IsLive());
         }
-
-        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
                                 
-        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
+        if (!gst_bin_add(GST_BIN(m_pGstObj), GST_ELEMENT(pChildBintr->m_pGstObj)))
         {
             LOG_ERROR("Failed to add '" << pChildBintr->m_name 
                 << "' to " << m_name << "'");
             throw;
         }
+        return Bintr::AddChild(pChildBintr);
     }
 
-    void PipelineSourcesBintr::RemoveChild(std::shared_ptr<Bintr> pChildBintr)
+    void PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildBintr)
     {
         LOG_FUNC();
 
         // unlink from the Streammuxer
         std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_pStaticSourcePadtr->Unlink();
+            m_pStaticPadtr->Unlink();
         
         // call the base function to complete the remove
         Bintr::RemoveChild(pChildBintr);
@@ -98,66 +91,54 @@ namespace DSL
         LOG_FUNC();
         
         // Removed sources will be reset to not-in-use
-        for (auto &imap: m_pChildBintrs)
+        for (auto &imap: m_pChildren)
         {
             // unlink from the Streammuxer
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticSourcePadtr->Unlink();
+                m_pStaticPadtr->Unlink();
             
             // call the base function to complete the remove
             Bintr::RemoveChild(imap.second);
         }
     }
 
-    void PipelineSourcesBintr::AddSourceGhostPad()
-    {
-        LOG_FUNC();
-        
-        // get Source pad for Stream Muxer element
-        StaticPadtr sourcePadtr(m_pStreamMux->m_pElement, "src");
 
-        // create a new ghost pad with Source pad and add to this Bintr's bin
-        if (!gst_element_add_pad(m_pBin, gst_ghost_pad_new("src", sourcePadtr.m_pPad)))
-        {
-            LOG_ERROR("Failed to add Source Pad for '" << m_name);
-            throw;
-        }
-        LOG_INFO("Source ghost pad added to Sources' Stream Muxer"); 
-    }
-
-    void PipelineSourcesBintr::LinkAll()
+    bool PipelineSourcesBintr::LinkAll()
     {
         LOG_FUNC();
         
         uint id(0);
         
-        for (auto const& imap: m_pChildBintrs)
+        for (auto const& imap: m_pChildren)
         {
             std::string sinkPadName = "sink_" + std::to_string(id);
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(id++);
+            
             // Retrieve the sink pad - from the Streammux element - 
             // to link to the Source component being added
-            std::shared_ptr<RequestPadtr> pSinkPadtr = 
-                std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pStreamMux->m_pElement, (gchar*)sinkPadName.c_str()));
+            DSL_REQUEST_PADTR_PTR pSinkPadtr = 
+                DSL_REQUEST_PADTR_NEW(sinkPadName.c_str(), m_pStreamMux);
             
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticSourcePadtr->LinkTo(pSinkPadtr);
+                m_pStaticPadtr->LinkTo(pSinkPadtr);
         }
         
         // Set the Batch size to the nuber of sources owned
         // TODO add support for managing batch timeout
-        SetStreamMuxBatchProperties(m_pChildBintrs.size(), 4000);
+        SetStreamMuxBatchProperties(m_pChildren.size(), 4000);
+        
+        return true;
     }
 
     void PipelineSourcesBintr::UnlinkAll()
     {
         LOG_FUNC();
         
-        for (auto const& imap: m_pChildBintrs)
+        for (auto const& imap: m_pChildren)
         {
             // unlink from the Streammuxer
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticSourcePadtr->Unlink();
+//            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
+//                m_pStaticSourcePadtr->Unlink();
                 
             // reset the Sensor ID to unlinked     
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(-1);

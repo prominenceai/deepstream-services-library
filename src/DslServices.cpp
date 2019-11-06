@@ -868,7 +868,7 @@ namespace DSL
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
-        if (!m_components[component]->IsMyParent(m_pipelines[pipeline]))
+        if (!m_components[component]->IsParent(m_pipelines[pipeline]))
         {
             LOG_ERROR("Component '" << component << 
                 "' is not in use by Pipeline '" << pipeline << "'");

@@ -24,102 +24,79 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslElementr.h"
+#include "DslTestBintr.h"
+
 using namespace DSL;
 
 SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
 {
-    GIVEN( "A Parent bin in memory" )
+    GIVEN( "A name for a new Elementr in memory" )
     {
-        std::string binName = "test-bin";
         std::string elementName  = "test-element";
-        
-        GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
 
         WHEN( "A child Elmentr is created" )
         {
-            DSL_ELEMENT_PTR pElement = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, elementName.c_str(), pBin);
+            DSL_ELEMENT_PTR pElementr = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, elementName.c_str());
             
             THEN( "Its member variables are initialized correctly" )
             {
-                REQUIRE( pElement->m_name == elementName );
-                REQUIRE( pElement->m_pElement != NULL );
-                REQUIRE( pElement->m_pParentBin == pBin );
+                REQUIRE( pElementr->m_name == elementName );
+                REQUIRE( pElementr->m_pGstObj != NULL );
             }
+            
         }
     }
 }
 
-SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
+//SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
+//{
+//    GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
+//    {
+//        std::string bintrName = "test-bin";
+//        std::string queueElementName  = "test-queue";
+//        std::string teeElementName = "test-tee";
+//        
+//        DSL_TEST_BINTR_PTR pBintr = DSL_TEST_BINTR_NEW(bintrName.c_str());
+//        
+//        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
+//        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
+//            
+//        pBintr->AddChild(pQueue);
+//        pBintr->AddChild(pTee);
+//        
+//        WHEN( "The Queue is linked to the Tee" )
+//        {
+//            pQueue->LinkTo(pTee);
+//            
+//            THEN( "The relation ship of source and sink Elementr are setup correctly" )
+//            {
+//                REQUIRE( pQueue->m_pSink == pTee );
+//                REQUIRE( pTee->m_pSource == pQueue );
+//            }
+//        }
+//    }
+//}
+//
+SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
 {
-    GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
+    GIVEN( "A Queue Elementr linked to a Tee Elementr" ) 
     {
-        std::string binName = "test-bin";
         std::string queueElementName  = "test-queue";
         std::string teeElementName = "test-tee";
         
-        GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
 
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
-        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
+        pQueue->LinkTo(pTee);
             
-        WHEN( "The Queue is Linked to the Tee" )
+        WHEN( "The Queue is unlinked to the Tee" )
         {
-            pQueue->LinkTo(pTee);
-            
-            REQUIRE( pQueue->m_pLinkedSinkElementr == pTee );
-            REQUIRE( pTee->m_pLinkedSourceElementr == pQueue );
-        }
-    }
-}
+            pQueue->Unlink();
 
-SCENARIO( "Two Elementrs can be linked correctly", "[Elementr]" )
-{
-    GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
-    {
-        std::string binName = "test-bin";
-        std::string queueElementName  = "test-queue";
-        std::string teeElementName = "test-tee";
-        
-        GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
-
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
-        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
-            
-        WHEN( "The Queue is Linked to the Tee" )
-        {
-            pQueue->LinkTo(pTee);
-            
             THEN( "The relation ship of source and sink Elementr are setup correctly" )
             {
-                REQUIRE( pQueue->m_pLinkedSinkElementr == pTee );
-                REQUIRE( pTee->m_pLinkedSourceElementr == pQueue );                
-            }
-        }
-    }
-}
-
-SCENARIO( "Two Elementrs can be unlinked correctly", "[Elementr]" )
-{
-    GIVEN( "A Queue Elementr linked to a Tee Elementr " ) 
-    {
-        std::string binName = "test-bin";
-        std::string queueElementName  = "test-queue";
-        std::string teeElementName = "test-tee";
-        
-        GstElement* pBin = gst_bin_new((gchar*)binName.c_str());
-
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str(), pBin);
-        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str(), pBin);
-
-        pQueue->Unlink();
-            
-        WHEN( "The Queue is unLinked from the Tee" )
-        {
-            
-            THEN( "The relation ship of source and sink Elementr are removed correctly" )
-            {
-                REQUIRE( pQueue->m_pLinkedSinkElementr == nullptr );
-                REQUIRE( pTee->m_pLinkedSourceElementr == nullptr );                
+                REQUIRE( pQueue->m_pSink == nullptr );
+                REQUIRE( pTee->m_pSource == nullptr );                
             }
         }
     }

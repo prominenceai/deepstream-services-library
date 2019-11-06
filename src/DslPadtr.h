@@ -26,70 +26,105 @@ THE SOFTWARE.
 #define _DSL_PADTR_H
 
 #include "Dsl.h"
+#include "DslNodetr.h"
 
 namespace DSL
 {
+
+    #define DSL_PADTR_PTR std::shared_ptr<Padtr>
+    #define DSL_PADTR_NEW(name) \
+        std::shared_ptr<Padtr>(new Padtr(name))    
+
+    #define DSL_STATIC_PADTR_PTR std::shared_ptr<StaticPadtr>
+    #define DSL_STATIC_PADTR_NEW(name, element) \
+        std::shared_ptr<StaticPadtr>(new StaticPadtr(name, element))    
+
+    #define DSL_REQUEST_PADTR_PTR std::shared_ptr<RequestPadtr>
+    #define DSL_REQUEST_PADTR_NEW(name, element) \
+        std::shared_ptr<RequestPadtr>(new RequestPadtr(name, element))
+
     /**
-     * @class StaticPadtr
-     * @brief Implements a container class for a Gst Static Pad
+     * @class Padtr
+     * @brief Implements a base container class for Gst Pad types
      */
-    class Padtr : public std::enable_shared_from_this<Padtr>
+    class Padtr : public Nodetr
     {
     public:
         
         /**
-         * @brief ctor for the StaticPadtr class
+         * @brief ctor for the Padtr base class
          * @param[in] name of the pad element
          */
         Padtr(const char* name)
-        : m_name(name)
-        , m_pPad(NULL)
-        , m_pLinkedSinkPadtr(NULL)
+        : Nodetr(name)
         {
             LOG_FUNC();
-        }
+        };
 
-        void LinkTo(std::shared_ptr<Padtr> pSinkPadtr)
+        /**
+         * @brief dtor for the Padtr base class
+         */
+        ~Padtr()
+        {
+            LOG_FUNC();
+        };
+
+        /**
+         * @brief returns whether the Bintr object is in-use 
+         * @return True if the Bintr has a relationship with another Bintr
+         */
+        void LinkTo(DSL_NODETR_PTR pSink)
         {
             LOG_FUNC();
             
-            if (gst_pad_link(m_pPad, pSinkPadtr->m_pPad) != GST_PAD_LINK_OK)
+            if (gst_pad_link(GST_PAD(m_pGstObj), GST_PAD(pSink->m_pGstObj)) != GST_PAD_LINK_OK)
             {
-                LOG_ERROR("Failed to link source pad '" << m_name 
-                    << "' to sink pad '" << pSinkPadtr->m_name << "'");
+                LOG_ERROR("Failed to link source pad '" << m_name << "' to sink pad '" << pSink->m_name << "'");
                 throw;
             }
-            m_pLinkedSinkPadtr = pSinkPadtr;
+            
+            Nodetr::LinkTo(pSink);
         }
         
         void Unlink()
         {
+
             LOG_FUNC();
-            
-            if (m_pLinkedSinkPadtr)
+
+            if (IsLinked())
             {
-                if (!gst_pad_unlink(m_pPad, m_pLinkedSinkPadtr->m_pPad))
-                {
-                    LOG_ERROR("Failed to unlink source pad '" << m_name 
-                        << "' from sink pad '" << m_pLinkedSinkPadtr->m_name << "'");
-                    throw;
-                }
-                
-                m_pLinkedSinkPadtr = NULL;
+                gst_pad_unlink(GST_PAD(m_pGstObj), GST_PAD(m_pSink->m_pGstObj));
+
+                // Call the base class to complete the unlink
+                Nodetr::Unlink();
             }
-            
         }
+
+        /**
+         * @brief Adds this Padtr as a child to a Parent
+         * @param pParent to add to
+         */
+        void AddToParent(DSL_NODETR_PTR pParent)
+        {
+            LOG_FUNC();
+                
+            pParent->AddChild(shared_from_this());
+        };        
         
         /**
-         * @brief named for request pad
+         * @brief removes this Padtr from the provided pParent
+         * @param pParent to remove from
          */
-        std::string m_name;
+        void RemoveFromParent(DSL_NODETR_PTR pParent)
+        {
+            LOG_FUNC();
+                
+            pParent->RemoveChild(shared_from_this());
+        };
         
-        /**
-         * @brief pointer to the contained static pad
-         */
-        GstPad* m_pPad;
-        std::shared_ptr<Padtr> m_pLinkedSinkPadtr;
+        DSL_PADTR_PTR m_pLinkedSinkPadtr;
+        
+        DSL_PADTR_PTR m_pLinkedSourcePadtr;
         
     };
 
@@ -103,20 +138,21 @@ namespace DSL
         
         /**
          * @brief ctor for the StaticPadtr class
-         * @param[in] pElement element to retreive the static pad from
          * @param[in] name of the static pad to retrieve
+         * @param[in] pElement element to retreive the static pad from
          */
-        StaticPadtr(GstElement* pElement, const char* name)
+        StaticPadtr(const char* name, DSL_NODETR_PTR pParent)
         : Padtr(name)
         {
             LOG_FUNC();
             
-            m_pPad = gst_element_get_static_pad(pElement, (gchar*)name);
-            if (!m_pPad)
+            m_pGstObj = GST_OBJECT(gst_element_get_static_pad(GST_ELEMENT(pParent->m_pGstObj), (gchar*)name));
+            if (!m_pGstObj)
             {
-                LOG_ERROR("Failed to get Static Pad for '" << name <<" '");
+                LOG_ERROR("Failed to get Static Pad for '" << name <<"'");
                 throw;
             }
+            
         };
 
         /**
@@ -126,9 +162,9 @@ namespace DSL
         {
             LOG_FUNC();
 
-            if (m_pPad)
+            if (m_pGstObj)
             {
-                gst_object_unref(m_pPad);
+                gst_object_unref(m_pGstObj);
             }
         };
         
@@ -136,14 +172,14 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return gst_pad_add_probe(m_pPad, mask, callback, pData, NULL);
+            return gst_pad_add_probe(GST_PAD(m_pGstObj), mask, callback, pData, NULL);
         }
     
     };
     
     /**
      * @class StaticPadtr
-     * @brief Implements a container class for a Gst Static Pad
+     * @brief Implements a container class for a Gst Request Pad
      */
     class RequestPadtr : public Padtr
     {
@@ -151,17 +187,17 @@ namespace DSL
         
         /**
          * @brief ctor for the RequestPadtr class
-         * @param[in] pElement element to retreive the static pad from
          * @param[in] name of the static pad to retrieve
+         * @param[in] pElement element to retreive the static pad from
          */
-        RequestPadtr(GstElement* pElement, const char* name)
+        RequestPadtr(const char* name, DSL_NODETR_PTR pParent)
             : Padtr(name)
-            , m_pElement(pElement)
         {
             LOG_FUNC();
             
-            m_pPad = gst_element_get_request_pad(pElement, (gchar*)name);
-            if (!m_pPad)
+            m_pGstObj = GST_OBJECT(gst_element_get_request_pad(
+                GST_ELEMENT(pParent->m_pGstObj), (gchar*)name));
+            if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to get Request Pad for '" << name <<" '");
                 throw;
@@ -170,18 +206,18 @@ namespace DSL
 
         /**
          * @brief ctor for the RequestPadtr class
+         * @param[in] name of the static pad to retrieve
          * @param[in] pElement element to retreive the static pad from
          * @param[in] pPadTemplate
-         * @param[in] name of the static pad to retrieve
          */
-        RequestPadtr(GstElement* pElement, GstPadTemplate* pPadTemplate, const char* name)
+        RequestPadtr(const char* name, DSL_NODETR_PTR pParent, GstPadTemplate* pPadTemplate)
             : Padtr(name)
-            , m_pElement(pElement)
         {
             LOG_FUNC();
             
-            m_pPad = gst_element_request_pad(pElement, pPadTemplate, NULL, NULL);
-            if (!m_pPad)
+            m_pGstObj = GST_OBJECT(gst_element_request_pad(
+                GST_ELEMENT(pParent->m_pGstObj), pPadTemplate, NULL, NULL));
+            if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to get Pad for '" << name <<" '");
                 throw;
@@ -195,16 +231,11 @@ namespace DSL
         {
             LOG_FUNC();
 
-            if (m_pPad)
+            if (m_pGstObj)
             {
 //                gst_element_release_request_pad(m_pElement, m_pPad);
             }
         };
-        
-        /**
-         * @brief pointer to the element the request pad was retreived from
-         */
-        GstElement* m_pElement;
 
     };
 } // DSL namespace    
