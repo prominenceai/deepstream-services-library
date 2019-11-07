@@ -1,3 +1,6 @@
+# Operation successful
+
+DSL_RESULT_SUCCESS                          =  0
 
 DSL_RESULT_COMPONENT_RESULT                 =  0x00010000
 DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE        =  0x00010001
