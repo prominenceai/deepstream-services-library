@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "Dsl.h"
 #include "DslPadtr.h"
+#include "DslElementr.h"
 
 using namespace DSL; 
 
@@ -42,10 +43,9 @@ SCENARIO( "A new Padtr is created correctly", "[Padtr]" )
             {
                 REQUIRE( pPadtr->m_name == padtrName );
                 REQUIRE( pPadtr->IsInUse() == false );
-                REQUIRE( pPadtr->m_pLinkedSinkPadtr == nullptr );
-                REQUIRE( pPadtr->m_pLinkedSourcePadtr == nullptr );
+                REQUIRE( pPadtr->m_pSink == nullptr );
+                REQUIRE( pPadtr->m_pSource == nullptr );
             }
         }
     }
 }
-

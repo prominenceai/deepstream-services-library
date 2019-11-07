@@ -48,35 +48,29 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
     }
 }
 
-//SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
-//{
-//    GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
-//    {
-//        std::string bintrName = "test-bin";
-//        std::string queueElementName  = "test-queue";
-//        std::string teeElementName = "test-tee";
-//        
-//        DSL_TEST_BINTR_PTR pBintr = DSL_TEST_BINTR_NEW(bintrName.c_str());
-//        
-//        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
-//        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
-//            
-//        pBintr->AddChild(pQueue);
-//        pBintr->AddChild(pTee);
-//        
-//        WHEN( "The Queue is linked to the Tee" )
-//        {
-//            pQueue->LinkTo(pTee);
-//            
-//            THEN( "The relation ship of source and sink Elementr are setup correctly" )
-//            {
-//                REQUIRE( pQueue->m_pSink == pTee );
-//                REQUIRE( pTee->m_pSource == pQueue );
-//            }
-//        }
-//    }
-//}
-//
+SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
+{
+    GIVEN( "A Queue Elementr and a Tee Elementr in memory" ) 
+    {
+        std::string queueElementName  = "test-queue";
+        std::string teeElementName = "test-tee";
+        
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
+        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
+            
+        WHEN( "The Queue is linked to the Tee" )
+        {
+            pQueue->LinkTo(pTee);
+            
+            THEN( "The relation ship of source and sink Elementr are setup correctly" )
+            {
+                REQUIRE( pQueue->m_pSink == pTee );
+                REQUIRE( pTee->m_pSource == pQueue );
+            }
+        }
+    }
+}
+
 SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
 {
     GIVEN( "A Queue Elementr linked to a Tee Elementr" ) 
@@ -97,6 +91,29 @@ SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
             {
                 REQUIRE( pQueue->m_pSink == nullptr );
                 REQUIRE( pTee->m_pSource == nullptr );                
+            }
+        }
+    }
+}
+
+SCENARIO( "A new GhostPad can be added to an Elementr", "[Elementr]" )
+{
+    GIVEN( "A Queue Elementr in memory" ) 
+    {
+        std::string parentBintrName  = "test-queue";
+        std::string queueElementName  = "test-queue";
+
+        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
+        DSL_TEST_BINTR_PTR pParentBintr = DSL_TEST_BINTR_NEW(parentBintrName.c_str());
+        pParentBintr->AddChild(pQueue);
+
+        WHEN( "The StaticPadtr is created" )
+        {
+            pQueue->AddGhostPadToParent("sink");
+            
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pQueue->IsInUse() == true );
             }
         }
     }

@@ -45,11 +45,11 @@ namespace DSL
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
-        m_pQueue->AddGhostPad("sink");
-        m_pTiler->AddGhostPad("src");
-        
         AddChild(m_pQueue);
         AddChild(m_pTiler);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pTiler->AddGhostPadToParent("src");
     }
 
     DisplayBintr::~DisplayBintr()

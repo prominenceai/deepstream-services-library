@@ -43,7 +43,7 @@ SCENARIO( "A new Nodetr is created correctly", "[Nodetr]" )
                 REQUIRE( pNodetr->m_name == nodetrName );
                 REQUIRE( pNodetr->m_pChildren.size() == 0 );
                 
-                REQUIRE( pNodetr->m_pParent == nullptr );
+                REQUIRE( pNodetr->m_pParentGstObj == NULL );
                 REQUIRE( pNodetr->m_pSink == nullptr );
                 REQUIRE( pNodetr->m_pSource == nullptr );
                 
@@ -68,32 +68,23 @@ SCENARIO( "Parent-child Binter releationship is setup on Add", "[Nodetr]" )
         REQUIRE( pParentNodetr->m_pChildren.size() == 0 );
         
         REQUIRE( pChildNodetr->m_name == childNodetrName );
-        REQUIRE( pChildNodetr->m_pParent == nullptr );            
+        REQUIRE( pChildNodetr->m_pParentGstObj == NULL );
 
         WHEN( "The Parent Nodetr is called to add to Child" )
         {
+            // Need to fake GstObj creation when testing the base Nodetr
+            pParentNodetr->m_pGstObj = (GstObject*)0x12345678;
             pParentNodetr->AddChild(pChildNodetr);
         
             THEN( "The Parent-Child relationship is created" )
             {
                 REQUIRE( pParentNodetr->m_pChildren.size() == 1 );
                 REQUIRE( pParentNodetr->m_pChildren[pChildNodetr->m_name] == pChildNodetr );
-                REQUIRE( pChildNodetr->m_pParent == pParentNodetr );            
+                REQUIRE( pChildNodetr->m_pParentGstObj == pParentNodetr->m_pGstObj );            
                 REQUIRE( pChildNodetr->IsInUse() == true );
             }
+            pParentNodetr->m_pGstObj = NULL;
         }
-//        WHEN( "When the Child Nodetr is called to add to Parent" )
-//        {
-//            pChildNodetr->AddToParent(pParentNodetr);
-//            
-//            THEN( " The Parent-Child relationship is created ")
-//            {
-//                REQUIRE( pParentNodetr->m_pChildren.size() == 1 );
-//                REQUIRE( pParentNodetr->m_pChildren[pChildNodetr->m_name] == pChildNodetr );
-//                REQUIRE( pChildNodetr->m_pParent == pParentNodetr );            
-//                REQUIRE( pChildNodetr->IsInUse() == true );            
-//            }
-//        }
     }
 }    
     
@@ -107,11 +98,13 @@ SCENARIO( "Parent-child Nodetr releationship is cleared on Remove", "[Nodetr]" )
         DSL_NODETR_PTR pParentNodetr = DSL_NODETR_NEW(parentNodetrName.c_str());
         DSL_NODETR_PTR pChildNodetr = DSL_NODETR_NEW(childNodetrName.c_str());
 
+        // Need to fake GstObj creation when testing the base Nodetr
+        pParentNodetr->m_pGstObj = (GstObject*)0x12345678;
         pParentNodetr->AddChild(pChildNodetr);
 
         REQUIRE( pParentNodetr->m_pChildren.size() == 1 );
         REQUIRE( pParentNodetr->m_pChildren[pChildNodetr->m_name] == pChildNodetr );
-        REQUIRE( pChildNodetr->m_pParent == pParentNodetr );            
+        REQUIRE( pChildNodetr->m_pParentGstObj == pParentNodetr->m_pGstObj );
         REQUIRE( pChildNodetr->IsInUse() == true );
 
         WHEN( "When the Parent is called to  RemoveChild" )
@@ -121,21 +114,11 @@ SCENARIO( "Parent-child Nodetr releationship is cleared on Remove", "[Nodetr]" )
             THEN( " The Parent-Child relationship is deleted ")
             {
                 REQUIRE( pParentNodetr->m_pChildren.size() == 0 );
-                REQUIRE( pChildNodetr->m_pParent == nullptr );            
+                REQUIRE( pChildNodetr->m_pParentGstObj == NULL );            
                 REQUIRE( pChildNodetr->IsInUse() == false );            
             }
         }
-//        WHEN( "When the Child is called to RemoveFromParent" )
-//        {
-//            pChildNodetr->RemoveFromParent(pParentNodetr);
-//            
-//            THEN( " The Parent-Child relationship is deleted ")
-//            {
-//                REQUIRE( pParentNodetr->m_pChildren.size() == 0 );
-//                REQUIRE( pChildNodetr->m_pParent == nullptr );            
-//                REQUIRE( pChildNodetr->IsInUse() == false );            
-//            }
-//        }
+        pParentNodetr->m_pGstObj = NULL;
     }
 }    
 
@@ -162,9 +145,9 @@ SCENARIO( "Source-Sink Nodetr releationship is setup on Link", "[Nodetr]" )
                 
                 // Ensure no Parent-Child Nodetr relationships exist
                 REQUIRE( pSourceNodetr->m_pChildren.size() == 0 );
-                REQUIRE( pSourceNodetr->m_pParent == nullptr );
+                REQUIRE( pSourceNodetr->m_pParentGstObj == NULL );
                 REQUIRE( pSinkNodetr->m_pChildren.size() == 0 );
-                REQUIRE( pSinkNodetr->m_pParent == nullptr );
+                REQUIRE( pSinkNodetr->m_pParentGstObj == NULL );
             }
         }
     }
@@ -181,6 +164,12 @@ SCENARIO( "Source-Sink Nodetr releationship is removed on Unink", "[Nodetr]" )
         DSL_NODETR_PTR pSinkNodetr = DSL_NODETR_NEW(sinkNodetrName.c_str());
 
         pSourceNodetr->LinkTo(pSinkNodetr);
+
+        // Ensure no Parent-Child Nodetr relationships exist
+        REQUIRE( pSourceNodetr->m_pChildren.size() == 0 );
+        REQUIRE( pSourceNodetr->m_pParentGstObj == NULL );
+        REQUIRE( pSinkNodetr->m_pChildren.size() == 0 );
+        REQUIRE( pSinkNodetr->m_pParentGstObj == NULL );
 
         WHEN( "When the Source Nodetr is unlinked from the Sink Nodetr" )
         {

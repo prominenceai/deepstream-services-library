@@ -35,7 +35,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pStaticSinkPadtr = DSL_STATIC_PADTR_NEW("sink", shared_from_this());
+//        m_pStaticSinkPadtr = DSL_STATIC_PADTR_NEW("src");
     }
 
     SinkBintr::~SinkBintr()
@@ -72,11 +72,11 @@ namespace DSL
         m_pOverlay->SetAttribute("max-lateness", -1);
         m_pOverlay->SetAttribute("async", m_async);
         m_pOverlay->SetAttribute("qos", m_qos);
-            
-        m_pQueue->AddGhostPad("sink");
         
         AddChild(m_pQueue);
         AddChild(m_pOverlay);
+            
+        m_pQueue->AddGhostPadToParent("sink");
     }
     
     OverlaySinkBintr::~OverlaySinkBintr()

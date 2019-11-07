@@ -28,11 +28,15 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
+SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly",  "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new Pipeline Sources Bintr and new Source in memory" ) 
     {
-        std::string sourceName = "csi-source";
+        uint width(1280);
+        uint height(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        std::string sourceName = "test-csi-source";
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
@@ -40,9 +44,8 @@ SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
 
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
 
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName.c_str(), 0, 0, 0, 1));
+        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
             
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {
@@ -53,84 +56,85 @@ SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly" )
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 1 );
                 REQUIRE( pSourceBintr->IsInUse() == true );
             }
-        }
-    }
-}
-
-SCENARIO( "Removing a single Source from a Sources Bintr is managed correctly" )
-{
-    GIVEN( "A Pipeline Sources Bintr with a Source in memory" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string pipelineSourcesName = "pipeline-sources";
-
-        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
-
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName.c_str(), 1280, 720, 30, 1));
-
-        pPipelineSourcesBintr->AddChild(pSourceBintr);
-        REQUIRE( pSourceBintr->IsInUse() == true );
-            
-        WHEN( "The Source is removed from the Pipeline Sources Bintr" )
-        {
             pPipelineSourcesBintr->RemoveChild(pSourceBintr);
-            
-            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
-            {
-                REQUIRE( pSourceBintr->IsInUse() == false );
-                REQUIRE( pSourceBintr->GetSensorId() == -1 );
-                REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-            }
         }
     }
 }
 
-SCENARIO( "Linking multiple Sources to a Pipeline's StreamMux is managed correctly" )
-{
-    GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
-    {
-        std::string pipelineSourcesName = "pipeline-sources";
-        std::string sourceName0 = "csi-source-0";
-        std::string sourceName1 = "csi-source-1";
-        std::string sourceName2 = "csi-source-2";
-
-        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
-
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr0 = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName0.c_str(), 1280, 720, 30, 1));
-
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr1 = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName1.c_str(), 1280, 720, 30, 1));
-
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr2 = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName2.c_str(), 1280, 720, 30, 1));
-
-        pPipelineSourcesBintr->AddChild(pSourceBintr0);
-        pPipelineSourcesBintr->AddChild(pSourceBintr1);
-        pPipelineSourcesBintr->AddChild(pSourceBintr2);
-        
-        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
-                    
-        WHEN( "All Sources are linked to the StreamMux" )
-        {
-            pPipelineSourcesBintr->LinkAll();
-            
-            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
-            {
-                REQUIRE( pSourceBintr0->IsInUse() == true );
-                REQUIRE( pSourceBintr0->GetSensorId() == 0 );
-                REQUIRE( pSourceBintr1->IsInUse() == true );
-                REQUIRE( pSourceBintr1->GetSensorId() == 1 );
-                REQUIRE( pSourceBintr2->IsInUse() == true );
-                REQUIRE( pSourceBintr2->GetSensorId() == 2 );
-            }
-        }
-    }
-}
+//SCENARIO( "Removing a single Source from a Sources Bintr is managed correctly",  "[PipelineSourcesBintr]" )
+//{
+//    GIVEN( "A Pipeline Sources Bintr with a Source in memory" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string pipelineSourcesName = "pipeline-sources";
+//
+//        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+//            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+//
+//        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
+//            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+//            sourceName.c_str(), 1280, 720, 30, 1));
+//
+//        pPipelineSourcesBintr->AddChild(pSourceBintr);
+//        REQUIRE( pSourceBintr->IsInUse() == true );
+//            
+//        WHEN( "The Source is removed from the Pipeline Sources Bintr" )
+//        {
+//            pPipelineSourcesBintr->RemoveChild(pSourceBintr);
+//            
+//            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+//            {
+//                REQUIRE( pSourceBintr->IsInUse() == false );
+//                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+//                REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "Linking multiple Sources to a Pipeline's StreamMux is managed correctly", "[PipelineSourcesBintr]" )
+//{
+//    GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
+//    {
+//        std::string pipelineSourcesName = "pipeline-sources";
+//        std::string sourceName0 = "csi-source-0";
+//        std::string sourceName1 = "csi-source-1";
+//        std::string sourceName2 = "csi-source-2";
+//
+//        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+//            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+//
+//        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr0 = 
+//            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+//            sourceName0.c_str(), 1280, 720, 30, 1));
+//
+//        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr1 = 
+//            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+//            sourceName1.c_str(), 1280, 720, 30, 1));
+//
+//        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr2 = 
+//            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
+//            sourceName2.c_str(), 1280, 720, 30, 1));
+//
+//        pPipelineSourcesBintr->AddChild(pSourceBintr0);
+//        pPipelineSourcesBintr->AddChild(pSourceBintr1);
+//        pPipelineSourcesBintr->AddChild(pSourceBintr2);
+//        
+//        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
+//                    
+//        WHEN( "All Sources are linked to the StreamMux" )
+//        {
+//            pPipelineSourcesBintr->LinkAll();
+//            
+//            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+//            {
+//                REQUIRE( pSourceBintr0->IsInUse() == true );
+//                REQUIRE( pSourceBintr0->GetSensorId() == 0 );
+//                REQUIRE( pSourceBintr1->IsInUse() == true );
+//                REQUIRE( pSourceBintr1->GetSensorId() == 1 );
+//                REQUIRE( pSourceBintr2->IsInUse() == true );
+//                REQUIRE( pSourceBintr2->GetSensorId() == 2 );
+//            }
+//        }
+//    }
+//}

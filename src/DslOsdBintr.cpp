@@ -58,14 +58,14 @@ namespace DSL
         m_pOsd->SetAttribute("clock-color", m_sClockColor);
         m_pOsd->SetAttribute("clock-font-size", m_sClockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
-
-        m_pQueue->AddGhostPad("sink");
-        m_pOsd->AddGhostPad("src");
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
         AddChild(m_pVidConv);
         AddChild(m_pOsd);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pOsd->AddGhostPadToParent("src");
     }    
     
     OsdBintr::~OsdBintr()

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A Tiled Display's dimensions can be updated",  "[display]" )
+SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
 {
     GIVEN( "A new Tiled Display in memory" ) 
     {
@@ -62,7 +62,7 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[display]" )
     }
 }
 
-SCENARIO( "A Tiled Display's tiles can be updated",  "[display]" )
+SCENARIO( "A Tiled Display's tiles can be updated",  "[DisplayBintr]" )
 {
     GIVEN( "A new Tiled Display in memory" ) 
     {
@@ -80,14 +80,14 @@ SCENARIO( "A Tiled Display's tiles can be updated",  "[display]" )
         REQUIRE( currRows == 1 );
         REQUIRE( currColumns == 1 );
 
-        WHEN( "The Display's demensions are Set" )
+        WHEN( "The Display's tile layout is Set" )
         {
             uint newRows(10);
             uint newColumns(10);
             
             pDisplayBintr->SetTiles(newRows, newColumns);
 
-            THEN( "The Display's new demensions are returned on Get")
+            THEN( "The Display's new tile layout is returned on Get")
             {
                 pDisplayBintr->GetTiles(currRows, currColumns);
                 REQUIRE( currRows == newRows );

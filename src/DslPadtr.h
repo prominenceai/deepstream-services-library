@@ -36,12 +36,12 @@ namespace DSL
         std::shared_ptr<Padtr>(new Padtr(name))    
 
     #define DSL_STATIC_PADTR_PTR std::shared_ptr<StaticPadtr>
-    #define DSL_STATIC_PADTR_NEW(name, element) \
-        std::shared_ptr<StaticPadtr>(new StaticPadtr(name, element))    
+    #define DSL_STATIC_PADTR_NEW(name, parentElement) \
+        std::shared_ptr<StaticPadtr>(new StaticPadtr(name, parentElement))    
 
     #define DSL_REQUEST_PADTR_PTR std::shared_ptr<RequestPadtr>
-    #define DSL_REQUEST_PADTR_NEW(name, element) \
-        std::shared_ptr<RequestPadtr>(new RequestPadtr(name, element))
+    #define DSL_REQUEST_PADTR_NEW(name, parentElement) \
+        std::shared_ptr<RequestPadtr>(new RequestPadtr(name, parentElement))
 
     /**
      * @class Padtr
@@ -99,32 +99,6 @@ namespace DSL
                 Nodetr::Unlink();
             }
         }
-
-        /**
-         * @brief Adds this Padtr as a child to a Parent
-         * @param pParent to add to
-         */
-        void AddToParent(DSL_NODETR_PTR pParent)
-        {
-            LOG_FUNC();
-                
-            pParent->AddChild(shared_from_this());
-        };        
-        
-        /**
-         * @brief removes this Padtr from the provided pParent
-         * @param pParent to remove from
-         */
-        void RemoveFromParent(DSL_NODETR_PTR pParent)
-        {
-            LOG_FUNC();
-                
-            pParent->RemoveChild(shared_from_this());
-        };
-        
-        DSL_PADTR_PTR m_pLinkedSinkPadtr;
-        
-        DSL_PADTR_PTR m_pLinkedSourcePadtr;
         
     };
 
@@ -139,21 +113,19 @@ namespace DSL
         /**
          * @brief ctor for the StaticPadtr class
          * @param[in] name of the static pad to retrieve
-         * @param[in] pElement element to retreive the static pad from
          */
         StaticPadtr(const char* name, DSL_NODETR_PTR pParent)
         : Padtr(name)
         {
             LOG_FUNC();
-            
+
             m_pGstObj = GST_OBJECT(gst_element_get_static_pad(GST_ELEMENT(pParent->m_pGstObj), (gchar*)name));
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to get Static Pad for '" << name <<"'");
                 throw;
             }
-            
-        };
+        }
 
         /**
          * @brief dtor for the StaticPadtr class
@@ -161,12 +133,7 @@ namespace DSL
         ~StaticPadtr()
         {
             LOG_FUNC();
-
-            if (m_pGstObj)
-            {
-                gst_object_unref(m_pGstObj);
-            }
-        };
+        }
         
         guint AddPad(GstPadProbeType mask, GstPadProbeCallback callback, gpointer pData)
         {
@@ -202,7 +169,7 @@ namespace DSL
                 LOG_ERROR("Failed to get Request Pad for '" << name <<" '");
                 throw;
             }
-        };
+        }
 
         /**
          * @brief ctor for the RequestPadtr class
@@ -222,7 +189,7 @@ namespace DSL
                 LOG_ERROR("Failed to get Pad for '" << name <<" '");
                 throw;
             }
-        };
+        }
 
         /**
          * @brief dtor for the RequestPadtr class
@@ -230,12 +197,7 @@ namespace DSL
         ~RequestPadtr()
         {
             LOG_FUNC();
-
-            if (m_pGstObj)
-            {
-//                gst_element_release_request_pad(m_pElement, m_pPad);
-            }
-        };
+        }
 
     };
 } // DSL namespace    

@@ -124,7 +124,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        return (pSourceBintr->m_pParent == m_pPipelineSourcesBintr);
+        return (pSourceBintr->IsParent(m_pPipelineSourcesBintr));
     }
 
 

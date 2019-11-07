@@ -99,45 +99,38 @@ namespace DSL
         }
         
         /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of type GstCaps, created with one of gst_caps_new_* 
+         * @param name name of the attribute to set
+         * @param value char* string value to set the attribute
+         */
+        void SetAttribute(const char* name, const GstCaps * value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
+            
+            g_object_set(G_OBJECT(m_pGstObj), name, value, NULL);
+        }
+        
+        /**
          * @brief Creates a new Ghost Sink pad for this Gst Element
          * and adds it to the parent Gst Bin.
          * @throws a general exception on failure
          */
-        void AddGhostPad(const char* name)
+        void AddGhostPadToParent(const char* name)
         {
             LOG_FUNC();
-            
-            // get Sink pad for this element 
-            StaticPadtr padtr(name, shared_from_this());
 
-            // create a new ghost pad with the Sink pad and add to this bintr's bin
-            if (!gst_element_add_pad(GST_ELEMENT(m_pParent->m_pGstObj), 
-                gst_ghost_pad_new(name, GST_PAD(padtr.m_pGstObj))))
+            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
+            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
+            if (!gst_element_add_pad(GST_ELEMENT(m_pParentGstObj), 
+                gst_ghost_pad_new(name, gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), name))))
             {
                 LOG_ERROR("Failed to add Pad '" << name << "' for element'" << m_name << "'");
                 throw;
             }
-        };
-        
-        /**
-         * @brief Creates a new Ghost Source pad for this Gst element
-         * and adds it to the parent Gst Bin.
-         * @throws a general exception on failure
-         */
-//        void AddSourceGhostPad()
-//        {
-//            LOG_FUNC();
-//            
-//            StaticPadtr SourcePadtr( "src", shared_from_this());
-//
-//            // create a new ghost pad with the Source pad and add to this bintr's bin
-//            if (!gst_element_add_pad(GST_ELEMENT(m_pParent->m_pGstObj), 
-//                gst_ghost_pad_new("src", GST_PAD(SourcePadtr.m_pGstObj))))
-//            {
-//                LOG_ERROR("Failed to add Source Pad for '" << m_name);
-//                throw;
-//            }
-//        };
+        }
 
         void LinkTo(DSL_NODETR_PTR pSink)
         { 
@@ -152,7 +145,7 @@ namespace DSL
                 LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
                 throw;
             }
-        };
+        }
         
         void Unlink()
         { 
@@ -163,22 +156,10 @@ namespace DSL
                 gst_element_unlink(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj));
 
                 // Call the base class to unlink the shared pointers
-//                Nodetr::Unlink();
+                Nodetr::Unlink();
             }
-        };
-        
-//    public:
-
-
-//        /**
-//         @brief
-//         */
-//        GstPad *m_pSinkPad;
-//        
-//        /**
-//         @brief
-//         */
-//        GstPad *m_pSourcePad; 
+        }
+    
     };
 }
 

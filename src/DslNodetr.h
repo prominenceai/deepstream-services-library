@@ -52,6 +52,7 @@ namespace DSL
         Nodetr(const char* name)
         : m_name(name)
         , m_pGstObj(NULL)
+        , m_pParentGstObj(NULL)
         {
             LOG_FUNC();
 
@@ -65,9 +66,10 @@ namespace DSL
         {
             LOG_FUNC();
             
-//            if (m_pGstObj and GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1)
-            if (m_pGstObj)
+            if (m_pGstObj and GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1)
             {
+                LOG_INFO("Unreferencing GST Object contained by this Nodetr '" << m_name << "'");
+                
                 gst_object_unref(m_pGstObj);
             }
             LOG_INFO("Nodetr '" << m_name << "' deleted");
@@ -80,8 +82,8 @@ namespace DSL
         bool IsInUse()
         {
             LOG_FUNC();
-            
-            return (m_pParent or m_pChildren.size() or m_pSink or m_pSource);
+
+            return (bool)(m_pParentGstObj or m_pChildren.size() or m_pSink or m_pSource);
         }
 
         /**
@@ -98,7 +100,7 @@ namespace DSL
                 throw;
             }
             m_pChildren[pChild->m_name] = pChild;
-            pChild->m_pParent = shared_from_this();   
+            pChild->m_pParentGstObj = m_pGstObj;   
                             
             LOG_INFO("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
             
@@ -118,7 +120,7 @@ namespace DSL
                 LOG_INFO("'" << pChild->m_name <<"' is not a child of Parent '" << m_name <<"'");
                 throw;
             }
-            pChild->m_pParent = nullptr;
+            pChild->m_pParentGstObj = NULL;
             m_pChildren[pChild->m_name] = nullptr;
             m_pChildren.erase(pChild->m_name);
                             
@@ -146,7 +148,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return (m_pParent == pParent);
+            return (m_pParentGstObj == pParent->m_pGstObj);
         }
         
         /**
@@ -171,9 +173,9 @@ namespace DSL
 
             if (m_pSink)
             {
+                LOG_INFO("Unlinking Source '" << m_name <<"' from Sink '" << m_pSink->m_name <<"'");
                 m_pSink->m_pSource = nullptr;
                 m_pSink = nullptr;   
-                LOG_INFO("Source '" << m_name <<"' unlinked from Sink '" << m_pSink->m_name <<"'");
             }
         }
         
@@ -214,7 +216,7 @@ namespace DSL
         /**
          * @brief Parent of this Nodetr if one exists. NULL otherwise
          */
-        DSL_NODETR_PTR m_pParent;
+        GstObject * m_pParentGstObj;
         
         /**
          * @brief map of Child Nodetrs in-use by this Nodetr

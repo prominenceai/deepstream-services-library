@@ -88,10 +88,13 @@ namespace DSL
     void SourceBintr::SetSensorId(int id)
     {
         LOG_FUNC();
-        
-        int sensorId;
-        m_sensorId = id;
 
+        if (!m_pSourceElement)
+        {
+            LOG_ERROR("Source Element for SourceBintr '" << m_name << "' has not been instantiated");
+            throw;
+        }
+        m_sensorId = id;
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
     }
 
@@ -100,12 +103,40 @@ namespace DSL
         LOG_FUNC();
 
         return true;
-    };
+    }
     
     void SourceBintr::UnlinkAll()
     {
         LOG_FUNC();
-    };
+    }
+
+    void SourceBintr::LinkTo(DSL_NODETR_PTR pStreamMux)
+    {
+        LOG_FUNC();
+
+        std::string sinkPadName = "sink_" + m_sensorId;
+       
+        m_pSourcePad = gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), "src");
+
+        m_pSinkPad = gst_element_get_request_pad(
+            GST_ELEMENT(pStreamMux->m_pGstObj), sinkPadName.c_str());
+            
+        if (gst_pad_link(m_pSourcePad, m_pSinkPad) != GST_PAD_LINK_OK)
+        {
+            LOG_ERROR("Failed to link SourceBintr '" << m_name << 
+                "' to StreamMux '" << pStreamMux->m_name << "'");
+            throw;
+        }
+        Bintr::LinkTo(pStreamMux);
+    }
+
+    void SourceBintr::Unlink()
+    {
+        LOG_FUNC();
+
+        gst_pad_unlink(m_pSourcePad, m_pSinkPad);
+
+    }
     
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fps_n, guint fps_d)
@@ -120,33 +151,31 @@ namespace DSL
 
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
-//
-//        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-//        m_pSourceElement->SetAttribute("maxperf", TRUE);
-//
-//        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
-//            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-//            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
-//        if (!pCaps)
-//        {
-//            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-//            throw;  
-//        }
-//
-//        GstCapsFeatures *feature = NULL;
-//        feature = gst_caps_features_new("memory:NVMM", NULL);
-//        gst_caps_set_features(pCaps, 0, feature);
-//
-//        m_pCapsFilter->SetAttribute("caps", TRUE);
-//        
-//        gst_caps_unref(pCaps);        
-//        
-//        // Add Ghost Pad and create Static Padtr to link to StreamMuxer
-//        m_pCapsFilter->AddGhostPad("src");
-//
-//        m_pStaticPadtr = DSL_STATIC_PADTR_NEW("src", shared_from_this());
+
+        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        m_pSourceElement->SetAttribute("maxperf", TRUE);
+
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
+
         AddChild(m_pSourceElement);
         AddChild(m_pCapsFilter);
+        
+        m_pCapsFilter->AddGhostPadToParent("src");
     }
 
     CsiSourceBintr::~CsiSourceBintr()
@@ -215,20 +244,21 @@ namespace DSL
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
         
         // get a pad from the Tee element and link to the "source queuue"
-        RequestPadtr teeSourcePadtr1( "src", m_pTee, padtemplate);
-        StaticPadtr sourceQueueSinkPadtr("sink", m_pSourceQueue);
+//        RequestPadtr teeSourcePadtr1( "src", m_pTee, padtemplate);
+//        StaticPadtr sourceQueueSinkPadtr("sink");
+//        m_pSourceQueue->AddChild()
 //        teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
 
         // get a second pad from the Tee element and link to the "fake sink queue"
-        RequestPadtr teeSourcePadtr2( "src", m_pTee, padtemplate);
-        StaticPadtr fakeSinkQueueSinkPadtr( "sink", m_pFakeSinkQueue);
+//        RequestPadtr teeSourcePadtr2( "src", m_pTee, padtemplate);
+//        StaticPadtr fakeSinkQueueSinkPadtr( "sink", m_pFakeSinkQueue);
 //        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
 
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
         
         // Source Ghost Pad for Source Queue
-        m_pSourceQueue->AddGhostPad("src");
+        m_pSourceQueue->AddGhostPadToParent("src");
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceQueue);
@@ -273,21 +303,21 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            // get a static Sink pad for this URI source bintr's Tee element
-            StaticPadtr sinkPadtr("sink", m_pTee);
-            
-            if (gst_pad_link(pPad, GST_PAD(sinkPadtr.m_pGstObj)) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link decodebin to pipeline");
-                throw;
-            }
-            
-            // Update the cap memebers for this URI source bintr
-            gst_structure_get_uint(structure, "width", &m_width);
-            gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
-            
-            LOG_INFO("Video decode linked for URI source '" << m_name << "'");
+//            // get a static Sink pad for this URI source bintr's Tee element
+//            StaticPadtr sinkPadtr("sink", m_pTee);
+//            
+//            if (gst_pad_link(pPad, GST_PAD(sinkPadtr.m_pGstObj)) != GST_PAD_LINK_OK) 
+//            {
+//                LOG_ERROR("Failed to link decodebin to pipeline");
+//                throw;
+//            }
+//            
+//            // Update the cap memebers for this URI source bintr
+//            gst_structure_get_uint(structure, "width", &m_width);
+//            gst_structure_get_uint(structure, "height", &m_height);
+//            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
+//            
+//            LOG_INFO("Video decode linked for URI source '" << m_name << "'");
         }
     }
 

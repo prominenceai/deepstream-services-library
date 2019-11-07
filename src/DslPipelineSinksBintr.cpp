@@ -39,10 +39,11 @@ namespace DSL
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "sink_bin_tee");
         
-        m_pQueue->AddGhostPad("sink");
-        
         AddChild(m_pQueue);
         AddChild(m_pTee);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        
     }
     
     PipelineSinksBintr::~PipelineSinksBintr()

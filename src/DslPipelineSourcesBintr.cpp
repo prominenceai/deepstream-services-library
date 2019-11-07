@@ -40,10 +40,10 @@ namespace DSL
         
         SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
+//        AddChild(m_pStreamMux);
+
         // Setup Src Ghost Pad for Stream Muxer element 
-        m_pStreamMux->AddGhostPad("src");
-        
-        AddChild(m_pStreamMux);
+        AddGhostPad("src", m_pStreamMux);
     }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
@@ -64,13 +64,7 @@ namespace DSL
             SetStreamMuxPlayType(
                 std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->IsLive());
         }
-                                
-        if (!gst_bin_add(GST_BIN(m_pGstObj), GST_ELEMENT(pChildBintr->m_pGstObj)))
-        {
-            LOG_ERROR("Failed to add '" << pChildBintr->m_name 
-                << "' to " << m_name << "'");
-            throw;
-        }
+
         return Bintr::AddChild(pChildBintr);
     }
 
@@ -79,8 +73,7 @@ namespace DSL
         LOG_FUNC();
 
         // unlink from the Streammuxer
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->
-            m_pStaticPadtr->Unlink();
+        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->Unlink();
         
         // call the base function to complete the remove
         Bintr::RemoveChild(pChildBintr);
@@ -93,12 +86,7 @@ namespace DSL
         // Removed sources will be reset to not-in-use
         for (auto &imap: m_pChildren)
         {
-            // unlink from the Streammuxer
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticPadtr->Unlink();
-            
-            // call the base function to complete the remove
-            Bintr::RemoveChild(imap.second);
+            RemoveChild(imap.second);
         }
     }
 
@@ -112,15 +100,9 @@ namespace DSL
         for (auto const& imap: m_pChildren)
         {
             std::string sinkPadName = "sink_" + std::to_string(id);
+
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(id++);
-            
-            // Retrieve the sink pad - from the Streammux element - 
-            // to link to the Source component being added
-            DSL_REQUEST_PADTR_PTR pSinkPadtr = 
-                DSL_REQUEST_PADTR_NEW(sinkPadName.c_str(), m_pStreamMux);
-            
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-                m_pStaticPadtr->LinkTo(pSinkPadtr);
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->LinkTo(m_pStreamMux);
         }
         
         // Set the Batch size to the nuber of sources owned
@@ -136,9 +118,7 @@ namespace DSL
         
         for (auto const& imap: m_pChildren)
         {
-            // unlink from the Streammuxer
-//            std::dynamic_pointer_cast<SourceBintr>(imap.second)->
-//                m_pStaticSourcePadtr->Unlink();
+            std::dynamic_pointer_cast<SourceBintr>(imap.second)->Unlink();
                 
             // reset the Sensor ID to unlinked     
             std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(-1);

@@ -82,8 +82,10 @@ namespace DSL
         bool LinkAll();
         
         void UnlinkAll();
-
-        DSL_STATIC_PADTR_PTR m_pStaticPadtr;        
+        
+        void LinkTo(DSL_NODETR_PTR pSink);
+        
+        void Unlink();
 
     public:
             
@@ -137,6 +139,10 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pSourceElement;
+
+        GstPad* m_pSinkPad;
+            
+        GstPad* m_pSourcePad;
         
     };
 

@@ -52,6 +52,8 @@ namespace DSL
             : Nodetr(name)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
+            , m_pSinkPad(NULL)
+            , m_pSourcePad(NULL)
         { 
             LOG_FUNC(); 
 
@@ -79,14 +81,15 @@ namespace DSL
         { 
             LOG_FUNC();
             
+            // Call the base class to complete the relationship
+            Nodetr::LinkTo(pSink);
+
             // Link Source Bintr to Sink Bintr as elements 
             if (!gst_element_link(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj)))
             {
                 LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
                 throw;
             }
-            // Call the base class to complete the relationship
-            Nodetr::LinkTo(pSink);
         };
 
         /**
@@ -161,12 +164,26 @@ namespace DSL
          * @brief removes this Bintr from the provided pParentBintr
          * @param pParentBintr Bintr to remove from
          */
-        virtual void RemoveFromParent(DSL_NODETR_PTR pParent)
+        virtual void RemoveFromParent(DSL_NODETR_PTR pParentBintr)
         {
             LOG_FUNC();
                 
-            pParent->RemoveChild(shared_from_this());
+            pParentBintr->RemoveChild(shared_from_this());
         };
+        
+        virtual void AddGhostPad(const char* name, DSL_NODETR_PTR pElementr)
+        {
+            LOG_FUNC();
+            
+            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
+            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
+            if (!gst_element_add_pad(GST_ELEMENT(m_pGstObj), 
+                gst_ghost_pad_new(name, gst_element_get_static_pad(GST_ELEMENT(pElementr->m_pGstObj), name))))
+            {
+                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << m_name << "'");
+                throw;
+            }
+        }
 
         /**
          * @brief virtual function for derived classes to implement
@@ -184,14 +201,18 @@ namespace DSL
     public:
 
         /**
-         @brief
+         * @brief
          */
         guint m_gpuId;
 
         /**
-         @brief
+         * @brief
          */
         guint m_nvbufMemoryType;
+
+        GstPad* m_pSinkPad;
+            
+        GstPad* m_pSourcePad;
     };
 
 } // DSL

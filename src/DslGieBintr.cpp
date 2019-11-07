@@ -55,13 +55,13 @@ namespace DSL
         m_pClassifier->SetAttribute("unique-id", m_uniqueId);
         m_pClassifier->SetAttribute("gpu-id", m_gpuId);
         m_pClassifier->SetAttribute("model-engine-file", m_modelEngineFile.c_str());
-
-        m_pQueue->AddGhostPad("sink");
-        m_pClassifier->AddGhostPad("src");
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
         AddChild(m_pClassifier);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pClassifier->AddGhostPadToParent("src");
     }    
     
     GieBintr::~GieBintr()
