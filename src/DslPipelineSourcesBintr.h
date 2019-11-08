@@ -29,12 +29,12 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSourceBintr.h"
 
-#define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
-#define DSL_PIPELINE_SOURCES_NEW(name) \
-    std::shared_ptr<PipelineSourcesBintr>(new DSL::PipelineSourcesBintr(name))
-
 namespace DSL
 {
+    #define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
+    #define DSL_PIPELINE_SOURCES_NEW(name) \
+        std::shared_ptr<PipelineSourcesBintr>(new PipelineSourcesBintr(name))
+
     class PipelineSourcesBintr : public Bintr
     {
     public: 
@@ -43,13 +43,49 @@ namespace DSL
 
         ~PipelineSourcesBintr();
         
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildBintr);
+        /**
+         * @brief adds a child Elementr to this PipelineSourcesBintr
+         * @param pChildElement a shared pointer to the Elementr to add
+         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
         
-        void RemoveChild(DSL_NODETR_PTR pChildBintr);
+        /**
+         * @brief adds a child SourceBintr to this PipelineSourcesBintr
+         * @param pChildElement shared pointer to SourceBintr to add
+         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_SOURCE_PTR pChildSource);
         
-        void RemoveAllChildren();
+        /**
+         * @brief removes a child Elementr from this PipelineSourcesBintr
+         * @param pChildElement a shared pointer to the Elementr to remove
+         */
+        void RemoveChild(DSL_NODETR_PTR pChildElement);
         
-        void AddSourceGhostPad();
+        /**
+         * @brief removes a child SourceBintr from this PipelineSourcesBintr
+         * @param pChildElement a shared pointer to SourceBintr to remove
+         */
+        void RemoveChild(DSL_SOURCE_PTR pChildSource);
+
+        /**
+         * @brief overrides the base method and checks in m_pChildSources only.
+         */
+        bool IsChild(DSL_SOURCE_PTR pChildSource);
+
+        /**
+         * @brief overrides the base Noder method to only return the number of 
+         * child SourceBintrs and not the total number of children... 
+         * i.e. exclude the nuber of child Elementrs from the count
+         * @return the number of Child SourceBintrs held by this Parent Nodetr
+         */
+        uint GetNumChildren()
+        {
+            LOG_FUNC();
+            
+            return m_pChildSources.size();
+        }
         
         /**
          * @brief interates through the list of child source bintrs setting 
@@ -69,21 +105,12 @@ namespace DSL
         
         void SetStreamMuxOutputSize(uint width, uint height);
 
-        /**
-         * @brief Returns the number sources currently owned by this Sources Bintr
-         * @return 
-         */
-        uint GetNumSourceInUse()
-        {
-            LOG_FUNC();
-            
-            return m_pChildren.size();
-        }
-        
 
-    private:
+    public:
 
         DSL_ELEMENT_PTR m_pStreamMux;
+        
+        std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         
         /**
          @brief

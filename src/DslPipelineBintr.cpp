@@ -94,7 +94,6 @@ namespace DSL
         // release all sources.. returning them to a state of not-in-use
         if (m_pPipelineSourcesBintr)
         {
-            m_pPipelineSourcesBintr->RemoveAllChildren();
             RemoveChild(m_pPipelineSourcesBintr);
         }
 

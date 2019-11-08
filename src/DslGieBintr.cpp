@@ -67,6 +67,8 @@ namespace DSL
     GieBintr::~GieBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
     }
 
     bool GieBintr::LinkAll()

@@ -28,6 +28,27 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "A PipelineSourcesBintr is created correctly", "[Temp]" )
+{
+    GIVEN( "A name for a PipelineSourcesBintr" ) 
+    {
+        std::string pipelineSourcesName = "pipeline-sources";
+
+        WHEN( "The PipelineSourcesBintr is created" )
+        {
+            DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            
+            THEN( "All members have been setup correctly" )
+            {
+                REQUIRE( pPipelineSourcesBintr->m_name == pipelineSourcesName );
+                REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
+                REQUIRE( pPipelineSourcesBintr->m_pStreamMux != nullptr );
+            }
+        }
+    }
+}
+
 SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly",  "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new Pipeline Sources Bintr and new Source in memory" ) 
@@ -49,14 +70,13 @@ SCENARIO( "Adding a single Source to a Sources Bintr is managed correctly",  "[P
             
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {
-            pPipelineSourcesBintr->AddChild(pSourceBintr);
+            pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
             
             THEN( "The Pipeline Sources Bintr is updated correctly" )
             {
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 1 );
                 REQUIRE( pSourceBintr->IsInUse() == true );
             }
-            pPipelineSourcesBintr->RemoveChild(pSourceBintr);
         }
     }
 }

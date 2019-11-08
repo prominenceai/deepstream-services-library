@@ -72,6 +72,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        UnlinkAll();
     }
 
     bool OsdBintr::LinkAll()

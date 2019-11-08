@@ -82,6 +82,8 @@ namespace DSL
     OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
+    
+        UnlinkAll();
     }
 
     bool OverlaySinkBintr::LinkAll()

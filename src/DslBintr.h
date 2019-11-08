@@ -63,7 +63,7 @@ namespace DSL
                 LOG_ERROR("Failed to create a new GST bin for Bintr '" << name << "'");
                 throw;  
             }
-        };
+        }
         
         /**
          * @brief Bintr dtor to release all GST references
@@ -71,7 +71,17 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
-        };
+            LOG_INFO("DTOR for Bintr '" << m_name << "' Called with " << m_pChildren.size() << " children");
+            
+            Unlink();
+
+            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+            {
+                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << m_name << "'");
+                
+                gst_object_unref(m_pGstObj);
+            }
+        }
         
         /**
          * @brief links this Bintr as source to a given Bintr as sink
@@ -81,7 +91,7 @@ namespace DSL
         { 
             LOG_FUNC();
             
-            // Call the base class to complete the relationship
+            // Call the base class to setup the relationship first
             Nodetr::LinkTo(pSink);
 
             // Link Source Bintr to Sink Bintr as elements 
@@ -90,7 +100,7 @@ namespace DSL
                 LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
                 throw;
             }
-        };
+        }
 
         /**
          * @brief unlinks this Bintr from a previously linked-to sink Bintr
@@ -106,7 +116,7 @@ namespace DSL
                 // Call the base class to complete the unlink
                 Nodetr::Unlink();
             }
-        };
+        }
 
         /**
          * @brief adds a child Bintr to this parent Bintr
@@ -124,7 +134,7 @@ namespace DSL
                 throw;
             }
             return Nodetr::AddChild(pChild);
-        };
+        }
         
         /**
          * @brief removes a child Bintr from this parent Bintr
@@ -140,14 +150,15 @@ namespace DSL
                 LOG_ERROR("'" << pChild->m_name << "' is not a child of '" << m_name <<"'");
                 throw;
             }
-                            
+
             if (!gst_bin_remove(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
             {
                 LOG_ERROR("Failed to remove " << pChild->m_name << " from " << m_name <<"'");
                 throw;
             }
             Nodetr::RemoveChild(pChild);
-        };
+        }
+
 
         /**
          * @brief Adds this Bintr as a child to a ParentBinter
@@ -158,7 +169,7 @@ namespace DSL
             LOG_FUNC();
                 
             pParent->AddChild(shared_from_this());
-        };        
+        }
         
         /**
          * @brief removes this Bintr from the provided pParentBintr
@@ -169,7 +180,7 @@ namespace DSL
             LOG_FUNC();
                 
             pParentBintr->RemoveChild(shared_from_this());
-        };
+        }
         
         virtual void AddGhostPad(const char* name, DSL_NODETR_PTR pElementr)
         {

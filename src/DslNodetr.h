@@ -66,12 +66,9 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (m_pGstObj and GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1)
-            {
-                LOG_INFO("Unreferencing GST Object contained by this Nodetr '" << m_name << "'");
-                
-                gst_object_unref(m_pGstObj);
-            }
+            // Remove all child references 
+            RemoveAllChildren();
+            
             LOG_INFO("Nodetr '" << m_name << "' deleted");
         }
         
@@ -125,6 +122,22 @@ namespace DSL
             m_pChildren.erase(pChild->m_name);
                             
             LOG_INFO("Child '" << pChild->m_name <<"' removed from Parent '" << m_name <<"'");
+        }
+
+        /**
+         * @brief removed a child Nodetr of this parent Nodetr
+         * @param pChild to remove
+         */
+        virtual void RemoveAllChildren()
+        {
+            LOG_FUNC();
+
+            for (auto &imap: m_pChildren)
+            {
+                LOG_INFO("Removing Child '" << imap.second->m_name <<"' from Parent '" << m_name <<"'");
+                imap.second->m_pParentGstObj = NULL;
+            }
+            m_pChildren.clear();
         }
         
         /**
@@ -192,7 +205,7 @@ namespace DSL
         
         /**
          * @brief get the current number of children for this Nodetr 
-         * @return the number of Child Nodetrs helpd by this Parent Nodetr
+         * @return the number of Child Nodetrs held by this Parent Nodetr
          */
         uint GetNumChildren()
         {

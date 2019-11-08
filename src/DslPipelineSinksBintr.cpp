@@ -49,6 +49,8 @@ namespace DSL
     PipelineSinksBintr::~PipelineSinksBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
     }
      
     DSL_NODETR_PTR PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildBintr)

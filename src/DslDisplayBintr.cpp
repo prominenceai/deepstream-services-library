@@ -55,6 +55,8 @@ namespace DSL
     DisplayBintr::~DisplayBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
     }
     
     bool DisplayBintr::LinkAll()

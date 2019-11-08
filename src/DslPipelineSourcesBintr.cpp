@@ -40,56 +40,85 @@ namespace DSL
         
         SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
-//        AddChild(m_pStreamMux);
+        AddChild(m_pStreamMux);
 
         // Setup Src Ghost Pad for Stream Muxer element 
-        AddGhostPad("src", m_pStreamMux);
+        m_pStreamMux->AddGhostPadToParent("src");
     }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
+    }
+
+    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    {
+        LOG_FUNC();
         
-        // Removed sources will be reset to not-in-use
-        RemoveAllChildren();
+        return Bintr::AddChild(pChildElement);
     }
      
-    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildBintr)
+    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
+        
+        // Ensure source uniqueness
+        if (IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->m_name << "' is already a child of '" << m_name << "'");
+            return nullptr;
+        }
         
         // Set the play type based on the first source added
-        if (m_pChildren.size() == 0)
+        if (m_pChildSources.size() == 0)
         {
             SetStreamMuxPlayType(
-                std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->IsLive());
+                std::dynamic_pointer_cast<SourceBintr>(pChildSource)->IsLive());
         }
-
-        return Bintr::AddChild(pChildBintr);
+        
+        // Add the source to the Sources collection and as a child of this Bintr
+        m_pChildSources[pChildSource->m_name] = std::dynamic_pointer_cast<SourceBintr>(pChildSource);
+        return Bintr::AddChild(pChildSource);
     }
 
-    void PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildBintr)
+    bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
+    {
+        LOG_FUNC();
+        
+        return (bool)m_pChildSources[pChildSource->m_name];
+    }
+
+
+    void PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    {
+        LOG_FUNC();
+        
+        // call the base function to handle the remove for Elementrs
+        Bintr::RemoveChild(pChildElement);
+    }
+
+    void PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 
-        // unlink from the Streammuxer
-        std::dynamic_pointer_cast<SourceBintr>(pChildBintr)->Unlink();
+        // Check for the relationship first
+        if (!IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->m_name << "' is not a child of '" << m_name << "'");
+            throw;
+        }
+
+        // unlink the source from the Streammuxer
+        pChildSource->Unlink();
+        
+        // unreference and remove from the collection of source
+        m_pChildSources.erase(pChildSource->m_name);
         
         // call the base function to complete the remove
-        Bintr::RemoveChild(pChildBintr);
+        Bintr::RemoveChild(pChildSource);
     }
-
-    void PipelineSourcesBintr::RemoveAllChildren()
-    {
-        LOG_FUNC();
-        
-        // Removed sources will be reset to not-in-use
-        for (auto &imap: m_pChildren)
-        {
-            RemoveChild(imap.second);
-        }
-    }
-
 
     bool PipelineSourcesBintr::LinkAll()
     {
@@ -97,12 +126,12 @@ namespace DSL
         
         uint id(0);
         
-        for (auto const& imap: m_pChildren)
+        for (auto const& imap: m_pChildSources)
         {
             std::string sinkPadName = "sink_" + std::to_string(id);
 
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(id++);
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->LinkTo(m_pStreamMux);
+            imap.second->SetSensorId(id++);
+            imap.second->LinkTo(m_pStreamMux);
         }
         
         // Set the Batch size to the nuber of sources owned
@@ -116,12 +145,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        for (auto const& imap: m_pChildren)
+        for (auto const& imap: m_pChildSources)
         {
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->Unlink();
+            imap.second->Unlink();
                 
             // reset the Sensor ID to unlinked     
-            std::dynamic_pointer_cast<SourceBintr>(imap.second)->SetSensorId(-1);
+            imap.second->SetSensorId(0);
         }
     }
 

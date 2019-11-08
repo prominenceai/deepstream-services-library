@@ -49,6 +49,8 @@ namespace DSL
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
+        
+        UnlinkAll();
     }
     
     void SourceBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
@@ -114,6 +116,9 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // Link all Child elements for the source first, then to the Stream Muxer
+        LinkAll();
+
         std::string sinkPadName = "sink_" + m_sensorId;
        
         m_pSourcePad = gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), "src");
@@ -127,6 +132,7 @@ namespace DSL
                 "' to StreamMux '" << pStreamMux->m_name << "'");
             throw;
         }
+        
         Bintr::LinkTo(pStreamMux);
     }
 
@@ -134,8 +140,16 @@ namespace DSL
     {
         LOG_FUNC();
 
-        gst_pad_unlink(m_pSourcePad, m_pSinkPad);
-
+        // If we're currently linked to the 
+        if (IsLinked())
+        {
+            // Unlink from the Stream Muxer first.
+            gst_pad_unlink(m_pSourcePad, m_pSinkPad);
+            Bintr::Unlink();
+            
+            // Then unlink Source elements
+            UnlinkAll();
+        }
     }
     
     CsiSourceBintr::CsiSourceBintr(const char* name, 
@@ -182,6 +196,7 @@ namespace DSL
     {
         LOG_FUNC();
 
+        UnlinkAll();
     }
     
     bool CsiSourceBintr::LinkAll()

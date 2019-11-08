@@ -73,7 +73,7 @@ namespace DSL
             {
                 return 0;
             }
-            return m_pPipelineSourcesBintr->GetNumSourceInUse();
+            return m_pPipelineSourcesBintr->GetNumChildren();
         } 
         
         /**
