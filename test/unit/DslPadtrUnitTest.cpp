@@ -24,25 +24,27 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "Dsl.h"
-#include "DslTestBintr.h"
+#include "DslPadtr.h"
+#include "DslElementr.h"
 
 using namespace DSL; 
 
-SCENARIO( "A new Bintr is created correctly", "[Bintr]" )
+SCENARIO( "A new Padtr is created correctly", "[Padtr]" )
 {
-    GIVEN( "A name for a new Bintr" ) 
+    GIVEN( "A name for a new Padtr" ) 
     {
-        std::string bintrName = "test-bin";
+        std::string padtrName  = "padtr-name";
 
-        WHEN( "The Bintr is created" )
+        WHEN( "The Padtr is created" )
         {
-            DSL_TEST_BINTR_PTR pBintr = DSL_TEST_BINTR_NEW(bintrName.c_str());
+            DSL_PADTR_PTR pPadtr = DSL_PADTR_NEW(padtrName.c_str());
                 
             THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pBintr->m_gpuId == 0 );
-                REQUIRE( pBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pBintr->m_pGstObj != NULL );
+                REQUIRE( pPadtr->m_name == padtrName );
+                REQUIRE( pPadtr->IsInUse() == false );
+                REQUIRE( pPadtr->m_pSink == nullptr );
+                REQUIRE( pPadtr->m_pSource == nullptr );
             }
         }
     }

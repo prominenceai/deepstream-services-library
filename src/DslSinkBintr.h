@@ -31,29 +31,31 @@ THE SOFTWARE.
 #include "DslPadtr.h"
 #include "DslElementr.h"
 
-#define DSL_OVERLAY_SINK_PTR std::shared_ptr<DSL::OverlaySinkBintr>
-#define DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height) \
-    std::shared_ptr<DSL::OverlaySinkBintr>( \
-    new DSL::OverlaySinkBintr(name, offsetX, offsetY, width, height))
-
 namespace DSL
 {
+    #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
+
+    #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
+    #define DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<OverlaySinkBintr>( \
+        new OverlaySinkBintr(name, offsetX, offsetY, width, height))
+
     class SinkBintr : public Bintr
     {
     public: 
     
-        SinkBintr(const char* sink)
-            : Bintr(sink) 
-        {
-            LOG_FUNC();
-        };
+        SinkBintr(const char* sink);
 
-        ~SinkBintr()
-        {
-            LOG_FUNC();
-        };
+        ~SinkBintr();
   
-        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
+        /**
+         * @brief true of the Sink is of type Overlay, false otherwise
+         */
+        bool m_isOverlay;
+        
+        DSL_REQUEST_PADTR_PTR m_pRequestSourcePadtr;
+        
+        DSL_STATIC_PADTR_PTR m_pStaticSinkPadtr;        
     };
 
     class OverlaySinkBintr : public SinkBintr
@@ -66,11 +68,11 @@ namespace DSL
   
         std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
       
-        void LinkAll();
+        bool LinkAll();
         
         void UnlinkAll();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToParent(DSL_NODETR_PTR pParentBintr);
 
         int GetDisplayId()
         {
@@ -79,27 +81,7 @@ namespace DSL
             return m_displayId;
         }
 
-        int GetOverlayId()
-        {
-            LOG_FUNC();
-            
-            return m_overlayId;
-        }
-
-        void SetDisplayId(int id)
-        {
-            LOG_FUNC();
-            
-            m_displayId = id;
-        }
-
-        void SetOverlayId(int id)
-        {
-            LOG_FUNC();
-            
-            m_overlayId = id;
-        }
-
+        void SetDisplayId(int id);
         
     private:
 
@@ -107,7 +89,6 @@ namespace DSL
         boolean m_async;
         boolean m_qos;
         uint m_displayId;
-        uint m_overlayId;
         uint m_offsetX;
         uint m_offsetY;
         uint m_width;

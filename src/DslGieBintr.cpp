@@ -35,17 +35,15 @@ namespace DSL
         , m_batchSize(batchSize)
         , m_interval(interval)
         , m_uniqueId(uniqueId)
+        , m_inferConfigFile(inferConfigFile)
+        , m_modelEngineFile(modelEngineFile)
+        , m_rawOutputDir(rawOutputDir)
     {
         LOG_FUNC();
         
-        m_inferConfigFile = inferConfigFile;
-        m_modelEngineFile = modelEngineFile;
-        m_rawOutputDir = rawOutputDir;
-        
-        
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary_gie_queue", m_pBin);
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv", m_pBin);
-        m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier", m_pBin);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary_gie_queue");
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
+        m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
@@ -57,22 +55,30 @@ namespace DSL
         m_pClassifier->SetAttribute("unique-id", m_uniqueId);
         m_pClassifier->SetAttribute("gpu-id", m_gpuId);
         m_pClassifier->SetAttribute("model-engine-file", m_modelEngineFile.c_str());
+        
+        AddChild(m_pQueue);
+        AddChild(m_pVidConv);
+        AddChild(m_pClassifier);
 
-        m_pQueue->AddSinkGhostPad();
-        m_pClassifier->AddSourceGhostPad();
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pClassifier->AddGhostPadToParent("src");
     }    
     
     GieBintr::~GieBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
     }
 
-    void GieBintr::LinkAll()
+    bool GieBintr::LinkAll()
     {
         LOG_FUNC();
         
         m_pQueue->LinkTo(m_pVidConv);
         m_pVidConv->LinkTo(m_pClassifier);
+        
+        return true;
     }
     
     void GieBintr::UnlinkAll()
@@ -83,7 +89,7 @@ namespace DSL
         m_pVidConv->Unlink();
     }
 
-    void GieBintr::AddToParent(std::shared_ptr<Bintr> pParentBintr)
+    void GieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         

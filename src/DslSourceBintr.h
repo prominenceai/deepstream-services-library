@@ -32,37 +32,32 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
+    #define DSL_SOURCE_NEW(name) \
+        std::shared_ptr<SourceBintr>(new SourceBintr(name))
+
+    #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
+    #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
+        std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
+
     /**
      * @class SourceBintr
-     * @brief Implements a Source Bintr for all derived Source types.
+     * @brief Implements a base Source Bintr for all derived Source types.
      * CSI, V4L2, URI, and RTSP
      */
     class SourceBintr : public Bintr
     {
     public: 
     
-        SourceBintr(const char* source);
-
-        SourceBintr(const char* source, uint width, uint height, 
-            uint fps_n, uint fps_d);
+        SourceBintr(const char* name);
 
         ~SourceBintr();
 
-//        void LinkAll()
-//        {
-//            LOG_FUNC();
-//        };
-//        
-//        void UnlinkAll()
-//        {
-//            LOG_FUNC();
-//        };
+        void AddToParent(DSL_NODETR_PTR pParentBintr);
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
-
-        bool IsMyParent(std::shared_ptr<Bintr> pParentBintr);
+        bool IsMyParent(DSL_NODETR_PTR pParentBintr);
                         
-        void RemoveFromParent(std::shared_ptr<Bintr> pParentBintr);
+        void RemoveFromParent(DSL_NODETR_PTR pParentBintr);
         
         /**
          * @brief returns the current, sensor Id as managed by the Parent pipeline
@@ -84,9 +79,15 @@ namespace DSL
             return m_isLive;
         }
         
-        std::shared_ptr<StaticPadtr> m_pStaticSourcePadtr;        
+        bool LinkAll();
+        
+        void UnlinkAll();
+        
+        void LinkTo(DSL_NODETR_PTR pSink);
+        
+        void Unlink();
 
-    protected:
+    public:
             
         /**
          * @brief unique stream source identifier managed by the 
@@ -138,6 +139,10 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pSourceElement;
+
+        GstPad* m_pSinkPad;
+            
+        GstPad* m_pSourcePad;
         
     };
 
@@ -154,7 +159,7 @@ namespace DSL
 
         ~CsiSourceBintr();
 
-        void LinkAll();
+        bool LinkAll();
         
         void UnlinkAll();
         
@@ -179,7 +184,7 @@ namespace DSL
 
         ~UriSourceBintr();
 
-        void LinkAll();
+        bool LinkAll();
         
         void UnlinkAll();
         

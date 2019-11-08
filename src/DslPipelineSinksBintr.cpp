@@ -36,44 +36,107 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue", m_pBin);
-        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "sink_bin_tee", m_pBin);
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
+        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "sink_bin_tee");
         
-        m_pQueue->AddSinkGhostPad();
+        AddChild(m_pQueue);
+        AddChild(m_pTee);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        
     }
     
     PipelineSinksBintr::~PipelineSinksBintr()
     {
         LOG_FUNC();
+
+        UnlinkAll();
     }
      
-    void PipelineSinksBintr::AddChild(std::shared_ptr<Bintr> pChildBintr)
+    DSL_NODETR_PTR PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildBintr)
     {
         LOG_FUNC();
         
-        pChildBintr->m_pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(shared_from_this());
-
-        m_pChildBintrs[pChildBintr->m_name] = pChildBintr;
-                        
-        if (!gst_bin_add(GST_BIN(m_pBin), pChildBintr->m_pBin))
+        if (IsChild(pChildBintr))
+        {
+            LOG_ERROR("' " << pChildBintr->m_name << "' is already a child of '" << m_name << "'");
+            throw;
+        }
+        
+        if (!gst_bin_add(GST_BIN(m_pGstObj), GST_ELEMENT(pChildBintr->m_pGstObj)))
         {
             LOG_ERROR("Failed to add " << pChildBintr->m_name << " to " << m_name);
             throw;
         }
+        
+        // call the base function to complete the add
+        return Bintr::AddChild(pChildBintr);
+    }
+    
+    void PipelineSinksBintr::RemoveChild(DSL_NODETR_PTR pChildBintr)
+    {
+        LOG_FUNC();
 
-        GstPadTemplate* padtemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pElement), "src_%u");
-        if (!padtemplate)
+        if (!IsChild(pChildBintr))
         {
-            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+            LOG_ERROR("' " << pChildBintr->m_name << "' is NOT a child of '" << m_name << "'");
             throw;
         }
+        // unlink the sink from the Tee
+        std::dynamic_pointer_cast<SinkBintr>(pChildBintr)->
+            m_pStaticSinkPadtr->Unlink();
         
-        std::shared_ptr<RequestPadtr> pSourcePadtr = 
-            std::shared_ptr<RequestPadtr>(new RequestPadtr(m_pTee->m_pElement, 
-            padtemplate, "src")); // Name is for Padr only, Pad name is derived from the Pad Template
+        // call the base function to complete the remove
+        Bintr::RemoveChild(pChildBintr);
+    }
+
+    void PipelineSinksBintr::RemoveAllChildren()
+    {
+        LOG_FUNC();
         
-        pSourcePadtr->LinkTo(std::dynamic_pointer_cast<OverlaySinkBintr>(pChildBintr)->m_pStaticSinkPadtr);
-    };
-}    
+        // Removed sinks will be reset to not-in-use
+        for (auto &imap: m_pChildren)
+        {
+            // unlink each sink from the Tee
+            std::dynamic_pointer_cast<SinkBintr>(imap.second)->
+                m_pStaticSinkPadtr->Unlink();
+            
+            // call the base function to complete the remove
+            Bintr::RemoveChild(imap.second);
+        }
+    }
+
+    bool PipelineSinksBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        for (auto const& imap: m_pChildren)
+        {
+            GstPadTemplate* padtemplate = 
+                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
+            if (!padtemplate)
+            {
+                LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+                return false;
+            }
+            
+            std::shared_ptr<RequestPadtr> pSourcePadtr = 
+                std::shared_ptr<RequestPadtr>(new RequestPadtr("src", m_pTee, padtemplate));
+            
+            pSourcePadtr->LinkTo(std::dynamic_pointer_cast<SinkBintr>(imap.second)->m_pStaticSinkPadtr);
+        }
+        return true;
+    }
+
+    void PipelineSinksBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        for (auto const& imap: m_pChildren)
+        {
+            // unlink from the Tee Element
+            std::dynamic_pointer_cast<SinkBintr>(imap.second)->
+                m_pStaticSinkPadtr->Unlink();
+        }
+    }
+}

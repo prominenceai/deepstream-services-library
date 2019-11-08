@@ -33,6 +33,10 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    // TODO
     
     class GieBintr : public Bintr
     {
@@ -44,11 +48,11 @@ namespace DSL
 
         ~GieBintr();
 
-        void LinkAll();
+        bool LinkAll();
         
         void UnlinkAll();
         
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToParent(DSL_NODETR_PTR pParentBintr);
 
     private:
 

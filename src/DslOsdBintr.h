@@ -33,29 +33,59 @@ THE SOFTWARE.
 namespace DSL
 {
     
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_OSD_PTR std::shared_ptr<OsdBintr>
+    #define DSL_OSD_NEW(name, isClockEnabled) \
+        std::shared_ptr<OsdBintr>(new OsdBintr(name, isClockEnabled))
+
+    /**
+     * @class OsdBintr
+     * @brief Implements an On-Screen-Display bin container
+     */
     class OsdBintr : public Bintr
     {
     public: 
     
+        /**
+         * @brief ctor for the OsdBintr class
+         * @param name name to give the new OsdBintr
+         * @param isClockEnabled true if clock is to be displayed
+         */
         OsdBintr(const char* osd, gboolean isClockEnabled);
 
+        /**
+         * @brief dtor for the OsdBintr class
+         */
         ~OsdBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        /**
+         * @brief Adds this OsdBintr to a Parent Pipline Bintr
+         * @param pParentBintr
+         */
+        void AddToParent(DSL_NODETR_PTR pParentBintr);
         
-        void LinkAll();
+        /**
+         * @brief Links all child elements of this OsdBintr
+         * @return true if all elements were succesfully linked, false otherwise.
+         */
+        bool LinkAll();
         
+        /**
+         * @brief Unlinks all child elements of the OsdBintr
+         */
         void UnlinkAll();
         
     private:
 
         gboolean m_isClockEnabled;
         
-        static std::string m_sClockFont;
-        static guint m_sClockFontSize;
-        static guint m_sClockOffsetX;
-        static guint m_sClockOffsetY;
-        static guint m_sClockColor;
+        std::string m_sClockFont;
+        guint m_sClockFontSize;
+        guint m_sClockOffsetX;
+        guint m_sClockOffsetY;
+        guint m_sClockColor;
         
         /**
          @brief

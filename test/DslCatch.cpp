@@ -24,3 +24,12 @@ THE SOFTWARE.
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
+#include "DslServices.h"
+
+/**
+ * @brief to initialize the Singleton DSL Services Object when running
+ * under test... specifically to initialize the GStreamer Lib and 
+ * GST Debug category used by all DSL code for logging.
+ */  
+static DSL::Services* pServices = DSL::Services::GetServices();
+

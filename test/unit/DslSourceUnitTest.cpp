@@ -25,50 +25,79 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslSourceBintr.h"
 
-SCENARIO( "Set Sensor Id updates Source correctly",  "[source]" )
+using namespace DSL;
+
+SCENARIO( "A new base SourceBintr is created correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new Source in memory" ) 
+    GIVEN( "A name for a new SourceBintr" ) 
     {
-        std::string sourceName = "csi-source";
-        int sensorId = 1;
+        std::string sourceName = "test-source";
 
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName.c_str(), 1280, 720, 30, 1));
-            
-        // ensure source id reflects not is use
-        REQUIRE( pSourceBintr->GetSensorId() == -1 );
-        REQUIRE( pSourceBintr->IsInUse() == false );
-
-        WHEN( "The Sensor Id is set " )
+        WHEN( "The SourceBintr is created " )
         {
-            pSourceBintr->SetSensorId(sensorId);
-            THEN( "The returned Sensor Id is correct")
+            DSL_SOURCE_PTR pSourceBintr = DSL_SOURCE_NEW(sourceName.c_str());
+            
+            THEN( "All memeber variables are initialized correctly" )
             {
-                REQUIRE( pSourceBintr->GetSensorId() == sensorId );
-                
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_pGstObj != NULL );
+                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
             }
         }
     }
 }
 
-SCENARIO( "CSI Source returns the correct play-type on new",  "[source]" )
+SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
 {
-    std::string sourceName  = "csi-source";
-
-    GIVEN( "No setup requirements" ) 
+    GIVEN( "A name for a new CsiSourceBintr" ) 
     {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        std::string sourceName = "test-csi-source";
 
-        WHEN( "A new CSI Camera Source is created" ) 
+        WHEN( "The SourceBintr is created " )
         {
+        
+            DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+                sourceName.c_str(), width, height, fps_n, fps_d);
 
-            std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
-                std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-                sourceName.c_str(), 1280, 720, 30, 1));
-            
-            THEN( "The Source is correctly created as live")
+            THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->IsLive() == true );
+                REQUIRE( pSourceBintr->m_width == width );
+                REQUIRE( pSourceBintr->m_height == height );
+                REQUIRE( pSourceBintr->m_fps_n == fps_n );
+                REQUIRE( pSourceBintr->m_fps_d == fps_d );
+            }
+        }
+    }
+}
+
+SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
+{
+    GIVEN( "A new CsiSourceBintr in memory" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        std::string sourceName = "test-csi-source";
+        int sensorId = 1;
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        WHEN( "The Sensor Id is set " )
+        {
+            pSourceBintr->SetSensorId(sensorId);
+
+            THEN( "The returned Sensor Id is correct" )
+            {
+                REQUIRE( pSourceBintr->GetSensorId() == sensorId );
             }
         }
     }

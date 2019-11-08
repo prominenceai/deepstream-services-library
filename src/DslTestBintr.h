@@ -22,28 +22,59 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "catch.hpp"
+#ifndef _DSL_TEST_BINTR_H
+#define _DSL_TEST_BINTR_H
+
 #include "Dsl.h"
-#include "DslTestBintr.h"
+#include "DslBintr.h"
 
-using namespace DSL; 
-
-SCENARIO( "A new Bintr is created correctly", "[Bintr]" )
+namespace DSL
 {
-    GIVEN( "A name for a new Bintr" ) 
+    #define DSL_TEST_BINTR_PTR std::shared_ptr<TestBintr>
+    #define DSL_TEST_BINTR_NEW(name) \
+        std::shared_ptr<TestBintr>(new TestBintr(name))
+        
+    /**
+     * @class TestBintr
+     * @brief Implements a derived Bintr class for the purpose of testing
+     * the Bintr abstract class, and with Elementrs and Padtrs as well
+     */
+    class TestBintr : public Bintr
     {
-        std::string bintrName = "test-bin";
-
-        WHEN( "The Bintr is created" )
+    public: 
+    
+        TestBintr(const char* name)
+            : Bintr(name)
         {
-            DSL_TEST_BINTR_PTR pBintr = DSL_TEST_BINTR_NEW(bintrName.c_str());
-                
-            THEN( "All memeber variables are initialized correctly" )
-            {
-                REQUIRE( pBintr->m_gpuId == 0 );
-                REQUIRE( pBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pBintr->m_pGstObj != NULL );
-            }
+            LOG_FUNC();
+        };
+
+        ~TestBintr()
+        {
+            LOG_FUNC();
         }
-    }
+
+        void AddToParent(DSL_NODETR_PTR pParent)
+        {
+            LOG_FUNC();
+
+            pParent->AddChild(shared_from_this());
+        };
+
+        bool LinkAll()
+        {
+            LOG_FUNC();
+
+            return true;
+        };
+        
+        void UnlinkAll()
+        {
+            LOG_FUNC();
+        };
+        
+    };
+    
 }
+
+#endif // _DSL_TEST_BINTR_H

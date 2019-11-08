@@ -29,21 +29,24 @@ THE SOFTWARE.
 #include "DslElementr.h"
 #include "DslBintr.h"
 
-#define DSL_DISPLAY_PTR std::shared_ptr<DSL::DisplayBintr>
-#define DSL_DISPLAY_NEW(name, width, height) \
-    std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(name, width, height))
-
 namespace DSL
 {
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_DISPLAY_PTR std::shared_ptr<DisplayBintr>
+    #define DSL_DISPLAY_NEW(name, width, height) \
+        std::shared_ptr<DisplayBintr>(new DisplayBintr(name, width, height))
+        
     class DisplayBintr : public Bintr
     {
     public: 
     
-        DisplayBintr(const char* display, guint width, guint height);
+        DisplayBintr(const char* name, guint width, guint height);
 
         ~DisplayBintr();
 
-        void AddToParent(std::shared_ptr<Bintr> pParentBintr);
+        void AddToParent(DSL_NODETR_PTR pParentBintr);
 
         void SetTiles(uint rows, uint columns);
         
@@ -53,7 +56,7 @@ namespace DSL
         
         void GetDimensions(uint& width, uint& height);
 
-        void LinkAll();
+        bool LinkAll();
         
         void UnlinkAll();
         
@@ -98,9 +101,7 @@ namespace DSL
          * @brief a single display for the driver
         */
         Display* m_pXDisplay;
-        
     };
-    
 }
 
 #endif // _DSL_DISPLAY_BINTR_H
