@@ -63,7 +63,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->LinkTo(m_pTiler);
+        m_pQueue->LinkToSink(m_pTiler);
         
         return true;
     }
@@ -72,7 +72,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->Unlink();
+        m_pQueue->UnlinkFromSink();
     }
     
     void DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)

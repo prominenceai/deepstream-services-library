@@ -33,7 +33,7 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
-        , m_sensorId(-1)
+        , m_sensorId(0)
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -112,40 +112,45 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceBintr::LinkTo(DSL_NODETR_PTR pStreamMux)
+    void SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
     {
         LOG_FUNC();
 
         // Link all Child elements for the source first, then to the Stream Muxer
         LinkAll();
 
-        std::string sinkPadName = "sink_" + m_sensorId;
+        std::string sinkPadName = "sink_" + std::to_string(m_sensorId);
+        
+        LOG_INFO("Linking Source '" << m_name << "' to Pad '" << sinkPadName 
+            << "' for StreamMux '" << pStreamMux->m_name << "'");
        
-        m_pSourcePad = gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), "src");
+        m_pGstSourcePad = gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), "src");
+        if (!m_pGstSourcePad)
+        {
+            LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << m_name << "'");
+        }
 
-        m_pSinkPad = gst_element_get_request_pad(
+        m_pGstSinkPad = gst_element_get_request_pad(
             GST_ELEMENT(pStreamMux->m_pGstObj), sinkPadName.c_str());
             
-        if (gst_pad_link(m_pSourcePad, m_pSinkPad) != GST_PAD_LINK_OK)
+        if (!m_pGstSinkPad)
         {
-            LOG_ERROR("Failed to link SourceBintr '" << m_name << 
-                "' to StreamMux '" << pStreamMux->m_name << "'");
-            throw;
+            LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->m_name << "'");
         }
-        
-        Bintr::LinkTo(pStreamMux);
+            
+        Bintr::LinkToSink(pStreamMux);
     }
 
-    void SourceBintr::Unlink()
+    void SourceBintr::UnlinkFromSink()
     {
         LOG_FUNC();
 
         // If we're currently linked to the 
-        if (IsLinked())
+        if (IsLinkedToSink())
         {
             // Unlink from the Stream Muxer first.
-            gst_pad_unlink(m_pSourcePad, m_pSinkPad);
-            Bintr::Unlink();
+            gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
+            Bintr::UnlinkFromSink();
             
             // Then unlink Source elements
             UnlinkAll();
@@ -203,7 +208,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pSourceElement->LinkTo(m_pCapsFilter);
+        m_pSourceElement->LinkToSink(m_pCapsFilter);
         
         return true;
     }
@@ -212,7 +217,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pSourceElement->Unlink();
+        m_pSourceElement->UnlinkFromSink();
     }
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
@@ -291,7 +296,7 @@ namespace DSL
     {
         LOG_FUNC();
     
-        m_pFakeSinkQueue->LinkTo(m_pFakeSink);
+        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
 
         return true;
     }
@@ -300,7 +305,7 @@ namespace DSL
     {
         LOG_FUNC();
     
-        m_pFakeSinkQueue->Unlink();
+        m_pFakeSinkQueue->UnlinkFromSink();
     }
 
     void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)

@@ -28,29 +28,49 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly" )
+SCENARIO( "A PipelineSinksBintr is created correctly", "[PipelineSinksBintr]" )
+{
+    GIVEN( "A name for a PipelineSinksBintr" ) 
+    {
+        std::string pipelineSinksName = "pipeline-sinks";
+
+        WHEN( "The PipelineSinksBintr is created" )
+        {
+            DSL_PIPELINE_SINKS_PTR pPipelineSinksBintr = 
+                DSL_PIPELINE_SINKS_NEW(pipelineSinksName.c_str());
+            
+            THEN( "All members have been setup correctly" )
+            {
+                REQUIRE( pPipelineSinksBintr->m_name == pipelineSinksName );
+                REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
+                REQUIRE( pPipelineSinksBintr->m_pQueue != nullptr );
+                REQUIRE( pPipelineSinksBintr->m_pTee != nullptr );
+            }
+        }
+    }
+}
+
+SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly", "[PipelineSinksBintr]" )
 {
     GIVEN( "A new Pipeline Sinks Bintr and new Sink Bintr in memory" ) 
     {
-        std::string sinkName = "overlay-sink";
-        std::string pipelineSinksName = "pipeline-sinks";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
         uint sinkH(0);
+        std::string sinkName = "overlay-sink";
+        std::string pipelineSinksName = "pipeline-sinks";
 
         DSL_PIPELINE_SINKS_PTR pPipelineSinksBintr = DSL_PIPELINE_SINKS_NEW(pipelineSinksName.c_str());
             
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
-            
         WHEN( "The Sink Bintr is added to the Pipeline Sinks Bintr" )
         {
-            pPipelineSinksBintr->AddChild(pSinkBintr);
+            pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
             
-            THEN( "The Pipeline Sources Bintr is updated correctly" )
+            THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
                 REQUIRE( pPipelineSinksBintr->GetNumChildren() == 1 );
                 REQUIRE( pSinkBintr->IsInUse() == true );
@@ -59,7 +79,7 @@ SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly" 
     }
 }
 
-SCENARIO( "Removing a single Sink from a Pipeline Sinks Bintr is managed correctly" )
+SCENARIO( "Removing a single Sink from a Pipeline Sinks Bintr is managed correctly", "[PipelineSinksBintr]" )
 {
     GIVEN( "A new Pipeline Sinks Bintr with a new Sink Bintr" ) 
     {
@@ -75,25 +95,22 @@ SCENARIO( "Removing a single Sink from a Pipeline Sinks Bintr is managed correct
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        pPipelineSinksBintr->AddChild(pSinkBintr);
-
-        REQUIRE( pPipelineSinksBintr->GetNumChildren() == 1 );
-        REQUIRE( pSinkBintr->IsInUse() == true );
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
             
         WHEN( "The Sink Bintr is removed from the Pipeline Sinks Bintr" )
         {
-//            pPipelineSinksBintr->RemoveChild(pSinkBintr);
+            pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
             
             THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
-//                REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
-//                REQUIRE( pSinkBintr->IsInUse() == false );
+                REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
+                REQUIRE( pSinkBintr->IsInUse() == false );
             }
         }
     }
 }
 
-SCENARIO( "Linking multiple sinks to a Pipeline Sinks Bintr Tee is managed correctly" )
+SCENARIO( "Linking multiple sinks to a Pipeline Sinks Bintr Tee is managed correctly", "[PipelineSinksBintr]" )
 {
     GIVEN( "A new Pipeline Sinks Bintr with several new Sink Bintrs" ) 
     {
@@ -118,9 +135,9 @@ SCENARIO( "Linking multiple sinks to a Pipeline Sinks Bintr Tee is managed corre
         DSL_OVERLAY_SINK_PTR pSinkBintr3 = 
             DSL_OVERLAY_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        pPipelineSinksBintr->AddChild(pSinkBintr1);
-        pPipelineSinksBintr->AddChild(pSinkBintr2);
-        pPipelineSinksBintr->AddChild(pSinkBintr3);
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1));
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr2));
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr3));
 
         REQUIRE( pPipelineSinksBintr->GetNumChildren() == 3 );
             
@@ -135,7 +152,7 @@ SCENARIO( "Linking multiple sinks to a Pipeline Sinks Bintr Tee is managed corre
     }
 }
 
-SCENARIO( "Multiple sinks linked to a Pipeline Sinks Bintr Tee can be unlinked correctly" )
+SCENARIO( "Multiple sinks linked to a Pipeline Sinks Bintr Tee can be unlinked correctly", "[PipelineSinksBintr]" )
 {
     GIVEN( "A new Pipeline Sinks Bintr with several new Sink Bintrs all linked" ) 
     {
@@ -160,9 +177,9 @@ SCENARIO( "Multiple sinks linked to a Pipeline Sinks Bintr Tee can be unlinked c
         DSL_OVERLAY_SINK_PTR pSinkBintr3 = 
             DSL_OVERLAY_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        pPipelineSinksBintr->AddChild(pSinkBintr1);
-        pPipelineSinksBintr->AddChild(pSinkBintr2);
-        pPipelineSinksBintr->AddChild(pSinkBintr3);
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1));
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr2));
+        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr3));
         pPipelineSinksBintr->LinkAll();
 
         WHEN( "The Sink Bintrs are linked to the Pipeline Sinks Bintr" )

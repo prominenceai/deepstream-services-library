@@ -162,14 +162,14 @@ namespace DSL
         {
             LOG_FUNC();
             
-            m_pGstObj = GST_OBJECT(gst_element_get_request_pad(
-                GST_ELEMENT(pParent->m_pGstObj), (gchar*)name));
-            if (!m_pGstObj)
-            {
-                LOG_ERROR("Failed to get Request Pad for '" << name <<" '");
-                throw;
+                m_pGstObj = GST_OBJECT(gst_element_get_request_pad(
+                    GST_ELEMENT(pParent->m_pGstObj), (gchar*)name));
+                if (!m_pGstObj)
+                {
+                    LOG_ERROR("Failed to get Request Pad for '" << name <<" '");
+                    throw;
+                }
             }
-        }
 
         /**
          * @brief ctor for the RequestPadtr class

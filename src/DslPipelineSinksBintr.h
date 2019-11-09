@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define _DSL_PROCESS_BINTR_H
 
 #include "DslBintr.h"
-#include "DslElementr.h"
+#include "DslSinkBintr.h"
     
    
 namespace DSL 
@@ -50,13 +50,49 @@ namespace DSL
 
         ~PipelineSinksBintr();
         
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildBintr);
-
-//        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;     
-
-        void RemoveChild(DSL_NODETR_PTR pChildBintr);
+        /**
+         * @brief adds a child Elementr to this PipelineSinksBintr
+         * @param pChildElement a shared pointer to the Elementr to add
+         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
         
-        void RemoveAllChildren();
+        /**
+         * @brief adds a child SinkBintr to this PipelineSinksBintr
+         * @param pChildSink shared pointer to SinkBintr to add
+         * @return a shared pointer to the SinkBintr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_SINK_PTR pChildSink);
+        
+        /**
+         * @brief removes a child Elementr from this PipelineSinksBintr
+         * @param pChildElement a shared pointer to the Elementr to remove
+         */
+        void RemoveChild(DSL_NODETR_PTR pChildElement);
+        
+        /**
+         * @brief removes a child SinkBintr from this PipelineSinksBintr
+         * @param pChildElement a shared pointer to SourceBintr to remove
+         */
+        void RemoveChild(DSL_SINK_PTR pChildSink);
+
+        /**
+         * @brief overrides the base method and checks in m_pChildSinks only.
+         */
+        bool IsChild(DSL_SINK_PTR pChildSource);
+
+        /**
+         * @brief overrides the base Noder method to only return the number of 
+         * child SinkBintrs and not the total number of children... 
+         * i.e. exclude the nuber of child Elementrs from the count
+         * @return the number of Child SinkBintrs held by this PipelineSinksBintr
+         */
+        uint GetNumChildren()
+        {
+            LOG_FUNC();
+            
+            return m_pChildSinks.size();
+        }
 
         /** 
          * @brief links all child Sink Bintrs and their elements
@@ -68,10 +104,12 @@ namespace DSL
          */
         void UnlinkAll();
         
-    private:
+    public:
 
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pTee;
+    
+        std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
     };
 }
 

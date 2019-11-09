@@ -38,8 +38,8 @@ namespace DSL
         std::shared_ptr<Nodetr>(new Nodetr(name))    
 
     /**
-     * @class Padtr
-     * @brief Implements a base container class for all DSL nodes types
+     * @class Nodetr
+     * @brief Implements a base container class for all DSL Tree Node types
      */
     class Nodetr : public std::enable_shared_from_this<Nodetr>
     {
@@ -69,18 +69,28 @@ namespace DSL
             // Remove all child references 
             RemoveAllChildren();
             
+            if (IsLinkedToSink())
+            {
+                UnlinkFromSink();
+            }
+            if (IsLinkedToSource())
+            {
+                UnlinkFromSource();
+            }
+            
             LOG_INFO("Nodetr '" << m_name << "' deleted");
         }
         
         /**
          * @brief returns whether the Nodetr object is in-use 
-         * @return True if the Nodetr has a relationship with another Nodetr
+         * @return True if the Nodetr has a Child-to-Parent or Sibling relationship
          */
         bool IsInUse()
         {
             LOG_FUNC();
-
-            return (bool)(m_pParentGstObj or m_pChildren.size() or m_pSink or m_pSource);
+            
+            // Ok to have Children and not be in Use
+            return (bool)(m_pParentGstObj or m_pSink or m_pSource);
         }
 
         /**
@@ -168,7 +178,7 @@ namespace DSL
          * @brief Links this Noder, becoming a source, to a sink Nodre
          * @param pSink Sink Nodre to link this Source Nodre to
          */
-        virtual void LinkTo(DSL_NODETR_PTR pSink)
+        virtual void LinkToSink(DSL_NODETR_PTR pSink)
         {
             LOG_FUNC();
 
@@ -180,7 +190,7 @@ namespace DSL
         /**
          * @brief Unlinks this Source Nodetr from its Sink Nodetr
          */
-        virtual void Unlink()
+        virtual void UnlinkFromSink()
         {
             LOG_FUNC();
 
@@ -193,14 +203,40 @@ namespace DSL
         }
         
         /**
+         * @brief Unlinks this Sink Nodetr from its Source Nodetr
+         */
+        virtual void UnlinkFromSource()
+        {
+            LOG_FUNC();
+
+            if (m_pSource)
+            {
+                LOG_INFO("Unlinking self '" << m_name <<"' as a Sink from '" << m_pSource->m_name << "' Source");
+                m_pSource->m_pSink = nullptr;
+                m_pSource = nullptr;   
+            }
+        }
+        
+        /**
          * @brief returns the Source-to-Sink linked state for this Nodetr
          * @return true if this Nodetr is linked to a Sink Nodetr
          */
-        bool IsLinked()
+        bool IsLinkedToSink()
         {
             LOG_FUNC();
             
             return bool(m_pSink);
+        }
+        
+        /**
+         * @brief returns the Sink-to-Source linked state for this Nodetr
+         * @return true if this Nodetr is linked to a Source Nodetr
+         */
+        bool IsLinkedToSource()
+        {
+            LOG_FUNC();
+            
+            return bool(m_pSource);
         }
         
         /**
