@@ -72,6 +72,10 @@ namespace DSL
          */
         void SetSensorId(int id);
         
+        /**
+         * @brief returns the Live state of this Streaming Source
+         * @return true if the Source is Live, false otherwise.
+         */
         bool IsLive()
         {
             LOG_FUNC();
@@ -79,13 +83,28 @@ namespace DSL
             return m_isLive;
         }
         
+        /**
+         * @brief Links all Child Elementrs owned by this Streaming Source Binter
+         * @return 
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Streaming Source Binter
+         * @return 
+         */
         void UnlinkAll();
         
-        void LinkTo(DSL_NODETR_PTR pSink);
+        /**
+         * @brief Links the Streaming Source to a Stream Muxer
+         * @param pStreamMux
+         */
+        void LinkToSink(DSL_NODETR_PTR pStreamMux);
         
-        void Unlink();
+        /**
+         * @brief Unlinks this Streaming Source from a previously linked to Stream Muxer
+         */
+        void UnlinkFromSink();
 
     public:
             
@@ -140,10 +159,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pSourceElement;
 
-        GstPad* m_pSinkPad;
-            
-        GstPad* m_pSourcePad;
-        
     };
 
     /**

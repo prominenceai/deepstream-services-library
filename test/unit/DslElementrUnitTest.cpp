@@ -60,7 +60,7 @@ SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
             
         WHEN( "The Queue is linked to the Tee" )
         {
-            pQueue->LinkTo(pTee);
+            pQueue->LinkToSink(pTee);
             
             THEN( "The relation ship of source and sink Elementr are setup correctly" )
             {
@@ -81,11 +81,11 @@ SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
         DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
         DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
 
-        pQueue->LinkTo(pTee);
+        pQueue->LinkToSink(pTee);
             
         WHEN( "The Queue is unlinked to the Tee" )
         {
-            pQueue->Unlink();
+            pQueue->UnlinkFromSink();
 
             THEN( "The relation ship of source and sink Elementr are setup correctly" )
             {

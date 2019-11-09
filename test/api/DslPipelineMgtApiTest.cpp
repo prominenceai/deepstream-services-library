@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "A single Pipeline is created and deleted correctly", "[pipeline]" )
+SCENARIO( "A single Pipeline is created and deleted correctly", "[PipelineMgt]" )
 {
     GIVEN( "An empty list of Pipelines" ) 
     {
@@ -85,7 +85,7 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
     }
 }
 
-SCENARIO( "Many Pipelines are created correctly", "[pipeline]" )
+SCENARIO( "Many Pipelines are created correctly", "[PipelineMgt]" )
 {
     const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
     
@@ -111,7 +111,7 @@ SCENARIO( "Many Pipelines are created correctly", "[pipeline]" )
     }
 }
 
-SCENARIO( "Many Pipelines are deleted correctly", "[pipeline]" )
+SCENARIO( "Many Pipelines are deleted correctly", "[PipelineMgt]" )
 {
     const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
     
@@ -132,7 +132,7 @@ SCENARIO( "Many Pipelines are deleted correctly", "[pipeline]" )
     }
 }
 
-SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[pipeline]" )
+SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[PipelineMgt]" )
 {
     const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineA", NULL};
     

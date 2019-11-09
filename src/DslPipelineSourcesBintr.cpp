@@ -42,7 +42,7 @@ namespace DSL
 
         AddChild(m_pStreamMux);
 
-        // Setup Src Ghost Pad for Stream Muxer element 
+        // Float the StreamMux src pad as a Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
     }
     
@@ -78,8 +78,8 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(pChildSource)->IsLive());
         }
         
-        // Add the source to the Sources collection and as a child of this Bintr
-        m_pChildSources[pChildSource->m_name] = std::dynamic_pointer_cast<SourceBintr>(pChildSource);
+        // Add the Source to the Sources collection and as a child of this Bintr
+        m_pChildSources[pChildSource->m_name] = pChildSource;
         return Bintr::AddChild(pChildSource);
     }
 
@@ -89,7 +89,6 @@ namespace DSL
         
         return (bool)m_pChildSources[pChildSource->m_name];
     }
-
 
     void PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
     {
@@ -111,7 +110,7 @@ namespace DSL
         }
 
         // unlink the source from the Streammuxer
-        pChildSource->Unlink();
+        pChildSource->UnlinkFromSink();
         
         // unreference and remove from the collection of source
         m_pChildSources.erase(pChildSource->m_name);
@@ -128,10 +127,8 @@ namespace DSL
         
         for (auto const& imap: m_pChildSources)
         {
-            std::string sinkPadName = "sink_" + std::to_string(id);
-
             imap.second->SetSensorId(id++);
-            imap.second->LinkTo(m_pStreamMux);
+            imap.second->LinkToSink(m_pStreamMux);
         }
         
         // Set the Batch size to the nuber of sources owned
@@ -147,10 +144,8 @@ namespace DSL
         
         for (auto const& imap: m_pChildSources)
         {
-            imap.second->Unlink();
-                
-            // reset the Sensor ID to unlinked     
-            imap.second->SetSensorId(0);
+            imap.second->UnlinkFromSink();
+            Bintr::UnlinkFromSink();
         }
     }
 

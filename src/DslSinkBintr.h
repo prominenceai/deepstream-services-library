@@ -28,7 +28,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslBintr.h"
-#include "DslPadtr.h"
 #include "DslElementr.h"
 
 namespace DSL
@@ -52,10 +51,6 @@ namespace DSL
          * @brief true of the Sink is of type Overlay, false otherwise
          */
         bool m_isOverlay;
-        
-        DSL_REQUEST_PADTR_PTR m_pRequestSourcePadtr;
-        
-        DSL_STATIC_PADTR_PTR m_pStaticSinkPadtr;        
     };
 
     class OverlaySinkBintr : public SinkBintr
@@ -66,8 +61,6 @@ namespace DSL
 
         ~OverlaySinkBintr();
   
-        std::shared_ptr<StaticPadtr> m_pStaticSinkPadtr;        
-      
         bool LinkAll();
         
         void UnlinkAll();

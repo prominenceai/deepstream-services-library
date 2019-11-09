@@ -75,8 +75,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->LinkTo(m_pVidConv);
-        m_pVidConv->LinkTo(m_pClassifier);
+        m_pQueue->LinkToSink(m_pVidConv);
+        m_pVidConv->LinkToSink(m_pClassifier);
         
         return true;
     }
@@ -85,8 +85,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->Unlink();
-        m_pVidConv->Unlink();
+        m_pQueue->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
     }
 
     void GieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)

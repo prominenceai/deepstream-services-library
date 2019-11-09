@@ -90,7 +90,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->LinkTo(m_pOverlay);
+        m_pQueue->LinkToSink(m_pOverlay);
         
         return true;
     }
@@ -99,7 +99,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->Unlink();
+        m_pQueue->UnlinkFromSink();
     }
 
     

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
-#include "DslNodetr.h"
+#include "DslGstNodetr.h"
 
 namespace DSL
 {
@@ -41,7 +41,7 @@ namespace DSL
      * @class Bintr
      * @brief Implements a base container class for a GST Bin
      */
-    class Bintr : public Nodetr
+    class Bintr : public GstNodetr
     {
     public:
 
@@ -49,11 +49,11 @@ namespace DSL
          * @brief named container ctor with new Bin 
          */
         Bintr(const char* name)
-            : Nodetr(name)
+            : GstNodetr(name)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pSinkPad(NULL)
-            , m_pSourcePad(NULL)
+            , m_pGstSinkPad(NULL)
+            , m_pGstSourcePad(NULL)
         { 
             LOG_FUNC(); 
 
@@ -73,48 +73,23 @@ namespace DSL
             LOG_FUNC();
             LOG_INFO("DTOR for Bintr '" << m_name << "' Called with " << m_pChildren.size() << " children");
             
-            Unlink();
-
             if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
             {
                 LOG_INFO("Unreferencing GST Object contained by this Bintr '" << m_name << "'");
                 
                 gst_object_unref(m_pGstObj);
             }
-        }
-        
-        /**
-         * @brief links this Bintr as source to a given Bintr as sink
-         * @param pSinkBintr to link to
-         */
-        void LinkTo(DSL_NODETR_PTR pSink)
-        { 
-            LOG_FUNC();
-            
-            // Call the base class to setup the relationship first
-            Nodetr::LinkTo(pSink);
-
-            // Link Source Bintr to Sink Bintr as elements 
-            if (!gst_element_link(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj)))
+            if (m_pGstSinkPad)
             {
-                LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
-                throw;
+                LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << m_name << "'");
+                
+                gst_object_unref(m_pGstSinkPad);
             }
-        }
-
-        /**
-         * @brief unlinks this Bintr from a previously linked-to sink Bintr
-         */
-        void Unlink()
-        { 
-            LOG_FUNC();
-
-            if (IsLinked())
+            if (m_pGstSourcePad)
             {
-                gst_element_unlink(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj));
-
-                // Call the base class to complete the unlink
-                Nodetr::Unlink();
+                LOG_INFO("Unreferencing GST Source Pad for Bintr '" << m_name << "'");
+                
+                gst_object_unref(m_pGstSourcePad);
             }
         }
 
@@ -221,9 +196,15 @@ namespace DSL
          */
         guint m_nvbufMemoryType;
 
-        GstPad* m_pSinkPad;
+        /**
+         * @brief Static Pad object for the Sink Elementr within this Bintr
+         */
+        GstPad* m_pGstSinkPad;
             
-        GstPad* m_pSourcePad;
+        /**
+         * @brief Static Pad object for the Source Elementr within this Bintr
+         */
+        GstPad* m_pGstSourcePad;
     };
 
 } // DSL

@@ -37,6 +37,13 @@ THE SOFTWARE.
 namespace DSL 
 {
     /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_PIPELINE_PTR std::shared_ptr<PipelineBintr>
+    #define DSL_PIPELINE_NEW(name) \
+        std::shared_ptr<PipelineBintr>(new PipelineBintr(name))
+
+    /**
      * @class PipelineBintr
      * @brief 
      */

@@ -79,9 +79,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->LinkTo(m_pVidConv);
-        m_pVidConv->LinkTo(m_pConvQueue);
-        m_pConvQueue->LinkTo(m_pOsd);
+        m_pQueue->LinkToSink(m_pVidConv);
+        m_pVidConv->LinkToSink(m_pConvQueue);
+        m_pConvQueue->LinkToSink(m_pOsd);
         
         return true;
     }
@@ -90,9 +90,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue->Unlink();
-        m_pVidConv->Unlink();
-        m_pConvQueue->Unlink();
+        m_pQueue->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
+        m_pConvQueue->UnlinkFromSink();
     }
 
     void OsdBintr::AddToParent(DSL_NODETR_PTR pParentBintr)

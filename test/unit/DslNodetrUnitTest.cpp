@@ -134,7 +134,7 @@ SCENARIO( "Source-Sink Nodetr releationship is setup on Link", "[Nodetr]" )
 
         WHEN( "When the Source Nodetr is linked to the Sink Nodetr" )
         {
-            pSourceNodetr->LinkTo(pSinkNodetr);
+            pSourceNodetr->LinkToSink(pSinkNodetr);
             
             THEN( "The Source-Sync relationship is created" )
             {
@@ -153,7 +153,7 @@ SCENARIO( "Source-Sink Nodetr releationship is setup on Link", "[Nodetr]" )
     }
 }
 
-SCENARIO( "Source-Sink Nodetr releationship is removed on Unink", "[Nodetr]" )
+SCENARIO( "Source-Sink Nodetr releationship is removed on Unlink & UnlinkFrom", "[Nodetr]" )
 {
     GIVEN( "A Source Nodetr linked to a Sink Nodetr" ) 
     {
@@ -163,7 +163,7 @@ SCENARIO( "Source-Sink Nodetr releationship is removed on Unink", "[Nodetr]" )
         DSL_NODETR_PTR pSourceNodetr = DSL_NODETR_NEW(sourceNodetrName.c_str());
         DSL_NODETR_PTR pSinkNodetr = DSL_NODETR_NEW(sinkNodetrName.c_str());
 
-        pSourceNodetr->LinkTo(pSinkNodetr);
+        pSourceNodetr->LinkToSink(pSinkNodetr);
 
         // Ensure no Parent-Child Nodetr relationships exist
         REQUIRE( pSourceNodetr->m_pChildren.size() == 0 );
@@ -171,9 +171,21 @@ SCENARIO( "Source-Sink Nodetr releationship is removed on Unink", "[Nodetr]" )
         REQUIRE( pSinkNodetr->m_pChildren.size() == 0 );
         REQUIRE( pSinkNodetr->m_pParentGstObj == NULL );
 
-        WHEN( "When the Source Nodetr is unlinked from the Sink Nodetr" )
+        WHEN( "When the SourceNodetr Unlinks the SinkNodetr" )
         {
-            pSourceNodetr->Unlink();
+            pSourceNodetr->UnlinkFromSink();
+            
+            THEN( "The Source-Sync relationship is removed" )
+            {
+                REQUIRE( pSourceNodetr->m_pSink == nullptr );            
+                REQUIRE( pSinkNodetr->m_pSource == nullptr );            
+                REQUIRE( pSourceNodetr->IsInUse() == false );            
+                REQUIRE( pSinkNodetr->IsInUse() == false );            
+            }
+        }
+        WHEN( "When the SinkNodetr Unlinks from the SourceNodetr" )
+        {
+            pSinkNodetr->UnlinkFromSource();
             
             THEN( "The Source-Sync relationship is removed" )
             {

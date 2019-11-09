@@ -52,8 +52,8 @@ namespace DSL
         
         /**
          * @brief adds a child SourceBintr to this PipelineSourcesBintr
-         * @param pChildElement shared pointer to SourceBintr to add
-         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         * @param pChildSource shared pointer to SourceBintr to add
+         * @return a shared pointer to the SourceBintr if added correctly, nullptr otherwise
          */
         DSL_NODETR_PTR AddChild(DSL_SOURCE_PTR pChildSource);
         
@@ -78,7 +78,7 @@ namespace DSL
          * @brief overrides the base Noder method to only return the number of 
          * child SourceBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child SourceBintrs held by this Parent Nodetr
+         * @return the number of Child SourceBintrs held by this PipelineSourcesBintr
          */
         uint GetNumChildren()
         {
