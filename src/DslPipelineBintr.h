@@ -66,7 +66,7 @@ namespace DSL
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        void AddSourceBintr(DSL_SOURCE_PTR pSourceBintr);
 
         bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
 

@@ -25,8 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-
-SCENARIO( "A state-change-listener must be unique", "[pipeline]" )
+SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
 {
     std::string pipelineName = "test-pipeline";
     dsl_state_change_listener_cb listener;
@@ -52,7 +51,7 @@ SCENARIO( "A state-change-listener must be unique", "[pipeline]" )
     }
 }    
 
-SCENARIO( "A state-change-listener can be removed", "[pipeline]" )
+SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
 {
     std::string pipelineName = "test-pipeline";
     dsl_state_change_listener_cb listener;

@@ -105,7 +105,7 @@ namespace DSL
         
     }
     
-    void PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
+    void PipelineBintr::AddSourceBintr(DSL_SOURCE_PTR pSourceBintr)
     {
         LOG_FUNC();
 
@@ -123,7 +123,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        return (pSourceBintr->IsParent(m_pPipelineSourcesBintr));
+        return (m_pPipelineSourcesBintr->IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
 
@@ -131,7 +131,9 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->RemoveChild(pSourceBintr);
+        LOG_INFO("------------------------------");
+        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
+        m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
     void PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pGieBintr)
@@ -160,7 +162,7 @@ namespace DSL
             AddChild(m_pPipelineSinksBintr);
         }
 
-//        m_pPipelineSinksBintr->AddChild(pSinkBintr);
+        m_pPipelineSinksBintr->AddChild(pSinkBintr);
         
     }
 
