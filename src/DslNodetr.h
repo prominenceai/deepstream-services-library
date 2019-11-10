@@ -155,7 +155,7 @@ namespace DSL
          * @param pChild Nodetr to test for the child relationship
          * @return true if pChild is a child of this Nodetr
          */
-        bool IsChild(DSL_NODETR_PTR pChild)
+        virtual bool IsChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
@@ -167,7 +167,7 @@ namespace DSL
          * @param pParent the Nodetr to check for a Parental relationship
          * @return True if the provided Nodetr is this Nodetr's Parent
          */
-        bool IsParent(DSL_NODETR_PTR pParent)
+        virtual bool IsParent(DSL_NODETR_PTR pParent)
         {
             LOG_FUNC();
             

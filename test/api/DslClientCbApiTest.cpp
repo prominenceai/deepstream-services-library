@@ -38,7 +38,7 @@ void StateChangeListener2(uint oldstate, uint newstate, void* userdata)
     REQUIRE(userdata == (void*)LISTENER_2_DATA);
 }
 
-SCENARIO( "All state-change-listeners are called on change of state", "[pipeline]" )
+SCENARIO( "All state-change-listeners are called on change of state", "[client-cb-api]" )
 {
     std::string pipelineName = "test-pipeline";
     std::string sourceName  = "csi-source";

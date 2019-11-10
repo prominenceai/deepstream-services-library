@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp", "[pipeline]" )
+SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp", "[pipeline-dbg-api]" )
 {
     std::string pipelineName  = "test-pipeline";
     std::string sourceName = "csi-source";

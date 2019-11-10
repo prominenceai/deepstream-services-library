@@ -30,29 +30,20 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A Pipeline fails to Link without at least one Source component ", "[PipelineBintr]" )
+SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
 {
-    GIVEN( "A Pipeline and a Tiled Display only" ) 
+    GIVEN( "A new name for a PipelineBintr" ) 
     {
-        std::string displayName = "tiled-display";
-        std::string pipelineName = "pipeline";
+        std::string pipelineName = "test-pipeline";
 
-        uint width(1280);
-        uint height(720);
-
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), width, height);
-
-        DSL_PIPELINE_PTR pPipelineBintr = 
-            DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        WHEN( "The Pipeline is setup without a Source Component" )
+        WHEN( "The new PipelineBintr is created" )
         {
-            pDisplayBintr->AddToParent(pPipelineBintr);
+            DSL_PIPELINE_PTR pPipelineBintr = 
+                DSL_PIPELINE_NEW(pipelineName.c_str());
 
-            THEN( "The Pipeline fails to assemble" )
+            THEN( "All member variables are setup correctly" )
             {
-                REQUIRE( pPipelineBintr->LinkAll() == false );
+                REQUIRE( pPipelineBintr->m_name == pipelineName );
             }
         }
     }
@@ -100,7 +91,7 @@ SCENARIO( "A Pipeline is able to asseble with a Tiled Display component ", "[Pip
             THEN( "The Pipeline fails to assemble" )
             {
 //                REQUIRE( pPipelineBintr->_assemble() == true );
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }
     }

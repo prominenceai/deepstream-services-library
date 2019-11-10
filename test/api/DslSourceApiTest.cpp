@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "The Components container is updated correctly on new source", "[source]" )
+SCENARIO( "The Components container is updated correctly on new source", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
 
@@ -52,7 +52,7 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
     }
 }    
     
-SCENARIO( "The Components container is updated correctly on Source Delete", "[source]" )
+SCENARIO( "The Components container is updated correctly on Source Delete", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
 
@@ -75,7 +75,7 @@ SCENARIO( "The Components container is updated correctly on Source Delete", "[so
     }
 }
 
-SCENARIO( "A Source in use can't be deleted", "[source]" )
+SCENARIO( "A Source in use can't be deleted", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
     std::string pipelineName  = "test-pipeline";
@@ -104,24 +104,25 @@ SCENARIO( "A Source in use can't be deleted", "[source]" )
     }
 }
 
-SCENARIO( "A Source removed from a Pipeline can be deleted", "[source]" )
+SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
     std::string pipelineName  = "test-pipeline";
 
-    GIVEN( "A new Source and new Pipeline" ) 
+    GIVEN( "A new Pipeline with a Child CSI Source" ) 
     {
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The Source is added to the Pipeline and then removed " ) 
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            
+        WHEN( "The Source is removed from the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
                 sourceName.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "The Source can't be deleted" ) 
+            THEN( "The Source can be deleted successfully" ) 
             {
                 REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
             }
@@ -183,7 +184,7 @@ SCENARIO( "A Client is able to update the Source in-use max" )
     }
 }
 
-SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source]" )
+SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
     std::string pipelineName  = "test-pipeline";
@@ -209,21 +210,22 @@ SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source]" )
     }
 }
 
-SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source]" )
+SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source-api]" )
 {
     std::string sourceName  = "csi-source";
     std::string pipelineName  = "test-pipeline";
 
-    GIVEN( "A new Source and new pPipeline" ) 
+    GIVEN( "A new Pipeline with a Source" ) 
     {
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_get_num_in_use() == 0 );
 
-        WHEN( "The Source is added to, and then removed from, the Pipeline" ) 
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            sourceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_get_num_in_use() == 1 );
+
+        WHEN( "The Source is removed from, the Pipeline" ) 
         {
-            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                sourceName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
                 sourceName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -237,7 +239,7 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
     }
 }    
 
-SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[source]" )
+SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[source-api]" )
 {
     std::string sourceName1  = "csi-source1";
     std::string pipelineName1  = "test-pipeline1";

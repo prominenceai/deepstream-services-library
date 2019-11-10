@@ -33,7 +33,7 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
-        , m_sensorId(0)
+        , m_sensorId(-1)
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -59,16 +59,16 @@ namespace DSL
         
         // add 'this' Source to the Parent Pipeline 
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddSourceBintr(shared_from_this());
+            AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::IsMyParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::IsParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // check if 'this' Source is child of Parent Pipeline 
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            IsSourceBintrChild(shared_from_this());
+            IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
     void SourceBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
@@ -77,7 +77,7 @@ namespace DSL
         
         // remove 'this' Source from the Parent Pipeline 
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            RemoveSourceBintr(shared_from_this());
+            RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
     int SourceBintr::GetSensorId()

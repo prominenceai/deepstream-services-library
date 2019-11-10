@@ -55,7 +55,7 @@ namespace DSL
 
         void AddToParent(DSL_NODETR_PTR pParentBintr);
 
-        bool IsMyParent(DSL_NODETR_PTR pParentBintr);
+        bool IsParent(DSL_NODETR_PTR pParentBintr);
                         
         void RemoveFromParent(DSL_NODETR_PTR pParentBintr);
         
