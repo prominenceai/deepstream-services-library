@@ -51,13 +51,13 @@ namespace DSL {
         
         DslReturnType SetDumpDotDir(const char* dir);
         
-        DslReturnType SourceCsiNew(const char* source, 
+        DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
-        DslReturnType SourceUriNew(const char* source, 
+        DslReturnType SourceUriNew(const char* name, 
             const char* uri, uint cudadecMemType, uint intraDecode);
             
-        boolean SourceIsLive(const char* source);
+        boolean SourceIsLive(const char* name);
         
         uint GetNumSourceInUse();
         
@@ -65,19 +65,15 @@ namespace DSL {
         
         void SetNumSourceInUseMax(uint max);
         
-        DslReturnType StreamMuxNew(const char* streammux, boolean live, 
-            uint batchSize, uint batchTimeout, uint width, uint height);
-        
-        DslReturnType OverlaySinkNew(const char* sink, 
+        DslReturnType OverlaySinkNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
         
-        DslReturnType OsdNew(const char* osd, boolean isClockEnabled);
+        DslReturnType OsdNew(const char* name, boolean isClockEnabled);
         
-        DslReturnType GieNew(const char* gie, const char* configFilePath, 
-            uint batchSize, uint interval, uint uniqueId, uint gpuId, 
-            const char* modelEngineFile, const char* rawOutputDir);
+        DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint interval, uint uniqueId);
         
-        DslReturnType DisplayNew(const char* display, uint width, uint height);
+        DslReturnType DisplayNew(const char* name, uint width, uint height);
         
         boolean ComponentIsInUse(const char* component);
         

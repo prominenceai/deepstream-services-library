@@ -28,16 +28,14 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    GieBintr::GieBintr(const char* osd, const char* inferConfigFile,
-        guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-        const char* modelEngineFile, const char*  rawOutputDir)
-        : Bintr(osd)
-        , m_batchSize(batchSize)
+    PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
+        const char* modelEngineFile, uint interval, uint uniqueId)
+        : Bintr(name)
+        , m_batchSize(0)
         , m_interval(interval)
         , m_uniqueId(uniqueId)
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
-        , m_rawOutputDir(rawOutputDir)
     {
         LOG_FUNC();
         
@@ -50,11 +48,10 @@ namespace DSL
 
         m_pClassifier->SetAttribute("config-file-path", inferConfigFile);
         m_pClassifier->SetAttribute("process-mode", 1);
-        m_pClassifier->SetAttribute("batch-size", m_batchSize);
         m_pClassifier->SetAttribute("interval", m_interval);
         m_pClassifier->SetAttribute("unique-id", m_uniqueId);
         m_pClassifier->SetAttribute("gpu-id", m_gpuId);
-        m_pClassifier->SetAttribute("model-engine-file", m_modelEngineFile.c_str());
+        m_pClassifier->SetAttribute("model-engine-file", modelEngineFile);
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
@@ -64,32 +61,36 @@ namespace DSL
         m_pClassifier->AddGhostPadToParent("src");
     }    
     
-    GieBintr::~GieBintr()
+    PrimaryGieBintr::~PrimaryGieBintr()
     {
         LOG_FUNC();
 
         UnlinkAll();
     }
 
-    bool GieBintr::LinkAll()
+    bool PrimaryGieBintr::LinkAll()
     {
         LOG_FUNC();
         
         m_pQueue->LinkToSink(m_pVidConv);
         m_pVidConv->LinkToSink(m_pClassifier);
         
+        m_isLinked = true;
+        
         return true;
     }
     
-    void GieBintr::UnlinkAll()
+    void PrimaryGieBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         m_pQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
+
+        m_isLinked = false;
     }
 
-    void GieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    void PrimaryGieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -97,4 +98,64 @@ namespace DSL
         std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddPrimaryGieBintr(shared_from_this());
     }
+
+    const char* PrimaryGieBintr::GetInferConfigFile()
+    {
+        LOG_FUNC();
+        
+        return m_inferConfigFile.c_str();
+    }
+    
+    const char* PrimaryGieBintr::GetModelEngineFile()
+    {
+        LOG_FUNC();
+        
+        return m_modelEngineFile.c_str();
+    }
+    
+    void PrimaryGieBintr::SetBatchSize(uint batchSize)
+    {
+        LOG_FUNC();
+        
+        m_batchSize = batchSize;
+        m_pClassifier->SetAttribute("batch-size", m_batchSize);
+    }
+    
+    uint PrimaryGieBintr::GetBatchSize()
+    {
+        LOG_FUNC();
+        
+        return m_batchSize;
+    }
+
+    void PrimaryGieBintr::SetInterval(uint interval)
+    {
+        LOG_FUNC();
+        
+        m_interval = interval;
+        m_pClassifier->SetAttribute("interval", m_interval);
+    }
+    
+    uint PrimaryGieBintr::GetInterval()
+    {
+        LOG_FUNC();
+        
+        return m_interval;
+    }
+
+    void PrimaryGieBintr::SetUniqueId(uint uniqueId)
+    {
+        LOG_FUNC();
+        
+        m_uniqueId = uniqueId;
+        m_pClassifier->SetAttribute("unique-id", m_uniqueId);
+    }
+    
+    uint PrimaryGieBintr::GetUniqueId()
+    {
+        LOG_FUNC();
+        
+        return m_uniqueId;
+    }
+    
 }    

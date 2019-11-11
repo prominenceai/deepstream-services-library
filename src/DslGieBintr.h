@@ -36,23 +36,100 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    // TODO
-    
-    class GieBintr : public Bintr
+    #define DSL_PRIMARY_GIE_PTR std::shared_ptr<PrimaryGieBintr>
+    #define DSL_PRIMARY_GIE_NEW(name, inferConfigFile, modelEngineFile, interval, uniqueId) \
+        std::shared_ptr<PrimaryGieBintr>(new PrimaryGieBintr( \
+        name, inferConfigFile, modelEngineFile, interval, uniqueId))
+
+    /**
+     * @class PrimaryGieBintr
+     * @brief Implements a container for a Primary GST Infer Engine (GIE)
+     */
+    class PrimaryGieBintr : public Bintr
     {
     public: 
     
-        GieBintr(const char* osd, const char* inferConfigFile,
-            guint batchSize, guint interval, guint uniqueId, guint gpuId, 
-            const char* modelEngineFile, const char* rawOutputDir);
+        /**
+         * @brief ctor for the PrimaryGieBintr
+         * @param[in] name name to give the new Bintr
+         * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
+         * @param[in] modelEnginFile fully qualified pathspec for the model engine file to use
+         * @param[in] interval
+         * @param[in] uniqueId
+         */
+        PrimaryGieBintr(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint interval, uint uniqueId);
 
-        ~GieBintr();
+        /**
+         * @brief dtor for the PrimaryGieBintr
+         */
+        ~PrimaryGieBintr();
 
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
         void UnlinkAll();
         
+        /**
+         * @brief Adds the PrimaryGieBintr to a Parent Pipeline Bintr
+         * @param pParentBintr Parent Pipeline to add this Bintr to
+         */
         void AddToParent(DSL_NODETR_PTR pParentBintr);
+        
+        /**
+         * @brief gets the name of the Infer Config File in use by this PrimaryGieBintr
+         * @return fully qualified patspec used to create this Bintr
+         */
+        const char* GetInferConfigFile();
+        
+        /**
+         * @brief gets the name of the Model Engine File in use by this PrimaryGieBintr
+         * @return fully qualified patspec used to create this Bintr
+         */
+        const char* GetModelEngineFile();
+        
+        /**
+         * @brief sets the batch size for this Bintr
+         * @param the new batchSize to use
+         */
+        void SetBatchSize(uint batchSize);
+        
+        /**
+         * @brief gets the current batchSize in use by this PrimaryGieBintr
+         * @return the current batchSize
+         */
+        uint GetBatchSize();
+
+        /**
+         * @brief sets the interval for this Bintr
+         * @param the new interval to use
+         */
+        void SetInterval(uint interval);
+        
+        /**
+         * @brief gets the current interval in use by this PrimaryGieBintr
+         * @return the current interval setting
+         */
+        uint GetInterval();
+
+        /**
+         * @brief sets the unique Id for this Bintr
+         * @param the new id to use
+         */
+        void SetUniqueId(uint uniqueId);
+        
+        /**
+         * @brief gets the current unique Id in use by this PrimaryGieBintr
+         * @return the current unique Id
+         */
+        uint GetUniqueId();
 
     private:
 
@@ -61,26 +138,34 @@ namespace DSL
         static std::string m_sClockFont;
         static guint m_sClockFontSize;
         
-        guint m_batchSize;
+        uint m_batchSize;
         
-        guint m_interval;
+        uint m_interval;
         
-        guint m_uniqueId;
+        uint m_uniqueId;
 
         std::string m_inferConfigFile;
         
         std::string m_modelEngineFile;
-
-        std::string m_rawOutputDir;
-        
         
         /**
          @brief
          */
-        guint m_processMode;
+        uint m_processMode;
         
+        /**
+         * @brief Queue Elementr as Sink for this PrimaryGieBintr
+         */
         DSL_ELEMENT_PTR  m_pQueue;
+
+        /**
+         * @brief Video Converter Elementr for this PrimaryGieBintr
+         */
         DSL_ELEMENT_PTR  m_pVidConv;
+
+        /**
+         * @brief Classifier Elementr as Source for this PrimaryGieBintr
+         */
         DSL_ELEMENT_PTR  m_pClassifier;
     
     };
