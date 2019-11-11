@@ -43,6 +43,13 @@ namespace DSL
         LOG_FUNC();
     }
     
+    bool SinkBintr::IsOverlay()
+    {
+        LOG_FUNC();
+        
+        return m_isOverlay;
+    }
+    
     OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, 
         guint width, guint height)
         : SinkBintr(sink)
@@ -63,7 +70,7 @@ namespace DSL
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
         
         m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("overlay", m_isOverlay);
+        m_pOverlay->SetAttribute("overlay", false);
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         m_pOverlay->SetAttribute("overlay-w", m_width);
@@ -101,7 +108,6 @@ namespace DSL
         
         m_pQueue->UnlinkFromSink();
     }
-
     
     void OverlaySinkBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
@@ -119,4 +125,5 @@ namespace DSL
         m_displayId = id;
         m_pOverlay->SetAttribute("display-id", m_displayId);
     }
+    
 }    

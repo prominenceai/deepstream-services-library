@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <cstdlib>
 
 #include <gst/gst.h>
+#include <gst/video/videooverlay.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 

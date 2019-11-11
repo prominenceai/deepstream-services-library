@@ -34,7 +34,7 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
-        std::string pipelineName = "test-pipeline";
+        std::string pipelineName = "pipeline";
 
         WHEN( "The new PipelineBintr is created" )
         {
@@ -49,9 +49,85 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
     }
 }
 
-SCENARIO( "A Pipeline is able to asseble with a Tiled Display component ", "[PipelineBintr]" )
+SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components", "[PipelineBintr]" )
 {
-    GIVEN( "A Pipeline and a Tiled Display only" ) 
+    GIVEN( "A new CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName = "csi-source";
+        std::string sinkName = "overlay-sink";
+        std::string pipelineName = "pipeline";
+
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        WHEN( "The PipelineBintr has a OverlaySinkBintr but no CsiSourceBintr" )
+        {
+            pSinkBintr->AddToParent(pPipelineBintr);
+
+            THEN( "The Pipeline will fail to LinkAll" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == false );
+            }
+        }
+        WHEN( "The PipelineBintr has a CsiSourceBintr but no OverlaySinkBintr" )
+        {
+            pSourceBintr->AddToParent(pPipelineBintr);
+
+            THEN( "The Pipeline will fail to LinkAll" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr with a Display" ) 
+    {
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
+
+        uint displayW(1280);
+        uint displayH(720);
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        pDisplayBintr->AddToParent(pPipelineBintr);
+
+        WHEN( "The new PipelineBintr's XWindow is created" )
+        {
+            REQUIRE( pPipelineBintr->CreateXWindow() == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pPipelineBintr->GetXWindow() != 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "csi-source";
         std::string sinkName = "overlay-sink";
@@ -67,31 +143,70 @@ SCENARIO( "A Pipeline is able to asseble with a Tiled Display component ", "[Pip
         uint sinkW(0);
         uint sinkH(0);
 
-        std::shared_ptr<DSL::CsiSourceBintr> pSourceBintr = 
-            std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
-            sourceName.c_str(), displayW, displayH, fps_n, fps_d));
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
 
-        std::shared_ptr<DSL::DisplayBintr> pDisplayBintr = 
-            std::shared_ptr<DSL::DisplayBintr>(new DSL::DisplayBintr(
-            displayName.c_str(), displayW, displayH));
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
 
-        std::shared_ptr<DSL::OverlaySinkBintr> pSinkBintr = 
-            std::shared_ptr<DSL::OverlaySinkBintr>(new DSL::OverlaySinkBintr(
-            sinkName.c_str(), offsetX, offsetY, sinkW, sinkH));
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        std::shared_ptr<DSL::PipelineBintr> pPipelineBintr = 
-            std::shared_ptr<DSL::PipelineBintr>(new DSL::PipelineBintr(pipelineName.c_str()));
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        WHEN( "The Pipeline is setup with a Tiled Display Component" )
+        WHEN( "All components are added to the PipelineBintr" )
         {
             pSourceBintr->AddToParent(pPipelineBintr);
             pDisplayBintr->AddToParent(pPipelineBintr);
             pSinkBintr->AddToParent(pPipelineBintr);
 
-            THEN( "The Pipeline fails to assemble" )
+            THEN( "The Pipeline components are Linked correctly" )
             {
-//                REQUIRE( pPipelineBintr->_assemble() == true );
-//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                REQUIRE( pPipelineBintr->LinkAll() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components ", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName = "csi-source";
+        std::string sinkName = "overlay-sink";
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
+
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "All components are added and the PipelineBintr is Linked" )
+        {
+            pSourceBintr->AddToParent(pPipelineBintr);
+            pDisplayBintr->AddToParent(pPipelineBintr);
+            pSinkBintr->AddToParent(pPipelineBintr);
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+
+            THEN( "The Pipeline components are Linked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
             }
         }
     }

@@ -51,24 +51,11 @@ namespace DSL
         ~PipelineSinksBintr();
         
         /**
-         * @brief adds a child Elementr to this PipelineSinksBintr
-         * @param pChildElement a shared pointer to the Elementr to add
-         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
-         */
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
-        
-        /**
          * @brief adds a child SinkBintr to this PipelineSinksBintr
          * @param pChildSink shared pointer to SinkBintr to add
          * @return a shared pointer to the SinkBintr if added correctly, nullptr otherwise
          */
         DSL_NODETR_PTR AddChild(DSL_SINK_PTR pChildSink);
-        
-        /**
-         * @brief removes a child Elementr from this PipelineSinksBintr
-         * @param pChildElement a shared pointer to the Elementr to remove
-         */
-        void RemoveChild(DSL_NODETR_PTR pChildElement);
         
         /**
          * @brief removes a child SinkBintr from this PipelineSinksBintr
@@ -104,12 +91,28 @@ namespace DSL
          */
         void UnlinkAll();
         
-    public:
+    private:
+    private:
+        /**
+         * @brief adds a child Elementr to this PipelineSinksBintr
+         * @param pChildElement a shared pointer to the Elementr to add
+         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
+
+        /**
+         * @brief removes a child Elementr from this PipelineSinksBintr
+         * @param pChildElement a shared pointer to the Elementr to remove
+         */
+        void RemoveChild(DSL_NODETR_PTR pChildElement);
+        
+    public: // Members are public for the purpose of Test/Verification only
 
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pTee;
     
         std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
+
     };
 }
 

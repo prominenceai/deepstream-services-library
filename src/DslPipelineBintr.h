@@ -59,14 +59,12 @@ namespace DSL
 
         bool Pause();
         bool Play();
-
-        void RemoveAllChildren();
         
         /**
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddSourceBintr(DSL_SOURCE_PTR pSourceBintr);
+        void AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
         bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
 
@@ -223,14 +221,27 @@ namespace DSL
          */
         void HandleXWindowEvents();
 
-        bool _createWindow();
+        bool CreateXWindow();
         
         bool LinkAll();
         
         void UnlinkAll();
+        
+        /**
+         * @brief returns a handle to this PipelineBintr's XWindow
+         * @return XWindow handle, NULL untill created
+         */
+        const Window GetXWindow()
+        {
+            LOG_FUNC();
+            
+            return m_pXWindow;
+        }
 
     private:
 
+        std::vector<DSL_BINTR_PTR> m_linkedComponents;
+        
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */
@@ -262,11 +273,6 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_display_event_handler_cb, void*>m_displayEventHandlers;
-
-        /**
-         * @brief mutex to protect critical pipeline code
-         */
-        GMutex m_pipelineMutex;
 
         /**
          * @brief mutex to prevent callback reentry
@@ -323,10 +329,10 @@ namespace DSL
         void _handleErrorMessage(GstMessage* pMessage);
 
         /**
-         * @brief true if the components in the Pipeline are in a state 
-         * of assembled and read to play, false if unlinked. 
+         * @brief true if the components in the Pipeline are linked and  
+         * ready to play, false if unlinked. 
          */
-        bool m_isAssembled;
+        bool m_isLinked;
         
         /**
          * @brief initializes the "constant-value-to-string" maps

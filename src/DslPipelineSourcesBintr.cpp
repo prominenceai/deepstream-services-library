@@ -78,7 +78,6 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(pChildSource)->IsLive());
         }
         
-        LOG_INFO("=============================================");
         // Add the Source to the Sources collection and as a child of this Bintr
         m_pChildSources[pChildSource->m_name] = pChildSource;
         return Bintr::AddChild(pChildSource);
@@ -87,7 +86,6 @@ namespace DSL
     bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
-        LOG_INFO("xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx");
         
         return (bool)m_pChildSources[pChildSource->m_name];
     }
