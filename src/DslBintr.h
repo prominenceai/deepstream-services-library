@@ -50,6 +50,7 @@ namespace DSL
          */
         Bintr(const char* name)
             : GstNodetr(name)
+            , m_isLinked(false)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
             , m_pGstSinkPad(NULL)
@@ -183,8 +184,21 @@ namespace DSL
          */
         virtual void UnlinkAll() = 0;
         
+        /**
+         * @brief called to determine if a Bintr's Child Elementrs are Linked
+         * @return true if Child Elementrs are currently Linked, false otherwise
+         */
+        bool IsLinked()
+        {
+            LOG_FUNC();
+            
+            return m_isLinked;
+        }
+        
         
     public:
+    
+        bool m_isLinked;
 
         /**
          * @brief

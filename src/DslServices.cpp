@@ -47,23 +47,23 @@ GST_DEBUG_CATEGORY(GST_CAT_DSL);
 }while(0); 
     
 
-DslReturnType dsl_source_csi_new(const char* source, 
+DslReturnType dsl_source_csi_new(const char* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {
-    return DSL::Services::GetServices()->SourceCsiNew(source, 
+    return DSL::Services::GetServices()->SourceCsiNew(name, 
         width, height, fps_n, fps_d);
 }
 
-DslReturnType dsl_source_uri_new(const char* source, 
+DslReturnType dsl_source_uri_new(const char* name, 
     const char* uri, uint cudadec_mem_type, uint intra_decode)
 {
-    return DSL::Services::GetServices()->SourceUriNew(source,
+    return DSL::Services::GetServices()->SourceUriNew(name,
         uri, cudadec_mem_type, intra_decode);
 }
 
-boolean dsl_source_is_live(const char* source)
+boolean dsl_source_is_live(const char* name)
 {
-    return DSL::Services::GetServices()->SourceIsLive(source);
+    return DSL::Services::GetServices()->SourceIsLive(name);
 }
 
 uint dsl_source_get_num_in_use()
@@ -81,29 +81,28 @@ void dsl_source_set_num_in_use_max(uint max)
     return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
 }
 
-DslReturnType dsl_sink_overlay_new(const char* sink,
+DslReturnType dsl_sink_overlay_new(const char* name,
     uint offsetX, uint offsetY, uint width, uint height)
 {
-    return DSL::Services::GetServices()->OverlaySinkNew(sink, 
+    return DSL::Services::GetServices()->OverlaySinkNew(name, 
         offsetX, offsetY, width, height);
 }
 
-DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled)
+DslReturnType dsl_osd_new(const char* name, boolean isClockEnabled)
 {
-    return DSL::Services::GetServices()->OsdNew(osd, isClockEnabled);
+    return DSL::Services::GetServices()->OsdNew(name, isClockEnabled);
 }
 
-DslReturnType dsl_display_new(const char* display, uint width, uint height)
+DslReturnType dsl_display_new(const char* name, uint width, uint height)
 {
-    return DSL::Services::GetServices()->DisplayNew(display, width, height);
+    return DSL::Services::GetServices()->DisplayNew(name, width, height);
 }
 
-DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-    uint batchSize, uint interval, uint uniqueId, uint gpuId, 
-    const char* modelEngineFile, const char* rawOutputDir)
+DslReturnType dsl_gie_primary_new(const char* name, const char* inferConfigFile,
+    const char* modelEngineFile, uint interval, uint uniqueId)
 {
-    return DSL::Services::GetServices()->GieNew(gie, inferConfigFile, batchSize, 
-        interval, uniqueId, gpuId, modelEngineFile, rawOutputDir);
+    return DSL::Services::GetServices()->PrimaryGieNew(name, inferConfigFile,
+        modelEngineFile, interval, uniqueId);
 }
 
 DslReturnType dsl_component_delete(const char* component)
@@ -324,43 +323,42 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
-    DslReturnType Services::SourceCsiNew(const char* source,
+    DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fps_n, uint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[source])
+        if (m_components[name])
         {   
-            LOG_ERROR("Source name '" << source << "' is not unique");
+            LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[source] = std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(
-                source, width, height, fps_n, fps_d));
+            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d);
         }
         catch(...)
         {
-            LOG_ERROR("New CSI Source '" << source << "' threw exception on create");
+            LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new CSI Source '" << source << "' created successfully");
+        LOG_INFO("new CSI Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceUriNew(const char* source,
+    DslReturnType Services::SourceUriNew(const char* name,
         const char* uri, uint cudadecMemType, uint intraDecode)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[source])
+        if (m_components[name])
         {   
-            LOG_ERROR("Source name '" << source << "' is not unique");
+            LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
 
@@ -378,32 +376,32 @@ namespace DSL
         LOG_INFO("URI stream file: " << streamFilePathSpec);
         try
         {
-            m_components[source] = std::shared_ptr<UriSourceBintr>(new UriSourceBintr(
-                source, streamFilePathSpec.c_str(), cudadecMemType, intraDecode));
+            m_components[name] = DSL_URI_SOURCE_NEW(
+                name, streamFilePathSpec.c_str(), cudadecMemType, intraDecode);
         }
         catch(...)
         {
-            LOG_ERROR("New URI Source '" << source << "' threw exception on create");
+            LOG_ERROR("New URI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new URI Source '" << source << "' created successfully");
+        LOG_INFO("new URI Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    boolean Services::SourceIsLive(const char* source)
+    boolean Services::SourceIsLive(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
-            return std::dynamic_pointer_cast<SourceBintr>(m_components[source])->IsLive();
+            return std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
         }
         catch(...)
         {
-            LOG_ERROR("Component '" << source << "' threw exception on create");
+            LOG_ERROR("Component '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -437,98 +435,95 @@ namespace DSL
         m_numSourceInUseMax = max;
     }
 
-    DslReturnType Services::OverlaySinkNew(const char* sink, 
+    DslReturnType Services::OverlaySinkNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[sink])
+        if (m_components[name])
         {   
-            LOG_ERROR("Sink name '" << sink << "' is not unique");
+            LOG_ERROR("Sink name '" << name << "' is not unique");
             return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[sink] = std::shared_ptr<Bintr>(new OverlaySinkBintr(
-                sink, offsetX, offsetY, width, height));
+            m_components[name] = DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height);
         }
         catch(...)
         {
-            LOG_ERROR("New Sink '" << sink << "' threw exception on create");
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_NEW_EXCEPTION;
         }
-        LOG_INFO("new Sink '" << sink << "' created successfully");
+        LOG_INFO("new Sink '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OsdNew(const char* osd, boolean isClockEnabled)
+    DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[osd])
+        if (m_components[name])
         {   
-            LOG_ERROR("OSD name '" << osd << "' is not unique");
+            LOG_ERROR("OSD name '" << name << "' is not unique");
             return DSL_RESULT_OSD_NAME_NOT_UNIQUE;
         }
         try
         {   
-            m_components[osd] = std::shared_ptr<Bintr>(new OsdBintr(
-                osd, isClockEnabled));
+            m_components[name] = std::shared_ptr<Bintr>(new OsdBintr(
+                name, isClockEnabled));
         }
         catch(...)
         {
-            LOG_ERROR("New OSD '" << osd << "' threw exception on create");
+            LOG_ERROR("New OSD '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_NEW_EXCEPTION;
         }
-        LOG_INFO("new OSD '" << osd << "' created successfully");
+        LOG_INFO("new OSD '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::DisplayNew(const char* display, 
+    DslReturnType Services::DisplayNew(const char* name, 
         uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[display])
+        if (m_components[name])
         {   
-            LOG_ERROR("Display name '" << display << "' is not unique");
+            LOG_ERROR("Display name '" << name << "' is not unique");
             return DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[display] = std::shared_ptr<Bintr>(new DisplayBintr(
-                display, width, height));
+            m_components[name] = std::shared_ptr<Bintr>(new DisplayBintr(
+                name, width, height));
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display New'" << display << "' threw exception on create");
+            LOG_ERROR("Tiled Display New'" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_NEW_EXCEPTION;
         }
-        LOG_INFO("new Display '" << display << "' created successfully");
+        LOG_INFO("new Display '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
         
-    DslReturnType Services::GieNew(const char* gie, 
-        const char* inferConfigFile, uint batchSize, 
-        uint interval, uint uniqueId, uint gpuId, 
-        const char* modelEngineFile, const char* rawOutputDir)
+    DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
+        const char* modelEngineFile, uint interval, uint uniqueId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[gie])
+        if (m_components[name])
         {   
-            LOG_ERROR("GIE name '" << gie << "' is not unique");
+            LOG_ERROR("GIE name '" << name << "' is not unique");
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
         }
         
@@ -558,16 +553,15 @@ namespace DSL
 
         try
         {
-            m_components[gie] = std::shared_ptr<Bintr>(new GieBintr(gie, 
-                configFilePathSpec.c_str(), batchSize, interval, uniqueId, 
-                gpuId, modelFilePathSpec.c_str(), rawOutputDir));
+            m_components[name] = DSL_PRIMARY_GIE_NEW(name, 
+                configFilePathSpec.c_str(), modelFilePathSpec.c_str(), interval, uniqueId);
         }
         catch(...)
         {
-            LOG_ERROR("New Primary GIE '" << gie << "' threw exception on create");
+            LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
             return DSL_RESULT_GIE_NEW_EXCEPTION;
         }
-        LOG_INFO("new GIE '" << gie << "' created successfully");
+        LOG_INFO("new GIE '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }

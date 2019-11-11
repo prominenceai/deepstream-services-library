@@ -144,31 +144,31 @@ EXTERN_C_BEGIN
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
- * @param[in] source unique name for the new Source
+ * @param[in] name unique name for the new Source
  * @param[in] width width of the source in pixels
  * @param[in] height height of the source in pixels
  * @param[in] fps-n frames/second fraction numerator
  * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_csi_new(const char* source,
+DslReturnType dsl_source_csi_new(const char* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
  * @brief creates a new, uniquely named URI Source obj
- * @param[in] uri Unique Resource Identifier (file or live)
+ * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_uri_new(const char* source, 
+DslReturnType dsl_source_uri_new(const char* name, 
     const char* uri, uint cudadec_mem_type, uint intra_decode);
 
 /**
- * @brief returns whether the source stream live or not
- * @param source the name of Source component to query
+ * @brief returns whether the source stream is live or not
+ * @param name the name of Source component to query
  * @return True if the source's stream is live
  */
-boolean dsl_source_is_live(const char* source);
+boolean dsl_source_is_live(const char* name);
 
 /**
  * @brief returns the number of sources currently in use by 
@@ -205,32 +205,28 @@ void dsl_source_set_num_in_use_max(uint max);
  * @param[in] heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const char* sink, 
+DslReturnType dsl_sink_overlay_new(const char* name, 
     uint offsetX, uint offsetY, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named OSD obj
- * @param[in] osd unique name for the new Sink
+ * @param[in] name unique name for the new Sink
  * @param[in] isClockEnabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_osd_new(const char* osd, boolean isClockEnabled);
+DslReturnType dsl_osd_new(const char* name, boolean isClockEnabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
- * @param[in] gie unique name for the new GIE object
+ * @param[in] name unique name for the new GIE object
  * @param[in] inferConfigFile name of the Infer Config file to use
- * @param[in] batchSize
+ * @param[in] modelEngineFile name of the Model Engine file to use
  * @param[in] interval
  * @param[in] uniqueId
- * @param[in] gpuId
- * @param[in] modelEngineFile name of the Model Engine file to use
- * @param[in] rawOutputDir
  * @return DSL_RESULT_GIE_RESULT
  */
-DslReturnType dsl_gie_new(const char* gie, const char* inferConfigFile, 
-    uint batchSize, uint interval, uint uniqueId, uint gpuId, 
-    const char* modelEngineFile, const char* rawOutputDir);
+DslReturnType dsl_gie_new(const char* name, const char* inferConfigFile,
+    const char* modelEngineFile, uint interval, uint uniqueId);
 
 /**
  * @brief creates a new, uniquely named Display obj

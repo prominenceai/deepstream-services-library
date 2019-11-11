@@ -63,43 +63,43 @@ namespace DSL
     private:
     
         /**
-         @brief
+         * @brief number of rows for the Tiled DisplayBintr
          */
         guint m_rows; 
         
         /**
-         @brief
+         * @brief number of rows for the Tiled DisplayBintr
          */
         guint m_columns;
         
         /**
-         @brief
+         * @brief height of the Tiled DisplayBintr in pixels
          */
         guint m_width; 
         
         /**
-         @brief
+         * @brief height of the Tiled DisplayBintr in pixels
          */
         guint m_height;
         
         /**
-         @brief
+         * @brief ??
          */
         gboolean m_enablePadding;
 
         /**
-         @brief
+         * @brief Queue Elementr as Sink for this Tiled DisplayBintr
          */
         DSL_ELEMENT_PTR m_pQueue;
  
         /**
-         @brief
+         * @brief Tiler Elementr as Source for this Tiled DisplayBintr
          */
         DSL_ELEMENT_PTR  m_pTiler;
         
         /**
          * @brief a single display for the driver
-        */
+         */
         Display* m_pXDisplay;
     };
 }
