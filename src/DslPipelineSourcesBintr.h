@@ -44,24 +44,11 @@ namespace DSL
         ~PipelineSourcesBintr();
         
         /**
-         * @brief adds a child Elementr to this PipelineSourcesBintr
-         * @param pChildElement a shared pointer to the Elementr to add
-         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
-         */
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
-        
-        /**
          * @brief adds a child SourceBintr to this PipelineSourcesBintr
          * @param pChildSource shared pointer to SourceBintr to add
          * @return a shared pointer to the SourceBintr if added correctly, nullptr otherwise
          */
         DSL_NODETR_PTR AddChild(DSL_SOURCE_PTR pChildSource);
-        
-        /**
-         * @brief removes a child Elementr from this PipelineSourcesBintr
-         * @param pChildElement a shared pointer to the Elementr to remove
-         */
-        void RemoveChild(DSL_NODETR_PTR pChildElement);
         
         /**
          * @brief removes a child SourceBintr from this PipelineSourcesBintr
@@ -105,6 +92,19 @@ namespace DSL
         
         void SetStreamMuxOutputSize(uint width, uint height);
 
+    private:
+        /**
+         * @brief adds a child Elementr to this PipelineSourcesBintr
+         * @param pChildElement a shared pointer to the Elementr to add
+         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         */
+        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
+        
+        /**
+         * @brief removes a child Elementr from this PipelineSinksBintr
+         * @param pChildElement a shared pointer to the Elementr to remove
+         */
+        void RemoveChild(DSL_NODETR_PTR pChildElement);
 
     public:
 

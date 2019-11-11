@@ -47,6 +47,8 @@ namespace DSL
 
         ~SinkBintr();
   
+        bool IsOverlay();
+
         /**
          * @brief true of the Sink is of type Overlay, false otherwise
          */
@@ -90,6 +92,7 @@ namespace DSL
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pOverlay;
+        
     };
 
 }
