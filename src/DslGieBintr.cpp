@@ -39,6 +39,13 @@ namespace DSL
     {
         LOG_FUNC();
         
+        std::ifstream streamInferConfigFile(inferConfigFile);
+        if (!streamInferConfigFile.good())
+        {
+            LOG_ERROR("Infer Config File '" << inferConfigFile << "' Not found");
+            throw;
+        }        
+        
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary_gie_queue");
         m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
         m_pClassifier = DSL_ELEMENT_NEW(NVDS_ELEM_PGIE, "primary_gie_classifier");

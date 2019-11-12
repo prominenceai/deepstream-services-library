@@ -32,8 +32,8 @@ SCENARIO( "A new PrimaryGieBintr is created correctly",  "[PrimaryGieBintr]" )
     GIVEN( "Attributes for a new PrimaryGieBintr" ) 
     {
         std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "../configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "../models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(0);
@@ -67,8 +67,8 @@ SCENARIO( "A new PrimaryGieBintr can LinkAll Child Elementrs",  "[PrimaryGieBint
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
         std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "../configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "../models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(0);
@@ -95,8 +95,8 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
     GIVEN( "A Linked PrimaryGieBintr" ) 
     {
         std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "../configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "../models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(0);
