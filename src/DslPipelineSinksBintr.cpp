@@ -54,14 +54,14 @@ namespace DSL
         UnlinkAll();
     }
      
-    DSL_NODETR_PTR PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
 
-    DSL_NODETR_PTR PipelineSinksBintr::AddChild(DSL_SINK_PTR pChildSink)
+    bool PipelineSinksBintr::AddChild(DSL_SINK_PTR pChildSink)
     {
         LOG_FUNC();
         
@@ -69,7 +69,7 @@ namespace DSL
         if (IsChild(pChildSink))
         {
             LOG_ERROR("' " << pChildSink->m_name << "' is already a child of '" << m_name << "'");
-            throw;
+            return false;
         }
         
         // Add the Sink to the Sinks collection and as a child of this Bintr
@@ -84,15 +84,15 @@ namespace DSL
         return (bool)m_pChildSinks[pChildSink->m_name];
     }
 
-    void PipelineSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         // call the base function to handle the remove for Elementrs
-        Bintr::RemoveChild(pChildElement);
+        return Bintr::RemoveChild(pChildElement);
     }
 
-    void PipelineSinksBintr::RemoveChild(DSL_SINK_PTR pChildSink)
+    bool PipelineSinksBintr::RemoveChild(DSL_SINK_PTR pChildSink)
     {
         LOG_FUNC();
 
@@ -108,7 +108,7 @@ namespace DSL
         m_pChildSinks.erase(pChildSink->m_name);
         
         // call the base function to complete the remove
-        Bintr::RemoveChild(pChildSink);
+        return Bintr::RemoveChild(pChildSink);
     }
 
 

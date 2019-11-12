@@ -64,7 +64,7 @@ namespace DSL
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        bool AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
         bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
 
@@ -85,19 +85,28 @@ namespace DSL
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        void RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
         /**
          * @brief adds a single Sink Bintr to this Pipeline 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
-        void AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
+        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
+
+        /**
+         * @brief removes a single Sink Bintr from this Pipeline 
+         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         */
+        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
 
         /**
          * @brief adds a single OSD Bintr to this Pipeline 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
-        void AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
+        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
         {
 //            m_pProcessBintr->AddOsdBintr(pOsdBintr);
         }
@@ -106,13 +115,13 @@ namespace DSL
          * @brief adds a single GIE Bintr to this Pipeline 
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
-        void AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
+        bool AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
 
         /**
          * @brief adds a single Display Bintr to this Pipeline 
          * @param[in] pDisplayBintr shared pointer to Display Bintr to add
          */
-        void AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
+        bool AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
         
         /**
          * @brief 

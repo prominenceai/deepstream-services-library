@@ -53,12 +53,12 @@ namespace DSL
         UnlinkAll();
     }
     
-    void SourceBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' Source to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
@@ -71,12 +71,18 @@ namespace DSL
             IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    void SourceBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
+        if (!IsParent(pParentBintr))
+        {
+            LOG_ERROR("Source '" << m_name << "' is not a child of Pipeline '" << pParentBintr->m_name << "'");
+            return false;
+        }
+        
         // remove 'this' Source from the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 

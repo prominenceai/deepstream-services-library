@@ -81,7 +81,7 @@ namespace DSL
          * @brief Adds the PrimaryGieBintr to a Parent Pipeline Bintr
          * @param pParentBintr Parent Pipeline to add this Bintr to
          */
-        void AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
         
         /**
          * @brief gets the name of the Infer Config File in use by this PrimaryGieBintr

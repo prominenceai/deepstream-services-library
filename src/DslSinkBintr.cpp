@@ -42,6 +42,39 @@ namespace DSL
     {
         LOG_FUNC();
     }
+
+    bool SinkBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' Sink to the Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            AddSinkBintr(shared_from_this());
+    }
+
+
+    bool SinkBintr::IsParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // check if 'this' Sink is child of Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            IsSinkBintrChild(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
+    }
+
+    bool SinkBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        if (!IsParent(pParentBintr))
+        {
+            LOG_ERROR("Sink '" << m_name << "' is not a child of Pipeline '" << pParentBintr->m_name << "'");
+            return false;
+        }
+        // remove 'this' Sink from the Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
+    }
     
     bool SinkBintr::IsOverlay()
     {
@@ -109,15 +142,6 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
     }
     
-    void OverlaySinkBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' Sink to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddSinkBintr(shared_from_this());
-    }
-
     void OverlaySinkBintr::SetDisplayId(int id)
     {
         LOG_FUNC();

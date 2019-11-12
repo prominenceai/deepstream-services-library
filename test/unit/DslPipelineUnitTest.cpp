@@ -156,9 +156,9 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
             
         WHEN( "All components are added to the PipelineBintr" )
         {
-            pSourceBintr->AddToParent(pPipelineBintr);
-            pDisplayBintr->AddToParent(pPipelineBintr);
-            pSinkBintr->AddToParent(pPipelineBintr);
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
             {
@@ -199,9 +199,9 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
             
         WHEN( "All components are added and the PipelineBintr is Linked" )
         {
-            pSourceBintr->AddToParent(pPipelineBintr);
-            pDisplayBintr->AddToParent(pPipelineBintr);
-            pSinkBintr->AddToParent(pPipelineBintr);
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPipelineBintr->LinkAll() == true );
 
             THEN( "The Pipeline components are Linked correctly" )
@@ -252,10 +252,10 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
             
         WHEN( "All components are added to the PipelineBintr" )
         {
-            pSourceBintr->AddToParent(pPipelineBintr);
-            pPrimaryGieBintr->AddToParent(pPipelineBintr);
-            pDisplayBintr->AddToParent(pPipelineBintr);
-            pSinkBintr->AddToParent(pPipelineBintr);
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
             {

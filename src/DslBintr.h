@@ -98,9 +98,9 @@ namespace DSL
          * @brief adds a child Bintr to this parent Bintr
          * @param pChildBintr to add. Once added, calling InUse()
          *  on the Child Bintr will return true
-         * @return a shared pointer to the newly added pChild
+         * @return true if pChild was added successfully, false otherwise
          */
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChild)
+        bool AddChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
@@ -117,20 +117,20 @@ namespace DSL
          * @param pChildBintr to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
-        void RemoveChild(DSL_NODETR_PTR pChild)
+        bool RemoveChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
             if (!IsChild(pChild))
             {
                 LOG_ERROR("'" << pChild->m_name << "' is not a child of '" << m_name <<"'");
-                throw;
+                return false;
             }
 
             if (!gst_bin_remove(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
             {
                 LOG_ERROR("Failed to remove " << pChild->m_name << " from " << m_name <<"'");
-                throw;
+                return false;
             }
             Nodetr::RemoveChild(pChild);
         }
@@ -140,22 +140,22 @@ namespace DSL
          * @brief Adds this Bintr as a child to a ParentBinter
          * @param pParentBintr to add to
          */
-        virtual void AddToParent(DSL_NODETR_PTR pParent)
+        virtual bool AddToParent(DSL_NODETR_PTR pParent)
         {
             LOG_FUNC();
                 
-            pParent->AddChild(shared_from_this());
+            return (bool)pParent->AddChild(shared_from_this());
         }
         
         /**
          * @brief removes this Bintr from the provided pParentBintr
          * @param pParentBintr Bintr to remove from
          */
-        virtual void RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+        virtual bool RemoveFromParent(DSL_NODETR_PTR pParentBintr)
         {
             LOG_FUNC();
                 
-            pParentBintr->RemoveChild(shared_from_this());
+            return pParentBintr->RemoveChild(shared_from_this());
         }
         
         virtual void AddGhostPad(const char* name, DSL_NODETR_PTR pElementr)

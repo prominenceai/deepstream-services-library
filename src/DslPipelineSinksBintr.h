@@ -53,20 +53,21 @@ namespace DSL
         /**
          * @brief adds a child SinkBintr to this PipelineSinksBintr
          * @param pChildSink shared pointer to SinkBintr to add
-         * @return a shared pointer to the SinkBintr if added correctly, nullptr otherwise
+         * @return true if the SinkBintr was added correctly, false otherwise
          */
-        DSL_NODETR_PTR AddChild(DSL_SINK_PTR pChildSink);
+        bool AddChild(DSL_SINK_PTR pChildSink);
         
         /**
          * @brief removes a child SinkBintr from this PipelineSinksBintr
-         * @param pChildElement a shared pointer to SourceBintr to remove
+         * @param pChildSink a shared pointer to SinkBintr to remove
+         * @return true if the SinkBintr was removed correctly, false otherwise
          */
-        void RemoveChild(DSL_SINK_PTR pChildSink);
+        bool RemoveChild(DSL_SINK_PTR pChildSink);
 
         /**
          * @brief overrides the base method and checks in m_pChildSinks only.
          */
-        bool IsChild(DSL_SINK_PTR pChildSource);
+        bool IsChild(DSL_SINK_PTR pChildSink);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
@@ -92,20 +93,19 @@ namespace DSL
         void UnlinkAll();
         
     private:
-    private:
         /**
-         * @brief adds a child Elementr to this PipelineSinksBintr
+         * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
          */
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
-
+        bool AddChild(DSL_NODETR_PTR pChildElement);
+        
         /**
          * @brief removes a child Elementr from this PipelineSinksBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
-        void RemoveChild(DSL_NODETR_PTR pChildElement);
-        
+        bool RemoveChild(DSL_NODETR_PTR pChildElement);
+
     public: // Members are public for the purpose of Test/Verification only
 
         DSL_ELEMENT_PTR m_pQueue;

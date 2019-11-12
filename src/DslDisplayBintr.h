@@ -46,7 +46,7 @@ namespace DSL
 
         ~DisplayBintr();
 
-        void AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
 
         void SetTiles(uint rows, uint columns);
         

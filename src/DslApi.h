@@ -225,7 +225,7 @@ DslReturnType dsl_osd_new(const char* name, boolean isClockEnabled);
  * @param[in] uniqueId
  * @return DSL_RESULT_GIE_RESULT
  */
-DslReturnType dsl_gie_new(const char* name, const char* inferConfigFile,
+DslReturnType dsl_gie_primary_new(const char* name, const char* inferConfigFile,
     const char* modelEngineFile, uint interval, uint uniqueId);
 
 /**

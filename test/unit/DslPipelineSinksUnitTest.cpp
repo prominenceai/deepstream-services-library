@@ -68,7 +68,7 @@ SCENARIO( "Adding a single Sink to a Pipeline Sinks Bintr is managed correctly",
 
         WHEN( "The Sink Bintr is added to the Pipeline Sinks Bintr" )
         {
-            pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
+            REQUIRE( pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)) == true );
             
             THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
@@ -99,7 +99,7 @@ SCENARIO( "Removing a single Sink from a Pipeline Sinks Bintr is managed correct
             
         WHEN( "The Sink Bintr is removed from the Pipeline Sinks Bintr" )
         {
-            pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
+            REQUIRE( pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)) == true );
             
             THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
@@ -126,27 +126,33 @@ SCENARIO( "Linking multiple sinks to a Pipeline Sinks Bintr Tee is managed corre
 
         DSL_PIPELINE_SINKS_PTR pPipelineSinksBintr = DSL_PIPELINE_SINKS_NEW(pipelineSinksName.c_str());
             
-        DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
+        DSL_OVERLAY_SINK_PTR pSinkBintr0 = 
             DSL_OVERLAY_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
+        DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
             DSL_OVERLAY_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr3 = 
+        DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
             DSL_OVERLAY_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1));
-        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr2));
-        pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr3));
+        REQUIRE( pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr0)) == true );
+        REQUIRE( pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1)) == true );
+        REQUIRE( pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr2)) == true );
 
         REQUIRE( pPipelineSinksBintr->GetNumChildren() == 3 );
             
         WHEN( "The Sink Bintrs are linked to the Pipeline Sinks Bintr" )
         {
-            pPipelineSinksBintr->LinkAll();
+            REQUIRE( pPipelineSinksBintr->LinkAll()  == true );
             
             THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
+                REQUIRE( pSinkBintr0->IsInUse() == true );
+                REQUIRE( pSinkBintr0->IsLinkedToSink() == true );
+                REQUIRE( pSinkBintr1->IsInUse() == true );
+                REQUIRE( pSinkBintr1->IsLinkedToSink() == true );
+                REQUIRE( pSinkBintr2->IsInUse() == true );
+                REQUIRE( pSinkBintr2->IsLinkedToSink() == true );
             }
         }
     }
@@ -185,7 +191,7 @@ SCENARIO( "Multiple sinks linked to a Pipeline Sinks Bintr Tee can be unlinked c
         WHEN( "The Sink Bintrs are linked to the Pipeline Sinks Bintr" )
         {
             
-//            pPipelineSinksBintr->UnlinkAll();
+            pPipelineSinksBintr->UnlinkAll();
             THEN( "The Pipeline Sinks Bintr is updated correctly" )
             {
             }

@@ -75,12 +75,12 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
     }
     
-    void DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' display to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddDisplayBintr(shared_from_this());
     }
 

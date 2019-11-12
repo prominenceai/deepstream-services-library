@@ -97,12 +97,12 @@ namespace DSL
         m_isLinked = false;
     }
 
-    void PrimaryGieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool PrimaryGieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddPrimaryGieBintr(shared_from_this());
     }
 

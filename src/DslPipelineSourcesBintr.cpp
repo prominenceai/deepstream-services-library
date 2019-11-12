@@ -53,14 +53,14 @@ namespace DSL
         UnlinkAll();
     }
 
-    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
      
-    DSL_NODETR_PTR PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -68,7 +68,7 @@ namespace DSL
         if (IsChild(pChildSource))
         {
             LOG_ERROR("Source '" << pChildSource->m_name << "' is already a child of '" << m_name << "'");
-            return nullptr;
+            return false;
         }
         
         // Set the play type based on the first source added
@@ -90,15 +90,15 @@ namespace DSL
         return (bool)m_pChildSources[pChildSource->m_name];
     }
 
-    void PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         // call the base function to handle the remove for Elementrs
-        Bintr::RemoveChild(pChildElement);
+        return Bintr::RemoveChild(pChildElement);
     }
 
-    void PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 
@@ -116,7 +116,7 @@ namespace DSL
         m_pChildSources.erase(pChildSource->m_name);
         
         // call the base function to complete the remove
-        Bintr::RemoveChild(pChildSource);
+        return Bintr::RemoveChild(pChildSource);
     }
 
     bool PipelineSourcesBintr::LinkAll()
@@ -133,7 +133,7 @@ namespace DSL
         
         // Set the Batch size to the nuber of sources owned
         // TODO add support for managing batch timeout
-        SetStreamMuxBatchProperties(m_pChildren.size(), 4000);
+        SetStreamMuxBatchProperties(m_pChildSources.size(), 4000);
         
         return true;
     }

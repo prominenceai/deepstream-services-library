@@ -95,12 +95,12 @@ namespace DSL
         m_pConvQueue->UnlinkFromSink();
     }
 
-    void OsdBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool OsdBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' OSD to the Parent Pipeline 
-        std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddOsdBintr(shared_from_this());
     }
     

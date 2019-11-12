@@ -46,15 +46,16 @@ namespace DSL
         /**
          * @brief adds a child SourceBintr to this PipelineSourcesBintr
          * @param pChildSource shared pointer to SourceBintr to add
-         * @return a shared pointer to the SourceBintr if added correctly, nullptr otherwise
+         * @return true if the SourceBintr was added correctly, false otherwise
          */
-        DSL_NODETR_PTR AddChild(DSL_SOURCE_PTR pChildSource);
+        bool AddChild(DSL_SOURCE_PTR pChildSource);
         
         /**
          * @brief removes a child SourceBintr from this PipelineSourcesBintr
          * @param pChildElement a shared pointer to SourceBintr to remove
+         * @return true if the SourceBintr was removed correctly, false otherwise
          */
-        void RemoveChild(DSL_SOURCE_PTR pChildSource);
+        bool RemoveChild(DSL_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base method and checks in m_pChildSources only.
@@ -98,13 +99,13 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
          */
-        DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChildElement);
+        bool AddChild(DSL_NODETR_PTR pChildElement);
         
         /**
          * @brief removes a child Elementr from this PipelineSinksBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
-        void RemoveChild(DSL_NODETR_PTR pChildElement);
+        bool RemoveChild(DSL_NODETR_PTR pChildElement);
 
     public:
 
