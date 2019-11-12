@@ -132,7 +132,7 @@ namespace DSL
                 LOG_ERROR("Failed to remove " << pChild->m_name << " from " << m_name <<"'");
                 return false;
             }
-            Nodetr::RemoveChild(pChild);
+            return Nodetr::RemoveChild(pChild);
         }
 
 

@@ -265,6 +265,11 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
                 REQUIRE( dsl_source_get_num_in_use() == 2 );
             }
         }
+        REQUIRE( dsl_pipeline_component_remove(pipelineName1.c_str(), 
+            sourceName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_remove(pipelineName2.c_str(), 
+            sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_get_num_in_use() == 0 );

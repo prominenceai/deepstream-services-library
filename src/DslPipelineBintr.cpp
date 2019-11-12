@@ -249,10 +249,14 @@ namespace DSL
         {
             return;
         }
-        
+        // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedComponents)
         {
-            ivector->UnlinkFromSink();
+            // all but the tail m_pPipelineSinksBintr will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
             ivector->UnlinkAll();
         }
 
