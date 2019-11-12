@@ -106,7 +106,7 @@ namespace DSL
          * @brief adds a single GIE Bintr to this Pipeline 
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
-        void AddPrimaryGieBintr(DSL_NODETR_PTR pGieBintr);
+        void AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
 
         /**
          * @brief adds a single Display Bintr to this Pipeline 
@@ -255,7 +255,7 @@ namespace DSL
         /**
          * @brief the one and only Display for this Pipeline
          */
-        DSL_NODETR_PTR m_pPrimaryGieBintr;
+        DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
         
         /**
          * @brief the one and only Tiled Display for this Pipeline
@@ -326,14 +326,8 @@ namespace DSL
 
         bool HandleStateChanged(GstMessage* pMessage);
         
-        void _handleErrorMessage(GstMessage* pMessage);
+        void HandleErrorMessage(GstMessage* pMessage);
 
-        /**
-         * @brief true if the components in the Pipeline are linked and  
-         * ready to play, false if unlinked. 
-         */
-        bool m_isLinked;
-        
         /**
          * @brief initializes the "constant-value-to-string" maps
          */

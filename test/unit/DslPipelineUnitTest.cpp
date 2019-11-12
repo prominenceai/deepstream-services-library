@@ -211,3 +211,57 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
         }
     }
 }
+
+SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGieBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName = "csi-source";
+        std::string sinkName = "overlay-sink";
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        
+        uint interval(1);
+        uint uniqueId(1);
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+                modelEngineFile.c_str(), interval, uniqueId);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "All components are added to the PipelineBintr" )
+        {
+            pSourceBintr->AddToParent(pPipelineBintr);
+            pPrimaryGieBintr->AddToParent(pPipelineBintr);
+            pDisplayBintr->AddToParent(pPipelineBintr);
+            pSinkBintr->AddToParent(pPipelineBintr);
+
+            THEN( "The Pipeline components are Linked correctly" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == true );
+            }
+        }
+    }
+}
+

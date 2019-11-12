@@ -31,7 +31,6 @@ namespace DSL
 {
     PipelineBintr::PipelineBintr(const char* name)
         : Bintr(name)
-        , m_isLinked(false)
         , m_pPipelineSourcesBintr(nullptr)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
@@ -110,7 +109,7 @@ namespace DSL
         m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    void PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pGieBintr)
+    void PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
         
@@ -120,9 +119,9 @@ namespace DSL
                 << m_pPrimaryGieBintr->m_name);
             throw;
         }
-        m_pPrimaryGieBintr = pGieBintr;
+        m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
         
-        AddChild(pGieBintr);
+        AddChild(pPrmaryGieBintr);
     }
 
     void PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
@@ -180,20 +179,24 @@ namespace DSL
         // Start with an empty list of linked components
         m_linkedComponents.clear();
 
-        // Link all Source Elements, and all Sources to the StreamMux
+        // Link all Source Elementrs, and all Sources to the StreamMux
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
         m_pPipelineSourcesBintr->LinkAll();
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
         
-//        if (m_pPrimaryGieBintr)
-//        {
-//            m_linkedComponents.back->LinkTo(m_pPrimaryGieBintr);
-//            m_linkedComponents.push_back(m_pPrimaryGieBintr);
-//        }
-//
+        if (m_pPrimaryGieBintr)
+        {
+            // Set the GIE's batch size to the number of active sources, 
+            // then LinkAll PrimaryGie Elementrs and add as the next component in the Pipeline
+            m_pPrimaryGieBintr->SetBatchSize(m_pPipelineSourcesBintr->GetNumChildren());
+            m_pPrimaryGieBintr->LinkAll();
+            m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr);
+            m_linkedComponents.push_back(m_pPrimaryGieBintr);
+        }
+
         if (m_pDisplayBintr)
         {
-            // Link All Tiled Display Elements and add as the next component in the Pipeline
+            // Link All Tiled Display Elementrs and add as the next component in the Pipeline
             m_pDisplayBintr->LinkAll();
             m_linkedComponents.back()->LinkToSink(m_pDisplayBintr);
             m_linkedComponents.push_back(m_pDisplayBintr);
@@ -219,6 +222,7 @@ namespace DSL
         for (auto const& ivector: m_linkedComponents)
         {
             ivector->UnlinkFromSink();
+            ivector->UnlinkAll();
         }
 
         m_isLinked = false;
@@ -351,7 +355,7 @@ namespace DSL
         case GST_MESSAGE_WARNING:
             return true;
         case GST_MESSAGE_ERROR:
-            _handleErrorMessage(pMessage);            
+            HandleErrorMessage(pMessage);            
             return true;
         case GST_MESSAGE_STATE_CHANGED:
             HandleStateChanged(pMessage);
@@ -485,7 +489,7 @@ namespace DSL
     }
     
     
-    void PipelineBintr::_handleErrorMessage(GstMessage* pMessage)
+    void PipelineBintr::HandleErrorMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         
