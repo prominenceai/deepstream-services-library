@@ -130,13 +130,13 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
 
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
             
         WHEN( "The Single Source is Linked to the StreamMux" )
         {
-            pPipelineSourcesBintr->LinkAll();
+            REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
              
-            THEN( "The " )
+            THEN( "The Source and SourcesBintr are updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsInUse() == true );
                 REQUIRE( pSourceBintr->IsLinkedToSink() == true );
@@ -170,15 +170,15 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName2.c_str(), 1280, 720, 30, 1));
 
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0));
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1));
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2));
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
         
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
                     
         WHEN( "All Sources are linked to the StreamMux" )
         {
-            pPipelineSourcesBintr->LinkAll();
+            REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
             
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
@@ -220,11 +220,11 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName2.c_str(), 1280, 720, 30, 1));
 
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0));
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1));
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2));
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
                     
-        pPipelineSourcesBintr->LinkAll();
+        REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
         WHEN( "All Sources are unlinked from the StreamMux" )
         {

@@ -47,6 +47,12 @@ namespace DSL
 
         ~SinkBintr();
   
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+
+        bool IsParent(DSL_NODETR_PTR pParentBintr);
+        
+        bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
+        
         bool IsOverlay();
 
         /**
@@ -66,8 +72,6 @@ namespace DSL
         bool LinkAll();
         
         void UnlinkAll();
-
-        void AddToParent(DSL_NODETR_PTR pParentBintr);
 
         int GetDisplayId()
         {

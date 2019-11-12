@@ -79,7 +79,7 @@ namespace DSL
         g_mutex_clear(&m_displayMutex);
     }
     
-    void PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
+    bool PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
@@ -90,26 +90,30 @@ namespace DSL
             AddChild(m_pPipelineSourcesBintr);
         }
 
-        m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        return m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
     bool PipelineBintr::IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_INFO("Pipeline '" << m_name << "' has no Sources");
+            return false;
+        }
         return (m_pPipelineSourcesBintr->IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
-
-    void PipelineBintr::RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr)
+    bool PipelineBintr::RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
 
         // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
-        m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    void PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
+    bool PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
         
@@ -117,14 +121,14 @@ namespace DSL
         {
             LOG_ERROR("Pipeline '" << m_name << "' has an exisiting Primary GIE '" 
                 << m_pPrimaryGieBintr->m_name);
-            throw;
+            return false;
         }
         m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
         
-        AddChild(pPrmaryGieBintr);
+        return AddChild(pPrmaryGieBintr);
     }
 
-    void PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    bool PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();
         
@@ -135,22 +139,49 @@ namespace DSL
             AddChild(m_pPipelineSinksBintr);
         }
 
-        m_pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
-        
+        return m_pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
 
-    void PipelineBintr::AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr)
+    bool PipelineBintr::IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << m_name << "' has no Sinks");
+            return false;
+        }
+        return (m_pPipelineSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
+    }
+
+    bool PipelineBintr::RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << m_name << "' has no Sinks");
+            return false;
+        }
+
+        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
+        return m_pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
+    }
+
+
+
+    bool PipelineBintr::AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr)
     {
         LOG_FUNC();
 
         if (m_pDisplayBintr)
         {
             LOG_ERROR("Pipeline '" << m_name << "' allready has a Tiled Display");
-            throw;
+            return false;
         }
         m_pDisplayBintr = std::dynamic_pointer_cast<DisplayBintr>(pDisplayBintr);
         
-        AddChild(pDisplayBintr);
+        return AddChild(pDisplayBintr);
         
     }
 
@@ -218,10 +249,14 @@ namespace DSL
         {
             return;
         }
-        
+        // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedComponents)
         {
-            ivector->UnlinkFromSink();
+            // all but the tail m_pPipelineSinksBintr will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
             ivector->UnlinkAll();
         }
 

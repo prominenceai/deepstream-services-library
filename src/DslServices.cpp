@@ -527,24 +527,18 @@ namespace DSL
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
         }
         
-        std::string configFilePathSpec = m_configFileDir;
-        configFilePathSpec.append("/");
-        configFilePathSpec.append(inferConfigFile);
-        LOG_INFO("Infer config file: " << configFilePathSpec);
+        LOG_INFO("Infer config file: " << inferConfigFile);
         
-        std::ifstream configFile(configFilePathSpec.c_str());
+        std::ifstream configFile(inferConfigFile);
         if (!configFile.good())
         {
             LOG_ERROR("Infer Config File not found");
             return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
         }
         
-        std::string modelFilePathSpec = m_modelFileDir;
-        modelFilePathSpec.append("/");
-        modelFilePathSpec.append(modelEngineFile);
-        LOG_INFO("Model engine file: " << modelFilePathSpec);
+        LOG_INFO("Model engine file: " << modelEngineFile);
         
-        std::ifstream modelFile(modelFilePathSpec.c_str());
+        std::ifstream modelFile(modelEngineFile);
         if (!modelFile.good())
         {
             LOG_ERROR("Model Engine File not found");
@@ -554,7 +548,7 @@ namespace DSL
         try
         {
             m_components[name] = DSL_PRIMARY_GIE_NEW(name, 
-                configFilePathSpec.c_str(), modelFilePathSpec.c_str(), interval, uniqueId);
+                inferConfigFile, modelEngineFile, interval, uniqueId);
         }
         catch(...)
         {

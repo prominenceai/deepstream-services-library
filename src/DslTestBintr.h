@@ -54,11 +54,11 @@ namespace DSL
             LOG_FUNC();
         }
 
-        void AddToParent(DSL_NODETR_PTR pParent)
+        bool AddToParent(DSL_NODETR_PTR pParent)
         {
             LOG_FUNC();
 
-            pParent->AddChild(shared_from_this());
+            return pParent->AddChild(shared_from_this());
         };
 
         bool LinkAll()

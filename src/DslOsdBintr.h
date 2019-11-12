@@ -64,7 +64,7 @@ namespace DSL
          * @brief Adds this OsdBintr to a Parent Pipline Bintr
          * @param pParentBintr
          */
-        void AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
         
         /**
          * @brief Links all child elements of this OsdBintr

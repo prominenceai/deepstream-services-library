@@ -97,41 +97,43 @@ namespace DSL
          * @brief adds a child Nodetr to this parent Nodetr
          * @param pChild to add to this parent Nodetr. 
          */
-        virtual DSL_NODETR_PTR AddChild(DSL_NODETR_PTR pChild)
+        virtual bool AddChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
             if (m_pChildren[pChild->m_name])
             {
                 LOG_ERROR("Child '" << pChild->m_name << "' is not unique for Parent '" <<m_name << "'");
-                throw;
+                return false;
             }
             m_pChildren[pChild->m_name] = pChild;
             pChild->m_pParentGstObj = m_pGstObj;   
                             
             LOG_INFO("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
             
-            return pChild;
+            return true;
         }
         
         /**
          * @brief removed a child Nodetr of this parent Nodetr
          * @param pChild to remove
          */
-        virtual void RemoveChild(DSL_NODETR_PTR pChild)
+        virtual bool RemoveChild(DSL_NODETR_PTR pChild)
         {
             LOG_FUNC();
             
             if (!IsChild(pChild))
             {
                 LOG_INFO("'" << pChild->m_name <<"' is not a child of Parent '" << m_name <<"'");
-                throw;
+                return false;
             }
             pChild->m_pParentGstObj = NULL;
             m_pChildren[pChild->m_name] = nullptr;
             m_pChildren.erase(pChild->m_name);
                             
             LOG_INFO("Child '" << pChild->m_name <<"' removed from Parent '" << m_name <<"'");
+            
+            return true;
         }
 
         /**

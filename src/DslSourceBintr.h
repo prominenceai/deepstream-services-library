@@ -58,11 +58,11 @@ namespace DSL
 
         ~SourceBintr();
 
-        void AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
 
         bool IsParent(DSL_NODETR_PTR pParentBintr);
                         
-        void RemoveFromParent(DSL_NODETR_PTR pParentBintr);
+        bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
         
         /**
          * @brief returns the current, sensor Id as managed by the Parent pipeline
