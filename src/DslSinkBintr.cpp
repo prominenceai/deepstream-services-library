@@ -103,7 +103,7 @@ namespace DSL
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
         
         m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("overlay", false);
+        m_pOverlay->SetAttribute("overlay", m_isOverlay);
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         m_pOverlay->SetAttribute("overlay-w", m_width);
