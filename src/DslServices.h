@@ -136,7 +136,14 @@ namespace DSL {
 
         DslReturnType PipelineDisplayEventHandlerRemove(const char* pipeline, 
             dsl_display_event_handler_cb handler);
-
+        
+        GMainLoop* GetMainLoopHandle()
+        {
+            LOG_FUNC();
+            LOG_INFO("Returning Handle to MainLoop");
+            
+            return m_pMainLoop;
+        }
                         
         /** 
          * @brief Handles all pending events
@@ -145,12 +152,6 @@ namespace DSL {
          */
         bool HandleXWindowEvents(); 
 
-        /**
-         * @brief handle to the single main loop
-        */
-        GMainLoop* m_pMainLoop;
-                
-            
     private:
 
         /**
@@ -168,6 +169,11 @@ namespace DSL {
          */
         static Services* m_pInstatnce;
         
+        /**
+         * @brief handle to the single main loop
+        */
+        GMainLoop* m_pMainLoop;
+            
         /**
          * @brief mutex to prevent Services reentry
         */

@@ -49,8 +49,6 @@ namespace DSL
     SourceBintr::~SourceBintr()
     {
         LOG_FUNC();
-        
-        UnlinkAll();
     }
     
     bool SourceBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
@@ -106,24 +104,9 @@ namespace DSL
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
     }
 
-    bool SourceBintr::LinkAll()
-    {
-        LOG_FUNC();
-
-        return true;
-    }
-    
-    void SourceBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-    }
-
     void SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
     {
         LOG_FUNC();
-
-        // Link all Child elements for the source first, then to the Stream Muxer
-        LinkAll();
 
         std::string sinkPadName = "sink_" + std::to_string(m_sensorId);
         
@@ -157,9 +140,6 @@ namespace DSL
             // Unlink from the Stream Muxer first.
             gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
             Bintr::UnlinkFromSink();
-            
-            // Then unlink Source elements
-            UnlinkAll();
         }
     }
     
@@ -207,14 +187,24 @@ namespace DSL
     {
         LOG_FUNC();
 
-        UnlinkAll();
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
     }
     
     bool CsiSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
+        if (m_isLinked)
+        {
+            LOG_ERROR("CsiSourceBintr '" << m_name << "' is already in a linked state");
+            return false;
+        }
         m_pSourceElement->LinkToSink(m_pCapsFilter);
+        
+        m_isLinked = true;
         
         return true;
     }
@@ -222,6 +212,12 @@ namespace DSL
     void CsiSourceBintr::UnlinkAll()
     {
         LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
+            return;
+        }
 
         m_pSourceElement->UnlinkFromSink();
     }

@@ -50,7 +50,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        UnlinkAll();
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
     }
 
     bool PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
@@ -128,6 +131,7 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             imap.second->SetSensorId(id++);
+            imap.second->LinkAll();
             imap.second->LinkToSink(m_pStreamMux);
         }
         
@@ -145,7 +149,6 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             imap.second->UnlinkFromSink();
-            Bintr::UnlinkFromSink();
         }
     }
 
@@ -162,9 +165,12 @@ namespace DSL
     void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
     {
         LOG_FUNC();
-        
+
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
+
+        LOG_INFO("Setting StreamMux batch properties: batch-size = " << m_batchSize 
+            << ", batch-timeout = " << m_batchTimeout);
 
         m_pStreamMux->SetAttribute("batch-size", m_batchSize);
         m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);

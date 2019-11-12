@@ -27,28 +27,6 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new base SourceBintr is created correctly",  "[SourceBintr]" )
-{
-    GIVEN( "A name for a new SourceBintr" ) 
-    {
-        std::string sourceName = "test-source";
-
-        WHEN( "The SourceBintr is created " )
-        {
-            DSL_SOURCE_PTR pSourceBintr = DSL_SOURCE_NEW(sourceName.c_str());
-            
-            THEN( "All memeber variables are initialized correctly" )
-            {
-                REQUIRE( pSourceBintr->m_gpuId == 0 );
-                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pSourceBintr->m_pGstObj != NULL );
-                REQUIRE( pSourceBintr->GetSensorId() == -1 );
-                REQUIRE( pSourceBintr->IsInUse() == false );
-            }
-        }
-    }
-}
-
 SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
 {
     GIVEN( "A name for a new CsiSourceBintr" ) 
@@ -67,6 +45,11 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
 
             THEN( "All memeber variables are initialized correctly" )
             {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_pGstObj != NULL );
+                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 REQUIRE( pSourceBintr->m_width == width );
                 REQUIRE( pSourceBintr->m_height == height );
@@ -98,6 +81,32 @@ SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
             THEN( "The returned Sensor Id is correct" )
             {
                 REQUIRE( pSourceBintr->GetSensorId() == sensorId );
+            }
+        }
+    }
+}
+
+SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSourceBintr]" )
+{
+    GIVEN( "A new CsiSourceBintr in memory" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        std::string sourceName = "test-csi-source";
+        int sensorId = 1;
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        WHEN( "The CsiSourceBintr is called to LinkAll" )
+        {
+            pSourceBintr->LinkAll();
+
+            THEN( "The CsiSourceBintrs IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
             }
         }
     }

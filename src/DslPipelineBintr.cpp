@@ -67,6 +67,11 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
+
         if (m_pXWindow)
         {
             XDestroyWindow(m_pXDisplay, m_pXWindow);
@@ -274,6 +279,11 @@ namespace DSL
     bool PipelineBintr::Play()
     {
         LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LinkAll();
+        }
                 
         // flush the output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events

@@ -45,7 +45,35 @@ GST_DEBUG_CATEGORY(GST_CAT_DSL);
         return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
     } \
 }while(0); 
-    
+
+#define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
+#define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
+/**
+ * Function to handle program interrupt signal.
+ * It installs default handler after handling the interrupt.
+ */
+static void PrgItrSigIsr(int signum)
+{
+    INIT_STRUCT(sigaction, sa);
+
+    sa.sa_handler = SIG_DFL;
+
+    sigaction(SIGINT, &sa, NULL);
+
+    g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
+}
+
+/**
+ * Function to install custom handler for program interrupt signal.
+ */
+static void PrgItrSigIsrInstall(void)
+{
+    INIT_STRUCT(sigaction, sa);
+
+    sa.sa_handler = PrgItrSigIsr;
+
+    sigaction(SIGINT, &sa, NULL);
+}    
 
 DslReturnType dsl_source_csi_new(const char* name, 
     uint width, uint height, uint fps_n, uint fps_d)
@@ -258,8 +286,10 @@ DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline,
 
 void dsl_main_loop_run()
 {
-    g_main_loop_run(DSL::Services::GetServices()->m_pMainLoop);
+    PrgItrSigIsrInstall();
+    g_main_loop_run(DSL::Services::GetServices()->GetMainLoopHandle());
 }
+
 
 namespace DSL
 {
