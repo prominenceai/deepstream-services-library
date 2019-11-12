@@ -92,13 +92,13 @@ namespace DSL
          * @brief Links all Child Elementrs owned by this Streaming Source Binter
          * @return 
          */
-        bool LinkAll();
+//        bool LinkAll();
         
         /**
          * @brief Unlinks all Child Elementrs owned by this Streaming Source Binter
          * @return 
          */
-        void UnlinkAll();
+//        void UnlinkAll();
         
         /**
          * @brief Links the Streaming Source to a Stream Muxer

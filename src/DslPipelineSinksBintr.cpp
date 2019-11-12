@@ -51,7 +51,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        UnlinkAll();
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
     }
      
     bool PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
@@ -115,9 +118,13 @@ namespace DSL
     bool PipelineSinksBintr::LinkAll()
     {
         LOG_FUNC();
+
+        m_pQueue->LinkToSink(m_pTee);
         
         for (auto const& imap: m_pChildSinks)
         {
+            // Link all of the ChildSink's Elementrs first
+            imap.second->LinkAll();
             
             GstPadTemplate* pPadTemplate = 
                 gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
