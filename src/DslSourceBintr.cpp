@@ -139,7 +139,7 @@ namespace DSL
         {
             // Unlink from the Stream Muxer first.
             gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
-            Bintr::UnlinkFromSink();
+            Nodetr::UnlinkFromSink();
         }
     }
     
@@ -217,14 +217,13 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
             return;
         }
-        m_pSourceElement->UnlinkFromSink();
+//        m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
     }
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
-        guint cudadecMemType, guint intraDecode)
+        uint cudadecMemType, uint intraDecode)
         : SourceBintr(name)
-        , m_uriString(uri)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
         , m_accumulatedBase(0)
@@ -232,17 +231,30 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_uriString = uri;
+        // TODO Check for Live Source
         
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("URI '" << uri << "' Not found");
+            throw;
+        }        
+        
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri = realpath(uri, absolutePath);
+        m_uri.insert(0, "file:");
         m_isLive = FALSE;
+        
+        LOG_INFO("URI Path = " << m_uri);
               
-        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "src_elem");
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "uri-src-elem");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
         m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
         
-        m_pSourceElement->SetAttribute("uri", uri);
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
 
         g_signal_connect(G_OBJECT(m_pSourceElement->m_pGstObj), "pad-added", 
             G_CALLBACK(OnPadAddedCB), this);
@@ -254,38 +266,17 @@ namespace DSL
         g_object_set_data(G_OBJECT(m_pSourceQueue->m_pGstObj), "source", this);
         
 
-        GstPadTemplate* padtemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
-        if (!padtemplate)
-        {
-            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
-            throw;
-        }
-        
-        // The TEE for this source is linked to both the "source queue" and "fake sink queue"
-        
-        // get a pad from the Tee element and link to the "source queuue"
-//        RequestPadtr teeSourcePadtr1( "src", m_pTee, padtemplate);
-//        StaticPadtr sourceQueueSinkPadtr("sink");
-//        m_pSourceQueue->AddChild()
-//        teeSourcePadtr1.LinkTo(sourceQueueSinkPadtr);
-
-        // get a second pad from the Tee element and link to the "fake sink queue"
-//        RequestPadtr teeSourcePadtr2( "src", m_pTee, padtemplate);
-//        StaticPadtr fakeSinkQueueSinkPadtr( "sink", m_pFakeSinkQueue);
-//        teeSourcePadtr2.LinkTo(fakeSinkQueueSinkPadtr);
-
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
-        
-        // Source Ghost Pad for Source Queue
-        m_pSourceQueue->AddGhostPadToParent("src");
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceQueue);
         AddChild(m_pTee);
         AddChild(m_pFakeSinkQueue);
         AddChild(m_pFakeSink);
+        
+        // Source Ghost Pad for Source Queue
+        m_pSourceQueue->AddGhostPadToParent("src");
     }
 
     UriSourceBintr::~UriSourceBintr()
@@ -296,8 +287,43 @@ namespace DSL
     bool UriSourceBintr::LinkAll()
     {
         LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("UriSourceBintr '" << m_name << "' is already in a linked state");
+            return false;
+        }
+
+        GstPadTemplate* pPadTemplate = 
+            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
+        if (!pPadTemplate)
+        {
+            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+            return false;
+        }
+        
+        // The TEE for this source is linked to both the "source queue" and "fake sink queue"
+
+        m_pGstSourcePad = gst_element_request_pad(
+            GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
+        if (!m_pGstSourcePad)
+        {
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << m_name <<" '");
+            return false;
+        }
+        m_pTee->LinkToSink(m_pSourceQueue);
+
+        m_pGstSourcePad = gst_element_request_pad(
+            GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
+        if (!m_pGstSourcePad)
+        {
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << m_name <<" '");
+            return false;
+        }
+        m_pTee->LinkToSink(m_pFakeSinkQueue);
     
         m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
+        m_isLinked = true;
 
         return true;
     }
@@ -306,7 +332,13 @@ namespace DSL
     {
         LOG_FUNC();
     
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
+            return;
+        }
         m_pFakeSinkQueue->UnlinkFromSink();
+        m_isLinked = false;
     }
 
     void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)
@@ -324,21 +356,24 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-//            // get a static Sink pad for this URI source bintr's Tee element
-//            StaticPadtr sinkPadtr("sink", m_pTee);
-//            
-//            if (gst_pad_link(pPad, GST_PAD(sinkPadtr.m_pGstObj)) != GST_PAD_LINK_OK) 
-//            {
-//                LOG_ERROR("Failed to link decodebin to pipeline");
-//                throw;
-//            }
-//            
-//            // Update the cap memebers for this URI source bintr
-//            gst_structure_get_uint(structure, "width", &m_width);
-//            gst_structure_get_uint(structure, "height", &m_height);
-//            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
-//            
-//            LOG_INFO("Video decode linked for URI source '" << m_name << "'");
+            m_pGstSinkPad = gst_element_get_static_pad(GST_ELEMENT(m_pTee->m_pGstObj), "sink");
+            if (!m_pGstSinkPad)
+            {
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << m_name << "'");
+            }
+            
+            if (gst_pad_link(pPad, m_pGstSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link decodebin to pipeline");
+                throw;
+            }
+            
+            // Update the cap memebers for this URI Source Bintr
+            gst_structure_get_uint(structure, "width", &m_width);
+            gst_structure_get_uint(structure, "height", &m_height);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
+            
+            LOG_INFO("Video decode linked for URI source '" << m_name << "'");
         }
     }
 

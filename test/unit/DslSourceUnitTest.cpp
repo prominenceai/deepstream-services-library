@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
+#include "DslApi.h"
 #include "DslSourceBintr.h"
 
 using namespace DSL;
@@ -37,7 +38,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
         uint fps_d(1);
         std::string sourceName = "test-csi-source";
 
-        WHEN( "The SourceBintr is created " )
+        WHEN( "The UriSourceBintr is created " )
         {
         
             DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
@@ -104,9 +105,53 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
         {
             pSourceBintr->LinkAll();
 
-            THEN( "The CsiSourceBintrs IsLinked state is updated correctly" )
+            THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
+{
+    GIVEN( "A name for a new CsiSourceBintr" ) 
+    {
+        std::string sourceName = "test-uri-source";
+        std::string uri = "./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(1);
+        
+        char absolutePath[PATH_MAX+1];
+        std::string fullUriPath = realpath(uri.c_str(), absolutePath);
+        fullUriPath.insert(0, "file:");
+        
+
+        WHEN( "The UriSourceBintr is created " )
+        {
+        
+            DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+                sourceName.c_str(), uri.c_str(), cudadecMemType, intrDecode);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->m_pGstObj != NULL );
+                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == false );
+                
+                std::string returnedUri = pSourceBintr->GetUri();
+                REQUIRE( returnedUri == fullUriPath );
+                
+                // Attributes are set after decode, in the OnPadAdded calback
+                REQUIRE( pSourceBintr->m_width == 0 );
+                REQUIRE( pSourceBintr->m_height == 0 );
+                REQUIRE( pSourceBintr->m_fps_n == 0 );
+                REQUIRE( pSourceBintr->m_fps_d == 0 );
             }
         }
     }

@@ -200,13 +200,25 @@ namespace DSL
     public: 
     
         UriSourceBintr(const char* name, const char* uri, 
-            guint cudadecMemType, guint intraDecode);
+            uint cudadecMemType, uint intraDecode);
 
         ~UriSourceBintr();
 
         bool LinkAll();
         
         void UnlinkAll();
+
+        /**
+         * @brief returns the current URI source for this UriSourceBintr
+         * @return const string for either live or file source
+         */
+        const char* GetUri()
+        {
+            LOG_FUNC();
+            
+            return m_uri.c_str();
+        }
+        
         
         /**
          * @brief 
@@ -250,7 +262,7 @@ namespace DSL
         /**
          * @brief
          */
-        std::string m_uriString; 
+        std::string m_uri; 
         
         /**
          * @brief

@@ -138,6 +138,7 @@ namespace DSL
                 LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
                 return false;
             }
+            // this looks wrong *****
             m_pGstSourcePad = gst_element_request_pad(
                 GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
             if (!m_pGstSourcePad)
