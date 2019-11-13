@@ -81,7 +81,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DDS_MODELS_DIR='"$(MDL_INSTALL_DIR)"' \
 	-DDS_STREAMS_DIR='"$(STR_INSTALL_DIR)"' \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
-    -fPIC
+    -fPIC 
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
@@ -114,7 +114,8 @@ $(APP): $(OBJS) Makefile
 lib:
 	ar rcs dsl-lib.a $(OBJS)
 	ar dv dsl-lib.a DslCatch.o
-	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
+	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS)
+	cp dsl-lib.so examples/python/	
 
 so_lib:
 	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 

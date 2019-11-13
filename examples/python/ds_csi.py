@@ -23,10 +23,9 @@ THE SOFTWARE.
 
 #######################################################################################
 
-Name:            ds_test1.py
+Name:            ds_csi.py
 
-Description:    This program attempts to duplicate deepstream-test1-app that is
-                provided by Nvida
+Description:    This program uses the attached CSI device and displays live video 
 
 #######################################################################################
 
@@ -337,14 +336,12 @@ def run_main_loop():
 #####################################################
 
 def test1():
-    """Execute test """
-    uri = os.path.abspath(sys.argv[1])
 
     #########################################
     #   Create source
     #########################################
 
-    create_source_uri("video1", uri)
+    create_source_csi("camera1", 1280, 720, 30, 1)
 
     #########################################
     #   Create Display 
@@ -368,7 +365,7 @@ def test1():
     # Add video1 to pipeline
     #########################################
 
-    add_component("pipeline1", "video1")
+    add_component("pipeline1", "camera1")
 
     #########################################
     # Add display1 to pipeline
@@ -419,12 +416,12 @@ def test1():
 
 def main():
     """Parse the command line parameters and run test """
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 1:
         print("")
         print("#################################################################")
         print("#")
         print("#    Error: Missing source file name.")
-        print("#    Calling sequence: python3 ds_test1.py <Video source file>")
+        print("#    Calling sequence: python ds_csi.py ")
         print("#")
         print("##################################################################")
     else:
