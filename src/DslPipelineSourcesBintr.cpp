@@ -126,6 +126,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << m_name << "' is already linked");
+            return false;
+        }
         uint id(0);
         
         for (auto const& imap: m_pChildSources)
@@ -134,7 +139,8 @@ namespace DSL
             imap.second->LinkAll();
             imap.second->LinkToSink(m_pStreamMux);
         }
-        
+        m_isLinked = true;
+
         // Set the Batch size to the nuber of sources owned
         // TODO add support for managing batch timeout
         SetStreamMuxBatchProperties(m_pChildSources.size(), 4000);
@@ -146,10 +152,16 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (!m_isLinked)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << m_name << "' is not linked");
+            return;
+        }
         for (auto const& imap: m_pChildSources)
         {
             imap.second->UnlinkFromSink();
         }
+        m_isLinked = false;
     }
 
     void PipelineSourcesBintr::SetStreamMuxPlayType(bool areSourcesLive)

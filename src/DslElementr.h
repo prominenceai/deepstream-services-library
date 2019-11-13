@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define _DSL_ELEMENTR_H
 
 #include "Dsl.h"
-#include "DslNodetr.h"
+#include "DslGstNodetr.h"
 
 
 namespace DSL
@@ -43,7 +43,7 @@ namespace DSL
      * @class Elementr
      * @brief Implements a container class for a GST Element
      */
-    class Elementr : public Nodetr
+    class Elementr : public GstNodetr
     {
     public:
 
@@ -51,7 +51,7 @@ namespace DSL
          * @brief ctor for the container class
          */
         Elementr(const char* factoryname, const char* name)
-            : Nodetr(name)
+            : GstNodetr(name)
         { 
             LOG_FUNC(); 
             
@@ -110,76 +110,6 @@ namespace DSL
             LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
             
             g_object_set(G_OBJECT(m_pGstObj), name, value, NULL);
-        }
-        
-        /**
-         * @brief Creates a new Ghost Sink pad for this Gst Element
-         * and adds it to the parent Gst Bin.
-         * @throws a general exception on failure
-         */
-        void AddGhostPadToParent(const char* name)
-        {
-            LOG_FUNC();
-
-            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
-            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-            if (!gst_element_add_pad(GST_ELEMENT(m_pParentGstObj), 
-                gst_ghost_pad_new(name, gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), name))))
-            {
-                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << m_name << "'");
-                throw;
-            }
-        }
-
-        /**
-         * @brief links this Elementr as Source to a given Sink Elementr
-         * @param pSinkBintr to link to
-         */
-        void LinkToSink(DSL_NODETR_PTR pSink)
-        { 
-            LOG_FUNC();
-            
-            // Call the base class to setup the relationship first
-            Nodetr::LinkToSink(pSink);
-
-            // Link Source Element to Sink Element 
-            if (!gst_element_link(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj)))
-            {
-                LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
-                throw;
-            }
-        }
-
-        /**
-         * @brief unlinks this Elementr from a previously linked-to Sink Elementr
-         */
-        void UnlinkFromSink()
-        { 
-            LOG_FUNC();
-
-            if (IsLinkedToSink())
-            {
-                gst_element_unlink(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj));
-
-                // Call the base class to complete the unlink
-                Nodetr::UnlinkFromSink();
-            }
-        }
-
-        /**
-         * @brief unlinks this Elementr from a previously linked-to Source Element
-         */
-        void UnlinkFromSource()
-        { 
-            LOG_FUNC();
-
-            if (IsLinkedToSource())
-            {
-                gst_element_unlink(GST_ELEMENT(m_pSource->m_pGstObj), GST_ELEMENT(m_pGstObj));
-
-                // Call the base class to complete the unlink
-                Nodetr::UnlinkFromSource();
-            }
         }
     };
 }

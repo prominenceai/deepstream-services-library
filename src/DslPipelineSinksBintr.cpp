@@ -119,6 +119,11 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (m_isLinked)
+        {
+            LOG_ERROR("PipelineSinksBintr '" << m_name << "' is already linked");
+            return false;
+        }
         m_pQueue->LinkToSink(m_pTee);
         
         for (auto const& imap: m_pChildSinks)
@@ -142,8 +147,8 @@ namespace DSL
             }
 
             m_pTee->LinkToSink(imap.second);
-
         }
+        m_isLinked = true;
         return true;
     }
 
@@ -151,10 +156,17 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (!m_isLinked)
+        {
+            LOG_ERROR("OsdBintr '" << m_name << "' is not linked");
+            return;
+        }
         for (auto const& imap: m_pChildren)
         {
             // unlink from the Tee Element
             imap.second->UnlinkFromSource();
         }
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
     }
 }

@@ -81,7 +81,12 @@ namespace DSL
     bool PrimaryGieBintr::LinkAll()
     {
         LOG_FUNC();
-        
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("PrimaryGieBintr '" << m_name << "' is already linked");
+            return false;
+        }
         m_pQueue->LinkToSink(m_pVidConv);
         m_pVidConv->LinkToSink(m_pClassifier);
         
@@ -94,6 +99,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DisplayBintr '" << m_name << "' is not linked");
+            return;
+        }
         m_pQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
 
