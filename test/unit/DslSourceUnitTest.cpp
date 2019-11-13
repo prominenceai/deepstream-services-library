@@ -33,8 +33,8 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
     {
         uint width(1280);
         uint height(720);
-        uint fps_n(1);
-        uint fps_d(30);
+        uint fps_n(30);
+        uint fps_d(1);
         std::string sourceName = "test-csi-source";
 
         WHEN( "The SourceBintr is created " )
@@ -66,8 +66,8 @@ SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
     {
         uint width(1280);
         uint height(720);
-        uint fps_n(1);
-        uint fps_d(30);
+        uint fps_n(30);
+        uint fps_d(1);
         std::string sourceName = "test-csi-source";
         int sensorId = 1;
 
@@ -92,8 +92,8 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
     {
         uint width(1280);
         uint height(720);
-        uint fps_n(1);
-        uint fps_d(30);
+        uint fps_n(30);
+        uint fps_d(1);
         std::string sourceName = "test-csi-source";
         int sensorId = 1;
 

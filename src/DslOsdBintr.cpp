@@ -82,9 +82,15 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("OsdBintr '" << m_name << "' is already linked");
+            return false;
+        }
         m_pQueue->LinkToSink(m_pVidConv);
         m_pVidConv->LinkToSink(m_pConvQueue);
         m_pConvQueue->LinkToSink(m_pOsd);
+        m_isLinked = true;
         
         return true;
     }
@@ -93,9 +99,15 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (!m_isLinked)
+        {
+            LOG_ERROR("OsdBintr '" << m_name << "' is not linked");
+            return;
+        }
         m_pQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
         m_pConvQueue->UnlinkFromSink();
+        m_isLinked = false;
     }
 
     bool OsdBintr::AddToParent(DSL_NODETR_PTR pParentBintr)

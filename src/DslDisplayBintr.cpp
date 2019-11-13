@@ -42,6 +42,10 @@ namespace DSL
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue");
         m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler");
         
+        m_pTiler->SetAttribute("rows", m_rows);
+        m_pTiler->SetAttribute("columns", m_rows);
+        m_pTiler->SetAttribute("width", m_width);
+        m_pTiler->SetAttribute("height", m_height);
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
@@ -66,7 +70,13 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("DisplayBintr '" << m_name << "' is already linked");
+            return false;
+        }
         m_pQueue->LinkToSink(m_pTiler);
+        m_isLinked = true;
         
         return true;
     }
@@ -75,7 +85,13 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DisplayBintr '" << m_name << "' is not linked");
+            return;
+        }
         m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
     }
     
     bool DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)

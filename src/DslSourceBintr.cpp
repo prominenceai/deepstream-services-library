@@ -203,7 +203,6 @@ namespace DSL
             return false;
         }
         m_pSourceElement->LinkToSink(m_pCapsFilter);
-        
         m_isLinked = true;
         
         return true;
@@ -218,8 +217,8 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
             return;
         }
-
         m_pSourceElement->UnlinkFromSink();
+        m_isLinked = false;
     }
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
