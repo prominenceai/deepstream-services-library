@@ -392,22 +392,17 @@ namespace DSL
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
 
-        std::string streamFilePathSpec = m_streamFileDir;
-        streamFilePathSpec.append("/");
-        streamFilePathSpec.append(uri);
-        
-        std::ifstream streamFile(streamFilePathSpec.c_str());
-        if (!streamFile.good())
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
         {
-            LOG_ERROR("URI stream file not found");
+            LOG_ERROR("URI Source'" << uri << "' Not found");
             return DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND;
-        }
-        streamFilePathSpec.insert(0,"file:");
-        LOG_INFO("URI stream file: " << streamFilePathSpec);
+        }        
+        
         try
         {
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, streamFilePathSpec.c_str(), cudadecMemType, intraDecode);
+                name, uri, cudadecMemType, intraDecode);
         }
         catch(...)
         {

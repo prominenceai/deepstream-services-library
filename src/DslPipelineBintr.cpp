@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslPipelineBintr.h"
 
 #include <gst/gst.h>
@@ -490,6 +491,8 @@ namespace DSL
             case KeyRelease:
                 LOG_INFO("Key released");
                 
+                // TEMP using any key to quit the main loop - TODO - handle termination
+                g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
                 break;
             }
         }
