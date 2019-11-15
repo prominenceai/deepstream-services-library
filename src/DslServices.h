@@ -55,7 +55,7 @@ namespace DSL {
             uint width, uint height, uint fps_n, uint fps_d);
         
         DslReturnType SourceUriNew(const char* name, 
-            const char* uri, uint cudadecMemType, uint intraDecode);
+            const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
         boolean SourceIsLive(const char* name);
         

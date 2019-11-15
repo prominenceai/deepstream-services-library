@@ -40,10 +40,10 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
             
             THEN( "Its member variables are initialized correctly" )
             {
-                REQUIRE( pElementr->m_name == elementName );
-                REQUIRE( pElementr->m_pGstObj != NULL );
+                REQUIRE( pElementr->GetName() == elementName );
+                REQUIRE( pElementr->GetParentState() == GST_STATE_NULL );
+                REQUIRE( pElementr->GetState() == GST_STATE_NULL );
             }
-            
         }
     }
 }
@@ -64,8 +64,17 @@ SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
             
             THEN( "The relation ship of source and sink Elementr are setup correctly" )
             {
-                REQUIRE( pQueue->m_pSink == pTee );
-                REQUIRE( pTee->m_pSource == pQueue );
+                REQUIRE( pQueue->IsInUse() == true );
+                REQUIRE( pQueue->IsLinkedToSink() == true );
+                REQUIRE( pQueue->IsLinkedToSource() == false );
+                REQUIRE( pQueue->GetSink() == pTee );
+                REQUIRE( pQueue->GetSource() == nullptr );
+
+                REQUIRE( pTee->IsInUse() == true );
+                REQUIRE( pTee->IsLinkedToSink() == false );
+                REQUIRE( pTee->IsLinkedToSource() == true );
+                REQUIRE( pTee->GetSink() == nullptr );
+                REQUIRE( pTee->GetSource() == pQueue );
             }
         }
     }
@@ -89,8 +98,8 @@ SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
 
             THEN( "The relation ship of source and sink Elementr are setup correctly" )
             {
-                REQUIRE( pQueue->m_pSink == nullptr );
-                REQUIRE( pTee->m_pSource == nullptr );                
+                REQUIRE( pQueue->GetSink() == nullptr );
+                REQUIRE( pTee->GetSource() == nullptr );                
             }
         }
     }

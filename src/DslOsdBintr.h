@@ -76,6 +76,12 @@ namespace DSL
          * @brief Unlinks all child elements of the OsdBintr
          */
         void UnlinkAll();
+
+        bool IsClockEnabled();
+
+        void EnableClock();
+        
+        void DisableClock();
         
     private:
 

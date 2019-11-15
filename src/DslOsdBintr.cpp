@@ -29,16 +29,15 @@ THE SOFTWARE.
 
 namespace DSL
 {
-//    std::string OsdBintr::m_sClockFont = "Serif";
-//    guint OsdBintr::m_sClockFontSize = 12;
-//    guint OsdBintr::m_sClockOffsetX = 800;
-//    guint OsdBintr::m_sClockOffsetY = 820;
-//    guint OsdBintr::m_sClockColor = 0;
-    
     OsdBintr::OsdBintr(const char* osd, gboolean isClockEnabled)
         : Bintr(osd)
         , m_isClockEnabled(isClockEnabled)
         , m_processMode(0)
+        , m_sClockFont("Serif")
+        , m_sClockFontSize(12)
+        , m_sClockOffsetX(800)
+        , m_sClockOffsetY(820)
+        , m_sClockColor(0)
     {
         LOG_FUNC();
         
@@ -61,7 +60,7 @@ namespace DSL
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
-        AddChild(m_pVidConv);
+        AddChild(m_pConvQueue);
         AddChild(m_pOsd);
 
         m_pQueue->AddGhostPadToParent("sink");
@@ -117,6 +116,29 @@ namespace DSL
         // add 'this' OSD to the Parent Pipeline 
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddOsdBintr(shared_from_this());
+    }
+
+    bool OsdBintr::IsClockEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_isClockEnabled;
+    }
+
+    void OsdBintr::EnableClock()
+    {
+        LOG_FUNC();
+        
+        m_isClockEnabled = true;
+        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+    }
+    
+    void OsdBintr::DisableClock()
+    {
+        LOG_FUNC();
+        
+        m_isClockEnabled = false;
+        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
     }
     
 }    

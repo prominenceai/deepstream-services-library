@@ -158,10 +158,11 @@ DslReturnType dsl_source_csi_new(const char* name,
  * @brief creates a new, uniquely named URI Source obj
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
+ * @param[in] 
  * @return DSL_RESULT_SOURCE_RESULT
  */
 DslReturnType dsl_source_uri_new(const char* name, 
-    const char* uri, uint cudadec_mem_type, uint intra_decode);
+    const char* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief returns whether the source stream is live or not
@@ -211,22 +212,22 @@ DslReturnType dsl_sink_overlay_new(const char* name,
 /**
  * @brief creates a new, uniquely named OSD obj
  * @param[in] name unique name for the new Sink
- * @param[in] isClockEnabled true if clock is visible
+ * @param[in] is_clock_enabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_osd_new(const char* name, boolean isClockEnabled);
+DslReturnType dsl_osd_new(const char* name, boolean is_clock_enabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
  * @param[in] name unique name for the new GIE object
- * @param[in] inferConfigFile name of the Infer Config file to use
- * @param[in] modelEngineFile name of the Model Engine file to use
+ * @param[in] infer_config_file name of the Infer Config file to use
+ * @param[in] model_engine_file name of the Model Engine file to use
  * @param[in] interval
  * @param[in] uniqueId
  * @return DSL_RESULT_GIE_RESULT
  */
-DslReturnType dsl_gie_primary_new(const char* name, const char* inferConfigFile,
-    const char* modelEngineFile, uint interval, uint uniqueId);
+DslReturnType dsl_gie_primary_new(const char* name, const char* infer_config_file,
+    const char* model_engine_file, uint interval, uint unique_id);
 
 /**
  * @brief creates a new, uniquely named Display obj

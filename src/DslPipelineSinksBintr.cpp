@@ -51,7 +51,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_isLinked)
+        if (IsLinked())
         {    
             UnlinkAll();
         }
@@ -71,12 +71,12 @@ namespace DSL
         // Ensure Sink uniqueness
         if (IsChild(pChildSink))
         {
-            LOG_ERROR("' " << pChildSink->m_name << "' is already a child of '" << m_name << "'");
+            LOG_ERROR("' " << pChildSink->GetName() << "' is already a child of '" << GetName() << "'");
             return false;
         }
         
         // Add the Sink to the Sinks collection and as a child of this Bintr
-        m_pChildSinks[pChildSink->m_name] = pChildSink;
+        m_pChildSinks[pChildSink->GetName()] = pChildSink;
         return Bintr::AddChild(pChildSink);
     }
     
@@ -84,7 +84,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (bool)m_pChildSinks[pChildSink->m_name];
+        return (bool)m_pChildSinks[pChildSink->GetName()];
     }
 
     bool PipelineSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
@@ -101,14 +101,14 @@ namespace DSL
 
         if (!IsChild(pChildSink))
         {
-            LOG_ERROR("' " << pChildSink->m_name << "' is NOT a child of '" << m_name << "'");
+            LOG_ERROR("' " << pChildSink->GetName() << "' is NOT a child of '" << GetName() << "'");
             throw;
         }
         // unlink the sink from the Tee
         pChildSink->UnlinkFromSource();
         
         // unreference and remove from the collection of sinks
-        m_pChildSinks.erase(pChildSink->m_name);
+        m_pChildSinks.erase(pChildSink->GetName());
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSink);
@@ -121,7 +121,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("PipelineSinksBintr '" << m_name << "' is already linked");
+            LOG_ERROR("PipelineSinksBintr '" << GetName() << "' is already linked");
             return false;
         }
         m_pQueue->LinkToSink(m_pTee);
@@ -132,18 +132,18 @@ namespace DSL
             imap.second->LinkAll();
             
             GstPadTemplate* pPadTemplate = 
-                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
+                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->GetGstObject()), "src_%u");
             if (!pPadTemplate)
             {
-                LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+                LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
                 return false;
             }
             // this looks wrong *****
             m_pGstSourcePad = gst_element_request_pad(
-                GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
+                GST_ELEMENT(m_pTee->GetGstObject()), pPadTemplate, NULL, NULL);
             if (!m_pGstSourcePad)
             {
-                LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << m_name <<" '");
+                LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
                 throw;
             }
 
@@ -159,7 +159,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OsdBintr '" << m_name << "' is not linked");
+            LOG_ERROR("OsdBintr '" << GetName() << "' is not linked");
             return;
         }
         for (auto const& imap: m_pChildren)

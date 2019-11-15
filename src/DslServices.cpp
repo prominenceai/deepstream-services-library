@@ -83,10 +83,10 @@ DslReturnType dsl_source_csi_new(const char* name,
 }
 
 DslReturnType dsl_source_uri_new(const char* name, 
-    const char* uri, uint cudadec_mem_type, uint intra_decode)
+    const char* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
     return DSL::Services::GetServices()->SourceUriNew(name,
-        uri, cudadec_mem_type, intra_decode);
+        uri, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
 boolean dsl_source_is_live(const char* name)
@@ -241,6 +241,11 @@ DslReturnType dsl_pipeline_play(const char* pipeline)
     return DSL::Services::GetServices()->PipelinePlay(pipeline);
 }
 
+//DslReturnType dsl_pipeline_stop(const char* pipeline)
+//{
+//    return DSL::Services::GetServices()->PipelineStop(pipeline);
+//}
+
 DslReturnType dsl_pipeline_get_state(const char* pipeline)
 {
     return DSL::Services::GetServices()->PipelineGetState(pipeline);
@@ -296,10 +301,6 @@ namespace DSL
     // Initialize the Services's single instance pointer
     Services* Services::m_pInstatnce = NULL;
 
-    std::string Services::m_configFileDir = DS_CONFIG_DIR;
-    std::string Services::m_modelFileDir = DS_MODELS_DIR;
-    std::string Services::m_streamFileDir = DS_STREAMS_DIR;
-    
     Services* Services::GetServices()
     {
         
@@ -380,7 +381,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceUriNew(const char* name,
-        const char* uri, uint cudadecMemType, uint intraDecode)
+        const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -402,7 +403,7 @@ namespace DSL
         try
         {
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, cudadecMemType, intraDecode);
+                name, uri, cudadecMemType, intraDecode, dropFrameInterval);
         }
         catch(...)
         {
@@ -644,7 +645,7 @@ namespace DSL
         {
             if (imap.second->IsInUse())
             {
-                LOG_ERROR("Component '" << imap.second->m_name << "' is currently in use");
+                LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
                 return DSL_RESULT_COMPONENT_IN_USE;
             }
         }
@@ -652,7 +653,7 @@ namespace DSL
 
         for (auto const& imap: m_components)
         {
-            m_components.erase(imap.second->m_name);
+            m_components.erase(imap.second->GetName());
         }
         LOG_INFO("All Components deleted successfully");
 
@@ -956,7 +957,12 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        return DSL_RESULT_API_NOT_IMPLEMENTED;
+        if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Pause())
+        {
+            return DSL_RESULT_PIPELINE_FAILED_TO_PAUSE;
+        }
+
+        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelinePlay(const char* pipeline)

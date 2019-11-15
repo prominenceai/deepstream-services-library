@@ -55,7 +55,7 @@ namespace DSL
         {
             LOG_FUNC();
 
-            LOG_INFO("New GstNodetr '" << m_name << "' created");
+            LOG_INFO("New GstNodetr '" << GetName() << "' created");
         }
 
         /**
@@ -64,6 +64,9 @@ namespace DSL
         ~GstNodetr()
         {
             LOG_FUNC();
+
+            // Remove all child references 
+            RemoveAllChildren();
             
             if (IsLinkedToSink())
             {
@@ -73,8 +76,16 @@ namespace DSL
             {
                 UnlinkFromSource();
             }
+
+            LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
             
-            LOG_INFO("Nodetr '" << m_name << "' deleted");
+            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+            {
+                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
+                
+//                gst_object_unref(m_pGstObj);
+            }
+            LOG_INFO("Nodetr '" << GetName() << "' deleted");
         }
         
         /**
@@ -88,10 +99,10 @@ namespace DSL
 
             // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
             // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-            if (!gst_element_add_pad(GST_ELEMENT(m_pParentGstObj), 
-                gst_ghost_pad_new(name, gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), name))))
+            if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
+                gst_ghost_pad_new(name, gst_element_get_static_pad(GetGstElement(), name))))
             {
-                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << m_name << "'");
+                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
                 throw;
             }
         }
@@ -108,9 +119,9 @@ namespace DSL
             Nodetr::LinkToSink(pSink);
 
             // Link Source Element to Sink Element 
-            if (!gst_element_link(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj)))
+            if (!gst_element_link(GetGstElement(), m_pSink->GetGstElement()))
             {
-                LOG_ERROR("Failed to link " << m_name << " to " << pSink->m_name);
+                LOG_ERROR("Failed to link " << GetName() << " to " << pSink->GetName());
                 throw;
             }
         }
@@ -124,7 +135,7 @@ namespace DSL
 
             if (IsLinkedToSink())
             {
-                gst_element_unlink(GST_ELEMENT(m_pGstObj), GST_ELEMENT(m_pSink->m_pGstObj));
+                gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
 
                 // Call the base class to complete the unlink
                 Nodetr::UnlinkFromSink();
@@ -140,11 +151,44 @@ namespace DSL
 
             if (IsLinkedToSource())
             {
-                gst_element_unlink(GST_ELEMENT(m_pSource->m_pGstObj), GST_ELEMENT(m_pGstObj));
+                gst_element_unlink(m_pSource->GetGstElement(), GetGstElement());
 
                 // Call the base class to complete the unlink
                 Nodetr::UnlinkFromSource();
             }
+        }
+        
+        /**
+         * @brief Returns the current State of this GstNodetr
+         * @return the current state of the GstNodetr. 
+         */
+        uint GetState()
+        {
+            LOG_FUNC();
+            
+            uint currentState = gst_element_get_state(GetGstElement(), NULL, NULL, 1);
+            
+            LOG_INFO("Returning a state of '" << currentState << "' for Nodetr '" << GetName());
+            
+            return currentState;
+        }
+        
+        /**
+         * @brief Returns the current State of this Bintr's Parent
+         * @return the current state of the Parenet, GST_STATE_NULL if the
+         * GstNodetr is currently an orphen. 
+         */
+        uint GetParentState()
+        {
+            LOG_FUNC();
+            
+            if (!m_pParentGstObj)
+            {
+                return GST_STATE_NULL;
+            }
+            uint currentState = gst_element_get_state(GetParentGstElement(), NULL, NULL, 1);
+
+            LOG_INFO("Nodetr '" << GetName() << "' is in the state of " << currentState);
         }
     };
 

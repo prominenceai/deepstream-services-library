@@ -75,7 +75,7 @@ namespace DSL
         
         if (!IsParent(pParentBintr))
         {
-            LOG_ERROR("Source '" << m_name << "' is not a child of Pipeline '" << pParentBintr->m_name << "'");
+            LOG_ERROR("Source '" << GetName() << "' is not a child of Pipeline '" << pParentBintr->GetName() << "'");
             return false;
         }
         
@@ -97,7 +97,7 @@ namespace DSL
 
         if (!m_pSourceElement)
         {
-            LOG_ERROR("Source Element for SourceBintr '" << m_name << "' has not been instantiated");
+            LOG_ERROR("Source Element for SourceBintr '" << GetName() << "' has not been instantiated");
             throw;
         }
         m_sensorId = id;
@@ -110,21 +110,20 @@ namespace DSL
 
         std::string sinkPadName = "sink_" + std::to_string(m_sensorId);
         
-        LOG_INFO("Linking Source '" << m_name << "' to Pad '" << sinkPadName 
-            << "' for StreamMux '" << pStreamMux->m_name << "'");
+        LOG_INFO("Linking Source '" << GetName() << "' to Pad '" << sinkPadName 
+            << "' for StreamMux '" << pStreamMux->GetName() << "'");
        
-        m_pGstSourcePad = gst_element_get_static_pad(GST_ELEMENT(m_pGstObj), "src");
+        m_pGstSourcePad = gst_element_get_static_pad(GetGstElement(), "src");
         if (!m_pGstSourcePad)
         {
-            LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << m_name << "'");
+            LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
         }
 
-        m_pGstSinkPad = gst_element_get_request_pad(
-            GST_ELEMENT(pStreamMux->m_pGstObj), sinkPadName.c_str());
+        m_pGstSinkPad = gst_element_get_request_pad(pStreamMux->GetGstElement(), sinkPadName.c_str());
             
         if (!m_pGstSinkPad)
         {
-            LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->m_name << "'");
+            LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->GetName() << "'");
         }
             
         Bintr::LinkToSink(pStreamMux);
@@ -139,6 +138,12 @@ namespace DSL
         {
             // Unlink from the Stream Muxer first.
             gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
+            
+            LOG_WARN("Releasing Sink Pad for StreamMux " << m_pSink->GetName());
+            
+            // Release the requested Sink for the StreamMux
+            gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
+            
             Nodetr::UnlinkFromSink();
         }
     }
@@ -199,7 +204,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("CsiSourceBintr '" << m_name << "' is already in a linked state");
+            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
         m_pSourceElement->LinkToSink(m_pCapsFilter);
@@ -214,18 +219,19 @@ namespace DSL
 
         if (!m_isLinked)
         {
-            LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
+            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
-//        m_pSourceElement->UnlinkFromSink();
+        m_pSourceElement->UnlinkFromSink();
         m_isLinked = false;
     }
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
-        uint cudadecMemType, uint intraDecode)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
         : SourceBintr(name)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
+        , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
         , m_prevAccumulatedBase(0)
     {
@@ -248,27 +254,31 @@ namespace DSL
         
         LOG_INFO("URI Path = " << m_uri);
               
+        // New Elementrs for this Source
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "uri-src-elem");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
         m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
-        
+
+        // Set the URI for Source Elementr
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
 
-        g_signal_connect(G_OBJECT(m_pSourceElement->m_pGstObj), "pad-added", 
+        // Connect UIR Source Setup Callbacks
+        g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(OnPadAddedCB), this);
-        g_signal_connect(G_OBJECT(m_pSourceElement->m_pGstObj), "child-added", 
+        g_signal_connect(m_pSourceElement->GetGObject(), "child-added", 
             G_CALLBACK(OnChildAddedCB), this);
-        g_signal_connect(G_OBJECT(m_pSourceElement->m_pGstObj), "source-setup",
+        g_signal_connect(m_pSourceElement->GetGObject(), "source-setup",
             G_CALLBACK(OnSourceSetupCB), this);
 
-        g_object_set_data(G_OBJECT(m_pSourceQueue->m_pGstObj), "source", this);
+        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
         
 
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
 
+        // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
         AddChild(m_pSourceQueue);
         AddChild(m_pTee);
@@ -290,34 +300,32 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("UriSourceBintr '" << m_name << "' is already in a linked state");
+            LOG_ERROR("UriSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
 
         GstPadTemplate* pPadTemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->m_pGstObj), "src_%u");
+            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->GetGstElement()), "src_%u");
         if (!pPadTemplate)
         {
-            LOG_ERROR("Failed to get Pad Template for '" << m_name << "'");
+            LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
             return false;
         }
         
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
 
-        m_pGstSourcePad = gst_element_request_pad(
-            GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
+        m_pGstSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
         if (!m_pGstSourcePad)
         {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << m_name <<" '");
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
             return false;
         }
         m_pTee->LinkToSink(m_pSourceQueue);
 
-        m_pGstSourcePad = gst_element_request_pad(
-            GST_ELEMENT(m_pTee->m_pGstObj), pPadTemplate, NULL, NULL);
+        m_pGstSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
         if (!m_pGstSourcePad)
         {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << m_name <<" '");
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
             return false;
         }
         m_pTee->LinkToSink(m_pFakeSinkQueue);
@@ -334,10 +342,14 @@ namespace DSL
     
         if (!m_isLinked)
         {
-            LOG_ERROR("CsiSourceBintr '" << m_name << "' is not in a linked state");
+            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        m_pSourceQueue->UnlinkFromSink();
+        m_pSourceQueue->UnlinkFromSource();
         m_pFakeSinkQueue->UnlinkFromSink();
+        m_pFakeSinkQueue->UnlinkFromSource();
+        
         m_isLinked = false;
     }
 
@@ -356,10 +368,10 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstSinkPad = gst_element_get_static_pad(GST_ELEMENT(m_pTee->m_pGstObj), "sink");
+            m_pGstSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
             if (!m_pGstSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << m_name << "'");
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstSinkPad) != GST_PAD_LINK_OK) 
@@ -373,7 +385,7 @@ namespace DSL
             gst_structure_get_uint(structure, "height", &m_height);
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
             
-            LOG_INFO("Video decode linked for URI source '" << m_name << "'");
+            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
         }
     }
 
@@ -438,9 +450,11 @@ namespace DSL
                     GST_PAD_PROBE_TYPE_EVENT_FLUSH | 
                     GST_PAD_PROBE_TYPE_BUFFER);
                     
-// TODO !!!!        StaticPadtr sinkPadtr("sink", GST_ELEMENT(pObject));
+                GstPad* pStaticSinkpad = gst_element_get_static_pad(GST_ELEMENT(pObject), "sink");
                 
-//                m_bufferProbeId = sinkPadtr.AddPad(mask, StreamBufferRestartProbCB, this);
+                m_bufferProbeId = 
+                    gst_pad_add_probe(pStaticSinkpad, mask, StreamBufferRestartProbCB, this, NULL);
+                LOG_WARN("****************************************************");
             }
         }
     }
@@ -448,7 +462,8 @@ namespace DSL
     GstPadProbeReturn UriSourceBintr::HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
         LOG_FUNC();
-        
+
+        LOG_WARN("****************************************************");
         GstEvent* event = GST_EVENT(pInfo->data);
 
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
@@ -500,9 +515,10 @@ namespace DSL
     
     gboolean UriSourceBintr::HandleStreamBufferSeek()
     {
-        gst_element_set_state(GST_ELEMENT(m_pGstObj), GST_STATE_PAUSED);
-
-        gboolean retval = gst_element_seek(GST_ELEMENT(m_pGstObj), 1.0, GST_FORMAT_TIME,
+//        gst_element_set_state(GetGstElement(), GST_STATE_PAUSED);
+        Pause();
+        
+        gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
             (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
             GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
 
@@ -511,7 +527,8 @@ namespace DSL
             LOG_WARN("Failure to seek");
         }
 
-        gst_element_set_state(GST_ELEMENT(m_pGstObj), GST_STATE_PLAYING);
+//        gst_element_set_state(GetGstElement(), GST_STATE_PLAYING);
+        return Play();
     }
     
     

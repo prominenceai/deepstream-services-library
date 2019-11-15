@@ -48,7 +48,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pSourceBintr->m_pGstObj != NULL );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetSensorId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
@@ -120,7 +120,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
         std::string sourceName = "test-uri-source";
         std::string uri = "./test/streams/sample_1080p_h264.mp4";
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(1);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
         
         char absolutePath[PATH_MAX+1];
         std::string fullUriPath = realpath(uri.c_str(), absolutePath);
@@ -131,13 +132,13 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
         {
         
             DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-                sourceName.c_str(), uri.c_str(), cudadecMemType, intrDecode);
+                sourceName.c_str(), uri.c_str(), cudadecMemType, intrDecode, dropFrameInterval);
 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pSourceBintr->m_pGstObj != NULL );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetSensorId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 

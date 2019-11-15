@@ -43,7 +43,7 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
 
             THEN( "All member variables are setup correctly" )
             {
-                REQUIRE( pPipelineBintr->m_name == pipelineName );
+                REQUIRE( pPipelineBintr->GetName() == pipelineName );
             }
         }
     }

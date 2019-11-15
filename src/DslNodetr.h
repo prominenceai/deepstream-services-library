@@ -66,19 +66,18 @@ namespace DSL
         {
             LOG_FUNC();
             
-            // Remove all child references 
-            RemoveAllChildren();
-            
-            if (IsLinkedToSink())
-            {
-                UnlinkFromSink();
-            }
-            if (IsLinkedToSource())
-            {
-                UnlinkFromSource();
-            }
-            
             LOG_INFO("Nodetr '" << m_name << "' deleted");
+        }
+        
+        /**
+         * @brief return the name given to this Nodetr on creation
+         * @return const string name given to this Nodetr
+         */
+        const char* GetName()
+        {
+            LOG_FUNC();
+            
+            return m_name.c_str();
         }
         
         /**
@@ -146,7 +145,7 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_INFO("Removing Child '" << imap.second->m_name <<"' from Parent '" << m_name <<"'");
+                LOG_INFO("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
                 imap.second->m_pParentGstObj = NULL;
             }
             m_pChildren.clear();
@@ -161,7 +160,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return bool(m_pChildren[pChild->m_name]);
+            return bool(m_pChildren[pChild->GetName()]);
         }
         
         /**
@@ -186,7 +185,7 @@ namespace DSL
 
             m_pSink = pSink;
             pSink->m_pSource = shared_from_this();   
-            LOG_INFO("Source '" << m_name <<"' linked to Sink '" << pSink->m_name << "'");
+            LOG_INFO("Source '" << GetName() <<"' linked to Sink '" << pSink->GetName() << "'");
         }
         
         /**
@@ -198,7 +197,7 @@ namespace DSL
 
             if (m_pSink)
             {
-                LOG_INFO("Unlinking Source '" << m_name <<"' from Sink '" << m_pSink->m_name <<"'");
+                LOG_INFO("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() <<"'");
                 m_pSink->m_pSource = nullptr;
                 m_pSink = nullptr;   
             }
@@ -213,7 +212,7 @@ namespace DSL
 
             if (m_pSource)
             {
-                LOG_INFO("Unlinking self '" << m_name <<"' as a Sink from '" << m_pSource->m_name << "' Source");
+                LOG_INFO("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
                 m_pSource->m_pSink = nullptr;
                 m_pSource = nullptr;   
             }
@@ -242,6 +241,28 @@ namespace DSL
         }
         
         /**
+         * @brief returns the currently linked to Sink Nodetr
+         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
+         */
+        DSL_NODETR_PTR GetSink()
+        {
+            LOG_FUNC();
+            
+            return m_pSink;
+        }
+        
+        /**
+         * @brief returns the currently linked to Sink Nodetr
+         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
+         */
+        DSL_NODETR_PTR GetSource()
+        {
+            LOG_FUNC();
+            
+            return m_pSource;
+        }
+        
+        /**
          * @brief get the current number of children for this Nodetr 
          * @return the number of Child Nodetrs held by this Parent Nodetr
          */
@@ -251,8 +272,54 @@ namespace DSL
             
             return m_pChildren.size();
         }
+
+        GstObject* GetGstObject()
+        {
+            LOG_FUNC();
+            
+            return GST_OBJECT(m_pGstObj);
+        }
         
-    public:
+        GstElement* GetGstElement()
+        {
+            LOG_FUNC();
+            
+            return GST_ELEMENT(m_pGstObj);
+        }
+        
+        GObject* GetGObject()
+        {
+            LOG_FUNC();
+            
+            return G_OBJECT(m_pGstObj);
+        }
+
+        GstObject* GetParentGstObject()
+        {
+            LOG_FUNC();
+            
+            return GST_OBJECT(m_pParentGstObj);
+        }
+
+        GstElement* GetParentGstElement()
+        {
+            LOG_FUNC();
+            
+            return GST_ELEMENT(m_pParentGstObj);
+        }
+        
+        /**
+         * @brief backdoor for testing purposes only, untill GST test doubles can be used.
+         */
+        void __setGstObject__(GstObject* pGstObj)
+        {
+            LOG_FUNC();
+            
+            m_pGstObj = pGstObj;
+        }
+        
+        
+    protected:
 
         /**
          * @brief unique name for this Nodetr

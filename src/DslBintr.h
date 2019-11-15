@@ -72,23 +72,16 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
-            LOG_INFO("DTOR for Bintr '" << m_name << "' Called with " << m_pChildren.size() << " children");
-            
-            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
-            {
-                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << m_name << "'");
-                
-                gst_object_unref(m_pGstObj);
-            }
+
             if (m_pGstSinkPad)
             {
-                LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << m_name << "'");
+                LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << GetName() << "'");
                 
                 gst_object_unref(m_pGstSinkPad);
             }
             if (m_pGstSourcePad)
             {
-                LOG_INFO("Unreferencing GST Source Pad for Bintr '" << m_name << "'");
+                LOG_INFO("Unreferencing GST Source Pad for Bintr '" << GetName() << "'");
                 
                 gst_object_unref(m_pGstSourcePad);
             }
@@ -104,9 +97,9 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (!gst_bin_add(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
+            if (!gst_bin_add(GST_BIN(m_pGstObj), pChild->GetGstElement()))
             {
-                LOG_ERROR("Failed to add " << pChild->m_name << " to " << m_name <<"'");
+                LOG_ERROR("Failed to add " << pChild->GetName() << " to " << GetName() <<"'");
                 throw;
             }
             return Nodetr::AddChild(pChild);
@@ -123,13 +116,13 @@ namespace DSL
             
             if (!IsChild(pChild))
             {
-                LOG_ERROR("'" << pChild->m_name << "' is not a child of '" << m_name <<"'");
+                LOG_ERROR("'" << pChild->GetName() << "' is not a child of '" << GetName() <<"'");
                 return false;
             }
 
-            if (!gst_bin_remove(GST_BIN(m_pGstObj), GST_ELEMENT(pChild->m_pGstObj)))
+            if (!gst_bin_remove(GST_BIN(m_pGstObj), pChild->GetGstElement()))
             {
-                LOG_ERROR("Failed to remove " << pChild->m_name << " from " << m_name <<"'");
+                LOG_ERROR("Failed to remove " << pChild->GetName() << " from " << GetName() <<"'");
                 return false;
             }
             return Nodetr::RemoveChild(pChild);
@@ -164,10 +157,10 @@ namespace DSL
             
             // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
             // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-            if (!gst_element_add_pad(GST_ELEMENT(m_pGstObj), 
-                gst_ghost_pad_new(name, gst_element_get_static_pad(GST_ELEMENT(pElementr->m_pGstObj), name))))
+            if (!gst_element_add_pad(GetGstElement(), 
+                gst_ghost_pad_new(name, gst_element_get_static_pad(pElementr->GetGstElement(), name))))
             {
-                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << m_name << "'");
+                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
                 throw;
             }
         }
@@ -194,7 +187,51 @@ namespace DSL
             
             return m_isLinked;
         }
-        
+
+        bool Play()
+        {
+            LOG_FUNC();
+            
+            LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
+
+            bool result = gst_element_set_state(GetGstElement(),
+                GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE;
+            if (!result)
+            {
+                LOG_ERROR("FAILURE occured when trying to play Bintr '" << GetName() << "'");
+            }
+            return result;
+        }
+
+        bool Pause()
+        {
+            LOG_FUNC();
+            
+            LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
+            
+            bool result = gst_element_set_state(GetGstElement(),
+                GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE;
+            if (!result)
+            {
+                LOG_ERROR("FAILURE occured when trying to pause Bintr '" << GetName() << "'");
+            }
+            return result;
+        }
+
+        bool Stop()
+        {
+            LOG_FUNC();
+            
+            uint currentState = GetState();
+            
+            if ((currentState != GST_STATE_PLAYING) and (currentState != GST_STATE_PAUSED))
+            {
+                return false;
+            }
+            
+            return gst_pad_send_event(
+                gst_element_get_static_pad(GetGstElement(), "sink"), gst_event_new_eos());
+        }
         
     public:
     
