@@ -57,9 +57,10 @@ namespace DSL
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
 
-        bool Pause();
         bool Play();
         
+        bool Stop();
+
         /**
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
@@ -101,15 +102,11 @@ namespace DSL
          */
         bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
-
         /**
          * @brief adds a single OSD Bintr to this Pipeline 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
-        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
-        {
-//            m_pProcessBintr->AddOsdBintr(pOsdBintr);
-        }
+        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
         
         /**
          * @brief adds a single GIE Bintr to this Pipeline 
@@ -267,7 +264,12 @@ namespace DSL
         DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
         
         /**
-         * @brief the one and only Tiled Display for this Pipeline
+         * @brief the one and only optional OSD for this Pipeline
+         */
+        DSL_OSD_PTR m_pOsdBintr;
+        
+        /**
+         * @brief the one and only optional Tiled Display for this Pipeline
          */
         DSL_DISPLAY_PTR m_pDisplayBintr;
                         

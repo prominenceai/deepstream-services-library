@@ -70,7 +70,7 @@ namespace DSL
         // Ensure source uniqueness
         if (IsChild(pChildSource))
         {
-            LOG_ERROR("Source '" << pChildSource->m_name << "' is already a child of '" << m_name << "'");
+            LOG_ERROR("Source '" << pChildSource->GetName() << "' is already a child of '" << GetName() << "'");
             return false;
         }
         
@@ -82,7 +82,7 @@ namespace DSL
         }
         
         // Add the Source to the Sources collection and as a child of this Bintr
-        m_pChildSources[pChildSource->m_name] = pChildSource;
+        m_pChildSources[pChildSource->GetName()] = pChildSource;
         return Bintr::AddChild(pChildSource);
     }
 
@@ -90,7 +90,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (bool)m_pChildSources[pChildSource->m_name];
+        return (bool)m_pChildSources[pChildSource->GetName()];
     }
 
     bool PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
@@ -108,7 +108,7 @@ namespace DSL
         // Check for the relationship first
         if (!IsChild(pChildSource))
         {
-            LOG_ERROR("Source '" << pChildSource->m_name << "' is not a child of '" << m_name << "'");
+            LOG_ERROR("Source '" << pChildSource->GetName() << "' is not a child of '" << GetName() << "'");
             throw;
         }
 
@@ -116,7 +116,7 @@ namespace DSL
         pChildSource->UnlinkFromSink();
         
         // unreference and remove from the collection of source
-        m_pChildSources.erase(pChildSource->m_name);
+        m_pChildSources.erase(pChildSource->GetName());
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSource);
@@ -128,7 +128,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("PipelineSourcesBintr '" << m_name << "' is already linked");
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' is already linked");
             return false;
         }
         uint id(0);
@@ -154,7 +154,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("PipelineSourcesBintr '" << m_name << "' is not linked");
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' is not linked");
             return;
         }
         for (auto const& imap: m_pChildSources)

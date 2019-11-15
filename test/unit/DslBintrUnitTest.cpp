@@ -42,7 +42,7 @@ SCENARIO( "A new Bintr is created correctly", "[Bintr]" )
             {
                 REQUIRE( pBintr->m_gpuId == 0 );
                 REQUIRE( pBintr->m_nvbufMemoryType == 0 );
-                REQUIRE( pBintr->m_pGstObj != NULL );
+                REQUIRE( pBintr->GetGstObject() != NULL );
             }
         }
     }

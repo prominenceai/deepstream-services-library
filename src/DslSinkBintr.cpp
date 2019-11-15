@@ -68,7 +68,7 @@ namespace DSL
         
         if (!IsParent(pParentBintr))
         {
-            LOG_ERROR("Sink '" << m_name << "' is not a child of Pipeline '" << pParentBintr->m_name << "'");
+            LOG_ERROR("Sink '" << GetName() << "' is not a child of Pipeline '" << pParentBintr->GetName() << "'");
             return false;
         }
         // remove 'this' Sink from the Parent Pipeline 

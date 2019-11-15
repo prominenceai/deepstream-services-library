@@ -41,7 +41,7 @@ SCENARIO( "A PipelineSinksBintr is created correctly", "[PipelineSinksBintr]" )
             
             THEN( "All members have been setup correctly" )
             {
-                REQUIRE( pPipelineSinksBintr->m_name == pipelineSinksName );
+                REQUIRE( pPipelineSinksBintr->GetName() == pipelineSinksName );
                 REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
                 REQUIRE( pPipelineSinksBintr->m_pQueue != nullptr );
                 REQUIRE( pPipelineSinksBintr->m_pTee != nullptr );

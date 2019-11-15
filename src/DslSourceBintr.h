@@ -41,8 +41,8 @@ namespace DSL
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
-    #define DSL_URI_SOURCE_NEW(name, uri, cudadecMemType, intraDecode) \
-        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, cudadecMemType, intraDecode))
+    #define DSL_URI_SOURCE_NEW(name, uri, cudadecMemType, intraDecode, dropFrameInterval) \
+        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, cudadecMemType, intraDecode, dropFrameInterval))
         
 
     /**
@@ -200,7 +200,7 @@ namespace DSL
     public: 
     
         UriSourceBintr(const char* name, const char* uri, 
-            uint cudadecMemType, uint intraDecode);
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
 
         ~UriSourceBintr();
 

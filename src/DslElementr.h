@@ -79,7 +79,7 @@ namespace DSL
             
             LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
             
-            g_object_set(G_OBJECT(m_pGstObj), name, value, NULL);
+            g_object_set(GetGObject(), name, value, NULL);
         }
         
         /**
@@ -94,7 +94,7 @@ namespace DSL
             
             LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
             
-            g_object_set(G_OBJECT(m_pGstObj), name, value, NULL);
+            g_object_set(GetGObject(), name, value, NULL);
         }
         
         /**
@@ -109,7 +109,7 @@ namespace DSL
             
             LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
             
-            g_object_set(G_OBJECT(m_pGstObj), name, value, NULL);
+            g_object_set(GetGObject(), name, value, NULL);
         }
     };
 }

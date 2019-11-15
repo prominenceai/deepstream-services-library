@@ -41,7 +41,7 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
             
             THEN( "All members have been setup correctly" )
             {
-                REQUIRE( pPipelineSourcesBintr->m_name == pipelineSourcesName );
+                REQUIRE( pPipelineSourcesBintr->GetName() == pipelineSourcesName );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
                 REQUIRE( pPipelineSourcesBintr->m_pStreamMux != nullptr );
             }

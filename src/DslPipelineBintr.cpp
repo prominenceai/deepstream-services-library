@@ -78,6 +78,7 @@ namespace DSL
             XDestroyWindow(m_pXDisplay, m_pXWindow);
         }
         // cleanup all resources
+        gst_bus_remove_watch (m_pGstBus);
         gst_object_unref(m_pGstBus);
 
         g_mutex_clear(&m_busSyncMutex);
@@ -88,6 +89,14 @@ namespace DSL
     bool PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
     {
         LOG_FUNC();
+        
+        bool prevIsLinkedState = IsLinked();
+        uint prevPipelineState = GetState();
+        
+        if (prevIsLinkedState)
+        {
+            UnlinkAll();
+        }
 
         // Create the shared sources bintr if it doesn't exist
         if (!m_pPipelineSourcesBintr)
@@ -96,7 +105,22 @@ namespace DSL
             AddChild(m_pPipelineSourcesBintr);
         }
 
-        return m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        if (!m_pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
+        {
+            return false;
+        }
+        
+        if (prevIsLinkedState and !LinkAll())
+        {
+           return false;
+        }
+        
+        if (prevPipelineState == GST_STATE_PLAYING)
+        {
+            return Play();
+        }
+        return true;
+
     }
 
     bool PipelineBintr::IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr)
@@ -105,7 +129,7 @@ namespace DSL
 
         if (!m_pPipelineSourcesBintr)
         {
-            LOG_INFO("Pipeline '" << m_name << "' has no Sources");
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sources");
             return false;
         }
         return (m_pPipelineSourcesBintr->IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
@@ -119,14 +143,29 @@ namespace DSL
         return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
+    bool PipelineBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
+    {
+        LOG_FUNC();
+        
+        if (pOsdBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has an exisiting OSD '" 
+                << m_pOsdBintr->GetName());
+            return false;
+        }
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
+        
+        return AddChild(pOsdBintr);
+    }
+
     bool PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
         
         if (m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipeline '" << m_name << "' has an exisiting Primary GIE '" 
-                << m_pPrimaryGieBintr->m_name);
+            LOG_ERROR("Pipeline '" << GetName() << "' has an exisiting Primary GIE '" 
+                << m_pPrimaryGieBintr->GetName());
             return false;
         }
         m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
@@ -154,7 +193,7 @@ namespace DSL
 
         if (!m_pPipelineSinksBintr)
         {
-            LOG_INFO("Pipeline '" << m_name << "' has no Sinks");
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
             return false;
         }
         return (m_pPipelineSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
@@ -166,7 +205,7 @@ namespace DSL
 
         if (!m_pPipelineSinksBintr)
         {
-            LOG_INFO("Pipeline '" << m_name << "' has no Sinks");
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
             return false;
         }
 
@@ -174,21 +213,18 @@ namespace DSL
         return m_pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
 
-
-
     bool PipelineBintr::AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr)
     {
         LOG_FUNC();
 
         if (m_pDisplayBintr)
         {
-            LOG_ERROR("Pipeline '" << m_name << "' allready has a Tiled Display");
+            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tiled Display");
             return false;
         }
         m_pDisplayBintr = std::dynamic_pointer_cast<DisplayBintr>(pDisplayBintr);
         
         return AddChild(pDisplayBintr);
-        
     }
 
     bool PipelineBintr::LinkAll()
@@ -197,7 +233,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_INFO("Components for Pipeline '" << m_name << "' are already assembled");
+            LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
         
@@ -229,6 +265,14 @@ namespace DSL
             m_pPrimaryGieBintr->LinkAll();
             m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr);
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
+        }
+        
+        if (m_pOsdBintr)
+        {
+            // LinkAll Osd Elementrs and add as next component in the Pipeline
+            m_pOsdBintr->LinkAll();
+            m_linkedComponents.back()->LinkToSink(m_pOsdBintr);
+            m_linkedComponents.push_back(m_pOsdBintr);
         }
 
         if (m_pDisplayBintr)
@@ -269,14 +313,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool PipelineBintr::Pause()
-    {
-        LOG_FUNC();
-        
-        return (gst_element_set_state(GST_ELEMENT(m_pGstObj),
-            GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE);
-    }
-
     bool PipelineBintr::Play()
     {
         LOG_FUNC();
@@ -290,8 +326,24 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);       
 
-        return (gst_element_set_state(GST_ELEMENT(m_pGstObj),
-            GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE);
+        // Call the base class to complete the Play process
+        return Bintr::Play();
+    }
+    
+    bool PipelineBintr::Stop()
+    {
+        LOG_FUNC();
+        
+        if ((GetState() != GST_STATE_PLAYING) and (GetState() != GST_STATE_PAUSED))
+        {
+            return false;
+        }
+        // iterate through the list of Linked Components, stoping each
+        for (auto const& ivector: m_linkedComponents)
+        {
+            // all but the tail m_pPipelineSinksBintr will be Linked to Sink
+            ivector->Stop();
+        }
     }
 
     void PipelineBintr::DumpToDot(char* filename)
@@ -502,7 +554,7 @@ namespace DSL
     {
         if (!m_pDisplayBintr)
         {
-            LOG_ERROR("_createWindow error: Miissing Display Bintr for Pipeline '" << m_name << '"');
+            LOG_ERROR("_createWindow error: Miissing Display Bintr for Pipeline '" << GetName() << '"');
             return false;
         }
         uint width(0), height(0);
@@ -514,7 +566,7 @@ namespace DSL
 
         if (!m_pXWindow)
         {
-            LOG_ERROR("Failed to create new X Window for Pipeline '" << m_name << "' ");
+            LOG_ERROR("Failed to create new X Window for Pipeline '" << GetName() << "' ");
             return false;
         }
         XSetWindowAttributes attr = {0};
@@ -530,7 +582,7 @@ namespace DSL
         XMapRaised(m_pXDisplay, m_pXWindow);
 
         // Start the X window event thread
-        std::string threadName = m_name + std::string("-x-window-event-thread");
+        std::string threadName = GetName() + std::string("-x-window-event-thread");
         m_pXWindowEventThread = g_thread_new(threadName.c_str(), XWindowEventThread, this);
         
         return true;
