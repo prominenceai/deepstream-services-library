@@ -241,10 +241,10 @@ DslReturnType dsl_pipeline_play(const char* pipeline)
     return DSL::Services::GetServices()->PipelinePlay(pipeline);
 }
 
-//DslReturnType dsl_pipeline_stop(const char* pipeline)
-//{
-//    return DSL::Services::GetServices()->PipelineStop(pipeline);
-//}
+DslReturnType dsl_pipeline_stop(const char* pipeline)
+{
+    return DSL::Services::GetServices()->PipelineStop(pipeline);
+}
 
 DslReturnType dsl_pipeline_get_state(const char* pipeline)
 {
@@ -849,9 +849,10 @@ namespace DSL
         //  existence of each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
+            LOG_WARN("************************************");
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
         }
-        LOG_DEBUG("All listed components found");
+        LOG_INFO("All listed components found");
         
         // iterate through the list of provided components a second time
         // adding each to the named pipeline individually.
@@ -974,6 +975,20 @@ namespace DSL
         if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Play())
         {
             return DSL_RESULT_PIPELINE_FAILED_TO_PLAY;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::PipelineStop(const char* pipeline)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        if (!std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->Stop())
+        {
+            return DSL_RESULT_PIPELINE_FAILED_TO_STOP;
         }
 
         return DSL_RESULT_SUCCESS;

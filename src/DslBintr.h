@@ -73,18 +73,41 @@ namespace DSL
         {
             LOG_FUNC();
 
+            if (IsLinkedToSink())
+            {
+                UnlinkFromSink();
+            }
+            if (IsLinkedToSource())
+            {
+                UnlinkFromSource();
+            }
+
             if (m_pGstSinkPad)
             {
                 LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << GetName() << "'");
                 
                 gst_object_unref(m_pGstSinkPad);
+                m_pGstSinkPad = NULL;
             }
             if (m_pGstSourcePad)
             {
                 LOG_INFO("Unreferencing GST Source Pad for Bintr '" << GetName() << "'");
                 
                 gst_object_unref(m_pGstSourcePad);
+                m_pGstSourcePad = NULL;
             }
+
+            // Remove all child references 
+            RemoveAllChildren();
+            
+            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+            {
+                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
+                
+                gst_object_unref(m_pGstObj);
+            }
+            LOG_INFO("Nodetr '" << GetName() << "' deleted");
+            
         }
 
         /**
@@ -194,13 +217,15 @@ namespace DSL
             
             LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
 
-            bool result = gst_element_set_state(GetGstElement(),
-                GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE;
-            if (!result)
+            gst_element_set_state(GetGstElement(), GST_STATE_PLAYING);
+            
+            // Wait until state change or failure, no timeout.
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
             {
                 LOG_ERROR("FAILURE occured when trying to play Bintr '" << GetName() << "'");
+                return false;
             }
-            return result;
+            return true;
         }
 
         bool Pause()
@@ -209,13 +234,14 @@ namespace DSL
             
             LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
             
-            bool result = gst_element_set_state(GetGstElement(),
-                GST_STATE_PAUSED) != GST_STATE_CHANGE_FAILURE;
-            if (!result)
+            gst_element_set_state(GetGstElement(), GST_STATE_PAUSED);
+
+            // Wait until state change or failure, no timeout.
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
             {
                 LOG_ERROR("FAILURE occured when trying to pause Bintr '" << GetName() << "'");
             }
-            return result;
+            return true;
         }
 
         bool Stop()
@@ -226,6 +252,7 @@ namespace DSL
             
             if ((currentState != GST_STATE_PLAYING) and (currentState != GST_STATE_PAUSED))
             {
+                LOG_ERROR("Bintr '" << GetName() << "' is not in a state of PLAYING or PAUSED");
                 return false;
             }
             

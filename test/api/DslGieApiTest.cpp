@@ -55,7 +55,7 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
             }
         }
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        }
+    }
 }    
 
 

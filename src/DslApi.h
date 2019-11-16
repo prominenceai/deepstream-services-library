@@ -112,10 +112,11 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001001
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001010
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001011
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001100
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001101
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001110
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11001111
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001100
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001101
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001110
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001111
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010000
 #define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
 #define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
 
@@ -123,10 +124,11 @@ THE SOFTWARE.
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
-#define DSL_PIPELINE_STATE_NULL                                     0
-#define DSL_PIPELINE_STATE_READY                                    1
-#define DSL_PIPELINE_STATE_PLAYING                                  2
-#define DSL_PIPELINE_STATE_PAUSED                                   4
+#define DSL_STATE_NULL                                              0
+#define DSL_STATE_READY                                             1
+#define DSL_STATE_PLAYING                                           2
+#define DSL_STATE_PAUSED                                            4
+#define DSL_STATE_IN_TRANSITION                                     5
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -372,7 +374,7 @@ DslReturnType dsl_pipeline_component_remove(const char* pipeline,
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_components_remove(const char* pipeline, 
+DslReturnType dsl_pipeline_component_remove_many(const char* pipeline, 
     const char** components);
 
 /**
@@ -404,6 +406,13 @@ DslReturnType dsl_pipeline_pause(const char* pipeline);
  * @return DSL_RESULT_PIPELINE_RESULT.
  */
 DslReturnType dsl_pipeline_play(const char* pipeline);
+
+/**
+ * @brief Stops a Pipeline if in a state of paused or playing
+ * @param[in] pipeline unique name of the Pipeline to stop.
+ * @return DSL_RESULT_PIPELINE_RESULT.
+ */
+DslReturnType dsl_pipeline_stop(const char* pipeline);
 
 /**
  * @brief gets the current state of a Pipeline

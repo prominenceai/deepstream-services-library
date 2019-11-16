@@ -119,6 +119,8 @@ namespace DSL {
         
         DslReturnType PipelinePlay(const char* pipeline);
         
+        DslReturnType PipelineStop(const char* pipeline);
+        
         DslReturnType PipelineGetState(const char* pipeline);
         
         DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
