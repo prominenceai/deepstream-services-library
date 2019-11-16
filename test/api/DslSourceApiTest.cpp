@@ -211,11 +211,11 @@ SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api
 
 SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source-api]" )
 {
-    std::string sourceName  = "csi-source";
-    std::string pipelineName  = "test-pipeline";
-
     GIVEN( "A new Pipeline with a Source" ) 
     {
+        std::string sourceName  = "csi-source";
+        std::string pipelineName  = "test-pipeline";
+        
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 

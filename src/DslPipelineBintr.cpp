@@ -70,8 +70,20 @@ namespace DSL
 
         if (m_isLinked)
         {    
-            UnlinkAll();
+            Stop();
         }
+        LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
+
+        // Remove all child references 
+        RemoveAllChildren();
+        
+        if (m_pGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+        {
+            LOG_INFO("Unreferencing GST Pipeline Bin contained by this PipelineBintr '" << GetName() << "'");
+            
+            gst_object_unref(m_pGstObj);
+        }
+        LOG_INFO("Nodetr '" << GetName() << "' deleted");
 
         if (m_pXWindow)
         {
@@ -336,14 +348,20 @@ namespace DSL
         
         if ((GetState() != GST_STATE_PLAYING) and (GetState() != GST_STATE_PAUSED))
         {
+            LOG_ERROR("Pipeline is not in a PLAYING or PAUSED state");
             return false;
         }
-        // iterate through the list of Linked Components, stoping each
-        for (auto const& ivector: m_linkedComponents)
+        
+        // only need to Stop the tail (sink) component as the EOS event
+        // is an upstream event message.
+        if (!m_linkedComponents.back()->Stop())
         {
-            // all but the tail m_pPipelineSinksBintr will be Linked to Sink
-            ivector->Stop();
+            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+            return false;
         }
+        UnlinkAll();
+        return true;
+        
     }
 
     void PipelineBintr::DumpToDot(char* filename)

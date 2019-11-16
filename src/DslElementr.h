@@ -66,6 +66,15 @@ namespace DSL
         ~Elementr()
         {
             LOG_FUNC();
+
+            if (IsLinkedToSink())
+            {
+                UnlinkFromSink();
+            }
+            if (IsLinkedToSource())
+            {
+                UnlinkFromSource();
+            }
         };
 
         /**

@@ -139,10 +139,11 @@ namespace DSL
             // Unlink from the Stream Muxer first.
             gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
             
-            LOG_WARN("Releasing Sink Pad for StreamMux " << m_pSink->GetName());
+            LOG_INFO("Releasing Sink Pad for StreamMux " << m_pSink->GetName());
             
+            // TODO - manage this resource
             // Release the requested Sink for the StreamMux
-            gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
+//            gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
             
             Nodetr::UnlinkFromSink();
         }
@@ -463,7 +464,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        LOG_WARN("****************************************************");
         GstEvent* event = GST_EVENT(pInfo->data);
 
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
@@ -515,7 +515,6 @@ namespace DSL
     
     gboolean UriSourceBintr::HandleStreamBufferSeek()
     {
-//        gst_element_set_state(GetGstElement(), GST_STATE_PAUSED);
         Pause();
         
         gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
@@ -527,7 +526,6 @@ namespace DSL
             LOG_WARN("Failure to seek");
         }
 
-//        gst_element_set_state(GetGstElement(), GST_STATE_PLAYING);
         return Play();
     }
     

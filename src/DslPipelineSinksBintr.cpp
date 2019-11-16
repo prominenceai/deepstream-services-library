@@ -55,6 +55,40 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        if (IsLinkedToSink())
+        {
+            UnlinkFromSink();
+        }
+        if (IsLinkedToSource())
+        {
+            UnlinkFromSource();
+        }
+
+        if (m_pGstSinkPad)
+        {
+            LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << GetName() << "'");
+            
+            gst_object_unref(m_pGstSinkPad);
+            m_pGstSinkPad = NULL;
+        }
+        if (m_pGstSourcePad)
+        {
+            LOG_INFO("Unreferencing GST Source Pad for Bintr '" << GetName() << "'");
+            
+            gst_object_unref(m_pGstSourcePad);
+            m_pGstSourcePad = NULL;
+        }
+
+        // Remove all child references 
+        RemoveAllChildren();
+        
+        if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+        {
+            LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
+            
+            gst_object_unref(m_pGstObj);
+        }
+        LOG_INFO("Nodetr '" << GetName() << "' deleted");
     }
      
     bool PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)

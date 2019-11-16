@@ -65,27 +65,6 @@ namespace DSL
         {
             LOG_FUNC();
 
-            // Remove all child references 
-            RemoveAllChildren();
-            
-            if (IsLinkedToSink())
-            {
-                UnlinkFromSink();
-            }
-            if (IsLinkedToSource())
-            {
-                UnlinkFromSource();
-            }
-
-            LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
-            
-            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
-            {
-                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
-                
-//                gst_object_unref(m_pGstObj);
-            }
-            LOG_INFO("Nodetr '" << GetName() << "' deleted");
         }
         
         /**
@@ -135,7 +114,8 @@ namespace DSL
 
             if (IsLinkedToSink())
             {
-                gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
+//                gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
+                LOG_WARN("Unlinking Elementr '" << GetName() << "' from Sink '" << m_pSink << "'");
 
                 // Call the base class to complete the unlink
                 Nodetr::UnlinkFromSink();
@@ -166,9 +146,15 @@ namespace DSL
         {
             LOG_FUNC();
             
-            uint currentState = gst_element_get_state(GetGstElement(), NULL, NULL, 1);
+            GstState currentState;
             
-            LOG_INFO("Returning a state of '" << currentState << "' for Nodetr '" << GetName());
+            if (gst_element_get_state(GetGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
+            {
+                return DSL_STATE_IN_TRANSITION;
+            }
+            
+            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState) 
+                << "' for Nodetr '" << GetName());
             
             return currentState;
         }
@@ -186,9 +172,17 @@ namespace DSL
             {
                 return GST_STATE_NULL;
             }
-            uint currentState = gst_element_get_state(GetParentGstElement(), NULL, NULL, 1);
-
-            LOG_INFO("Nodetr '" << GetName() << "' is in the state of " << currentState);
+            GstState currentState;
+            
+            if (gst_element_get_state(GetParentGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
+            {
+                return DSL_STATE_IN_TRANSITION;
+            }
+            
+            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState) 
+                << "' for Nodetr '" << GetName());
+            
+            return currentState;
         }
     };
 
