@@ -26,11 +26,14 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-//SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]" )
+//SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 //{
-//    GIVEN( "A Pipeline with minimal components" ) 
+//    GIVEN( "A Pipeline with four sources and minimal components" ) 
 //    {
-//        std::string sourceName = "test-uri-source";
+//        std::string sourceName1 = "test-uri-source-1";
+//        std::string sourceName2 = "test-uri-source-2";
+//        std::string sourceName3 = "test-uri-source-3";
+//        std::string sourceName4 = "test-uri-source-4";
 //        std::string uri = "./test/streams/sample_1080p_h264.mp4";
 //        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
 //        uint intrDecode(false);
@@ -51,7 +54,13 @@ THE SOFTWARE.
 //        REQUIRE( dsl_component_list_size() == 0 );
 //        REQUIRE( *(dsl_component_list_all()) == NULL );
 //
-//        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
+//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+//            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+//            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+//            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
 //            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -59,7 +68,8 @@ THE SOFTWARE.
 //        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
 //            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 //            
-//        const char* components[] = {"test-uri-source", "tiled-display-name", "overlay-sink", NULL};
+//        const char* components[] = {"test-uri-source-1", "test-uri-source-2", "test-uri-source-3", "test-uri-source-4", 
+//            "tiled-display-name", "overlay-sink", NULL};
 //        
 //        WHEN( "When the Pipeline is Assembled and Played" ) 
 //        {
@@ -67,17 +77,9 @@ THE SOFTWARE.
 //        
 //            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
 //
-//            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 //
 //            THEN( "The Pipeline can be Stopped and Disassembled" )
 //            {
-//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//
-//                REQUIRE( dsl_pipeline_pause(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                
 //                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 //                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 //
@@ -91,4 +93,3 @@ THE SOFTWARE.
 //
 //    }
 //}
-//
