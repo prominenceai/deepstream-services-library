@@ -26,8 +26,7 @@ THE SOFTWARE.
 #define _DSL_ELEMENTR_H
 
 #include "Dsl.h"
-#include "DslGstNodetr.h"
-
+#include "DslNodetr.h"
 
 namespace DSL
 {
@@ -66,15 +65,6 @@ namespace DSL
         ~Elementr()
         {
             LOG_FUNC();
-
-            if (IsLinkedToSink())
-            {
-                UnlinkFromSink();
-            }
-            if (IsLinkedToSource())
-            {
-                UnlinkFromSource();
-            }
         };
 
         /**

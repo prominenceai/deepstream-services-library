@@ -54,11 +54,34 @@ namespace DSL
         bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
         
         bool IsOverlay();
+        
+        bool LinkToSource(DSL_NODETR_PTR pTee);
 
+        bool UnlinkFromSource();
+
+        /**
+         * @brief returns the current, sink Id as managed by the Parent pipeline
+         * @return -1 when source Id is not assigned, i.e. source is not currently in use
+         */
+        int GetSinkId();
+        
+        /**
+         * @brief Sets the unique id for this Sink bintr
+         * @param id value to assign [0...MAX]
+         */
+        void SetSinkId(int id);
+        
         /**
          * @brief true of the Sink is of type Overlay, false otherwise
          */
         bool m_isOverlay;
+        
+        /**
+         * @brief unique stream source identifier managed by the 
+         * parent pipeline from Source add until removed
+         */
+        int m_sinkId;
+        
     };
 
     class OverlaySinkBintr : public SinkBintr

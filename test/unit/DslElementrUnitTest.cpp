@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslElementr.h"
-#include "DslTestBintr.h"
+#include "DslDisplayBintr.h"
 
 using namespace DSL;
 
@@ -58,71 +58,42 @@ SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
         DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
         DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
             
-        WHEN( "The Queue is linked to the Tee" )
+        WHEN( "The Queue is linked downstream to the Tee" )
         {
-            pQueue->LinkToSink(pTee);
+            REQUIRE( pQueue->LinkToSink(pTee) == true );
             
-            THEN( "The relation ship of source and sink Elementr are setup correctly" )
+            THEN( "The Source can unlink from the Sink" )
             {
-                REQUIRE( pQueue->IsInUse() == true );
                 REQUIRE( pQueue->IsLinkedToSink() == true );
                 REQUIRE( pQueue->IsLinkedToSource() == false );
                 REQUIRE( pQueue->GetSink() == pTee );
                 REQUIRE( pQueue->GetSource() == nullptr );
 
-                REQUIRE( pTee->IsInUse() == true );
+                REQUIRE( pTee->IsLinkedToSink() == false );
+                REQUIRE( pTee->IsLinkedToSource() == false );
+                REQUIRE( pTee->GetSink() == nullptr );
+                REQUIRE( pTee->GetSource() == nullptr );
+
+                REQUIRE( pQueue->UnlinkFromSink() == true );
+            }
+        }
+        WHEN( "The Tee is linked upstream to the Queue" )
+        {
+            REQUIRE( pTee->LinkToSource(pQueue) == true );
+            
+            THEN( "The Sink can unlink from the Source" )
+            {
                 REQUIRE( pTee->IsLinkedToSink() == false );
                 REQUIRE( pTee->IsLinkedToSource() == true );
                 REQUIRE( pTee->GetSink() == nullptr );
                 REQUIRE( pTee->GetSource() == pQueue );
-            }
-        }
-    }
-}
 
-SCENARIO( "Two Elementrs are unlinked correctly", "[Elementr]" )
-{
-    GIVEN( "A Queue Elementr linked to a Tee Elementr" ) 
-    {
-        std::string queueElementName  = "test-queue";
-        std::string teeElementName = "test-tee";
-        
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
-        DSL_ELEMENT_PTR pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, teeElementName.c_str());
-
-        pQueue->LinkToSink(pTee);
-            
-        WHEN( "The Queue is unlinked to the Tee" )
-        {
-            pQueue->UnlinkFromSink();
-
-            THEN( "The relation ship of source and sink Elementr are setup correctly" )
-            {
+                REQUIRE( pQueue->IsLinkedToSink() == false );
+                REQUIRE( pQueue->IsLinkedToSource() == false );
                 REQUIRE( pQueue->GetSink() == nullptr );
-                REQUIRE( pTee->GetSource() == nullptr );                
-            }
-        }
-    }
-}
+                REQUIRE( pQueue->GetSource() == nullptr );
 
-SCENARIO( "A new GhostPad can be added to an Elementr", "[Elementr]" )
-{
-    GIVEN( "A Queue Elementr in memory" ) 
-    {
-        std::string parentBintrName  = "test-queue";
-        std::string queueElementName  = "test-queue";
-
-        DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueElementName.c_str());
-        DSL_TEST_BINTR_PTR pParentBintr = DSL_TEST_BINTR_NEW(parentBintrName.c_str());
-        pParentBintr->AddChild(pQueue);
-
-        WHEN( "The StaticPadtr is created" )
-        {
-            pQueue->AddGhostPadToParent("sink");
-            
-            THEN( "All memeber variables are initialized correctly" )
-            {
-                REQUIRE( pQueue->IsInUse() == true );
+                REQUIRE( pTee->UnlinkFromSource() == true );
             }
         }
     }

@@ -64,7 +64,6 @@ namespace DSL
         ~GstNodetr()
         {
             LOG_FUNC();
-
         }
         
         /**
@@ -108,35 +107,35 @@ namespace DSL
         /**
          * @brief unlinks this Elementr from a previously linked-to Sink Elementr
          */
-        void UnlinkFromSink()
-        { 
-            LOG_FUNC();
-
-            if (IsLinkedToSink())
-            {
+//        void UnlinkFromSink()
+//        { 
+//            LOG_FUNC();
+//
+//            if (IsLinkedToSink())
+//            {
 //                gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
-                LOG_WARN("Unlinking Elementr '" << GetName() << "' from Sink '" << m_pSink << "'");
-
-                // Call the base class to complete the unlink
-                Nodetr::UnlinkFromSink();
-            }
-        }
+//                LOG_WARN("Unlinking Elementr '" << GetName() << "' from Sink '" << m_pSink << "'");
+//
+//                // Call the base class to complete the unlink
+//                Nodetr::UnlinkFromSink();
+//            }
+//        }
 
         /**
          * @brief unlinks this Elementr from a previously linked-to Source Element
          */
-        void UnlinkFromSource()
-        { 
-            LOG_FUNC();
-
-            if (IsLinkedToSource())
-            {
-                gst_element_unlink(m_pSource->GetGstElement(), GetGstElement());
-
-                // Call the base class to complete the unlink
-                Nodetr::UnlinkFromSource();
-            }
-        }
+//        void UnlinkFromSource()
+//        { 
+//            LOG_FUNC();
+//
+//            if (IsLinkedToSource())
+//            {
+//                gst_element_unlink(m_pSource->GetGstElement(), GetGstElement());
+//
+//                // Call the base class to complete the unlink
+//                Nodetr::UnlinkFromSource();
+//            }
+//        }
         
         /**
          * @brief Returns the current State of this GstNodetr

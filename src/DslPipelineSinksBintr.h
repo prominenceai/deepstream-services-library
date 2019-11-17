@@ -112,6 +112,11 @@ namespace DSL
         DSL_ELEMENT_PTR m_pTee;
     
         std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
+        
+        /**
+         * @brief A dynamic collection of requested Source Pads for this Bintr
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
 
     };
 }

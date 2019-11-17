@@ -37,6 +37,10 @@ namespace DSL
     #define DSL_NODETR_NEW(name) \
         std::shared_ptr<Nodetr>(new Nodetr(name))    
 
+    #define DSL_GSTNODETR_PTR std::shared_ptr<GstNodetr>
+    #define DSL_GSTNODETR_NEW(name) \
+        std::shared_ptr<GstNodetr>(new GstNodetr(name))    
+
     /**
      * @class Nodetr
      * @brief Implements a base container class for all DSL Tree Node types
@@ -179,43 +183,78 @@ namespace DSL
          * @brief Links this Noder, becoming a source, to a sink Nodre
          * @param pSink Sink Nodre to link this Source Nodre to
          */
-        virtual void LinkToSink(DSL_NODETR_PTR pSink)
-        {
-            LOG_FUNC();
-
-            m_pSink = pSink;
-            pSink->m_pSource = shared_from_this();   
-            LOG_INFO("Source '" << GetName() <<"' linked to Sink '" << pSink->GetName() << "'");
-        }
-        
-        /**
-         * @brief Unlinks this Source Nodetr from its Sink Nodetr
-         */
-        virtual void UnlinkFromSink()
+        virtual bool LinkToSink(DSL_NODETR_PTR pSink)
         {
             LOG_FUNC();
 
             if (m_pSink)
             {
-                LOG_INFO("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() <<"'");
-                m_pSink->m_pSource = nullptr;
-                m_pSink = nullptr;   
+                LOG_ERROR("Nodetr '" << GetName() << "' is currently in a linked to Sink");
+                return false;
             }
+            m_pSink = pSink;
+//            pSink->m_pSource = shared_from_this();   
+            LOG_INFO("Source '" << GetName() << "' linked to Sink '" << pSink->GetName() << "'");
+            
+            return true;
         }
         
         /**
-         * @brief Unlinks this Sink Nodetr from its Source Nodetr
+         * @brief Unlinks this Source Nodetr from its Sink Nodetr
          */
-        virtual void UnlinkFromSource()
+        virtual bool UnlinkFromSink()
+        {
+            LOG_FUNC();
+
+            if (!m_pSink)
+            {
+                LOG_ERROR("Nodetr '" << GetName() << "' is not currently linked to Sink");
+                return false;
+            }
+            LOG_INFO("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() << "'");
+//            m_pSink->m_pSource = nullptr;
+            m_pSink = nullptr; 
+
+            return true;
+        }
+        
+        /**
+         * @brief Links this Noder, becoming a source, to a sink Nodre
+         * @param pSink Sink Nodre to link this Source Nodre to
+         */
+        virtual bool LinkToSource(DSL_NODETR_PTR pSource)
         {
             LOG_FUNC();
 
             if (m_pSource)
             {
-                LOG_INFO("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
-                m_pSource->m_pSink = nullptr;
-                m_pSource = nullptr;   
+                LOG_ERROR("Nodetr '" << GetName() << "' is currently in a linked to a Source");
+                return false;
             }
+            m_pSource = pSource;
+//            pSink->m_pSource = shared_from_this();   
+            LOG_INFO("Source '" << pSource->GetName() << "' linked to Sink '" << GetName() << "'");
+            
+            return true;
+        }
+        
+        /**
+         * @brief Unlinks this Sink Nodetr from its Source Nodetr
+         */
+        virtual bool UnlinkFromSource()
+        {
+            LOG_FUNC();
+
+            if (!m_pSource)
+            {
+                LOG_ERROR("Nodetr '" << GetName() << "' is not currently linked to Source");
+                return false;
+            }
+            LOG_INFO("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
+//            m_pSource->m_pSink = nullptr;
+            m_pSource = nullptr;
+            
+            return true;
         }
         
         /**
@@ -317,6 +356,13 @@ namespace DSL
             
             m_pGstObj = pGstObj;
         }
+
+    public:
+    
+        /**
+         * @brief Parent of this Nodetr if one exists. NULL otherwise
+         */
+        GstObject * m_pParentGstObj;
         
         
     protected:
@@ -331,11 +377,6 @@ namespace DSL
          */
         GstObject * m_pGstObj;
 
-        /**
-         * @brief Parent of this Nodetr if one exists. NULL otherwise
-         */
-        GstObject * m_pParentGstObj;
-        
         /**
          * @brief map of Child Nodetrs in-use by this Nodetr
          */
@@ -352,6 +393,275 @@ namespace DSL
          * a Sink Nodetr making this Nodetr a Source
          */
         DSL_NODETR_PTR m_pSink;
+    };
+
+   /**
+     * @class GstNodetr
+     * @brief Overrides the Base Class Virtual functions, adding the actuall GstObject* management
+     * This allows the Nodetr class, and all its relational behavior, to be tested independent from GStreamer
+     * Each method of this class calls the base class to complete its behavior.
+     */
+    class GstNodetr : public Nodetr
+    {
+    public:
+        
+        /**
+         * @brief ctor for the GstNodetr base class
+         * @param[in] name for the new GstNodetr
+         */
+        GstNodetr(const char* name)
+        : Nodetr(name)
+        {
+            LOG_FUNC();
+
+            LOG_INFO("New GstNodetr '" << GetName() << "' created");
+        }
+
+        /**
+         * @brief dtor for the GstNodetr base class
+         */
+        ~GstNodetr()
+        {
+            LOG_FUNC();
+        
+            if (!GetGstElement())
+            {
+                LOG_WARN("GstElement for GstNodetr '" << GetName() << "' has not been instantiated");
+            }
+            else
+            {
+            // Remove all child references 
+                RemoveAllChildren();
+
+                LOG_INFO("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
+                gst_element_set_state(GetGstElement(), GST_STATE_NULL);
+                
+                if (!m_pParentGstObj)
+                {
+                    LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
+                    gst_object_unref(m_pGstObj);
+                }
+            }
+            LOG_INFO("Nodetr '" << GetName() << "' deleted");
+        }
+
+        /**
+         * @brief adds a child Bintr to this parent Bintr
+         * @param pChildBintr to add. Once added, calling InUse()
+         *  on the Child Bintr will return true
+         * @return true if pChild was added successfully, false otherwise
+         */
+        bool AddChild(DSL_NODETR_PTR pChild)
+        {
+            LOG_FUNC();
+            
+            LOG_INFO("Adding Child element to Bin");
+            if (!gst_bin_add(GST_BIN(m_pGstObj), pChild->GetGstElement()))
+            {
+                LOG_ERROR("Failed to add " << pChild->GetName() << " to " << GetName() <<"'");
+                throw;
+            }
+            return Nodetr::AddChild(pChild);
+        }
+        
+        /**
+         * @brief removes a child Bintr from this parent Bintr
+         * @param pChildBintr to remove. Once removed, calling InUse()
+         *  on the Child Bintr will return false
+         */
+        bool RemoveChild(DSL_NODETR_PTR pChild)
+        {
+            LOG_FUNC();
+            
+            if (!IsChild(pChild))
+            {
+                LOG_ERROR("'" << pChild->GetName() << "' is not a child of '" << GetName() <<"'");
+                return false;
+            }
+
+            // Increase the reference count so the child is not destroyed.
+            gst_object_ref(pChild->GetGstElement());
+            
+            if (!gst_bin_remove(GST_BIN(m_pGstObj), pChild->GetGstElement()))
+            {
+                LOG_ERROR("Failed to remove " << pChild->GetName() << " from " << GetName() <<"'");
+                return false;
+            }
+            return Nodetr::RemoveChild(pChild);
+        }
+
+        /**
+         * @brief removed a child Nodetr of this parent Nodetr
+         * @param pChild to remove
+         */
+        void RemoveAllChildren()
+        {
+            LOG_FUNC();
+
+            for (auto &imap: m_pChildren)
+            {
+                LOG_INFO("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
+                
+                // Increase the reference count so the child is not destroyed.
+                gst_object_ref(imap.second->GetGstElement());
+
+                if (!gst_bin_remove(GST_BIN(m_pGstObj), imap.second->GetGstElement()))
+                {
+                    LOG_ERROR("Failed to remove " << imap.second->GetName() << " from " << GetName() <<"'");
+                }
+                imap.second->m_pParentGstObj = NULL;
+            }
+            m_pChildren.clear();
+        }
+        
+        /**
+         * @brief Creates a new Ghost Sink pad for this Gst Element
+         * and adds it to the parent Gst Bin.
+         * @throws a general exception on failure
+         */
+        void AddGhostPadToParent(const char* name)
+        {
+            LOG_FUNC();
+
+            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
+            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
+            if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
+                gst_ghost_pad_new(name, gst_element_get_static_pad(GetGstElement(), name))))
+            {
+                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
+                throw;
+            }
+        }
+
+        /**
+         * @brief links this Elementr as Source to a given Sink Elementr
+         * @param pSinkBintr to link to
+         */
+        bool LinkToSink(DSL_NODETR_PTR pSink)
+        { 
+            LOG_FUNC();
+            
+            // Call the base class to setup the relationship first
+            // Then call GST to Link Source Element to Sink Element 
+            if (!Nodetr::LinkToSink(pSink) or !gst_element_link(GetGstElement(), m_pSink->GetGstElement()))
+            {
+                LOG_ERROR("Failed to link " << GetName() << " to " << pSink->GetName());
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * @brief unlinks this Nodetr from a previously linked-to Sink Notetr
+         */
+        bool UnlinkFromSink()
+        { 
+            LOG_FUNC();
+
+            // Need to check here first, as we're calling the base class last when unlinking
+            if (!IsLinkedToSink())
+            {
+                LOG_ERROR("GstNodetr '" << GetName() << "' is not in a linked state");
+                return false;
+            }
+            if (!GetGstElement() or !m_pSink->GetGstElement())
+            {
+//                LOG_ERROR("Invalid GstElements for  '" << GetName() << "' and '" << m_pSink>GetName() << "'");
+                LOG_ERROR("Invalid GstElements for  '" << GetName());
+                return false;
+            }
+            gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
+            
+            return Nodetr::UnlinkFromSink();
+        }
+
+        /**
+         * @brief links this Elementr as Sink to a given Source Nodetr
+         * @param pSinkBintr to link to
+         */
+        bool LinkToSource(DSL_NODETR_PTR pSource)
+        { 
+            LOG_FUNC();
+            
+            // Call the base class to setup the relationship first
+            // Then call GST to Link Source Element to Sink Element 
+            if (!Nodetr::LinkToSource(pSource) or !gst_element_link(m_pSource->GetGstElement(), GetGstElement()))
+            {
+                LOG_ERROR("Failed to link Souce '" << pSource->GetName() << " to Sink" << GetName());
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * @brief unlinks this Elementr from a previously linked-to Source Element
+         */
+        bool UnlinkFromSource()
+        { 
+            LOG_FUNC();
+
+            // Need to check here first, as we're calling the base class last when unlinking
+            if (!IsLinkedToSource())
+            {
+                LOG_ERROR("GstNodetr '" << GetName() << "' is not in a linked state");
+                return false;
+            }
+            if (!m_pSource->GetGstElement() or !GetGstElement())
+            {
+                LOG_ERROR("Invalid GstElements for  '" << m_pSource->GetName() << "' and '" << GetName() << "'");
+                return false;
+            }
+            gst_element_unlink(m_pSource->GetGstElement(), GetGstElement());
+
+            return Nodetr::UnlinkFromSource();
+        }
+        
+        /**
+         * @brief Returns the current State of this GstNodetr
+         * @return the current state of the GstNodetr. 
+         */
+        uint GetState()
+        {
+            LOG_FUNC();
+            
+            GstState currentState;
+            
+            if (gst_element_get_state(GetGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
+            {
+                return DSL_STATE_IN_TRANSITION;
+            }
+            
+            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState)
+                << "' for Nodetr '" << GetName());
+            
+            return currentState;
+        }
+        
+        /**
+         * @brief Returns the current State of this Bintr's Parent
+         * @return the current state of the Parenet, GST_STATE_NULL if the
+         * GstNodetr is currently an orphen. 
+         */
+        uint GetParentState()
+        {
+            LOG_FUNC();
+            
+            if (!m_pParentGstObj)
+            {
+                return GST_STATE_NULL;
+            }
+            GstState currentState;
+            
+            if (gst_element_get_state(GetParentGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
+            {
+                return DSL_STATE_IN_TRANSITION;
+            }
+            
+            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState) 
+                << "' for Nodetr '" << GetName());
+            
+            return currentState;
+        }
     };
 
 } // DSL namespace    

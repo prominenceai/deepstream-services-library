@@ -32,8 +32,8 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
     GIVEN( "A new Tiled Display in memory" ) 
     {
         std::string displayName = "tiled-display";
-        uint initWidth(10);
-        uint initHeight(10);
+        uint initWidth(200);
+        uint initHeight(100);
 
         DSL_DISPLAY_PTR pDisplayBintr = 
             DSL_DISPLAY_NEW(displayName.c_str(), initWidth, initHeight);

@@ -183,13 +183,13 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
                 REQUIRE( pSourceBintr0->IsInUse() == true );
-                REQUIRE( pSourceBintr0->GetSensorId() == 0 );
+                REQUIRE( pSourceBintr0->GetSourceId() == 0 );
                 REQUIRE( pSourceBintr0->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr1->IsInUse() == true );
-                REQUIRE( pSourceBintr1->GetSensorId() == 1 );
+                REQUIRE( pSourceBintr1->GetSourceId() == 1 );
                 REQUIRE( pSourceBintr1->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr2->IsInUse() == true );
-                REQUIRE( pSourceBintr2->GetSensorId() == 2 );
+                REQUIRE( pSourceBintr2->GetSourceId() == 2 );
                 REQUIRE( pSourceBintr2->IsLinkedToSink() == true );
             }
         }

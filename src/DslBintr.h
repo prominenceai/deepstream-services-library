@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
-#include "DslGstNodetr.h"
+#include "DslNodetr.h"
 
 namespace DSL
 {
@@ -53,8 +53,8 @@ namespace DSL
             , m_isLinked(false)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
-            , m_pGstSinkPad(NULL)
-            , m_pGstSourcePad(NULL)
+            , m_pGstStaticSinkPad(NULL)
+            , m_pGstStaticSourcePad(NULL)
         { 
             LOG_FUNC(); 
 
@@ -72,85 +72,7 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
-
-            if (IsLinkedToSink())
-            {
-                UnlinkFromSink();
-            }
-            if (IsLinkedToSource())
-            {
-                UnlinkFromSource();
-            }
-
-            if (m_pGstSinkPad)
-            {
-                LOG_INFO("Unreferencing GST Sink Pad for Bintr '" << GetName() << "'");
-                
-                gst_object_unref(m_pGstSinkPad);
-                m_pGstSinkPad = NULL;
-            }
-            if (m_pGstSourcePad)
-            {
-                LOG_INFO("Unreferencing GST Source Pad for Bintr '" << GetName() << "'");
-                
-                gst_object_unref(m_pGstSourcePad);
-                m_pGstSourcePad = NULL;
-            }
-
-            // Remove all child references 
-            RemoveAllChildren();
-            
-            if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
-            {
-                LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
-                
-                gst_object_unref(m_pGstObj);
-            }
-            LOG_INFO("Nodetr '" << GetName() << "' deleted");
-            
         }
-
-        /**
-         * @brief adds a child Bintr to this parent Bintr
-         * @param pChildBintr to add. Once added, calling InUse()
-         *  on the Child Bintr will return true
-         * @return true if pChild was added successfully, false otherwise
-         */
-        bool AddChild(DSL_NODETR_PTR pChild)
-        {
-            LOG_FUNC();
-            
-            if (!gst_bin_add(GST_BIN(m_pGstObj), pChild->GetGstElement()))
-            {
-                LOG_ERROR("Failed to add " << pChild->GetName() << " to " << GetName() <<"'");
-                throw;
-            }
-            return Nodetr::AddChild(pChild);
-        }
-        
-        /**
-         * @brief removes a child Bintr from this parent Bintr
-         * @param pChildBintr to remove. Once removed, calling InUse()
-         *  on the Child Bintr will return false
-         */
-        bool RemoveChild(DSL_NODETR_PTR pChild)
-        {
-            LOG_FUNC();
-            
-            if (!IsChild(pChild))
-            {
-                LOG_ERROR("'" << pChild->GetName() << "' is not a child of '" << GetName() <<"'");
-                return false;
-            }
-
-            if (!gst_bin_remove(GST_BIN(m_pGstObj), pChild->GetGstElement()))
-            {
-                LOG_ERROR("Failed to remove " << pChild->GetName() << " from " << GetName() <<"'");
-                return false;
-            }
-            return Nodetr::RemoveChild(pChild);
-        }
-
 
         /**
          * @brief Adds this Bintr as a child to a ParentBinter
@@ -277,12 +199,22 @@ namespace DSL
         /**
          * @brief Static Pad object for the Sink Elementr within this Bintr
          */
-        GstPad* m_pGstSinkPad;
+        GstPad* m_pGstStaticSinkPad;
+            
+        /**
+         * @brief A dynamic collection of requested Sink Pads for this Bintr
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSinkPads;
             
         /**
          * @brief Static Pad object for the Source Elementr within this Bintr
          */
-        GstPad* m_pGstSourcePad;
+        GstPad* m_pGstStaticSourcePad;
+            
+        /**
+         * @brief A dynamic collection of requested Souce Pads for this Bintr
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
     };
 
 } // DSL

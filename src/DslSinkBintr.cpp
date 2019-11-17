@@ -32,10 +32,9 @@ namespace DSL
     SinkBintr::SinkBintr(const char* sink)
         : Bintr(sink)
         , m_isOverlay(false)
+        , m_sinkId(-1)
     {
         LOG_FUNC();
-        
-//        m_pStaticSinkPadtr = DSL_STATIC_PADTR_NEW("src");
     }
 
     SinkBintr::~SinkBintr()
@@ -75,12 +74,93 @@ namespace DSL
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
+
+    int SinkBintr::GetSinkId()
+    {
+        LOG_FUNC();
+        
+        return m_sinkId;
+    }
+
+    void SinkBintr::SetSinkId(int id)
+    {
+        LOG_FUNC();
+
+        m_sinkId = id;
+    }
     
     bool SinkBintr::IsOverlay()
     {
         LOG_FUNC();
         
         return m_isOverlay;
+    }
+    
+    bool SinkBintr::LinkToSource(DSL_NODETR_PTR pTee)
+    {
+        LOG_FUNC();
+
+        std::string srcPadName = "src_" + std::to_string(m_sinkId);
+
+        LOG_INFO("Linking Sink '" << GetName() << "' to Pad '" << srcPadName
+            << "' for Tee '" << pTee->GetName() << "'");
+        
+        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
+        if (!m_pGstStaticSourcePad)
+        {
+            LOG_ERROR("Failed to get Static Sink Pad for SinkBintr '" << GetName() << "'");
+            return false;
+        }
+
+//        GstPadTemplate* pPadTemplate = 
+//            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(pTee->GetGstObject()), "src_%u");
+//        if (!pPadTemplate)
+//        {
+//            LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
+//            return false;
+//        }
+
+//        GstPad* pGstRequestedSourcePad = gst_element_request_pad(
+//            GST_ELEMENT(pTee->GetGstObject()), pPadTemplate, NULL, NULL);
+        GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
+            
+        if (!pGstRequestedSourcePad)
+        {
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
+            return false;
+        }
+
+        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSourcePad;
+
+        return Bintr::LinkToSink(pTee);
+        
+    }
+    
+    bool SinkBintr::UnlinkFromSource()
+    {
+        LOG_FUNC();
+
+        // If we're currently linked to the 
+        if (!IsLinkedToSource())
+        {
+            LOG_ERROR("SinkBintr '" << GetName() << "' is not in a Linked state");
+            return false;
+        }
+
+        std::string srcPadName = "src_" + std::to_string(m_sinkId);
+
+        // Unlink from the Tee first.
+        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
+        
+        LOG_INFO("Releasing requested Source Pad for Sink Tee " << m_pSink->GetName());
+        
+        m_pGstRequestedSourcePads.erase(srcPadName);
+        
+        // TODO - manage this resource
+        // Release the requested Sink for the StreamMux
+//        gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
+        
+        return Nodetr::UnlinkFromSource();
     }
     
     OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, 
