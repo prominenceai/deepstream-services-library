@@ -50,44 +50,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_isLinked)
-        {    
+        if (IsLinked())
+        {
             UnlinkAll();
         }
-        if (IsLinkedToSink())
-        {
-            UnlinkFromSink();
-        }
-        if (IsLinkedToSource())
-        {
-            UnlinkFromSource();
-        }
-
-        if (m_pGstSinkPad)
-        {
-            LOG_INFO("Unreferencing GST Sink Pad for SourcesBintr '" << GetName() << "'");
-            
-            gst_object_unref(m_pGstSinkPad);
-            m_pGstSinkPad = NULL;
-        }
-        if (m_pGstSourcePad)
-        {
-            LOG_INFO("Unreferencing GST Source Pad for SourcesBintr '" << GetName() << "'");
-            
-            gst_object_unref(m_pGstSourcePad);
-            m_pGstSourcePad = NULL;
-        }
-
-        // Remove all child references 
-        RemoveAllChildren();
-        
-        if (m_pGstObj and !m_pParentGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
-        {
-            LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
-            
-            gst_object_unref(m_pGstObj);
-        }
-        LOG_INFO("Nodetr '" << GetName() << "' deleted");
     }
 
     bool PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
@@ -146,8 +112,11 @@ namespace DSL
             throw;
         }
 
-        // unlink the source from the Streammuxer
-        pChildSource->UnlinkFromSink();
+        if (pChildSource->IsLinkedToSink())
+        {
+            // unlink the source from the Streammuxer
+            pChildSource->UnlinkFromSink();
+        }
         
         // unreference and remove from the collection of source
         m_pChildSources.erase(pChildSource->GetName());
@@ -166,12 +135,17 @@ namespace DSL
             return false;
         }
         uint id(0);
-        
         for (auto const& imap: m_pChildSources)
         {
-            imap.second->SetSensorId(id++);
-            imap.second->LinkAll();
-            imap.second->LinkToSink(m_pStreamMux);
+            // Must set the Unique Id first, then Link all of the ChildSources's Elementrs, then 
+            // link back downstream to the StreamMux, the sink for this Child Souce 
+            imap.second->SetSourceId(id++);
+            if (!imap.second->LinkAll() or !imap.second->LinkToSink(m_pStreamMux))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Link Child Source '" << imap.second->GetName() << "'");
+                return false;
+            }
         }
         m_isLinked = true;
 
@@ -193,7 +167,17 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
-            imap.second->UnlinkFromSink();
+            // unlink from the Tee Element
+            LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
+            if (!imap.second->UnlinkFromSink())
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
+                return;
+            }
+            // unink all of the ChildSource's Elementrs and reset the unique Id
+            imap.second->UnlinkAll();
+            imap.second->SetSourceId(-1);
         }
         m_isLinked = false;
     }

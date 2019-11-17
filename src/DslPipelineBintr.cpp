@@ -68,22 +68,26 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_isLinked)
-        {    
-            Stop();
-        }
-        LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
-
-        // Remove all child references 
-        RemoveAllChildren();
-        
-        if (m_pGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+        if (IsLinked())
         {
-            LOG_INFO("Unreferencing GST Pipeline Bin contained by this PipelineBintr '" << GetName() << "'");
-            
-            gst_object_unref(m_pGstObj);
+            UnlinkAll();
         }
-        LOG_INFO("Nodetr '" << GetName() << "' deleted");
+//        if (m_isLinked)
+//        {    
+//            Stop();
+//        }
+//        LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
+//
+//        // Remove all child references 
+//        RemoveAllChildren();
+//        
+//        if (m_pGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
+//        {
+//            LOG_INFO("Unreferencing GST Pipeline Bin contained by this PipelineBintr '" << GetName() << "'");
+//            
+//            gst_object_unref(m_pGstObj);
+//        }
+//        LOG_INFO("Nodetr '" << GetName() << "' deleted");
 
         if (m_pXWindow)
         {

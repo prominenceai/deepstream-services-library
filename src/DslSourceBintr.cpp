@@ -33,7 +33,7 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
-        , m_sensorId(-1)
+        , m_sourceId(-1)
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -84,14 +84,14 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    int SourceBintr::GetSensorId()
+    int SourceBintr::GetSourceId()
     {
         LOG_FUNC();
         
-        return m_sensorId;
+        return m_sourceId;
     }
 
-    void SourceBintr::SetSensorId(int id)
+    void SourceBintr::SetSourceId(int id)
     {
         LOG_FUNC();
 
@@ -100,58 +100,64 @@ namespace DSL
             LOG_ERROR("Source Element for SourceBintr '" << GetName() << "' has not been instantiated");
             throw;
         }
-        m_sensorId = id;
-        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
+        m_sourceId = id;
     }
 
-    void SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
+    bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
     {
         LOG_FUNC();
 
-        std::string sinkPadName = "sink_" + std::to_string(m_sensorId);
+        std::string sinkPadName = "sink_" + std::to_string(m_sourceId);
         
         LOG_INFO("Linking Source '" << GetName() << "' to Pad '" << sinkPadName 
             << "' for StreamMux '" << pStreamMux->GetName() << "'");
        
-        m_pGstSourcePad = gst_element_get_static_pad(GetGstElement(), "src");
-        if (!m_pGstSourcePad)
+        m_pGstStaticSourcePad = gst_element_get_static_pad(GetGstElement(), "src");
+        if (!m_pGstStaticSourcePad)
         {
             LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+            return false;
         }
 
-        m_pGstSinkPad = gst_element_get_request_pad(pStreamMux->GetGstElement(), sinkPadName.c_str());
+        GstPad* pGstRequestedSinkPad = gst_element_get_request_pad(pStreamMux->GetGstElement(), sinkPadName.c_str());
             
-        if (!m_pGstSinkPad)
+        if (!pGstRequestedSinkPad)
         {
             LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->GetName() << "'");
+            return false;
         }
+        m_pGstRequestedSinkPads[sinkPadName] = pGstRequestedSinkPad;
             
-        Bintr::LinkToSink(pStreamMux);
+        return Bintr::LinkToSink(pStreamMux);
     }
 
-    void SourceBintr::UnlinkFromSink()
+    bool SourceBintr::UnlinkFromSink()
     {
         LOG_FUNC();
 
         // If we're currently linked to the 
-        if (IsLinkedToSink())
+        if (!IsLinkedToSink())
         {
-            // Unlink from the Stream Muxer first.
-            gst_pad_unlink(m_pGstSourcePad, m_pGstSinkPad);
-            
-            LOG_INFO("Releasing Sink Pad for StreamMux " << m_pSink->GetName());
-            
-            // TODO - manage this resource
-            // Release the requested Sink for the StreamMux
-//            gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
-            
-            Nodetr::UnlinkFromSink();
+            LOG_ERROR("SourceBintr '" << GetName() << "' is not in a Linked state");
+            return false;
         }
+
+        std::string sinkPadName = "sink_" + std::to_string(m_sourceId);
+
+        LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
+
+        gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]);
+        gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
+
+        m_pGstRequestedSinkPads.erase(sinkPadName);
+        
+        return Nodetr::UnlinkFromSink();
     }
     
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fps_n, guint fps_d)
         : SourceBintr(name)
+        , m_sensorId(0)
     {
         LOG_FUNC();
 
@@ -163,6 +169,7 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
 
+        m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         m_pSourceElement->SetAttribute("maxperf", TRUE);
 
@@ -293,13 +300,18 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
     }
 
     bool UriSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
-        if (m_isLinked)
+        if (IsLinked())
         {
             LOG_ERROR("UriSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
@@ -315,23 +327,29 @@ namespace DSL
         
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
 
-        m_pGstSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
-        if (!m_pGstSourcePad)
+        GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+        if (!pGstRequestedSourcePad)
         {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
             return false;
         }
-        m_pTee->LinkToSink(m_pSourceQueue);
+        std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_sourceId);
 
-        m_pGstSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
-        if (!m_pGstSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
-            return false;
-        }
-        m_pTee->LinkToSink(m_pFakeSinkQueue);
-    
-        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
+        m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
+        m_pSourceQueue->LinkToSource(m_pTee);
+
+//        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+//        if (!pGstRequestedSourcePad)
+//        {
+//            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
+//            return false;
+//        }
+//        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
+//
+//        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
+//        m_pFakeSinkQueue->LinkToSource(m_pTee);
+//    
+//        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
         m_isLinked = true;
 
         return true;
@@ -346,10 +364,24 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
-        m_pSourceQueue->UnlinkFromSink();
-        m_pSourceQueue->UnlinkFromSource();
-        m_pFakeSinkQueue->UnlinkFromSink();
-        m_pFakeSinkQueue->UnlinkFromSource();
+        // If the Source Queue is Linked back with Tee
+        if (m_pSourceQueue->IsLinkedToSource())
+        {
+            m_pSourceQueue->UnlinkFromSource();
+        }
+        if (m_pSourceQueue->IsLinkedToSink())
+        {
+            m_pSourceQueue->UnlinkFromSink();
+        }
+        // If the Source Queue is Linked back with Tee
+        if (m_pFakeSinkQueue->IsLinkedToSource())
+        {
+            m_pFakeSinkQueue->UnlinkFromSource();
+        }
+        if (m_pFakeSinkQueue->IsLinkedToSink())
+        {
+            m_pFakeSinkQueue->UnlinkFromSink();
+        }
         
         m_isLinked = false;
     }
@@ -369,13 +401,13 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
-            if (!m_pGstSinkPad)
+            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
+            if (!m_pGstStaticSinkPad)
             {
                 LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
             }
             
-            if (gst_pad_link(pPad, m_pGstSinkPad) != GST_PAD_LINK_OK) 
+            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
                 LOG_ERROR("Failed to link decodebin to pipeline");
                 throw;
@@ -409,7 +441,7 @@ namespace DSL
         {
             g_object_set(pObject, "gpu-id", m_gpuId, NULL);
             g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
-            g_object_set(pObject, "source-id", m_sensorId, NULL);
+            g_object_set(pObject, "source-id", m_sourceId, NULL);
             g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
             
             if (m_intraDecode)

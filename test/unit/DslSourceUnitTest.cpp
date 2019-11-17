@@ -49,7 +49,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+                REQUIRE( pSourceBintr->GetSourceId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 REQUIRE( pSourceBintr->m_width == width );
@@ -77,11 +77,11 @@ SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
 
         WHEN( "The Sensor Id is set " )
         {
-            pSourceBintr->SetSensorId(sensorId);
+            pSourceBintr->SetSourceId(sensorId);
 
             THEN( "The returned Sensor Id is correct" )
             {
-                REQUIRE( pSourceBintr->GetSensorId() == sensorId );
+                REQUIRE( pSourceBintr->GetSourceId() == sensorId );
             }
         }
     }
@@ -139,7 +139,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSensorId() == -1 );
+                REQUIRE( pSourceBintr->GetSourceId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream

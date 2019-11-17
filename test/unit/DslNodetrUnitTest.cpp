@@ -74,14 +74,13 @@ SCENARIO( "Parent-child Binter releationship is setup on Add", "[Nodetr]" )
         {
             // Need to fake GstObj creation when testing the base Nodetr
             pParentNodetr->__setGstObject__((GstObject*)0x12345678);
-            pParentNodetr->AddChild(pChildNodetr);
+            REQUIRE( pParentNodetr->AddChild(pChildNodetr) == true );
         
             THEN( "The Parent-Child relationship is created" )
             {
                 REQUIRE( pParentNodetr->GetNumChildren() == 1 );
                 REQUIRE( pParentNodetr->IsChild(pChildNodetr) );
 //                REQUIRE( pChildNodetr->GetParentGstObject() == pParentNodetr->GetGstObject() );            
-                REQUIRE( pChildNodetr->IsInUse() == true );
             }
         }
     }
@@ -99,30 +98,28 @@ SCENARIO( "Parent-child Nodetr releationship is cleared on Remove", "[Nodetr]" )
 
         // Need to fake GstObj creation when testing the base Nodetr
         pParentNodetr->__setGstObject__((GstObject*)0x12345678);
-        pParentNodetr->AddChild(pChildNodetr);
+        REQUIRE( pParentNodetr->AddChild(pChildNodetr) == true );
 
         REQUIRE( pParentNodetr->GetNumChildren() == 1 );
         REQUIRE( pParentNodetr->IsChild(pChildNodetr) == true );
 
         // Can't check as it requires casting of the object that is fake.
 //        REQUIRE( pChildNodetr->GetParentGstObject() == pParentNodetr->GetGstObject() );
-        REQUIRE( pChildNodetr->IsInUse() == true );
 
         WHEN( "When the Parent is called to  RemoveChild" )
         {
-            pParentNodetr->RemoveChild(pChildNodetr);
+            REQUIRE( pParentNodetr->RemoveChild(pChildNodetr) == true );
             
             THEN( " The Parent-Child relationship is deleted ")
             {
                 REQUIRE( pParentNodetr->GetNumChildren() == 0 );
                 REQUIRE( pChildNodetr->GetParentGstObject() == NULL );            
-                REQUIRE( pChildNodetr->IsInUse() == false );            
             }
         }
     }
 }    
 
-SCENARIO( "Source-Sink Nodetr releationship is setup on Link", "[Nodetr]" )
+SCENARIO( "Source-Sink Nodetr releationship is setup on LinkToSink", "[Nodetr]" )
 {
     GIVEN( "A new Source Nodetr and Sink Nodetr in memory" ) 
     {
@@ -134,26 +131,17 @@ SCENARIO( "Source-Sink Nodetr releationship is setup on Link", "[Nodetr]" )
 
         WHEN( "When the Source Nodetr is linked to the Sink Nodetr" )
         {
-            pSourceNodetr->LinkToSink(pSinkNodetr);
+            REQUIRE( pSourceNodetr->LinkToSink(pSinkNodetr) == true );
             
             THEN( "The Source-Sync relationship is created" )
             {
                 REQUIRE( pSourceNodetr->GetSink() == pSinkNodetr );            
-                REQUIRE( pSinkNodetr->GetSource() == pSourceNodetr );            
-                REQUIRE( pSourceNodetr->IsInUse() == true );            
-                REQUIRE( pSinkNodetr->IsInUse() == true );            
-                
-                // Ensure no Parent-Child Nodetr relationships exist
-                REQUIRE( pSourceNodetr->GetNumChildren() == 0 );
-                REQUIRE( pSourceNodetr->GetParentGstObject() == NULL );
-                REQUIRE( pSinkNodetr->GetNumChildren() == 0 );
-                REQUIRE( pSinkNodetr->GetParentGstObject() == NULL );
             }
         }
     }
 }
 
-SCENARIO( "Source-Sink Nodetr releationship is removed on Unlink & UnlinkFrom", "[Nodetr]" )
+SCENARIO( "Source-Sink Nodetr releationship is removed on UnlinFromSink", "[Nodetr]" )
 {
     GIVEN( "A Source Nodetr linked to a Sink Nodetr" ) 
     {
@@ -163,14 +151,8 @@ SCENARIO( "Source-Sink Nodetr releationship is removed on Unlink & UnlinkFrom", 
         DSL_NODETR_PTR pSourceNodetr = DSL_NODETR_NEW(sourceNodetrName.c_str());
         DSL_NODETR_PTR pSinkNodetr = DSL_NODETR_NEW(sinkNodetrName.c_str());
 
-        pSourceNodetr->LinkToSink(pSinkNodetr);
-
-        // Ensure no Parent-Child Nodetr relationships exist
-        REQUIRE( pSourceNodetr->GetNumChildren() == 0 );
-        REQUIRE( pSourceNodetr->GetParentGstObject() == NULL );
-        REQUIRE( pSinkNodetr->GetNumChildren() == 0 );
-        REQUIRE( pSinkNodetr->GetParentGstObject() == NULL );
-
+        REQUIRE( pSourceNodetr->LinkToSink(pSinkNodetr) == true );
+        
         WHEN( "When the SourceNodetr Unlinks the SinkNodetr" )
         {
             pSourceNodetr->UnlinkFromSink();
@@ -178,21 +160,52 @@ SCENARIO( "Source-Sink Nodetr releationship is removed on Unlink & UnlinkFrom", 
             THEN( "The Source-Sync relationship is removed" )
             {
                 REQUIRE( pSourceNodetr->GetSink() == nullptr );            
-                REQUIRE( pSinkNodetr->GetSource() == nullptr );            
-                REQUIRE( pSourceNodetr->IsInUse() == false );            
-                REQUIRE( pSinkNodetr->IsInUse() == false );            
             }
         }
-        WHEN( "When the SinkNodetr Unlinks from the SourceNodetr" )
+    }
+}
+
+SCENARIO( "Source-Sink Nodetr releationship is setup on LinkToSource", "[Nodetr]" )
+{
+    GIVEN( "A new Source Nodetr and Sink Nodetr in memory" ) 
+    {
+        std::string sourceNodetrName  = "source";
+        std::string sinkNodetrName = "sink";
+
+        DSL_NODETR_PTR pSourceNodetr = DSL_NODETR_NEW(sourceNodetrName.c_str());
+        DSL_NODETR_PTR pSinkNodetr = DSL_NODETR_NEW(sinkNodetrName.c_str());
+
+        WHEN( "When the Source Nodetr is linked to the Sink Nodetr" )
+        {
+            REQUIRE( pSinkNodetr->LinkToSource(pSourceNodetr) == true );
+            
+            THEN( "The Source-Sync relationship is created" )
+            {
+                REQUIRE( pSinkNodetr->GetSource() == pSourceNodetr );            
+            }
+        }
+    }
+}
+
+SCENARIO( "Source-Sink Nodetr releationship is removed on UnlinkFromSource", "[Nodetr]" )
+{
+    GIVEN( "A Source Nodetr linked to a Sink Nodetr" ) 
+    {
+        std::string sourceNodetrName  = "source";
+        std::string sinkNodetrName = "sink";
+
+        DSL_NODETR_PTR pSourceNodetr = DSL_NODETR_NEW(sourceNodetrName.c_str());
+        DSL_NODETR_PTR pSinkNodetr = DSL_NODETR_NEW(sinkNodetrName.c_str());
+
+        REQUIRE( pSinkNodetr->LinkToSource(pSourceNodetr) == true );
+
+        WHEN( "When the SourceNodetr Unlinks the SinkNodetr" )
         {
             pSinkNodetr->UnlinkFromSource();
             
             THEN( "The Source-Sync relationship is removed" )
             {
-                REQUIRE( pSourceNodetr->GetSink() == nullptr );            
                 REQUIRE( pSinkNodetr->GetSource() == nullptr );            
-                REQUIRE( pSourceNodetr->IsInUse() == false );            
-                REQUIRE( pSinkNodetr->IsInUse() == false );            
             }
         }
     }

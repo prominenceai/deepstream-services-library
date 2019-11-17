@@ -69,13 +69,13 @@ namespace DSL
          * @return -1 when source Id is not assigned, i.e. source is not currently in use
          * Unique source Id [0...MAX] when the source is in use.
          */
-        int GetSensorId();
+        int GetSourceId();
         
         /**
          * @brief Sets the unique sensor id for this Source bintr
          * @param id value to assign [0...MAX]
          */
-        void SetSensorId(int id);
+        void SetSourceId(int id);
         
         /**
          * @brief returns the Live state of this Streaming Source
@@ -104,12 +104,12 @@ namespace DSL
          * @brief Links the Streaming Source to a Stream Muxer
          * @param pStreamMux
          */
-        void LinkToSink(DSL_NODETR_PTR pStreamMux);
+        bool LinkToSink(DSL_NODETR_PTR pStreamMux);
         
         /**
          * @brief Unlinks this Streaming Source from a previously linked to Stream Muxer
          */
-        void UnlinkFromSink();
+        bool UnlinkFromSink();
 
     public:
             
@@ -117,7 +117,7 @@ namespace DSL
          * @brief unique stream source identifier managed by the 
          * parent pipeline from Source add until removed
          */
-        int m_sensorId;
+        int m_sourceId;
         
         /**
          * @brief
@@ -184,6 +184,9 @@ namespace DSL
         void UnlinkAll();
         
     private:
+    
+        uint m_sensorId;
+        
         /**
          * @brief
          */
@@ -298,6 +301,11 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pTee;
+
+        /**
+         * @brief A dynamic collection of requested Source Pads for the Tee 
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
 
         /**
          @brief
