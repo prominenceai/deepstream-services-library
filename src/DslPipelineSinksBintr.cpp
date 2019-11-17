@@ -50,6 +50,11 @@ namespace DSL
     PipelineSinksBintr::~PipelineSinksBintr()
     {
         LOG_FUNC();
+
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
     }
      
     bool PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
@@ -127,10 +132,15 @@ namespace DSL
         uint id(0);
         for (auto const& imap: m_pChildSinks)
         {
-            // Link all of the ChildSink's Elementrs first
+            // Must set the Unique Id first, then Link all of the ChildSink's Elementrs, then 
+            // link back upstream to the Tee, the src for this Child Sink 
             imap.second->SetSinkId(id++);
-            imap.second->LinkAll();
-            imap.second->LinkToSource(m_pTee);
+            if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
+            {
+                LOG_ERROR("PipelineSinksBintr '" << GetName() 
+                    << "' failed to Link Child Sink '" << imap.second->GetName() << "'");
+                return false;
+            }
         }
         m_isLinked = true;
         return true;
@@ -149,10 +159,15 @@ namespace DSL
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pTee->GetName() << " from " << imap.second->GetName());
-            gst_element_unlink(m_pTee->GetGstElement(), imap.second->GetGstElement());
-            
-            // unink all of the ChildSink's Elementrs first
+            if (!imap.second->UnlinkFromSource())
+            {
+                LOG_ERROR("PipelineSinksBintr '" << GetName() 
+                    << "' failed to Unlink Child Sink '" << imap.second->GetName() << "'");
+                return;
+            }
+            // unink all of the ChildSink's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
+            imap.second->SetSinkId(-1);
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;

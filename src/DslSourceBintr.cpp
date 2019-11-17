@@ -144,16 +144,12 @@ namespace DSL
 
         std::string sinkPadName = "sink_" + std::to_string(m_sourceId);
 
-        // Unlink from the Stream Muxer first.
+        LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
+
         gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]);
-        
-        LOG_INFO("Releasing Sink Pad for StreamMux " << m_pSink->GetName());
+        gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
 
         m_pGstRequestedSinkPads.erase(sinkPadName);
-        
-        // TODO - manage this resource
-        // Release the requested Sink for the StreamMux
-//            gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
         
         return Nodetr::UnlinkFromSink();
     }
@@ -304,13 +300,18 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
     }
 
     bool UriSourceBintr::LinkAll()
     {
         LOG_FUNC();
 
-        if (m_isLinked)
+        if (IsLinked())
         {
             LOG_ERROR("UriSourceBintr '" << GetName() << "' is already in a linked state");
             return false;
@@ -335,20 +336,20 @@ namespace DSL
         std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_sourceId);
 
         m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
-        m_pTee->LinkToSink(m_pSourceQueue);
+        m_pSourceQueue->LinkToSource(m_pTee);
 
-        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-            return false;
-        }
-        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
-
-        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
-        m_pTee->LinkToSink(m_pFakeSinkQueue);
-    
-        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
+//        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+//        if (!pGstRequestedSourcePad)
+//        {
+//            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
+//            return false;
+//        }
+//        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
+//
+//        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
+//        m_pFakeSinkQueue->LinkToSource(m_pTee);
+//    
+//        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
         m_isLinked = true;
 
         return true;
@@ -363,10 +364,24 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
-        m_pSourceQueue->UnlinkFromSink();
-        m_pSourceQueue->UnlinkFromSource();
-        m_pFakeSinkQueue->UnlinkFromSink();
-        m_pFakeSinkQueue->UnlinkFromSource();
+        // If the Source Queue is Linked back with Tee
+        if (m_pSourceQueue->IsLinkedToSource())
+        {
+            m_pSourceQueue->UnlinkFromSource();
+        }
+        if (m_pSourceQueue->IsLinkedToSink())
+        {
+            m_pSourceQueue->UnlinkFromSink();
+        }
+        // If the Source Queue is Linked back with Tee
+        if (m_pFakeSinkQueue->IsLinkedToSource())
+        {
+            m_pFakeSinkQueue->UnlinkFromSource();
+        }
+        if (m_pFakeSinkQueue->IsLinkedToSink())
+        {
+            m_pFakeSinkQueue->UnlinkFromSink();
+        }
         
         m_isLinked = false;
     }

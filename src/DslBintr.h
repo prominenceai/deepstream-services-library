@@ -133,6 +133,17 @@ namespace DSL
             return m_isLinked;
         }
 
+        /**
+         * @brief called to determine if a Bintr is currently in use - has a Parent
+         * @return true if the Bintr has a Parent, false otherwise
+         */
+        bool IsInUse()
+        {
+            LOG_FUNC();
+            
+            return (bool)GetParentGstElement();
+        }
+
         bool Play()
         {
             LOG_FUNC();

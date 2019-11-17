@@ -85,18 +85,6 @@ namespace DSL
         }
         
         /**
-         * @brief returns whether the Nodetr object is in-use 
-         * @return True if the Nodetr has a Child-to-Parent or Sibling relationship
-         */
-        bool IsInUse()
-        {
-            LOG_FUNC();
-            
-            // Ok to have Children and not be in Use
-            return (bool)(m_pParentGstObj or m_pSink or m_pSource);
-        }
-
-        /**
          * @brief adds a child Nodetr to this parent Nodetr
          * @param pChild to add to this parent Nodetr. 
          */

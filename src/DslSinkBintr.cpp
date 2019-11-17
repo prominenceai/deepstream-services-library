@@ -106,22 +106,12 @@ namespace DSL
             << "' for Tee '" << pTee->GetName() << "'");
         
         m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSourcePad)
+        if (!m_pGstStaticSinkPad)
         {
             LOG_ERROR("Failed to get Static Sink Pad for SinkBintr '" << GetName() << "'");
             return false;
         }
 
-//        GstPadTemplate* pPadTemplate = 
-//            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(pTee->GetGstObject()), "src_%u");
-//        if (!pPadTemplate)
-//        {
-//            LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
-//            return false;
-//        }
-
-//        GstPad* pGstRequestedSourcePad = gst_element_request_pad(
-//            GST_ELEMENT(pTee->GetGstObject()), pPadTemplate, NULL, NULL);
         GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
             
         if (!pGstRequestedSourcePad)
@@ -132,15 +122,15 @@ namespace DSL
 
         m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSourcePad;
 
-        return Bintr::LinkToSink(pTee);
+        return Bintr::LinkToSource(pTee);
         
     }
     
     bool SinkBintr::UnlinkFromSource()
     {
         LOG_FUNC();
-
-        // If we're currently linked to the 
+        
+        // If we're not currently linked to the Tee
         if (!IsLinkedToSource())
         {
             LOG_ERROR("SinkBintr '" << GetName() << "' is not in a Linked state");
@@ -149,16 +139,12 @@ namespace DSL
 
         std::string srcPadName = "src_" + std::to_string(m_sinkId);
 
-        // Unlink from the Tee first.
+        LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
+        
         gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
-        
-        LOG_INFO("Releasing requested Source Pad for Sink Tee " << m_pSink->GetName());
-        
+        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
+                
         m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        // TODO - manage this resource
-        // Release the requested Sink for the StreamMux
-//        gst_element_release_request_pad(m_pSink->GetGstElement(), m_pGstSinkPad);
         
         return Nodetr::UnlinkFromSource();
     }
@@ -203,7 +189,7 @@ namespace DSL
     {
         LOG_FUNC();
     
-        if (m_isLinked)
+        if (IsLinked())
         {    
             UnlinkAll();
         }
