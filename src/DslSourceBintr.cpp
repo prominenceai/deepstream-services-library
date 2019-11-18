@@ -450,9 +450,12 @@ namespace DSL
             }
         }
 
-        else if ((strName.find("omx") != std::string::npos) && m_intraDecode)
+        else if ((strName.find("omx") != std::string::npos))
         {
-            g_object_set(pObject, "skip-frames", 2, NULL);
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "skip-frames", 2, NULL);
+            }
             g_object_set(pObject, "disable-dvfs", TRUE, NULL);
         }
 
@@ -461,9 +464,12 @@ namespace DSL
             g_object_set(pObject, "DeepStream", TRUE, NULL);
         }
 
-        else if ((strName.find("nvv4l2decoder") != std::string::npos) && m_intraDecode)
+        else if ((strName.find("nvv4l2decoder") != std::string::npos))
         {
-            g_object_set (pObject, "skip-frames", 2, NULL);
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "skip-frames", 2, NULL);
+            }
 #ifdef __aarch64__
             g_object_set(pObject, "enable-max-performance", TRUE, NULL);
             g_object_set(pObject, "bufapi-version", TRUE, NULL);
@@ -476,7 +482,7 @@ namespace DSL
 
             // if the source is from file, then setup Stream buffer probe function
             // to handle the stream restart/loop on GST_EVENT_EOS.
-            if (!m_isLive)
+            if (!m_isLive and false)
             {
                 GstPadProbeType mask = (GstPadProbeType) 
                     (GST_PAD_PROBE_TYPE_EVENT_BOTH |
@@ -487,7 +493,6 @@ namespace DSL
                 
                 m_bufferProbeId = 
                     gst_pad_add_probe(pStaticSinkpad, mask, StreamBufferRestartProbCB, this, NULL);
-                LOG_WARN("****************************************************");
             }
         }
     }
@@ -503,13 +508,13 @@ namespace DSL
             GST_BUFFER_PTS(GST_BUFFER(pInfo->data)) += m_prevAccumulatedBase;
         }
         
-        else if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_BOTH)
+        if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_BOTH)
         {
             if (GST_EVENT_TYPE(event) == GST_EVENT_EOS)
             {
                 g_timeout_add(1, StreamBufferSeekCB, this);
             }
-            else if (GST_EVENT_TYPE(event) == GST_EVENT_SEGMENT)
+            if (GST_EVENT_TYPE(event) == GST_EVENT_SEGMENT)
             {
                 GstSegment* segment;
 
@@ -558,7 +563,8 @@ namespace DSL
             LOG_WARN("Failure to seek");
         }
 
-        return Play();
+        Play();
+        return false;
     }
     
     

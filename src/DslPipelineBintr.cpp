@@ -72,22 +72,6 @@ namespace DSL
         {
             UnlinkAll();
         }
-//        if (m_isLinked)
-//        {    
-//            Stop();
-//        }
-//        LOG_INFO("DTOR for Bintr '" << GetName() << "' Called with " << m_pChildren.size() << " children");
-//
-//        // Remove all child references 
-//        RemoveAllChildren();
-//        
-//        if (m_pGstObj and (GST_OBJECT_REFCOUNT_VALUE(m_pGstObj) == 1))
-//        {
-//            LOG_INFO("Unreferencing GST Pipeline Bin contained by this PipelineBintr '" << GetName() << "'");
-//            
-//            gst_object_unref(m_pGstObj);
-//        }
-//        LOG_INFO("Nodetr '" << GetName() << "' deleted");
 
         if (m_pXWindow)
         {
@@ -106,14 +90,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        bool prevIsLinkedState = IsLinked();
-        uint prevPipelineState = GetState();
-        
-        if (prevIsLinkedState)
-        {
-            UnlinkAll();
-        }
-
         // Create the shared sources bintr if it doesn't exist
         if (!m_pPipelineSourcesBintr)
         {
@@ -125,18 +101,7 @@ namespace DSL
         {
             return false;
         }
-        
-        if (prevIsLinkedState and !LinkAll())
-        {
-           return false;
-        }
-        
-        if (prevPipelineState == GST_STATE_PLAYING)
-        {
-            return Play();
-        }
         return true;
-
     }
 
     bool PipelineBintr::IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr)
@@ -340,7 +305,7 @@ namespace DSL
                 
         // flush the output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
-        XSync(m_pXDisplay, TRUE);       
+        XSync(m_pXDisplay, FALSE);       
 
         // Call the base class to complete the Play process
         return Bintr::Play();
@@ -350,11 +315,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if ((GetState() != GST_STATE_PLAYING) and (GetState() != GST_STATE_PAUSED))
-        {
-            LOG_ERROR("Pipeline is not in a PLAYING or PAUSED state");
-            return false;
-        }
+//        if (GetState() == GST_STATE_PLAYING)
+//        {
+//            Pause();
+//        }
         
         // only need to Stop the tail (sink) component as the EOS event
         // is an upstream event message.
@@ -457,7 +421,6 @@ namespace DSL
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
-//        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
         
         switch (GST_MESSAGE_TYPE(pMessage))
@@ -495,8 +458,6 @@ namespace DSL
         switch (GST_MESSAGE_TYPE(pMessage))
         {
         case GST_MESSAGE_ELEMENT:
-            LOG_INFO("Processing message element");
-            
             if (gst_is_video_overlay_prepare_window_handle_message(pMessage))
             {
                 if (CreateXWindow())
@@ -585,6 +546,7 @@ namespace DSL
         m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
             RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
             0, 0, width, height, 2, 0x00000000, 0x00000000);            
+        LOG_WARN("Setting Window: " << width << ":" << height);
 
         if (!m_pXWindow)
         {
