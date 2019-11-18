@@ -43,8 +43,8 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         std::string overlaySinkName = "overlay-sink";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1280);
+        uint sinkH(720);
 
         std::string pipelineName  = "test-pipeline";
         
@@ -67,22 +67,19 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
             THEN( "The Pipeline can be Stopped and Disassembled" )
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
                 REQUIRE( dsl_pipeline_pause(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
             
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );

@@ -849,7 +849,6 @@ namespace DSL
         //  existence of each - before making any updates to the pipeline.
         for (const char** component = components; *component; component++)
         {
-            LOG_WARN("************************************");
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, *component);
         }
         LOG_INFO("All listed components found");

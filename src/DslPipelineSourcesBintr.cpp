@@ -151,7 +151,7 @@ namespace DSL
 
         // Set the Batch size to the nuber of sources owned
         // TODO add support for managing batch timeout
-        SetStreamMuxBatchProperties(m_pChildSources.size(), 4000);
+        SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
         
         return true;
     }

@@ -46,8 +46,8 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         std::string overlaySinkName = "overlay-sink";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1280);
+        uint sinkH(720);
 
         std::string pipelineName  = "test-pipeline";
         
@@ -68,9 +68,8 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-//        const char* components[] = {"test-uri-source-1", "test-uri-source-2", "test-uri-source-3", "test-uri-source-4", 
-//            "tiled-display-name", "overlay-sink", NULL};
-        const char* components[] = {"test-uri-source-1", "tiled-display-name", "overlay-sink", NULL};
+        const char* components[] = {"test-uri-source-1", "test-uri-source-2", "test-uri-source-3", "test-uri-source-4", 
+            "tiled-display-name", "overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {
@@ -82,10 +81,10 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
             THEN( "The Pipeline can be Stopped and Disassembled" )
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
             
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );

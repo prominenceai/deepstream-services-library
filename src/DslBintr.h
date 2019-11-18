@@ -148,7 +148,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
+            LOG_INFO("Changing state to GST_STATE_PLAY for Bintr '" << GetName() << "'");
 
             gst_element_set_state(GetGstElement(), GST_STATE_PLAYING);
             
@@ -173,6 +173,7 @@ namespace DSL
             if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
             {
                 LOG_ERROR("FAILURE occured when trying to pause Bintr '" << GetName() << "'");
+                return false;
             }
             return true;
         }
