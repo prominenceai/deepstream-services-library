@@ -40,8 +40,8 @@ void StateChangeListener2(uint oldstate, uint newstate, void* userdata)
 
 SCENARIO( "All state-change-listeners are called on change of state", "[client-cb-api]" )
 {
-    std::string pipelineName = "test-pipeline";
-    std::string sourceName  = "csi-source";
+    std::wstring pipelineName = L"test-pipeline";
+    std::wstring sourceName  = L"csi-source";
 
     GIVEN( "A Pipeline with two state-change-listeners" ) 
     {

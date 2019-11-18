@@ -12,7 +12,7 @@ modelEngineFile = './test/models/Primary_Detector_Nano/resnet10.caffemodel'
 
 libc.dsl_gie_primary_new('myPrimaryGie', inferConfigFile, modelEngineFile, 1, 0)
 libc.dsl_display_new('myDisplay', 1280, 720)
-libc.dsl_sink_overlay_new('mySink', 0, 0, 0, 0)
+libc.dsl_sink_overlay_new('mySink', 100, 100, 1280, 720)
 libc.dsl_pipeline_new('myPipeline')
 
 libc.dsl_pipeline_component_add('myPipeline', 'mySource1')

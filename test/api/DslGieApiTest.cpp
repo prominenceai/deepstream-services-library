@@ -29,9 +29,9 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring primaryGieName = L"primary-gie";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(1);
@@ -50,7 +50,7 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
                 REQUIRE( dsl_component_list_size() == 1 );
                 REQUIRE( *(dsl_component_list_all()) != NULL );
                 
-                std::string returnedName = *(dsl_component_list_all());
+                std::wstring returnedName = *(dsl_component_list_all());
                 REQUIRE( returnedName == primaryGieName );
             }
         }
@@ -63,9 +63,9 @@ SCENARIO( "The Components container is updated correctly on Primary GIE delete",
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring primaryGieName = L"primary-gie";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(1);
@@ -93,11 +93,11 @@ SCENARIO( "Only one Primary GIE can be added to a Pipeline", "[gie-api]" )
 {
     GIVEN( "A two Primary GIEs and a new pPipeline" ) 
     {
-        std::string primaryGieName1 = "primary-gie-1";
-        std::string primaryGieName2 = "primary-gie-2";
-        std::string pipelineName  = "test-pipeline";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring primaryGieName1 = L"primary-gie-1";
+        std::wstring primaryGieName2 = L"primary-gie-2";
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(1);
@@ -134,10 +134,10 @@ SCENARIO( "A Primary GIE in use can't be deleted", "[gie-api]" )
 {
     GIVEN( "A new Primary GIE and new pPipeline" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string pipelineName  = "test-pipeline";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring primaryGieName = L"primary-gie";
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(1);
@@ -169,10 +169,10 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[gie-a
 {
     GIVEN( "A new Primary GIE owned by a new pPipeline" ) 
     {
-        std::string primaryGieName = "primary-gie";
-        std::string pipelineName  = "test-pipeline";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring primaryGieName = L"primary-gie";
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint uniqueId(1);
