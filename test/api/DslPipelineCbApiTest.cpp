@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
 {
-    std::string pipelineName = "test-pipeline";
+    std::wstring pipelineName = L"test-pipeline";
     dsl_state_change_listener_cb listener;
 
     GIVEN( "A Pipeline in memory" ) 
@@ -53,7 +53,7 @@ SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
 
 SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
 {
-    std::string pipelineName = "test-pipeline";
+    std::wstring pipelineName = L"test-pipeline";
     dsl_state_change_listener_cb listener;
 
     GIVEN( "A Pipeline with one state-change-listener" )
@@ -81,7 +81,7 @@ SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
 
 SCENARIO( "An event-handler must be unique", "[pipeline]" )
 {
-    std::string pipelineName = "test-pipeline";
+    std::wstring pipelineName = L"test-pipeline";
     dsl_display_event_handler_cb handler;
 
     GIVEN( "A Pipeline in memory" ) 
@@ -108,7 +108,7 @@ SCENARIO( "An event-handler must be unique", "[pipeline]" )
 SCENARIO( "An event-handler can be removed", "[pipeline]" )
 {
 
-    std::string pipelineName = "test-pipeline";
+    std::wstring pipelineName = L"test-pipeline";
     dsl_display_event_handler_cb handler;
 
     GIVEN( "A Pipeline with one event handler" ) 

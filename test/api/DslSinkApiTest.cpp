@@ -29,7 +29,7 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring overlaySinkName = L"overlay-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -50,7 +50,7 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
                 REQUIRE( dsl_component_list_size() == 1 );
                 REQUIRE( *(dsl_component_list_all()) != NULL );
                 
-                std::string returnedName = *(dsl_component_list_all());
+                std::wstring returnedName = *(dsl_component_list_all());
                 REQUIRE( returnedName == overlaySinkName );
             }
         }
@@ -62,7 +62,7 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring overlaySinkName = L"overlay-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -91,8 +91,8 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
 {
     GIVEN( "A new Overlay Sinak and new pPipeline" ) 
     {
-        std::string pipelineName  = "test-pipeline";
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring overlaySinkName = L"overlay-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -101,7 +101,9 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 1 );
 
         WHEN( "The Primary GIE is added to the Pipeline" ) 
         {
@@ -126,8 +128,8 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
 {
     GIVEN( "A new Sink owned by a new pPipeline" ) 
     {
-        std::string pipelineName  = "test-pipeline";
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring overlaySinkName = L"overlay-sink";
 
         uint offsetX(0);
         uint offsetY(0);

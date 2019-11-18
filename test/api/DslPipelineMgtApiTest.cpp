@@ -29,7 +29,7 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[PipelineMgt]" 
 {
     GIVEN( "An empty list of Pipelines" ) 
     {
-        std::string actualName  = "test-pipeline";
+        std::wstring actualName  = L"test-pipeline";
         
         REQUIRE( dsl_pipeline_list_size() == 0 );
         REQUIRE( *(dsl_pipeline_list_all()) == NULL );
@@ -44,7 +44,7 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[PipelineMgt]" 
                 REQUIRE( dsl_pipeline_list_size() == 1 );
                 REQUIRE( *(dsl_pipeline_list_all()) != NULL );
                 
-                std::string returnedName = *(dsl_pipeline_list_all());
+                std::wstring returnedName = *(dsl_pipeline_list_all());
                 REQUIRE( returnedName == actualName );
             }
         }
@@ -62,14 +62,14 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
         
         for(int i = 0; i < sampleSize; i++)
         {
-            REQUIRE( dsl_pipeline_new(std::to_string(i).c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(std::to_wstring(i).c_str()) == DSL_RESULT_SUCCESS );
         }
         REQUIRE( dsl_pipeline_list_size() == sampleSize );
         REQUIRE( *(dsl_pipeline_list_all()) != NULL );
 
         WHEN( "Multiple Pipelines are deleted" ) 
         {
-            const char* pipelineList[] = {"1","3", NULL};
+            const wchar_t* pipelineList[] = {L"1",L"3", NULL};
             
             REQUIRE( dsl_pipeline_delete_many(pipelineList) == DSL_RESULT_SUCCESS );
 
@@ -87,7 +87,7 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
 
 SCENARIO( "Many Pipelines are created correctly", "[PipelineMgt]" )
 {
-    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
+    const wchar_t* pipelineNames[] = {L"PipelineA", L"PipelineB", L"PipelineC", NULL};
     
     GIVEN( "An empty container of Pipelines" ) 
     {
@@ -113,7 +113,7 @@ SCENARIO( "Many Pipelines are created correctly", "[PipelineMgt]" )
 
 SCENARIO( "Many Pipelines are deleted correctly", "[PipelineMgt]" )
 {
-    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineC", NULL};
+    const wchar_t* pipelineNames[] = {L"PipelineA", L"PipelineB", L"PipelineC", NULL};
     
     GIVEN( "Many Pipelines created with an array of names" ) 
     {
@@ -134,7 +134,7 @@ SCENARIO( "Many Pipelines are deleted correctly", "[PipelineMgt]" )
 
 SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[PipelineMgt]" )
 {
-    const char* pipelineNames[] = {"PipelineA", "PipelineB", "PipelineA", NULL};
+    const wchar_t* pipelineNames[] = {L"PipelineA", L"PipelineB", L"PipelineA", NULL};
     
     GIVEN( "An empty container of Pipelines" ) 
     {

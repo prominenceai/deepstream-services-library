@@ -29,7 +29,7 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::string sourceName  = "csi-source";
+        std::wstring sourceName  = L"csi-source";
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
@@ -44,7 +44,7 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
                 REQUIRE( dsl_component_list_size() == 1 );
                 REQUIRE( *(dsl_component_list_all()) != NULL );
                 
-                std::string returnedName = *(dsl_component_list_all());
+                std::wstring returnedName = *(dsl_component_list_all());
                 REQUIRE( returnedName == sourceName );
             }
         }
@@ -56,7 +56,7 @@ SCENARIO( "The Components container is updated correctly on Source Delete", "[so
 {
     GIVEN( "One Source im memory" ) 
     {
-        std::string sourceName  = "csi-source";
+        std::wstring sourceName  = L"csi-source";
 
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
@@ -79,8 +79,8 @@ SCENARIO( "A Source in use can't be deleted", "[source-api]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {
-        std::string sourceName  = "csi-source";
-        std::string pipelineName  = "test-pipeline";
+        std::wstring sourceName  = L"csi-source";
+        std::wstring pipelineName  = L"test-pipeline";
 
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -108,8 +108,8 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
 {
     GIVEN( "A new Pipeline with a Child CSI Source" ) 
     {
-        std::string sourceName  = "csi-source";
-        std::string pipelineName  = "test-pipeline";
+        std::wstring sourceName  = L"csi-source";
+        std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -137,7 +137,7 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
 
 SCENARIO( "A new CSI Camaera Source is live", "[source]" )
 {
-    std::string sourceName  = "csi-source";
+    std::wstring sourceName  = L"csi-source";
 
     GIVEN( "An empty list of Components" ) 
     {
@@ -185,8 +185,8 @@ SCENARIO( "A Client is able to update the Source in-use max" )
 
 SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api]" )
 {
-    std::string sourceName  = "csi-source";
-    std::string pipelineName  = "test-pipeline";
+    std::wstring sourceName  = L"csi-source";
+    std::wstring pipelineName  = L"test-pipeline";
 
     GIVEN( "A new Source and new Pipeline" )
     {
@@ -213,8 +213,8 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 {
     GIVEN( "A new Pipeline with a Source" ) 
     {
-        std::string sourceName  = "csi-source";
-        std::string pipelineName  = "test-pipeline";
+        std::wstring sourceName  = L"csi-source";
+        std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -240,10 +240,10 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 
 SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[source-api]" )
 {
-    std::string sourceName1  = "csi-source1";
-    std::string pipelineName1  = "test-pipeline1";
-    std::string sourceName2  = "csi-source2";
-    std::string pipelineName2  = "test-pipeline2";
+    std::wstring sourceName1  = L"csi-source1";
+    std::wstring pipelineName1  = L"test-pipeline1";
+    std::wstring sourceName2  = L"csi-source2";
+    std::wstring pipelineName2  = L"test-pipeline2";
 
     GIVEN( "Two new Sources and two new Pipeline" )
     {

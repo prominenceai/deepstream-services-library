@@ -49,15 +49,18 @@ namespace DSL {
          */
         static Services* GetServices();
         
-        DslReturnType SetDumpDotDir(const char* dir);
+        /***************************************************************
+         **** all Services defined below are documented in DslApi.h ****
+         ***************************************************************/
+        DslReturnType SetDumpDotDir(const wchar_t* dir);
         
-        DslReturnType SourceCsiNew(const char* name, 
+        DslReturnType SourceCsiNew(const wchar_t* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
-        DslReturnType SourceUriNew(const char* name, 
-            const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+        DslReturnType SourceUriNew(const wchar_t* name, 
+            const wchar_t* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
-        boolean SourceIsLive(const char* name);
+        boolean SourceIsLive(const wchar_t* name);
         
         uint GetNumSourceInUse();
         
@@ -65,78 +68,78 @@ namespace DSL {
         
         void SetNumSourceInUseMax(uint max);
         
-        DslReturnType OverlaySinkNew(const char* name, 
+        DslReturnType OverlaySinkNew(const wchar_t* name, 
             uint offsetX, uint offsetY, uint width, uint height);
         
-        DslReturnType OsdNew(const char* name, boolean isClockEnabled);
+        DslReturnType OsdNew(const wchar_t* name, boolean isClockEnabled);
         
-        DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, uint interval, uint uniqueId);
+        DslReturnType PrimaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
+            const wchar_t* modelEngineFile, uint interval, uint uniqueId);
         
-        DslReturnType DisplayNew(const char* name, uint width, uint height);
+        DslReturnType DisplayNew(const wchar_t* name, uint width, uint height);
         
-        boolean ComponentIsInUse(const char* component);
+        boolean ComponentIsInUse(const wchar_t* component);
         
-        DslReturnType ComponentDelete(const char* component);
+        DslReturnType ComponentDelete(const wchar_t* component);
 
-        DslReturnType ComponentDeleteMany(const char** components);
+        DslReturnType ComponentDeleteMany(const wchar_t** components);
 
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
         
-        const char** ComponentListAll();
+        const wchar_t** ComponentListAll();
         
-        DslReturnType PipelineNew(const char* pipeline);
+        DslReturnType PipelineNew(const wchar_t* pipeline);
         
-        DslReturnType PipelineNewMany(const char** pipelines);
+        DslReturnType PipelineNewMany(const wchar_t** pipelines);
         
-        DslReturnType PipelineDelete(const char* pipeline);
+        DslReturnType PipelineDelete(const wchar_t* pipeline);
         
-        DslReturnType PipelineDeleteMany(const char** pipelines);
+        DslReturnType PipelineDeleteMany(const wchar_t** pipelines);
 
         DslReturnType PipelineDeleteAll();
 
         uint PipelineListSize();
         
-        const char** PipelineListAll();
+        const wchar_t** PipelineListAll();
 
-        DslReturnType PipelineComponentAdd(const char* pipeline, const char* component);
+        DslReturnType PipelineComponentAdd(const wchar_t* pipeline, const wchar_t* component);
 
-        DslReturnType PipelineComponentAddMany(const char* pipeline, const char** components);
+        DslReturnType PipelineComponentAddMany(const wchar_t* pipeline, const wchar_t** components);
         
-        DslReturnType PipelineComponentRemove(const char* pipeline, const char* component);
+        DslReturnType PipelineComponentRemove(const wchar_t* pipeline, const wchar_t* component);
 
-        DslReturnType PipelineComponentRemoveMany(const char* pipeline, const char** components);
+        DslReturnType PipelineComponentRemoveMany(const wchar_t* pipeline, const wchar_t** components);
         
-        DslReturnType PipelineStreamMuxSetBatchProperties(const char* pipeline,
+        DslReturnType PipelineStreamMuxSetBatchProperties(const wchar_t* pipeline,
             uint batchSize, uint batchTimeout);
 
-        DslReturnType PipelineStreamMuxSetOutputSize(const char* pipeline,
+        DslReturnType PipelineStreamMuxSetOutputSize(const wchar_t* pipeline,
             uint width, uint height);
 
-        DslReturnType PipelinePause(const char* pipeline);
+        DslReturnType PipelinePause(const wchar_t* pipeline);
         
-        DslReturnType PipelinePlay(const char* pipeline);
+        DslReturnType PipelinePlay(const wchar_t* pipeline);
         
-        DslReturnType PipelineStop(const char* pipeline);
+        DslReturnType PipelineStop(const wchar_t* pipeline);
         
-        DslReturnType PipelineGetState(const char* pipeline);
+        DslReturnType PipelineGetState(const wchar_t* pipeline);
         
-        DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
+        DslReturnType PipelineDumpToDot(const wchar_t* pipeline, wchar_t* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
+        DslReturnType PipelineDumpToDotWithTs(const wchar_t* pipeline, wchar_t* filename);
         
-        DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
+        DslReturnType PipelineStateChangeListenerAdd(const wchar_t* pipeline, 
             dsl_state_change_listener_cb listener, void* userdata);
         
-        DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
+        DslReturnType PipelineStateChangeListenerRemove(const wchar_t* pipeline, 
             dsl_state_change_listener_cb listener);
                         
-        DslReturnType PipelineDisplayEventHandlerAdd(const char* pipeline, 
+        DslReturnType PipelineDisplayEventHandlerAdd(const wchar_t* pipeline, 
             dsl_display_event_handler_cb handler, void* userdata);
 
-        DslReturnType PipelineDisplayEventHandlerRemove(const char* pipeline, 
+        DslReturnType PipelineDisplayEventHandlerRemove(const wchar_t* pipeline, 
             dsl_display_event_handler_cb handler);
         
         GMainLoop* GetMainLoopHandle()
@@ -196,7 +199,7 @@ namespace DSL {
         /**
          * @brief used to return a list of all pipeline names to the client
          */
-        std::vector<const char*> m_pipelineNames;
+        std::vector<const wchar_t*> m_pipelineNames;
         
         /**
          * @brief map of all pipeline components creaated by the client, key=name
@@ -206,13 +209,7 @@ namespace DSL {
         /**
          * @brief used to return a list of all component names to the client
          */
-        std::vector<const char*> m_componentNames;
-        
-        static std::string m_configFileDir;
-        
-        static std::string m_modelFileDir;
-        
-        static std::string m_streamFileDir;
+        std::vector<const wchar_t*> m_componentNames;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

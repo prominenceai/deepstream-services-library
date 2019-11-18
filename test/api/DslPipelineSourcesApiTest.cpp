@@ -30,26 +30,26 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
-        std::string sourceName1 = "test-uri-source-1";
-        std::string sourceName2 = "test-uri-source-2";
-        std::string sourceName3 = "test-uri-source-3";
-        std::string sourceName4 = "test-uri-source-4";
-        std::string uri = "./test/streams/sample_1080p_h264.mp4";
+        std::wstring sourceName1 = L"test-uri-source-1";
+        std::wstring sourceName2 = L"test-uri-source-2";
+        std::wstring sourceName3 = L"test-uri-source-3";
+        std::wstring sourceName4 = L"test-uri-source-4";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
-        std::string tiledDisplayName = "tiled-display-name";
+        std::wstring tiledDisplayName = L"tiled-display-name";
         uint width(1280);
         uint height(720);
 
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring overlaySinkName = L"overlay-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
-        std::string pipelineName  = "test-pipeline";
+        std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
@@ -68,8 +68,8 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-        const char* components[] = {"test-uri-source-1", "test-uri-source-2", "test-uri-source-3", "test-uri-source-4", 
-            "tiled-display-name", "overlay-sink", NULL};
+        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
+            L"tiled-display-name", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {

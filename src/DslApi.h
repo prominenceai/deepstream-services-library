@@ -153,7 +153,7 @@ EXTERN_C_BEGIN
  * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_csi_new(const char* name,
+DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
@@ -163,15 +163,15 @@ DslReturnType dsl_source_csi_new(const char* name,
  * @param[in] 
  * @return DSL_RESULT_SOURCE_RESULT
  */
-DslReturnType dsl_source_uri_new(const char* name, 
-    const char* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_uri_new(const wchar_t* name, 
+    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief returns whether the source stream is live or not
  * @param name the name of Source component to query
  * @return True if the source's stream is live
  */
-boolean dsl_source_is_live(const char* name);
+boolean dsl_source_is_live(const wchar_t* name);
 
 /**
  * @brief returns the number of sources currently in use by 
@@ -208,7 +208,7 @@ void dsl_source_set_num_in_use_max(uint max);
  * @param[in] heigth height of the Sink
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const char* name, 
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
     uint offsetX, uint offsetY, uint width, uint height);
 
 /**
@@ -217,7 +217,7 @@ DslReturnType dsl_sink_overlay_new(const char* name,
  * @param[in] is_clock_enabled true if clock is visible
  * @return DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_osd_new(const char* name, boolean is_clock_enabled);
+DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
 
 /**
  * @brief creates a new, uniquely named GIE object
@@ -228,8 +228,8 @@ DslReturnType dsl_osd_new(const char* name, boolean is_clock_enabled);
  * @param[in] uniqueId
  * @return DSL_RESULT_GIE_RESULT
  */
-DslReturnType dsl_gie_primary_new(const char* name, const char* infer_config_file,
-    const char* model_engine_file, uint interval, uint unique_id);
+DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* model_engine_file, uint interval, uint unique_id);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -238,7 +238,7 @@ DslReturnType dsl_gie_primary_new(const char* name, const char* infer_config_fil
  * @param[in] height height of the Display in pixels
  * @return DSL_RESULT_DISPLAY_RESULT
  */
-DslReturnType dsl_display_new(const char* name, uint width, uint height);
+DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height);
 
 /**
  * @brief deletes a Component object by name
@@ -248,7 +248,7 @@ DslReturnType dsl_display_new(const char* name, uint width, uint height);
  * owned by a pipeline before deleting, and returns
  * DSL_RESULT_COMPONENT_IN_USE on failure
  */
-DslReturnType dsl_component_delete(const char* component);
+DslReturnType dsl_component_delete(const wchar_t* component);
 
 /**
  * @brief deletes a NULL terminated list of components
@@ -262,7 +262,7 @@ DslReturnType dsl_component_delete(const char* component);
  * owned by a pipeline before deleting, and returns
  * DSL_RESULT_COMPONENT_IN_USE on failure
  */
-DslReturnType dsl_component_delete_many(const char** components);
+DslReturnType dsl_component_delete_many(const wchar_t** components);
 
 /**
  * @brief deletes all components in memory
@@ -283,21 +283,21 @@ uint dsl_component_list_size();
  * @brief returns the list of components
  * @return a NULL terminated array of char* component names
  */
-const char** dsl_component_list_all();
+const wchar_t** dsl_component_list_all();
 
 /**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new(const char* pipeline);
+DslReturnType dsl_pipeline_new(const wchar_t* pipeline);
 
 /**
  * @brief creates a new Pipeline for each name pipelines array
  * @param pipelines a NULL terminated array of unique Pipeline names
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_new_many(const char** pipelines);
+DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 
 /**
  * @brief deletes a Pipeline object by name.
@@ -306,7 +306,7 @@ DslReturnType dsl_pipeline_new_many(const char** pipelines);
  * @info any/all components owned by the pipeline move
  * to a state of not-in-use.
  */
-DslReturnType dsl_pipeline_delete(const char* pipeline);
+DslReturnType dsl_pipeline_delete(const wchar_t* pipeline);
 
 /**
  * @brief deletes a NULL terminated list of pipelines
@@ -319,7 +319,7 @@ DslReturnType dsl_pipeline_delete(const char* pipeline);
  * @info any/all components owned by the pipelines move
  * to a state of not-in-use.
  */
-DslReturnType dsl_pipeline_delete_many(const char** pipelines);
+DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines);
 
 /**
  * @brief deletes all pipelines in memory
@@ -339,7 +339,7 @@ uint dsl_pipeline_list_size();
  * @brief returns the list of pipelines
  * @return a NULL terminated array of char* pipeline names
  */
-const char** dsl_pipeline_list_all();
+const wchar_t** dsl_pipeline_list_all();
 
 /**
  * @brief adds a single components to a Pipeline 
@@ -347,8 +347,8 @@ const char** dsl_pipeline_list_all();
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_add(const char* pipeline, 
-    const char* component);
+DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
+    const wchar_t* component);
 
 /**
  * @brief adds a list of components to a Pipeline 
@@ -356,8 +356,8 @@ DslReturnType dsl_pipeline_component_add(const char* pipeline,
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_add_many(const char* pipeline, 
-    const char** components);
+DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
+    const wchar_t** components);
 
 /**
  * @brief removes a Component from a Pipeline
@@ -365,8 +365,8 @@ DslReturnType dsl_pipeline_component_add_many(const char* pipeline,
  * @param[in] component name of the Component to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_remove(const char* pipeline, 
-    const char* component);
+DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
+    const wchar_t* component);
 
 /**
  * @brief removes a list of Components from a Pipeline
@@ -374,15 +374,15 @@ DslReturnType dsl_pipeline_component_remove(const char* pipeline,
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_component_remove_many(const char* pipeline, 
-    const char** components);
+DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
+    const wchar_t** components);
 
 /**
  * @brief 
  * @param[in] pipeline name of the pipepline to update
  * @return 
  */
-DslReturnType dsl_pipeline_streammux_set_batch_properties(const char* pipeline, 
+DslReturnType dsl_pipeline_streammux_set_batch_properties(const wchar_t* pipeline, 
     uint batchSize, uint batchTimeout);
 
 /**
@@ -390,7 +390,7 @@ DslReturnType dsl_pipeline_streammux_set_batch_properties(const char* pipeline,
  * @param[in] pipeline name of the pipepline to update
  * @return 
  */
-DslReturnType dsl_pipeline_streammux_set_output_size(const char* pipeline, 
+DslReturnType dsl_pipeline_streammux_set_output_size(const wchar_t* pipeline, 
     uint width, uint height);
 
 /**
@@ -398,28 +398,28 @@ DslReturnType dsl_pipeline_streammux_set_output_size(const char* pipeline,
  * @param[in] pipeline unique name of the Pipeline to pause.
  * @return DSL_RESULT.
  */
-DslReturnType dsl_pipeline_pause(const char* pipeline);
+DslReturnType dsl_pipeline_pause(const wchar_t* pipeline);
 
 /**
  * @brief plays a Pipeline if in a state of paused
  * @param[in] pipeline unique name of the Pipeline to play.
  * @return DSL_RESULT_PIPELINE_RESULT.
  */
-DslReturnType dsl_pipeline_play(const char* pipeline);
+DslReturnType dsl_pipeline_play(const wchar_t* pipeline);
 
 /**
  * @brief Stops a Pipeline if in a state of paused or playing
  * @param[in] pipeline unique name of the Pipeline to stop.
  * @return DSL_RESULT_PIPELINE_RESULT.
  */
-DslReturnType dsl_pipeline_stop(const char* pipeline);
+DslReturnType dsl_pipeline_stop(const wchar_t* pipeline);
 
 /**
  * @brief gets the current state of a Pipeline
  * @param[in] pipeline unique name of the Pipeline to query
  * @return DSL_RESULT_PIPELINE_PAUSED | DSL_RESULT_PIPELINE_PLAYING
  */
-DslReturnType dsl_pipeline_get_state(const char* pipeline);
+DslReturnType dsl_pipeline_get_state(const wchar_t* pipeline);
 
 /**
  * @brief dumps a Pipeline's graph to dot file.
@@ -429,7 +429,7 @@ DslReturnType dsl_pipeline_get_state(const char* pipeline);
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  */ 
-DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
+DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename);
 
 /**
  * @brief dumps a Pipeline's graph to dot file prefixed
@@ -440,7 +440,7 @@ DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
  */ 
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -458,7 +458,7 @@ typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, v
  * @param[in] userdata opaque pointer to client data passed into the listner function.
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener, void* userdata);
 
 /**
@@ -467,7 +467,7 @@ DslReturnType dsl_pipeline_state_change_listener_add(const char* pipeline,
  * @param[in] listener pointer to the client's function to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_state_change_listener_remove(const char* pipeline, 
+DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener);
 
 /**
@@ -486,7 +486,7 @@ typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, v
  * @param[in] user_data opaque pointer to client data passed into the listner function.
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_display_event_handler_add(const char* pipeline, 
+DslReturnType dsl_pipeline_display_event_handler_add(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler, void* user_data);
 
 /**
@@ -495,7 +495,7 @@ DslReturnType dsl_pipeline_display_event_handler_add(const char* pipeline,
  * @param[in] handler pointer to the client's function to remove
  * @return DSL_RESULT_PIPELINE_RESULT
  */
-DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline, 
+DslReturnType dsl_pipeline_display_event_handler_remove(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler);
 
 /**

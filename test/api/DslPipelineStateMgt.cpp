@@ -30,23 +30,23 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
 {
     GIVEN( "A Pipeline with minimal components" ) 
     {
-        std::string sourceName = "test-uri-source";
-        std::string uri = "./test/streams/sample_1080p_h264.mp4";
+        std::wstring sourceName = L"test-uri-source";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
-        std::string tiledDisplayName = "tiled-display-name";
+        std::wstring tiledDisplayName = L"tiled-display-name";
         uint width(1280);
         uint height(720);
 
-        std::string overlaySinkName = "overlay-sink";
+        std::wstring overlaySinkName = L"overlay-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
-        std::string pipelineName  = "test-pipeline";
+        std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
@@ -59,7 +59,7 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-        const char* components[] = {"test-uri-source", "tiled-display-name", "overlay-sink", NULL};
+        const wchar_t* components[] = {L"test-uri-source", L"tiled-display-name", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {

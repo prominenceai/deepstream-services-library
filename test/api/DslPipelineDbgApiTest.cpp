@@ -27,9 +27,9 @@ THE SOFTWARE.
 
 SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp", "[pipeline-dbg-api]" )
 {
-    std::string pipelineName  = "test-pipeline";
-    std::string sourceName = "csi-source";
-    char fileName[] = "test-dot-file-sans-ts";
+    std::wstring pipelineName  = L"test-pipeline";
+    std::wstring sourceName = L"csi-source";
+    wchar_t fileName[] = L"test-dot-file-sans-ts";
 
     GIVEN( "A Pipeline in memory with at least one component" ) 
     {
