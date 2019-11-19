@@ -4,25 +4,29 @@
 
 DSL is best described as _"the NVIDIA DeepStream Reference Application — [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) — reimagined as a shared library of on-demand DeepStream pipeline services"._
 
-Written in C++ 11, the DSL API can be  called from both C/C++ and Python applications.
+Written in C++ 11, the DSL API can be  called from both C/C++ and Python applications.
 
 **C/C++**
 ```C++
 #include <DslApi.h>
 
-dsl_pipeline_new("myPipeline");
+uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
 ```
-**Python**
+**Python3**
 ```Python
-import ctypes
-libc = ctypes.CDLL("dsl-lib.so")
+from dsl import *
 
-libc.dsl_pipeline_new("myPipeline")
+# New CSI Live Camera Source
+retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
 ```
 
 DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_, 
 
-The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
+The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
+
+The goals of DSL:
+* To provide a high-level, multi-language Services API for building, and dynamically updating DeepStream pipelines.
+* To abstract and encapsulate the complexity of the broad and flexible GStreamer framework with a simple DeepStream specific API. That said, DSL is designed to check-for a previously initialized instance of the GST Lib supporting integration with existing GStreamer Applications.
 
 ## Contributing
 DSL is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
@@ -41,6 +45,8 @@ DSL is released under the MIT license. Contributions are welcome and greatly app
   * Tiled Display
   * On Screen Display
   * Sink
+  * Tracker
+  * Dewarpper
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
