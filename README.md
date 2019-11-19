@@ -10,6 +10,7 @@ Written in C++ 11, the DSL API can be  called from both C/C++ and Python applic
 ```C++
 #include <DslApi.h>
 
+// New CSI Live Camera Source
 uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
 ```
 **Python3**
