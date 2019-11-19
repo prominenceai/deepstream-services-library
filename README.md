@@ -36,7 +36,7 @@ DSL is released under the MIT license. Contributions are welcome and greatly app
 
 * [Overview](/docs/overview.md)
 * [Installing Dependencies](/docs/installing-dependencies.md)
-* [Building DSL](/docs/building-dsl.md)
+* [Building and Importing DSL](/docs/building-dsl.md)
 * [API Reference](/docs/api-reference-list.md)
   * [Pipeline](/docs/api-pipeline.md)
   * [Component](/docs/api-component.md)
