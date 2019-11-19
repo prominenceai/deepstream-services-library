@@ -746,7 +746,6 @@ namespace DSL
 
         for (auto const& imap: m_components)
         {
-            LOG_WARN("******* " << imap.second->GetName());
             m_components.erase(imap.second->GetName());
         }
         LOG_INFO("All Components deleted successfully");
