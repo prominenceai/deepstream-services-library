@@ -109,7 +109,6 @@ lib:
 	ar rcs dsl-lib.a $(OBJS)
 	ar dv dsl-lib.a DslCatch.o
 	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS)
-	cp dsl-lib.so examples/python/	
 
 so_lib:
 	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
