@@ -24,7 +24,7 @@
 #
 ################################################################################
 
-APP:= dsl-app
+APP:= dsl-test-app
 
 CC = g++
 
@@ -39,9 +39,6 @@ GSTREAMER_VERSION:=1.0
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib
-CFG_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/configs/deepstream-app
-MDL_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/models/Primary_Detector
-STR_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/samples/streams
 
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
@@ -77,9 +74,6 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./test/api \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
-	-DDS_CONFIG_DIR='"$(CFG_INSTALL_DIR)"' \
-	-DDS_MODELS_DIR='"$(MDL_INSTALL_DIR)"' \
-	-DDS_STREAMS_DIR='"$(STR_INSTALL_DIR)"' \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
     -fPIC 
 
