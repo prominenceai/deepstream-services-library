@@ -3,9 +3,16 @@
 The DSL shared library is built using GCC and GNU Make. The MakeFile is located in the DSL root folder.
 There are a few simple steps to creating a verified shared lib, `dsl-lib.so`.
 
-1. Use the make (all) default to build the `dsl-test-app` executable
-2. Run the `dsl-test-app` to verify the build
-3. Use the `make lib` command to build the object files into `dsl-lib.so`
+1. Clone this repository to pull down all source
+2. Use the make (all) default to build the `dsl-test-app` executable
+3. Run the `dsl-test-app` to verify the build
+4. Use the `make lib` command to build the object files into `dsl-lib.so`
+
+### Clone Repository
+Clone the repository to pull all source and test scenarios to build the dsl test application
+```
+$ git clone https://github.com/canammex-tech/deepstream-services-library
+```
 
 ### Make (all)
 Invoke the standard make (all) to  compile all source code and test scenarios into objects files, and link them into a [Catch2](https://github.com/catchorg/Catch2) test application. On succesfull build, the `dsl-test-app` will be found under the same root folder.
