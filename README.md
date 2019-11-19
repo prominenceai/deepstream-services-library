@@ -37,17 +37,17 @@ DSL is released under the MIT license. Contributions are welcome and greatly app
 * [Installing Dependencies](/docs/installing-dependencies.md)
 * [Building DSL](/docs/building-dsl.md)
 * [API Reference](/docs/api-reference-list.md)
-  * [Pipeline](/docs/api-pipeline.md)
-  * [Component](/docs/api-component.md)
-  * [Source](/docs/api-source.md)
-  * [Primary GIE](/docs/api-primary-gie)
-  * Secondary GIE
-  * [Tiled Display](/docs/api-tile-display.md)
-  * [On Screen Display](/docs/api-screen-display.md)
-  * [Sink](/docs/api-screen-display.md)
-  * Tracker
-  * Dewarpper
+  * [Pipeline](/docs/api-pipeline.md)
+  * [Component](/docs/api-component.md)
+  * [Source](/docs/api-source.md)
+  * Primary GIE
+  * Secondary GIE
+  * Tiled Display
+  * On Screen Display
+  * Sink
+  * Tracker
+  * Dewarpper
 * [Examples](/docs/examples.md)
-  * [C/C++](/docs/examples-cpp.md)
-  * [Python](/docs/examples-python.md)
+  * [C/C++](/docs/examples-cpp.md)
+  * [Python](/docs/examples-python.md)
 * [Logging and Debugging](/docs/debugging-dsl.md)
