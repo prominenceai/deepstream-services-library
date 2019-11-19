@@ -55,7 +55,15 @@
 
 #### Infer Engine (GIE):
 * dsl_gie_primary_new
+* dsl_gie_primary_attributes_get
+* dsl_gie_primary_attributes_set
+* dsl_gie_primary_data_consumer_add
+* dsl_gie_primary_data_consumer_remove
 * dsl_gie_secondary_new
+* dsl_gie_secondary_attributes_get
+* dsl_gie_secondary_attributes_set
+* dsl_gie_secondary_data_consumer_add
+* dsl_gie_secondary_data_consumer_remove
 * Other TBD
 
 #### Tiled Display:
