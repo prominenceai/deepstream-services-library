@@ -1,7 +1,6 @@
 # DSL API Reference
 
 #### Pipeline API:
-## Pipeline API
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
 * [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
 * [dsl_pipeline_delete](/docs/api-pipeline.md#dsl_pipeline_delete)
@@ -11,11 +10,11 @@
 * [dsl_pipeline_list_all](/docs/api-pipeline.md#dsl_pipeline_list_all)
 * [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add)
 * [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many)
-* [dsl_pipeline_componet_remove](/docs/api-pipeline.md#dsl_pipeline_componet_remove)
-* [dsl_pipeline_componet_remove_many](/docs/api-pipeline.md#dsl_pipeline_componet_remove_many)
-* [dsl_pipeline_componet_remove_all](/docs/api-pipeline.md#dsl_pipeline_componet_remove_all)
-* [dsl_pipeline_components_list_size](/docs/api-pipeline.md#dsl_pipeline_components_list_size)
-* [dsl_pipeline_components_list_all](/docs/api-pipeline.md#dsl_pipeline_components_list_all)
+* [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove)
+* [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many)
+* [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all)
+* [dsl_pipeline_component_list_size](/docs/api-pipeline.md#dsl_pipeline_components_list_size)
+* [dsl_pipeline_component_list_all](/docs/api-pipeline.md#dsl_pipeline_components_list_all)
 * [dsl_pipeline_play](/docs/api-pipeline.md#dsl_pipeline_play)
 * [dsl_pipeline_pause](/docs/api-pipeline.md#dsl_pipeline_pause)
 * [dsl_pipeline_stop](/docs/api-pipeline.md#dsl_pipeline_stop)
