@@ -1,14 +1,14 @@
 # Pipeline API Refernce
-Pipelines are the top level Component in DSL. Pipeline manages and synchronizes their Child componets as you set them to `playing`, `paused`, or `stopped`. 
+Pipelines are the top level Component in DSL. Pipelines manage and synchronize their Child componets as you set them to `playing`, `paused`, or `stopped`. 
 
 Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). Information about the current Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size) and 
 [dsl_pipeline_list_all](#dsl_pipeline_list_all).
 
-Child components - such as Streaming Sources, Infer-engines, Displays, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). Information about a Pipeline's current Child components of a Pipeline can be obtained by calling [dsl_pipeline_components_list_size](#dsl_pipeline_components_list_size) and [dsl_pipeline_components_list_all](#dsl_pipeline_components_list_all)
+Child components - such as Streaming Sources, Infer-engines, Displays, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). Information about a Pipeline's current Child components of a Pipeline can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size) and [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
 
 Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), puased by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
 
-Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_componet_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_componet_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_componet_remove_all](#dsl_pipeline_componet_remove_all)
+Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 
 Clients can be notified of Pipeline State-Changes by registering one or more callback functions by calling [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Notifications are stopped by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 
@@ -29,11 +29,11 @@ Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete),
 * [dsl_pipeline_list_all](#dsl_pipeline_list_all)
 * [dsl_pipeline_component_add](#dsl_pipeline_component_add)
 * [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many)
-* [dsl_pipeline_componet_remove](#dsl_pipeline_componet_remove)
-* [dsl_pipeline_componet_remove_many](#dsl_pipeline_componet_remove_many)
-* [dsl_pipeline_componet_remove_all](#dsl_pipeline_componet_remove_all)
-* [dsl_pipeline_components_list_size](#dsl_pipeline_components_list_size)
-* [dsl_pipeline_components_list_all](#dsl_pipeline_components_list_all)
+* [dsl_pipeline_component_remove](#dsl_pipeline_component_remove)
+* [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
+* [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
+* [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
+* [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
 * [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_pause](#dsl_pipeline_pause)
 * [dsl_pipeline_stop](#dsl_pipeline_stop)
