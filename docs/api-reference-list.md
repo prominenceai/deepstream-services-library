@@ -1,27 +1,30 @@
 # DSL API Reference
 
 #### Pipeline API:
+## Pipeline API
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
 * [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
 * [dsl_pipeline_delete](/docs/api-pipeline.md#dsl_pipeline_delete)
 * [dsl_pipeline_delete_many](/docs/api-pipeline.md#dsl_pipeline_delete_many)
-* [dsl_pipeline_delete_all](/docs/api-pipeline.md#dsl_pipeline_list_size)
+* [dsl_pipeline_delete_all](/docs/api-pipeline.md#dsl_pipeline_delete_all)
+* [dsl_pipeline_list_size](/docs/api-pipeline.md#dsl_pipeline_list_size)
 * [dsl_pipeline_list_all](/docs/api-pipeline.md#dsl_pipeline_list_all)
-* dsl_pipeline_play
-* dsl_pipeline_pause
-* dsl_pipeline_state_is
+* [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add)
+* [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many)
+* [dsl_pipeline_componet_remove](/docs/api-pipeline.md#dsl_pipeline_componet_remove)
+* [dsl_pipeline_componet_remove_many](/docs/api-pipeline.md#dsl_pipeline_componet_remove_many)
+* [dsl_pipeline_componet_remove_all](/docs/api-pipeline.md#dsl_pipeline_componet_remove_all)
+* [dsl_pipeline_components_list_size](/docs/api-pipeline.md#dsl_pipeline_components_list_size)
+* [dsl_pipeline_components_list_all](/docs/api-pipeline.md#dsl_pipeline_components_list_all)
+* [dsl_pipeline_play](/docs/api-pipeline.md#dsl_pipeline_play)
+* [dsl_pipeline_pause](/docs/api-pipeline.md#dsl_pipeline_pause)
+* [dsl_pipeline_stop](/docs/api-pipeline.md#dsl_pipeline_stop)
 * [dsl_pipeline_dump_to_dot](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
-* dsl_pipeline_component_add
-* dsl_pipeline_component_add_many
-* dsl_pipeline_component_remove
-* dsl_pipeline_component_remove_many
-* dsl_pipeline_component_remove_all
-* dsl_pipeline_component_list_all
-* dsl_pipeline_message_subscriber_add
-* dsl_pipeline_message_subscriber_remove
 * [dsl_pipeline_state_change_listener_add](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_remove)
+* [dsl_pipeline_display_window_handle_get](/docs/api-pipeline.md#dsl_pipeline_display_window_handle_get)
+* [dsl_pipeline_display_window_handle_set](/docs/api-pipeline.md#dsl_pipeline_display_window_handle_set)
 * [dsl_pipeline_display_event_handler_add](/docs/api-pipeline.md#dsl_pipeline_display_event_handler_add)
 * [dsl_pipeline_display_event_handler_remove](/docs/api-pipeline.md#dsl_pipeline_display_event_handler_remove)
 * Other TBD
