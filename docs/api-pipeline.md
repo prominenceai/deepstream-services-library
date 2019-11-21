@@ -4,7 +4,7 @@ Pipelines are the top level Component in DSL. Pipelines manage and synchronize t
 Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). Information about the current Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size) and 
 [dsl_pipeline_list_all](#dsl_pipeline_list_all).
 
-Child components - such as Streaming Sources, Infer-engines, Displays, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). Information about a Pipeline's current Child components of a Pipeline can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size) and [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
+Child Components - Streaming Sources, Infer-engines, Displays, Sinks, and more - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). Information about a Pipeline's current list of Child Components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size) and [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
 
 Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), puased by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
 
