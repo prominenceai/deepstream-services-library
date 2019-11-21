@@ -401,6 +401,9 @@ namespace DSL
     // Initialize the Services's single instance pointer
     Services* Services::m_pInstatnce = NULL;
 
+    std::vector<const wchar_t*> Services::m_pipelineNames;
+    std::vector<const wchar_t*> Services::m_componentNames;
+
     Services* Services::GetServices()
     {
         // one time initialization of the single instance pointer

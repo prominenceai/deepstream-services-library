@@ -184,14 +184,22 @@ namespace DSL
             
             uint currentState = GetState();
             
-            if ((currentState != GST_STATE_PLAYING) and (currentState != GST_STATE_PAUSED))
+            if ((currentState == GST_STATE_PLAYING) or (currentState == GST_STATE_PAUSED))
             {
-                LOG_ERROR("Bintr '" << GetName() << "' is not in a state of PLAYING or PAUSED");
-                return false;
+                gst_element_set_state(GetGstElement(), GST_STATE_READY);
+
+                // Wait until state change or failure, no timeout.
+                if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
+                {
+                    LOG_ERROR("FAILURE occured when trying to Stop Bintr '" << GetName() << "'");
+                    return false;
+                }
             }
-            
-            return gst_pad_send_event(
-                gst_element_get_static_pad(GetGstElement(), "sink"), gst_event_new_eos());
+            else
+            {
+                LOG_INFO("Bintr '" << GetName() << "' is not in a state of PLAYING or PAUSED");                
+            }
+            return true;
         }
         
     public:
