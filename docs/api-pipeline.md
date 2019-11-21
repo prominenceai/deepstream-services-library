@@ -53,21 +53,23 @@ Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete),
 ## Return Values
 The following return codes are used by the Pipeline API
 ```C++
-#define DSL_RESULT_PIPELINE_RESULT                                  0x11000000
-#define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x11000001
-#define DSL_RESULT_PIPELINE_NAME_NOT_FOUND                          0x11000010
-#define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
-#define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
-#define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
-#define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
-#define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
-#define DSL_RESULT_PIPELINE_STREAMMUX_SETUP_FAILED                  0x11001000
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001001
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001010
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001011
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001100
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001101
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11001110
+#define DSL_RESULT_PIPELINE_RESULT                                  0x11000000
+#define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x11000001
+#define DSL_RESULT_PIPELINE_NAME_NOT_FOUND                          0x11000010
+#define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
+#define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
+#define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
+#define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
+#define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
+#define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
+#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001001
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001010
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001011
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001100
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001101
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001110
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001111
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010000
 #define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
 #define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
 ```
