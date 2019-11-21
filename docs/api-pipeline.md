@@ -6,15 +6,15 @@ Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [d
 
 Child Components - Streaming Sources, Infer-engines, Displays, Sinks, and more - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). Information about a Pipeline's current list of Child Components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size) and [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
 
-Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), puased by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
+Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), paused by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
 
 Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 
 Clients can be notified of Pipeline State-Changes by registering one or more callback functions with [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Notifications are stopped by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 
-Pipelines that have at least one Overlay-Sink will create an XWindow by default. Clients can optain a handle to this window by calling [dsl_pipeline_display_window_handle_get](#dsl_pipeline_display_window_handle_get). Conversely, the Client can provide the Pipeline with the XWindow handle to use for it's XDisplay by calling [dsl_pipeline_display_window_handle_set](#dsl_pipeline_display_window_handle_set).
+Pipelines that have at least one Overlay-Sink will create an XWindow by default. Clients can obtain a handle to this window by calling [dsl_pipeline_display_window_handle_get](#dsl_pipeline_display_window_handle_get). Conversely, the Client can provide the Pipeline with the XWindow handle to use for it's XDisplay by calling [dsl_pipeline_display_window_handle_set](#dsl_pipeline_display_window_handle_set).
 
-Clients can be notified of XWindow events - key & and button presses - with information by registering one or more callback funtions with [dsl_pipeline_display_event_handler_add](#dsl_pipeline_display_event_handler_add). Notifications are stopped by calling [dsl_pipeline_display_event_handler_remove](#dsl_pipeline_display_event_handler_remove).
+Clients can be notified of XWindow events - key & and button presses - with information by registering one or more callback functions with [dsl_pipeline_display_event_handler_add](#dsl_pipeline_display_event_handler_add). Notifications are stopped by calling [dsl_pipeline_display_event_handler_remove](#dsl_pipeline_display_event_handler_remove).
 
 Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will return all Child components to a state of `not_in_use`. It is up to calling application to delete all Child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
 
@@ -94,7 +94,7 @@ if the name is currently in use.
 ```C++
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 ```
-The constructor creates multiple uniquely named Pipelines at once. All names are checked for uniqueness before any contruction takes place. The call will fail if any of the names are duplicates, or are currently in use.
+The constructor creates multiple uniquely named Pipelines at once. All names are checked for uniqueness before any construction takes place. The call will fail if any of the names are duplicates, or are currently in use.
 
 **Parameters**
 * `pipelines` - a NULL terminated array of unique names for the Pipelines to create.
