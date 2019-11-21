@@ -1,5 +1,5 @@
 # Pipeline API Refernce
-Pipelines are the top level Component in DSL. Pipelines manage and synchronize their Child componets as you set them to `playing`, `paused`, or `stopped`. 
+Pipelines are the top level Component in DSL. Pipelines manage and synchronize their Child components as you set them to `playing`, `paused`, or `stopped`. 
 
 Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). Information about the current Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size) and 
 [dsl_pipeline_list_all](#dsl_pipeline_list_all).
