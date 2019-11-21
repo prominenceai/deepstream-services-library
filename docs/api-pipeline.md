@@ -35,19 +35,20 @@ Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete),
 * [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
 * [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 * [dsl_pipeline_component_replace](#dsl_pipeline_component_replace)
+* [dsl_pipeline_streammux_properties_get](#dsl_pipeline_streammux_properties_get)
+* [dsl_pipeline_streammux_properties_set](#dsl_pipeline_streammux_properties_set)
 * [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_pause](#dsl_pipeline_pause)
 * [dsl_pipeline_stop](#dsl_pipeline_stop)
-* [dsl_pipeline_streammux_properties_get](#dsl_pipeline_streammux_properties_get)
-* [dsl_pipeline_streammux_properties_set](#dsl_pipeline_streammux_properties_set)
-* [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
-* [dsl_pipeline_dump_to_dot_with_ts](#dsl_pipeline_dump_to_dot_with_ts)
+* [dsl_pipeline_state_get](#dsl_pipeline_state_get)
 * [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
 * [dsl_pipeline_display_window_handle_get](#dsl_pipeline_display_window_handle_get)
 * [dsl_pipeline_display_window_handle_set](#dsl_pipeline_display_window_handle_set)
 * [dsl_pipeline_display_event_handler_add](#dsl_pipeline_display_event_handler_add)
 * [dsl_pipeline_display_event_handler_remove](#dsl_pipeline_display_event_handler_remove)
+* [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
+* [dsl_pipeline_dump_to_dot_with_ts](#dsl_pipeline_dump_to_dot_with_ts)
 
 ## Return Values
 The following return codes are used by the Pipeline API
@@ -272,6 +273,18 @@ Replaces a single Component `in-use` by the named Pipeline with a new Component 
 
 <br>
 
+### *dsl_pipeline_streammux_properties_get*
+
+**TODO**
+
+<br>
+
+### *dsl_pipeline_streammux_properties_set*
+
+**TODO**
+
+<br>
+
 ### *dsl_pipeline_play*
 ```C++
 bool dsl_pipeline_play(wchar_t* pipeline);
@@ -311,45 +324,16 @@ This service is used to stop a named Pipeline. The service will fail if the Pipe
 
 <br>
 
-### *dsl_pipeline_streammux_properties_get*
-
-**TODO**
-
-<br>
-
-### *dsl_pipeline_streammux_properties_set*
-
-**TODO**
-
-<br>
-
-### *dsl_pipeline_dump_to_dot*
+### *dsl_pipeline_state_get*
 ```C++
-DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
+unit dsl_pipeline_state_get(wchar_t* pipeline);
 ```
-This method dumps a Pipeline's graph to dot file. The GStreamer Pipeline will a create 
-topology graph on each change of state to ready, playing and paused if the debug 
-enviornment variable `GST_DEBUG_DUMP_DOT_DIR` is set.
-
-GStreamer will add the `.dot` suffix and write the file to the directory specified by
-the environment variable. The caller of this service is responsible for providing a 
-correctly formatted and filename. 
+This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
 
 **Parameters**
-* `pipeline` - unique name of the Pipeline to dump
-* `filename` - name of the file without extension.
+* `pipeline` - unique name for the Pipeline to query.
 
-**Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
-
-<br>
-
-### *dsl_pipeline_dump_to_dot_with_ts*
-```C++
-DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
-```
-This method dumps a Pipeline's graph to dot file prefixed with the current timestamp. 
-Except for the prefix, this method performs the identical service as 
-[dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot).
+**Returns** the current [state]() of the named Pipeline if found. One of the [Return Values](#return-values) defined above on failure.
 
 <br>
 
@@ -410,3 +394,34 @@ DslReturnType dsl_pipeline_display_event_handler_remove(const char* pipeline,
 * `handler` - display event handler callback function to remove.
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+
+### *dsl_pipeline_dump_to_dot*
+```C++
+DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
+```
+This method dumps a Pipeline's graph to dot file. The GStreamer Pipeline will a create 
+topology graph on each change of state to ready, playing and paused if the debug 
+enviornment variable `GST_DEBUG_DUMP_DOT_DIR` is set.
+
+GStreamer will add the `.dot` suffix and write the file to the directory specified by
+the environment variable. The caller of this service is responsible for providing a 
+correctly formatted and filename. 
+
+**Parameters**
+* `pipeline` - unique name of the Pipeline to dump
+* `filename` - name of the file without extension.
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_dump_to_dot_with_ts*
+```C++
+DslReturnType dsl_pipeline_dump_to_dot_with_ts(const char* pipeline, char* filename);
+```
+This method dumps a Pipeline's graph to dot file prefixed with the current timestamp. 
+Except for the prefix, this method performs the identical service as 
+[dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot).
+
+<br>
