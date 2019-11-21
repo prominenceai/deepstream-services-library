@@ -67,6 +67,10 @@ namespace DSL
     PipelineBintr::~PipelineBintr()
     {
         LOG_FUNC();
+        
+        uint currentState = GetState();
+        
+        Stop();
 
         if (IsLinked())
         {
@@ -315,19 +319,13 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (GetState() == GST_STATE_PLAYING)
-//        {
-//            Pause();
-//        }
-        
-        // only need to Stop the tail (sink) component as the EOS event
-        // is an upstream event message.
-        if (!m_linkedComponents.back()->Stop())
+        Bintr::Stop();
+
+        if (IsLinked())
         {
-            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
-            return false;
+            UnlinkAll();
         }
-        UnlinkAll();
+        
         return true;
         
     }

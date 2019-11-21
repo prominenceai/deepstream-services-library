@@ -199,7 +199,7 @@ namespace DSL {
         /**
          * @brief used to return a list of all pipeline names to the client
          */
-        std::vector<const wchar_t*> m_pipelineNames;
+        static std::vector<const wchar_t*> m_pipelineNames;
         
         /**
          * @brief map of all pipeline components creaated by the client, key=name
@@ -209,7 +209,7 @@ namespace DSL {
         /**
          * @brief used to return a list of all component names to the client
          */
-        std::vector<const wchar_t*> m_componentNames;
+        static std::vector<const wchar_t*> m_componentNames;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

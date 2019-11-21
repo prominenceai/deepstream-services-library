@@ -83,7 +83,28 @@ namespace DSL
         
         // Add the Source to the Sources collection and as a child of this Bintr
         m_pChildSources[pChildSource->GetName()] = pChildSource;
-        return Bintr::AddChild(pChildSource);
+        
+        if (!Bintr::AddChild(pChildSource))
+        {
+            LOG_ERROR("Faild to add Source '" << pChildSource->GetName() << "' as a child to '" << GetName() << "'");
+            return false;
+        }
+        
+        // If the Pipeline is currently in a linked state, Set childs source Id to the next available,
+        // linkAll Elementrs now and Link to with the Stream
+        if (IsLinked())
+        {
+            pChildSource->SetSourceId(GetNumChildren() - 1);
+            if (!pChildSource->LinkAll() or !pChildSource->LinkToSink(m_pStreamMux))
+            {
+                return false;
+            }
+            
+            // Sink up with the parent state
+            return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
+        }
+        return true;
+        
     }
 
     bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)

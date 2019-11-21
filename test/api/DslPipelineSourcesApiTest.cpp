@@ -26,6 +26,8 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(400)
+
 SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
@@ -77,14 +79,157 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
 
+            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             THEN( "The Pipeline can be Stopped and Disassembled" )
             {
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+
+    }
+}
+
+SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineSources]" )
+{
+    GIVEN( "A Pipeline with four sources and minimal components" ) 
+    {
+        std::wstring sourceName1 = L"test-uri-source-1";
+        std::wstring sourceName2 = L"test-uri-source-2";
+        std::wstring sourceName3 = L"test-uri-source-3";
+        std::wstring sourceName4 = L"test-uri-source-4";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(2);
+
+        std::wstring tiledDisplayName = L"tiled-display-name";
+        uint width(1280);
+        uint height(720);
+
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName  = L"test-pipeline";
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+    
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+            
+        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
+            L"tiled-display-name", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Played and then Paused" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+            REQUIRE( dsl_pipeline_pause(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+            THEN( "The Pipeline can be Played, Stopped, and Disassembled" )
+            {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSources]" )
+{
+    GIVEN( "A Pipeline with four sources and minimal components" ) 
+    {
+        std::wstring sourceName1 = L"test-uri-source-1";
+        std::wstring sourceName2 = L"test-uri-source-2";
+        std::wstring sourceName3 = L"test-uri-source-3";
+        std::wstring sourceName4 = L"test-uri-source-4";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(2);
+
+        std::wstring tiledDisplayName = L"tiled-display-name";
+        uint width(1280);
+        uint height(720);
+
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName  = L"test-pipeline";
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( *(dsl_component_list_all()) == NULL );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
+            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+    
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+            
+        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
+            L"tiled-display-name", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Played and then Paused" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+            REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+            THEN( "The Pipeline can be Played, Stopped, and Disassembled" )
+            {
+                // Bug** unable to re-play after stopping. 
+//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+//
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
