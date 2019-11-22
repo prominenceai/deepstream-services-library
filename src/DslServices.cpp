@@ -42,6 +42,16 @@ DslReturnType dsl_source_uri_new(const wchar_t* name,
         uri, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
+DslReturnType dsl_source_pause(const wchar_t* name)
+{
+    return DSL::Services::GetServices()->SourcePause(name);
+}
+
+DslReturnType dsl_source_resume(const wchar_t* name)
+{
+    return DSL::Services::GetServices()->SourceResume(name);
+}
+
 boolean dsl_source_is_live(const wchar_t* name)
 {
     return DSL::Services::GetServices()->SourceIsLive(name);
@@ -513,6 +523,77 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SourcePause(const wchar_t* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
+        
+        try
+        {
+            DSL_SOURCE_PTR sourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[CP_WTCSTR(name)]);
+                
+            if (!sourceBintr->IsInUse())
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' can not be paused - is not in use");
+                return DSL_RESULT_SOURCE_NOT_IN_USE;
+            }
+            if (sourceBintr->GetState() != GST_STATE_PLAYING)
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' can not be paused - is not in play");
+                return DSL_RESULT_SOURCE_NOT_IN_PLAY;
+            }
+            if (!sourceBintr->Pause())
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' failed to change state to paused");
+                return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << CP_WTCSTR(name) << "' threw exception on pause");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceResume(const wchar_t* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
+        
+        try
+        {
+            DSL_SOURCE_PTR sourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[CP_WTCSTR(name)]);
+                
+            if (!sourceBintr->IsInUse())
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' can not be resumed - is not in use");
+                return DSL_RESULT_SOURCE_NOT_IN_USE;
+            }
+            if (sourceBintr->GetState() != GST_STATE_PAUSED)
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' can not be resumed - is not in pause");
+                return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
+            }
+
+            if (!sourceBintr->Play())
+            {
+                LOG_ERROR("Source '" << CP_WTCSTR(name) << "' failed to change state to play");
+                return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << CP_WTCSTR(name) << "' threw exception on pause");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
     boolean Services::SourceIsLive(const wchar_t* name)
     {
         LOG_FUNC();

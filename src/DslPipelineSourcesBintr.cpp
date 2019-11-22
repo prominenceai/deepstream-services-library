@@ -99,7 +99,10 @@ namespace DSL
             {
                 return false;
             }
-            
+//            if (GetState() == GST_STATE_PLAYING)
+//            {
+//                Pause();
+//            }
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }

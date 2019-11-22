@@ -58,6 +58,10 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
 #define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00100100
 #define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00100110
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00100111
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00101000
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00101001
 
 /**
  * Sink Object Return Values
@@ -135,8 +139,10 @@ THE SOFTWARE.
  */
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8 
-#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1280
-#define DSL_DEFAULT_STREAMMUX_HEIGHT                                720
+//#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1280
+//#define DSL_DEFAULT_STREAMMUX_HEIGHT                                720
+#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
+#define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 
 typedef uint DslReturnType;
 typedef uint boolean;
@@ -165,6 +171,22 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, 
     const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+
+/**
+ * @brief pauses a single Source object if the Source is 
+ * currently in a state of in-use and Playing..
+ * @param name the name of Source component to pause
+ * @return DSL_RESULT_SOURCE_RESULT
+ */
+DslReturnType dsl_source_pause(const wchar_t* name);
+
+/**
+ * @brief resumes a single Source object if the Source is 
+ * currently in a state of in-use and Paused..
+ * @param name the name of Source component to resume
+ * @return DSL_RESULT_SOURCE_RESULT
+ */
+DslReturnType dsl_source_resume(const wchar_t* name);
 
 /**
  * @brief returns whether the source stream is live or not

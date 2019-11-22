@@ -338,18 +338,18 @@ namespace DSL
         m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
         m_pSourceQueue->LinkToSource(m_pTee);
 
-//        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
-//        if (!pGstRequestedSourcePad)
-//        {
-//            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-//            return false;
-//        }
-//        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
-//
-//        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
-//        m_pFakeSinkQueue->LinkToSource(m_pTee);
-//    
-//        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
+        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+        if (!pGstRequestedSourcePad)
+        {
+            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
+            return false;
+        }
+        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
+
+        m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
+        m_pFakeSinkQueue->LinkToSource(m_pTee);
+    
+        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
         m_isLinked = true;
 
         return true;

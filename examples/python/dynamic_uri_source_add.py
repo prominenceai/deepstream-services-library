@@ -4,22 +4,20 @@ import time
 
 from dsl import *
 
+DSL_RETURN_SUCCESS = 0
+
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
 modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel'
 
 while True:
 
-    # New URI File Source
-    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+    # First new URI File Source
+    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 2)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
-    dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
-    dsl_source_uri_new('uri-source-3', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
-    dsl_source_uri_new('uri-source-4', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
-    
 
     # New Primary GIE using the filespecs above, with interval and Id
     retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4, 1)
@@ -51,8 +49,7 @@ while True:
 
     # Add all the components to our pipeline
 #    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
-    retval = dsl_pipeline_component_add_many('simple-pipeline', 
-        ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 'tiled-display', 'overlay-sink', None])
+    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source-1' , 'tiled-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
@@ -65,8 +62,33 @@ while True:
         print(retval)
         break
 
-    # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-    dsl_pipeline_dump_to_dot('simple-pipeline', "state-playing")
+    # Pause to allow the first source to get ahead
+    time.sleep(2)
+    
+    # Play the pipeline
+    retval = dsl_pipeline_pause('simple-pipeline')
+
+    if retval != DSL_RETURN_SUCCESS:
+        print(retval)
+        break
+
+    # create a second uri file source using the same file
+    # Note: often called from a seperate thread or callback
+    retval = dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264_dup.mp4", 0, 0, 2)
+
+    if retval != DSL_RETURN_SUCCESS:
+        print(retval)
+        break
+    
+    # Add the second source while the Pipeline is currently playing
+    retval = dsl_pipeline_component_add('simple-pipeline', 'uri-source-2')
+
+    # Play the pipeline
+    retval = dsl_pipeline_play('simple-pipeline')
+
+    if retval != DSL_RETURN_SUCCESS:
+        print(retval)
+        break
 
     dsl_main_loop_run()
     break

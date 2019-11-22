@@ -162,6 +162,26 @@ def dsl_component_list_size():
 #print(dsl_component_list_size())
 
 ##
+## dsl_component_list_all()
+##
+# _dsl.dsl_component_list_size.restype = ctypes.POINTER(ctypes.c_wchar_p)
+def dsl_component_list_all():
+    global _dsl
+    result = _dsl.dsl_component_list_all()
+
+#print(dsl_osd_new("on-screen-display-1", False))
+#print(dsl_osd_new("on-screen-display-2", False))
+#print(dsl_component_list_size())
+#result = dsl_component_list_all()
+#index = 0
+#while True:
+#    p = result[index]
+#    if p is None:
+#        break
+#    index += 1
+#    print(p)
+
+##
 ## dsl_pipeline_new()
 ##
 _dsl.dsl_pipeline_new.argtypes = [ctypes.c_wchar_p]
