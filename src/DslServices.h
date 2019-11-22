@@ -60,6 +60,10 @@ namespace DSL {
         DslReturnType SourceUriNew(const wchar_t* name, 
             const wchar_t* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
+        DslReturnType SourcePause(const wchar_t* name);
+
+        DslReturnType SourceResume(const wchar_t* name);
+
         boolean SourceIsLive(const wchar_t* name);
         
         uint GetNumSourceInUse();

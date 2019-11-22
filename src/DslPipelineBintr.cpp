@@ -68,14 +68,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        uint currentState = GetState();
-        
         Stop();
-
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
 
         if (m_pXWindow)
         {
@@ -319,10 +312,14 @@ namespace DSL
     {
         LOG_FUNC();
         
-        Bintr::Stop();
-
         if (IsLinked())
         {
+            if (!m_linkedComponents.back()->SendEos())
+            {
+                LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+                return false;
+            }
+            Bintr::Stop();
             UnlinkAll();
         }
         
@@ -429,6 +426,7 @@ namespace DSL
         case GST_MESSAGE_QOS:
         case GST_MESSAGE_NEW_CLOCK:
         case GST_MESSAGE_ASYNC_DONE:
+        case GST_MESSAGE_TAG:
             LOG_INFO("Message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
             return true;
         case GST_MESSAGE_INFO:
@@ -525,6 +523,7 @@ namespace DSL
                 LOG_INFO("Key released");
                 
                 // TEMP using any key to quit the main loop - TODO - handle termination
+                Stop();
                 g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
                 break;
             }

@@ -275,3 +275,82 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
         REQUIRE( dsl_source_get_num_in_use() == 0 );
     }
 }
+
+SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
+{
+    GIVEN( "A new Source not in use by a Pipeline" ) 
+    {
+        std::wstring sourceName  = L"csi-source";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Source is not in use by a Pipeline" )
+        {
+            REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Source can not be Paused as it's not in use" ) 
+            {
+                REQUIRE( dsl_source_pause(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Source is not in use by a Pipeline" )
+        {
+            REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Source can not be Resumed as it's not in use" ) 
+            {
+                REQUIRE( dsl_source_resume(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_USE );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+    
+SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[source-api]" )
+{
+    GIVEN( "A new Source not in use by a Pipeline" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+
+        std::wstring sourceName  = L"csi-source";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
+        {
+            REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Source can not be Paused as it's in a null-state" ) 
+            {
+                REQUIRE( dsl_source_pause(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PLAY );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
+        {
+            REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Source can not be Resumed as it's not in use" ) 
+            {
+                REQUIRE( dsl_source_resume(sourceName.c_str())  == DSL_RESULT_SOURCE_NOT_IN_PAUSE );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+    

@@ -202,6 +202,14 @@ namespace DSL
             return true;
         }
         
+        bool SendEos()
+        {
+            LOG_FUNC();
+            
+            return gst_pad_send_event(
+                gst_element_get_static_pad(GetGstElement(), "sink"), gst_event_new_eos());            
+        }
+        
     public:
     
         bool m_isLinked;

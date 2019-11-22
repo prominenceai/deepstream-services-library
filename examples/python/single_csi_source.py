@@ -40,8 +40,8 @@ while True:
         break
 
     # Add all the components to our pipeline
-#    retval = dsl_pipeline_component_add_many('simple-pipeline', ['csi-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
-    retval = dsl_pipeline_component_add_many('simple-pipeline', ['csi-source' , 'tiled-display', 'overlay-sink', None])
+    retval = dsl_pipeline_component_add_many('simple-pipeline', ['csi-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
+#    retval = dsl_pipeline_component_add_many('simple-pipeline', ['csi-source' , 'tiled-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
@@ -62,4 +62,3 @@ while True:
 
 dsl_pipeline_delete_all()
 dsl_component_delete_all()
-dsl_display_new('myDisplay', 1280, 720)

@@ -12,15 +12,15 @@ modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel'
 
 while True:
 
-    # New URI File Source
-    retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 2)
+    # First new URI File Source
+    retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
 
     # New Primary GIE using the filespecs above, with interval and Id
-    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4, 1)
+    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0, 1)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
@@ -58,12 +58,12 @@ while True:
     # Play the pipeline
     retval = dsl_pipeline_play('simple-pipeline')
 
+    # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
+    dsl_pipeline_dump_to_dot('simple-pipeline', "state-playing")
+
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
-
-    # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-    dsl_pipeline_dump_to_dot('simple-pipeline', "state-playing")
 
     dsl_main_loop_run()
     break
