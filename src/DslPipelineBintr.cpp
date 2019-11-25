@@ -125,7 +125,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (pOsdBintr)
+        if (m_pOsdBintr)
         {
             LOG_ERROR("Pipeline '" << GetName() << "' has an exisiting OSD '" 
                 << m_pOsdBintr->GetName());
@@ -325,20 +325,20 @@ namespace DSL
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
         }
         
-        if (m_pOsdBintr)
-        {
-            // LinkAll Osd Elementrs and add as next component in the Pipeline
-            m_pOsdBintr->LinkAll();
-            m_linkedComponents.back()->LinkToSink(m_pOsdBintr);
-            m_linkedComponents.push_back(m_pOsdBintr);
-        }
-
         if (m_pDisplayBintr)
         {
             // Link All Tiled Display Elementrs and add as the next component in the Pipeline
             m_pDisplayBintr->LinkAll();
             m_linkedComponents.back()->LinkToSink(m_pDisplayBintr);
             m_linkedComponents.push_back(m_pDisplayBintr);
+        }
+
+        if (m_pOsdBintr)
+        {
+            // LinkAll Osd Elementrs and add as next component in the Pipeline
+            m_pOsdBintr->LinkAll();
+            m_linkedComponents.back()->LinkToSink(m_pOsdBintr);
+            m_linkedComponents.push_back(m_pOsdBintr);
         }
 
         m_pPipelineSinksBintr->LinkAll();

@@ -6,7 +6,7 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
 
 while True:
 
@@ -35,6 +35,12 @@ while True:
         print(retval)
         break
 
+    # New OSD with clock enabled... using default values.
+    retval = dsl_osd_new('on-screen-display', False)
+    if retval != DSL_RETURN_SUCCESS:
+        print(retval)
+        break
+
     # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
     retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 1280, 720)
 
@@ -50,9 +56,8 @@ while True:
         break
 
     # Add all the components to our pipeline
-#    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
     retval = dsl_pipeline_component_add_many('simple-pipeline', 
-        ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 'tiled-display', 'overlay-sink', None])
+        ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 'primary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)

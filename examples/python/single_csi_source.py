@@ -27,6 +27,12 @@ while True:
         print(retval)
         break
 
+    # New OSD with clock enabled... using default values.
+    retval = dsl_osd_new('on-screen-display', True)
+    if retval != DSL_RETURN_SUCCESS:
+        print(retval)
+        break
+
     # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
     retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
@@ -40,7 +46,8 @@ while True:
         break
 
     # Add all the components to our pipeline
-    retval = dsl_pipeline_component_add_many('simple-pipeline', ['csi-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
+    retval = dsl_pipeline_component_add_many('simple-pipeline', 
+        ['csi-source', 'primary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
