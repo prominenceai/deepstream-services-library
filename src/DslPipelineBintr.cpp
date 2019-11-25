@@ -205,6 +205,86 @@ namespace DSL
         return AddChild(pDisplayBintr);
     }
 
+    bool PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->GetStreamMuxBatchProperties(batchSize, batchTimeout);
+        
+        return true;
+    }
+
+    bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(batchSize, batchTimeout);
+        
+        return true;
+    }
+
+    bool PipelineBintr::GetStreamMuxDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->GetStreamMuxDimensions(width, height);
+        return true;
+    }
+
+    bool PipelineBintr::SetStreamMuxDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxDimensions(width, height);
+        return true;
+    }
+    
+    bool PipelineBintr::GetStreamMuxPadding(bool* enabled)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->GetStreamMuxPadding(enabled);
+        return true;
+    }
+    
+    bool PipelineBintr::SetStreamMuxPadding(bool enabled)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxPadding(enabled);
+        return true;
+    }
+    
     bool PipelineBintr::LinkAll()
     {
         LOG_FUNC();
@@ -295,9 +375,13 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_isLinked)
+        if (GetState() == GST_STATE_NULL)
         {
-            LinkAll();
+            if (!LinkAll() or !Pause())
+            {
+                LOG_ERROR("Unable to prepare for Play");
+                return false;
+            }
         }
                 
         // flush the output buffer and then wait until all requests have been 
@@ -538,7 +622,7 @@ namespace DSL
             return false;
         }
         uint width(0), height(0);
-        m_pDisplayBintr->GetDimensions(width, height);
+        m_pDisplayBintr->GetDimensions(&width, &height);
         
         m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
             RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 

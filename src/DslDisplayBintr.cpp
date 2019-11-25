@@ -31,11 +31,10 @@ namespace DSL
 
     DisplayBintr::DisplayBintr(const char* name, guint width, guint height)
         : Bintr(name)
-        , m_rows(1)
-        , m_columns(1)
+        , m_rows(0)
+        , m_columns(0)
         , m_width(width)
         , m_height(height)
-        , m_enablePadding(FALSE)
     {
         LOG_FUNC();
 
@@ -64,6 +63,15 @@ namespace DSL
         {    
             UnlinkAll();
         }
+    }
+
+    bool DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' display to the Parent Pipeline 
+        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+            AddDisplayBintr(shared_from_this());
     }
     
     bool DisplayBintr::LinkAll()
@@ -94,50 +102,62 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool DisplayBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    void DisplayBintr::GetTiles(uint* rows, uint* columns)
     {
         LOG_FUNC();
         
-        // add 'this' display to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddDisplayBintr(shared_from_this());
+        *rows = m_rows;
+        *columns = m_columns;
     }
-
-    void DisplayBintr::SetTiles(uint rows, uint columns)
+    
+    bool DisplayBintr::SetTiles(uint rows, uint columns)
     {
         LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Tiles for DisplayBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
 
         m_rows = rows;
         m_columns = columns;
     
         m_pTiler->SetAttribute("rows", m_rows);
         m_pTiler->SetAttribute("columns", m_rows);
+        
+        return true;
     }
     
-    void DisplayBintr::GetTiles(uint& rows, uint& columns)
+    void DisplayBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
-        rows = m_rows;
-        columns = m_columns;
+        m_pTiler->GetAttribute("width", &m_width);
+        m_pTiler->GetAttribute("height", &m_height);
+        
+        *width = m_width;
+        *height = m_height;
     }
-    
-    void DisplayBintr::SetDimensions(uint width, uint height)
+
+    bool DisplayBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Tiles for DisplayBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
         m_width = width;
         m_height = height;
 
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
-    }
-    
-    void DisplayBintr::GetDimensions(uint& width, uint& height)
-    {
-        LOG_FUNC();
         
-        width = m_width;
-        height = m_height;
+        return true;
     }
 }

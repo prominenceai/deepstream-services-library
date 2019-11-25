@@ -38,7 +38,7 @@ namespace DSL
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_MUX, "stream_muxer");
         
-        SetStreamMuxOutputSize(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
+        SetStreamMuxDimensions(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
 
         AddChild(m_pStreamMux);
 
@@ -215,6 +215,14 @@ namespace DSL
         m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
         
     }
+    
+    void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, guint* batchTimeout)
+    {
+        LOG_FUNC();
+
+        *batchSize = m_batchSize;
+        *batchTimeout = m_batchTimeout;
+    }
 
     void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
     {
@@ -229,15 +237,44 @@ namespace DSL
         m_pStreamMux->SetAttribute("batch-size", m_batchSize);
         m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);
     }
+    
+    void PipelineSourcesBintr::GetStreamMuxDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_streamMuxWidth;
+        *width = m_streamMuxHeight;
+    }
 
-    void PipelineSourcesBintr::SetStreamMuxOutputSize(uint width, uint height)
+    void PipelineSourcesBintr::SetStreamMuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
 
+        LOG_INFO("Setting StreamMux dimensions: width = " << m_streamMuxWidth 
+            << ", height = " << m_streamMuxWidth);
+
         m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
         m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
+    }
+    
+    void PipelineSourcesBintr::GetStreamMuxPadding(bool* enabled)
+    {
+        LOG_FUNC();
+        
+        *enabled = m_isPaddingEnabled;
+    }
+    
+    void PipelineSourcesBintr::SetStreamMuxPadding(bool enabled)
+    {
+        LOG_FUNC();
+        
+        m_isPaddingEnabled = enabled;
+        
+        LOG_INFO("Setting StreamMux attribute: enable-padding = " << m_isPaddingEnabled); 
+        
+        m_pStreamMux->SetAttribute("enable-padding", m_isPaddingEnabled);
     }
 }

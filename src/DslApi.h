@@ -70,7 +70,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_NAME_NOT_UNIQUE                             0x01000001
 #define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x01000010
 #define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x01000011
-#define DSL_RESULT_SINK_NEW_EXCEPTION                               0x01000100
+#define DSL_RESULT_SINK_THREW_EXCEPTION                             0x01000100
 
 /**
  * OSD Object Return Values
@@ -79,7 +79,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x01010001
 #define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x01010010
 #define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x01010011
-#define DSL_RESULT_OSD_NEW_EXCEPTION                                0x01010100
+#define DSL_RESULT_OSD_THREW_EXCEPTION                              0x01010100
 
 /**
  * GIE Object Return Values
@@ -90,7 +90,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x01100011
 #define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x01100100
 #define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x01100100
-#define DSL_RESULT_GIE_NEW_EXCEPTION                                0x01100100
+#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x01100100
 
 /**
  * Display Object Return Values
@@ -99,7 +99,10 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x10000001
 #define DSL_RESULT_DISPLAY_NAME_NOT_FOUND                           0x10000010
 #define DSL_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x10000011
-#define DSL_RESULT_DISPLAY_NEW_EXCEPTION                            0x10000100
+#define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x10000100
+#define DSL_RESULT_DISPLAY_IS_IN_USE                                0x10000101
+#define DSL_RESULT_DISPLAY_GET_FAILED                               0x10000110
+#define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000111
 
 /**
  * Pipeline Object Return Values
@@ -110,19 +113,20 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
 #define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
 #define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
-#define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
+#define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x11000110
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
-#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001001
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001010
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001011
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001100
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001101
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001110
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001111
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010000
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
+#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x11001001
+#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001010
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001011
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001100
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001101
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001110
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001111
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11010000
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010001
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010010
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010011
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -263,6 +267,42 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
 DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height);
 
 /**
+ * @brief returns the dimensions, width and height, for the named Tiled Display
+ * @param[in] name name of the Display to query
+ * @param[out] width current width of the display in pixels
+ * @param[out] height current height of the display in pixels
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the dimensions, width and height, for the named Tiled Display
+ * @param[in] name name of the Display to update
+ * @param[in] width width to set the display in pixels
+ * @param[in] height height to set the display in pixels
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief returns the number of columns and rows for the named Tiled Display
+ * @param[in] name name of the Display to query
+ * @param[out] cols current number of colums for all Tiles
+ * @param[out] rows current number of rows for all Tiles
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows);
+
+/**
+ * @brief Sets the number of columns and rows for the named Tiled Display
+ * @param[in] name name of the Display to update
+ * @param[in] cols current number of colums for all Tiles
+ * @param[in] rows current number of rows for all Tiles
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
+
+/**
  * @brief deletes a Component object by name
  * @param[in] component name of the Component object to delete
  * @return DSL_RESULT_COMPONENT_RESULT
@@ -401,19 +441,54 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
 
 /**
  * @brief 
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipepline to query
  * @return 
  */
-DslReturnType dsl_pipeline_streammux_set_batch_properties(const wchar_t* pipeline, 
-    uint batchSize, uint batchTimeout);
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
+    uint* batchSize, uint* batchTimeout);
 
 /**
  * @brief 
  * @param[in] pipeline name of the pipepline to update
  * @return 
  */
-DslReturnType dsl_pipeline_streammux_set_output_size(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
+    uint batchSize, uint batchTimeout);
+
+/**
+ * @brief 
+ * @param[in] pipeline name of the pipepline to query
+ * @return 
+ */
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
     uint width, uint height);
+
+/**
+ * @brief 
+ * @param[in] pipeline name of the pipepline to update
+ * @return 
+ */
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
+    uint width, uint height);
+
+/**
+ * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 
+ * attribute for the named Tiled Display
+ * @param[in] name name of the Display to query
+ * @param[out] enable true if the aspect ration is fixed, false if not
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief updates the current setting - enabled/disabled - for the fixed-aspect-ratio 
+ * attribute for the named Tiled Display
+ * @param[in] name name of the Display to update
+ * @param[out] enable set true to fix the aspect ratio, false to disable
+ * @return DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
+
 
 /**
  * @brief pauses a Pipeline if in a state of playing

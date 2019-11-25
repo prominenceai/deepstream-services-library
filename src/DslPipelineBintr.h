@@ -121,28 +121,50 @@ namespace DSL
         bool AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
         
         /**
-         * @brief 
-         * @param[in] batchSize
-         * @param[in] batchTimeout
-         * @param[in] width
-         * @param[in] height
+         * @brief Gets the current batch settings for the Pipeline's Stream Muxer
+         * @param[out] batchSize current batchSize, default == the number of source
+         * @param[out] batchTimeout current batch timeout
+         * @return true if the batch properties could be read, false otherwise
          */
-        void SetStreamMuxBatchProperties(guint batchSize, guint batchTimeout) 
-        {
-            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(
-                batchSize, batchTimeout);
-        };
+        bool GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
 
         /**
-         * @brief 
-         * @param[in] width
-         * @param[in] height
+         * @brief Sets the current batch settings for the Pipeline's Stream Muxer
+         * @param[in] batchSize new batchSize to set, default == the number of sources
+         * @param[in] batchTimeout timeout value to set in ms
+         * @return true if the batch properties could be set, false otherwise
          */
-        void SetStreamMuxOutputSize(uint width, uint height)
-        {
-            m_pPipelineSourcesBintr->SetStreamMuxOutputSize(
-                width, height);
-        }
+        bool SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout);
+
+        /**
+         * @brief Gets the current dimensions for the Pipeline's Stream Muxer
+         * @param[out] width width in pixels for the current setting
+         * @param[out] height height in pixels for the curren setting
+         * @return true if the output dimensions could be read, false otherwise
+         */
+        bool GetStreamMuxDimensions(uint* width, uint* height);
+
+        /**
+         * @brief Set the dimensions for the Pipeline's Stream Muxer
+         * @param width width in pixels to set the streamMux Output
+         * @param height height in pixels to set the StreamMux output
+         * @return true if the output dimensions could be set, false otherwise
+         */
+        bool SetStreamMuxDimensions(uint width, uint height);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Muxer padding
+         * @param enable true if enabled, false otherwise.
+         * @return true if the Padding enabled setting could be read, false otherwisee
+         */
+        bool GetStreamMuxPadding(bool* enabled);
+
+        /**
+         * @brief Sets, enables/disables the Pipeline's Stream Muxer padding
+         * @param enabled set to true to enable padding
+         * @return true if the Padding enable setting could be set, false otherwise.
+         */
+        bool SetStreamMuxPadding(bool enabled);
         
         /**
          * @brief dumps a Pipeline's graph to dot file.

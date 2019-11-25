@@ -66,6 +66,12 @@ namespace DSL
         ~PrimaryGieBintr();
 
         /**
+         * @brief Adds the PrimaryGieBintr to a Parent Pipeline Bintr
+         * @param pParentBintr Parent Pipeline to add this Bintr to
+         */
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+
+        /**
          * @brief Links all Child Elementrs owned by this Bintr
          * @return true if all links were succesful, false otherwise
          */
@@ -76,12 +82,6 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-        
-        /**
-         * @brief Adds the PrimaryGieBintr to a Parent Pipeline Bintr
-         * @param pParentBintr Parent Pipeline to add this Bintr to
-         */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
         
         /**
          * @brief gets the name of the Infer Config File in use by this PrimaryGieBintr
