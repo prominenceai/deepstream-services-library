@@ -72,6 +72,7 @@ while True:
 
     # ***********************************************************
     # Two new Pipelines to use with the above components
+    
     retval = dsl_pipeline_new('pipeline-1')
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
@@ -83,13 +84,14 @@ while True:
         break
     
     # ***********************************************************
-    # Add all the components to each pipeline
+    # Add all the components - in any order - to each pipeline
+    
     retval = dsl_pipeline_component_add_many('pipeline-1', ['uri-source-1' , 'tiled-display-1', 'overlay-sink-1', None])
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
         
-    retval = dsl_pipeline_component_add_many('pipeline-2', ['csi-source-2' , 'tiled-display-2', 'overlay-sink-2', None])
+    retval = dsl_pipeline_component_add_many('pipeline-2', ['tiled-display-2', 'overlay-sink-2', 'csi-source-2' , None])
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
