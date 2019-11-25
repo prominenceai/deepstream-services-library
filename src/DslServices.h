@@ -82,6 +82,14 @@ namespace DSL {
         
         DslReturnType DisplayNew(const wchar_t* name, uint width, uint height);
         
+        DslReturnType DisplayDimensionsGet(const wchar_t* name, uint* width, uint* height);
+
+        DslReturnType DisplayDimensionsSet(const wchar_t* name, uint width, uint height);
+
+        DslReturnType DisplayTilesGet(const wchar_t* name, uint* cols, uint* rows);
+
+        DslReturnType DisplayTilesSet(const wchar_t* name, uint cols, uint rows);
+        
         boolean ComponentIsInUse(const wchar_t* component);
         
         DslReturnType ComponentDelete(const wchar_t* component);
@@ -116,11 +124,21 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemoveMany(const wchar_t* pipeline, const wchar_t** components);
         
-        DslReturnType PipelineStreamMuxSetBatchProperties(const wchar_t* pipeline,
+        DslReturnType PipelineStreamMuxBatchPropertiesGet(const wchar_t* pipeline,
+            uint* batchSize, uint* batchTimeout);
+
+        DslReturnType PipelineStreamMuxBatchPropertiesSet(const wchar_t* pipeline,
             uint batchSize, uint batchTimeout);
 
-        DslReturnType PipelineStreamMuxSetOutputSize(const wchar_t* pipeline,
+        DslReturnType PipelineStreamMuxDimensionsGet(const wchar_t* pipeline,
+            uint* width, uint* height);
+
+        DslReturnType PipelineStreamMuxDimensionsSet(const wchar_t* pipeline,
             uint width, uint height);
+            
+        DslReturnType PipelineStreamMuxPaddingGet(const wchar_t* pipeline, boolean* enabled);
+
+        DslReturnType PipelineStreamMuxPaddingSet(const wchar_t* pipeline, boolean enabled);
 
         DslReturnType PipelinePause(const wchar_t* pipeline);
         

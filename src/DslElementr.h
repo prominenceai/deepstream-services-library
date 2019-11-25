@@ -68,6 +68,20 @@ namespace DSL
         };
 
         /**
+         * @brief Gets a GST Element's attribute of type uint, owned by this Elementr
+         * @param name name of the attribute to set
+         * @param value unsigned integer value to set the attribute
+         */
+        void GetAttribute(const char* name, uint* value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name << "' to uint value '" << value << "'");
+            
+            g_object_get(GetGObject(), name, value, NULL);
+        }
+
+        /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a value of uint
          * @param name name of the attribute to set
          * @param value unsigned integer value to set the attribute

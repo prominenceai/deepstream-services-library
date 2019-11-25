@@ -89,6 +89,26 @@ DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height)
     return DSL::Services::GetServices()->DisplayNew(name, width, height);
 }
 
+DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    return DSL::Services::GetServices()->DisplayDimensionsGet(name, width, height);
+}
+
+DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    return DSL::Services::GetServices()->DisplayDimensionsSet(name, width, height);
+}
+
+DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows)
+{
+    return DSL::Services::GetServices()->DisplayTilesGet(name, cols, rows);
+}
+
+DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows)
+{
+    return DSL::Services::GetServices()->DisplayTilesSet(name, cols, rows);
+}
+
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* inferConfigFile,
     const wchar_t* modelEngineFile, uint interval, uint uniqueId)
 {
@@ -180,18 +200,42 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
     return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
 }
 
-DslReturnType dsl_pipeline_streammux_set_batch_properties(const wchar_t* pipeline, 
-    uint batchSize, uint batchTimeout)
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
+    uint* batchSize, uint* batchTimeout)
 {
-    return DSL::Services::GetServices()->PipelineStreamMuxSetBatchProperties(pipeline,
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(pipeline,
         batchSize, batchTimeout);
 }
 
-DslReturnType dsl_pipeline_streammux_set_output_size(const wchar_t* pipeline, 
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
+    uint batchSize, uint batchTimeout)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(pipeline,
+        batchSize, batchTimeout);
+}
+
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsGet(pipeline,
+        width, height);
+}
+
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height)
 {
-    return DSL::Services::GetServices()->PipelineStreamMuxSetOutputSize(pipeline,
+    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsSet(pipeline,
         width, height);
+}    
+
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* pipeline, boolean* enabled)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxPaddingGet(pipeline, enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolean enabled)
+{
+    return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(pipeline, enabled);
 }
  
 DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
@@ -659,7 +703,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Sink '" << CP_WTCSTR(name) << "' threw exception on create");
-            return DSL_RESULT_SINK_NEW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         LOG_INFO("new Sink '" << CP_WTCSTR(name) << "' created successfully");
 
@@ -685,7 +729,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New OSD '" << CP_WTCSTR(name) << "' threw exception on create");
-            return DSL_RESULT_SINK_NEW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         LOG_INFO("new OSD '" << CP_WTCSTR(name) << "' created successfully");
 
@@ -712,13 +756,121 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tiled Display New'" << CP_WTCSTR(name) << "' threw exception on create");
-            return DSL_RESULT_DISPLAY_NEW_EXCEPTION;
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
         }
         LOG_INFO("new Display '" << CP_WTCSTR(name) << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::DisplayDimensionsGet(const wchar_t* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
+
+        try
+        {
+            DSL_DISPLAY_PTR displayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[CP_WTCSTR(name)]);
+
+            // TODO verify args before calling
+            displayBintr->GetDimensions(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' threw an exception getting dimensions");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DisplayDimensionsSet(const wchar_t* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
         
+        if (m_components[CP_WTCSTR(name)]->IsInUse())
+        {
+            LOG_ERROR("Unable to set Dimensions for Tiled Display '" << CP_WTCSTR(name) 
+                << "' as it's currently in use");
+            return DSL_RESULT_DISPLAY_IS_IN_USE;
+        }
+        try
+        {
+            DSL_DISPLAY_PTR displayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[CP_WTCSTR(name)]);
+
+            // TODO verify args before calling
+            if (!displayBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' failed to settin dimensions");
+                return DSL_RESULT_DISPLAY_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' threw an exception setting dimensions");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DisplayTilesGet(const wchar_t* name, uint* cols, uint* rows)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
+
+        try
+        {
+            DSL_DISPLAY_PTR displayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[CP_WTCSTR(name)]);
+
+            // TODO verify args before calling
+            displayBintr->GetTiles(cols, rows);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' threw an exception getting Tiles");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DisplayTilesSet(const wchar_t* name, uint cols, uint rows)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(name));
+
+        if (m_components[CP_WTCSTR(name)]->IsInUse())
+        {
+            LOG_ERROR("Unable to set Tiles for Tiled Display '" << CP_WTCSTR(name) 
+                << "' as it's currently in use");
+            return DSL_RESULT_DISPLAY_IS_IN_USE;
+        }
+        try
+        {
+            DSL_DISPLAY_PTR displayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[CP_WTCSTR(name)]);
+
+            // TODO verify args before calling
+            if (!displayBintr->SetTiles(cols, rows))
+            {
+                LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' failed to set Tiles");
+                return DSL_RESULT_DISPLAY_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display '" << CP_WTCSTR(name) << "' threw an exception setting Tiles");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::PrimaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
         const wchar_t* modelEngineFile, uint interval, uint uniqueId)
     {
@@ -757,7 +909,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Primary GIE '" << CP_WTCSTR(name) << "' threw exception on create");
-            return DSL_RESULT_GIE_NEW_EXCEPTION;
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
         LOG_INFO("new GIE '" << CP_WTCSTR(name) << "' created successfully");
 
@@ -880,7 +1032,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Pipeline '" << PL_WTCSTR(name) << "' threw exception on create");
-            return DSL_RESULT_PIPELINE_NEW_EXCEPTION;
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         LOG_INFO("new PIPELINE '" << PL_WTCSTR(name) << "' created successfully");
 
@@ -906,7 +1058,7 @@ namespace DSL
             catch(...)
             {
                 LOG_ERROR("New Pipeline '" << PL_WTCSTR(*pipeline) << "' threw exception on create");
-                return DSL_RESULT_PIPELINE_NEW_EXCEPTION;
+                return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
             }
             LOG_INFO("new PIPELINE '" << PL_WTCSTR(*pipeline) << "' created successfully");
         }
@@ -1088,7 +1240,32 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
     
-    DslReturnType Services::PipelineStreamMuxSetBatchProperties(const wchar_t* pipeline,
+    DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const wchar_t* pipeline,
+        uint* batchSize, uint* batchTimeout)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+
+        try
+        {
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->GetStreamMuxBatchProperties(batchSize, batchTimeout))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to get the Stream Muxer Batch Properties");
+                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                << "' threw an exception getting the Stream Muxer Batch Properties");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineStreamMuxBatchPropertiesSet(const wchar_t* pipeline,
         uint batchSize, uint batchTimeout)    
     {
         LOG_FUNC();
@@ -1097,18 +1274,48 @@ namespace DSL
 
         try
         {
-            m_pipelines[PL_WTCSTR(pipeline)]->SetStreamMuxBatchProperties(batchSize, batchTimeout);
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->SetStreamMuxBatchProperties(batchSize, batchTimeout))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to Set the Stream Muxer Batch Properties");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
-                << "' threw an exception setting the Stream Muxer batch_properties");
-            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+                << "' threw an exception setting the Stream Muxer Batch Properties");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PipelineStreamMuxSetOutputSize(const wchar_t* pipeline,
+    DslReturnType Services::PipelineStreamMuxDimensionsGet(const wchar_t* pipeline,
+        uint* width, uint* height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+
+        try
+        {
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->GetStreamMuxDimensions(width, height))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to Get the Stream Muxer Output Dimensions");
+                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                << "' threw an exception setting the Stream Muxer Output Dimensions");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineStreamMuxDimensionsSet(const wchar_t* pipeline,
         uint width, uint height)    
     {
         LOG_FUNC();
@@ -1117,13 +1324,68 @@ namespace DSL
 
         try
         {
-            m_pipelines[PL_WTCSTR(pipeline)]->SetStreamMuxOutputSize(width, height);
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->SetStreamMuxDimensions(width, height))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to Set the Stream Muxer Output Dimensions");
+                return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+            }
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
                 << "' threw an exception setting the Stream Muxer output size");
-            return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineStreamMuxPaddingGet(const wchar_t* pipeline,
+        boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+
+        try
+        {
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->GetStreamMuxPadding((bool*)enabled))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to Get the Stream Muxer is Padding enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline)
+                << "' threw an exception getting the Stream Muxer padding");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineStreamMuxPaddingSet(const wchar_t* pipeline,
+        boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+
+        try
+        {
+            if (!m_pipelines[PL_WTCSTR(pipeline)]->SetStreamMuxPadding((bool)enabled))
+            {
+                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                    << "' failed to Get the Stream Muxer is Padding enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
+                << "' threw an exception setting the Stream Muxer padding");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }

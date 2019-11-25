@@ -41,7 +41,7 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
         uint currWidth(0);
         uint currHeight(0);
     
-        pDisplayBintr->GetDimensions(currWidth, currHeight);
+        pDisplayBintr->GetDimensions(&currWidth, &currHeight);
         REQUIRE( currWidth == initWidth );
         REQUIRE( currHeight == initHeight );
 
@@ -54,7 +54,7 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
 
             THEN( "The Display's new demensions are returned on Get")
             {
-                pDisplayBintr->GetDimensions(currWidth, currHeight);
+                pDisplayBintr->GetDimensions(&currWidth, &currHeight);
                 REQUIRE( currWidth == newWidth );
                 REQUIRE( currHeight == newHeight );
             }
@@ -76,9 +76,9 @@ SCENARIO( "A Tiled Display's tiles can be updated",  "[DisplayBintr]" )
         uint currRows(0);
         uint currColumns(0);
     
-        pDisplayBintr->GetTiles(currRows, currColumns);
-        REQUIRE( currRows == 1 );
-        REQUIRE( currColumns == 1 );
+        pDisplayBintr->GetTiles(&currRows, &currColumns);
+        REQUIRE( currRows == 0 );
+        REQUIRE( currColumns == 0 );
 
         WHEN( "The Display's tile layout is Set" )
         {
@@ -89,7 +89,7 @@ SCENARIO( "A Tiled Display's tiles can be updated",  "[DisplayBintr]" )
 
             THEN( "The Display's new tile layout is returned on Get")
             {
-                pDisplayBintr->GetTiles(currRows, currColumns);
+                pDisplayBintr->GetTiles(&currRows, &currColumns);
                 REQUIRE( currRows == newRows );
                 REQUIRE( currColumns == newColumns );
             }
