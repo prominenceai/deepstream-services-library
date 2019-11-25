@@ -46,10 +46,10 @@
 [property]
 gpu-id=0
 net-scale-factor=0.0039215697906911373
-model-file=../../models/Primary_Detector_Nano/resnet10.caffemodel
-proto-file=../../models/Primary_Detector_Nano/resnet10.prototxt
-model-engine-file=../../models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine
-labelfile-path=../../models/Primary_Detector_Nano/labels.txt
+model-file=../models/Primary_Detector_Nano/resnet10.caffemodel
+proto-file=../models/Primary_Detector_Nano/resnet10.prototxt
+model-engine-file=../models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine
+labelfile-path=../models/Primary_Detector_Nano/labels.txt
 batch-size=8
 process-mode=1
 model-color-format=0

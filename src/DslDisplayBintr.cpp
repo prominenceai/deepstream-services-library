@@ -40,9 +40,8 @@ namespace DSL
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue");
         m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler");
-        
-        m_pTiler->SetAttribute("rows", m_rows);
-        m_pTiler->SetAttribute("columns", m_rows);
+
+        // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
