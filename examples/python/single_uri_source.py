@@ -7,8 +7,8 @@ from dsl import *
 DSL_RETURN_SUCCESS = 0
 
 # Filespecs for the Primary GIE
-inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel'
+inferConfigFile = '../../test/configs/config_infer_primary.txt'
+modelEngineFile = '../../test/models/Primary_Detector/resnet10.caffemodel_b1_fp16.engine'
 
 while True:
 
@@ -48,8 +48,7 @@ while True:
         break
 
     # Add all the components to our pipeline
-#    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
-    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source' , 'tiled-display', 'overlay-sink', None])
+    retval = dsl_pipeline_component_add_many('simple-pipeline', ['uri-source', 'primary-gie', 'tiled-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
