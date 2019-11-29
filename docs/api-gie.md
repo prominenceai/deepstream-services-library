@@ -21,19 +21,35 @@ Primary and Secondary GIE's are constructed by calling [dsl_gie_primary_new](#ds
 ```Python
 # Filespecs for the Primary GIE
 pgie_config_file = './configs/config_infer_primary_nano.txt'
-primaryModelEngineFile = './models/Primary_Detector_Nano/resnet10.caffemodel.engine'
+pgie_model_file = './models/Primary_Detector_Nano/resnet10.caffemodel.engine'
 
 # Filespecs for the Secondary GIE
-secondaryInferConfigFile = './configs/config_infer_secondary_carcolor
-secondaryModelEngineFile = './models/Secondary_CarColor/resnet18.caffemodel'
+sgie_config_file = './configs/config_infer_secondary_carcolor
+sgie_model_file = './models/Secondary_CarColor/resnet18.caffemodel'
 
 # New Primary GIE using the filespecs above, with interval set to  0
-retval = dsl_gie_primary_new('resnet10-caffemodel-pgie', inferConfigFile, modelEngineFile, 0)
+retval = dsl_gie_primary_new('pgie', pgie_config_file, pgie_model_file, 0)
+
+if retval != DSL_RETURN_SUCCESS:
+    print(retval)
+    # handle error condition
+
+# New Secondary GIE set to Infer on the Primary GIE defined above
+retval = dsl_gie_seondary_new('sgie', sgie_config_file, sgie_model_file, 0, 'pgie')
+
+if retval != DSL_RETURN_SUCCESS:
+    print(retval)
+    # handle error condition
+
+# Add both Primary and Secondary GIEs to an existing Pipeline
+retval = dsl_pipeline_component_add_many('pipeline', ['pgie', 'sgie', None]) 
 
 if retval != DSL_RETURN_SUCCESS:
     print(retval)
     # handle error condition
 ```
+
+<br>
 
 ### *dsl_gie_primary_new*
 ```C++
