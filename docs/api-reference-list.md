@@ -59,7 +59,7 @@
 * [dsl_source_set_num_in_use_max](/docs/api-source.md#dsl_source_set_num_in_use_max)
 * Other TBD
 
-## Primary and Secondary GIE API
+#### Primary and Secondary GIE API:
 * [dsl_gie_primary_new](#dsl_gie_primary_new)
 * [dsl_gie_secondary_new](#dsl_gie_secondary_new)
 * [dsl_gie_infer_config_file_get](#dsl_gie_infer_config_file_get)
