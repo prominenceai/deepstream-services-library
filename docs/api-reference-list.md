@@ -59,17 +59,17 @@
 * [dsl_source_set_num_in_use_max](/docs/api-source.md#dsl_source_set_num_in_use_max)
 * Other TBD
 
-#### Infer Engine (GIE):
-* dsl_gie_primary_new
-* dsl_gie_primary_attributes_get
-* dsl_gie_primary_attributes_set
-* dsl_gie_primary_data_consumer_add
-* dsl_gie_primary_data_consumer_remove
-* dsl_gie_secondary_new
-* dsl_gie_secondary_attributes_get
-* dsl_gie_secondary_attributes_set
-* dsl_gie_secondary_data_consumer_add
-* dsl_gie_secondary_data_consumer_remove
+## Primary and Secondary GIE API
+* [dsl_gie_primary_new](#dsl_gie_primary_new)
+* [dsl_gie_secondary_new](#dsl_gie_secondary_new)
+* [dsl_gie_infer_config_file_get](#dsl_gie_infer_config_file_get)
+* [dsl_gie_infer_config_file_set](#dsl_gie_infer_config_file_set)
+* [dsl_gie_model_engine_file_get](#dsl_gie_model_engine_file_get)
+* [dsl_gie_model_engine_file_set](#dsl_gie_model_engine_file_set)
+* [dsl_gie_interval_get](#dsl_gie_interval_get)
+* [dsl_gie_interval_set](#dsl_gie_interval_set)
+* [dsl_gie_secondary_infer_on_get](#dsl_gie_secondary_infer_on_get)
+* [dsl_gie_secondary_infer_on_set](#dsl_gie_secondary_infer_on_set)
 * Other TBD
 
 #### Tiled Display:
