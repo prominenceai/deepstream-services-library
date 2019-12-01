@@ -78,7 +78,7 @@ namespace DSL {
         DslReturnType OsdNew(const wchar_t* name, boolean isClockEnabled);
         
         DslReturnType PrimaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
-            const wchar_t* modelEngineFile, uint interval, uint uniqueId);
+            const wchar_t* modelEngineFile, uint interval);
         
         DslReturnType DisplayNew(const wchar_t* name, uint width, uint height);
         

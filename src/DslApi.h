@@ -246,16 +246,37 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name,
 DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
 
 /**
- * @brief creates a new, uniquely named GIE object
+ * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
- * @param[in] infer_config_file name of the Infer Config file to use
- * @param[in] model_engine_file name of the Model Engine file to use
+ * @param[in] infer_config_file pathspec of the Infer Config file to use
+ * @param[in] model_engine_file pathspec of the Model Engine file to use
  * @param[in] interval
- * @param[in] uniqueId
  * @return DSL_RESULT_GIE_RESULT
  */
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, uint interval, uint unique_id);
+    const wchar_t* model_engine_file, uint interval);
+
+/**
+ * @brief creates a new, uniquely named Secondary GIE object
+ * @param[in] name unique name for the new GIE object
+ * @param[in] infer_config_file pathspec of the Infer Config file to use
+ * @param[in] model_engine_file pathspec of the Model Engine file to use
+ * @param[in] interval
+ * @param[in] infer_on_gie_name name of the Primary or Secondary GIE to infer on
+ * @return DSL_RESULT_GIE_RESULT
+ */
+//DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+//    const wchar_t* model_engine_file, uint interval, const wchar_t* infer_on_gie_name);
+//
+//DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
+//DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
+//
+//DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
+//DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
+//
+//DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
+//DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
+
 
 /**
  * @brief creates a new, uniquely named Display obj

@@ -115,6 +115,12 @@ namespace DSL
         bool AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
 
         /**
+         * @brief adds a single GIE Bintr to this Pipeline 
+         * @param[in] pGieBintr shared pointer to GIE Bintr to add
+         */
+        bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
+
+        /**
          * @brief adds a single Display Bintr to this Pipeline 
          * @param[in] pDisplayBintr shared pointer to Display Bintr to add
          */

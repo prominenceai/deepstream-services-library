@@ -151,6 +151,12 @@ namespace DSL
         return AddChild(pPrmaryGieBintr);
     }
 
+    bool PipelineBintr::AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr)
+    {
+        LOG_FUNC();
+        
+    }
+
     bool PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();

@@ -110,10 +110,10 @@ DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows)
 }
 
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* inferConfigFile,
-    const wchar_t* modelEngineFile, uint interval, uint uniqueId)
+    const wchar_t* modelEngineFile, uint interval)
 {
     return DSL::Services::GetServices()->PrimaryGieNew(name, inferConfigFile,
-        modelEngineFile, interval, uniqueId);
+        modelEngineFile, interval);
 }
 
 DslReturnType dsl_component_delete(const wchar_t* component)
@@ -872,7 +872,7 @@ namespace DSL
     }
 
     DslReturnType Services::PrimaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
-        const wchar_t* modelEngineFile, uint interval, uint uniqueId)
+        const wchar_t* modelEngineFile, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -904,7 +904,7 @@ namespace DSL
         try
         {
             m_components[CP_WTCSTR(name)] = DSL_PRIMARY_GIE_NEW(CP_WTCSTR(name), 
-                FL1_WTCSTR(inferConfigFile), FL2_WTCSTR(modelEngineFile), interval, uniqueId);
+                FL1_WTCSTR(inferConfigFile), FL2_WTCSTR(modelEngineFile), interval);
         }
         catch(...)
         {

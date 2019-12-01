@@ -34,7 +34,6 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
@@ -43,7 +42,7 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
         {
 
             REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-                modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+                modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -68,13 +67,12 @@ SCENARIO( "The Components container is updated correctly on Primary GIE delete",
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Primary GIE is deleted" ) 
         {
@@ -100,12 +98,11 @@ SCENARIO( "Only one Primary GIE can be added to a Pipeline", "[gie-api]" )
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
 
         REQUIRE( dsl_gie_primary_new(primaryGieName1.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_gie_primary_new(primaryGieName2.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -140,10 +137,9 @@ SCENARIO( "A Primary GIE in use can't be deleted", "[gie-api]" )
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Primary GIE is added to the Pipeline" ) 
@@ -175,10 +171,9 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[gie-a
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 

@@ -225,7 +225,6 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
         uint displayW(1280);
         uint displayH(720);
         uint fps_n(1);
@@ -244,9 +243,9 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-                modelEngineFile.c_str(), interval, uniqueId);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -279,7 +278,6 @@ SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "
         std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint uniqueId(1);
         uint displayW(1280);
         uint displayH(720);
         uint fps_n(1);
@@ -300,7 +298,7 @@ SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval, uniqueId);
+            modelEngineFile.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true);

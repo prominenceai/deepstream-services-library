@@ -72,7 +72,7 @@ SCENARIO( "A new Pipeline with an On-Screen Display can be updated", "[PipelineO
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), 0, 1) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
             
