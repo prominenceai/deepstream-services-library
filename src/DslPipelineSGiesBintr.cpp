@@ -117,11 +117,19 @@ namespace DSL
             return false;
         }
         
-        // Add the SecondaryGie to the SGies collection mapped by SecondaryGie name
+        // Add the SecondaryGie to the SecondaryGies collection mapped by SecondaryGie name
         m_pChildSecondaryGies[pChildSecondaryGie->GetName()] = pChildSecondaryGie;
         
-        //and finally, ad as a child of this Bintr
-        return Bintr::AddChild(pChildSecondaryGie);
+        //add the SecondaryGie's Elements as a children of this Bintr
+        if (!Bintr::AddChild(pChildSecondaryGie->GetQueueElementr()) or
+            !Bintr::AddChild(pChildSecondaryGie->GetInferEngineElementr()) or
+            !Bintr::AddChild(pChildSecondaryGie->GetFakeSinkElementr()))
+        {
+            LOG_ERROR("Failed to add the elementrs from SecondaryGie' " << 
+                pChildSecondaryGie->GetName() << "' as childern of '" << GetName() << "'");
+            return false;
+        }
+        return true;
     }
     
     bool PipelineSecondaryGiesBintr::IsChild(DSL_SECONDARY_GIE_PTR pChildSecondaryGie)
@@ -229,6 +237,16 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
+    }
+    
+    void PipelineSecondaryGiesBintr::SetBatchSize(uint batchSize)
+    {
+        LOG_FUNC();
+        
+        for (auto const& imap: m_pChildSecondaryGies)
+        {
+            imap.second->SetBatchSize(batchSize);
+        }
     }
     
     GstPadProbeReturn PipelineSecondaryGiesBintr::HandleSecondaryGiesSinkProbe(

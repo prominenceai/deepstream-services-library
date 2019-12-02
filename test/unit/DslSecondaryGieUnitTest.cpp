@@ -106,14 +106,40 @@ SCENARIO( "A Linked SecondaryGieBintr can UnlinkAll Child Elementrs",  "[Seconda
 
         REQUIRE( pSecondaryGieBintr->LinkAll() == true );
 
-        WHEN( "A new SecondaryGieBintr is created" )
+        WHEN( "A SecondaryGieBintr is Unlinked" )
         {
             pSecondaryGieBintr->UnlinkAll();
             
-            THEN( "The SecondaryGieBintr can LinkAll Child Elementrs" )
+            THEN( "The SecondaryGieBintr IsLinked state is updated correctly" )
             {
                 
                 REQUIRE( pSecondaryGieBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+SCENARIO( "A Linked SecondaryGieBintr can not be linked again",  "[SecondaryGieBintr]" )
+{
+    GIVEN( "A new SecondaryGieBintr" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string secondaryGieName = "secondary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        
+        uint interval(1);
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval, primaryGieName.c_str());
+
+        WHEN( "A SecondaryGieBintr is Linked" )
+        {
+            REQUIRE( pSecondaryGieBintr->LinkAll() == true );
+            
+            THEN( "The SecondaryGieBintr can not be linked again" )
+            {
+                REQUIRE( pSecondaryGieBintr->LinkAll() == false );
             }
         }
     }

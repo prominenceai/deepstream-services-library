@@ -80,7 +80,6 @@ SCENARIO( "A new PrimaryGieBintr can LinkAll Child Elementrs",  "[PrimaryGieBint
             
             THEN( "The PrimaryGieBintr IsLinked state is updated correctly" )
             {
-                
                 REQUIRE( pPrimaryGieBintr->IsLinked() == true );
             }
         }
@@ -109,8 +108,33 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
             
             THEN( "The PrimaryGieBintr can LinkAll Child Elementrs" )
             {
-                
                 REQUIRE( pPrimaryGieBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        WHEN( "A new PrimaryGieBintr is Linked" )
+        {
+            REQUIRE( pPrimaryGieBintr->LinkAll() == true );
+            
+            THEN( "The PrimaryGieBintr can not be linked again" )
+            {
+                REQUIRE( pPrimaryGieBintr->LinkAll() == false );
             }
         }
     }

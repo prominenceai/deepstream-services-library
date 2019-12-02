@@ -75,9 +75,20 @@ namespace DSL
         
         /**
          * @brief return the name given to this Nodetr on creation
-         * @return const string name given to this Nodetr
+         * @return const std::string name given to this Nodetr
          */
-        const char* GetName()
+        const std::string& GetName()
+        {
+            LOG_FUNC();
+            
+            return m_name;
+        }
+        
+        /**
+         * @brief return the name given to this Nodetr on creation
+         * @return const c_str name given to this Nodetr
+         */
+        const char* GetCStrName()
         {
             LOG_FUNC();
             

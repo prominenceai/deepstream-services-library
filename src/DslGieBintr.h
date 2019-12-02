@@ -55,7 +55,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the GieBintr
+         * @brief ctor for the GST InferEngine
          * @param[in] name name to give the new Bintr
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEngineFile fully qualified pathspec for the model engine file to use
@@ -65,12 +65,12 @@ namespace DSL
             const char* inferConfigFile, const char* modelEngineFile, uint interval);
 
         /**
-         * @brief dtor for the PrimaryGieBintr
+         * @brief dtor for the GieBintr
          */
         ~GieBintr();
         
         /**
-         * @brief gets the name of the Infer Config File in use by this PrimaryGieBintr
+         * @brief gets the name of the Infer Config File in use by this GieBintr
          * @return fully qualified patspec used to create this Bintr
          */
         const char* GetInferConfigFile();
@@ -113,34 +113,47 @@ namespace DSL
 
     protected:
 
-        uint m_batchSize;
-        
-        uint m_interval;
-        
-        uint m_uniqueId;
-
+        /**
+         * @brief pathspec to the infer config file used by this GIE
+         */
         std::string m_inferConfigFile;
         
+        /**
+         * @brief pathspec to the model engine file used by this GIE
+         */
         std::string m_modelEngineFile;
         
+        /**
+         * @brief 
+         */
+        uint m_batchSize;
+        
+        /**
+         * @brief 
+         */
+        uint m_interval;
+        
+        /**
+         * @brief 
+         */
+        uint m_uniqueId;
+
         /**
          @brief
          */
         uint m_processMode;
 
         /**
-         * @brief Queue Elementr as Sink for this PrimaryGieBintr
+         * @brief Queue Elementr as Sink for this GieBintr
          */
         DSL_ELEMENT_PTR  m_pQueue;
 
         /**
-         * @brief Classifier Elementr as Source for this PrimaryGieBintr
+         * @brief GST Infer Engine Elementr
          */
-        DSL_ELEMENT_PTR  m_pClassifier;
+        DSL_ELEMENT_PTR  m_pInferEngine;
 
-        DSL_ELEMENT_PTR  m_pTee;
-
-        DSL_ELEMENT_PTR  m_pSink;
+        DSL_ELEMENT_PTR  m_pFakeSink;
 
     };
 
@@ -181,23 +194,26 @@ namespace DSL
         bool LinkAll();
         
         /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * @brief Unlinks all Child Elementrs owned by this Bintr
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
 
     private:
-        
 
         /**
          * @brief Video Converter Elementr for this PrimaryGieBintr
          */
         DSL_ELEMENT_PTR  m_pVidConv;
     
+
+        DSL_ELEMENT_PTR  m_pTee;
+
+
     };
 
     /**
-     * @class SecondaryGieBintr
+     * @class SecondaryGie
      * @brief Implements a container for a Secondary GST Infer Engine (GIE)
      */
     class SecondaryGieBintr : public GieBintr
@@ -263,6 +279,39 @@ namespace DSL
          * @return the current unique Id
          */
         const char* GetInferOnGieName();
+        
+        /**
+         * @brief returns the Queue Elementr to the Parent Bintr of the SecondaryGieBintr
+         * @return shared ponter to the Queue Elementr
+         */
+        DSL_ELEMENT_PTR GetQueueElementr()
+        {
+            LOG_FUNC();
+            
+            return m_pQueue;
+        }
+
+        /**
+         * @brief returns the Infer Engine Elementr to the Parent Bintr of the SecondaryGieBintr
+         * @return shared ponter to the Infer Engine Elementr
+         */
+        DSL_ELEMENT_PTR GetInferEngineElementr()
+        {
+            LOG_FUNC();
+            
+            return m_pInferEngine;
+        }
+        
+        /**
+         * @brief returns the Fake Sink Elementr to the Parent Bintr of the SecondaryGieBintr
+         * @return shared ponter to the Fake Sink Elementr
+         */
+        DSL_ELEMENT_PTR GetFakeSinkElementr()
+        {
+            LOG_FUNC();
+            
+            return m_pFakeSink;
+        }
 
     private:
         

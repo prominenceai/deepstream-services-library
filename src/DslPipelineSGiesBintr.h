@@ -100,6 +100,12 @@ namespace DSL
         void UnlinkAll();
         
         /**
+         * @brief Sets the Batch Size for all child Secondary GIE's
+         * @param batchSize value to set the Batch Size
+         */
+        void SetBatchSize(uint batchSize);
+        
+        /**
          * @brief 
          * @param pPad
          * @param pInfo
@@ -165,7 +171,6 @@ namespace DSL
         bool m_flush;
 
         GCond m_padWaitLock;
-        
         
     };
 

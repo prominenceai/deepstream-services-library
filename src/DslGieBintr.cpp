@@ -47,23 +47,22 @@ namespace DSL
         }        
 
         // generate a unique Id for the GIE based on its unique name
-        m_uniqueId = (uint)std::hash<std::string>{}(name);
+        m_uniqueId = std::hash<std::string>{}(name);
         
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "gie_queue");
-        m_pClassifier = DSL_ELEMENT_NEW(factoryname, "gie_classifier");
-
-        m_pClassifier->SetAttribute("config-file-path", inferConfigFile);
-        m_pClassifier->SetAttribute("process-mode", m_processMode);
-        m_pClassifier->SetAttribute("interval", m_interval);
-        m_pClassifier->SetAttribute("unique-id", m_uniqueId);
-        m_pClassifier->SetAttribute("gpu-id", m_gpuId);
-        m_pClassifier->SetAttribute("model-engine-file", modelEngineFile);
+        // unique element name 
+        std::string gieName = "gie-" + GetName();
         
-        AddChild(m_pQueue);
-        AddChild(m_pClassifier);
+        LOG_INFO("Creating GIE  '" << gieName << "' with unique Id = " << m_uniqueId);
+        
+        // create and setup unique GIE Elementr
+        m_pInferEngine = DSL_ELEMENT_NEW(factoryname, gieName.c_str());
 
-        m_pQueue->AddGhostPadToParent("sink");
-        m_pClassifier->AddGhostPadToParent("src");
+        m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
+        m_pInferEngine->SetAttribute("process-mode", m_processMode);
+        m_pInferEngine->SetAttribute("interval", m_interval);
+        m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
+        m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+        m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
     }    
     
     GieBintr::~GieBintr()
@@ -90,7 +89,7 @@ namespace DSL
         LOG_FUNC();
         
         m_batchSize = batchSize;
-        m_pClassifier->SetAttribute("batch-size", m_batchSize);
+        m_pInferEngine->SetAttribute("batch-size", m_batchSize);
     }
     
     uint GieBintr::GetBatchSize()
@@ -105,7 +104,7 @@ namespace DSL
         LOG_FUNC();
         
         m_interval = interval;
-        m_pClassifier->SetAttribute("interval", m_interval);
+        m_pInferEngine->SetAttribute("interval", m_interval);
     }
     
     uint GieBintr::GetInterval()
@@ -128,12 +127,18 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary_gie_conv");
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "primary-gie-queue");
+        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "primary-gie-conv");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
+        AddChild(m_pInferEngine);
         AddChild(m_pVidConv);
+        AddChild(m_pQueue);
+
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pInferEngine->AddGhostPadToParent("src");
     }    
     
     PrimaryGieBintr::~PrimaryGieBintr()
@@ -155,8 +160,10 @@ namespace DSL
             LOG_ERROR("PrimaryGieBintr '" << m_name << "' is already linked");
             return false;
         }
-        m_pQueue->LinkToSink(m_pVidConv);
-        m_pVidConv->LinkToSink(m_pClassifier);
+        if (!m_pQueue->LinkToSink(m_pVidConv) or !m_pVidConv->LinkToSink(m_pInferEngine))
+        {
+            return false;
+        }
         
         m_isLinked = true;
         
@@ -187,6 +194,8 @@ namespace DSL
             AddPrimaryGieBintr(shared_from_this());
     }
 
+    // ***********************************************************************
+    
     SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval, const char* inferOnGieName)
         : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile, interval)
@@ -195,13 +204,20 @@ namespace DSL
         LOG_FUNC();
         
         std::size_t inferOnGieId = std::hash<std::string>{}(inferOnGieName);
-        m_pClassifier->SetAttribute("infer-on-gie-id", (guint)inferOnGieId);
+        m_pInferEngine->SetAttribute("infer-on-gie-id", (guint)inferOnGieId);
         
-        m_pSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "secondary-gie-sink");
-        m_pSink->SetAttribute("async", false);
-        m_pSink->SetAttribute("sync", false);
-        m_pSink->SetAttribute("enable-last-sample", false);
+        // create the unique queue-name from the SGIE name
+        std::string queueName = "sgie-queue-" + GetName();
+
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
         
+        // create the unique sink-name from the SGIE name
+        std::string fakeSinkName = "sgie-fake-sink-" + GetName();
+        
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "secondary-gie-sink");
+        m_pFakeSink->SetAttribute("async", false);
+        m_pFakeSink->SetAttribute("sync", false);
+        m_pFakeSink->SetAttribute("enable-last-sample", false);
     }    
     
     SecondaryGieBintr::~SecondaryGieBintr()
@@ -220,11 +236,14 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("PrimaryGieBintr '" << m_name << "' is already linked");
+            LOG_ERROR("SecondaryGieBintr '" << m_name << "' is already linked");
             return false;
         }
-        m_pQueue->LinkToSink(m_pClassifier);
-        m_pClassifier->LinkToSink(m_pSink);
+        if (!m_pQueue->LinkToSink(m_pInferEngine) or !m_pInferEngine->LinkToSink(m_pFakeSink))
+        {
+            LOG_ERROR("SecondaryGieBintr '" << m_name << "' failed to link");
+            return false;
+        }
         
         m_isLinked = true;
         
@@ -240,7 +259,7 @@ namespace DSL
             LOG_ERROR("SecondaryGieBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pClassifier->UnlinkFromSink();
+        m_pInferEngine->UnlinkFromSink();
         m_pQueue->UnlinkFromSink();
 
         m_isLinked = false;

@@ -254,7 +254,7 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
     }
 }
 
-SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", "[test]" )
+SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", "[PipelineSourcesBintr]" )
 {
     GIVEN( "Attributes for a new PipelineSourcesBintr and several new SourcesBintrs" ) 
     {
