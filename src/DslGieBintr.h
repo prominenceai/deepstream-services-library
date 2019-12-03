@@ -269,6 +269,12 @@ namespace DSL
         bool UnlinkFromSource();
         
         /**
+         * @brief returns the unique Id of the GIE this SGIE should infer on
+         * @return unique Id for the Infer-on GIE
+         */
+        uint GetInferOnGieUniqueId();
+        
+        /**
          * @brief sets the Infer-on-GIE name for this Bintr
          * @param the new name of the GIE to infer on 
          */
@@ -319,6 +325,11 @@ namespace DSL
          @brief Unique name of the Gie to infer on, primary or secondary
          */
         std::string m_inferOnGieName;
+        
+        /**
+         @brief Unique Id of the Gie to infer on, primary or secondary
+         */
+        uint m_inferOnGieUniqueId;
         
     };
 }

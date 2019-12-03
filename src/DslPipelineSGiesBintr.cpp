@@ -117,10 +117,16 @@ namespace DSL
             return false;
         }
         
-        // Add the SecondaryGie to the SecondaryGies collection mapped by SecondaryGie name
-        m_pChildSecondaryGies[pChildSecondaryGie->GetName()] = pChildSecondaryGie;
-        
-        //add the SecondaryGie's Elements as a children of this Bintr
+        // Add the SGIE as a child to this PipelineSecondaryGiesBintr as a Nodetr, not Bintr, 
+        // as we're not adding the SGIEs GST BIN to this PipelineSecondaryGiesBintr GST BIN. 
+        // Instead, we add the SGIEs child Elementrs to this PipelineSecondaryGiesBintr as a Bintr
+        if (!Bintr::AddChild(pChildSecondaryGie))
+        {
+            LOG_ERROR("Failed to add SecondaryGie' " << pChildSecondaryGie->GetName() 
+                << "' as a child of '" << GetName() << "'");
+            return false;
+        }
+        //add the SecondaryGie's Elements as children of this Bintr
         if (!Bintr::AddChild(pChildSecondaryGie->GetQueueElementr()) or
             !Bintr::AddChild(pChildSecondaryGie->GetInferEngineElementr()) or
             !Bintr::AddChild(pChildSecondaryGie->GetFakeSinkElementr()))
@@ -129,6 +135,9 @@ namespace DSL
                 pChildSecondaryGie->GetName() << "' as childern of '" << GetName() << "'");
             return false;
         }
+        // Add the SecondaryGie to the SecondaryGies collection mapped by SecondaryGie name
+        m_pChildSecondaryGies[pChildSecondaryGie->GetName()] = pChildSecondaryGie;
+
         return true;
     }
     
@@ -160,6 +169,17 @@ namespace DSL
         {
             // unlink the sink from the Tee
             pChildSecondaryGie->UnlinkFromSource();
+        }
+
+        // remove the SecondaryGie's Elements as children of this Bintr
+        // remove the SecondaryGie's Elements as children of this Bintr
+        if (!Bintr::RemoveChild(pChildSecondaryGie->GetQueueElementr()) or
+            !Bintr::RemoveChild(pChildSecondaryGie->GetInferEngineElementr()) or
+            !Bintr::RemoveChild(pChildSecondaryGie->GetFakeSinkElementr()))
+        {
+            LOG_ERROR("Failed to add the elementrs from SecondaryGie' " << 
+                pChildSecondaryGie->GetName() << "' as childern of '" << GetName() << "'");
+            return false;
         }
         
         // unreference and remove from the collection

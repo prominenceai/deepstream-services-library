@@ -120,6 +120,9 @@ namespace DSL
         
         return m_uniqueId;
     }
+
+    // ***********************************************************************
+    // ***********************************************************************
     
     PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -195,7 +198,8 @@ namespace DSL
     }
 
     // ***********************************************************************
-    
+    // ***********************************************************************
+
     SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval, const char* inferOnGieName)
         : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile, interval)
@@ -203,8 +207,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        std::size_t inferOnGieId = std::hash<std::string>{}(inferOnGieName);
-        m_pInferEngine->SetAttribute("infer-on-gie-id", (guint)inferOnGieId);
+        m_inferOnGieUniqueId = std::hash<std::string>{}(inferOnGieName);
+        m_pInferEngine->SetAttribute("infer-on-gie-id", m_inferOnGieUniqueId);
         
         // create the unique queue-name from the SGIE name
         std::string queueName = "sgie-queue-" + GetName();
@@ -272,6 +276,13 @@ namespace DSL
         // add 'this' GIE to the Parent Pipeline 
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             AddSecondaryGieBintr(shared_from_this());
+    }
+    
+    uint SecondaryGieBintr::GetInferOnGieUniqueId()
+    {
+        LOG_FUNC();
+
+        return m_inferOnGieUniqueId;
     }
     
     const char* SecondaryGieBintr::GetInferOnGieName()

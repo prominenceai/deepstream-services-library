@@ -77,6 +77,7 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
             THEN( "The Pipeline Sources Bintr is updated correctly" )
             {
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 1 );
+                REQUIRE( pPipelineSourcesBintr->IsChild(pSourceBintr) == true );
                 REQUIRE( pSourceBintr->IsInUse() == true );
                 REQUIRE( pSourceBintr->GetSourceId() == -1 );
             }
