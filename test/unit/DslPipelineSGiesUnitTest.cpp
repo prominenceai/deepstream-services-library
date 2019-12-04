@@ -139,8 +139,6 @@ SCENARIO( "A SecondaryGieBintr can only be added to a PipelineSGiesBintr once", 
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
-        uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
         uint interval(1);
 
@@ -164,9 +162,10 @@ SCENARIO( "A SecondaryGieBintr can only be added to a PipelineSGiesBintr once", 
     }
 }
 
-SCENARIO( "A PipelineSGiesBintr with a SecondaryGieBintr can LinkAll", "[PipelineSGiesBintr]" )
+
+SCENARIO( "A PipelineSGiesBintr Linked with a SecondaryGieBintr can UnlinkAll", "[PipelineSGiesBintr]" )
 {
-    GIVEN( "A new PipelineSGiesBintr with a child SecondearyGieBintr" ) 
+    GIVEN( "A new PipelineSGiesBintr Linked with a child SecondearyGieBintr" ) 
     {
         std::string pipelineSGiesName = "pipeline-sgies";
 
@@ -174,8 +173,6 @@ SCENARIO( "A PipelineSGiesBintr with a SecondaryGieBintr can LinkAll", "[Pipelin
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
-        uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
         uint interval(1);
 
@@ -189,9 +186,56 @@ SCENARIO( "A PipelineSGiesBintr with a SecondaryGieBintr can LinkAll", "[Pipelin
         WHEN( "The SecondaryGieBintr is added to the pPipelineSGiessBintr" )
         {
             REQUIRE( pPipelineSGiessBintr->AddChild(pSecondaryGieBintr) == true );
-            REQUIRE( pPipelineSGiessBintr->IsLinked() == false );
+            REQUIRE( pPipelineSGiessBintr->LinkAll() == true );
+            REQUIRE( pPipelineSGiessBintr->IsLinked() == true );
 
             THEN( "It can not be added a second time" )
+            {
+                pPipelineSGiessBintr->UnlinkAll();
+                REQUIRE( pPipelineSGiessBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PipelineSGiesBintr with several SecondaryGieBintrs can LinkAll", "[PipelineSGiesBintr]" )
+{
+    GIVEN( "A new PipelineSGiesBintr with a child SecondearyGieBintr" ) 
+    {
+        std::string pipelineSGiesName = "pipeline-sgies";
+
+        std::string primaryGieName = "primary-gie";
+        std::string secondaryGieName1 = "secondary-gie-1";
+        std::string secondaryGieName2 = "secondary-gie-2";
+        std::string secondaryGieName3 = "secondary-gie-3";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+
+        uint interval(1);
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval, primaryGieName.c_str());
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval, primaryGieName.c_str());
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval, primaryGieName.c_str());
+
+        DSL_PIPELINE_SGIES_PTR pPipelineSGiessBintr = 
+            DSL_PIPELINE_SGIES_NEW(pipelineSGiesName.c_str());
+
+        WHEN( "All three SecondaryGieBintrs are added to the pPipelineSGiessBintr" )
+        {
+            REQUIRE( pPipelineSGiessBintr->AddChild(pSecondaryGieBintr1) == true );
+            REQUIRE( pPipelineSGiessBintr->AddChild(pSecondaryGieBintr2) == true );
+            REQUIRE( pPipelineSGiessBintr->AddChild(pSecondaryGieBintr3) == true );
+            REQUIRE( pPipelineSGiessBintr->IsLinked() == false );
+
+            THEN( "The SecondaryGieBintr can LinkAll" )
             {
                 REQUIRE( pPipelineSGiessBintr->LinkAll() == true );
                 REQUIRE( pPipelineSGiessBintr->IsLinked() == true );

@@ -51,13 +51,6 @@ namespace DSL
         ~PipelineSecondaryGiesBintr();
 
         /**
-         * @brief sets the current value of the Primary GIE Name for
-         * which the first Secondary GIE will Infer-on
-         * @param name name of the Primary GIE in use by the Parent Pipeline
-         */
-        void SetPrimaryGieName(const char* name);
-        
-        /**
          * @brief adds a child SecondaryGieBintr to this PipelineSecondaryGiesBintr
          * @param pChildSecondaryGie shared pointer to SecondaryGieBintr to add
          * @return true if the SecondaryGieBintr was added correctly, false otherwise
@@ -98,12 +91,37 @@ namespace DSL
          * @brief unlinks all child Sink Bintrs and their Elementrs
          */
         void UnlinkAll();
+
+        /**
+         * @brief sets the current value of the Primary GIE Name for
+         * which the first Secondary GIE will Infer-on
+         * @param name name of the Primary GIE in use by the Parent Pipeline
+         */
+        void SetPrimaryGieName(const char* name);
+
+        /**
+         * @brief Gets the Batch Size for all child Secondary GIE's
+         * @return the current Batch Size setting 
+         */
+        uint GetBatchSize();
         
         /**
          * @brief Sets the Batch Size for all child Secondary GIE's
          * @param batchSize value to set the Batch Size
          */
         void SetBatchSize(uint batchSize);
+        
+        /**
+         * @brief Gets the Interval for all child Secondary GIE's
+         * @return the current Interval setting 
+         */
+        uint GetInterval();
+        
+        /**
+         * @brief Sets the Batch Size for all child Secondary GIE's
+         * @param batchSize value to set the Batch Size
+         */
+        void SetInterval(uint interval);
         
         /**
          * @brief 
@@ -144,12 +162,12 @@ namespace DSL
         std::map<std::string, DSL_SECONDARY_GIE_PTR> m_pChildSecondaryGies;
         
         /**
-         * @brief mutex to prevent sink (Tee) Pad Probe handler re-entry
+         * @brief mutex for sink (Tee) Pad Probe handler
          */
         GMutex m_sinkPadProbeMutex;
         
         /**
-         * @brief mutex to prevent src (Queue) Pad Probe handler re-entry
+         * @brief mutex fo the src (Queue) Pad Probe handler
          */
         GMutex m_srcPadProbeMutex;
         
@@ -165,7 +183,10 @@ namespace DSL
         
         std::string m_primaryGieName;
         
+        uint m_batchSize;
         
+        uint m_interval;
+
         bool m_stop;
 
         bool m_flush;

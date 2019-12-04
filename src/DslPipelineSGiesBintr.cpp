@@ -32,6 +32,8 @@ namespace DSL
         : Bintr(name)
         , m_stop(false)
         , m_flush(false)
+        , m_interval(0)
+        , m_batchSize(0)
     {
         LOG_FUNC();
 
@@ -92,13 +94,6 @@ namespace DSL
         g_mutex_clear(&m_srcPadProbeMutex);
     }
      
-    void PipelineSecondaryGiesBintr::SetPrimaryGieName(const char* name)
-    {
-        LOG_FUNC();
-        
-        m_primaryGieName = name;
-    }
-    
     bool PipelineSecondaryGiesBintr::AddChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
@@ -214,8 +209,7 @@ namespace DSL
             LOG_ERROR("Failed to get Static Sink Pad for SecondaryGiesBintr '" << GetName() << "'");
             return false;
         }
-        
-        if (!gst_element_link(m_pTee->GetGstElement(), m_pQueue->GetGstElement()))
+        if (!m_pQueue->LinkToSource(m_pTee))
         {
             return false;
         }
@@ -252,20 +246,55 @@ namespace DSL
                     << "' failed to Unlink Child SecondaryGie '" << imap.second->GetName() << "'");
                 return;
             }
-            // unink all of the ChildSecondaryGie's Elementrs and reset the unique Id
+            // unink all of the ChildSecondaryGie's Elementrs
             imap.second->UnlinkAll();
         }
-        m_pQueue->UnlinkFromSink();
+        m_pQueue->UnlinkFromSource();
         m_isLinked = false;
+    }
+
+    void PipelineSecondaryGiesBintr::SetPrimaryGieName(const char* name)
+    {
+        LOG_FUNC();
+        
+        m_primaryGieName = name;
+    }
+    
+    uint PipelineSecondaryGiesBintr::GetBatchSize()
+    {
+        LOG_FUNC();
+        
+        return m_batchSize;
     }
     
     void PipelineSecondaryGiesBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
+        m_batchSize = batchSize;
+        
         for (auto const& imap: m_pChildSecondaryGies)
         {
             imap.second->SetBatchSize(batchSize);
+        }
+    }
+    
+    uint PipelineSecondaryGiesBintr::GetInterval()
+    {
+        LOG_FUNC();
+        
+        return m_interval;
+    }
+    
+    void PipelineSecondaryGiesBintr::SetInterval(uint interval)
+    {
+        LOG_FUNC();
+        
+        m_interval = interval;
+        
+        for (auto const& imap: m_pChildSecondaryGies)
+        {
+            imap.second->SetInterval(interval);
         }
     }
     

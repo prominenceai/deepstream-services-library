@@ -586,7 +586,7 @@ namespace DSL
             // Then call GST to Link Source Element to Sink Element 
             if (!Nodetr::LinkToSource(pSource) or !gst_element_link(m_pSource->GetGstElement(), GetGstElement()))
             {
-                LOG_ERROR("Failed to link Souce '" << pSource->GetName() << " to Sink" << GetName());
+                LOG_ERROR("Failed to link Source '" << pSource->GetName() << " to Sink" << GetName());
                 return false;
             }
             return true;

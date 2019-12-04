@@ -342,9 +342,13 @@ namespace DSL
         
         if (m_pSecondaryGiesBintr)
         {
-            // Set all Secondary GIE's batch size to the number of active sources, 
-            // then LinkAll SecondaryGie Elementrs and add as the next component in the Pipeline
-            m_pSecondaryGiesBintr->SetBatchSize(m_pPipelineSourcesBintr->GetNumChildren());
+            m_pSecondaryGiesBintr->SetInterval(m_pPrimaryGieBintr->GetInterval());
+
+            // Set the Secondary GIE's batch size and interval to the same as the Primary GIE's
+            m_pSecondaryGiesBintr->SetPrimaryGieName(m_pPrimaryGieBintr->GetCStrName());
+            m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
+            
+            // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Pipeline
             m_pSecondaryGiesBintr->LinkAll();
             m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr);
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);

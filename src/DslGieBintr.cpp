@@ -218,7 +218,7 @@ namespace DSL
         // create the unique sink-name from the SGIE name
         std::string fakeSinkName = "sgie-fake-sink-" + GetName();
         
-        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "secondary-gie-sink");
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, fakeSinkName.c_str());
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
@@ -320,9 +320,15 @@ namespace DSL
             return false;
         }
 
-        m_pGstRequestedSourcePads["src"] = pGstRequestedSourcePad;
+        if (!m_pQueue->LinkToSource(pTee))
+        {
+            LOG_ERROR("Failed to link Tee '" << pTee->GetName() << "' with SecondaryGieBintr '" << GetName() << "'");
+            return false;
+        }
 
-        return Bintr::LinkToSource(pTee);
+        m_pGstRequestedSourcePads["src"] = pGstRequestedSourcePad;
+        
+        return true;
     }
 
     bool SecondaryGieBintr::UnlinkFromSource()
@@ -330,19 +336,23 @@ namespace DSL
         LOG_FUNC();
         
         // If we're not currently linked to the Tee
-        if (!IsLinkedToSource())
+        if (!m_pQueue->IsLinkedToSource())
         {
             LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is not in a Linked state");
             return false;
         }
 
+        if (!m_pQueue->UnlinkFromSource())
+        {
+            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' was not able to unlink from src Tee");
+            return false;
+        }
         LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryGieBintr " << GetName());
         
-        gst_pad_unlink(m_pGstRequestedSourcePads["src"], m_pGstStaticSinkPad);
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads["src"]);
+//        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads["src"]);
                 
         m_pGstRequestedSourcePads.erase("src");
         
-        return Nodetr::UnlinkFromSource();
+        return true;
     }
 }    
