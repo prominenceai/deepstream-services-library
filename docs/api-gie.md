@@ -1,6 +1,12 @@
-# GST Infer Engine (GIE) API Refernce
+# GST Inference Engine (GIE) API Refernce
+Pipelines can have at most one Primary GIE with any number of Secondary GIEs (only limited by hardware). Pipelines that have secondary GIEs but no primary GIE will fail to Link and Play. Secondary GIEs operate as deterctors on Primary bounding boxs. Secondary GIEs can `infer-on` both Primary and Secondary GIE's for implementing multiple levels of inference. 
+
 Primary and Secondary GIE's are constructed by calling [dsl_gie_primary_new](#dsl_gie_primary_new) and 
-[dsl_gie_secondary_new](#dsl_gie_secondary_new) respectively.
+[dsl_gie_secondary_new](#dsl_gie_secondary_new) respectively. 
+
+Once created, clients can query both Primary and Secondary GIEs for their Infer Config File and Model engine file in use by calling [dsl_gie_infer_config_file_get](#dsl_gie_infer_config_file_get) and [dsl_gie_model_engine_file_get](#dsl_gie_model_engine_file_get). Clients can update the File settings, while a GIE is not `in-use`, by calling [dsl_gie_infer_config_file_set](#dsl_gie_infer_config_file_set) and [dsl_gie_model_engine_file_set](#dsl_gie_model_engine_file_set).
+	
+The interval for inferencing (number of batched buffers skipped) can be changed by calling [dsl_gie_primary_interval_set](#dsl_gie_prmary_interval_set). Secondary GIEs inherit the single Primary GIE's interval setting when the Pipeline is played.
 
 ## Primary and Secondary GIE API
 * [dsl_gie_primary_new](#dsl_gie_primary_new)
@@ -9,8 +15,10 @@ Primary and Secondary GIE's are constructed by calling [dsl_gie_primary_new](#ds
 * [dsl_gie_infer_config_file_set](#dsl_gie_infer_config_file_set)
 * [dsl_gie_model_engine_file_get](#dsl_gie_model_engine_file_get)
 * [dsl_gie_model_engine_file_set](#dsl_gie_model_engine_file_set)
+* [dsl_gie_enable_raw_ouput](#dsl_gie_enable_raw_ouput)
+* [dsl_gie_disable_raw_output](#dsl_gie_enable_raw_ouput)
 * [dsl_gie_interval_get](#dsl_gie_interval_get)
-* [dsl_gie_interval_set](#dsl_gie_interval_set)
+* [dsl_gie_primary_interval_set](#dsl_gie_prmary_interval_set)
 * [dsl_gie_secondary_infer_on_get](#dsl_gie_secondary_infer_on_get)
 * [dsl_gie_secondary_infer_on_set](#dsl_gie_secondary_infer_on_set)
 
