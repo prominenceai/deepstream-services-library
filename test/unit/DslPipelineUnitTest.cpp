@@ -264,7 +264,62 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "[temp]" )
+SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no PrimaryGieBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, SecondaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName = "csi-source";
+        std::string sinkName = "overlay-sink";
+        std::string displayName = "tiled-display";
+        std::string pipelineName = "pipeline";
+        std::string primaryGieName = "primary-gie";
+        std::string secondaryGieName = "secondary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        
+        uint interval(1);
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), primaryGieName.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "All components are added to the PipelineBintr" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPipelineBintr->IsLinked() == false );
+
+            THEN( "The Pipeline is unable to LinkAll without a PrimaryGieBintr" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == false );
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "[PipelineBintr]" )
 {
     GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
     {
@@ -316,6 +371,74 @@ SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "
             THEN( "The Pipeline components are Linked correctly" )
             {
                 REQUIRE( pPipelineBintr->LinkAll() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Components", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string sourceName = "csi-source";
+        std::string displayName = "tiled-display";
+        std::string sinkName = "overlay-sink";
+        std::string primaryGieName = "primary-gie";
+        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string secondaryGieName = "secondary-gie";
+        std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string osdName = "on-screen-display";
+        
+        uint interval(1);
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), primaryGieName.c_str());
+
+        DSL_OSD_PTR pOsdBintr = 
+            DSL_OSD_NEW(osdName.c_str(), true);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "All components are added to the PipelineBintr" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+
+            THEN( "The Pipeline is able to LinkAll and UnlinkAll correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
             }
         }
     }

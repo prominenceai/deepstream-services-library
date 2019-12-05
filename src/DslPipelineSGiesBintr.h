@@ -152,13 +152,24 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_NODETR_PTR pChildElement);
-        
 
-    public: // Members are public for the purpose of Test/Verification only
-
+        /**
+         * @brief Tee's the output from the Primary GIE as input for all 
+         * 2nd-level SGIEs. 2nd-level SGIEs create their own Tees for all
+         * for any third level SGIEs, and so on.
+         */
         DSL_ELEMENT_PTR m_pTee;
+        
+        /**
+         * @brief All SGIEs, at all levels, infer on the same buffer of data
+         * which get's queued by this Elementr. A Pad Probe is used to block the
+         * output of the Queue until all inference by all SGIEs is complete.
+         */
         DSL_ELEMENT_PTR m_pQueue;
     
+        /**
+         * @brief map of all child SGIEs keyed by their unique component name
+         */
         std::map<std::string, DSL_SECONDARY_GIE_PTR> m_pChildSecondaryGies;
         
         /**
@@ -183,6 +194,8 @@ namespace DSL
         
         std::string m_primaryGieName;
         
+        uint m_primaryGieUniqueId;
+        
         uint m_batchSize;
         
         uint m_interval;
@@ -192,7 +205,6 @@ namespace DSL
         bool m_flush;
 
         GCond m_padWaitLock;
-        
     };
 
     /**

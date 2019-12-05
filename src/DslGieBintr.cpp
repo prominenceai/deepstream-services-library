@@ -29,11 +29,11 @@ THE SOFTWARE.
 namespace DSL
 {
     GieBintr::GieBintr(const char* name, const char* factoryname, uint processMode,
-        const char* inferConfigFile, const char* modelEngineFile, uint interval)
+        const char* inferConfigFile, const char* modelEngineFile)
         : Bintr(name)
         , m_processMode(processMode)
         , m_batchSize(0)
-        , m_interval(interval)
+        , m_interval(0)
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
     {
@@ -45,7 +45,6 @@ namespace DSL
             LOG_ERROR("Infer Config File '" << inferConfigFile << "' Not found");
             throw;
         }        
-
         // generate a unique Id for the GIE based on its unique name
         m_uniqueId = std::hash<std::string>{}(name);
         
@@ -56,10 +55,8 @@ namespace DSL
         
         // create and setup unique GIE Elementr
         m_pInferEngine = DSL_ELEMENT_NEW(factoryname, gieName.c_str());
-
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
-        m_pInferEngine->SetAttribute("interval", m_interval);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
@@ -126,7 +123,7 @@ namespace DSL
     
     PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
-        : GieBintr(name, NVDS_ELEM_PGIE, 1, inferConfigFile, modelEngineFile, interval)
+        : GieBintr(name, NVDS_ELEM_PGIE, 1, inferConfigFile, modelEngineFile)
     {
         LOG_FUNC();
         
@@ -135,6 +132,9 @@ namespace DSL
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        
+        // update the InferEngine interval setting
+        SetInterval(interval);
 
         AddChild(m_pInferEngine);
         AddChild(m_pVidConv);
@@ -158,9 +158,14 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (!m_batchSize)
+        {
+            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' can not be linked: batch size = 0");
+            return false;
+        }
         if (m_isLinked)
         {
-            LOG_ERROR("PrimaryGieBintr '" << m_name << "' is already linked");
+            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pVidConv) or !m_pVidConv->LinkToSink(m_pInferEngine))
@@ -179,7 +184,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("PrimaryGieBintr '" << m_name << "' is not linked");
+            LOG_ERROR("PrimaryGieBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -201,8 +206,8 @@ namespace DSL
     // ***********************************************************************
 
     SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, uint interval, const char* inferOnGieName)
-        : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile, interval)
+        const char* modelEngineFile, const char* inferOnGieName)
+        : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile)
         , m_inferOnGieName(inferOnGieName)
     {
         LOG_FUNC();
@@ -222,6 +227,11 @@ namespace DSL
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
+        
+        // Note: the Elementrs created/owned by this SecondaryGieBintr are added as 
+        // children to the parent PipelineSGiesBintr, and not to this Bintr's GST BIN
+        // In this way, all Secondary GIEs Infer on the same buffer of data, regardless
+        // of the depth of secondary Inference. Ghost Pads are not required for this bin
     }    
     
     SecondaryGieBintr::~SecondaryGieBintr()
@@ -238,14 +248,19 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (!m_batchSize)
+        {
+            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' can not be linked: batch size = 0");
+            return false;
+        }
         if (m_isLinked)
         {
-            LOG_ERROR("SecondaryGieBintr '" << m_name << "' is already linked");
+            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pInferEngine) or !m_pInferEngine->LinkToSink(m_pFakeSink))
         {
-            LOG_ERROR("SecondaryGieBintr '" << m_name << "' failed to link");
+            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' failed to link");
             return false;
         }
         
@@ -260,7 +275,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("SecondaryGieBintr '" << m_name << "' is not linked");
+            LOG_ERROR("SecondaryGieBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pInferEngine->UnlinkFromSink();

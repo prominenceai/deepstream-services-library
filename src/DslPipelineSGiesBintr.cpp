@@ -32,6 +32,7 @@ namespace DSL
         : Bintr(name)
         , m_stop(false)
         , m_flush(false)
+        , m_primaryGieUniqueId(0)
         , m_interval(0)
         , m_batchSize(0)
     {
@@ -165,7 +166,6 @@ namespace DSL
             // unlink the sink from the Tee
             pChildSecondaryGie->UnlinkFromSource();
         }
-
         // remove the SecondaryGie's Elements as children of this Bintr
         // remove the SecondaryGie's Elements as children of this Bintr
         if (!Bintr::RemoveChild(pChildSecondaryGie->GetQueueElementr()) or
@@ -176,7 +176,6 @@ namespace DSL
                 pChildSecondaryGie->GetName() << "' as childern of '" << GetName() << "'");
             return false;
         }
-        
         // unreference and remove from the collection
         m_pChildSecondaryGies.erase(pChildSecondaryGie->GetName());
         
@@ -194,33 +193,54 @@ namespace DSL
             LOG_ERROR("PipelineSecondaryGiesBintr '" << GetName() << "' is already linked");
             return false;
         }
-        
+        if (!m_primaryGieUniqueId)
+        {
+            LOG_ERROR("Unable to link PipelineSecondaryGiesBintr '" << GetName() << "' - PrimaryGie Not Set");
+            return false;
+        }
+        if (!m_batchSize)
+        {
+            LOG_ERROR("Unable to link PipelineSecondaryGiesBintr '" << GetName() << "' - batch size Not Set");
+            return false;
+        }
+        // Get a dynamic "src" pad for the Tee to link to the static "sink" pad of the shared-buffer-Queue
         GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(m_pTee->GetGstElement(), "src_%u");
-            
         if (!pGstRequestedSourcePad)
         {
             LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
             return false;
         }
-        
+        // Get the static "sink" pad for the Queue to link back with the dynamic "src" pad of the Tee
         m_pGstStaticSinkPad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
         if (!m_pGstStaticSinkPad)
         {
             LOG_ERROR("Failed to get Static Sink Pad for SecondaryGiesBintr '" << GetName() << "'");
             return false;
         }
+        // Always Link from "sink" pad back to "src" pad when linking Tees - link state is managed
+        // by each individual "sink" in the one-to-many relationship 
         if (!m_pQueue->LinkToSource(m_pTee))
         {
             return false;
         }
-        
+        // TODO - recursively handle multiple levels of Secondary Inference
         for (auto const& imap: m_pChildSecondaryGies)
         {
-            if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
+            if (imap.second->GetInferOnGieUniqueId() == m_primaryGieUniqueId)
             {
-                LOG_ERROR("PipelineSecondaryGiesBintr '" << GetName() 
-                    << "' failed to Link Child SecondaryGie '" << imap.second->GetName() << "'");
-                return false;
+                // batch size and interval are set to that of the Primary GIE
+                imap.second->SetBatchSize(m_batchSize);
+                imap.second->SetInterval(m_interval);
+                
+                LOG_INFO("Linking " << m_pTee->GetName() << " from " << imap.second->GetName());
+                
+                // Link al SGIE Elementrs and Link back with the Primary Tee
+                if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
+                {
+                    LOG_ERROR("PipelineSecondaryGiesBintr '" << GetName() 
+                        << "' failed to Link Child SecondaryGie '" << imap.second->GetName() << "'");
+                    return false;
+                }
             }
         }
         m_isLinked = true;
@@ -244,7 +264,6 @@ namespace DSL
             {
                 LOG_ERROR("PipelineSecondaryGiesBintr '" << GetName() 
                     << "' failed to Unlink Child SecondaryGie '" << imap.second->GetName() << "'");
-                return;
             }
             // unink all of the ChildSecondaryGie's Elementrs
             imap.second->UnlinkAll();
@@ -258,6 +277,7 @@ namespace DSL
         LOG_FUNC();
         
         m_primaryGieName = name;
+        m_primaryGieUniqueId = std::hash<std::string>{}(name);
     }
     
     uint PipelineSecondaryGiesBintr::GetBatchSize()
@@ -272,11 +292,6 @@ namespace DSL
         LOG_FUNC();
         
         m_batchSize = batchSize;
-        
-        for (auto const& imap: m_pChildSecondaryGies)
-        {
-            imap.second->SetBatchSize(batchSize);
-        }
     }
     
     uint PipelineSecondaryGiesBintr::GetInterval()
@@ -291,11 +306,6 @@ namespace DSL
         LOG_FUNC();
         
         m_interval = interval;
-        
-        for (auto const& imap: m_pChildSecondaryGies)
-        {
-            imap.second->SetInterval(interval);
-        }
     }
     
     GstPadProbeReturn PipelineSecondaryGiesBintr::HandleSecondaryGiesSinkProbe(
@@ -340,6 +350,10 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
+    // ************************************************************************
+    // Sink and Src Pad Probe Callback functions for all Pipelines...
+    // Callback user-data points to the Instance of PipelineSecondaryGiesBintr
+    
     static GstPadProbeReturn SecondaryGiesSinkProbeCB(GstPad* pPad, 
         GstPadProbeInfo* pInfo, gpointer pGiesBintr)
     {

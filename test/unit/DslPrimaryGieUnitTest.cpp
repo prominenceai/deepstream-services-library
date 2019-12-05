@@ -60,7 +60,7 @@ SCENARIO( "A new PrimaryGieBintr is created correctly",  "[PrimaryGieBintr]" )
     }
 }
 
-SCENARIO( "A new PrimaryGieBintr can LinkAll Child Elementrs",  "[PrimaryGieBintr]" )
+SCENARIO( "A new PrimaryGieBintr can not LinkAll without setting the Batch Size first",  "[PrimaryGieBintr]" )
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
@@ -74,8 +74,35 @@ SCENARIO( "A new PrimaryGieBintr can LinkAll Child Elementrs",  "[PrimaryGieBint
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
-        WHEN( "A new PrimaryGieBintr is Linked" )
+        WHEN( "A new PrimaryGieBintr is requested to LinkAll prior to setting the Batch Size" )
         {
+            REQUIRE( pPrimaryGieBintr->LinkAll() == false );
+            
+            THEN( "The PrimaryGieBintr remains in an Unlinked state" )
+            {
+                REQUIRE( pPrimaryGieBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new PrimaryGieBintr with its Batch Size set can LinkAll Child Elementrs",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        WHEN( "The Batch Size is set and the PrimaryGieBintr is asked to LinkAll" )
+        {
+            pPrimaryGieBintr->SetBatchSize(1);
             REQUIRE( pPrimaryGieBintr->LinkAll() == true );
             
             THEN( "The PrimaryGieBintr IsLinked state is updated correctly" )
@@ -85,6 +112,7 @@ SCENARIO( "A new PrimaryGieBintr can LinkAll Child Elementrs",  "[PrimaryGieBint
         }
     }
 }
+
 
 SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGieBintr]" )
 {
@@ -100,6 +128,7 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
+        pPrimaryGieBintr->SetBatchSize(1);
         REQUIRE( pPrimaryGieBintr->LinkAll() == true );
 
         WHEN( "A new PrimaryGieBintr is created" )
@@ -130,6 +159,7 @@ SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]
 
         WHEN( "A new PrimaryGieBintr is Linked" )
         {
+            pPrimaryGieBintr->SetBatchSize(1);
             REQUIRE( pPrimaryGieBintr->LinkAll() == true );
             
             THEN( "The PrimaryGieBintr can not be linked again" )

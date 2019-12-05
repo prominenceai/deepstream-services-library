@@ -42,9 +42,9 @@ namespace DSL
         name, inferConfigFile, modelEngineFile, interval))
 
     #define DSL_SECONDARY_GIE_PTR std::shared_ptr<SecondaryGieBintr>
-    #define DSL_SECONDARY_GIE_NEW(name, inferConfigFile, modelEngineFile, interval, inferOnGieName) \
+    #define DSL_SECONDARY_GIE_NEW(name, inferConfigFile, modelEngineFile, inferOnGieName) \
         std::shared_ptr<SecondaryGieBintr>(new SecondaryGieBintr( \
-        name, inferConfigFile, modelEngineFile, interval, inferOnGieName))
+        name, inferConfigFile, modelEngineFile, inferOnGieName))
 
     /**
      * @class GieBintr
@@ -62,7 +62,7 @@ namespace DSL
          * @param[in] interval
          */
         GieBintr(const char* name, const char* factoryname, uint processMode,
-            const char* inferConfigFile, const char* modelEngineFile, uint interval);
+            const char* inferConfigFile, const char* modelEngineFile);
 
         /**
          * @brief dtor for the GieBintr
@@ -225,11 +225,10 @@ namespace DSL
          * @param[in] name name to give the new Bintr
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEnginFile fully qualified pathspec for the model engine file to use
-         * @param[in] interval
          * @param[in] inferOnGieName
          */
         SecondaryGieBintr(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, uint interval, const char* inferOnGieName);
+            const char* modelEngineFile, const char* inferOnGieName);
 
         /**
          * @brief dtor for the SecondaryGieBintr
