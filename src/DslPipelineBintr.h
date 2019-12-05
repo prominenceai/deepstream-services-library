@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
+#include "DslPipelineSGiesBintr.h"
 #include "DslPipelineSinksBintr.h"
     
 namespace DSL 
@@ -113,6 +114,12 @@ namespace DSL
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
         bool AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
+
+        /**
+         * @brief adds a single Secondary GIE Nodetr to this Pipeline 
+         * @param[in] pSecondaryGieNodetr shared pointer to SGIE Nodetr to add
+         */
+        bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
 
         /**
          * @brief adds a single Display Bintr to this Pipeline 
@@ -276,25 +283,30 @@ namespace DSL
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         
         /**
-         * @brief processing bin for all Sink and OSD bins in this Pipeline
-         */
-        DSL_PIPELINE_SINKS_PTR m_pPipelineSinksBintr;
-        
-        /**
-         * @brief the one and only Display for this Pipeline
+         * @brief optional, one at most Primary GIE for this Pipeline
          */
         DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
         
         /**
-         * @brief the one and only optional OSD for this Pipeline
+         * @brief optional, one or more Secondary GIEs for this Pipeline
+         */
+        DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
+        
+        /**
+         * @brief optional, one at most OSD for this Pipeline
          */
         DSL_OSD_PTR m_pOsdBintr;
         
         /**
-         * @brief the one and only optional Tiled Display for this Pipeline
+         * @brief optional one and only optional Tiled Display for this Pipeline
          */
         DSL_DISPLAY_PTR m_pDisplayBintr;
                         
+        /**
+         * @brief parent bin for all Sink bins in this Pipeline
+         */
+        DSL_PIPELINE_SINKS_PTR m_pPipelineSinksBintr;
+        
         /**
          * @brief map of all currently registered state-change-listeners
          * callback functions mapped with the user provided data

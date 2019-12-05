@@ -40,6 +40,7 @@ THE SOFTWARE.
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <unordered_map>
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>

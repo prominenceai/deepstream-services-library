@@ -77,6 +77,7 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
             THEN( "The Pipeline Sources Bintr is updated correctly" )
             {
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 1 );
+                REQUIRE( pPipelineSourcesBintr->IsChild(pSourceBintr) == true );
                 REQUIRE( pSourceBintr->IsInUse() == true );
                 REQUIRE( pSourceBintr->GetSourceId() == -1 );
             }
@@ -254,7 +255,7 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
     }
 }
 
-SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", "[test]" )
+SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", "[PipelineSourcesBintr]" )
 {
     GIVEN( "Attributes for a new PipelineSourcesBintr and several new SourcesBintrs" ) 
     {

@@ -31,8 +31,6 @@ namespace DSL
 
     PipelineSinksBintr::PipelineSinksBintr(const char* name)
         : Bintr(name)
-        , m_pQueue(NULL)
-        , m_pTee(NULL)
     {
         LOG_FUNC();
 

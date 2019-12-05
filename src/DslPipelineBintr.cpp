@@ -151,17 +151,29 @@ namespace DSL
         return AddChild(pPrmaryGieBintr);
     }
 
+    bool PipelineBintr::AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr)
+    {
+        LOG_FUNC();
+        
+        // Create the optional Secondary GIEs bintr 
+        if (!m_pSecondaryGiesBintr)
+        {
+            m_pSecondaryGiesBintr = DSL_PIPELINE_SGIES_NEW("sgies-bin");
+            AddChild(m_pSecondaryGiesBintr);
+        }
+        return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
+    }
+
     bool PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();
         
-        // Create the shared Process bintr if it doesn't exist
+        // Create the shared Sinks bintr if it doesn't exist
         if (!m_pPipelineSinksBintr)
         {
-            m_pPipelineSinksBintr = std::shared_ptr<PipelineSinksBintr>(new PipelineSinksBintr("sinks-bin"));
+            m_pPipelineSinksBintr = DSL_PIPELINE_SINKS_NEW("sinks-bin");
             AddChild(m_pPipelineSinksBintr);
         }
-
         return m_pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
 
@@ -294,16 +306,19 @@ namespace DSL
             LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
-        
         if (!m_pPipelineSourcesBintr)
         {
-            LOG_ERROR("Pipline has no Source component");
+            LOG_ERROR("Pipline has no required Source component - and is unable to link");
             return false;
         }
-        
         if (!m_pPipelineSinksBintr)
         {
-            LOG_ERROR("Pipline has no Sink component");
+            LOG_ERROR("Pipline has no required Sink component - and is unable to link");
+            return false;
+        }
+        if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
+        {
+            LOG_ERROR("Pipline has a Seconday GIE and no Primary GIE - and is unable to linke");
             return false;
         }
         
@@ -323,6 +338,20 @@ namespace DSL
             m_pPrimaryGieBintr->LinkAll();
             m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr);
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
+        }
+        
+        if (m_pSecondaryGiesBintr)
+        {
+            m_pSecondaryGiesBintr->SetInterval(m_pPrimaryGieBintr->GetInterval());
+
+            // Set the Secondary GIE's batch size and interval to the same as the Primary GIE's
+            m_pSecondaryGiesBintr->SetPrimaryGieName(m_pPrimaryGieBintr->GetCStrName());
+            m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
+            
+            // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Pipeline
+            m_pSecondaryGiesBintr->LinkAll();
+            m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr);
+            m_linkedComponents.push_back(m_pSecondaryGiesBintr);
         }
         
         if (m_pDisplayBintr)

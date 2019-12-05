@@ -75,9 +75,20 @@ namespace DSL
         
         /**
          * @brief return the name given to this Nodetr on creation
-         * @return const string name given to this Nodetr
+         * @return const std::string name given to this Nodetr
          */
-        const char* GetName()
+        const std::string& GetName()
+        {
+            LOG_FUNC();
+            
+            return m_name;
+        }
+        
+        /**
+         * @brief return the name given to this Nodetr on creation
+         * @return const c_str name given to this Nodetr
+         */
+        const char* GetCStrName()
         {
             LOG_FUNC();
             
@@ -575,7 +586,7 @@ namespace DSL
             // Then call GST to Link Source Element to Sink Element 
             if (!Nodetr::LinkToSource(pSource) or !gst_element_link(m_pSource->GetGstElement(), GetGstElement()))
             {
-                LOG_ERROR("Failed to link Souce '" << pSource->GetName() << " to Sink" << GetName());
+                LOG_ERROR("Failed to link Source '" << pSource->GetName() << " to Sink" << GetName());
                 return false;
             }
             return true;
