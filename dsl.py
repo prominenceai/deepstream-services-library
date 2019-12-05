@@ -96,14 +96,25 @@ def dsl_osd_new(name, is_clock_enabled):
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
+    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
 _dsl.dsl_gie_primary_new.restype = ctypes.c_uint
-def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval, unique_id):
+def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
     global _dsl
-    result =_dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval, unique_id)
+    result =_dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
     return int(result)
 #print(dsl_gie_primary_new("primary-gie", "../../test/configs/config_infer_primary_nano.txt", 
 #    "../../test/models/Primary_Detector_Nano/resnet10.caffemodel", 0, 0))
+
+##
+## dsl_gie_secondary_new()
+##
+_dsl.dsl_gie_secondary_new.argtypes = \
+    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p]
+_dsl.dsl_gie_secondary_new.restype = ctypes.c_uint
+def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name):
+    global _dsl
+    result =_dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name)
+    return int(result)
 
 ##
 ## dsl_display_new()

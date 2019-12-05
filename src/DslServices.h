@@ -80,6 +80,9 @@ namespace DSL {
         DslReturnType PrimaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
             const wchar_t* modelEngineFile, uint interval);
         
+        DslReturnType SecondaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
+            const wchar_t* modelEngineFile, const wchar_t* inferOnGieName);
+        
         DslReturnType DisplayNew(const wchar_t* name, uint width, uint height);
         
         DslReturnType DisplayDimensionsGet(const wchar_t* name, uint* width, uint* height);

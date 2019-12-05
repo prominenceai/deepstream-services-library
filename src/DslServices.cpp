@@ -72,6 +72,20 @@ void dsl_source_set_num_in_use_max(uint max)
     return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
 }
 
+DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* model_engine_file, uint interval)
+{
+    return DSL::Services::GetServices()->PrimaryGieNew(name, infer_config_file,
+        model_engine_file, interval);
+}
+
+DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
+    const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name)
+{
+    return DSL::Services::GetServices()->SecondaryGieNew(name, infer_config_file,
+        model_engine_file, infer_on_gie_name);
+}
+    
 DslReturnType dsl_sink_overlay_new(const wchar_t* name,
     uint offsetX, uint offsetY, uint width, uint height)
 {
@@ -107,13 +121,6 @@ DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows)
 DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows)
 {
     return DSL::Services::GetServices()->DisplayTilesSet(name, cols, rows);
-}
-
-DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* inferConfigFile,
-    const wchar_t* modelEngineFile, uint interval)
-{
-    return DSL::Services::GetServices()->PrimaryGieNew(name, inferConfigFile,
-        modelEngineFile, interval);
 }
 
 DslReturnType dsl_component_delete(const wchar_t* component)
@@ -911,7 +918,52 @@ namespace DSL
             LOG_ERROR("New Primary GIE '" << CP_WTCSTR(name) << "' threw exception on create");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        LOG_INFO("new GIE '" << CP_WTCSTR(name) << "' created successfully");
+        LOG_INFO("new Primary GIE '" << CP_WTCSTR(name) << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SecondaryGieNew(const wchar_t* name, const wchar_t* inferConfigFile,
+        const wchar_t* modelEngineFile, const wchar_t* inferOnGieName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[CP_WTCSTR(name)])
+        {   
+            LOG_ERROR("GIE name '" << CP_WTCSTR(name) << "' is not unique");
+            return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
+        }
+        
+        LOG_INFO("Infer config file: " << FL1_WTCSTR(inferConfigFile));
+        
+        std::ifstream configFile(FL1_WTCSTR(inferConfigFile));
+        if (!configFile.good())
+        {
+            LOG_ERROR("Infer Config File not found");
+            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+        }
+        
+        LOG_INFO("Model engine file: " << FL2_WTCSTR(modelEngineFile));
+        
+        std::ifstream modelFile(FL2_WTCSTR(modelEngineFile));
+        if (!modelFile.good())
+        {
+            LOG_ERROR("Model Engine File not found");
+            return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+        }
+        try
+        {
+            m_components[CP_WTCSTR(name)] = DSL_SECONDARY_GIE_NEW(CP_WTCSTR(name), 
+                FL1_WTCSTR(inferConfigFile), FL2_WTCSTR(modelEngineFile), PL_WTCSTR(inferOnGieName));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Primary GIE '" << CP_WTCSTR(name) << "' threw exception on create");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Secondary GIE '" << CP_WTCSTR(name) << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
