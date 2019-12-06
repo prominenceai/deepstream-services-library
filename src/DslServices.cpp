@@ -31,13 +31,19 @@ GST_DEBUG_CATEGORY(GST_CAT_DSL);
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {
-    return DSL::Services::GetServices()->SourceCsiNew(name, 
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceCsiNew(cstrName.c_str(), 
         width, height, fps_n, fps_d);
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, 
     const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
     return DSL::Services::GetServices()->SourceUriNew(name,
         uri, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
@@ -515,28 +521,28 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
-    DslReturnType Services::SourceCsiNew(const wchar_t* name,
+    DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fps_n, uint fps_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[CP_WTCSTR(name)])
+        if (m_components[name])
         {   
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[CP_WTCSTR(name)] = DSL_CSI_SOURCE_NEW(CP_WTCSTR(name), width, height, fps_n, fps_d);
+            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d);
         }
         catch(...)
         {
-            LOG_ERROR("New CSI Source '" << CP_WTCSTR(name) << "' threw exception on create");
+            LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new CSI Source '" << CP_WTCSTR(name) << "' created successfully");
+        LOG_INFO("new CSI Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
