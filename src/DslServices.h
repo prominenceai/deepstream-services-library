@@ -54,7 +54,7 @@ namespace DSL {
          ***************************************************************/
         DslReturnType SetDumpDotDir(const wchar_t* dir);
         
-        DslReturnType SourceCsiNew(const wchar_t* name, 
+        DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
         DslReturnType SourceUriNew(const wchar_t* name, 
