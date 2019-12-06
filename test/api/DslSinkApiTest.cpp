@@ -37,7 +37,6 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         WHEN( "A new Primary GIE is created" ) 
         {
@@ -48,10 +47,6 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                REQUIRE( *(dsl_component_list_all()) != NULL );
-                
-                std::wstring returnedName = *(dsl_component_list_all());
-                REQUIRE( returnedName == overlaySinkName );
             }
         }
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -70,7 +65,6 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
@@ -81,7 +75,6 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
             THEN( "The list and contents are updated correctly" )
             {
                 REQUIRE( dsl_component_list_size() == 0 );
-                REQUIRE( *(dsl_component_list_all()) == NULL );
             }
         }
     }
@@ -118,9 +111,7 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
 
@@ -155,9 +146,7 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
 

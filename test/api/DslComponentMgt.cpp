@@ -35,7 +35,6 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
         std::wstring tiledDisplayName = L"tiled-display";
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         WHEN( "Several new components are created" ) 
         {
@@ -46,31 +45,11 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
 
             THEN( "The list size and contents are updated correctly" ) 
             {
+                // TODO complete verification after addition of Iterator API
                 REQUIRE( dsl_component_list_size() == 3 );
-                
-                const wchar_t** returnedList = dsl_component_list_all();
-                               
-                REQUIRE( *(returnedList) != NULL );
-                std::wstring returnedSourceName = *returnedList;
-                std::wcout << returnedSourceName;
-//                REQUIRE( returnedSourceName == sourceName );
-                
-                returnedList++;
-                REQUIRE( *(returnedList) != NULL );
-                std::wstring returnedOverlaySinkName = *returnedList;
-//                REQUIRE( returnedOverlaySinkName == overlaySinkName );
-
-                returnedList++;
-                REQUIRE( *(returnedList) != NULL );
-                std::wstring returnedTiledDisplayName = *returnedList;
-//                REQUIRE( returnedTiledDisplayName == tiledDisplayName );
-
-                returnedList++;
-                REQUIRE( *(returnedList) == NULL );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
-                REQUIRE( *(dsl_component_list_all()) == NULL );
             }
         }
     }

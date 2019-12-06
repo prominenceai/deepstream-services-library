@@ -73,9 +73,7 @@ SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp",
         THEN( "the containers are updated correctly")
         {
             REQUIRE( dsl_pipeline_list_size() == 0 );
-            REQUIRE( *(dsl_pipeline_list_all()) == NULL );
             REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( *(dsl_component_list_all()) == NULL );
         }
     }
 }

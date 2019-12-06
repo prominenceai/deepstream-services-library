@@ -54,7 +54,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
@@ -120,7 +119,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
@@ -191,7 +189,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
@@ -264,7 +261,6 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );

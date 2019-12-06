@@ -179,12 +179,25 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name,
 
 DslReturnType dsl_component_delete(const wchar_t* component)
 {
-    return DSL::Services::GetServices()->ComponentDelete(component);
+    std::wstring wstrComponent(component);
+    std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+
+    return DSL::Services::GetServices()->ComponentDelete(cstrComponent.c_str());
 }
 
-DslReturnType dsl_component_delete_many(const wchar_t** names)
+DslReturnType dsl_component_delete_many(const wchar_t** components)
 {
-    return DSL::Services::GetServices()->ComponentDeleteMany(names);
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentDelete(cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_component_delete_all()
@@ -197,11 +210,6 @@ uint dsl_component_list_size()
     return DSL::Services::GetServices()->ComponentListSize();
 }
 
-const wchar_t** dsl_component_list_all()
-{
-    return DSL::Services::GetServices()->ComponentListAll();
-}
-
 DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
 {
     std::wstring wstrPipeline(pipeline);
@@ -212,7 +220,17 @@ DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
 {
-    return DSL::Services::GetServices()->PipelineNewMany(pipelines);
+    for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
+    {
+        std::wstring wstrPipeline(*pipeline);
+        std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_delete(const wchar_t* pipeline)
@@ -225,7 +243,17 @@ DslReturnType dsl_pipeline_delete(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines)
 {
-    return DSL::Services::GetServices()->PipelineDeleteMany(pipelines);
+    for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
+    {
+        std::wstring wstrPipeline(*pipeline);
+        std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineDelete(cstrPipeline.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_delete_all()
@@ -236,11 +264,6 @@ DslReturnType dsl_pipeline_delete_all()
 uint dsl_pipeline_list_size()
 {
     return DSL::Services::GetServices()->PipelineListSize();
-}
-
-const wchar_t** dsl_pipeline_list_all()
-{
-    return DSL::Services::GetServices()->PipelineListAll();
 }
 
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
@@ -257,7 +280,20 @@ DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components)
 {
-    return DSL::Services::GetServices()->PipelineComponentAddMany(pipeline, components);
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrPipeline.c_str(), cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
@@ -274,7 +310,20 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
     const wchar_t** components)
 {
-    return DSL::Services::GetServices()->PipelineComponentRemoveMany(pipeline, components);
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentRemove(cstrPipeline.c_str(), cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
@@ -367,40 +416,64 @@ DslReturnType dsl_pipeline_get_state(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename)
 {
-    return DSL::Services::GetServices()->PipelineDumpToDot(pipeline, filename);
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrFilename(filename);
+    std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
+
+    return DSL::Services::GetServices()->PipelineDumpToDot(cstrPipeline.c_str(), 
+        const_cast<char*>(cstrFilename.c_str()));
 }
 
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename)
 {
-    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(pipeline, filename);    
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    std::wstring wstrFilename(filename);
+    std::string cstrFilename(wstrFilename.begin(), wstrFilename.end());
+
+    return DSL::Services::GetServices()->PipelineDumpToDotWithTs(cstrPipeline.c_str(), 
+        const_cast<char*>(cstrFilename.c_str()));
 }
 
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener, void* userdata)
 {
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
     return DSL::Services::GetServices()->
-        PipelineStateChangeListenerAdd(pipeline, listener, userdata);
+        PipelineStateChangeListenerAdd(cstrPipeline.c_str(), listener, userdata);
 }
 
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener)
 {
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
     return DSL::Services::GetServices()->
-        PipelineStateChangeListenerRemove(pipeline, listener);
+        PipelineStateChangeListenerRemove(cstrPipeline.c_str(), listener);
 }
 
 DslReturnType dsl_pipeline_display_event_handler_add(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler, void* userdata)
 {
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
     return DSL::Services::GetServices()->
-        PipelineDisplayEventHandlerAdd(pipeline, handler, userdata);
+        PipelineDisplayEventHandlerAdd(cstrPipeline.c_str(), handler, userdata);
 }    
 
 DslReturnType dsl_pipeline_display_event_handler_remove(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler)
 {
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
     return DSL::Services::GetServices()->
-        PipelineDisplayEventHandlerRemove(pipeline, handler);
+        PipelineDisplayEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
 #define RETURN_IF_PIPELINE_NAME_NOT_FOUND(_pipelines_, _name_) do \
@@ -420,106 +493,6 @@ DslReturnType dsl_pipeline_display_event_handler_remove(const wchar_t* pipeline,
         return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
     } \
 }while(0); 
-
-/**
- * @brief Static conversion memory for Component names.
- */
-static std::wstring _cp_wstr_;
-static std::string _cp_cstr_;
-/**
- * @brief Converts a UNICODE character string to ASCII
- * @param wstr UNICODE character string to convert
- * @return a constant ASCII string
- */
-inline const char* CP_WTCSTR(const wchar_t* wstr)
-{
-    _cp_wstr_.assign(wstr);
-    _cp_cstr_.assign(_cp_wstr_.begin(), _cp_wstr_.end());
-    return _cp_cstr_.c_str();
-}
-
-/**
- * @brief Converts an ASCII UNICODE character string to ASCII
- * @param wstr UNICODE character string to convert
- * @return a constant ASCII character string to UNICODE
- */
-inline const wchar_t* CP_CTWSTR(const char* cstr)
-{
-    _cp_cstr_.assign(cstr); \
-    _cp_wstr_.assign(_cp_cstr_.begin(), _cp_cstr_.end());
-    return _cp_wstr_.c_str();
-}
-
-/**
- * @brief Static conversion memory for Pipeline names.
- */
-static std::wstring _pl_wstr_;
-static std::string _pl_cstr_;
-/**
- * @brief Converts a UNICODE character string to ASCII
- * @param wstr UNICODE character string to convert
- * @return a constant ASCII string
- */
-inline const char* PL_WTCSTR(const wchar_t* wstr)
-{
-    _pl_wstr_.assign(wstr);
-    _pl_cstr_.assign(_pl_wstr_.begin(), _pl_wstr_.end());
-    return _pl_cstr_.c_str();
-}
-
-/**
- * @brief Converts an ASCII UNICODE character string to ASCII
- * @param wstr UNICODE character string to convert
- * @return a constant ASCII character string to UNICODE
- */
-inline const wchar_t* PL_CTWSTR(const char* cstr)
-{
-    _pl_cstr_.assign(cstr); \
-    _pl_wstr_.assign(_pl_cstr_.begin(), _pl_cstr_.end());
-    return _pl_wstr_.c_str();
-}
-
-/**
- * @brief Static conversion memory for File names.
- */
-static std::wstring _fl1_wstr_;
-static std::string _fl1_cstr_;
-/**
- * @brief Converts a UNICODE character string to ASCII
- * @param wstr UNICODE character string to convert
- * @return a constant ASCII string
- */
-inline const char* FL1_WTCSTR(const wchar_t* wstr)
-{
-    _fl1_wstr_.assign(wstr);
-    _fl1_cstr_.assign(_fl1_wstr_.begin(), _fl1_wstr_.end());
-    return _fl1_cstr_.c_str();
-}
-
-static std::wstring _fl2_wstr_;
-static std::string _fl2_cstr_;
-
-inline const char* FL2_WTCSTR(const wchar_t* wstr)
-{
-    _fl2_wstr_.assign(wstr);
-    _fl2_cstr_.assign(_fl2_wstr_.begin(), _fl2_wstr_.end());
-    return _fl2_cstr_.c_str();
-}
-
-
-//TODO - revisit need to remove const.
-/**
- * @brief Converts a UNICODE character string to ASCII - non const return version
- * require for GStreamer DOT file API
- * @param wstr UNICODE character string to convert
- * @return a non-constant, non-type-safe ASCII string 
- */
-inline char* WTCSTR_NC(const wchar_t* wstr)
-{
-    _fl1_wstr_.assign(wstr); \
-    _fl1_cstr_.assign(_cp_wstr_.begin(), _cp_wstr_.end());
-    return const_cast<char*>(_cp_cstr_.c_str());
-}
 
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
@@ -561,9 +534,6 @@ namespace DSL
 {
     // Initialize the Services's single instance pointer
     Services* Services::m_pInstatnce = NULL;
-
-    std::vector<const wchar_t*> Services::m_pipelineNames;
-    std::vector<const wchar_t*> Services::m_componentNames;
 
     Services* Services::GetServices()
     {
@@ -1068,55 +1038,24 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::ComponentDelete(const wchar_t* component)
+    DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(component));
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
-        if (m_components[CP_WTCSTR(component)]->IsInUse())
+        if (m_components[component]->IsInUse())
         {
-            LOG_INFO("Component '" << CP_WTCSTR(component) << "' is in use");
+            LOG_INFO("Component '" << component << "' is in use");
             return DSL_RESULT_COMPONENT_IN_USE;
         }
-        m_components.erase(CP_WTCSTR(component));
+        m_components.erase(component);
 
-        LOG_INFO("Component '" << CP_WTCSTR(component) << "' deleted successfully");
+        LOG_INFO("Component '" << component << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::ComponentDeleteMany(const wchar_t** components)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // iterate through the list of provided components to verifiy the
-        // existence of each... AND that each is not owned by a pipeline 
-        // before making any updates to the list of components.
-        for (const wchar_t** component = components; *component; component++)
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(*component));
-
-            if (m_components[CP_WTCSTR(*component)]->IsInUse())
-            {   
-                LOG_ERROR("Component '" << CP_WTCSTR(*component) << "' is currently in use");
-                return DSL_RESULT_COMPONENT_IN_USE;
-            }
-        }
-        LOG_DEBUG("All listed components found and un-owned");
-        
-        // iterate through the list a second time erasing each
-        for (const wchar_t** component = components; *component; component++)
-        {
-            m_components.erase(CP_WTCSTR(*component));
-        }
-
-        LOG_INFO("All Components deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::ComponentDeleteAll()
     {
         LOG_FUNC();
@@ -1149,24 +1088,6 @@ namespace DSL
         return m_components.size();
     }
     
-    const wchar_t** Services::ComponentListAll()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        m_componentNames.clear();
-        
-        // reserve to avoid resizing - plus 1 for the NULL terminator
-        m_componentNames.reserve(m_components.size() + 1);
-        for(auto const& imap: m_components)
-        {
-            m_componentNames.push_back(CP_CTWSTR(imap.first.c_str()));
-        }
-        m_componentNames.push_back(NULL);
-        
-        return (const wchar_t**)&m_componentNames[0];
-    }
-    
     DslReturnType Services::PipelineNew(const char* name)
     {
         LOG_FUNC();
@@ -1191,31 +1112,6 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PipelineNewMany(const wchar_t** pipelines)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
-        {
-            if (m_pipelines[PL_WTCSTR(*pipeline)])
-            {   
-                LOG_ERROR("Pipeline name '" << *pipeline << "' is not unique");
-                return DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE;
-            }
-            try
-            {
-                m_pipelines[PL_WTCSTR(*pipeline)] = std::shared_ptr<PipelineBintr>(new PipelineBintr(CP_WTCSTR(*pipeline)));
-            }
-            catch(...)
-            {
-                LOG_ERROR("New Pipeline '" << PL_WTCSTR(*pipeline) << "' threw exception on create");
-                return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
-            }
-            LOG_INFO("new PIPELINE '" << PL_WTCSTR(*pipeline) << "' created successfully");
-        }
-    }
-    
     DslReturnType Services::PipelineDelete(const char* pipeline)
     {
         LOG_FUNC();
@@ -1226,31 +1122,6 @@ namespace DSL
         m_pipelines.erase(pipeline);
 
         LOG_INFO("Pipeline '" << pipeline << "' deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::PipelineDeleteMany(const wchar_t** pipelines)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // iterate through the list of provided pipelines to verifiy the
-        // existence of each before making any updates to the list of pipelines.
-        for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
-        {
-            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(*pipeline));
-        }
-        LOG_DEBUG("All listed pipelines found");
-        
-        // iterate through the list a second time erasing each
-        for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
-        {
-            m_pipelines[PL_WTCSTR(*pipeline)]->RemoveAllChildren();
-            m_pipelines.erase(PL_WTCSTR(*pipeline));
-        }
-
-        LOG_INFO("All Pipelines deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -1278,24 +1149,6 @@ namespace DSL
         return m_pipelines.size();
     }
     
-    const wchar_t** Services::PipelineListAll()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        m_pipelineNames.clear();
-        
-        // reserve to avoid resizing - plus 1 for the NULL terminator
-        m_pipelineNames.reserve(m_pipelines.size() + 1);
-        for(auto const& imap: m_pipelines)
-        {
-            m_pipelineNames.push_back(PL_CTWSTR(imap.first.c_str()));
-        }
-        m_pipelineNames.push_back(NULL);
-        
-        return (const wchar_t**)&m_pipelineNames[0];
-    }
-    
     DslReturnType Services::PipelineComponentAdd(const char* pipeline, 
         const char* component)
     {
@@ -1317,44 +1170,7 @@ namespace DSL
             return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
         }
     }    
-        
     
-    DslReturnType Services::PipelineComponentAddMany(const wchar_t* pipeline, 
-        const wchar_t** components)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
-        
-        // iterate through the list of provided components to verifiy the
-        //  existence of each - before making any updates to the pipeline.
-        for (const wchar_t** component = components; *component; component++)
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, CP_WTCSTR(*component));
-        }
-        LOG_INFO("All listed components found");
-        
-        // iterate through the list of provided components a second time
-        // adding each to the named pipeline individually.
-        for (const wchar_t** component = components; *component; component++)
-        {
-            try
-            {
-                m_components[CP_WTCSTR(*component)]->AddToParent(m_pipelines[PL_WTCSTR(pipeline)]);
-                LOG_INFO("Component '" << CP_WTCSTR(*component) 
-                    << "' was added to Pipeline '" << PL_WTCSTR(pipeline) << "' successfully");
-            }
-            catch(...)
-            {
-                LOG_ERROR("Pipeline '" << PL_WTCSTR(pipeline) 
-                    << "' threw exception adding component '" << CP_WTCSTR(*component) << "'");
-                return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
-            }
-        }
-        
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::PipelineComponentRemove(const char* pipeline, 
         const char* component)
     {
@@ -1381,16 +1197,6 @@ namespace DSL
         }
         return DSL_RESULT_SUCCESS;
 }
-    
-    DslReturnType Services::PipelineComponentRemoveMany(const wchar_t* pipeline, 
-        const wchar_t** components)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
-
-        return DSL_RESULT_API_NOT_IMPLEMENTED;
-    }
     
     DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const char* pipeline,
         uint* batchSize, uint* batchTimeout)    
@@ -1593,87 +1399,87 @@ namespace DSL
         return DSL_RESULT_API_NOT_IMPLEMENTED;
     }
         
-    DslReturnType Services::PipelineDumpToDot(const wchar_t* pipeline, wchar_t* filename)
+    DslReturnType Services::PipelineDumpToDot(const char* pipeline, char* filename)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // TODO check state of debug env var and return NON-success if not set
 
-        m_pipelines[PL_WTCSTR(pipeline)]->DumpToDot(WTCSTR_NC(filename));
+        m_pipelines[pipeline]->DumpToDot(filename);
         
         return DSL_RESULT_SUCCESS;
     }   
     
-    DslReturnType Services::PipelineDumpToDotWithTs(const wchar_t* pipeline, wchar_t* filename)
+    DslReturnType Services::PipelineDumpToDotWithTs(const char* pipeline, char* filename)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         // TODO check state of debug env var and return NON-success if not set
 
-        m_pipelines[PL_WTCSTR(pipeline)]->DumpToDot(WTCSTR_NC(filename));
+        m_pipelines[pipeline]->DumpToDot(filename);
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PipelineStateChangeListenerAdd(const wchar_t* pipeline, 
+    DslReturnType Services::PipelineStateChangeListenerAdd(const char* pipeline, 
         dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        if (m_pipelines[PL_WTCSTR(pipeline)]->IsChildStateChangeListener(listener))
+        if (m_pipelines[pipeline]->IsChildStateChangeListener(listener))
         {
             return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
         }
-        return m_pipelines[PL_WTCSTR(pipeline)]->AddStateChangeListener(listener, userdata);
+        return m_pipelines[pipeline]->AddStateChangeListener(listener, userdata);
     }
         
-    DslReturnType Services::PipelineStateChangeListenerRemove(const wchar_t* pipeline, 
+    DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
         dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
     
-        if (!m_pipelines[PL_WTCSTR(pipeline)]->IsChildStateChangeListener(listener))
+        if (!m_pipelines[pipeline]->IsChildStateChangeListener(listener))
         {
             return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
         }
-        return m_pipelines[PL_WTCSTR(pipeline)]->RemoveStateChangeListener(listener);
+        return m_pipelines[pipeline]->RemoveStateChangeListener(listener);
     }
     
-    DslReturnType Services::PipelineDisplayEventHandlerAdd(const wchar_t* pipeline, 
+    DslReturnType Services::PipelineDisplayEventHandlerAdd(const char* pipeline, 
         dsl_display_event_handler_cb handler, void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
-        if (m_pipelines[PL_WTCSTR(pipeline)]->IsChildDisplayEventHandler(handler))
+        if (m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
         {
             return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
         }
-        return m_pipelines[PL_WTCSTR(pipeline)]->AddDisplayEventHandler(handler, userdata);
+        return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
     }
         
 
-    DslReturnType Services::PipelineDisplayEventHandlerRemove(const wchar_t* pipeline, 
+    DslReturnType Services::PipelineDisplayEventHandlerRemove(const char* pipeline, 
         dsl_display_event_handler_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, PL_WTCSTR(pipeline));
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
-        if (!m_pipelines[PL_WTCSTR(pipeline)]->IsChildDisplayEventHandler(handler))
+        if (!m_pipelines[pipeline]->IsChildDisplayEventHandler(handler))
         {
             return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
         }
-        return m_pipelines[PL_WTCSTR(pipeline)]->RemoveDisplayEventHandler(handler);
+        return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
     }
     
 

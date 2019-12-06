@@ -52,8 +52,6 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/
-        DslReturnType SetDumpDotDir(const wchar_t* dir);
-        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
@@ -92,41 +90,28 @@ namespace DSL {
             uint offsetX, uint offsetY, uint width, uint height);
         
         DslReturnType OsdNew(const char* name, boolean isClockEnabled);
-        
-        boolean ComponentIsInUse(const wchar_t* component);
-        
-        DslReturnType ComponentDelete(const wchar_t* component);
 
-        DslReturnType ComponentDeleteMany(const wchar_t** components);
+// TODO        
+//        boolean ComponentIsInUse(const char* component);
+        
+        DslReturnType ComponentDelete(const char* component);
 
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
         
-        const wchar_t** ComponentListAll();
-        
         DslReturnType PipelineNew(const char* pipeline);
-        
-        DslReturnType PipelineNewMany(const wchar_t** pipelines);
         
         DslReturnType PipelineDelete(const char* pipeline);
         
-        DslReturnType PipelineDeleteMany(const wchar_t** pipelines);
-
         DslReturnType PipelineDeleteAll();
 
         uint PipelineListSize();
         
-        const wchar_t** PipelineListAll();
-
         DslReturnType PipelineComponentAdd(const char* pipeline, const char* component);
 
-        DslReturnType PipelineComponentAddMany(const wchar_t* pipeline, const wchar_t** components);
-        
         DslReturnType PipelineComponentRemove(const char* pipeline, const char* component);
 
-        DslReturnType PipelineComponentRemoveMany(const wchar_t* pipeline, const wchar_t** components);
-        
         DslReturnType PipelineStreamMuxBatchPropertiesGet(const char* pipeline,
             uint* batchSize, uint* batchTimeout);
 
@@ -151,20 +136,20 @@ namespace DSL {
         
         DslReturnType PipelineGetState(const char* pipeline);
         
-        DslReturnType PipelineDumpToDot(const wchar_t* pipeline, wchar_t* filename);
+        DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const wchar_t* pipeline, wchar_t* filename);
+        DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
         
-        DslReturnType PipelineStateChangeListenerAdd(const wchar_t* pipeline, 
+        DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
             dsl_state_change_listener_cb listener, void* userdata);
         
-        DslReturnType PipelineStateChangeListenerRemove(const wchar_t* pipeline, 
+        DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
             dsl_state_change_listener_cb listener);
                         
-        DslReturnType PipelineDisplayEventHandlerAdd(const wchar_t* pipeline, 
+        DslReturnType PipelineDisplayEventHandlerAdd(const char* pipeline, 
             dsl_display_event_handler_cb handler, void* userdata);
 
-        DslReturnType PipelineDisplayEventHandlerRemove(const wchar_t* pipeline, 
+        DslReturnType PipelineDisplayEventHandlerRemove(const char* pipeline, 
             dsl_display_event_handler_cb handler);
         
         GMainLoop* GetMainLoopHandle()
@@ -222,19 +207,9 @@ namespace DSL {
         std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
         
         /**
-         * @brief used to return a list of all pipeline names to the client
-         */
-        static std::vector<const wchar_t*> m_pipelineNames;
-        
-        /**
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
-        
-        /**
-         * @brief used to return a list of all component names to the client
-         */
-        static std::vector<const wchar_t*> m_componentNames;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

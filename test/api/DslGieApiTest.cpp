@@ -36,7 +36,6 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
         uint interval(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         WHEN( "A new Primary GIE is created" ) 
         {
@@ -47,10 +46,6 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                REQUIRE( *(dsl_component_list_all()) != NULL );
-                
-                std::wstring returnedName = *(dsl_component_list_all());
-                REQUIRE( returnedName == primaryGieName );
             }
         }
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -69,7 +64,6 @@ SCENARIO( "The Components container is updated correctly on Primary GIE delete",
         uint interval(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
@@ -81,7 +75,6 @@ SCENARIO( "The Components container is updated correctly on Primary GIE delete",
             THEN( "The list and contents are updated correctly" )
             {
                 REQUIRE( dsl_component_list_size() == 0 );
-                REQUIRE( *(dsl_component_list_all()) == NULL );
             }
         }
     }
@@ -121,9 +114,7 @@ SCENARIO( "Only one Primary GIE can be added to a Pipeline", "[gie-api]" )
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
 
@@ -155,9 +146,7 @@ SCENARIO( "A Primary GIE in use can't be deleted", "[gie-api]" )
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
 
@@ -191,9 +180,7 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[gie-a
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }
 
