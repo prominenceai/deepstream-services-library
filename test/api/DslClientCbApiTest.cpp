@@ -73,8 +73,6 @@ SCENARIO( "All state-change-listeners are called on change of state", "[client-c
         REQUIRE( dsl_pipeline_delete(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_delete(sourceName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
     }
 }

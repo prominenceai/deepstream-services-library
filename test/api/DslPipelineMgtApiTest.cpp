@@ -32,7 +32,6 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[PipelineMgt]" 
         std::wstring actualName  = L"test-pipeline";
         
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
 
         WHEN( "A new Pipeline is created" ) 
         {
@@ -42,15 +41,10 @@ SCENARIO( "A single Pipeline is created and deleted correctly", "[PipelineMgt]" 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_pipeline_list_size() == 1 );
-                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
-                
-                std::wstring returnedName = *(dsl_pipeline_list_all());
-                REQUIRE( returnedName == actualName );
             }
         }
         REQUIRE( dsl_pipeline_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
@@ -65,7 +59,6 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
             REQUIRE( dsl_pipeline_new(std::to_wstring(i).c_str()) == DSL_RESULT_SUCCESS );
         }
         REQUIRE( dsl_pipeline_list_size() == sampleSize );
-        REQUIRE( *(dsl_pipeline_list_all()) != NULL );
 
         WHEN( "Multiple Pipelines are deleted" ) 
         {
@@ -76,12 +69,10 @@ SCENARIO( "Multiple Pipelines are created and deleted correctly", "[pipeline]" )
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_pipeline_list_size() == sampleSize - 2 );
-                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
             }
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
@@ -92,7 +83,6 @@ SCENARIO( "Many Pipelines are created correctly", "[PipelineMgt]" )
     GIVEN( "An empty container of Pipelines" ) 
     {
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
 
         WHEN( "Many Pipelines are created at once" ) 
         {
@@ -102,12 +92,10 @@ SCENARIO( "Many Pipelines are created correctly", "[PipelineMgt]" )
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_pipeline_list_size() == 3 );
-                REQUIRE( *(dsl_pipeline_list_all()) != NULL );
             }
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
@@ -126,7 +114,6 @@ SCENARIO( "Many Pipelines are deleted correctly", "[PipelineMgt]" )
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( *(dsl_pipeline_list_all()) == NULL );
             }
         }
     }
@@ -139,7 +126,6 @@ SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[Pip
     GIVEN( "An empty container of Pipelines" ) 
     {
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
 
         WHEN( "A non-unique Pipeline Name is used when creating many Pipelines" ) 
         {
@@ -156,6 +142,5 @@ SCENARIO( "A non-unique Pipeline name fails when creating Many Pipelines", "[Pip
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }

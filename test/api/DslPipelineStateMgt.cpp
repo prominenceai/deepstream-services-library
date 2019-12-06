@@ -49,7 +49,6 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );

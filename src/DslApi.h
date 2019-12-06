@@ -361,12 +361,6 @@ DslReturnType dsl_component_delete_all();
 uint dsl_component_list_size();
 
 /**
- * @brief returns the list of components
- * @return a NULL terminated array of char* component names
- */
-const wchar_t** dsl_component_list_all();
-
-/**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
  * @return DSL_RESULT_PIPELINE_RESULT
@@ -415,12 +409,6 @@ DslReturnType dsl_pipeline_delete_all();
  * @return size of the list of pipelines
  */
 uint dsl_pipeline_list_size();
-
-/**
- * @brief returns the list of pipelines
- * @return a NULL terminated array of char* pipeline names
- */
-const wchar_t** dsl_pipeline_list_all();
 
 /**
  * @brief adds a single components to a Pipeline 

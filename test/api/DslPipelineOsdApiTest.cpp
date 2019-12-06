@@ -58,7 +58,6 @@ SCENARIO( "A new Pipeline with an On-Screen Display can be updated", "[PipelineO
         std::wstring pipelineName  = L"test-pipeline";
         
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( *(dsl_component_list_all()) == NULL );
 
         // create for of the same types of source
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 

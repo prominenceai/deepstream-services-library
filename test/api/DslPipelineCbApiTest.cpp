@@ -47,7 +47,6 @@ SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }    
 
@@ -75,7 +74,6 @@ SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
 
@@ -101,7 +99,6 @@ SCENARIO( "An event-handler must be unique", "[pipeline]" )
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
    
@@ -130,6 +127,5 @@ SCENARIO( "An event-handler can be removed", "[pipeline]" )
         }
         REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( *(dsl_pipeline_list_all()) == NULL );
     }
 }
