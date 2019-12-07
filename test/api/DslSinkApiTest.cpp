@@ -98,20 +98,20 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 1 );
 
-        WHEN( "The Primary GIE is added to the Pipeline" ) 
+        WHEN( "The Overlay Sink is added to the Pipeline" ) 
         {
             REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
                 overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "The Primary GIE can't be deleted" ) 
+            THEN( "The Overlay Sink can't be deleted" ) 
             {
                 REQUIRE( dsl_component_delete(overlaySinkName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -121,7 +121,6 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
     {
         std::wstring pipelineName  = L"test-pipeline";
         std::wstring overlaySinkName = L"overlay-sink";
-
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
@@ -134,19 +133,55 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The Primary GIE is added to the Pipeline" ) 
+        WHEN( "The Overlay Sink is removed the Pipeline" ) 
         {
             REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(), 
                 overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "The Primary GIE can't be deleted" ) 
+            THEN( "The Overlay Sink can be deleted" ) 
             {
                 REQUIRE( dsl_component_delete(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 0 );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
+
+SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[tracker-api]" )
+{
+    GIVEN( "A new Overlay Sink and two new pPipelines" ) 
+    {
+        std::wstring pipelineName1(L"test-pipeline-1");
+        std::wstring pipelineName2(L"test-pipeline-2");
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Tracker is added to the first Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
+                overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Tracker can't be added to the second Pipeline" ) 
+            {
+                REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
+                    overlaySinkName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 

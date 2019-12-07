@@ -347,17 +347,6 @@ namespace DSL
         }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
 
-        if (m_pTrackerBintr)
-        {
-            // then LinkAll Tracker Elementrs and add as the next component in the Pipeline
-            if (!m_pTrackerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pTrackerBintr);
-        }
-        
         if (m_pPrimaryGieBintr)
         {
             // Set the GIE's batch size to the number of active sources, 
@@ -369,6 +358,17 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
+        }
+        
+        if (m_pTrackerBintr)
+        {
+            // then LinkAll Tracker Elementrs and add as the next component in the Pipeline
+            if (!m_pTrackerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pTrackerBintr);
         }
         
         if (m_pSecondaryGiesBintr)

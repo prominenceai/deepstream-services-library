@@ -26,11 +26,6 @@ THE SOFTWARE.
 #define _DSL_DRIVER_H
 
 #include "DslPipelineBintr.h"
-#include "DslSourceBintr.h"
-#include "DslSinkBintr.h"
-#include "DslOsdBintr.h"
-#include "DslGieBintr.h"
-#include "DslDisplayBintr.h"
 
 namespace DSL {
     
@@ -75,6 +70,10 @@ namespace DSL {
         
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName);
+            
+        DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
+        
+        DslReturnType TrackerIouNew(const char* name, const char* configFile, uint width, uint height);
         
         DslReturnType DisplayNew(const char* name, uint width, uint height);
         

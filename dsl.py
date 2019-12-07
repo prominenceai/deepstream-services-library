@@ -70,29 +70,6 @@ dsl_source_set_num_in_use_max(20)
 #print(dsl_source_get_num_in_use_max())
 
 ##
-## dsl_sink_overlay_new()
-##
-_dsl.dsl_sink_overlay_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_sink_overlay_new.restype = ctypes.c_uint
-def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
-    global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, offsetX, offsetY, width, height)
-    return int(result)
-#print(dsl_sink_overlay_new("overlay-sink", 0, 0, 1280, 720))
-
-##
-## dsl_osd_new()
-##
-_dsl.dsl_osd_new.argtypes = [ctypes.c_wchar_p, ctypes.c_bool]
-_dsl.dsl_osd_new.restype = ctypes.c_uint
-def dsl_osd_new(name, is_clock_enabled):
-    global _dsl
-    result =_dsl.dsl_osd_new(name, is_clock_enabled)
-    return int(result)
-#print(dsl_osd_new("on-screen-display", False))
-
-##
 ## dsl_gie_primary_new()
 ##
 _dsl.dsl_gie_primary_new.argtypes = \
@@ -117,6 +94,41 @@ def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_g
     return int(result)
 
 ##
+## dsl_tracker_ktl_new()
+##
+_dsl.dsl_tracker_ktl_new.argtypes = \
+    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
+_dsl.dsl_tracker_ktl_new.restype = ctypes.c_uint
+def dsl_tracker_ktl_new(name, width, height):
+    global _dsl
+    result =_dsl.dsl_tracker_ktl_new(name, width, height)
+    return int(result)
+#print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
+
+##
+## dsl_tracker_iou_new()
+##
+_dsl.dsl_tracker_iou_new.argtypes = \
+    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
+_dsl.dsl_tracker_iou_new.restype = ctypes.c_uint
+def dsl_tracker_iou_new(name, config_file, width, height):
+    global _dsl
+    result =_dsl.dsl_tracker_iou_new(name, config_file, width, height)
+    return int(result)
+#print(dsl_tracker_iou_new("iou-tracker", "./test/configs/iou_config.txt", 300, 150))
+
+##
+## dsl_osd_new()
+##
+_dsl.dsl_osd_new.argtypes = [ctypes.c_wchar_p, ctypes.c_bool]
+_dsl.dsl_osd_new.restype = ctypes.c_uint
+def dsl_osd_new(name, is_clock_enabled):
+    global _dsl
+    result =_dsl.dsl_osd_new(name, is_clock_enabled)
+    return int(result)
+#print(dsl_osd_new("on-screen-display", False))
+
+##
 ## dsl_display_new()
 ##
 _dsl.dsl_display_new.argtypes = \
@@ -127,6 +139,18 @@ def dsl_display_new(name, width, height):
     result =_dsl.dsl_display_new(name, width, height)
     return int(result)
 #print(dsl_display_new("tiled-display", 1280, 720))
+
+##
+## dsl_sink_overlay_new()
+##
+_dsl.dsl_sink_overlay_new.argtypes = \
+    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
+_dsl.dsl_sink_overlay_new.restype = ctypes.c_uint
+def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
+    global _dsl
+    result =_dsl.dsl_sink_overlay_new(name, offsetX, offsetY, width, height)
+    return int(result)
+#print(dsl_sink_overlay_new("overlay-sink", 0, 0, 1280, 720))
 
 ##
 ## dsl_component_delete()
@@ -171,26 +195,6 @@ def dsl_component_list_size():
     result =_dsl.dsl_component_list_size()
     return int(result)
 #print(dsl_component_list_size())
-
-##
-## dsl_component_list_all()
-##
-# _dsl.dsl_component_list_size.restype = ctypes.POINTER(ctypes.c_wchar_p)
-def dsl_component_list_all():
-    global _dsl
-    result = _dsl.dsl_component_list_all()
-
-#print(dsl_osd_new("on-screen-display-1", False))
-#print(dsl_osd_new("on-screen-display-2", False))
-#print(dsl_component_list_size())
-#result = dsl_component_list_all()
-#index = 0
-#while True:
-#    p = result[index]
-#    if p is None:
-#        break
-#    index += 1
-#    print(p)
 
 ##
 ## dsl_pipeline_new()

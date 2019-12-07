@@ -52,10 +52,9 @@ SCENARIO( "The Components container is updated correctly on new Primary GIE", "[
     }
 }    
 
-
 SCENARIO( "The Components container is updated correctly on Primary GIE delete", "[gie-api]" )
 {
-    GIVEN( "An empty list of Components" ) 
+    GIVEN( "A new Primary GIE in memory" ) 
     {
         std::wstring primaryGieName = L"primary-gie";
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";

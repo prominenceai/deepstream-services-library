@@ -25,6 +25,12 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslServices.h"
+#include "DslSourceBintr.h"
+#include "DslGieBintr.h"
+#include "DslTrackerBintr.h"
+#include "DslDisplayBintr.h"
+#include "DslOsdBintr.h"
+#include "DslSinkBintr.h"
 
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
@@ -117,6 +123,24 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
     
     return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), cstrGie.c_str());
+}
+
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerKtlNew(cstrName.c_str(), width, height);
+}
+    
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFile(config_file);
+    std::string cstrFile(wstrFile.begin(), wstrFile.end());
+
+    return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), cstrFile.c_str(), width, height);
 }
     
 DslReturnType dsl_osd_new(const wchar_t* name, boolean isClockEnabled)
@@ -850,9 +874,69 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
-   
-    DslReturnType Services::DisplayNew(const char* name, 
+
+    DslReturnType Services::TrackerKtlNew(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("KTL Tracker name '" << name << "' is not unique");
+            return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = std::shared_ptr<Bintr>(new KtlTrackerBintr(
+                name, width, height));
+        }
+        catch(...)
+        {
+            LOG_ERROR("KTL Tracker '" << name << "' threw exception on create");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New KTL Tracker '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::TrackerIouNew(const char* name, const char* configFile, 
         uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("IOU Tracker name '" << name << "' is not unique");
+            return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+        }
+        LOG_INFO("Infer config file: " << configFile);
+        
+        std::ifstream streamConfigFile(configFile);
+        if (!streamConfigFile.good())
+        {
+            LOG_ERROR("Infer Config File not found");
+            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+        }
+        try
+        {
+            m_components[name] = std::shared_ptr<Bintr>(new IouTrackerBintr(
+                name, configFile, width, height));
+        }
+        catch(...)
+        {
+            LOG_ERROR("IOU Tracker '" << name << "' threw exception on create");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New IOU Tracker '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+   
+    DslReturnType Services::DisplayNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1156,7 +1240,13 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
-
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_ERROR("Unable to add component '" << component 
+                << "' as it's currently in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
+        }
         try
         {
             m_components[component]->AddToParent(m_pipelines[pipeline]);

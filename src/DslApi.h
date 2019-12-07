@@ -64,7 +64,17 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00101001
 
 /**
- * Sink Object Return Values
+ * Tracker API Return Values
+ */
+#define DSL_RESULT_TRACKER_RESULT                                   0x00110000
+#define DSL_RESULT_TRACKER_NAME_NOT_UNIQUE                          0x00110001
+#define DSL_RESULT_TRACKER_NAME_NOT_FOUND                           0x00110010
+#define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00110011
+#define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00110100
+#define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00110101
+
+/**
+ * Sink API Return Values
  */
 #define DSL_RESULT_SINK_RESULT                                      0x01000000
 #define DSL_RESULT_SINK_NAME_NOT_UNIQUE                             0x01000001
@@ -73,7 +83,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x01000100
 
 /**
- * OSD Object Return Values
+ * OSD API Return Values
  */
 #define DSL_RESULT_OSD_RESULT                                       0x01010000
 #define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x01010001
@@ -82,7 +92,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_THREW_EXCEPTION                              0x01010100
 
 /**
- * GIE Object Return Values
+ * GIE API Return Values
  */
 #define DSL_RESULT_GIE_RESULT                                       0x01100000
 #define DSL_RESULT_GIE_NAME_NOT_UNIQUE                              0x01100001
@@ -93,7 +103,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_THREW_EXCEPTION                              0x01100100
 
 /**
- * Display Object Return Values
+ * Display API Return Values
  */
 #define DSL_RESULT_DISPLAY_RESULT                                   0x10000000
 #define DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x10000001
@@ -105,7 +115,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000111
 
 /**
- * Pipeline Object Return Values
+ * Pipeline API Return Values
  */
 #define DSL_RESULT_PIPELINE_RESULT                                  0x11000000
 #define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x11000001
@@ -143,8 +153,6 @@ THE SOFTWARE.
  */
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8 
-//#define DSL_DEFAULT_STREAMMUX_WIDTH                                 1280
-//#define DSL_DEFAULT_STREAMMUX_HEIGHT                                720
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 
@@ -161,7 +169,7 @@ EXTERN_C_BEGIN
  * @param[in] height height of the source in pixels
  * @param[in] fps-n frames/second fraction numerator
  * @param[in] fps-d frames/second fraction denominator
- * @return DSL_RESULT_SOURCE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
@@ -171,7 +179,7 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] 
- * @return DSL_RESULT_SOURCE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, 
     const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
@@ -180,7 +188,7 @@ DslReturnType dsl_source_uri_new(const wchar_t* name,
  * @brief pauses a single Source object if the Source is 
  * currently in a state of in-use and Playing..
  * @param name the name of Source component to pause
- * @return DSL_RESULT_SOURCE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_pause(const wchar_t* name);
 
@@ -188,7 +196,7 @@ DslReturnType dsl_source_pause(const wchar_t* name);
  * @brief resumes a single Source object if the Source is 
  * currently in a state of in-use and Paused..
  * @param name the name of Source component to resume
- * @return DSL_RESULT_SOURCE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_resume(const wchar_t* name);
 
@@ -224,48 +232,12 @@ uint dsl_source_get_num_in_use_max();
 void dsl_source_set_num_in_use_max(uint max);  
 
 /**
- * @brief returns the dimensions, width and height, for the named Tiled Display
- * @param[in] name name of the Display to query
- * @param[out] width current width of the display in pixels
- * @param[out] height current height of the display in pixels
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height);
-
-/**
- * @brief sets the dimensions, width and height, for the named Tiled Display
- * @param[in] name name of the Display to update
- * @param[in] width width to set the display in pixels
- * @param[in] height height to set the display in pixels
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height);
-
-/**
- * @brief returns the number of columns and rows for the named Tiled Display
- * @param[in] name name of the Display to query
- * @param[out] cols current number of colums for all Tiles
- * @param[out] rows current number of rows for all Tiles
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows);
-
-/**
- * @brief Sets the number of columns and rows for the named Tiled Display
- * @param[in] name name of the Display to update
- * @param[in] cols current number of colums for all Tiles
- * @param[in] rows current number of rows for all Tiles
- * @return DSL_RESULT_DISPLAY_RESULT
- */
-DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
-
-/**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
  * @param[in] interval
- * @return DSL_RESULT_GIE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, uint interval);
@@ -276,7 +248,7 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
  * @param[in] infer_on_gie_name name of the Primary or Secondary GIE to infer on
- * @return DSL_RESULT_GIE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name);
@@ -291,24 +263,29 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
 //DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 
 /**
- * @brief creates a new, uniquely named Sink obj
- * @param[in] sink unique name for the new Sink
- * @param[in] displayId
- * @param[in] overlatId
- * @param[in] offsetX
- * @param[in] offsetY
- * @param[in] width width of the Sink
- * @param[in] heigth height of the Sink
- * @return DSL_RESULT_SINK_RESULT
+ * @brief creates a new, uniquely named KTL Tracker object
+ * @param name unique name for the new Tracker
+ * @param width width of the Tracker bounding box
+ * @param height height of the Tracker bounding box
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, uint width, uint height);
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief creates a new, uniquely named IOU Tracker object
+ * @param name unique name for the new Tracker
+ * @param config_file fully qualified pathspec to the IOU Lib config text file
+ * @param width width of the Tracker bounding box
+ * @param height height of the Tracker bounding box
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named OSD obj
  * @param[in] name unique name for the new Sink
  * @param[in] is_clock_enabled true if clock is visible
- * @return DSL_RESULT_SINK_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
 
@@ -317,40 +294,80 @@ DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
  * @param[in] name unique name for the new Display
  * @param[in] width width of the Display in pixels
  * @param[in] height height of the Display in pixels
- * @return DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height);
 
 /**
+ * @brief returns the dimensions, width and height, for the named Tiled Display
+ * @param[in] name name of the Display to query
+ * @param[out] width current width of the display in pixels
+ * @param[out] height current height of the display in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the dimensions, width and height, for the named Tiled Display
+ * @param[in] name name of the Display to update
+ * @param[in] width width to set the display in pixels
+ * @param[in] height height to set the display in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief returns the number of columns and rows for the named Tiled Display
+ * @param[in] name name of the Display to query
+ * @param[out] cols current number of colums for all Tiles
+ * @param[out] rows current number of rows for all Tiles
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows);
+
+/**
+ * @brief Sets the number of columns and rows for the named Tiled Display
+ * @param[in] name name of the Display to update
+ * @param[in] cols current number of colums for all Tiles
+ * @param[in] rows current number of rows for all Tiles
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ */
+DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
+
+/**
+ * @brief creates a new, uniquely named Sink obj
+ * @param[in] sink unique name for the new Sink
+ * @param[in] displayId
+ * @param[in] overlatId
+ * @param[in] offsetX
+ * @param[in] offsetY
+ * @param[in] width width of the Sink
+ * @param[in] heigth height of the Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
+    uint offsetX, uint offsetY, uint width, uint height);
+
+/**
  * @brief deletes a Component object by name
  * @param[in] component name of the Component object to delete
- * @return DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  * @info the function checks that the component is not 
  * owned by a pipeline before deleting, and returns
- * DSL_RESULT_COMPONENT_IN_USE on failure
+ * DSL_RESULT_COMPONENT_IN_USE as failure
  */
 DslReturnType dsl_component_delete(const wchar_t* component);
 
 /**
  * @brief deletes a NULL terminated list of components
  * @param components NULL terminated list of names to delete
- * @return DSL_RESULT_COMPONENT_RESULT
- * @info the function ensures the existance of all components
- * in the list before making any updates, and returns
- * DSL_RESULT_COMPONENT_NAME_NOT_FOUND on failure without
- * making updates to the component list
- * @info the function checks that all components are not 
- * owned by a pipeline before deleting, and returns
- * DSL_RESULT_COMPONENT_IN_USE on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  */
 DslReturnType dsl_component_delete_many(const wchar_t** components);
 
 /**
  * @brief deletes all components in memory
- * @return DSL_RESULT_COMPONENT_RESULT
- * @info the function checks that all components are not 
- * owned by a pipeline before deleting, and returns
- * DSL_RESULT_COMPONENT_IN_USE on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  */
 DslReturnType dsl_component_delete_all();
 
@@ -363,21 +380,21 @@ uint dsl_component_list_size();
 /**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_new(const wchar_t* pipeline);
 
 /**
  * @brief creates a new Pipeline for each name pipelines array
  * @param pipelines a NULL terminated array of unique Pipeline names
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 
 /**
  * @brief deletes a Pipeline object by name.
  * @param[in] pipeline unique name of the Pipeline to delete.
- * @return DSL_RESULT_PIPELINE_RESULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT.
  * @info any/all components owned by the pipeline move
  * to a state of not-in-use.
  */
@@ -386,11 +403,7 @@ DslReturnType dsl_pipeline_delete(const wchar_t* pipeline);
 /**
  * @brief deletes a NULL terminated list of pipelines
  * @param pipelines NULL terminated list of names to delete
- * @return DSL_RESULT_PIPELINE_RESULT
- * @info the function ensures the existance of all pipelines
- * in the list before making any updates, and returns
- * DSL_RESULT_PIPELINE_NAME_NOT_FOUND on failure without
- * making updates to the pipeline list
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  * @info any/all components owned by the pipelines move
  * to a state of not-in-use.
  */
@@ -398,7 +411,7 @@ DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines);
 
 /**
  * @brief deletes all pipelines in memory
- * @return DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  * @info any/all components owned by the pipelines move
  * to a state of not-in-use.
  */
@@ -412,18 +425,18 @@ uint dsl_pipeline_list_size();
 
 /**
  * @brief adds a single components to a Pipeline 
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipeline to update
  * @param[in] components NULL terminated array of component names to add
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
     const wchar_t* component);
 
 /**
  * @brief adds a list of components to a Pipeline 
- * @param[in] name name of the pipepline to update
+ * @param[in] name name of the pipeline to update
  * @param[in] components NULL terminated array of component names to add
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components);
@@ -432,7 +445,7 @@ DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline,
  * @brief removes a Component from a Pipeline
  * @param[in] pipeline name of the Pipepline to update
  * @param[in] component name of the Component to remove
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
     const wchar_t* component);
@@ -441,39 +454,39 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline,
  * @brief removes a list of Components from a Pipeline
  * @param[in] pipeline name of the Pipeline to update
  * @param[in] components NULL terminated array of component names to remove
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
     const wchar_t** components);
 
 /**
  * @brief 
- * @param[in] pipeline name of the pipepline to query
- * @return 
+ * @param[in] pipeline name of the pipeline to query
+ * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
     uint* batchSize, uint* batchTimeout);
 
 /**
  * @brief 
- * @param[in] pipeline name of the pipepline to update
- * @return 
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
     uint batchSize, uint batchTimeout);
 
 /**
  * @brief 
- * @param[in] pipeline name of the pipepline to query
- * @return 
+ * @param[in] pipeline name of the pipeline to query
+ * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
     uint width, uint height);
 
 /**
  * @brief 
- * @param[in] pipeline name of the pipepline to update
- * @return 
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
@@ -483,7 +496,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to query
  * @param[out] enable true if the aspect ration is fixed, false if not
- * @return DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* enabled);
 
@@ -492,7 +505,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* e
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to update
  * @param[out] enable set true to fix the aspect ratio, false to disable
- * @return DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
 
@@ -500,21 +513,21 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean en
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] pipeline unique name of the Pipeline to pause.
- * @return DSL_RESULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT.
  */
 DslReturnType dsl_pipeline_pause(const wchar_t* pipeline);
 
 /**
  * @brief plays a Pipeline if in a state of paused
  * @param[in] pipeline unique name of the Pipeline to play.
- * @return DSL_RESULT_PIPELINE_RESULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_play(const wchar_t* pipeline);
 
 /**
  * @brief Stops a Pipeline if in a state of paused or playing
  * @param[in] pipeline unique name of the Pipeline to stop.
- * @return DSL_RESULT_PIPELINE_RESULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_stop(const wchar_t* pipeline);
 
@@ -532,6 +545,7 @@ DslReturnType dsl_pipeline_get_state(const wchar_t* pipeline);
  * The caller is responsible for providing a correctly formated filename
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
 DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename);
 
@@ -543,6 +557,7 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filenam
  * The caller is responsible for providing a correctly formated filename
  * The diretory location is specified by the GStreamer debug 
  * environment variable GST_DEBUG_DUMP_DOT_DIR
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */ 
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename);
 
@@ -557,19 +572,19 @@ typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, v
 
 /**
  * @brief adds a callback to be notified on change of Pipeline state
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
  * @param[in] userdata opaque pointer to client data passed into the listner function.
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener, void* userdata);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to remove
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener);
@@ -585,19 +600,19 @@ typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, v
 
 /**
  * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle window events.
  * @param[in] user_data opaque pointer to client data passed into the listner function.
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_display_event_handler_add(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler, void* user_data);
 
 /**
  * @brief removes a callback previously added with dsl_display_event_handler_add
- * @param[in] pipeline name of the pipepline to update
+ * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_display_event_handler_remove(const wchar_t* pipeline, 
     dsl_display_event_handler_cb handler);
