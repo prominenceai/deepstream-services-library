@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslOsdBintr.h"
 #include "DslGieBintr.h"
+#include "DslTrackerBintr.h"
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslPipelineSGiesBintr.h"
@@ -121,6 +122,12 @@ namespace DSL
          */
         bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
 
+        /**
+         * @brief adds a single Display Bintr to this Pipeline 
+         * @param[in] pDisplayBintr shared pointer to Display Bintr to add
+         */
+        bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
+        
         /**
          * @brief adds a single Display Bintr to this Pipeline 
          * @param[in] pDisplayBintr shared pointer to Display Bintr to add
@@ -292,6 +299,11 @@ namespace DSL
          */
         DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
         
+        /**
+         * @brief optional, one at most Tracker for this Pipeline
+         */
+        DSL_TRACKER_PTR m_pTrackerBintr;
+
         /**
          * @brief optional, one at most OSD for this Pipeline
          */
