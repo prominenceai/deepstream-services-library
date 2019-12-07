@@ -38,8 +38,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled_display_queue");
-        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled_display_tiler");
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled-display-queue");
+        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled-display-tiler");
 
         // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);

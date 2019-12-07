@@ -319,7 +319,7 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "[PipelineBintr]" )
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr and OsdBintr", "[PipelineBintr]" )
 {
     GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
     {
@@ -371,6 +371,76 @@ SCENARIO( "A Pipeline is able to LinkAll with a PrimaryGieBintr and OsdBintr", "
             THEN( "The Pipeline components are Linked correctly" )
             {
                 REQUIRE( pPipelineBintr->LinkAll() == true );
+                REQUIRE( pPipelineBintr->IsLinked() == true );
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, OsdBintr, and TrackerBintr", "[temp]" )
+{
+    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string sourceName = "csi-source";
+        std::string trackerName = "ktl-tracker";
+        std::string primaryGieName = "primary-gie";
+        std::string displayName = "tiled-display";
+        std::string sinkName = "overlay-sink";
+        std::string osdName = "on-screen-display";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        
+        uint interval(1);
+        uint trackerW(300);
+        uint trackerH(150);
+        uint displayW(1280);
+        uint displayH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = 
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OSD_PTR pOsdBintr = 
+            DSL_OSD_NEW(osdName.c_str(), true);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "All components are added to the PipelineBintr" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+            THEN( "The Pipeline components are able to Link and Unlink correctly" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == true );
+                REQUIRE( pPipelineBintr->IsLinked() == true );
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
             }
         }
     }
@@ -384,6 +454,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         std::string sourceName = "csi-source";
         std::string displayName = "tiled-display";
         std::string sinkName = "overlay-sink";
+        std::string trackerName = "ktl-tracker";
         std::string primaryGieName = "primary-gie";
         std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
         std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
@@ -393,6 +464,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         std::string osdName = "on-screen-display";
         
         uint interval(1);
+        uint trackerW(300);
+        uint trackerH(150);
         uint displayW(1280);
         uint displayH(720);
         uint fps_n(1);
@@ -405,11 +478,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
@@ -422,23 +492,154 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true);
 
+        DSL_DISPLAY_PTR pDisplayBintr = 
+            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
         WHEN( "All components are added to the PipelineBintr" )
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
 
             THEN( "The Pipeline is able to LinkAll and UnlinkAll correctly" )
             {
+                REQUIRE( pPipelineBintr->LinkAll() == true );
+                REQUIRE( pPipelineBintr->IsLinked() == true );
                 pPipelineBintr->UnlinkAll();
                 REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline can have at most one DisplayBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string displayName1 = "tiled-display-1";
+        std::string displayName2 = "tiled-display-2";
+
+        uint displayW(1280);
+        uint displayH(720);
+
+        DSL_DISPLAY_PTR pDisplayBintr1 = 
+            DSL_DISPLAY_NEW(displayName1.c_str(), displayW, displayH);
+
+        DSL_DISPLAY_PTR pDisplayBintr2 = 
+            DSL_DISPLAY_NEW(displayName2.c_str(), displayW, displayH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A DisplayBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pDisplayBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second DisplayBintr can not be added" )
+            {
+                REQUIRE( pDisplayBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string trackerName1 = "tracker-1";
+        std::string trackerName2 = "tracker-2";
+
+        uint trackerW(300);
+        uint trackerH(150);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr1 = 
+            DSL_KTL_TRACKER_NEW(trackerName1.c_str(), trackerW, trackerH);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr2 = 
+            DSL_KTL_TRACKER_NEW(trackerName2.c_str(), trackerW, trackerH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A TrackerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pTrackerBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second TrackerBintr can not be added" )
+            {
+                REQUIRE( pTrackerBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string primaryGieName1 = "primary-gie-1";
+        std::string primaryGieName2 = "primary-gie-2";
+
+        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A TrackerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second TrackerBintr can not be added" )
+            {
+                REQUIRE( pPrimaryGieBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
+{
+    GIVEN( "A new OsdBintr and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string osdName1 = "on-screen-display-1";
+        std::string osdName2 = "on-screen-display-2";
+
+        DSL_OSD_PTR pOsdBintr1 = 
+            DSL_OSD_NEW(osdName1.c_str(), true);
+
+        DSL_OSD_PTR pOsdBintr2 = 
+            DSL_OSD_NEW(osdName2.c_str(), true);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A OsdBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pOsdBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second OsdBintr can not be added" )
+            {
+                REQUIRE( pOsdBintr2->AddToParent(pPipelineBintr) == false );
             }
         }
     }

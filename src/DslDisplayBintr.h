@@ -109,12 +109,12 @@ namespace DSL
         uint m_columns;
         
         /**
-         * @brief height of the Tiled DisplayBintr in pixels
+         * @brief width of the Tiled Display in pixels
          */
         uint m_width; 
         
         /**
-         * @brief height of the Tiled DisplayBintr in pixels
+         * @brief height of the Tiled Display in pixels
          */
         uint m_height;
         

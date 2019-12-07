@@ -151,6 +151,20 @@ namespace DSL
         return AddChild(pPrmaryGieBintr);
     }
 
+    bool PipelineBintr::AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pTrackerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tracker");
+            return false;
+        }
+        m_pTrackerBintr = std::dynamic_pointer_cast<TrackerBintr>(pTrackerBintr);
+        
+        return AddChild(pTrackerBintr);
+    }
+
     bool PipelineBintr::AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr)
     {
         LOG_FUNC();
@@ -327,17 +341,34 @@ namespace DSL
 
         // Link all Source Elementrs, and all Sources to the StreamMux
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
-        m_pPipelineSourcesBintr->LinkAll();
+        if (!m_pPipelineSourcesBintr->LinkAll())
+        {
+            return false;
+        }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
-        
+
         if (m_pPrimaryGieBintr)
         {
             // Set the GIE's batch size to the number of active sources, 
             // then LinkAll PrimaryGie Elementrs and add as the next component in the Pipeline
             m_pPrimaryGieBintr->SetBatchSize(m_pPipelineSourcesBintr->GetNumChildren());
-            m_pPrimaryGieBintr->LinkAll();
-            m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr);
+            if (!m_pPrimaryGieBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr))
+            {
+                return false;
+            }
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
+        }
+        
+        if (m_pTrackerBintr)
+        {
+            // then LinkAll Tracker Elementrs and add as the next component in the Pipeline
+            if (!m_pTrackerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pTrackerBintr);
         }
         
         if (m_pSecondaryGiesBintr)
@@ -349,29 +380,41 @@ namespace DSL
             m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Pipeline
-            m_pSecondaryGiesBintr->LinkAll();
-            m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr);
+            if (!m_pSecondaryGiesBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr))
+            {
+                return false;
+            }
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);
         }
         
         if (m_pDisplayBintr)
         {
             // Link All Tiled Display Elementrs and add as the next component in the Pipeline
-            m_pDisplayBintr->LinkAll();
-            m_linkedComponents.back()->LinkToSink(m_pDisplayBintr);
+            if (!m_pDisplayBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pDisplayBintr))
+            {
+                return false;
+            }
             m_linkedComponents.push_back(m_pDisplayBintr);
         }
 
         if (m_pOsdBintr)
         {
             // LinkAll Osd Elementrs and add as next component in the Pipeline
-            m_pOsdBintr->LinkAll();
-            m_linkedComponents.back()->LinkToSink(m_pOsdBintr);
+            if (!m_pOsdBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pOsdBintr))
+            {
+                return false;
+            }
             m_linkedComponents.push_back(m_pOsdBintr);
         }
 
-        m_pPipelineSinksBintr->LinkAll();
-        m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr);
+        if (!m_pPipelineSinksBintr->LinkAll() or
+            !m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr))
+        {
+            return false;
+        }
         m_linkedComponents.push_back(m_pPipelineSinksBintr);
         
         m_isLinked = true;
