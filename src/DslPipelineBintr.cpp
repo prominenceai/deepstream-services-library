@@ -470,11 +470,12 @@ namespace DSL
         
         if (IsLinked())
         {
-            if (!m_linkedComponents.back()->SendEos())
+        /*    if (!m_linkedComponents.back()->SendEos())
             {
                 LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
                 return false;
             }
+	*/
             Bintr::Stop();
             UnlinkAll();
         }
@@ -596,7 +597,8 @@ namespace DSL
             HandleStateChanged(pMessage);
             return true;
         case GST_MESSAGE_EOS:
-            return false;
+    	    g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
+	    break;
         default:
             LOG_INFO("Unhandled message type:: " << GST_MESSAGE_TYPE(pMessage));
         }
