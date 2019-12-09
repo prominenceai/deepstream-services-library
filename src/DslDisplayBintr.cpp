@@ -29,7 +29,7 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    DisplayBintr::DisplayBintr(const char* name, guint width, guint height)
+    DisplayBintr::DisplayBintr(const char* name, uint width, uint height)
         : Bintr(name)
         , m_rows(0)
         , m_columns(0)

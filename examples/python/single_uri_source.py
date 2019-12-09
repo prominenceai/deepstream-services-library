@@ -17,10 +17,10 @@ secondary_model_engine_file = '../../test/models/Secondary_CarColor/resnet18.caf
 while True:
 
     # First new URI File Source
-    retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+#    retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source', "https://www.youtube.com/embed/qaBH-GGP8Pg", 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
-
     # New Primary GIE using the filespecs above with interval = 0
     retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
     if retval != DSL_RETURN_SUCCESS:

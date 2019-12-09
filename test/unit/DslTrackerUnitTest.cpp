@@ -31,7 +31,7 @@ SCENARIO( "A KTL Tracker is created correctly",  "[TrackerBintr]" )
 {
     GIVEN( "Attributes for a new KTL Tracker" ) 
     {
-        std::string trackerName = "ktl-tracker";
+        std::string trackerName("ktl-tracker");
         uint width(200);
         uint height(100);
 

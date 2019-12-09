@@ -521,9 +521,38 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
     }
 }
 
+SCENARIO( "A Pipeline can have at most one DewarperBintr", "[PipelineBintr]" )
+{
+    GIVEN( "Two new DewarperBintrs and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string dewarperName1 = "dewarper-1";
+        std::string dewarperName2 = "dewarper-2";
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_DEWARPER_PTR pDewarperBintr1 = 
+            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
+
+        DSL_DEWARPER_PTR pDewarperBintr2 = 
+            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A DewarperBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pDewarperBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second DewarperBintr can not be added" )
+            {
+                REQUIRE( pDewarperBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A Pipeline can have at most one DisplayBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    GIVEN( "Two new DisplayBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string displayName1 = "tiled-display-1";
@@ -554,7 +583,7 @@ SCENARIO( "A Pipeline can have at most one DisplayBintr", "[PipelineBintr]" )
 
 SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    GIVEN( "Two new TrackerBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string trackerName1 = "tracker-1";
@@ -585,7 +614,7 @@ SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
 
 SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr and PipelineBintr" ) 
+    GIVEN( "Two new PrimaryGieBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string primaryGieName1 = "primary-gie-1";
@@ -605,11 +634,11 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        WHEN( "A TrackerBintr is added to the PipelineBintr" )
+        WHEN( "A PrimaryGieBintr is added to the PipelineBintr" )
         {
             REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == true );
 
-            THEN( "A second TrackerBintr can not be added" )
+            THEN( "A second PrimaryGieBintr can not be added" )
             {
                 REQUIRE( pPrimaryGieBintr2->AddToParent(pPipelineBintr) == false );
             }
@@ -619,7 +648,7 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
 
 SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new OsdBintr and PipelineBintr" ) 
+    GIVEN( "Two new OsdBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string osdName1 = "on-screen-display-1";
