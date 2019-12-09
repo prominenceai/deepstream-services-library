@@ -27,14 +27,15 @@ THE SOFTWARE.
 
 #include "DslApi.h"
 #include "DslSourceBintr.h"
-#include "DslSinkBintr.h"
-#include "DslOsdBintr.h"
+#include "DslDewarperBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
+#include "DslOsdBintr.h"
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslPipelineSGiesBintr.h"
 #include "DslPipelineSinksBintr.h"
+#include "DslSinkBintr.h"
     
 namespace DSL 
 {
@@ -91,25 +92,11 @@ namespace DSL
         bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
         /**
-         * @brief adds a single Sink Bintr to this Pipeline 
-         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         * @brief adds a single DewarperBintr to this Pipeline 
+         * @param[in] pDewarperBintr shared pointer to DewarperBintr to add
          */
-        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+        bool AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr);
 
-        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief removes a single Sink Bintr from this Pipeline 
-         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
-         */
-        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief adds a single OSD Bintr to this Pipeline 
-         * @param[in] pOsdBintr shared pointer to OSD Bintr to add
-         */
-        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
-        
         /**
          * @brief adds a single GIE Bintr to this Pipeline 
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
@@ -134,6 +121,26 @@ namespace DSL
          */
         bool AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
         
+        /**
+         * @brief adds a single OSD Bintr to this Pipeline 
+         * @param[in] pOsdBintr shared pointer to OSD Bintr to add
+         */
+        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
+        
+        /**
+         * @brief adds a single Sink Bintr to this Pipeline 
+         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         */
+        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
+        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
+
+        /**
+         * @brief removes a single Sink Bintr from this Pipeline 
+         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
+         */
+        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream Muxer
          * @param[out] batchSize current batchSize, default == the number of source
@@ -288,6 +295,11 @@ namespace DSL
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
+        
+        /**
+         * @brief optional, one at most Dewarper for this Pipeline
+         */
+        DSL_DEWARPER_PTR m_pDewarperBintr;
         
         /**
          * @brief optional, one at most Primary GIE for this Pipeline

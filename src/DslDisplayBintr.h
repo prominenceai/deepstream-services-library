@@ -42,7 +42,7 @@ namespace DSL
     {
     public: 
     
-        DisplayBintr(const char* name, guint width, guint height);
+        DisplayBintr(const char* name, uint width, uint height);
 
         ~DisplayBintr();
 

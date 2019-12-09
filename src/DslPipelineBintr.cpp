@@ -136,6 +136,20 @@ namespace DSL
         return AddChild(pOsdBintr);
     }
 
+    bool PipelineBintr::AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pDewarperBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Dewarper");
+            return false;
+        }
+        m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
+        
+        return AddChild(pDewarperBintr);
+    }
+
     bool PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
@@ -330,9 +344,14 @@ namespace DSL
             LOG_ERROR("Pipline has no required Sink component - and is unable to link");
             return false;
         }
+        if (m_pTrackerBintr and !m_pPrimaryGieBintr)
+        {
+            LOG_ERROR("Pipline has a Tracker and no Primary GIE - and is unable to link");
+            return false;
+        }
         if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipline has a Seconday GIE and no Primary GIE - and is unable to linke");
+            LOG_ERROR("Pipline has a Seconday GIE and no Primary GIE - and is unable to link");
             return false;
         }
         
@@ -347,6 +366,17 @@ namespace DSL
         }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
 
+        if (m_pDewarperBintr)
+        {
+            // LinkAll Dewarper Elementrs and add as the next component in the Pipeline
+            if (!m_pDewarperBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pDewarperBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pDewarperBintr);
+        }
+        
         if (m_pPrimaryGieBintr)
         {
             // Set the GIE's batch size to the number of active sources, 
@@ -362,7 +392,7 @@ namespace DSL
         
         if (m_pTrackerBintr)
         {
-            // then LinkAll Tracker Elementrs and add as the next component in the Pipeline
+            // LinkAll Tracker Elementrs and add as the next component in the Pipeline
             if (!m_pTrackerBintr->LinkAll() or
                 !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr))
             {
@@ -375,7 +405,7 @@ namespace DSL
         {
             m_pSecondaryGiesBintr->SetInterval(m_pPrimaryGieBintr->GetInterval());
 
-            // Set the Secondary GIE's batch size and interval to the same as the Primary GIE's
+            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes to the number of Sources
             m_pSecondaryGiesBintr->SetPrimaryGieName(m_pPrimaryGieBintr->GetCStrName());
             m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
             
@@ -410,6 +440,7 @@ namespace DSL
             m_linkedComponents.push_back(m_pOsdBintr);
         }
 
+        // Link all Sinks and their elementrs and add as finale (tail) components in the Pipeline
         if (!m_pPipelineSinksBintr->LinkAll() or
             !m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr))
         {
