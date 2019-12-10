@@ -40,14 +40,13 @@ DSL is released under the MIT license. Contributions are welcome and greatly app
 * [API Reference](/docs/api-reference-list.md)
   * [Pipeline](/docs/api-pipeline.md)
   * [Component](/docs/api-component.md)
-  * [Source](/docs/api-source.md)
-  * Primary GIE
-  * Secondary GIE
-  * Tiled Display
-  * On Screen Display
-  * Sink
-  * Tracker
-  * Dewarpper
+  * [Streaming Source](/docs/api-source.md)
+  * [Video Dewarper](/docs/api-dewarper.md)
+  * [Inference Engine](/docs/api-gie.md)
+  * [Multi-Object Tracker](/docs/api-tracker.md)
+  * [Tiled Display](/docs/api-display.md)
+  * [On-Screen Display](/docs/api-osd.md)
+  * [Sink](/docs/api-sink.md)
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
