@@ -1,4 +1,4 @@
-# GST Inference Engine (GIE) API Refernce
+# GST Inference Engine (GIE) API Reference
 Pipelines can have at most one Primary GIE with any number of Secondary GIEs (only limited by hardware). Pipelines that have secondary GIEs but no primary GIE will fail to Link and Play. Secondary GIEs operate as deterctors on Primary bounding boxs. Secondary GIEs can `infer-on` both Primary and Secondary GIE's creating multiple levels of inference. 
 
 Primary and Secondary GIEs are constructed by calling [dsl_gie_primary_new](#dsl_gie_primary_new) and 
