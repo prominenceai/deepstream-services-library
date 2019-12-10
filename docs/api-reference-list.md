@@ -90,8 +90,11 @@
 * Other TBD
 
 #### Tiled Display:
-* dsl_display_new
-* Other TBD
+* [dsl_display_new](/docs/api-display.md#dsl_display_new)
+* [dsl_display_dimensions_get](/docs/api-display.md#dsl_display_dimensions_get)
+* [dsl_display_dimensions_set](/docs/api-display.md#dsl_display_dimensions_set)
+* [dsl_display_tiles_get](/docs/api-display.md#dsl_display_tiles_get)
+* [dsl_display_tiles_set](/docs/api-display.md#dsl_display_tiles_set)
 
 #### On-Screen Display (OSD);
 * dsl_osd_new
