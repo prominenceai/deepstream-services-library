@@ -3,8 +3,6 @@
 ## Tracker API
 * [dsl_tracker_ktl_new](#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](#dsl_tracker_iou_new)
-* [dsl_tracker_object_ids_get](#dsl_tracker_object_ids_get)
-* [dsl_tracker_object_ids_set](#dsl_tracker_object_ids_set)
 * [dsl_tracker_max_dimensions_get](#dsl_tracker_dimensions_get)
 * [dsl_tracker_max_dimensions_set](#dsl_tracker_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
@@ -57,23 +55,6 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_fil
 <br>
 
 ## Methods
-### *dsl_tracker_object_ids_get*
-```C++
-DslReturnType dsl_tracker_object_ids_get(const wchar_t* name, uint** object_ids);
-```
-
-### *dsl_tracker_object_ids_set*
-```C++
-DslReturnType dsl_tracker_object_ids_set(const wchar_t* name, uint* object_ids);
-```
-**Parameters**
-* `name` - unique name of the Tracker to update.
-
-**Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-<br>
-
 ### *dsl_tracker_dimensions_get*
 ```C++
 DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint& width, uint& height);
