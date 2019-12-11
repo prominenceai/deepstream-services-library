@@ -72,6 +72,9 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00110011
 #define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00110100
 #define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00110101
+#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00110110
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00110111
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00111000
 
 /**
  * Sink API Return Values
@@ -111,8 +114,7 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x10000011
 #define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x10000100
 #define DSL_RESULT_DISPLAY_IS_IN_USE                                0x10000101
-#define DSL_RESULT_DISPLAY_GET_FAILED                               0x10000110
-#define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000111
+#define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000110
 
 /**
  * Pipeline API Return Values
@@ -156,11 +158,27 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 
+EXTERN_C_BEGIN
+
 typedef uint DslReturnType;
 typedef uint boolean;
 
+/**
+ * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
+ * the function will be called when the component receives.
+ * @param[in] batch_meta pointer to a Batch Meta structure to process
+ * @param[in] user_data opaque pointer to client's user data
+ */
+typedef void (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
 
-EXTERN_C_BEGIN
+/**
+ * @brief callback typedef for a client event handler function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline receives window events for the Tiled Display.
+ * @param[in] prev_state state from which the Pipeline transitioned from
+ * @param[in] curr_state state to which the Pipeline has transitioned to
+ * @param[in] user_data opaque pointer to client's user data
+ */
+typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj
@@ -265,21 +283,73 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
 /**
  * @brief creates a new, uniquely named KTL Tracker object
  * @param name unique name for the new Tracker
- * @param width width of the Tracker bounding box
- * @param height height of the Tracker bounding box
+ * @param max_width maximum frame width of the input transform buffer
+ * @param max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint width, uint height);
+DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
 
 /**
  * @brief creates a new, uniquely named IOU Tracker object
  * @param name unique name for the new Tracker
  * @param config_file fully qualified pathspec to the IOU Lib config text file
- * @param width width of the Tracker bounding box
- * @param height height of the Tracker bounding box
+ * @param max_width maximum frame width of the input transform buffer
+ * @param max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint width, uint height);
+DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint max_width, uint max_height);
+
+/**
+ * @brief returns the current maximum frame width and height settings for the named IOU Tracker object
+ * @param name unique name of the Tracker to query
+ * @param max_width maximum frame width of the input transform buffer
+ * @param max_height maximum_frame height of the input tranform buffer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint& max_width, uint& max_height);
+
+/**
+ * @brief sets the maximum frame width and height settings for the named IOU Tracker object
+ * @param name unique name of the Tracker to update
+ * @param max_width new maximum frame width of the input transform buffer
+ * @param max_height new maximum_frame height of the input tranform buffer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
+
+/**
+ * @brief returns the current config file in use by the named IOU Tracker object
+ * @param name unique name of the Tracker to query
+ * @param config_file absolute or relative pathspec to the new config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
+
+/**
+ * @brief Add a batch meta handler callback function to be called to process each buffer.
+ * A Tracker can have at most one batch meta handler
+ * @param name unique name of the Tracker to update
+ * @param handler callback function to process batch meta data
+ * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data);
+
+/**
+ * @brief Removes a batch meta handler callback function from the Tracker
+ * @param name unique name of the Tracker to update
+ * @param handler callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name);
+
+/**
+ * @brief sets the config file to use by named IOU Tracker object
+ * @param name unique name of the Tracker to Update
+ * @param config_file absolute or relative pathspec to the new config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -509,7 +579,6 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* e
  */
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
 
-
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] pipeline unique name of the Pipeline to pause.
@@ -588,15 +657,6 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener);
-
-/**
- * @brief callback typedef for a client event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives window events for the Tiled Display.
- * @param[in] 
- * @param[in] 
- * @param[in] user_data opaque pointer to client's data
- */
-typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
  * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]

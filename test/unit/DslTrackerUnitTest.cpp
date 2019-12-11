@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A KTL Tracker is created correctly",  "[TrackerBintr]" )
+SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
 {
     GIVEN( "Attributes for a new KTL Tracker" ) 
     {
@@ -77,7 +77,7 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
     }
 }
 
-SCENARIO( "A Tracker's dimensions can be updated",  "[TrackerBintr]" )
+SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {
@@ -91,7 +91,7 @@ SCENARIO( "A Tracker's dimensions can be updated",  "[TrackerBintr]" )
         uint currWidth(0);
         uint currHeight(0);
     
-        pTrackerBintr->GetDimensions(&currWidth, &currHeight);
+        pTrackerBintr->GetMaxDimensions(&currWidth, &currHeight);
         REQUIRE( currWidth == initWidth );
         REQUIRE( currHeight == initHeight );
 
@@ -100,14 +100,98 @@ SCENARIO( "A Tracker's dimensions can be updated",  "[TrackerBintr]" )
             uint newWidth(300);
             uint newHeight(150);
             
-            pTrackerBintr->SetDimensions(newWidth, newHeight);
+            pTrackerBintr->SetMaxDimensions(newWidth, newHeight);
 
             THEN( "The Display's new demensions are returned on Get")
             {
-                pTrackerBintr->GetDimensions(&currWidth, &currHeight);
+                pTrackerBintr->GetMaxDimensions(&currWidth, &currHeight);
                 REQUIRE( currWidth == newWidth );
                 REQUIRE( currHeight == newHeight );
             }
         }
+    }
+}
+
+SCENARIO( "A Tracker can add a Batch Meta Handler", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler;
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+        
+        WHEN( "The Tracker is called to add a Batch Meta Handler" )
+        {
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler, NULL) == true );
+
+            THEN( "The Tracker is able to return the same Handler on get" )
+            {
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == handler );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Tracker can remove a Batch Meta Handler", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker with an existing Batch Meta Handler" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler((dsl_batch_meta_handler_cb)0x01);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+        REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler, NULL) == true );
+
+        WHEN( "After the Tracker is called to remove the Batch Meta Handler" )
+        {
+            REQUIRE( pTrackerBintr->RemoveBatchMetaHandler() == true );
+            
+            THEN( "The Tracker returns NULL when queried" )
+            {
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Tracker can have at most one Batch Meta Handler", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker with an existing Batch Meta Handler" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler1((dsl_batch_meta_handler_cb)0x01);
+        dsl_batch_meta_handler_cb handler2((dsl_batch_meta_handler_cb)0x02);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+
+        WHEN( "A Batch Meta Handler has been added to the Tracker" )
+        {
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler1, NULL) == true );
+            
+            THEN( "A second Batch Meta Handler can not be added " )
+            {
+                REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler2, NULL) == false );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == handler1 );
+            }
+        } 
     }
 }
