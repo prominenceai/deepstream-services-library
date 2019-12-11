@@ -234,7 +234,7 @@ namespace DSL
                 
                 LOG_INFO("Linking " << m_pTee->GetName() << " from " << imap.second->GetName());
                 
-                // Link al SGIE Elementrs and Link back with the Primary Tee
+                // Link all SGIE Elementrs and Link back with the Primary Tee
                 if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
                 {
                     LOG_ERROR("PipelineSecondaryGiesBintr '" << GetName() 

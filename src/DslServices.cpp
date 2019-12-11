@@ -142,6 +142,22 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_fil
 
     return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), cstrFile.c_str(), width, height);
 }
+
+DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
+}
+
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str());
+}
     
 DslReturnType dsl_osd_new(const wchar_t* name, boolean isClockEnabled)
 {
@@ -933,6 +949,56 @@ namespace DSL
         }
         LOG_INFO("New IOU Tracker '" << name << "' created successfully");
 
+        return DSL_RESULT_SUCCESS;
+    }
+   
+    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!pTrackerBintr->AddBatchMetaHandler(handler, user_data))
+            {
+                LOG_ERROR("Tracker '" << name << "' already has a Batch Meta Handler");
+                return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!pTrackerBintr->RemoveBatchMetaHandler())
+            {
+                LOG_ERROR("Tracker '" << name << "' has no Batch Meta Handler");
+                return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
         return DSL_RESULT_SUCCESS;
     }
    

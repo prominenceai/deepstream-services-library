@@ -101,7 +101,7 @@ namespace DSL
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
-        void GetDimensions(uint* width, uint* height);
+        void GetMaxDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this Tracker
@@ -110,7 +110,37 @@ namespace DSL
          * @param[in] height the height value to set in pixels
          * @return false if the Tracker is currently in Use. True otherwise
          */ 
-        bool SetDimensions(uint width, uint hieght);
+        bool SetMaxDimensions(uint width, uint hieght);
+        
+        /**
+         * @brief Adds a Batch Meta Handler callback function to the TrackerBintr
+         * @param pClientBatchMetaHandler callback function pointer to add
+         * @param pClientUserData user data to return on callback
+         * @return false if the Tracker has an existing Batch Meta Handler
+         */
+        bool AddBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
+            void* pClientUserData);
+            
+        /**
+         * @brief Removes the current Batch Meta Handler callback function from the TrackerBintr
+         * @return false if the Tracker does not have a Meta Batch Handler to remove.
+         */
+        bool RemoveBatchMetaHandler();
+        
+        /**
+         * @brief Returns the current Batch Meta Handler, 
+         * @return Function pointer if the Tracker has a Handler, NULL otherwise.
+         */
+        dsl_batch_meta_handler_cb GetBatchMetaHandler();
+
+        /**
+         * @brief 
+         * @param pPad
+         * @param pInfo
+         * @return 
+         */
+        GstPadProbeReturn HandleTrackerSrcProbe(
+            GstPad* pPad, GstPadProbeInfo* pInfo);
 
     protected:
 
@@ -125,12 +155,12 @@ namespace DSL
         std::string m_llLibFile;
     
         /**
-         * @brief width of the Tracker in pixels
+         * @brief max frame width of the input buffer in pixels
          */
         uint m_width; 
         
         /**
-         * @brief height of the Tiled TrackerBintr in pixels
+         * @brief max frame height of the input buffer in pixels
          */
         uint m_height;
         
@@ -138,6 +168,21 @@ namespace DSL
          * @brief Tracker Elementr for this TrackerBintr
          */
         DSL_ELEMENT_PTR  m_pTracker;
+        
+        dsl_batch_meta_handler_cb m_pClientBatchMetaHandler;
+        
+        void* m_pClientUserData;
+        
+        /**
+         * @brief mutex fo the src Pad Probe handler
+         */
+        GMutex m_srcPadProbeMutex;
+        
+        /**
+         * @brief src pad probe handle
+         */
+        uint m_srcPadProbeId;
+        
     };
 
     class KtlTrackerBintr : public TrackerBintr
@@ -153,6 +198,9 @@ namespace DSL
     
         IouTrackerBintr(const char* name, const char* configFile, guint width, guint height);
     };
+
+    static GstPadProbeReturn TrackerSrcProbeCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pTrackerBintr);
 
 } // DSL
 
