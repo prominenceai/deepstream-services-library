@@ -206,9 +206,20 @@ namespace DSL
 
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
         {
-            if (m_pClientBatchMetaHandler)
+            if (m_pClientBatchMetaHandler) // TODO or write ouput enabled
             {
-                // Call client CB
+                GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+                NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+                if (!pBatchMeta)
+                {
+                    LOG_WARN("Unable to get Batch Meta data for Tracker '" << GetName() << "'");
+                    return GST_PAD_PROBE_OK;
+                }
+                if (m_pClientBatchMetaHandler)
+                {
+                    m_pClientBatchMetaHandler(pBatchMeta, m_pClientUserData);
+                }
+                // TODO if write output
             }
         }
         return GST_PAD_PROBE_OK;

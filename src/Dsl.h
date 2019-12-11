@@ -45,6 +45,9 @@ THE SOFTWARE.
 #include <deepstream_common.h>
 #include <deepstream_config.h>
 #include <deepstream_perf.h>
+#include <gstnvdsmeta.h>
+#include <gstnvdsinfer.h>
+
 
 #include "DslApi.h"
 #include "DslMutex.h"
