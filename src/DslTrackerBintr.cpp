@@ -34,8 +34,6 @@ namespace DSL
         , m_llLibFile(llLibFileName)
         , m_width(width)
         , m_height(height)
-        , m_pClientBatchMetaHandler(NULL)
-        , m_pClientUserData(NULL)
     {
         LOG_FUNC();
         m_pTracker = DSL_ELEMENT_NEW(NVDS_ELEM_TRACKER, "tracker-tracker");
@@ -50,20 +48,7 @@ namespace DSL
         m_pTracker->AddGhostPadToParent("sink");
         m_pTracker->AddGhostPadToParent("src");
         
-        m_pGstStaticSourcePad = gst_element_get_static_pad(m_pTracker->GetGstElement(), "src");
-        if (!m_pGstStaticSourcePad)
-        {
-            LOG_ERROR("Failed to get Static Source Pad for TrackerBintr '" << GetName() << "'");
-            throw;
-        }
-        
-        // Src Pad Probe notified on Buffer ready
-        m_srcPadProbeId = gst_pad_add_probe(m_pGstStaticSourcePad, GST_PAD_PROBE_TYPE_BUFFER,
-            TrackerSrcProbeCB, this, NULL);
-
-        gst_object_unref(m_pGstStaticSourcePad);
-        
-        g_mutex_init(&m_srcPadProbeMutex);
+        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("tracker-src-pad-probe", "src", m_pTracker);
     }
 
     TrackerBintr::~TrackerBintr()
@@ -74,8 +59,6 @@ namespace DSL
         {
             UnlinkAll();
         }
-    
-        g_mutex_clear(&m_srcPadProbeMutex);
     }
 
     bool TrackerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
@@ -159,71 +142,7 @@ namespace DSL
         
         return true;
     }
-    
-    bool TrackerBintr::AddBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
-        void* pClientUserData)
-    {
-        LOG_FUNC();
-        
-        LOG_INFO("m_pClientBatchMetaHandler = " << pClientBatchMetaHandler);
-        if (m_pClientBatchMetaHandler)
-        {
-            LOG_ERROR("TrackerBintr '" << GetName() << "' already has a Client Meta Batch Handler");
-            return false;
-        }
-        m_pClientBatchMetaHandler = pClientBatchMetaHandler;
-        m_pClientUserData = pClientUserData;
-        
-        return true;
-    }
-    
-    bool TrackerBintr::RemoveBatchMetaHandler()
-    {
-        LOG_FUNC();
-        
-        if (!m_pClientBatchMetaHandler)
-        {
-            LOG_ERROR("TrackerBintr '" << GetName() << "' has no Client Meta Batch Handler");
-            return false;
-        }
-        m_pClientBatchMetaHandler = NULL;
-        m_pClientUserData = NULL;
-        
-        return true;
-    }
 
-    dsl_batch_meta_handler_cb TrackerBintr::GetBatchMetaHandler()
-    {
-        LOG_FUNC();
-        
-        return m_pClientBatchMetaHandler;
-    }
-    
-    GstPadProbeReturn TrackerBintr::HandleTrackerSrcProbe(
-        GstPad* pPad, GstPadProbeInfo* pInfo)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_srcPadProbeMutex);
-
-        if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
-        {
-            if (m_pClientBatchMetaHandler) // TODO or write ouput enabled
-            {
-                GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
-                if (!pBuffer)
-                {
-                    LOG_WARN("Unable to get data buffer for Tracker '" << GetName() << "'");
-                    return GST_PAD_PROBE_OK;
-                }
-                if (m_pClientBatchMetaHandler)
-                {
-                    m_pClientBatchMetaHandler(pBuffer, m_pClientUserData);
-                }
-                // TODO if write output
-            }
-        }
-        return GST_PAD_PROBE_OK;
-    }
-    
     KtlTrackerBintr::KtlTrackerBintr(const char* name, guint width, guint height)
         : TrackerBintr(name, NVDS_KLT_LIB, width, height)
     {
@@ -245,12 +164,4 @@ namespace DSL
         }
         m_pTracker->SetAttribute("ll-config-file", configFile);
     }
-    
-    static GstPadProbeReturn TrackerSrcProbeCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pTrackerBintr)
-    {
-        return static_cast<TrackerBintr*>(pTrackerBintr)->
-            HandleTrackerSrcProbe(pPad, pInfo);
-    }
-    
-}
+} // DSL
