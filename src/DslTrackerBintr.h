@@ -113,36 +113,6 @@ namespace DSL
          */ 
         bool SetMaxDimensions(uint width, uint hieght);
         
-        /**
-         * @brief Adds a Batch Meta Handler callback function to the TrackerBintr
-         * @param pClientBatchMetaHandler callback function pointer to add
-         * @param pClientUserData user data to return on callback
-         * @return false if the Tracker has an existing Batch Meta Handler
-         */
-        bool AddBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
-            void* pClientUserData)
-        {
-            return m_pSrcPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
-        }
-            
-        /**
-         * @brief Removes the current Batch Meta Handler callback function from the TrackerBintr
-         * @return false if the Tracker does not have a Meta Batch Handler to remove.
-         */
-        bool RemoveBatchMetaHandler()
-        {
-            return m_pSrcPadProbe->RemoveBatchMetaHandler();
-        }
-        
-        /**
-         * @brief Returns the current Batch Meta Handler, 
-         * @return Function pointer if the Tracker has a Handler, NULL otherwise.
-         */
-        dsl_batch_meta_handler_cb GetBatchMetaHandler()
-        {
-            return m_pSrcPadProbe->GetBatchMetaHandler();
-        }
-
     protected:
 
         /**
@@ -169,11 +139,6 @@ namespace DSL
          * @brief Tracker Elementr for this TrackerBintr
          */
         DSL_ELEMENT_PTR  m_pTracker;
-        
-        /**
-         * @brief Source PadProbetr for this TrackerBintr
-         */
-        DSL_PAD_PROBE_PTR m_pSrcPadProbe;
     };
 
     class KtlTrackerBintr : public TrackerBintr

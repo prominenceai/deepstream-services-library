@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslNodetr.h"
+#include "DslPadProbetr.h"
 
 namespace DSL
 {
@@ -210,6 +211,72 @@ namespace DSL
                 gst_element_get_static_pad(GetGstElement(), "sink"), gst_event_new_eos());            
         }
         
+        /**
+         * @brief Adds a Batch Meta Handler callback function to the Bintr
+         * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+         * @param pClientBatchMetaHandler callback function pointer to add
+         * @param pClientUserData user data to return on callback
+         * @return false if the Bintr has an existing Batch Meta Handler for the given pad
+         */
+        bool AddBatchMetaHandler(uint pad, dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
+            void* pClientUserData)
+        {
+            LOG_FUNC();
+            
+            if (pad == DSL_PAD_SINK)
+            {
+                return m_pSinkPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
+            }
+            if (pad == DSL_PAD_SRC)
+            {
+                return m_pSrcPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
+            }
+            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            return false;
+        }
+            
+        /**
+         * @brief Removes a Batch Meta Handler callback function from the Bintr
+         * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+         * @return false if the Bintr does not have a Meta Batch Handler to remove for the give pad.
+         */
+        bool RemoveBatchMetaHandler(uint pad)
+        {
+            LOG_FUNC();
+            
+            if (pad == DSL_PAD_SINK)
+            {
+                return m_pSinkPadProbe->RemoveBatchMetaHandler();
+            }
+            if (pad == DSL_PAD_SRC)
+            {
+                return m_pSrcPadProbe->RemoveBatchMetaHandler();
+            }
+            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            return false;
+        }
+        
+        /**
+         * @brief Returns the current Batch Meta Handler, 
+         * @param pad pad to get the handler from; DSL_PAD_SINK | DSL_PAD SRC
+         * @return Function pointer if the Bintr has a Handler, NULL otherwise.
+         */
+        dsl_batch_meta_handler_cb GetBatchMetaHandler(uint pad)
+        {
+            LOG_FUNC();
+            
+            if (pad == DSL_PAD_SINK)
+            {
+                return m_pSinkPadProbe->GetBatchMetaHandler();
+            }
+            if (pad == DSL_PAD_SRC)
+            {
+                return m_pSrcPadProbe->GetBatchMetaHandler();
+            }
+            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            return NULL;
+        }
+
     public:
     
         bool m_isLinked;
@@ -243,6 +310,16 @@ namespace DSL
          * @brief A dynamic collection of requested Souce Pads for this Bintr
          */
         std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
+
+        /**
+         * @brief Sink PadProbetr for this Bintr
+         */
+        DSL_PAD_PROBE_PTR m_pSinkPadProbe;
+
+        /**
+         * @brief Source PadProbetr for this Bintr
+         */
+        DSL_PAD_PROBE_PTR m_pSrcPadProbe;
     };
 
 } // DSL

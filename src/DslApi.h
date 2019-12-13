@@ -77,6 +77,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00111000
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00111001
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00111010
+#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x00111011
 
 /**
  * Sink API Return Values
@@ -151,6 +152,9 @@ THE SOFTWARE.
 #define DSL_STATE_PLAYING                                           2
 #define DSL_STATE_PAUSED                                            4
 #define DSL_STATE_IN_TRANSITION                                     5
+
+#define DSL_PAD_SINK                                                0
+#define DSL_PAD_SRC                                                 1
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -331,19 +335,21 @@ DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t
  * @brief Add a batch meta handler callback function to be called to process each buffer.
  * A Tracker can have at most one batch meta handler
  * @param name unique name of the Tracker to update
+ * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint type, 
+    dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
  * @brief Removes a batch meta handler callback function from the Tracker
  * @param name unique name of the Tracker to update
- * @param handler callback function to remove
+ * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name);
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
  * @brief sets the config file to use by named IOU Tracker object

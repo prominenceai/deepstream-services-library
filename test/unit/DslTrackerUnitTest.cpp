@@ -46,6 +46,8 @@ SCENARIO( "A KTL Tracker is created correctly", "[TrackerBintr]" )
                 std::string retPathSpec(pTrackerBintr->GetLibFile());
                 
                 REQUIRE( retPathSpec == defPathSpec );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == NULL );
             }
         }
     }
@@ -112,7 +114,7 @@ SCENARIO( "A Tracker's dimensions can be updated", "[TrackerBintr]" )
     }
 }
 
-SCENARIO( "A Tracker can add a Batch Meta Handler", "[TrackerBintr]" )
+SCENARIO( "A Tracker can add a Batch Meta Handler to a Sink Pad", "[TrackerBintr]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {
@@ -125,23 +127,50 @@ SCENARIO( "A Tracker can add a Batch Meta Handler", "[TrackerBintr]" )
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
 
-        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
         
-        WHEN( "The Tracker is called to add a Batch Meta Handler" )
+        WHEN( "The Tracker is called to add a Batch Meta Handler to Sink Pad" )
         {
-            REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler, NULL) == true );
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, NULL) == true );
 
             THEN( "The Tracker is able to return the same Handler on get" )
             {
-                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == handler );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == handler );
             }
         }
     }
 }
 
-SCENARIO( "A Tracker can remove a Batch Meta Handler", "[TrackerBintr]" )
+SCENARIO( "A Tracker can add a Batch Meta Handler to a Source Pad", "[TrackerBintr]" )
 {
-    GIVEN( "A new Tracker with an existing Batch Meta Handler" ) 
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler;
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == NULL );
+        
+        WHEN( "The Tracker is called to add a Batch Meta Handler to Sink Pad" )
+        {
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SRC, handler, NULL) == true );
+
+            THEN( "The Tracker is able to return the same Handler on get" )
+            {
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == handler );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Tracker can remove a Batch Meta Handler from a Sink Pad", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker with an existing Sink Pad Batch Meta Handler" ) 
     {
         std::string trackerName("ktl-tracker");
         uint initWidth(200);
@@ -152,24 +181,52 @@ SCENARIO( "A Tracker can remove a Batch Meta Handler", "[TrackerBintr]" )
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
 
-        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
-        REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler, NULL) == true );
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
+        REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, NULL) == true );
 
         WHEN( "After the Tracker is called to remove the Batch Meta Handler" )
         {
-            REQUIRE( pTrackerBintr->RemoveBatchMetaHandler() == true );
+            REQUIRE( pTrackerBintr->RemoveBatchMetaHandler(DSL_PAD_SINK) == true );
             
             THEN( "The Tracker returns NULL when queried" )
             {
-                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
             }
         }
     }
 }
 
-SCENARIO( "A Tracker can have at most one Batch Meta Handler", "[TrackerBintr]" )
+SCENARIO( "A Tracker can remove a Batch Meta Handler from a Source Pad", "[TrackerBintr]" )
 {
-    GIVEN( "A new Tracker with an existing Batch Meta Handler" ) 
+    GIVEN( "A new Tracker with an existing Source Pad Batch Meta Handler" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler((dsl_batch_meta_handler_cb)0x01);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == NULL );
+        REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SRC, handler, NULL) == true );
+
+        WHEN( "After the Tracker is called to remove the Batch Meta Handler" )
+        {
+            REQUIRE( pTrackerBintr->RemoveBatchMetaHandler(DSL_PAD_SRC) == true );
+            
+            THEN( "The Tracker returns NULL when queried" )
+            {
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Tracker can have at most one Sink Pad Batch Meta Handler", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker with an existing Sink Pad Batch Meta Handler" ) 
     {
         std::string trackerName("ktl-tracker");
         uint initWidth(200);
@@ -181,17 +238,75 @@ SCENARIO( "A Tracker can have at most one Batch Meta Handler", "[TrackerBintr]" 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
 
-        REQUIRE( pTrackerBintr->GetBatchMetaHandler() == NULL );
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
 
-        WHEN( "A Batch Meta Handler has been added to the Tracker" )
+        WHEN( "A Sink Pad Batch Meta Handler has been added to the Tracker" )
         {
-            REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler1, NULL) == true );
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler1, NULL) == true );
             
-            THEN( "A second Batch Meta Handler can not be added " )
+            THEN( "A second Sink Pad Batch Meta Handler can not be added " )
             {
-                REQUIRE( pTrackerBintr->AddBatchMetaHandler(handler2, NULL) == false );
-                REQUIRE( pTrackerBintr->GetBatchMetaHandler() == handler1 );
+                REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler2, NULL) == false );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == handler1 );
             }
         } 
     }
 }
+
+SCENARIO( "A Tracker can have at most one Source Pad Batch Meta Handler", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker with an existing Source Pad Batch Meta Handler" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler1((dsl_batch_meta_handler_cb)0x01);
+        dsl_batch_meta_handler_cb handler2((dsl_batch_meta_handler_cb)0x02);
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+
+        REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == NULL );
+
+        WHEN( "A Sink Pad Batch Meta Handler has been added to the Tracker" )
+        {
+            REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SRC, handler1, NULL) == true );
+            
+            THEN( "A second Sink Pad Batch Meta Handler can not be added " )
+            {
+                REQUIRE( pTrackerBintr->AddBatchMetaHandler(DSL_PAD_SRC, handler2, NULL) == false );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SRC) == handler1 );
+            }
+        } 
+    }
+}
+
+SCENARIO( "Adding or removing a Batch Meta Handler will fail with an Invalid Pad Type", "[TrackerBintr]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::string trackerName("ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        dsl_batch_meta_handler_cb handler;
+
+        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        
+        WHEN( "The Tracker is without Batch Meta Handlers " )
+        {
+            REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
+            REQUIRE( pTrackerBintr->GetBatchMetaHandler(DSL_PAD_SINK) == NULL );
+
+            THEN( "The Tracker fails to add or remove a Handler when the Pad Type is Invalid" )
+            {
+                REQUIRE( pTrackerBintr->AddBatchMetaHandler(3, handler, NULL) == false );
+                REQUIRE( pTrackerBintr->RemoveBatchMetaHandler(3) == false );
+                REQUIRE( pTrackerBintr->GetBatchMetaHandler(3) == NULL );
+            }
+        }
+    }
+}
+
