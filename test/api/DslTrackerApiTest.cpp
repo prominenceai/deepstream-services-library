@@ -220,3 +220,113 @@ SCENARIO( "A Tracker in use can't be added to a second Pipeline", "[tracker-api]
     }
 }
 
+SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-api]" )
+{
+    GIVEN( "A new KTL Tracker in memory" ) 
+    {
+        std::wstring trackerName(L"ktl-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), initWidth, initHeight) == DSL_RESULT_SUCCESS );
+
+        uint currWidth(0);
+        uint currHeight(0);
+
+        REQUIRE( dsl_tracker_max_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
+        REQUIRE( currWidth == initWidth );
+        REQUIRE( currHeight == initHeight );
+
+        WHEN( "A the KTL Tracker's Max Dimensions are updated" ) 
+        {
+            uint newWidth(300);
+            uint newHeight(150);
+            REQUIRE( dsl_tracker_max_dimensions_set(trackerName.c_str(), newWidth, newHeight) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_tracker_max_dimensions_get(trackerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( currWidth == newWidth );
+                REQUIRE( currHeight == newHeight );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+
+void batch_meta_handler_cb1(void* batch_meta, void* user_data)
+{
+}
+void batch_meta_handler_cb2(void* batch_meta, void* user_data)
+{
+}
+    
+SCENARIO( "A Meta Batch Handler can be added and removed froma a Tracker", "[temp]" )
+{
+    GIVEN( "A new pPipeline with a new Tracker" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring trackerName(L"ktl-tracker");
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 1 );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Meta Batch Handler is added to the Tracker " ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Meta Batch Handler can then be removed" ) 
+            {
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A second Meta Batch Handler can not be added to a Tracker", "[temp]" )
+{
+    GIVEN( "A new pPipeline with a new Tracker" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring trackerName(L"ktl-tracker");
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 1 );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Meta Batch Handler is added to the Tracker " ) 
+        {
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Meta Batch Handler can not be added" ) 
+            {
+                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL)
+                    == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}

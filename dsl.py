@@ -1,15 +1,20 @@
-import ctypes
+from ctypes import *
 
-_dsl = ctypes.CDLL('dsl-lib.so')
+_dsl = CDLL('dsl-lib.so')
 
 DSL_RETURN_SUCCESS = 0
 
 ##
+## Callback Typedefs
+##
+META_BATCH_HANDLER = CFUNCTYPE(None, c_void_p, c_void_p)
+DISPLAY_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+
+##
 ## dsl_source_csi_new()
 ##
-_dsl.dsl_source_csi_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_source_csi_new.restype = ctypes.c_uint
+_dsl.dsl_source_csi_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_csi_new.restype = c_uint
 def dsl_source_csi_new(name, width, height, fps_n, fps_d):
     global _dsl
     result =_dsl.dsl_source_csi_new(name, width, height, fps_n, fps_d)
@@ -19,65 +24,63 @@ def dsl_source_csi_new(name, width, height, fps_n, fps_d):
 ##
 ## dsl_source_uri_new()
 ##
-_dsl.dsl_source_uri_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_source_uri_new.restype = ctypes.c_uint
+_dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_source_uri_new.restype = c_uint
 def dsl_source_uri_new(name, uri, cudadec_mem_type, intra_decode, drop_frame_interval):
     global _dsl
-    result =_dsl.dsl_source_uri_new(name, uri, cudadec_mem_type, intra_decode, drop_frame_interval)
+    result = _dsl.dsl_source_uri_new(name, uri, cudadec_mem_type, intra_decode, drop_frame_interval)
     return int(result)
 #print(dsl_source_uri_new("uri-source", "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0))
 
 ##
 ## dsl_source_is_live()
 ##
-_dsl.dsl_source_is_live.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_source_is_live.restype = ctypes.c_bool
+_dsl.dsl_source_is_live.argtypes = [c_wchar_p]
+_dsl.dsl_source_is_live.restype = c_bool
 def dsl_source_is_live(name):
     global _dsl
-    result =_dsl.dsl_source_is_live(name)
+    result = _dsl.dsl_source_is_live(name)
     return bool(result)
 #print(dsl_source_is_live("uri-source"))
 
 ##
 ## dsl_source_get_num_in_use()
 ##
-_dsl.dsl_source_get_num_in_use.restype = ctypes.c_uint
+_dsl.dsl_source_get_num_in_use.restype = c_uint
 def dsl_source_get_num_in_use():
     global _dsl
-    result =_dsl.dsl_source_get_num_in_use()
+    result = _dsl.dsl_source_get_num_in_use()
     return int(result)
 #print(dsl_source_get_num_in_use())
 
 ##
 ## dsl_source_get_num_in_use_max()
 ##
-_dsl.dsl_source_get_num_in_use_max.restype = ctypes.c_uint
+_dsl.dsl_source_get_num_in_use_max.restype = c_uint
 def dsl_source_get_num_in_use_max():
     global _dsl
-    result =_dsl.dsl_source_get_num_in_use_max()
+    result = _dsl.dsl_source_get_num_in_use_max()
     return int(result)
 #print(dsl_source_get_num_in_use_max())
 
 ##
 ## dsl_source_set_num_in_use_max()
 ##
-_dsl.dsl_source_set_num_in_use_max.argtypes = [ctypes.c_uint]
+_dsl.dsl_source_set_num_in_use_max.argtypes = [c_uint]
 def dsl_source_set_num_in_use_max(max):
     global _dsl
-    result =_dsl.dsl_source_set_num_in_use_max(max)
+    result = _dsl.dsl_source_set_num_in_use_max(max)
 dsl_source_set_num_in_use_max(20)
 #print(dsl_source_get_num_in_use_max())
 
 ##
 ## dsl_gie_primary_new()
 ##
-_dsl.dsl_gie_primary_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
-_dsl.dsl_gie_primary_new.restype = ctypes.c_uint
+_dsl.dsl_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gie_primary_new.restype = c_uint
 def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
     global _dsl
-    result =_dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
+    result = _dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
     return int(result)
 #print(dsl_gie_primary_new("primary-gie", "../../test/configs/config_infer_primary_nano.txt", 
 #    "../../test/models/Primary_Detector_Nano/resnet10.caffemodel", 0, 0))
@@ -85,43 +88,97 @@ def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
 ##
 ## dsl_gie_secondary_new()
 ##
-_dsl.dsl_gie_secondary_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_wchar_p]
-_dsl.dsl_gie_secondary_new.restype = ctypes.c_uint
+_dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_gie_secondary_new.restype = c_uint
 def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name):
     global _dsl
-    result =_dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name)
+    result = _dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name)
     return int(result)
 
 ##
 ## dsl_tracker_ktl_new()
 ##
-_dsl.dsl_tracker_ktl_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_tracker_ktl_new.restype = ctypes.c_uint
+_dsl.dsl_tracker_ktl_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_ktl_new.restype = c_uint
 def dsl_tracker_ktl_new(name, width, height):
     global _dsl
-    result =_dsl.dsl_tracker_ktl_new(name, width, height)
+    result = _dsl.dsl_tracker_ktl_new(name, width, height)
     return int(result)
 #print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
 
 ##
 ## dsl_tracker_iou_new()
 ##
-_dsl.dsl_tracker_iou_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_tracker_iou_new.restype = ctypes.c_uint
+_dsl.dsl_tracker_iou_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_iou_new.restype = c_uint
 def dsl_tracker_iou_new(name, config_file, width, height):
     global _dsl
-    result =_dsl.dsl_tracker_iou_new(name, config_file, width, height)
+    result = _dsl.dsl_tracker_iou_new(name, config_file, width, height)
     return int(result)
 #print(dsl_tracker_iou_new("iou-tracker", "./test/configs/iou_config.txt", 300, 150))
 
 ##
+## dsl_tracker_max_dimensions_get()
+##
+_dsl.dsl_tracker_max_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tracker_max_dimensions_get.restype = c_uint
+def dsl_tracker_max_dimensions_get(name):
+    global _dsl
+    p_max_width = POINTER(c_uint)
+    p_max_height = POINTER(c_uint)
+    u_max_width = c_uint(0)
+    u_max_height = c_uint(0)
+    result = _dsl.dsl_tracker_max_dimensions_get(name, p_max_width(u_max_width), p_max_height(u_max_height))
+    return int(result), u_max_width.value, u_max_height.value 
+
+#print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
+#print(dsl_tracker_max_dimensions_get("ktl-tracker",))
+
+##
+## dsl_tracker_max_dimensions_set()
+##
+_dsl.dsl_tracker_max_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tracker_max_dimensions_set.restype = c_uint
+def dsl_tracker_max_dimensions_set(name, max_width, max_height):
+    global _dsl
+    result = _dsl.dsl_tracker_max_dimensions_set(name, max_width, max_height)
+    return int(result)
+
+##
+## dsl_tracker_batch_meta_handler_add()
+##
+_dsl.dsl_tracker_batch_meta_handler_add.argtypes = [c_wchar_p, META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_tracker_batch_meta_handler_add.restype = c_uint
+def dsl_tracker_batch_meta_handler_add(name, handler, user_data):
+    global _dsl
+    meta_handler = META_BATCH_HANDLER(handler)
+    print(meta_handler)
+    result = _dsl.dsl_tracker_batch_meta_handler_add(name, meta_handler, user_data)
+    return int(result)
+
+#def mb_handler(buffer, user_data):
+#    print(buffer)
+#    print(user_data)
+    
+#print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
+#print(dsl_tracker_batch_meta_handler_add("ktl-tracker", mb_handler, None))
+
+##
+## dsl_tracker_batch_meta_handler_remove()
+##
+_dsl.dsl_tracker_batch_meta_handler_remove.argtypes = [c_wchar_p]
+_dsl.dsl_tracker_batch_meta_handler_remove.restype = c_uint
+def dsl_tracker_batch_meta_handler_remove(name):
+    global _dsl
+    result = _dsl.dsl_tracker_batch_meta_handler_remove(name)
+    return int(result)
+#print(dsl_tracker_batch_meta_handler_remove("ktl-tracker"))
+
+##
 ## dsl_osd_new()
 ##
-_dsl.dsl_osd_new.argtypes = [ctypes.c_wchar_p, ctypes.c_bool]
-_dsl.dsl_osd_new.restype = ctypes.c_uint
+_dsl.dsl_osd_new.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_new.restype = c_uint
 def dsl_osd_new(name, is_clock_enabled):
     global _dsl
     result =_dsl.dsl_osd_new(name, is_clock_enabled)
@@ -131,9 +188,8 @@ def dsl_osd_new(name, is_clock_enabled):
 ##
 ## dsl_display_new()
 ##
-_dsl.dsl_display_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_display_new.restype = ctypes.c_uint
+_dsl.dsl_display_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_display_new.restype = c_uint
 def dsl_display_new(name, width, height):
     global _dsl
     result =_dsl.dsl_display_new(name, width, height)
@@ -143,9 +199,8 @@ def dsl_display_new(name, width, height):
 ##
 ## dsl_sink_overlay_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = \
-    [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-_dsl.dsl_sink_overlay_new.restype = ctypes.c_uint
+_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_overlay_new.restype = c_uint
 def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
     global _dsl
     result =_dsl.dsl_sink_overlay_new(name, offsetX, offsetY, width, height)
@@ -155,8 +210,8 @@ def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
 ##
 ## dsl_component_delete()
 ##
-_dsl.dsl_component_delete.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_component_delete.restype = ctypes.c_uint
+_dsl.dsl_component_delete.argtypes = [c_wchar_p]
+_dsl.dsl_component_delete.restype = c_uint
 def dsl_component_delete(name):
     global _dsl
     result =_dsl.dsl_component_delete(name)
@@ -167,10 +222,10 @@ def dsl_component_delete(name):
 ## dsl_component_delete_many()
 ##
 #_dsl.dsl_component_delete_many.argtypes = [Array]
-_dsl.dsl_component_delete_many.restype = ctypes.c_uint
+_dsl.dsl_component_delete_many.restype = c_uint
 def dsl_component_delete_many(components):
     global _dsl
-    arr = (ctypes.c_wchar_p * len(components))()
+    arr = (c_wchar_p * len(components))()
     arr[:] = components
     result =_dsl.dsl_component_delete_many(arr)
     return int(result)
@@ -179,7 +234,7 @@ def dsl_component_delete_many(components):
 ##
 ## dsl_component_delete_all()
 ##
-_dsl.dsl_component_delete_all.restype = ctypes.c_uint
+_dsl.dsl_component_delete_all.restype = c_uint
 def dsl_component_delete_all():
     global _dsl
     result =_dsl.dsl_component_delete_all()
@@ -189,7 +244,7 @@ def dsl_component_delete_all():
 ##
 ## dsl_component_list_size()
 ##
-_dsl.dsl_component_list_size.restype = ctypes.c_uint
+_dsl.dsl_component_list_size.restype = c_uint
 def dsl_component_list_size():
     global _dsl
     result =_dsl.dsl_component_list_size()
@@ -199,8 +254,8 @@ def dsl_component_list_size():
 ##
 ## dsl_pipeline_new()
 ##
-_dsl.dsl_pipeline_new.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_pipeline_new.restype = ctypes.c_uint
+_dsl.dsl_pipeline_new.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_new.restype = c_uint
 def dsl_pipeline_new(name):
     global _dsl
     result =_dsl.dsl_pipeline_new(name)
@@ -211,10 +266,10 @@ def dsl_pipeline_new(name):
 ## dsl_pipeline_new_many()
 ##
 #_dsl.dsl_pipeline_new_many.argtypes = []
-_dsl.dsl_pipeline_new_many.restype = ctypes.c_uint
+_dsl.dsl_pipeline_new_many.restype = c_uint
 def dsl_pipeline_new_many(pipelines):
     global _dsl
-    arr = (ctypes.c_wchar_p * len(pipelines))()
+    arr = (c_wchar_p * len(pipelines))()
     arr[:] = pipelines
     result =_dsl.dsl_pipeline_new_many(arr)
     return int(result)
@@ -223,8 +278,8 @@ def dsl_pipeline_new_many(pipelines):
 ##
 ## dsl_pipeline_delete()
 ##
-_dsl.dsl_pipeline_delete.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_pipeline_delete.restype = ctypes.c_uint
+_dsl.dsl_pipeline_delete.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_delete.restype = c_uint
 def dsl_pipeline_delete(name):
     global _dsl
     result =_dsl.dsl_pipeline_delete(name)
@@ -234,10 +289,10 @@ def dsl_pipeline_delete(name):
 ## dsl_pipeline_delete_many()
 ##
 #_dsl.dsl_component_delete_many.argtypes = [Array]
-_dsl.dsl_pipeline_delete_many.restype = ctypes.c_uint
+_dsl.dsl_pipeline_delete_many.restype = c_uint
 def dsl_pipeline_delete_many(pipelines):
     global _dsl
-    arr = (ctypes.c_wchar_p * len(pipelines))()
+    arr = (c_wchar_p * len(pipelines))()
     arr[:] = pipelines
     result =_dsl.dsl_pipeline_delete_many(arr)
     return int(result)
@@ -246,7 +301,7 @@ def dsl_pipeline_delete_many(pipelines):
 ##
 ## dsl_pipeline_delete_all()
 ##
-_dsl.dsl_pipeline_delete_all.restype = ctypes.c_uint
+_dsl.dsl_pipeline_delete_all.restype = c_uint
 def dsl_pipeline_delete_all():
     global _dsl
     result =_dsl.dsl_pipeline_delete_all()
@@ -256,7 +311,7 @@ def dsl_pipeline_delete_all():
 ##
 ## dsl_pipeline_list_size()
 ##
-_dsl.dsl_pipeline_list_size.restype = ctypes.c_uint
+_dsl.dsl_pipeline_list_size.restype = c_uint
 def dsl_pipeline_list_size():
     global _dsl
     result =_dsl.dsl_pipeline_list_size()
@@ -266,8 +321,8 @@ def dsl_pipeline_list_size():
 ##
 ## dsl_pipeline_component_add()
 ##
-_dsl.dsl_pipeline_component_add.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
-_dsl.dsl_pipeline_component_add.restype = ctypes.c_uint
+_dsl.dsl_pipeline_component_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_component_add.restype = c_uint
 def dsl_pipeline_component_add(pipeline, component):
     global _dsl
     result =_dsl.dsl_pipeline_component_add(pipeline, component)
@@ -279,11 +334,11 @@ def dsl_pipeline_component_add(pipeline, component):
 ##
 ## dsl_pipeline_component_add_many()
 ##
-#_dsl.dsl_pipeline_component_add_many.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
-_dsl.dsl_pipeline_component_add_many.restype = ctypes.c_uint
+#_dsl.dsl_pipeline_component_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_component_add_many.restype = c_uint
 def dsl_pipeline_component_add_many(pipeline, components):
     global _dsl
-    arr = (ctypes.c_wchar_p * len(components))()
+    arr = (c_wchar_p * len(components))()
     arr[:] = components
     result =_dsl.dsl_pipeline_component_add_many(pipeline, arr)
     return int(result)
@@ -294,8 +349,8 @@ def dsl_pipeline_component_add_many(pipeline, components):
 ##
 ## dsl_pipeline_pause()
 ##
-_dsl.dsl_pipeline_pause.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_pipeline_pause.restype = ctypes.c_uint
+_dsl.dsl_pipeline_pause.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_pause.restype = c_uint
 def dsl_pipeline_pause(name):
     global _dsl
     result =_dsl.dsl_pipeline_pause(name)
@@ -305,8 +360,8 @@ def dsl_pipeline_pause(name):
 ##
 ## dsl_pipeline_play()
 ##
-_dsl.dsl_pipeline_play.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_pipeline_play.restype = ctypes.c_uint
+_dsl.dsl_pipeline_play.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_play.restype = c_uint
 def dsl_pipeline_play(name):
     global _dsl
     result =_dsl.dsl_pipeline_play(name)
@@ -316,8 +371,8 @@ def dsl_pipeline_play(name):
 ##
 ## dsl_pipeline_stop()
 ##
-_dsl.dsl_pipeline_stop.argtypes = [ctypes.c_wchar_p]
-_dsl.dsl_pipeline_stop.restype = ctypes.c_uint
+_dsl.dsl_pipeline_stop.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_stop.restype = c_uint
 def dsl_pipeline_stop(name):
     global _dsl
     result =_dsl.dsl_pipeline_stop(name)
@@ -327,8 +382,8 @@ def dsl_pipeline_stop(name):
 ##
 ## dsl_pipeline_dump_to_dot()
 ##
-_dsl.dsl_pipeline_dump_to_dot.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
-_dsl.dsl_pipeline_dump_to_dot.restype = ctypes.c_uint
+_dsl.dsl_pipeline_dump_to_dot.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_dump_to_dot.restype = c_uint
 def dsl_pipeline_dump_to_dot(pipeline, filename):
     global _dsl
     result =_dsl.dsl_pipeline_dump_to_dot(pipeline, filename)
@@ -338,8 +393,8 @@ def dsl_pipeline_dump_to_dot(pipeline, filename):
 ##
 ## dsl_pipeline_dump_to_dot_with_ts()
 ##
-_dsl.dsl_pipeline_dump_to_dot_with_ts.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
-_dsl.dsl_pipeline_dump_to_dot_with_ts.restype = ctypes.c_uint
+_dsl.dsl_pipeline_dump_to_dot_with_ts.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_dump_to_dot_with_ts.restype = c_uint
 def dsl_pipeline_dump_to_dot_with_ts(pipeline, filename):
     global _dsl
     result =_dsl.dsl_pipeline_dump_to_dot_with_ts(pipeline, filename)

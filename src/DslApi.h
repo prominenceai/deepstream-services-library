@@ -73,8 +73,10 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00110100
 #define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00110101
 #define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00110110
-#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00110111
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00111000
+#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00110111
+#define DSL_RESULT_TRACKER_SET_FAILED                               0x00111000
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00111001
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00111010
 
 /**
  * Sink API Return Values
@@ -306,7 +308,7 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_fil
  * @param max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint& max_width, uint& max_height);
+DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
 
 /**
  * @brief sets the maximum frame width and height settings for the named IOU Tracker object
