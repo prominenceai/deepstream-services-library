@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
+#include "DslPadProbetr.h"
 
 namespace DSL
 {
@@ -119,28 +120,28 @@ namespace DSL
          * @return false if the Tracker has an existing Batch Meta Handler
          */
         bool AddBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
-            void* pClientUserData);
+            void* pClientUserData)
+        {
+            return m_pSrcPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
+        }
             
         /**
          * @brief Removes the current Batch Meta Handler callback function from the TrackerBintr
          * @return false if the Tracker does not have a Meta Batch Handler to remove.
          */
-        bool RemoveBatchMetaHandler();
+        bool RemoveBatchMetaHandler()
+        {
+            return m_pSrcPadProbe->RemoveBatchMetaHandler();
+        }
         
         /**
          * @brief Returns the current Batch Meta Handler, 
          * @return Function pointer if the Tracker has a Handler, NULL otherwise.
          */
-        dsl_batch_meta_handler_cb GetBatchMetaHandler();
-
-        /**
-         * @brief 
-         * @param pPad
-         * @param pInfo
-         * @return 
-         */
-        GstPadProbeReturn HandleTrackerSrcProbe(
-            GstPad* pPad, GstPadProbeInfo* pInfo);
+        dsl_batch_meta_handler_cb GetBatchMetaHandler()
+        {
+            return m_pSrcPadProbe->GetBatchMetaHandler();
+        }
 
     protected:
 
@@ -169,20 +170,10 @@ namespace DSL
          */
         DSL_ELEMENT_PTR  m_pTracker;
         
-        dsl_batch_meta_handler_cb m_pClientBatchMetaHandler;
-        
-        void* m_pClientUserData;
-        
         /**
-         * @brief mutex fo the src Pad Probe handler
+         * @brief Source PadProbetr for this TrackerBintr
          */
-        GMutex m_srcPadProbeMutex;
-        
-        /**
-         * @brief src pad probe handle
-         */
-        uint m_srcPadProbeId;
-        
+        DSL_PAD_PROBE_PTR m_pSrcPadProbe;
     };
 
     class KtlTrackerBintr : public TrackerBintr
@@ -198,9 +189,6 @@ namespace DSL
     
         IouTrackerBintr(const char* name, const char* configFile, guint width, guint height);
     };
-
-    static GstPadProbeReturn TrackerSrcProbeCB(GstPad* pPad, 
-        GstPadProbeInfo* pInfo, gpointer pTrackerBintr);
 
 } // DSL
 

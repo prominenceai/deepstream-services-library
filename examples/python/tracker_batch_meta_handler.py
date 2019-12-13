@@ -33,8 +33,13 @@ def tracker_batch_meta_handler_cb(buffer, user_data):
         print("Source Frame Width ", frame_meta.source_frame_width)
         print("Source Frame Height ", frame_meta.source_frame_height)
         print("Num object meta ", frame_meta.num_obj_meta)
-#        '''
+ #       '''
 
+        try:
+            l_frame=l_frame.next
+        except StopIteration:
+            break
+            
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
@@ -102,3 +107,6 @@ def main(args):
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
