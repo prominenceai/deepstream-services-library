@@ -4,6 +4,9 @@ _dsl = CDLL('dsl-lib.so')
 
 DSL_RETURN_SUCCESS = 0
 
+DSL_PAD_SINK = 0
+DSL_PAD_SRC = 1
+
 ##
 ## Callback Typedefs
 ##
@@ -147,13 +150,13 @@ def dsl_tracker_max_dimensions_set(name, max_width, max_height):
 ##
 ## dsl_tracker_batch_meta_handler_add()
 ##
-_dsl.dsl_tracker_batch_meta_handler_add.argtypes = [c_wchar_p, META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_tracker_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_tracker_batch_meta_handler_add.restype = c_uint
-def dsl_tracker_batch_meta_handler_add(name, handler, user_data):
+def dsl_tracker_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = META_BATCH_HANDLER(handler)
     print(meta_handler)
-    result = _dsl.dsl_tracker_batch_meta_handler_add(name, meta_handler, user_data)
+    result = _dsl.dsl_tracker_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
 #def mb_handler(buffer, user_data):
@@ -166,11 +169,11 @@ def dsl_tracker_batch_meta_handler_add(name, handler, user_data):
 ##
 ## dsl_tracker_batch_meta_handler_remove()
 ##
-_dsl.dsl_tracker_batch_meta_handler_remove.argtypes = [c_wchar_p]
+_dsl.dsl_tracker_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
 _dsl.dsl_tracker_batch_meta_handler_remove.restype = c_uint
-def dsl_tracker_batch_meta_handler_remove(name):
+def dsl_tracker_batch_meta_handler_remove(name, pad):
     global _dsl
-    result = _dsl.dsl_tracker_batch_meta_handler_remove(name)
+    result = _dsl.dsl_tracker_batch_meta_handler_remove(name, pad)
     return int(result)
 #print(dsl_tracker_batch_meta_handler_remove("ktl-tracker"))
 

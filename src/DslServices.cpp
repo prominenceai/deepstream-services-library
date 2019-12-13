@@ -159,20 +159,21 @@ DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint width, ui
     return DSL::Services::GetServices()->TrackerMaxDimensionsSet(cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
+    dsl_batch_meta_handler_cb handler, void* user_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
+    return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name)
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str());
+    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad);
 }
     
 DslReturnType dsl_osd_new(const wchar_t* name, boolean isClockEnabled)
@@ -1022,18 +1023,23 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
+        }
         try
         {
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!pTrackerBintr->AddBatchMetaHandler(handler, user_data))
+            if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
                 LOG_ERROR("Tracker '" << name << "' already has a Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
@@ -1047,18 +1053,23 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name)
+    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
+        }
         try
         {
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!pTrackerBintr->RemoveBatchMetaHandler())
+            if (!pTrackerBintr->RemoveBatchMetaHandler(pad))
             {
                 LOG_ERROR("Tracker '" << name << "' has no Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;

@@ -263,7 +263,7 @@ void batch_meta_handler_cb2(void* batch_meta, void* user_data)
 {
 }
     
-SCENARIO( "A Meta Batch Handler can be added and removed froma a Tracker", "[temp]" )
+SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Tracker", "[tracker-api]" )
 {
     GIVEN( "A new pPipeline with a new Tracker" ) 
     {
@@ -280,16 +280,16 @@ SCENARIO( "A Meta Batch Handler can be added and removed froma a Tracker", "[tem
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             trackerName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Meta Batch Handler is added to the Tracker " ) 
+        WHEN( "A Sink Pad Batch Meta Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -297,7 +297,7 @@ SCENARIO( "A Meta Batch Handler can be added and removed froma a Tracker", "[tem
     }
 }
 
-SCENARIO( "A second Meta Batch Handler can not be added to a Tracker", "[temp]" )
+SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Tracker", "[tracker-api]" )
 {
     GIVEN( "A new pPipeline with a new Tracker" ) 
     {
@@ -314,16 +314,84 @@ SCENARIO( "A second Meta Batch Handler can not be added to a Tracker", "[temp]" 
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             trackerName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Meta Batch Handler is added to the Tracker " ) 
+        WHEN( "A Source Pad Batch Meta Handler is added to the Tracker" ) 
         {
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Meta Batch Handler can not be added" ) 
+            THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), batch_meta_handler_cb1, NULL)
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Tracker", "[tracker-api]" )
+{
+    GIVEN( "A new pPipeline with a new Tracker" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring trackerName(L"ktl-tracker");
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 1 );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Meta Batch Handler is added to the Tracker " ) 
+        {
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            {
+                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
                 
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Tracker", "[tracker-api]" )
+{
+    GIVEN( "A new pPipeline with a new Tracker" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring trackerName(L"ktl-tracker");
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_list_size() == 1 );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Meta Batch Handler is added to the Tracker " ) 
+        {
+            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            {
+                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
+                    == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

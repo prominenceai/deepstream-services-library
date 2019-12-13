@@ -60,8 +60,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the above defined batch meta handler to the KTL Tracker
-        retval = dsl_tracker_batch_meta_handler_add('ktl-tracker', tracker_batch_meta_handler_cb, None)
+        # Add the above defined batch meta handler to the Source Pad of the KTL Tracker
+        retval = dsl_tracker_batch_meta_handler_add('ktl-tracker', DSL_PAD_SRC, tracker_batch_meta_handler_cb, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         
