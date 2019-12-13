@@ -75,6 +75,10 @@ namespace DSL {
         
         DslReturnType TrackerIouNew(const char* name, const char* configFile, uint width, uint height);
         
+        DslReturnType TrackerMaxDimensionsGet(const char* name, uint* width, uint* height);
+        
+        DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
+        
         DslReturnType TrackerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType TrackerBatchMetaHandlerRemove(const char* name);

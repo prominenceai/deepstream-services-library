@@ -165,7 +165,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        LOG_INFO("m_pClientBatchMetaHandler = " << m_pClientBatchMetaHandler);
+        LOG_INFO("m_pClientBatchMetaHandler = " << pClientBatchMetaHandler);
         if (m_pClientBatchMetaHandler)
         {
             LOG_ERROR("TrackerBintr '" << GetName() << "' already has a Client Meta Batch Handler");
@@ -209,15 +209,14 @@ namespace DSL
             if (m_pClientBatchMetaHandler) // TODO or write ouput enabled
             {
                 GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
-                NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-                if (!pBatchMeta)
+                if (!pBuffer)
                 {
-                    LOG_WARN("Unable to get Batch Meta data for Tracker '" << GetName() << "'");
+                    LOG_WARN("Unable to get data buffer for Tracker '" << GetName() << "'");
                     return GST_PAD_PROBE_OK;
                 }
                 if (m_pClientBatchMetaHandler)
                 {
-                    m_pClientBatchMetaHandler(pBatchMeta, m_pClientUserData);
+                    m_pClientBatchMetaHandler(pBuffer, m_pClientUserData);
                 }
                 // TODO if write output
             }

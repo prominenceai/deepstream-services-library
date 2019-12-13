@@ -379,7 +379,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, OsdBintr, and TrackerBintr", "[temp]" )
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, OsdBintr, and TrackerBintr", "[PipelineBintr]" )
 {
     GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
     {

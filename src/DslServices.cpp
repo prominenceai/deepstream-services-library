@@ -143,6 +143,22 @@ DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_fil
     return DSL::Services::GetServices()->TrackerIouNew(cstrName.c_str(), cstrFile.c_str(), width, height);
 }
 
+DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerMaxDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerMaxDimensionsSet(cstrName.c_str(), width, height);
+}
+
 DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data)
 {
     std::wstring wstrName(name);
@@ -151,7 +167,7 @@ DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, dsl_batch_
     return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -952,12 +968,66 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data)
+       DslReturnType Services::TrackerMaxDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        try
+        {
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            trackerBintr->GetMaxDimensions(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TrackerMaxDimensionsSet(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
+        if (m_components[name]->IsInUse())
+        {
+            LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
+                << "' as it's currently in use");
+            return DSL_RESULT_DISPLAY_IS_IN_USE;
+        }
+        try
+        {
+            DSL_TRACKER_PTR trackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!trackerBintr->SetMaxDimensions(width, height))
+            {
+                LOG_ERROR("Tiled Display '" << name << "' failed to set dimensions");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiled Display '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
         try
         {
             DSL_TRACKER_PTR pTrackerBintr = 
@@ -971,7 +1041,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Tracker '" << name << "' threw an exception adding Batch Meta Handler");
             return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -996,7 +1066,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Tracker '" << name << "' threw an exception removing Batch Meta Handle");
             return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
