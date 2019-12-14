@@ -54,7 +54,6 @@ namespace DSL
         
         /**
          * @brief dtor for the PadProbetr base class
-         * @param[in] name for the new PadProbetr
          */
         ~PadProbetr();
 
