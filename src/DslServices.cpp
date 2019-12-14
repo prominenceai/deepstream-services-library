@@ -241,6 +241,23 @@ DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows)
     return DSL::Services::GetServices()->DisplayTilesSet(cstrName.c_str(), cols, rows);
 }
 
+DslReturnType dsl_display_batch_meta_handler_add(const wchar_t* name, uint pad, 
+    dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DisplayBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+}
+
+DslReturnType dsl_display_batch_meta_handler_remove(const wchar_t* name, uint pad)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DisplayBatchMetaHandlerRemove(cstrName.c_str(), pad);
+}
+
 DslReturnType dsl_sink_overlay_new(const wchar_t* name,
     uint offsetX, uint offsetY, uint width, uint height)
 {
@@ -1234,33 +1251,67 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OverlaySinkNew(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height)
+    DslReturnType Services::DisplayBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // ensure component name uniqueness 
-        if (m_components[name])
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tiled Display '" << name << "'");
+            return DSL_RESULT_DISPLAY_PAD_TYPE_INVALID;
         }
         try
         {
-            m_components[name] = DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height);
+            DSL_DISPLAY_PTR pDisplayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+
+            if (!pDisplayBintr->AddBatchMetaHandler(pad, handler, user_data))
+            {
+                LOG_ERROR("Tiled Display '" << name << "' already has a Batch Meta Handler");
+                return DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED;
+            }
         }
         catch(...)
         {
-            LOG_ERROR("New Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
         }
-        LOG_INFO("new Sink '" << name << "' created successfully");
-
         return DSL_RESULT_SUCCESS;
     }
-    
-    DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
+
+    DslReturnType Services::DisplayBatchMetaHandlerRemove(const char* name, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tiled Display '" << name << "'");
+            return DSL_RESULT_DISPLAY_PAD_TYPE_INVALID;
+        }
+        try
+        {
+            DSL_DISPLAY_PTR pDisplayBintr = 
+                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+
+            if (!pDisplayBintr->RemoveBatchMetaHandler(pad))
+            {
+                LOG_ERROR("Tiled Display '" << name << "' has no Batch Meta Handler");
+                return DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+   
+   DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1346,6 +1397,32 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType Services::OverlaySinkNew(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();

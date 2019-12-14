@@ -185,13 +185,13 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a OSD", "
         WHEN( "A Sink Pad Batch Meta Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
 
-            REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -217,13 +217,13 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a OSD"
         WHEN( "A Source Pad Batch Meta Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
 
-            REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -248,14 +248,14 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a OSD", "[os
 
         WHEN( "A Sink Pad Meta Batch Handler is added to the OSD " ) 
         {
-            REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
             {
-                REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
+                REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
                 
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -280,14 +280,14 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a OSD", "[
 
         WHEN( "A Source Pad Meta Batch Handler is added to the OSD " ) 
         {
-            REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
             {
-                REQUIRE ( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
+                REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
                 
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

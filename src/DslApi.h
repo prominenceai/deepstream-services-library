@@ -111,8 +111,13 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_NAME_NOT_FOUND                               0x01100010
 #define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x01100011
 #define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x01100100
-#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x01100100
-#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x01100100
+#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x01100101
+#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x01100110
+#define DSL_RESULT_GIE_IS_IN_USE                                    0x01100111
+#define DSL_RESULT_GIE_SET_FAILED                                   0x01101000
+#define DSL_RESULT_GIE_HANDLER_ADD_FAILED                           0x01101001
+#define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x01101010
+#define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x01101011
 
 /**
  * Display API Return Values
@@ -124,6 +129,9 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x10000100
 #define DSL_RESULT_DISPLAY_IS_IN_USE                                0x10000101
 #define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000110
+#define DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED                       0x10000111
+#define DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED                    0x10001000
+#define DSL_RESULT_DISPLAY_PAD_TYPE_INVALID                         0x10001001
 
 /**
  * Pipeline API Return Values
@@ -369,7 +377,7 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t
  * @brief creates a new, uniquely named OSD obj
  * @param[in] name unique name for the new Sink
  * @param[in] is_clock_enabled true if clock is visible
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
 
@@ -380,7 +388,7 @@ DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
@@ -389,7 +397,7 @@ DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type,
  * @brief Removes a batch meta handler callback function from the OSD
  * @param name unique name of the OSD to update
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
@@ -437,6 +445,26 @@ DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows)
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
  */
 DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
+
+/**
+ * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
+ * A Tiled Display can have at most one Sink and Source batch meta handler each
+ * @param name unique name of the Tiled Display to update
+ * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param handler callback function to process batch meta data
+ * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT otherwise
+ */
+DslReturnType dsl_display_batch_meta_handler_add(const wchar_t* name, uint type, 
+    dsl_batch_meta_handler_cb handler, void* user_data);
+
+/**
+ * @brief Removes a batch meta handler callback function from the Tiled Display
+ * @param name unique name of the Tiled Dislplay to update
+ * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT otherwise
+ */
+DslReturnType dsl_display_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
  * @brief creates a new, uniquely named Sink obj
