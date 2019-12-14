@@ -204,7 +204,7 @@ def dsl_osd_batch_meta_handler_add(name, pad, handler, user_data):
 #    print(buffer)
 #    print(user_data)
     
-#print(dsl_osd_ktl_new("on-screen-display", True))
+#print(dsl_osd_new("on-screen-display", True))
 #print(dsl_osd_batch_meta_handler_add("on-screen-display", mb_handler, None))
 
 ##
@@ -228,6 +228,36 @@ def dsl_display_new(name, width, height):
     result =_dsl.dsl_display_new(name, width, height)
     return int(result)
 #print(dsl_display_new("tiled-display", 1280, 720))
+
+##
+## dsl_display_batch_meta_handler_add()
+##
+_dsl.dsl_display_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_display_batch_meta_handler_add.restype = c_uint
+def dsl_display_batch_meta_handler_add(name, pad, handler, user_data):
+    global _dsl
+    meta_handler = META_BATCH_HANDLER(handler)
+    print(meta_handler)
+    result = _dsl.dsl_display_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    return int(result)
+
+#def mb_handler(buffer, user_data):
+#    print(buffer)
+#    print(user_data)
+    
+#print(dsl_display_new("tiled-display", True))
+#print(dsl_display_batch_meta_handler_add("tiled-display", mb_handler, None))
+
+##
+## dsl_display_batch_meta_handler_remove()
+##
+_dsl.dsl_display_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_display_batch_meta_handler_remove.restype = c_uint
+def dsl_display_batch_meta_handler_remove(name, pad):
+    global _dsl
+    result = _dsl.dsl_display_batch_meta_handler_remove(name, pad)
+    return int(result)
+#print(dsl_display_batch_meta_handler_remove("tiled-display"))
 
 ##
 ## dsl_sink_overlay_new()

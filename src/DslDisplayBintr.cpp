@@ -52,6 +52,9 @@ namespace DSL
 
         m_pQueue->AddGhostPadToParent("sink");
         m_pTiler->AddGhostPadToParent("src");
+    
+        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("display-sink-pad-probe", "sink", m_pQueue);
+        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("display-src-pad-probe", "src", m_pTiler);
     }
 
     DisplayBintr::~DisplayBintr()

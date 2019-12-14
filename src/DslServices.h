@@ -92,16 +92,20 @@ namespace DSL {
         DslReturnType DisplayTilesGet(const char* name, uint* cols, uint* rows);
 
         DslReturnType DisplayTilesSet(const char* name, uint cols, uint rows);
-        
-        DslReturnType OverlaySinkNew(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height);
+
+        DslReturnType DisplayBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType DisplayBatchMetaHandlerRemove(const char* name, uint pad);
         
         DslReturnType OsdNew(const char* name, boolean isClockEnabled);
 
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad);
-        
+
+        DslReturnType OverlaySinkNew(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+                
 // TODO        
 //        boolean ComponentIsInUse(const char* component);
         
