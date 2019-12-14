@@ -96,6 +96,12 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x01010010
 #define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x01010011
 #define DSL_RESULT_OSD_THREW_EXCEPTION                              0x01010100
+#define DSL_RESULT_OSD_MAX_DIMENSIONS_INVALID                       0x00110110
+#define DSL_RESULT_OSD_IS_IN_USE                                    0x00110111
+#define DSL_RESULT_OSD_SET_FAILED                                   0x00111000
+#define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00111001
+#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00111010
+#define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x00111011
 
 /**
  * GIE API Return Values
@@ -332,15 +338,15 @@ DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width
 DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
 
 /**
- * @brief Add a batch meta handler callback function to be called to process each buffer.
- * A Tracker can have at most one batch meta handler
+ * @brief Add a batch meta handler callback function to be called to process each frame buffer.
+ * A Tracker can have at most one Sink and Source batch meta handler each
  * @param name unique name of the Tracker to update
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint type, 
+DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
@@ -366,6 +372,26 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
+
+/**
+ * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
+ * An On-Screen-Display can have at most one Sink and Source batch meta handler each
+ * @param name unique name of the OSD to update
+ * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param handler callback function to process batch meta data
+ * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type, 
+    dsl_batch_meta_handler_cb handler, void* user_data);
+
+/**
+ * @brief Removes a batch meta handler callback function from the OSD
+ * @param name unique name of the OSD to update
+ * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ */
+DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
  * @brief creates a new, uniquely named Display obj

@@ -255,11 +255,10 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
     }
 }
 
-
-void batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static void batch_meta_handler_cb1(void* batch_meta, void* user_data)
 {
 }
-void batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static void batch_meta_handler_cb2(void* batch_meta, void* user_data)
 {
 }
     

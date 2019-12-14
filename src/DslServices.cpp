@@ -184,6 +184,23 @@ DslReturnType dsl_osd_new(const wchar_t* name, boolean isClockEnabled)
     return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), isClockEnabled);
 }
 
+DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
+    dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->OsdBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+}
+
+DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->OsdBatchMetaHandlerRemove(cstrName.c_str(), pad);
+}
+    
 DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
@@ -1011,14 +1028,14 @@ namespace DSL
             // TODO verify args before calling
             if (!trackerBintr->SetMaxDimensions(width, height))
             {
-                LOG_ERROR("Tiled Display '" << name << "' failed to set dimensions");
+                LOG_ERROR("Tracker '" << name << "' failed to set dimensions");
                 return DSL_RESULT_TRACKER_SET_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display '" << name << "' threw an exception setting dimensions");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tracker '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -1048,7 +1065,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception adding Batch Meta Handler");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -1269,6 +1286,66 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
+            return DSL_RESULT_OSD_PAD_TYPE_INVALID;
+        }
+        try
+        {
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!pOsdBintr->AddBatchMetaHandler(pad, handler, user_data))
+            {
+                LOG_ERROR("OSD '" << name << "' already has a Batch Meta Handler");
+                return DSL_RESULT_OSD_HANDLER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdBatchMetaHandlerRemove(const char* name, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
+            return DSL_RESULT_OSD_PAD_TYPE_INVALID;
+        }
+        try
+        {
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!pOsdBintr->RemoveBatchMetaHandler(pad))
+            {
+                LOG_ERROR("OSD '" << name << "' has no Batch Meta Handler");
+                return DSL_RESULT_OSD_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+   
     DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();

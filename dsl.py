@@ -189,6 +189,36 @@ def dsl_osd_new(name, is_clock_enabled):
 #print(dsl_osd_new("on-screen-display", False))
 
 ##
+## dsl_osd_batch_meta_handler_add()
+##
+_dsl.dsl_osd_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_osd_batch_meta_handler_add.restype = c_uint
+def dsl_osd_batch_meta_handler_add(name, pad, handler, user_data):
+    global _dsl
+    meta_handler = META_BATCH_HANDLER(handler)
+    print(meta_handler)
+    result = _dsl.dsl_osd_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    return int(result)
+
+#def mb_handler(buffer, user_data):
+#    print(buffer)
+#    print(user_data)
+    
+#print(dsl_osd_ktl_new("on-screen-display", True))
+#print(dsl_osd_batch_meta_handler_add("on-screen-display", mb_handler, None))
+
+##
+## dsl_osd_batch_meta_handler_remove()
+##
+_dsl.dsl_osd_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_osd_batch_meta_handler_remove.restype = c_uint
+def dsl_osd_batch_meta_handler_remove(name, pad):
+    global _dsl
+    result = _dsl.dsl_osd_batch_meta_handler_remove(name, pad)
+    return int(result)
+#print(dsl_osd_batch_meta_handler_remove("on-screen-display"))
+
+##
 ## dsl_display_new()
 ##
 _dsl.dsl_display_new.argtypes = [c_wchar_p, c_uint, c_uint]

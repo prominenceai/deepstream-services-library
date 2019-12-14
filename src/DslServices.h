@@ -98,6 +98,10 @@ namespace DSL {
         
         DslReturnType OsdNew(const char* name, boolean isClockEnabled);
 
+        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad);
+        
 // TODO        
 //        boolean ComponentIsInUse(const char* component);
         
