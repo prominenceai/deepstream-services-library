@@ -94,8 +94,7 @@ namespace DSL
         return m_pClientBatchMetaHandler;
     }
 
-    GstPadProbeReturn PadProbetr::HandlePadProbe(
-        GstPad* pPad, GstPadProbeInfo* pInfo)
+    GstPadProbeReturn PadProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
 
@@ -106,12 +105,18 @@ namespace DSL
                 GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
                 if (!pBuffer)
                 {
-                    LOG_WARN("Unable to get data buffer for Tracker '" << m_name << "'");
+                    LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
                     return GST_PAD_PROBE_OK;
                 }
                 if (m_pClientBatchMetaHandler)
                 {
-                    m_pClientBatchMetaHandler(pBuffer, m_pClientUserData);
+                    // Remove the client on false return
+                    if (!m_pClientBatchMetaHandler(pBuffer, m_pClientUserData))
+                    {
+                        LOG_INFO("Removing client batch meta handler for PadProbetr '" << m_name << "'");
+                        m_pClientBatchMetaHandler = NULL;
+                        m_pClientUserData = NULL;
+                    }
                 }
                 // TODO if write output
             }

@@ -17,11 +17,6 @@ def osd_batch_meta_handler_cb(buffer, user_data):
     l_frame = batch_meta.frame_meta_list
     while l_frame is not None:
         try:
-            # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
-            # The casting is done by pyds.glist_get_nvds_frame_meta()
-            # The casting also keeps ownership of the underlying memory
-            # in the C code, so the Python garbage collector will leave
-            # it alone.
             frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
         except StopIteration:
             break    
@@ -39,6 +34,7 @@ def osd_batch_meta_handler_cb(buffer, user_data):
             l_frame=l_frame.next
         except StopIteration:
             break
+    return True
             
 def main(args):
 

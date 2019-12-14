@@ -27,14 +27,21 @@ def tracker_batch_meta_handler_cb_1(buffer, user_data):
         
             # remove self first
             retval = dsl_display_batch_meta_handler_remove('tiled-display', DSL_PAD_SRC)
+            if retval != DSL_RETURN_SUCCESS:
+                print(retval)
+                return False
 
             # add second callback
             retval = dsl_display_batch_meta_handler_add('tiled-display', DSL_PAD_SRC, tracker_batch_meta_handler_cb_2, None)
+            if retval != DSL_RETURN_SUCCESS:
+                print(retval)
+                return False
 
         try:
             l_frame=l_frame.next
         except StopIteration:
             break
+    return True
             
 def tracker_batch_meta_handler_cb_2(buffer, user_data):
 
@@ -52,6 +59,7 @@ def tracker_batch_meta_handler_cb_2(buffer, user_data):
             l_frame=l_frame.next
         except StopIteration:
             break
+    return True
             
 def main(args):
 

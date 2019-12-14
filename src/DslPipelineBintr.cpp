@@ -580,7 +580,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    bool PipelineBintr::IsChildDisplayEventHandler(dsl_state_change_listener_cb handler)
+    bool PipelineBintr::IsChildDisplayEventHandler(dsl_display_event_handler_cb handler)
     {
         LOG_FUNC();
 

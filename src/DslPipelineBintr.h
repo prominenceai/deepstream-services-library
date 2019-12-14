@@ -241,7 +241,7 @@ namespace DSL
          * @param handler calback to check if in use
          * @return true if currently a child in use
          */
-        bool IsChildDisplayEventHandler(dsl_state_change_listener_cb handler);
+        bool IsChildDisplayEventHandler(dsl_display_event_handler_cb handler);
 
         /**
          * @brief removes a previously added callback
