@@ -189,7 +189,7 @@ typedef uint boolean;
  * @param[in] batch_meta pointer to a Batch Meta structure to process
  * @param[in] user_data opaque pointer to client's user data
  */
-typedef void (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
+typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
 
 /**
  * @brief callback typedef for a client event handler function. Once added to a Pipeline, 
@@ -198,7 +198,7 @@ typedef void (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
  * @param[in] curr_state state to which the Pipeline has transitioned to
  * @param[in] user_data opaque pointer to client's user data
  */
-typedef void (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
+typedef boolean (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source obj

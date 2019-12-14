@@ -170,10 +170,10 @@ SCENARIO( "An Tiled Display in use can't be added to a second Pipeline", "[displ
     }
 }
 
-static void batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
 {
 }
-static void batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
 {
 }
     

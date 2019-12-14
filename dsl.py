@@ -10,8 +10,8 @@ DSL_PAD_SRC = 1
 ##
 ## Callback Typedefs
 ##
-META_BATCH_HANDLER = CFUNCTYPE(None, c_void_p, c_void_p)
-DISPLAY_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
+DISPLAY_EVENT_HANDLER = CFUNCTYPE(c_bool, c_uint, c_uint, c_void_p)
 
 ##
 ## dsl_source_csi_new()
