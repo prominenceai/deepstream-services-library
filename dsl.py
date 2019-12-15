@@ -89,6 +89,38 @@ def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
 #    "../../test/models/Primary_Detector_Nano/resnet10.caffemodel", 0, 0))
 
 ##
+## dsl_gie_primary_batch_meta_handler_add()
+##
+_dsl.dsl_gie_primary_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_gie_primary_batch_meta_handler_add.restype = c_uint
+def dsl_gie_primary_batch_meta_handler_add(name, pad, handler, user_data):
+    global _dsl
+    meta_handler = META_BATCH_HANDLER(handler)
+    print(meta_handler)
+    result = _dsl.dsl_gie_primary_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    return int(result)
+
+#def mb_handler(buffer, user_data):
+#    print(buffer)
+#    print(user_data)
+    
+#print(dsl_gie_primary_new("primary-gie", "../../test/configs/config_infer_primary_nano.txt", 
+#    "../../test/models/Primary_Detector_Nano/resnet10.caffemodel", 0, 0))
+#print(dsl_gie_primary_batch_meta_handler_add("ktl-tracker", mb_handler, None))
+
+##
+## dsl_gie_primary_batch_meta_handler_remove()
+##
+_dsl.dsl_gie_primary_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_gie_primary_batch_meta_handler_remove.restype = c_uint
+def dsl_gie_primary_batch_meta_handler_remove(name, pad):
+    global _dsl
+    result = _dsl.dsl_gie_primary_batch_meta_handler_remove(name, pad)
+    return int(result)
+#print(dsl_gie_primary_batch_meta_handler_remove("ktl-tracker"))
+
+
+##
 ## dsl_gie_secondary_new()
 ##
 _dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]

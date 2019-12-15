@@ -68,6 +68,10 @@ namespace DSL {
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
         
+        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad);
+
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName);
             

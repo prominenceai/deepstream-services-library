@@ -281,6 +281,26 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
     const wchar_t* model_engine_file, uint interval);
 
 /**
+ * @brief Adds a batch meta handler callback function to be called to process each buffer.
+ * A Primary GIE can have at most one Sink and Source batch meta handler each
+ * @param name unique name of the Primary GIE to update
+ * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param handler callback function to process batch meta data
+ * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ */
+DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint type, 
+    dsl_batch_meta_handler_cb handler, void* user_data);
+
+/**
+ * @brief Removes a batch meta handler callback function from the Primary GIE
+ * @param name unique name of the Primary GIE to update
+ * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ */
+DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad);
+
+/**
  * @brief creates a new, uniquely named Secondary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
