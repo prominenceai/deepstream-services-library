@@ -183,3 +183,150 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[gie-a
     }
 }
 
+static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+{
+}
+static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+{
+}
+    
+SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Primary GIE", "[gie-api]" )
+{
+    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Batch Meta Handler is added to the Primary GIE" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Meta Batch Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Primary GIE", "[gie-api]" )
+{
+    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Batch Meta Handler is added to the Primary GIE" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Meta Batch Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Primary GIE", "[gie-api]" )
+{
+    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Meta Batch Handler is added to the Primary GIE " ) 
+        {
+            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            {
+                REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
+                    == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
+                
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary GIE", "[gie-api]" )
+{
+    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    {
+        std::wstring pipelineName(L"test-pipeline");
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Meta Batch Handler is added to the Primary GIE " ) 
+        {
+            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            {
+                REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
+                    == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
+                
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

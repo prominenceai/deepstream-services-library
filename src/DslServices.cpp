@@ -109,6 +109,23 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
         cstrEngine.c_str(), interval);
 }
 
+DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
+    dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+}
+
+DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerRemove(cstrName.c_str(), pad);
+}
+
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name)
 {
@@ -894,6 +911,66 @@ namespace DSL
         }
         LOG_INFO("new Primary GIE '" << name << "' created successfully");
 
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
+            return DSL_RESULT_GIE_PAD_TYPE_INVALID;
+        }
+        try
+        {
+            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+
+            if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, user_data))
+            {
+                LOG_ERROR("Primary GIE '" << name << "' already has a Batch Meta Handler");
+                return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        if (pad > DSL_PAD_SRC)
+        {
+            LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
+            return DSL_RESULT_GIE_PAD_TYPE_INVALID;
+        }
+        try
+        {
+            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+
+            if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad))
+            {
+                LOG_ERROR("Primary GIE '" << name << "' has no Batch Meta Handler");
+                return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+        }
         return DSL_RESULT_SUCCESS;
     }
     
