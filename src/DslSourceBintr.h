@@ -32,9 +32,16 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    /**
+     * @brief convenience macros for shared pointer abstraction
+     */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
     #define DSL_SOURCE_NEW(name) \
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
+
+    #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
+    #define DSL_FILE_SOURCE_NEW(name, filePath, parserName) \
+        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, filePath, parserName))
 
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
@@ -44,6 +51,9 @@ namespace DSL
     #define DSL_URI_SOURCE_NEW(name, uri, cudadecMemType, intraDecode, dropFrameInterval) \
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, cudadecMemType, intraDecode, dropFrameInterval))
         
+    #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
+    #define DSL_RTSP_SOURCE_NEW(name, uri, cudadecMemType, intraDecode, dropFrameInterval) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, cudadecMemType, intraDecode, dropFrameInterval))
 
     /**
      * @class SourceBintr
@@ -89,20 +99,22 @@ namespace DSL
         }
         
         /**
-         * @brief Links all Child Elementrs owned by this Streaming Source Binter
-         * @return 
-         */
-//        bool LinkAll();
+         * @brief Gets the current width and height settings for this SourceBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
         
         /**
-         * @brief Unlinks all Child Elementrs owned by this Streaming Source Binter
-         * @return 
-         */
-//        void UnlinkAll();
+         * @brief Gets the current FPS numerator and denominator settings for this SourceBintr
+         * @param[out] fps_n the FPS numerator
+         * @param[out] fps_d the FPS denominator
+         */ 
+        void GetFrameRate(uint* fps_n, uint* fps_d);
         
         /**
          * @brief Links the Streaming Source to a Stream Muxer
-         * @param pStreamMux
+         * @param[in] pStreamMux
          */
         bool LinkToSink(DSL_NODETR_PTR pStreamMux);
         
@@ -120,27 +132,27 @@ namespace DSL
         int m_sourceId;
         
         /**
-         * @brief
+         * @brief True if the source is live and cannot be paused without losing data, False otherwise.
          */
         bool m_isLive;
 
         /**
-         * @brief
+         * @brief current width of the streaming source in Pixels.
          */
         uint m_width;
 
         /**
-         * @brief
+         * @brief current height of the streaming source in Pixels.
          */
         uint m_height;
 
         /**
-         * @brief
+         * @brief current frames-per-second numerator value for the Streaming Source
          */
         uint m_fps_n;
 
         /**
-         * @brief
+         * @brief current frames-per-second denominator value for the Streaming Source
          */
         uint m_fps_d;
 
@@ -160,12 +172,13 @@ namespace DSL
         uint m_numExtraSurfaces;
 
         /**
-         * @brief
+         * @brief Soure Element for this SourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceElement;
 
     };
 
+    //*********************************************************************************
     /**
      * @class CsiSourceBintr
      * @brief 
@@ -175,12 +188,19 @@ namespace DSL
     public: 
     
         CsiSourceBintr(const char* name, uint width, uint height, 
-            uint fps_n, guint fps_d);
+            uint fps_n, uint fps_d);
 
         ~CsiSourceBintr();
 
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
         void UnlinkAll();
         
     private:
@@ -191,28 +211,83 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
-    };
+    };    
 
-
+    //*********************************************************************************
     /**
-     * @class UriSourceBintr
+     * @class FileSourceBintr
      * @brief 
      */
-    class UriSourceBintr : public SourceBintr
+    class FileSourceBintr : public SourceBintr
     {
     public: 
     
-        UriSourceBintr(const char* name, const char* uri, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+        FileSourceBintr(const char* name, const char* filePath, const char* parserName);
 
-        ~UriSourceBintr();
-
-        bool LinkAll();
-        
-        void UnlinkAll();
+        ~FileSourceBintr();
 
         /**
-         * @brief returns the current URI source for this UriSourceBintr
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief returns the absolute path to the current File in use by this Source Bintr
+         * @return 
+         */
+        const char* GetFilePath();
+        
+        /**
+         * @brief returns the Factory Name of the current Parser in use by this Source Bintr
+         * @return const unique factory string name
+         */
+        const char* GetParserName();
+        
+        
+    private:
+    
+        /**
+         * @brief Absolute path to the source file for this FileSourceBintr
+         */
+        std::string m_filePath;
+        
+        /**
+         * @brief Name of the Video Parser element factory (e.g. "h264parse")
+         */
+        std::string m_parserName;
+    
+        /**
+         * @brief Video parser for this FileSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pParser;
+        
+        /**
+         * @brief Video decoder for this FileSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pDecoder;
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class DecodeSourceBintr
+     * @brief 
+     */
+    class DecodeSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+
+        /**
+         * @brief returns the current URI source for this DecodeSourceBintr
          * @return const string for either live or file source
          */
         const char* GetUri()
@@ -221,14 +296,6 @@ namespace DSL
             
             return m_uri.c_str();
         }
-        
-        
-        /**
-         * @brief 
-         * @param pBin
-         * @param pPad
-         */
-        void HandleOnPadAdded(GstElement* pBin, GstPad* pPad);
         
         /**
          * @brief 
@@ -260,7 +327,7 @@ namespace DSL
          */
         gboolean HandleStreamBufferSeek();
         
-    private:
+    protected:
 
         /**
          * @brief
@@ -298,11 +365,6 @@ namespace DSL
         guint m_bufferProbeId;
 
         /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pTee;
-
-        /**
          * @brief A dynamic collection of requested Source Pads for the Tee 
          */
         std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
@@ -315,28 +377,135 @@ namespace DSL
         /**
          * @brief
          */
+        DSL_ELEMENT_PTR m_pTee;
+
+        /**
+         * @brief
+         */
         DSL_ELEMENT_PTR m_pFakeSink;
 
         /**
          * @brief
          */
         DSL_ELEMENT_PTR m_pFakeSinkQueue;
+
     };
     
+    //*********************************************************************************
+
+    /**
+     * @class UriSourceBintr
+     * @brief 
+     */
+    class UriSourceBintr : public DecodeSourceBintr
+    {
+    public: 
+    
+        UriSourceBintr(const char* name, const char* uri, 
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+
+        ~UriSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
+
+    private:
+
+
+    };
+
+    /**
+     * @class RtspSourceBintr
+     * @brief 
+     */
+    class RtspSourceBintr : public DecodeSourceBintr
+    {
+    public: 
+    
+        RtspSourceBintr(const char* name, const char* uri, 
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+
+        ~RtspSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
+
+        void HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad);
+
+    private:
+
+        /**
+         @brief 
+         */
+        uint m_rtpProtocols;
+        
+        /**
+         @brief
+         */
+        DSL_ELEMENT_PTR m_pDepayload;
+        
+        /**
+         @brief
+         */
+        DSL_ELEMENT_PTR m_pDecodeBin;
+        
+        /**
+         @brief
+         */
+        DSL_ELEMENT_PTR m_pDecodeQueue;
+    };
+
     /**
      * @brief 
      * @param[in] pBin
      * @param[in] pPad
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     * @param[in] pSource (callback user data) pointer to the unique source opject
      */
-    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
+    static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
+
+    /**
+     * @brief 
+     * @param pBin
+     * @param pPad
+     * @param pSource
+     */
+    static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
+    
+    /**
+     * @brief 
+     * @param pChildProxy
+     * @param pObject
+     * @param name
+     * @param pSource
+     */
+    static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
 
     /**
      * @brief 
      * @param[in] pChildProxy
      * @param[in] pObject
      * @param[in] name
-     * @param[in] pSource (callback user data) pointer to the unique URI source opject
+     * @param[in] pSource (callback user data) pointer to the unique source opject
      */
     static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name, gpointer pSource);
@@ -350,13 +519,8 @@ namespace DSL
     static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
 
     /**
-     * Probe function to drop certain events to support custom
-     * logic of looping of each source stream.
-     */
-
-    /**
      * @brief Probe function to drop certain events to support
-     * custom logic of looping of each URI source (file) stream.
+     * custom logic of looping of each decode source (file) stream.
      * @param pPad
      * @param pInfo
      * @param pSource
@@ -372,6 +536,5 @@ namespace DSL
      */
     static gboolean StreamBufferSeekCB(gpointer pSource);
 
-}
-
+} // DSL
 #endif // _DSL_SOURCE_BINTR_H

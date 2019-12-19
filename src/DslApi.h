@@ -57,11 +57,12 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
 #define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00100100
-#define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00100101
 #define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00100110
 #define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00100111
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00101000
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00101001
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x00101010
 
 /**
  * Tracker API Return Values
@@ -96,12 +97,12 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x01010010
 #define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x01010011
 #define DSL_RESULT_OSD_THREW_EXCEPTION                              0x01010100
-#define DSL_RESULT_OSD_MAX_DIMENSIONS_INVALID                       0x00110110
-#define DSL_RESULT_OSD_IS_IN_USE                                    0x00110111
-#define DSL_RESULT_OSD_SET_FAILED                                   0x00111000
-#define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00111001
-#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00111010
-#define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x00111011
+#define DSL_RESULT_OSD_MAX_DIMENSIONS_INVALID                       0x01010110
+#define DSL_RESULT_OSD_IS_IN_USE                                    0x01010111
+#define DSL_RESULT_OSD_SET_FAILED                                   0x01011000
+#define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x01011001
+#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x01011010
+#define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x01011011
 
 /**
  * GIE API Return Values
@@ -161,6 +162,10 @@ THE SOFTWARE.
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
+#define DSL_SOURCE_CODEC_PARSER_H263                                0
+#define DSL_SOURCE_CODEC_PARSER_H264                                1
+#define DSL_SOURCE_CODEC_PARSER_H265                                2
+
 #define DSL_STATE_NULL                                              0
 #define DSL_STATE_READY                                             1
 #define DSL_STATE_PLAYING                                           2
@@ -170,6 +175,9 @@ THE SOFTWARE.
 #define DSL_PAD_SINK                                                0
 #define DSL_PAD_SRC                                                 1
 
+#define DSL_RTP_TCP                                                 0x04
+#define DSL_RTP_ALL                                                 0x07
+
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
  */
@@ -177,6 +185,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8 
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
+
 
 EXTERN_C_BEGIN
 
@@ -201,7 +210,7 @@ typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
 typedef boolean (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
- * @brief creates a new, uniquely named CSI Camera Source obj
+ * @brief creates a new, uniquely named CSI Camera Source component
  * @param[in] name unique name for the new Source
  * @param[in] width width of the source in pixels
  * @param[in] height height of the source in pixels
@@ -213,13 +222,32 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
- * @brief creates a new, uniquely named URI Source obj
+ * @brief creates a new uniquely name File Source component
+ * @param[in] name unique name for the new Source
+ * @param file relative or absolute path to the file for the new Source
+ * @param parser one of DSL_SOURCE_CODEC_PARSER_* constant values
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint parser);
+
+/**
+ * @brief creates a new, uniquely named URI Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, 
+    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+
+/**
+ * @brief creates a new, uniquely named RTSP Source component
+ * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
+ * @param[in] 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
     const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
 
 /**

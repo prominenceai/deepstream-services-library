@@ -44,6 +44,16 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
         width, height, fps_n, fps_d);
 }
 
+DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint parser)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFile(file);
+    std::string cstrFile(wstrFile.begin(), wstrFile.end());
+
+    return DSL::Services::GetServices()->SourceFileNew(cstrName.c_str(), cstrFile.c_str(), parser);
+}
+
 DslReturnType dsl_source_uri_new(const wchar_t* name, 
     const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
@@ -53,6 +63,18 @@ DslReturnType dsl_source_uri_new(const wchar_t* name,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(),
+        cstrUri.c_str(), cudadec_mem_type, intra_decode, dropFrameInterval);
+}
+
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
+    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(),
         cstrUri.c_str(), cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
@@ -662,8 +684,10 @@ namespace DSL
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
-
+            
+            // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services();
+            m_pInstatnce->_initMaps();
         }
         return m_pInstatnce;
     }
@@ -719,6 +743,42 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::SourceFileNew(const char* name, const char* file, uint parser)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("Source name '" << name << "' is not unique");
+            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+        }
+        std::ifstream streamFile(file);
+        if (!streamFile.good())
+        {
+            LOG_ERROR("File Source'" << file << "' Not found");
+            return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+        }
+        if (!m_mapParserTypes.count(parser))
+        {
+            LOG_ERROR("Invalid Parser value '" << parser << "' for new File Source '" << file << "'");
+            return DSL_RESULT_SOURCE_CODEC_PARSER_INVALID;
+        }
+        try
+        {
+            m_components[name] = DSL_FILE_SOURCE_NEW(name, file, m_mapParserTypes[parser].c_str());
+        }
+        catch(...)
+        {
+            LOG_ERROR("New FIle Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("new File Source '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::SourceUriNew(const char* name,
         const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
     {
@@ -735,7 +795,7 @@ namespace DSL
         if (!streamUriFile.good())
         {
             LOG_ERROR("URI Source'" << uri << "' Not found");
-            return DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND;
+            return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
         }        
         try
         {
@@ -748,6 +808,33 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new URI Source '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SourceRtspNew(const char* name,
+        const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("Source name '" << name << "' is not unique");
+            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_RTSP_SOURCE_NEW(
+                name, uri, cudadecMemType, intraDecode, dropFrameInterval);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTSP Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("new RTSP Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -1934,7 +2021,6 @@ namespace DSL
         }
         return m_pipelines[pipeline]->AddDisplayEventHandler(handler, userdata);
     }
-        
 
     DslReturnType Services::PipelineDisplayEventHandlerRemove(const char* pipeline, 
         dsl_display_event_handler_cb handler)
@@ -1948,6 +2034,15 @@ namespace DSL
             return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
         }
         return m_pipelines[pipeline]->RemoveDisplayEventHandler(handler);
+    }
+
+    void Services::_initMaps()
+    {
+        LOG_FUNC();
+        
+        m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H263] = "h263parse";
+        m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H264] = "h264parse";
+        m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H265] = "h265parse";
     }
     
 

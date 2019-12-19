@@ -50,7 +50,12 @@ namespace DSL {
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
+        DslReturnType SourceFileNew(const char* name, const char* filePath, uint parser);
+        
         DslReturnType SourceUriNew(const char* name, 
+            const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        DslReturnType SourceRtspNew(const char* name, 
             const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourcePause(const char* name);
@@ -187,6 +192,11 @@ namespace DSL {
         bool HandleXWindowEvents(); 
 
     private:
+    
+        /**
+         * @brief called during construction to intialize all const-to-string maps
+         */
+        void _initMaps();
 
         /**
          * @brief private ctor for this singleton class
@@ -229,6 +239,8 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+        
+        std::map <uint, std::string> m_mapParserTypes;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

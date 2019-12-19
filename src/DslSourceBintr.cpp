@@ -103,6 +103,22 @@ namespace DSL
         m_sourceId = id;
     }
 
+    void SourceBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
+
+    void  SourceBintr::GetFrameRate(uint* fps_n, uint* fps_d)
+    {
+        LOG_FUNC();
+        
+        *fps_n = m_fps_n;
+        *fps_d = m_fps_d;
+    }
+
     bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
     {
         LOG_FUNC();
@@ -154,6 +170,8 @@ namespace DSL
         return Nodetr::UnlinkFromSink();
     }
     
+    //*********************************************************************************
+
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         guint width, guint height, guint fps_n, guint fps_d)
         : SourceBintr(name)
@@ -165,7 +183,7 @@ namespace DSL
         m_height = height;
         m_fps_n = fps_n;
         m_fps_d = fps_d;
-
+        
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
 
@@ -234,7 +252,105 @@ namespace DSL
         m_isLinked = false;
     }
 
-    UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
+    //*********************************************************************************
+
+    FileSourceBintr::FileSourceBintr(const char* name, const char* filePath, const char* parserName)
+        : SourceBintr(name)
+        , m_parserName(parserName)
+    {
+        LOG_FUNC();
+
+        std::ifstream streamFile(filePath);
+        if (!streamFile.good())
+        {
+            LOG_ERROR("Source file '" << filePath << "' Not found");
+            throw;
+        }
+        
+        if ((m_parserName.find("parse") == std::string::npos) or
+            (!gst_element_factory_find(parserName)))
+        {
+            LOG_ERROR("Parser name '" << parserName << "' is invalid or Parser is not installed");
+            throw;
+        }
+        
+        // File source, not live - setup full path
+        m_isLive = FALSE;
+        char absolutePath[PATH_MAX+1];
+        m_filePath = realpath(filePath, absolutePath);
+        
+        LOG_INFO("Source file path = " << m_filePath);
+
+        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", "file-source");
+        m_pParser = DSL_ELEMENT_NEW(parserName, "h264-parser");
+        m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", "v4l2-decoder");
+        
+        m_pSourceElement->SetAttribute("location", m_filePath.c_str());
+
+        AddChild(m_pSourceElement);
+        AddChild(m_pParser);
+        AddChild(m_pDecoder);
+        
+        m_pDecoder->AddGhostPadToParent("src");
+    }
+
+    FileSourceBintr::~FileSourceBintr()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
+    }
+    
+    bool FileSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("FileSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        m_pSourceElement->LinkToSink(m_pParser);
+        m_pParser->LinkToSink(m_pDecoder);
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void FileSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("FileSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        m_pSourceElement->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
+    const char* FileSourceBintr::GetFilePath()
+    {
+        LOG_FUNC();
+        
+        return m_filePath.c_str();
+    }
+    
+    const char* FileSourceBintr::GetParserName()
+    {
+        LOG_FUNC();
+        
+        return m_parserName.c_str();
+    }
+
+    //*********************************************************************************
+
+    DecodeSourceBintr::DecodeSourceBintr(const char* name, const char* factoryName, const char* uri,
         uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
         : SourceBintr(name)
         , m_cudadecMemtype(cudadecMemType)
@@ -261,33 +377,190 @@ namespace DSL
         m_isLive = FALSE;
         
         LOG_INFO("URI Path = " << m_uri);
-              
+        std::string sourceElementName = "src-element" + GetName();
+        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, sourceElementName.c_str());
+        
+        // Set the URI for Source Elementr
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+
+        // Add all new Elementrs as Children to the SourceBintr
+        AddChild(m_pSourceElement);
+    }
+
+
+    void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
+        gchar* name)
+    {
+        LOG_FUNC();
+        
+        std::string strName = name;
+
+        LOG_DEBUG("Child object with name '" << strName << "'");
+        
+        if (strName.find("decodebin") != std::string::npos)
+        {
+            g_signal_connect(G_OBJECT(pObject), "child-added",
+                G_CALLBACK(OnChildAddedCB), this);
+        }
+
+        else if (strName.find("nvcuvid") != std::string::npos)
+        {
+            g_object_set(pObject, "gpu-id", m_gpuId, NULL);
+            g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
+            g_object_set(pObject, "source-id", m_sourceId, NULL);
+            g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
+            
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "Intra-decode", m_intraDecode, NULL);
+            }
+        }
+
+        else if ((strName.find("omx") != std::string::npos))
+        {
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "skip-frames", 2, NULL);
+            }
+            g_object_set(pObject, "disable-dvfs", TRUE, NULL);
+        }
+
+        else if (strName.find("nvjpegdec") != std::string::npos)
+        {
+            g_object_set(pObject, "DeepStream", TRUE, NULL);
+        }
+
+        else if ((strName.find("nvv4l2decoder") != std::string::npos))
+        {
+            if (m_intraDecode)
+            {
+                g_object_set(pObject, "skip-frames", 2, NULL);
+            }
+#ifdef __aarch64__
+            g_object_set(pObject, "enable-max-performance", TRUE, NULL);
+            g_object_set(pObject, "bufapi-version", TRUE, NULL);
+#else
+            g_object_set(pObject, "gpu-id", pDecodeSourceBintr->gpuId, NULL);
+            g_object_set(G_OBJECT(pObject), "cudadec-memtype", m_cudadecMemtype, NULL);
+#endif
+            g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
+            g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
+
+            // if the source is from file, then setup Stream buffer probe function
+            // to handle the stream restart/loop on GST_EVENT_EOS.
+            if (!m_isLive and false)
+            {
+                GstPadProbeType mask = (GstPadProbeType) 
+                    (GST_PAD_PROBE_TYPE_EVENT_BOTH |
+                    GST_PAD_PROBE_TYPE_EVENT_FLUSH | 
+                    GST_PAD_PROBE_TYPE_BUFFER);
+                    
+                GstPad* pStaticSinkpad = gst_element_get_static_pad(GST_ELEMENT(pObject), "sink");
+                
+                m_bufferProbeId = 
+                    gst_pad_add_probe(pStaticSinkpad, mask, StreamBufferRestartProbCB, this, NULL);
+            }
+        }
+    }
+    
+    GstPadProbeReturn DecodeSourceBintr::HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo)
+    {
+        LOG_FUNC();
+
+        GstEvent* event = GST_EVENT(pInfo->data);
+
+        if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
+        {
+            GST_BUFFER_PTS(GST_BUFFER(pInfo->data)) += m_prevAccumulatedBase;
+        }
+        
+        if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_BOTH)
+        {
+            if (GST_EVENT_TYPE(event) == GST_EVENT_EOS)
+            {
+                g_timeout_add(1, StreamBufferSeekCB, this);
+            }
+            if (GST_EVENT_TYPE(event) == GST_EVENT_SEGMENT)
+            {
+                GstSegment* segment;
+
+                gst_event_parse_segment(event, (const GstSegment**)&segment);
+                segment->base = m_accumulatedBase;
+                m_prevAccumulatedBase = m_accumulatedBase;
+                m_accumulatedBase += segment->stop;
+            }
+            switch (GST_EVENT_TYPE (event))
+            {
+            case GST_EVENT_EOS:
+            // QOS events from downstream sink elements cause decoder to drop
+            // frames after looping the file since the timestamps reset to 0.
+            // We should drop the QOS events since we have custom logic for
+            // looping individual sources.
+            case GST_EVENT_QOS:
+            case GST_EVENT_SEGMENT:
+            case GST_EVENT_FLUSH_START:
+            case GST_EVENT_FLUSH_STOP:
+                return GST_PAD_PROBE_DROP;
+            default:
+                break;
+            }
+        }
+        return GST_PAD_PROBE_OK;
+    }
+
+    void DecodeSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
+    {
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(arg0), "latency")) 
+        {
+            g_object_set(G_OBJECT(arg0), "latency", "cb_sourcesetup set %d latency\n", NULL);
+        }
+    }
+    
+    gboolean DecodeSourceBintr::HandleStreamBufferSeek()
+    {
+        Pause();
+        
+        gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
+            (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
+            GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+
+        if (!retval)
+        {
+            LOG_WARN("Failure to seek");
+        }
+
+        Play();
+        return false;
+    }
+
+    //*********************************************************************************
+
+    UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, cudadecMemType, intraDecode, dropFrameInterval)
+    {
+        LOG_FUNC();
+        
         // New Elementrs for this Source
-        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_URI, "uri-src-elem");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
         m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
 
-        // Set the URI for Source Elementr
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
-
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
-            G_CALLBACK(OnPadAddedCB), this);
+            G_CALLBACK(UriSourceElementOnPadAddedCB), this);
         g_signal_connect(m_pSourceElement->GetGObject(), "child-added", 
             G_CALLBACK(OnChildAddedCB), this);
+        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
+
         g_signal_connect(m_pSourceElement->GetGObject(), "source-setup",
             G_CALLBACK(OnSourceSetupCB), this);
-
-        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
-        
 
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("async", false);
 
         // Add all new Elementrs as Children to the SourceBintr
-        AddChild(m_pSourceElement);
         AddChild(m_pSourceQueue);
         AddChild(m_pTee);
         AddChild(m_pFakeSinkQueue);
@@ -382,18 +655,24 @@ namespace DSL
         {
             m_pFakeSinkQueue->UnlinkFromSink();
         }
+
+        for (auto const& imap: m_pGstRequestedSourcePads)
+        {
+            gst_element_release_request_pad(m_pTee->GetGstElement(), imap.second);
+            gst_object_unref(imap.second);
+        }
         
         m_isLinked = false;
     }
 
-    void UriSourceBintr::HandleOnPadAdded(GstElement* pBin, GstPad* pPad)
+    void UriSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
     {
         LOG_FUNC();
 
         // The "pad-added" callback will be called twice for each URI source,
         // once each for the decoded Audio and Video streams. Since we only 
         // want to link to the Video source pad, we need to know which of the
-        // two pads/calls this is for.
+        // two streams this call is for.
         GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
         GstStructure* structure = gst_caps_get_structure(pCaps, 0);
         std::string name = gst_structure_get_name(structure);
@@ -422,178 +701,186 @@ namespace DSL
         }
     }
 
-    void UriSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
-        gchar* name)
+    //*********************************************************************************
+    
+    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri,
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        : DecodeSourceBintr(name, "rtspsrc", uri, cudadecMemType, intraDecode, dropFrameInterval)
+        , m_rtpProtocols(DSL_RTP_ALL)
     {
         LOG_FUNC();
         
-        std::string strName = name;
+        // New RTSP Specific Elementrs for this Source
+        m_pDepayload = DSL_ELEMENT_NEW("rtph264depay", "src-depayload");
+        m_pDecodeQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "decode-queue");
+        m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
+        m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
 
-        LOG_DEBUG("Child object with name '" << strName << "'");
+        m_pSourceElement->SetAttribute("latency", m_latency);
+        m_pSourceElement->SetAttribute("drop-on-latency", true);
+        m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
+
+        // Connect RTSP Source Setup Callbacks
+        g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
+            G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
+
+        // Connect Decode Setup Callbacks
+        g_signal_connect(m_pDecodeBin->GetGObject(), "pad-added", 
+            G_CALLBACK(RtspDecodeElementOnPadAddedCB), this);
+        g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
+            G_CALLBACK(OnChildAddedCB), this);
+
+//        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
+
+        AddChild(m_pDepayload);
+        AddChild(m_pDecodeQueue);
+        AddChild(m_pDecodeBin);
+        AddChild(m_pSourceQueue);
         
-        if (strName.find("decodebin") != std::string::npos)
+        // Source Ghost Pad for Source Queue
+        m_pSourceQueue->AddGhostPadToParent("src");
+    }
+
+    RtspSourceBintr::~RtspSourceBintr()
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
         {
-            g_signal_connect(G_OBJECT(pObject), "child-added",
-                G_CALLBACK(OnChildAddedCB), this);
+            UnlinkAll();
+        }
+    }
+    
+    bool RtspSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
         }
 
-        else if (strName.find("nvcuvid") != std::string::npos)
+        m_pDepayload->LinkToSink(m_pDecodeQueue);
+        m_pDecodeQueue->LinkToSink(m_pDecodeBin);
+        m_pDecodeBin->LinkToSink(m_pDecodeQueue);
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void RtspSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
         {
-            g_object_set(pObject, "gpu-id", m_gpuId, NULL);
-            g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
-            g_object_set(pObject, "source-id", m_sourceId, NULL);
-            g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
+            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        m_pDepayload->UnlinkFromSink();
+        m_pDecodeQueue->UnlinkFromSink();
+        m_pDecodeBin->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
+    void RtspSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
+    {
+        LOG_FUNC();
+
+        GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
+        GstStructure* structure = gst_caps_get_structure(pCaps, 0);
+        std::string name = gst_structure_get_name(structure);
+        
+        LOG_INFO("Caps structs name " << name);
+        if (name.find("x-rtp") != std::string::npos)
+        {
+            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pDepayload->GetGstElement(), "sink");
+            if (!m_pGstStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+            }
             
-            if (m_intraDecode)
+            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
-                g_object_set(pObject, "Intra-decode", m_intraDecode, NULL);
+                LOG_ERROR("Failed to link de-payload to pipeline");
+                throw;
             }
-        }
-
-        else if ((strName.find("omx") != std::string::npos))
-        {
-            if (m_intraDecode)
-            {
-                g_object_set(pObject, "skip-frames", 2, NULL);
-            }
-            g_object_set(pObject, "disable-dvfs", TRUE, NULL);
-        }
-
-        else if (strName.find("nvjpegdec") != std::string::npos)
-        {
-            g_object_set(pObject, "DeepStream", TRUE, NULL);
-        }
-
-        else if ((strName.find("nvv4l2decoder") != std::string::npos))
-        {
-            if (m_intraDecode)
-            {
-                g_object_set(pObject, "skip-frames", 2, NULL);
-            }
-#ifdef __aarch64__
-            g_object_set(pObject, "enable-max-performance", TRUE, NULL);
-            g_object_set(pObject, "bufapi-version", TRUE, NULL);
-#else
-            g_object_set(pObject, "gpu-id", pUriSourceBintr->gpuId, NULL);
-            g_object_set(G_OBJECT(pObject), "cudadec-memtype", m_cudadecMemtype, NULL);
-#endif
-            g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
-            g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
-
-            // if the source is from file, then setup Stream buffer probe function
-            // to handle the stream restart/loop on GST_EVENT_EOS.
-            if (!m_isLive and false)
-            {
-                GstPadProbeType mask = (GstPadProbeType) 
-                    (GST_PAD_PROBE_TYPE_EVENT_BOTH |
-                    GST_PAD_PROBE_TYPE_EVENT_FLUSH | 
-                    GST_PAD_PROBE_TYPE_BUFFER);
-                    
-                GstPad* pStaticSinkpad = gst_element_get_static_pad(GST_ELEMENT(pObject), "sink");
-                
-                m_bufferProbeId = 
-                    gst_pad_add_probe(pStaticSinkpad, mask, StreamBufferRestartProbCB, this, NULL);
-            }
+            
+            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
         }
     }
     
-    GstPadProbeReturn UriSourceBintr::HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo)
+    void RtspSourceBintr::HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad)
     {
         LOG_FUNC();
 
-        GstEvent* event = GST_EVENT(pInfo->data);
-
-        if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
-        {
-            GST_BUFFER_PTS(GST_BUFFER(pInfo->data)) += m_prevAccumulatedBase;
-        }
+        GstCaps* pCaps = gst_pad_query_caps(pPad, NULL);
+        GstStructure* structure = gst_caps_get_structure(pCaps, 0);
+        std::string name = gst_structure_get_name(structure);
         
-        if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_BOTH)
+        LOG_INFO("Caps structs name " << name);
+        if (name.find("video") != std::string::npos)
         {
-            if (GST_EVENT_TYPE(event) == GST_EVENT_EOS)
+            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
+            if (!m_pGstStaticSinkPad)
             {
-                g_timeout_add(1, StreamBufferSeekCB, this);
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
             }
-            if (GST_EVENT_TYPE(event) == GST_EVENT_SEGMENT)
+            
+            if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
-                GstSegment* segment;
-
-                gst_event_parse_segment(event, (const GstSegment**)&segment);
-                segment->base = m_accumulatedBase;
-                m_prevAccumulatedBase = m_accumulatedBase;
-                m_accumulatedBase += segment->stop;
+                LOG_ERROR("Failed to link decodebin to pipeline");
+                throw;
             }
-            switch (GST_EVENT_TYPE (event))
-            {
-            case GST_EVENT_EOS:
-            // QOS events from downstream sink elements cause decoder to drop
-            // frames after looping the file since the timestamps reset to 0.
-            // We should drop the QOS events since we have custom logic for
-            // looping individual sources.
-            case GST_EVENT_QOS:
-            case GST_EVENT_SEGMENT:
-            case GST_EVENT_FLUSH_START:
-            case GST_EVENT_FLUSH_STOP:
-                return GST_PAD_PROBE_DROP;
-            default:
-                break;
-            }
-        }
-        return GST_PAD_PROBE_OK;
-    }
-
-    void UriSourceBintr::HandleOnSourceSetup(GstElement* pObject, GstElement* arg0)
-    {
-        if (g_object_class_find_property(G_OBJECT_GET_CLASS(arg0), "latency")) 
-        {
-            g_object_set(G_OBJECT(arg0), "latency", "cb_sourcesetup set %d latency\n", NULL);
+            
+            // Update the cap memebers for this URI Source Bintr
+            gst_structure_get_uint(structure, "width", &m_width);
+            gst_structure_get_uint(structure, "height", &m_height);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
+            
+            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
         }
     }
     
-    gboolean UriSourceBintr::HandleStreamBufferSeek()
+    
+    static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
-        Pause();
-        
-        gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
-            (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
-            GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
-
-        if (!retval)
-        {
-            LOG_WARN("Failure to seek");
-        }
-
-        Play();
-        return false;
+        static_cast<UriSourceBintr*>(pSource)->HandleSourceElementOnPadAdded(pBin, pPad);
     }
     
-    
-    static void OnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
+    static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
-        static_cast<UriSourceBintr*>(pSource)->HandleOnPadAdded(pBin, pPad);
+        static_cast<RtspSourceBintr*>(pSource)->HandleSourceElementOnPadAdded(pBin, pPad);
+    }
+    
+    static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
+    {
+        static_cast<RtspSourceBintr*>(pSource)->HandleDecodeElementOnPadAdded(pBin, pPad);
     }
     
     static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name, gpointer pSource)
     {
-        static_cast<UriSourceBintr*>(pSource)->HandleOnChildAdded(pChildProxy, pObject, name);
+        static_cast<DecodeSourceBintr*>(pSource)->HandleOnChildAdded(pChildProxy, pObject, name);
     }
     
     static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, 
         gpointer pSource)
     {
-        static_cast<UriSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
+        static_cast<DecodeSourceBintr*>(pSource)->HandleOnSourceSetup(pObject, arg0);
     }
     
     static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
         GstPadProbeInfo* pInfo, gpointer pSource)
     {
-        return static_cast<UriSourceBintr*>(pSource)->
+        return static_cast<DecodeSourceBintr*>(pSource)->
             HandleStreamBufferRestart(pPad, pInfo);
     }
 
     static gboolean StreamBufferSeekCB(gpointer pSource)
     {
-        return static_cast<UriSourceBintr*>(pSource)->HandleStreamBufferSeek();
+        return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
     }
+
 } // SDL namespace
