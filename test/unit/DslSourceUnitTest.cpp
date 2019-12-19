@@ -113,6 +113,29 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
     }
 }
 
+SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A name and input filepath for a new FileSourceBintr" ) 
+    {
+        std::string sourceName = "test-file-source";
+        std::string file = "./test/streams/sample_1080p_h264.mp4";
+
+        WHEN( "The FileSourceBintr is created " )
+        {
+            DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+                sourceName.c_str(), file.c_str(), "h264parse");
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->IsLive() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
 {
     GIVEN( "A name for a new CsiSourceBintr" ) 
