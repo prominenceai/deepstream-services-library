@@ -34,15 +34,15 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
     {
         uint width(1280);
         uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName = "test-csi-source";
+        uint fpsN(30);
+        uint fpsD(1);
+        std::string sourceName("test-csi-source");
 
         WHEN( "The UriSourceBintr is created " )
         {
         
             DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-                sourceName.c_str(), width, height, fps_n, fps_d);
+                sourceName.c_str(), width, height, fpsN, fpsD);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -52,10 +52,14 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
                 REQUIRE( pSourceBintr->GetSourceId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
-                REQUIRE( pSourceBintr->m_width == width );
-                REQUIRE( pSourceBintr->m_height == height );
-                REQUIRE( pSourceBintr->m_fps_n == fps_n );
-                REQUIRE( pSourceBintr->m_fps_d == fps_d );
+                
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( width == retWidth );
+                REQUIRE( height == retHeight );
+                REQUIRE( fpsN == retFpsN );
+                REQUIRE( fpsD == retFpsD );
             }
         }
     }
@@ -69,8 +73,8 @@ SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
         uint height(720);
         uint fps_n(30);
         uint fps_d(1);
-        std::string sourceName = "test-csi-source";
-        int sensorId = 1;
+        std::string sourceName("test-csi-source");
+        int sensorId(1);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
@@ -95,7 +99,7 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
         uint height(720);
         uint fps_n(30);
         uint fps_d(1);
-        std::string sourceName = "test-csi-source";
+        std::string sourceName("test-csi-source");
         int sensorId = 1;
 
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
@@ -113,12 +117,41 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[CsiSource
     }
 }
 
+SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[CsiSourceBintr]" )
+{
+    GIVEN( "A new, linked CsiSourceBintr " ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(30);
+        uint fps_d(1);
+        std::string sourceName("test-csi-source");
+        int sensorId = 1;
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The CsiSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
 {
     GIVEN( "A name and input filepath for a new FileSourceBintr" ) 
     {
-        std::string sourceName = "test-file-source";
-        std::string file = "./test/streams/sample_1080p_h264.mp4";
+        std::string sourceName("test-file-source");
+        std::string file("./test/streams/sample_1080p_h264.mp4");
 
         WHEN( "The FileSourceBintr is created " )
         {
@@ -131,6 +164,61 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
                 REQUIRE( pSourceBintr->GetSourceId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == false );
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( retFpsN == 0 );
+                REQUIRE( retFpsD == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileSourceBintr can LinkAll child Elementrs correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A new FileSourceBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string file("./test/streams/sample_1080p_h264.mp4");
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+            sourceName.c_str(), file.c_str(), "h264parse");
+
+        WHEN( "The FileSourceBintr is called to LinkAll" )
+        {
+            pSourceBintr->LinkAll();
+
+            THEN( "The FileSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FileSourceBintr can UnlinkAll all child Elementrs correctly",  "[FileSourceBintr]" )
+{
+    GIVEN( "A new, linked FileSourceBintr " ) 
+    {
+        uint width(1280);
+        std::string sourceName("test-file-source");
+        std::string file("./test/streams/sample_1080p_h264.mp4");
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+            sourceName.c_str(), file.c_str(), "h264parse");
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The FileSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The FileSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
             }
         }
     }
@@ -138,7 +226,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
 
 SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
 {
-    GIVEN( "A name for a new CsiSourceBintr" ) 
+    GIVEN( "A name for a new UriSourceBintr" ) 
     {
         std::string sourceName = "test-uri-source";
         std::string uri = "./test/streams/sample_1080p_h264.mp4";
@@ -149,13 +237,11 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
         char absolutePath[PATH_MAX+1];
         std::string fullUriPath = realpath(uri.c_str(), absolutePath);
         fullUriPath.insert(0, "file:");
-        
 
         WHEN( "The UriSourceBintr is created " )
         {
-        
             DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-                sourceName.c_str(), uri.c_str(), cudadecMemType, intrDecode, dropFrameInterval);
+                sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -171,11 +257,107 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullUriPath );
                 
-                // Attributes are set after decode, in the OnPadAdded calback
-                REQUIRE( pSourceBintr->m_width == 0 );
-                REQUIRE( pSourceBintr->m_height == 0 );
-                REQUIRE( pSourceBintr->m_fps_n == 0 );
-                REQUIRE( pSourceBintr->m_fps_d == 0 );
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( retFpsN == 0 );
+                REQUIRE( retFpsD == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[UriSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        WHEN( "The FileSourceBintr is called to LinkAll" )
+        {
+            pSourceBintr->LinkAll();
+
+            THEN( "The FileSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[UriSourceBintr]" )
+{
+    GIVEN( "A new, linked UriSourceBintr " ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The UriSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
+{
+    GIVEN( "A name for a new RtspSourceBintr" ) 
+    {
+        std::string sourceName("test-rtps-source");
+        std::string uri("https://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        WHEN( "The RtspSourceBintr is created " )
+        {
+            DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(
+                sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->m_gpuId == 0 );
+                REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == true );
+                
+                std::string returnedUri = pSourceBintr->GetUri();
+                REQUIRE( returnedUri == uri );
+                
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( retFpsN == 0 );
+                REQUIRE( retFpsD == 0 );
             }
         }
     }

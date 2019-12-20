@@ -42,7 +42,7 @@ def main(args):
     while True:
 
         # New URI File Source
-        retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+        retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

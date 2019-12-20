@@ -56,13 +56,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
@@ -121,13 +121,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
@@ -191,13 +191,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
@@ -263,13 +263,13 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     

@@ -17,7 +17,7 @@ while True:
     # Create one source for each Pipeline
     # URI File Source
     
-    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 2)
+    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 2)
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break

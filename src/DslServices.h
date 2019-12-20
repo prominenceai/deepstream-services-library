@@ -52,11 +52,15 @@ namespace DSL {
         
         DslReturnType SourceFileNew(const char* name, const char* filePath, uint parser);
         
-        DslReturnType SourceUriNew(const char* name, 
-            const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+        DslReturnType SourceUriNew(const char* name, const char* uri, 
+            boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
-        DslReturnType SourceRtspNew(const char* name, 
-            const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+        DslReturnType SourceRtspNew(const char* name, const char* uri, 
+            uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
+        
+        DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
             
         DslReturnType SourcePause(const char* name);
 

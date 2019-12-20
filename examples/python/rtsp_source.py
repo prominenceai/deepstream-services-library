@@ -1,3 +1,4 @@
+
 import sys
 sys.path.insert(0, "../../")
 import time
@@ -14,13 +15,12 @@ primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.ca
 secondary_infer_config_file = '../../test/configs/config_infer_secondary_carcolor.txt';
 secondary_model_engine_file = '../../test/models/Secondary_CarColor/resnet18.caffemodel';
 
-source_uri = "http://wzmedia.dot.ca.gov:1935/D3/80_applegate.stream/playlist.m3u8"
+rtsp_source_uri = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov'
 
 while True:
 
     # First new URI File Source
-#    retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-    retval = dsl_source_uri_new('uri-source', source_uri, True, 0, 0, 0)
+    retval = dsl_source_rtsp_new('rtsp-source', rtsp_source_uri, DSL_RTP_ALL, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
     # New Primary GIE using the filespecs above with interval = 0
@@ -60,8 +60,8 @@ while True:
 
     # Add all the components to our pipeline
     retval = dsl_pipeline_component_add_many('simple-pipeline', 
-        ['uri-source', 'primary-gie', 'ktl-tracker', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
-#        ['uri-source', 'primary-gie', 'secondary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
+        ['rtsp-source', 'primary-gie', 'ktl-tracker', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
+#        ['rtsp-source', 'primary-gie', 'secondary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
     if retval != DSL_RETURN_SUCCESS:
         break
 
@@ -82,3 +82,4 @@ print(retval)
 
 dsl_pipeline_delete_all()
 dsl_component_delete_all()
+

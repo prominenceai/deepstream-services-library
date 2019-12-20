@@ -48,12 +48,12 @@ namespace DSL
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
-    #define DSL_URI_SOURCE_NEW(name, uri, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, cudadecMemType, intraDecode, dropFrameInterval))
+    #define DSL_URI_SOURCE_NEW(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval) \
+        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, cudadecMemType, intraDecode, dropFrameInterval))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval))
 
     /**
      * @class SourceBintr
@@ -284,7 +284,7 @@ namespace DSL
     public: 
     
         DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
 
         /**
          * @brief returns the current URI source for this DecodeSourceBintr
@@ -401,7 +401,7 @@ namespace DSL
     {
     public: 
     
-        UriSourceBintr(const char* name, const char* uri, 
+        UriSourceBintr(const char* name, const char* uri, bool isLive,
             uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
 
         ~UriSourceBintr();
@@ -432,7 +432,7 @@ namespace DSL
     {
     public: 
     
-        RtspSourceBintr(const char* name, const char* uri, 
+        RtspSourceBintr(const char* name, const char* uri, uint protocol,
             uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
 
         ~RtspSourceBintr();

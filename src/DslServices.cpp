@@ -54,28 +54,44 @@ DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint
     return DSL::Services::GetServices()->SourceFileNew(cstrName.c_str(), cstrFile.c_str(), parser);
 }
 
-DslReturnType dsl_source_uri_new(const wchar_t* name, 
-    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
+    boolean is_live, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrUri(uri);
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(),
-        cstrUri.c_str(), cudadec_mem_type, intra_decode, dropFrameInterval);
+    return DSL::Services::GetServices()->SourceUriNew(cstrName.c_str(), cstrUri.c_str(), 
+        is_live, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
-    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri,
+    uint protocol, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrUri(uri);
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
-    return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(),
-        cstrUri.c_str(), cudadec_mem_type, intra_decode, dropFrameInterval);
+    return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
+        protocol, cudadec_mem_type, intra_decode, dropFrameInterval);
+}
+
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
 }
 
 DslReturnType dsl_source_pause(const wchar_t* name)
@@ -779,8 +795,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceUriNew(const char* name,
-        const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+    DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
+        boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -791,16 +807,19 @@ namespace DSL
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
-        std::ifstream streamUriFile(uri);
-        if (!streamUriFile.good())
+        if (!isLive)
         {
-            LOG_ERROR("URI Source'" << uri << "' Not found");
-            return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-        }        
+            std::ifstream streamUriFile(uri);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("URI Source'" << uri << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+        }
         try
         {
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, cudadecMemType, intraDecode, dropFrameInterval);
+                name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval);
         }
         catch(...)
         {
@@ -812,8 +831,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SourceRtspNew(const char* name,
-        const char* uri, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+    DslReturnType Services::SourceRtspNew(const char* name, const char* uri, 
+        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -827,7 +846,7 @@ namespace DSL
         try
         {
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, cudadecMemType, intraDecode, dropFrameInterval);
+                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval);
         }
         catch(...)
         {
@@ -838,6 +857,48 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_SOURCE_PTR sourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            sourceBintr->GetDimensions(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+    
+    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_SOURCE_PTR sourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            sourceBintr->GetFrameRate(fps_n, fps_d);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
 
     DslReturnType Services::SourcePause(const char* name)
     {
