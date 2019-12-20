@@ -222,15 +222,6 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
- * @brief creates a new uniquely name File Source component
- * @param[in] name unique name for the new Source
- * @param file relative or absolute path to the file for the new Source
- * @param parser one of DSL_SOURCE_CODEC_PARSER_* constant values
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint parser);
-
-/**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file

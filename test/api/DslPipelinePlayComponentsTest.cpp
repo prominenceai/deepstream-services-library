@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
-SCENARIO( "A new Pipeline with a URI Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
     {
@@ -88,18 +88,15 @@ SCENARIO( "A new Pipeline with a URI Source, OverlaySink, and Tiled Display can 
     }
 }
 
-SCENARIO( "A new Pipeline with a URI Source, File Source, Overlay Sink, and Tiled Display can play", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
     {
         std::wstring sourceName1 = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        std::wstring uri = L"https://www.radiantmediaplayer.com/media/bbb-360p.mp4";
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
         uint dropFrameInterval(0);
-
-        std::wstring sourceName2 = L"file-source";
-        std::wstring file = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring tiledDisplayName = L"tiled-display";
         uint width(1280);
@@ -119,8 +116,6 @@ SCENARIO( "A new Pipeline with a URI Source, File Source, Overlay Sink, and Tile
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_file_new(sourceName2.c_str(), file.c_str(), DSL_SOURCE_CODEC_PARSER_H264) == DSL_RESULT_SUCCESS );
-
         // overlay sink for observation 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -128,7 +123,7 @@ SCENARIO( "A new Pipeline with a URI Source, File Source, Overlay Sink, and Tile
         // new display for this scenario
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source", L"file-source", L"tiled-display", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"tiled-display", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

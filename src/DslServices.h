@@ -50,8 +50,6 @@ namespace DSL {
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
-        DslReturnType SourceFileNew(const char* name, const char* filePath, uint parser);
-        
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             

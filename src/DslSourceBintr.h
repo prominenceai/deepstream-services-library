@@ -39,10 +39,6 @@ namespace DSL
     #define DSL_SOURCE_NEW(name) \
         std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
-    #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
-    #define DSL_FILE_SOURCE_NEW(name, filePath, parserName) \
-        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, filePath, parserName))
-
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
@@ -212,66 +208,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
     };    
-
-    //*********************************************************************************
-    /**
-     * @class FileSourceBintr
-     * @brief 
-     */
-    class FileSourceBintr : public SourceBintr
-    {
-    public: 
-    
-        FileSourceBintr(const char* name, const char* filePath, const char* parserName);
-
-        ~FileSourceBintr();
-
-        /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
-         * @return True success, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
-         */
-        void UnlinkAll();
-        
-        /**
-         * @brief returns the absolute path to the current File in use by this Source Bintr
-         * @return 
-         */
-        const char* GetFilePath();
-        
-        /**
-         * @brief returns the Factory Name of the current Parser in use by this Source Bintr
-         * @return const unique factory string name
-         */
-        const char* GetParserName();
-        
-        
-    private:
-    
-        /**
-         * @brief Absolute path to the source file for this FileSourceBintr
-         */
-        std::string m_filePath;
-        
-        /**
-         * @brief Name of the Video Parser element factory (e.g. "h264parse")
-         */
-        std::string m_parserName;
-    
-        /**
-         * @brief Video parser for this FileSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pParser;
-        
-        /**
-         * @brief Video decoder for this FileSourceBintr
-         */
-        DSL_ELEMENT_PTR m_pDecoder;
-    };
 
     //*********************************************************************************
 

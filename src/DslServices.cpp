@@ -44,16 +44,6 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
         width, height, fps_n, fps_d);
 }
 
-DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint parser)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFile(file);
-    std::string cstrFile(wstrFile.begin(), wstrFile.end());
-
-    return DSL::Services::GetServices()->SourceFileNew(cstrName.c_str(), cstrFile.c_str(), parser);
-}
-
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
     boolean is_live, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
@@ -759,42 +749,6 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceFileNew(const char* name, const char* file, uint parser)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // ensure component name uniqueness 
-        if (m_components[name])
-        {   
-            LOG_ERROR("Source name '" << name << "' is not unique");
-            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-        }
-        std::ifstream streamFile(file);
-        if (!streamFile.good())
-        {
-            LOG_ERROR("File Source'" << file << "' Not found");
-            return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-        }
-        if (!m_mapParserTypes.count(parser))
-        {
-            LOG_ERROR("Invalid Parser value '" << parser << "' for new File Source '" << file << "'");
-            return DSL_RESULT_SOURCE_CODEC_PARSER_INVALID;
-        }
-        try
-        {
-            m_components[name] = DSL_FILE_SOURCE_NEW(name, file, m_mapParserTypes[parser].c_str());
-        }
-        catch(...)
-        {
-            LOG_ERROR("New FIle Source '" << name << "' threw exception on create");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        LOG_INFO("new File Source '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
         boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
     {
@@ -807,8 +761,14 @@ namespace DSL
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
         }
-        if (!isLive)
+        std::string stringUri(uri);
+        if (stringUri.find("http") == std::string::npos)
         {
+            if (isLive)
+            {
+                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
             std::ifstream streamUriFile(uri);
             if (!streamUriFile.good())
             {
