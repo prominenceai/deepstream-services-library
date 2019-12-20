@@ -7,6 +7,9 @@ DSL_RETURN_SUCCESS = 0
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
 
+DSL_RTP_TCP = 4
+DSL_RTP_ALL = 7
+
 ##
 ## Callback Typedefs
 ##
@@ -27,13 +30,24 @@ def dsl_source_csi_new(name, width, height, fps_n, fps_d):
 ##
 ## dsl_source_uri_new()
 ##
-_dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
 _dsl.dsl_source_uri_new.restype = c_uint
-def dsl_source_uri_new(name, uri, cudadec_mem_type, intra_decode, drop_frame_interval):
+def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval):
     global _dsl
-    result = _dsl.dsl_source_uri_new(name, uri, cudadec_mem_type, intra_decode, drop_frame_interval)
+    result = _dsl.dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_frame_interval)
     return int(result)
-#print(dsl_source_uri_new("uri-source", "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0))
+#print(dsl_source_uri_new("uri-source", "../../test/streams/sample_1080p_h264.mp4", false, 0, 0, 0))
+
+##
+## dsl_source_rtsp_new()
+##
+_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_rtsp_new.restype = c_uint
+def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval)
+    return int(result)
+#print(dsl_source_uri_new("rtsp-source", "???????", DSL_RTP_ALL, 0, 0, 0))
 
 ##
 ## dsl_source_is_live()

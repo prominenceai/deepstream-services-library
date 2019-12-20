@@ -13,7 +13,7 @@ modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b
 while True:
 
     # First new URI File Source
-    retval = dsl_source_uri_new('uri-source', "../../test/streams/dashcam_at_night.mp4", 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source', "../../test/streams/dashcam_at_night.mp4", False, 0, 0, 0)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)

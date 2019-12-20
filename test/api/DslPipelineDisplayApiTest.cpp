@@ -56,11 +56,11 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
 
         // create for of the same types of source
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 

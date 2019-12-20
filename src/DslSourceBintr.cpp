@@ -254,104 +254,8 @@ namespace DSL
 
     //*********************************************************************************
 
-    FileSourceBintr::FileSourceBintr(const char* name, const char* filePath, const char* parserName)
-        : SourceBintr(name)
-        , m_parserName(parserName)
-    {
-        LOG_FUNC();
-
-        std::ifstream streamFile(filePath);
-        if (!streamFile.good())
-        {
-            LOG_ERROR("Source file '" << filePath << "' Not found");
-            throw;
-        }
-        
-        if ((m_parserName.find("parse") == std::string::npos) or
-            (!gst_element_factory_find(parserName)))
-        {
-            LOG_ERROR("Parser name '" << parserName << "' is invalid or Parser is not installed");
-            throw;
-        }
-        
-        // File source, not live - setup full path
-        m_isLive = FALSE;
-        char absolutePath[PATH_MAX+1];
-        m_filePath = realpath(filePath, absolutePath);
-        
-        LOG_INFO("Source file path = " << m_filePath);
-
-        m_pSourceElement = DSL_ELEMENT_NEW("filesrc", "file-source");
-        m_pParser = DSL_ELEMENT_NEW(parserName, "h264-parser");
-        m_pDecoder = DSL_ELEMENT_NEW("nvv4l2decoder", "v4l2-decoder");
-        
-        m_pSourceElement->SetAttribute("location", m_filePath.c_str());
-
-        AddChild(m_pSourceElement);
-        AddChild(m_pParser);
-        AddChild(m_pDecoder);
-        
-        m_pDecoder->AddGhostPadToParent("src");
-    }
-
-    FileSourceBintr::~FileSourceBintr()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {    
-            UnlinkAll();
-        }
-    }
-    
-    bool FileSourceBintr::LinkAll()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("FileSourceBintr '" << GetName() << "' is already in a linked state");
-            return false;
-        }
-        m_pSourceElement->LinkToSink(m_pParser);
-        m_pParser->LinkToSink(m_pDecoder);
-        m_isLinked = true;
-        
-        return true;
-    }
-
-    void FileSourceBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-
-        if (!m_isLinked)
-        {
-            LOG_ERROR("FileSourceBintr '" << GetName() << "' is not in a linked state");
-            return;
-        }
-        m_pSourceElement->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_isLinked = false;
-    }
-    
-    const char* FileSourceBintr::GetFilePath()
-    {
-        LOG_FUNC();
-        
-        return m_filePath.c_str();
-    }
-    
-    const char* FileSourceBintr::GetParserName()
-    {
-        LOG_FUNC();
-        
-        return m_parserName.c_str();
-    }
-
-    //*********************************************************************************
-
     DecodeSourceBintr::DecodeSourceBintr(const char* name, const char* factoryName, const char* uri,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
         : SourceBintr(name)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
@@ -361,28 +265,33 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // TODO Check for Live Source
+        m_isLive = isLive;
+        m_uri = uri;
         
-        std::ifstream streamUriFile(uri);
-        if (!streamUriFile.good())
+        // if not a URL
+        if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
         {
-            LOG_ERROR("URI '" << uri << "' Not found");
-            throw;
-        }        
-        
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri = realpath(uri, absolutePath);
-        m_uri.insert(0, "file:");
-        m_isLive = FALSE;
+            if (isLive)
+            {
+                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
+                throw;
+            }
+            std::ifstream streamUriFile(uri);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("URI Source'" << uri << "' Not found");
+                throw;
+            }
+            // File source, not live - setup full path
+            char absolutePath[PATH_MAX+1];
+            m_uri.assign(realpath(uri, absolutePath));
+            m_uri.insert(0, "file:");
+        }
         
         LOG_INFO("URI Path = " << m_uri);
         std::string sourceElementName = "src-element" + GetName();
         m_pSourceElement = DSL_ELEMENT_NEW(factoryName, sourceElementName.c_str());
         
-        // Set the URI for Source Elementr
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
-
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
     }
@@ -535,9 +444,9 @@ namespace DSL
 
     //*********************************************************************************
 
-    UriSourceBintr::UriSourceBintr(const char* name, const char* uri,
+    UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, cudadecMemType, intraDecode, dropFrameInterval)
+        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval)
     {
         LOG_FUNC();
         
@@ -546,6 +455,9 @@ namespace DSL
         m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "tee");
         m_pFakeSinkQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "fake-sink-queue");
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "fake-sink");
+
+        // Set the URI for Source Elementr
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
 
         // Connect UIR Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
@@ -620,9 +532,11 @@ namespace DSL
         std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
 
         m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
-        m_pFakeSinkQueue->LinkToSource(m_pTee);
-    
-        m_pFakeSinkQueue->LinkToSink(m_pFakeSink);
+
+        if (!m_pFakeSinkQueue->LinkToSource(m_pTee) or !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        {
+            return false;
+        }
         m_isLinked = true;
 
         return true;
@@ -703,10 +617,10 @@ namespace DSL
 
     //*********************************************************************************
     
-    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri,
+    RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
         uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, "rtspsrc", uri, cudadecMemType, intraDecode, dropFrameInterval)
-        , m_rtpProtocols(DSL_RTP_ALL)
+        : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
+        , m_rtpProtocols(protocol)
     {
         LOG_FUNC();
         
@@ -716,6 +630,7 @@ namespace DSL
         m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
 
+        m_pSourceElement->SetAttribute("location", m_uri.c_str());
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
@@ -761,9 +676,11 @@ namespace DSL
             return false;
         }
 
-        m_pDepayload->LinkToSink(m_pDecodeQueue);
-        m_pDecodeQueue->LinkToSink(m_pDecodeBin);
-        m_pDecodeBin->LinkToSink(m_pDecodeQueue);
+        if (!m_pDepayload->LinkToSink(m_pDecodeQueue) or
+            !m_pDecodeQueue->LinkToSink(m_pDecodeBin))
+        {
+            return false;
+        }
         m_isLinked = true;
         
         return true;

@@ -66,8 +66,8 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI File Source
-        retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+        # New URI File Source - is_live = False
+        retval = dsl_source_uri_new('uri-source', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

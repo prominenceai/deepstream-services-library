@@ -51,7 +51,7 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
-            intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     

@@ -222,33 +222,48 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
- * @brief creates a new uniquely name File Source component
- * @param[in] name unique name for the new Source
- * @param file relative or absolute path to the file for the new Source
- * @param parser one of DSL_SOURCE_CODEC_PARSER_* constant values
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_file_new(const wchar_t* name, const wchar_t* file, uint parser);
-
-/**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] is_live true if source is live false if file
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_uri_new(const wchar_t* name, 
-    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
 
 /**
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique Resource Identifier (file or live)
+ * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
-    const wchar_t* uri, uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+
+/**
+ * @brief returns the frame rate of the name source as a fraction
+ * Camera sources will return the value used on source creation
+ * URL and RTPS sources will return 0 until prior entering a state of play
+ * @param name unique name of the source to query
+ * @param width of the source in pixels
+ * @param height of the source in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief returns the frame rate of the named source as a fraction
+ * Camera sources will return the value used on source creation
+ * URL and RTPS sources will return 0 until prior entering a state of play
+ * @param name unique name of the source to query
+ * @param fps_n frames per second numerator
+ * @param fps_d frames per second denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
 
 /**
  * @brief pauses a single Source object if the Source is 
