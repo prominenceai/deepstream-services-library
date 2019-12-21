@@ -11,7 +11,7 @@ modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b
 while True:
 
     # New URI File Source
-    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
@@ -19,10 +19,9 @@ while True:
     dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
     dsl_source_uri_new('uri-source-3', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
     dsl_source_uri_new('uri-source-4', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-    
 
     # New Primary GIE using the filespecs above, with interval and Id
-    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4, 1)
+    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
