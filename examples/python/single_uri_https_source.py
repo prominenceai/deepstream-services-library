@@ -14,8 +14,8 @@ primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.ca
 secondary_infer_config_file = '../../test/configs/config_infer_secondary_carcolor.txt';
 secondary_model_engine_file = '../../test/models/Secondary_CarColor/resnet18.caffemodel';
 
-source_uri = "https://www.radiantmediaplayer.com/media/bbb-360p.mp4"
-
+#source_uri = "https://www.radiantmediaplayer.com/media/bbb-360p.mp4"
+source_uri = "http://wzmedia.dot.ca.gov/D4/E580_at_Grand_Lakeshore.stream/playlist.m3u8"
 while True:
 
     # Create 4 new URI Streaming Sources
