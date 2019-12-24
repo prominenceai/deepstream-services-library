@@ -91,8 +91,22 @@ namespace DSL
          * @brief unlinks all child Sink Bintrs and their Elementrs
          */
         void UnlinkAll();
+
+        bool SetXWindowHandle(Window pXWindow);
         
     private:
+        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pTee;
+    
+        std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
+
+        DSL_WINDOW_SINK_PTR m_pChildWindowCapableSink;
+        
+        /**
+         * @brief A dynamic collection of requested Source Pads for this Bintr
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
+
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
@@ -105,18 +119,6 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_NODETR_PTR pChildElement);
-
-    public: // Members are public for the purpose of Test/Verification only
-
-        DSL_ELEMENT_PTR m_pQueue;
-        DSL_ELEMENT_PTR m_pTee;
-    
-        std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
-        
-        /**
-         * @brief A dynamic collection of requested Source Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
 
     };
 }

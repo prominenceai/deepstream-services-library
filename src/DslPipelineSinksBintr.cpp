@@ -69,12 +69,24 @@ namespace DSL
         // Ensure Sink uniqueness
         if (IsChild(pChildSink))
         {
-            LOG_ERROR("' " << pChildSink->GetName() << "' is already a child of '" << GetName() << "'");
+            LOG_ERROR("'" << pChildSink->GetName() << "' is already a child of '" << GetName() << "'");
             return false;
         }
-        
+        // Ensure one at most Overlay Sink
+        if (pChildSink->IsWindowCapable() and m_pChildWindowCapableSink)
+        {
+            LOG_ERROR("'" << GetName() << "' already has a Window Capable Sink '" 
+                << m_pChildWindowCapableSink->GetName() << "'");
+            return false;
+        }
+
         // Add the Sink to the Sinks collection and as a child of this Bintr
         m_pChildSinks[pChildSink->GetName()] = pChildSink;
+        
+        if (pChildSink->IsWindowCapable())
+        {
+            m_pChildWindowCapableSink = std::dynamic_pointer_cast<WindowSinkBintr>(pChildSink);
+        }
         return Bintr::AddChild(pChildSink);
     }
     
@@ -150,7 +162,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OsdBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("PipelineSinksBintr '" << GetName() << "' is not linked");
             return;
         }
         for (auto const& imap: m_pChildSinks)
@@ -170,4 +182,19 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
+    
+    bool PipelineSinksBintr::SetXWindowHandle(Window pXWindow)
+    {
+        LOG_FUNC();
+        
+        if (!m_pChildWindowCapableSink)
+        {
+            LOG_ERROR("PipelineSinksBintr '" << GetName() << "' has no Window Sink");
+            return false;
+        }
+        m_pChildWindowCapableSink->SetXWindowHandle(pXWindow);
+        
+        return true;
+    }
+    
 }

@@ -480,17 +480,14 @@ namespace DSL
         
         if (GetState() == GST_STATE_NULL)
         {
-            if (!LinkAll() or !Pause())
+//            if (!LinkAll() or !Pause())
+            if (!LinkAll())
             {
-                LOG_ERROR("Unable to prepare for Play");
+                LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
                 return false;
             }
         }
                 
-        // flush the output buffer and then wait until all requests have been 
-        // received and processed by the X server. TRUE = Discard all queued events
-        XSync(m_pXDisplay, FALSE);       
-
         // Call the base class to complete the Play process
         return Bintr::Play();
     }
@@ -647,8 +644,7 @@ namespace DSL
             {
                 if (CreateXWindow())
                 {
-                    gst_video_overlay_set_window_handle(
-                        GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)), m_pXWindow);                
+                    m_pPipelineSinksBintr->SetXWindowHandle(m_pXWindow);
                 }
             }
             if (GST_MESSAGE_SRC(pMessage) == GST_OBJECT(m_pGstObj))

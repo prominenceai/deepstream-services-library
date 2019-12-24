@@ -43,8 +43,6 @@ SCENARIO( "A PipelineSinksBintr is created correctly", "[PipelineSinksBintr]" )
             {
                 REQUIRE( pPipelineSinksBintr->GetName() == pipelineSinksName );
                 REQUIRE( pPipelineSinksBintr->GetNumChildren() == 0 );
-                REQUIRE( pPipelineSinksBintr->m_pQueue != nullptr );
-                REQUIRE( pPipelineSinksBintr->m_pTee != nullptr );
             }
         }
     }

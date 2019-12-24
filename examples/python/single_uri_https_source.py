@@ -16,6 +16,10 @@ secondary_model_engine_file = '../../test/models/Secondary_CarColor/resnet18.caf
 
 #source_uri = "https://www.radiantmediaplayer.com/media/bbb-360p.mp4"
 source_uri = "http://wzmedia.dot.ca.gov/D4/E580_at_Grand_Lakeshore.stream/playlist.m3u8"
+source_uri1 = "http://wzmedia.dot.ca.gov/D4/E580_at_Grand_Lakeshore.stream/playlist.m3u8"
+source_uri2 = "http://wzmedia.dot.ca.gov/D4/E92_JWO_Foster_City_Bl.stream/playlist.m3u8"
+source_uri3 = "http://wzmedia.dot.ca.gov/D4/N17_at_Lark_OFR.stream/playlist.m3u8"
+source_uri4 = "http://wzmedia.dot.ca.gov/D4/N1_at_Presidio_Tunnel.stream/playlist.m3u8"
 while True:
 
     # Create 4 new URI Streaming Sources

@@ -39,6 +39,11 @@ namespace DSL
         std::shared_ptr<OverlaySinkBintr>( \
         new OverlaySinkBintr(name, offsetX, offsetY, width, height))
 
+    #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
+    #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<WindowSinkBintr>( \
+        new WindowSinkBintr(name, offsetX, offsetY, width, height))
+
     class SinkBintr : public Bintr
     {
     public: 
@@ -53,7 +58,7 @@ namespace DSL
         
         bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
         
-        bool IsOverlay();
+        bool IsWindowCapable();
         
         bool LinkToSource(DSL_NODETR_PTR pTee);
 
@@ -71,16 +76,24 @@ namespace DSL
          */
         void SetSinkId(int id);
         
+    protected:
+
         /**
-         * @brief true of the Sink is of type Overlay, false otherwise
+         * @brief Queue element as sink for all Sink Bintrs.
          */
-        bool m_isOverlay;
+        DSL_ELEMENT_PTR m_pQueue;
+
+        /**
+         * @brief true if the Sink is capable of Windowed Video rendering, false otherwise
+         */
+        bool m_isWindowCapable;
         
         /**
          * @brief unique stream source identifier managed by the 
          * parent pipeline from Source add until removed
          */
         int m_sinkId;
+        
         
     };
 
@@ -96,32 +109,125 @@ namespace DSL
         
         void UnlinkAll();
 
-        int GetDisplayId()
-        {
-            LOG_FUNC();
-            
-            return m_displayId;
-        }
+        int GetDisplayId();
 
         void SetDisplayId(int id);
+
+        /**
+         * @brief Gets the current X and Y offset settings for this OverlaySinkBintr
+         * @param[out] offsetX the current offset in the X direction in pixels
+         * @param[out] offsetY the current offset in the Y direction setting in pixels
+         */ 
+        void GetOffsets(uint* offsetX, uint* offsetY);
+
+        /**
+         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] offsetX the offset in the X direct to set in pixels
+         * @param[in] offsetY the offset in the Y direct to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        bool SetOffsets(uint offsetX, uint offsetY);
+        
+        /**
+         * @brief Gets the current width and height settings for this OverlaySinkBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the current width and height settings for this OverlaySinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] width the width value to set in pixels
+         * @param[in] height the height value to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
         
     private:
 
         boolean m_sync;
         boolean m_async;
         boolean m_qos;
+        uint m_overlayId;
         uint m_displayId;
+        uint m_uniqueId;
         uint m_offsetX;
         uint m_offsetY;
         uint m_width;
         uint m_height;
+        uint m_depth;
 
-        DSL_ELEMENT_PTR m_pQueue;
-        DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pOverlay;
         
     };
 
+    class WindowSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        WindowSinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
+
+        ~WindowSinkBintr();
+  
+        bool LinkAll();
+        
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current X and Y offset settings for this WindowSinkBintr
+         * @param[out] offsetX the current offset in the X direction in pixels
+         * @param[out] offsetY the current offset in the Y direction setting in pixels
+         */ 
+        void GetOffsets(uint* offsetX, uint* offsetY);
+
+        /**
+         * @brief Sets the current X and Y offset settings for this WindowSinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] offsetX the offset in the X direct to set in pixels
+         * @param[in] offsetY the offset in the Y direct to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        bool SetOffsets(uint offsetX, uint offsetY);
+        
+        /**
+         * @brief Gets the current width and height settings for this WindowSinkBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the current width and height settings for this WindowSinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] width the width value to set in pixels
+         * @param[in] height the height value to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
+
+        Window GetXWindowHandle();
+        /**
+         * @brief Sets the XWindow handle for this WindowSinkBintr
+         * @param[in] pXWindow handle to set
+         */
+        void SetXWindowHandle(Window pXWindow);
+        
+    private:
+
+        boolean m_sync;
+        boolean m_async;
+        boolean m_qos;
+        uint m_offsetX;
+        uint m_offsetY;
+        uint m_width;
+        uint m_height;
+        Window m_pXWindow;
+
+        DSL_ELEMENT_PTR m_pTransform;
+        DSL_ELEMENT_PTR m_pEglGles;
+    };
 }
 
 #endif // _DSL_SINK_BINTR_H

@@ -88,7 +88,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
     }
 }
 
-SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[test]" )
 {
     GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
     {
