@@ -305,7 +305,6 @@ namespace DSL
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
-        , m_pXWindow(0)
     {
         LOG_FUNC();
         
@@ -424,24 +423,4 @@ namespace DSL
         
         return true;
     }
-
-    Window WindowSinkBintr::GetXWindowHandle()
-    {
-        LOG_FUNC();
-        
-        return m_pXWindow;
-    }
-    
-    void WindowSinkBintr::SetXWindowHandle(Window pXWindow)
-    {
-        LOG_FUNC();
-        
-        m_pXWindow = pXWindow;
-        
-        LOG_WARN("Window handle = " << m_pXWindow);
-        gst_video_overlay_set_window_handle(
-            GST_VIDEO_OVERLAY(m_pEglGles->GetGstElement()), m_pXWindow);
-        gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_pEglGles->GetGstElement()));
-    }
-
 }    

@@ -188,6 +188,21 @@ namespace DSL
         bool SetStreamMuxPadding(bool enabled);
         
         /**
+         * @brief Gets the current dimensions for the Pipeline's XWindow
+         * @param[out] width width in pixels for the current setting
+         * @param[out] height height in pixels for the current setting
+         */
+        void GetXWindowDimensions(uint* width, uint* height);
+
+        /**
+         * @brief Set the dimensions for the Pipeline's XWindow
+         * @param width width in pixels to set the XWindow on creation
+         * @param height height in pixels to set the XWindow on creation
+         * @return true if the output dimensions could be set, false otherwise
+         */
+        bool SetXWindowDimensions(uint width, uint height);
+        
+        /**
          * @brief dumps a Pipeline's graph to dot file.
          * @param[in] filename name of the file without extention.
          * The caller is responsible for providing a correctly formated filename
@@ -330,6 +345,16 @@ namespace DSL
          * @brief parent bin for all Sink bins in this Pipeline
          */
         DSL_PIPELINE_SINKS_PTR m_pPipelineSinksBintr;
+        
+        /**
+         * @brief width setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowWidth;
+        
+        /**
+         * @brief height setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowHeight;
         
         /**
          * @brief map of all currently registered state-change-listeners

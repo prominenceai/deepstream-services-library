@@ -91,8 +91,6 @@ namespace DSL
          * @brief unlinks all child Sink Bintrs and their Elementrs
          */
         void UnlinkAll();
-
-        bool SetXWindowHandle(Window pXWindow);
         
     private:
         DSL_ELEMENT_PTR m_pQueue;
@@ -100,8 +98,6 @@ namespace DSL
     
         std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
 
-        DSL_WINDOW_SINK_PTR m_pChildWindowCapableSink;
-        
         /**
          * @brief A dynamic collection of requested Source Pads for this Bintr
          */

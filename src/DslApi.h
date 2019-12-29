@@ -148,15 +148,17 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x11001001
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001010
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001011
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001100
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001101
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001110
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001111
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11010000
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010001
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010010
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010011
+#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x11001011
+#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x11001100
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001101
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001110
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001111
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11010000
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11010001
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11010010
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010011
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010000
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010101
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -530,17 +532,27 @@ DslReturnType dsl_display_batch_meta_handler_add(const wchar_t* name, uint type,
 DslReturnType dsl_display_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
- * @brief creates a new, uniquely named Sink obj
- * @param[in] sink unique name for the new Sink
- * @param[in] displayId
- * @param[in] overlatId
- * @param[in] offsetX
- * @param[in] offsetY
- * @param[in] width width of the Sink
- * @param[in] heigth height of the Sink
+ * @brief creates a new, uniquely named Ovelay Sink component
+ * @param[in] name unique component name for the new Overlay Sink
+ * @param[in] offsetX upper left corner offset in the X direction in pixels
+ * @param[in] offsetY upper left corner offset in the Y direction in pixels
+ * @param[in] width width of the Ovelay Sink in pixels
+ * @param[in] heigth height of the Overlay Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
+    uint offsetX, uint offsetY, uint width, uint height);
+
+/**
+ * @brief creates a new, uniquely named Window Sink component
+ * @param[in] name unique component name for the new Overlay Sink
+ * @param[in] offsetX upper left corner offset in the X direction in pixels
+ * @param[in] offsetY upper left corner offset in the Y direction in pixels
+ * @param[in] width width of the Window Sink in pixels
+ * @param[in] heigth height of the Window Sink in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_window_new(const wchar_t* name, 
     uint offsetX, uint offsetY, uint width, uint height);
 
 /**
@@ -589,7 +601,7 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 /**
  * @brief deletes a Pipeline object by name.
  * @param[in] pipeline unique name of the Pipeline to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  * @info any/all components owned by the pipeline move
  * to a state of not-in-use.
  */
@@ -676,7 +688,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipelin
  * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
-    uint width, uint height);
+    uint* width, uint* height);
 
 /**
  * @brief 
@@ -684,6 +696,27 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
  * @return DSL_RESULT_SUCCESS on success, 
  */
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
+    uint width, uint height);
+
+/**
+ * @brief gets the current Pipeline XWindow dimensions
+ * @param[in] pipeline name of the pipeline to query
+ * @param[in] width width of the XWindow in pixels
+ * @param[in] heigth height of the Window in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the Pipeline XWindow dimensions to used on XWindow creation
+ * If not explicitely set, the Pipeline will use the Tiled Display's dimensions if one exists.
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] width width of the XWindow in pixels
+ * @param[in] heigth height of the Window in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
 
 /**

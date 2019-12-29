@@ -224,8 +224,6 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->IsWindowCapable() == true );
-                REQUIRE( pSinkBintr->GetXWindowHandle() == 0 );
-                
             }
         }
     }

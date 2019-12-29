@@ -114,7 +114,10 @@ namespace DSL {
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad);
 
-        DslReturnType OverlaySinkNew(const char* name, 
+        DslReturnType SinkOverlayNew(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+                
+        DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
                 
 // TODO        
@@ -154,6 +157,12 @@ namespace DSL {
 
         DslReturnType PipelineStreamMuxPaddingSet(const char* pipeline, boolean enabled);
 
+        DslReturnType PipelineXWindowDimensionsGet(const char* pipeline,
+            uint* width, uint* height);
+
+        DslReturnType PipelineXWindowDimensionsSet(const char* pipeline,
+            uint width, uint height);
+            
         DslReturnType PipelinePause(const char* pipeline);
         
         DslReturnType PipelinePlay(const char* pipeline);

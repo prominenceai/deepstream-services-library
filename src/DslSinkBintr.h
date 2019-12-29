@@ -207,13 +207,6 @@ namespace DSL
          */ 
         bool SetDimensions(uint width, uint hieght);
 
-        Window GetXWindowHandle();
-        /**
-         * @brief Sets the XWindow handle for this WindowSinkBintr
-         * @param[in] pXWindow handle to set
-         */
-        void SetXWindowHandle(Window pXWindow);
-        
     private:
 
         boolean m_sync;
@@ -223,7 +216,6 @@ namespace DSL
         uint m_offsetY;
         uint m_width;
         uint m_height;
-        Window m_pXWindow;
 
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pEglGles;

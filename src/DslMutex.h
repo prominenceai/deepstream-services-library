@@ -30,13 +30,14 @@ THE SOFTWARE.
 #include "Dsl.h"
 
 
-#define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex) 
  
 namespace DSL
 {
+    #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex)
+
     /**
-     * @class LockMutex
-     * @brief Used to lock a mutex for the current scope {}.
+     * @class LockMutexForCurrentScope
+     * @brief Locks a GMutex for the current scope {}.
      */
     class LockMutexForCurrentScope
     {
@@ -53,6 +54,27 @@ namespace DSL
         
     private:
         GMutex* m_pMutex; 
+    };
+
+    #define UNREF_MESSAGE_ON_RETURN(message) UnrefMessageOnReturn ref(message)
+
+    /**
+     * @class UnrefMessageOnReturn
+     * @brief Unreferences a GstMessage on return from current function scope.
+     * i.e. the point at which an object of this class is destroyed
+     */
+    class UnrefMessageOnReturn
+    {
+    public:
+        UnrefMessageOnReturn(GstMessage* message) : m_pMessage(message){};
+        
+        ~UnrefMessageOnReturn()
+        {
+            gst_message_unref(m_pMessage);
+        };
+        
+    private:
+        GstMessage* m_pMessage; 
     };
 
 } // namespace 

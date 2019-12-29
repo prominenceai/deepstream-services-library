@@ -36,7 +36,10 @@ namespace DSL
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
         , m_pXWindowEventThread(NULL)
-        , m_pXDisplay(XOpenDisplay(NULL))
+        , m_pXDisplay(0)
+        , m_pXWindow(0)
+        , m_xWindowWidth(0)
+        , m_xWindowHeight(0)
 {
         LOG_FUNC();
 
@@ -69,13 +72,17 @@ namespace DSL
         LOG_FUNC();
         
         Stop();
-
+        
         if (m_pXWindow)
         {
             XDestroyWindow(m_pXDisplay, m_pXWindow);
         }
+        if (m_pXDisplay)
+        {
+            XCloseDisplay(m_pXDisplay);
+        }
         // cleanup all resources
-        gst_bus_remove_watch (m_pGstBus);
+        gst_bus_remove_watch(m_pGstBus);
         gst_object_unref(m_pGstBus);
 
         g_mutex_clear(&m_busSyncMutex);
@@ -325,6 +332,29 @@ namespace DSL
         return true;
     }
     
+    void PipelineBintr::GetXWindowDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_xWindowWidth;
+        *height = m_xWindowHeight;
+    }
+
+    bool PipelineBintr::SetXWindowDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        // TODO verify dimensions before setting.
+        if (m_pXWindow)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has an existing XWindow.");
+            return false;
+        }
+        m_xWindowWidth = width;
+        m_xWindowHeight = height;
+        return true;
+    }
+    
     bool PipelineBintr::LinkAll()
     {
         LOG_FUNC();
@@ -480,8 +510,8 @@ namespace DSL
         
         if (GetState() == GST_STATE_NULL)
         {
-//            if (!LinkAll() or !Pause())
-            if (!LinkAll())
+            if (!LinkAll() or !Pause())
+//            if (!LinkAll())
             {
                 LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
                 return false;
@@ -602,6 +632,7 @@ namespace DSL
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
+        UNREF_MESSAGE_ON_RETURN(pMessage);
         
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -636,28 +667,40 @@ namespace DSL
     GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
+        UNREF_MESSAGE_ON_RETURN(pMessage);
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
         case GST_MESSAGE_ELEMENT:
             if (gst_is_video_overlay_prepare_window_handle_message(pMessage))
             {
-                if (CreateXWindow())
+                // Window Sink component is signaling to prepare window handle
+                // perform single creation of XWindow if not provided by the client
+                if (!m_pXWindow)
                 {
-                    m_pPipelineSinksBintr->SetXWindowHandle(m_pXWindow);
+                    CreateXWindow();
                 }
+                
+                // flush the XWindow output buffer and then wait until all requests have been 
+                // received and processed by the X server. TRUE = Discard all queued events
+                XSync(m_pXDisplay, TRUE);
+
+                gst_video_overlay_set_window_handle(
+                    GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)), m_pXWindow);
+                gst_video_overlay_expose(
+                    GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)));
+                    
             }
             if (GST_MESSAGE_SRC(pMessage) == GST_OBJECT(m_pGstObj))
             {
                 const GstStructure *structure;
                 structure = gst_message_get_structure(pMessage);
             }
-            return GST_BUS_DROP;
-
+            break;
         default:
             break;
         }
-        return GST_BUS_PASS;
+        return GST_BUS_DROP;
     }
     
     bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
@@ -684,34 +727,45 @@ namespace DSL
     
     void PipelineBintr::HandleXWindowEvents()
     {
-        XEvent xEvent;
-
-        while (XPending (m_pXDisplay)) 
+            
+        while (m_pXDisplay)
         {
-            
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            
-            XNextEvent(m_pXDisplay, &xEvent);
-            switch (xEvent.type) 
+            while (XPending(m_pXDisplay)) 
             {
-            case ButtonPress:                
-                LOG_INFO("Button pressed");
-                break;
-                
-            case KeyPress:
-                LOG_INFO("Key pressed"); 
-                
-                // wait for key release to process
-                break;
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
 
-            case KeyRelease:
-                LOG_INFO("Key released");
-                
-                // TEMP using any key to quit the main loop - TODO - handle termination
-                Stop();
-                g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
-                break;
+                XEvent xEvent;
+                XNextEvent(m_pXDisplay, &xEvent);
+                switch (xEvent.type) 
+                {
+                case ButtonPress:                
+                    LOG_INFO("Button pressed");
+                    break;
+                    
+                case KeyPress:
+                    LOG_INFO("Key pressed"); 
+                    break;
+
+                case KeyRelease:
+                    LOG_INFO("Key released");
+                    
+                    break;
+                    
+                case ClientMessage:
+                    LOG_INFO("Client message");
+
+                    if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
+                    {
+                        Stop();
+                        g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
+                    }
+                    break;
+                    
+                default:
+                    break;
+                }
             }
+            g_usleep(G_USEC_PER_SEC / 20);
         }
     }
 
@@ -719,17 +773,30 @@ namespace DSL
     {
         if (!m_pDisplayBintr)
         {
-            LOG_ERROR("_createWindow error: Miissing Display Bintr for Pipeline '" << GetName() << '"');
+            LOG_ERROR("Create XWindow error: Miissing Display Bintr for Pipeline '" << GetName() << '"');
             return false;
         }
-        uint width(0), height(0);
-        m_pDisplayBintr->GetDimensions(&width, &height);
+
+        // calculate the minimum width and heigh for XWindow creation
+        uint displayWidth(0), displayHeight(0);
+        m_pDisplayBintr->GetDimensions(&displayWidth, &displayHeight);
         
+        m_xWindowWidth < displayWidth ? m_xWindowWidth = displayWidth : m_xWindowWidth = m_xWindowWidth;
+        m_xWindowHeight < displayHeight ? m_xWindowHeight = displayHeight : m_xWindowHeight = m_xWindowHeight;
+        
+        LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
+
+        // create new XDisplay first
+        m_pXDisplay = XOpenDisplay(NULL);
+        if (!m_pXDisplay)
+        {
+            LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' ");
+            return false;
+        }
+        // create new simple XWindow using default attributes and checked dimensions
         m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
             RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-            0, 0, width, height, 2, 0x00000000, 0x00000000);            
-        LOG_WARN("Setting Window: " << width << ":" << height);
-
+            0, 0, m_xWindowWidth, m_xWindowHeight, 2, 0x00000000, 0x00000000);            
         if (!m_pXWindow)
         {
             LOG_ERROR("Failed to create new X Window for Pipeline '" << GetName() << "' ");
@@ -754,7 +821,6 @@ namespace DSL
         return true;
     }
     
-    
     void PipelineBintr::HandleErrorMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
@@ -772,7 +838,7 @@ namespace DSL
         }
 
         g_error_free(error);
-        g_free (debugInfo);
+        g_free(debugInfo);
     }    
     
     void PipelineBintr::_initMaps()

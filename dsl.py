@@ -317,6 +317,17 @@ def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
 #print(dsl_sink_overlay_new("overlay-sink", 0, 0, 1280, 720))
 
 ##
+## dsl_sink_window_new()
+##
+_dsl.dsl_sink_window_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_window_new.restype = c_uint
+def dsl_sink_window_new(name, offsetX, offsetY, width, height):
+    global _dsl
+    result =_dsl.dsl_sink_window_new(name, offsetX, offsetY, width, height)
+    return int(result)
+#print(dsl_sink_window_new("overlay-sink", 0, 0, 1280, 720))
+
+##
 ## dsl_component_delete()
 ##
 _dsl.dsl_component_delete.argtypes = [c_wchar_p]

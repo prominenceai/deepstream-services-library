@@ -309,7 +309,17 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OverlaySinkNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
+        offsetX, offsetY, width, height);
+}
+
+DslReturnType dsl_sink_window_new(const wchar_t* name,
+    uint offsetX, uint offsetY, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowNew(cstrName.c_str(), 
         offsetX, offsetY, width, height);
 }
 
@@ -518,6 +528,26 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolea
     return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(cstrPipeline.c_str(), enabled);
 }
  
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowDimensionsGet(cstrPipeline.c_str(),
+        width, height);
+}
+
+DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
+    uint width, uint height)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowDimensionsSet(cstrPipeline.c_str(),
+        width, height);
+}    
+
 DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
 {
     std::wstring wstrPipeline(pipeline);
@@ -1582,7 +1612,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
-    DslReturnType Services::OverlaySinkNew(const char* name, 
+    DslReturnType Services::SinkOverlayNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -1603,7 +1633,33 @@ namespace DSL
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("new Sink '" << name << "' created successfully");
+        LOG_INFO("New Overlay Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SinkWindowNew(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Window Sink '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -1862,7 +1918,7 @@ namespace DSL
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Set the Stream Muxer Output Dimensions");
-                return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
         }
         catch(...)
@@ -1919,6 +1975,51 @@ namespace DSL
         {
             LOG_ERROR("Pipeline '" << pipeline 
                 << "' threw an exception setting the Stream Muxer padding");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineXWindowDimensionsGet(const char* pipeline,
+        uint* width, uint* height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            m_pipelines[pipeline]->GetXWindowDimensions(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception getting the XWindow Dimensions");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineXWindowDimensionsSet(const char* pipeline,
+        uint width, uint height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            if (!m_pipelines[pipeline]->SetXWindowDimensions(width, height))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to Set the XWindow Dimensions");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception setting the XWindow dimensions");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;

@@ -224,7 +224,7 @@ SCENARIO( "Multiple sinks linked to a Pipeline Sinks Bintr Tee can be unlinked c
     }
 }
 
-SCENARIO( "All GST Resources are released on PipelineSinksBintr destruction", "[test]" )
+SCENARIO( "All GST Resources are released on PipelineSinksBintr destruction", "[PipelineSinksBintr]" )
 {
     GIVEN( "Attributes for a new PipelineSinksBintr and several new SinkBintrs" ) 
     {

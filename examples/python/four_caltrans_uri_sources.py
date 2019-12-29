@@ -22,19 +22,19 @@ source_uri4 = "http://wzmedia.dot.ca.gov/D4/N1_at_Presidio_Tunnel.stream/playlis
 while True:
 
     # Create 4 new URI Streaming Sources
-    retval = dsl_source_uri_new('uri-source1', source_uri1, True, 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source1', source_uri1, False, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
         
-    retval = dsl_source_uri_new('uri-source2', source_uri2, True, 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source2', source_uri2, False, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
         
-    retval = dsl_source_uri_new('uri-source3', source_uri3, True, 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source3', source_uri3, False, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
         
-    retval = dsl_source_uri_new('uri-source4', source_uri4, True, 0, 0, 0)
+    retval = dsl_source_uri_new('uri-source4', source_uri4, False, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
         
