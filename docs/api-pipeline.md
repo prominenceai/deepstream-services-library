@@ -35,16 +35,22 @@ Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete),
 * [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
 * [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 * [dsl_pipeline_component_replace](#dsl_pipeline_component_replace)
-* [dsl_pipeline_streammux_properties_get](#dsl_pipeline_streammux_properties_get)
-* [dsl_pipeline_streammux_properties_set](#dsl_pipeline_streammux_properties_set)
+* [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get)
+* [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
+* [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
+* [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_xwindow_dimensions_get](#dsl_pipeline_xwindow_dimensions_get)
+* [dsl_pipeline_xwindow_dimensions_set](#dsl_pipeline_xwindow_dimensions_set)
+* [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get)
+* [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
+* [dsl_pipeline_play](#dsl_pipeline_play)
+* [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_pause](#dsl_pipeline_pause)
 * [dsl_pipeline_stop](#dsl_pipeline_stop)
 * [dsl_pipeline_state_get](#dsl_pipeline_state_get)
 * [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
-* [dsl_pipeline_display_window_handle_get](#dsl_pipeline_display_window_handle_get)
-* [dsl_pipeline_display_window_handle_set](#dsl_pipeline_display_window_handle_set)
 * [dsl_pipeline_display_event_handler_add](#dsl_pipeline_display_event_handler_add)
 * [dsl_pipeline_display_event_handler_remove](#dsl_pipeline_display_event_handler_remove)
 * [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
@@ -59,19 +65,22 @@ The following return codes are used by the Pipeline API
 #define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
 #define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
 #define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
-#define DSL_RESULT_PIPELINE_NEW_EXCEPTION                           0x11000110
+#define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x11000110
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
-#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001001
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001010
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001011
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001100
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11001101
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11001110
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11001111
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010000
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010001
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010010
+#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x11001001
+#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001010
+#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x11001011
+#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x11001100
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001101
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001110
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001111
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11010000
+#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11010001
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11010010
+#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010011
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010000
+#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010101
 ```
 
 ## Constructors
@@ -263,7 +272,7 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 ```C++
 DslReturnType dsl_pipeline_component_replace(const wchar_t* pipeline, const wchar_t* prev, const wchar_t* next);
 ```
-Replaces a single Component `in-use` by the named Pipeline with a new Component of the same type. The replace service will fail under the if the two component are of different types, or if the new Component is already `in-use` by another Pipele. The previous Component's `in-use` state will be set to *false* and the new Component's state to *true* on successful replacement.  
+Replaces a single Component `in-use` by the named Pipeline with a new Component of the same type. The replace service will fail under the if the two component are of different types, or if the new Component is already `in-use` by another Pipeline. The previous Component's `in-use` state will be set to *false* and the new Component's state to *true* on successful replacement.  
 
 **Parameters**
 * `pipeline` - unique name for the Pipeline to update.
@@ -275,15 +284,90 @@ Replaces a single Component `in-use` by the named Pipeline with a new Component 
 
 <br>
 
-### *dsl_pipeline_streammux_properties_get*
+### *dsl_pipeline_streammux_batch_properties_get*
+```C++
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to update.
 
-**TODO**
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
-### *dsl_pipeline_streammux_properties_set*
+### *dsl_pipeline_streammux_batch_properties_set*
+```C++
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to update.
 
-**TODO**
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_streammux_dimensions_get*
+This service returns the current Stream Muxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+
+```C++
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height);
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to query.
+* `width` - width of the Stream Muxer output in pixels.
+* `height` - height of the Stream Muxer output in pixels.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_streammux_dimensions_set*
+This service sets the current Strem Muxer output dimensions for the uniquely named Pipeline. The dimesions cannot be updated while the Pipeline is in a state of play.
+```C++
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
+    uint width, uint height);
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to update.
+* `width` - new width for the Stream Muxer output in pixels.
+* `height` - new height for the Stream Muxer output in pixels.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_xwindow_dimensions_get*
+This service returns the current XWindow dimensions to use on XWindow creation for the uniquely named Pipeline.
+```C++
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height);
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to query.
+* `width` - width of the XWindow in pixels.
+* `height` - height of the XWindow output in pixels.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_xwindow_dimensions_set*
+This service updates the dimensions to use on XWindow creation.
+```C++
+DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
+    uint width, uint height);
+```
+**Parameters**
+* `pipeline` - unique name for the Pipeline to update.
+* `width` - new width setting to use on XWindow creation, in pixels.
+* `height` - new height setting to use on XWindow creation in pixels.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
