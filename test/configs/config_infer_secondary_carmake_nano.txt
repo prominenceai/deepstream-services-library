@@ -48,7 +48,6 @@ gpu-id=0
 net-scale-factor=1
 model-file=../../test/models/Secondary_CarMake/resnet18.caffemodel
 proto-file=../../test/models/Secondary_CarMake/resnet18.prototxt
-model-engine-file=../../test/models/Secondary_CarMake/resnet18.caffemodel_b16_int8.engine
 int8-calib-file=../../test/models/Secondary_CarMake/cal_trt.bin
 mean-file=../../test/models/Secondary_CarMake/mean.ppm
 labelfile-path=../../test/models/Secondary_CarMake/labels.txt
