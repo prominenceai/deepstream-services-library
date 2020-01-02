@@ -211,8 +211,9 @@ namespace DSL {
 
         /**
          * @brief private ctor for this singleton class
+         * @parm[in] doGstDeinit, if true, the Services will call gst_deinit on dtor.
          */
-        Services();
+        Services(bool doGstDeinit);
 
         /**
          * @brief private dtor for this singleton class
@@ -223,6 +224,12 @@ namespace DSL {
          * @brief instance pointer for this singleton class
          */
         static Services* m_pInstatnce;
+        
+        /**
+         * @breif flag set during construction, determines if the Services should call
+         * gst_deinit() on dtor, or to let the client. 
+         */
+        bool m_doGstDeinit;
         
         /**
          * @brief handle to the single main loop

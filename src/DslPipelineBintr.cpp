@@ -70,23 +70,28 @@ namespace DSL
     PipelineBintr::~PipelineBintr()
     {
         LOG_FUNC();
-        
-        Stop();
-        
-        if (m_pXWindow)
         {
-            XDestroyWindow(m_pXDisplay, m_pXWindow);
-        }
-        if (m_pXDisplay)
-        {
-            XCloseDisplay(m_pXDisplay);
-        }
-        // cleanup all resources
-        gst_bus_remove_watch(m_pGstBus);
-        gst_object_unref(m_pGstBus);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+            
+            Stop();
+            
+            if (m_pXWindow)
+            {
+                XDestroyWindow(m_pXDisplay, m_pXWindow);
+            }
+            if (m_pXDisplay)
+            {
+                XCloseDisplay(m_pXDisplay);
+                // Setting the display handle to NULL will terminate the XWindow Event Thread.
+                m_pXDisplay = NULL;
+            }
+            // cleanup all resources
+            gst_bus_remove_watch(m_pGstBus);
+            gst_object_unref(m_pGstBus);
 
-        g_mutex_clear(&m_busSyncMutex);
-        g_mutex_clear(&m_busWatchMutex);
+            g_mutex_clear(&m_busSyncMutex);
+            g_mutex_clear(&m_busWatchMutex);
+        }
         g_mutex_clear(&m_displayMutex);
     }
     
@@ -681,10 +686,6 @@ namespace DSL
                     CreateXWindow();
                 }
                 
-                // flush the XWindow output buffer and then wait until all requests have been 
-                // received and processed by the X server. TRUE = Discard all queued events
-                XSync(m_pXDisplay, TRUE);
-
                 gst_video_overlay_set_window_handle(
                     GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)), m_pXWindow);
                 gst_video_overlay_expose(
@@ -730,39 +731,42 @@ namespace DSL
             
         while (m_pXDisplay)
         {
-            while (XPending(m_pXDisplay)) 
             {
                 LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-
-                XEvent xEvent;
-                XNextEvent(m_pXDisplay, &xEvent);
-                switch (xEvent.type) 
+                while (m_pXDisplay and XPending(m_pXDisplay)) 
                 {
-                case ButtonPress:                
-                    LOG_INFO("Button pressed");
-                    break;
-                    
-                case KeyPress:
-                    LOG_INFO("Key pressed"); 
-                    break;
 
-                case KeyRelease:
-                    LOG_INFO("Key released");
-                    
-                    break;
-                    
-                case ClientMessage:
-                    LOG_INFO("Client message");
-
-                    if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
+                    XEvent xEvent;
+                    XNextEvent(m_pXDisplay, &xEvent);
+                    switch (xEvent.type) 
                     {
-                        Stop();
-                        g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
+                    case ButtonPress:                
+                        LOG_INFO("Button pressed");
+                        break;
+                        
+                    case KeyPress:
+                        LOG_INFO("Key pressed"); 
+                        break;
+
+                    case KeyRelease:
+                        LOG_INFO("Key released");
+                        
+                        break;
+                        
+                    case ClientMessage:
+                        LOG_INFO("Client message");
+
+                        if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
+                        {
+                            LOG_INFO("WM_DELETE_WINDOW message received");
+                            Stop();
+                            g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
+                        }
+                        break;
+                        
+                    default:
+                        break;
                     }
-                    break;
-                    
-                default:
-                    break;
                 }
             }
             g_usleep(G_USEC_PER_SEC / 20);
@@ -781,8 +785,8 @@ namespace DSL
         uint displayWidth(0), displayHeight(0);
         m_pDisplayBintr->GetDimensions(&displayWidth, &displayHeight);
         
-        m_xWindowWidth < displayWidth ? m_xWindowWidth = displayWidth : m_xWindowWidth = m_xWindowWidth;
-        m_xWindowHeight < displayHeight ? m_xWindowHeight = displayHeight : m_xWindowHeight = m_xWindowHeight;
+        m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
+        m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
         
         LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
 
@@ -813,6 +817,9 @@ namespace DSL
             XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
         }
         XMapRaised(m_pXDisplay, m_pXWindow);
+        // flush the XWindow output buffer and then wait until all requests have been 
+        // received and processed by the X server. TRUE = Discard all queued events
+        XSync(m_pXDisplay, TRUE);
 
         // Start the X window event thread
         std::string threadName = GetName() + std::string("-x-window-event-thread");

@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
 
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+
 using namespace DSL;
 
 SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )

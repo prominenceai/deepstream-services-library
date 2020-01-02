@@ -706,6 +706,8 @@ namespace DSL
         // one time initialization of the single instance pointer
         if (!m_pInstatnce)
         {
+            boolean doGstDeinit(false);
+        
             // If gst has not been initialized by the client software
             if (!gst_is_initialized())
             {
@@ -714,6 +716,7 @@ namespace DSL
                 
                 // initialize the GStreamer library
                 gst_init(&argc, &argv);
+                doGstDeinit = true;
             }
             // Initialize the single debug category used by the lib
             GST_DEBUG_CATEGORY_INIT(GST_CAT_DSL, "DSL", 0, "DeepStream Services");
@@ -722,14 +725,15 @@ namespace DSL
             LOG_INFO("Services Initialization");
             
             // Single instantiation for the lib's lifetime
-            m_pInstatnce = new Services();
+            m_pInstatnce = new Services(doGstDeinit);
             m_pInstatnce->_initMaps();
         }
         return m_pInstatnce;
     }
         
-    Services::Services()
-        : m_pMainLoop(g_main_loop_new(NULL, FALSE))
+    Services::Services(bool doGstDeinit)
+        : m_doGstDeinit(doGstDeinit)
+        , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_numSourceInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
     {
         LOG_FUNC();
@@ -744,10 +748,17 @@ namespace DSL
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
             
+            // If this Services object called gst_init(), and not the client.
+            if (m_doGstDeinit)
+            {
+                gst_deinit();
+            }
+            
             if (m_pMainLoop)
             {
                 LOG_WARN("Main loop is still running!");
                 g_main_loop_quit(m_pMainLoop);
+                g_main_loop_unref(m_pMainLoop);
             }
         }
         g_mutex_clear(&m_servicesMutex);
