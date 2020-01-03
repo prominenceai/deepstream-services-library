@@ -181,11 +181,17 @@ namespace DSL {
         DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
             dsl_state_change_listener_cb listener);
                         
-        DslReturnType PipelineDisplayEventHandlerAdd(const char* pipeline, 
-            dsl_display_event_handler_cb handler, void* userdata);
+        DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
+            dsl_xwindow_key_event_handler_cb handler, void* userdata);
 
-        DslReturnType PipelineDisplayEventHandlerRemove(const char* pipeline, 
-            dsl_display_event_handler_cb handler);
+        DslReturnType PipelineXWindowKeyEventHandlerRemove(const char* pipeline, 
+            dsl_xwindow_key_event_handler_cb handler);
+
+        DslReturnType PipelineXWindowButtonEventHandlerAdd(const char* pipeline, 
+            dsl_xwindow_button_event_handler_cb handler, void* userdata);
+
+        DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* pipeline, 
+            dsl_xwindow_button_event_handler_cb handler);
         
         GMainLoop* GetMainLoopHandle()
         {
