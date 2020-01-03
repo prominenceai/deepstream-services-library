@@ -44,121 +44,117 @@ THE SOFTWARE.
  */
 #define DSL_RESULT_COMPONENT_RESULT                                 0x00010000
 #define DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE                        0x00010001
-#define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010010
-#define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010011
-#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010100
-#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010101
+#define DSL_RESULT_COMPONENT_NAME_NOT_FOUND                         0x00010002
+#define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
+#define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
 
 /**
  * Source API Return Values
  */
-#define DSL_RESULT_SOURCE_RESULT                                    0x00100000
-#define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
-#define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
-#define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
-#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00100100
-#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00100101
-#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00100110
-#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00100111
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00101000
-#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00101001
-#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x00101010
+#define DSL_RESULT_SOURCE_RESULT                                    0x00020000
+#define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
+#define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
+#define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 
 /**
  * Tracker API Return Values
  */
-#define DSL_RESULT_TRACKER_RESULT                                   0x00110000
-#define DSL_RESULT_TRACKER_NAME_NOT_UNIQUE                          0x00110001
-#define DSL_RESULT_TRACKER_NAME_NOT_FOUND                           0x00110010
-#define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00110011
-#define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00110100
-#define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00110101
-#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00110110
-#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00110111
-#define DSL_RESULT_TRACKER_SET_FAILED                               0x00111000
-#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00111001
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00111010
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x00111011
+#define DSL_RESULT_TRACKER_RESULT                                   0x00030000
+#define DSL_RESULT_TRACKER_NAME_NOT_UNIQUE                          0x00030001
+#define DSL_RESULT_TRACKER_NAME_NOT_FOUND                           0x00030002
+#define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00030003
+#define DSL_RESULT_TRACKER_THREW_EXCEPTION                          0x00030004
+#define DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND                    0x00030005
+#define DSL_RESULT_TRACKER_MAX_DIMENSIONS_INVALID                   0x00030006
+#define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030007
+#define DSL_RESULT_TRACKER_SET_FAILED                               0x00030008
+#define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030009
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x0003000A
+#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000B
 
 /**
  * Sink API Return Values
  */
-#define DSL_RESULT_SINK_RESULT                                      0x01000000
-#define DSL_RESULT_SINK_NAME_NOT_UNIQUE                             0x01000001
-#define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x01000010
-#define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x01000011
-#define DSL_RESULT_SINK_THREW_EXCEPTION                             0x01000100
+#define DSL_RESULT_SINK_RESULT                                      0x00040000
+#define DSL_RESULT_SINK_NAME_NOT_UNIQUE                             0x00040001
+#define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x00040002
+#define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x00040003
+#define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
 
 /**
  * OSD API Return Values
  */
-#define DSL_RESULT_OSD_RESULT                                       0x01010000
-#define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x01010001
-#define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x01010010
-#define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x01010011
-#define DSL_RESULT_OSD_THREW_EXCEPTION                              0x01010100
-#define DSL_RESULT_OSD_MAX_DIMENSIONS_INVALID                       0x01010110
-#define DSL_RESULT_OSD_IS_IN_USE                                    0x01010111
-#define DSL_RESULT_OSD_SET_FAILED                                   0x01011000
-#define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x01011001
-#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x01011010
-#define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x01011011
+#define DSL_RESULT_OSD_RESULT                                       0x00050000
+#define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x00050001
+#define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x00050002
+#define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x00050003
+#define DSL_RESULT_OSD_THREW_EXCEPTION                              0x00050004
+#define DSL_RESULT_OSD_MAX_DIMENSIONS_INVALID                       0x00050005
+#define DSL_RESULT_OSD_IS_IN_USE                                    0x00050006
+#define DSL_RESULT_OSD_SET_FAILED                                   0x00050007
+#define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00050008
+#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
+#define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 
 /**
  * GIE API Return Values
  */
-#define DSL_RESULT_GIE_RESULT                                       0x01100000
-#define DSL_RESULT_GIE_NAME_NOT_UNIQUE                              0x01100001
-#define DSL_RESULT_GIE_NAME_NOT_FOUND                               0x01100010
-#define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x01100011
-#define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x01100100
-#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x01100101
-#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x01100110
-#define DSL_RESULT_GIE_IS_IN_USE                                    0x01100111
-#define DSL_RESULT_GIE_SET_FAILED                                   0x01101000
-#define DSL_RESULT_GIE_HANDLER_ADD_FAILED                           0x01101001
-#define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x01101010
-#define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x01101011
+#define DSL_RESULT_GIE_RESULT                                       0x00060000
+#define DSL_RESULT_GIE_NAME_NOT_UNIQUE                              0x00060001
+#define DSL_RESULT_GIE_NAME_NOT_FOUND                               0x00060002
+#define DSL_RESULT_GIE_NAME_BAD_FORMAT                              0x00060003
+#define DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND                        0x00060004
+#define DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND                         0x00060005
+#define DSL_RESULT_GIE_THREW_EXCEPTION                              0x00060006
+#define DSL_RESULT_GIE_IS_IN_USE                                    0x00060007
+#define DSL_RESULT_GIE_SET_FAILED                                   0x00060008
+#define DSL_RESULT_GIE_HANDLER_ADD_FAILED                           0x00060009
+#define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x0006000A
+#define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x0006000B
 
 /**
  * Display API Return Values
  */
-#define DSL_RESULT_DISPLAY_RESULT                                   0x10000000
-#define DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x10000001
-#define DSL_RESULT_DISPLAY_NAME_NOT_FOUND                           0x10000010
-#define DSL_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x10000011
-#define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x10000100
-#define DSL_RESULT_DISPLAY_IS_IN_USE                                0x10000101
-#define DSL_RESULT_DISPLAY_SET_FAILED                               0x10000110
-#define DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED                       0x10000111
-#define DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED                    0x10001000
-#define DSL_RESULT_DISPLAY_PAD_TYPE_INVALID                         0x10001001
+#define DSL_RESULT_DISPLAY_RESULT                                   0x00070000
+#define DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x00070001
+#define DSL_RESULT_DISPLAY_NAME_NOT_FOUND                           0x00070002
+#define DSL_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x00070003
+#define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x00070004
+#define DSL_RESULT_DISPLAY_IS_IN_USE                                0x00070005
+#define DSL_RESULT_DISPLAY_SET_FAILED                               0x00070006
+#define DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED                       0x00070007
+#define DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED                    0x00070008
+#define DSL_RESULT_DISPLAY_PAD_TYPE_INVALID                         0x00070009
 
 /**
  * Pipeline API Return Values
  */
-#define DSL_RESULT_PIPELINE_RESULT                                  0x11000000
-#define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x11000001
-#define DSL_RESULT_PIPELINE_NAME_NOT_FOUND                          0x11000010
-#define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x11000011
-#define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x11000100
-#define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x11000101
-#define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x11000110
-#define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x11000111
-#define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x11001000
-#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x11001001
-#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x11001010
-#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x11001011
-#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x11001100
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x11001101
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x11001110
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x11001111
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE                     0x11010000
-#define DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND                      0x11010001
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE                      0x11010010
-#define DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND                       0x11010011
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_UNIQUE                   0x11010000
-#define DSL_RESULT_PIPELINE_SUBSCRIBER_NOT_FOUND                    0x11010101
+#define DSL_RESULT_PIPELINE_RESULT                                  0x00080000
+#define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x00080001
+#define DSL_RESULT_PIPELINE_NAME_NOT_FOUND                          0x00080002
+#define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x00080003
+#define DSL_RESULT_PIPELINE_STATE_PAUSED                            0x00080004
+#define DSL_RESULT_PIPELINE_STATE_RUNNING                           0x00080005
+#define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x00080006
+#define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x00080007
+#define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
+#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
+#define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
+#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x0008000B
+#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x0008000C
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000D
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000E
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -196,20 +192,36 @@ typedef uint boolean;
 
 /**
  * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
- * the function will be called when the component receives.
+ * the function will be called when the component receives a batch meta buffer.
  * @param[in] batch_meta pointer to a Batch Meta structure to process
  * @param[in] user_data opaque pointer to client's user data
  */
 typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
 
 /**
- * @brief callback typedef for a client event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives window events for the Tiled Display.
- * @param[in] prev_state state from which the Pipeline transitioned from
- * @param[in] curr_state state to which the Pipeline has transitioned to
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline changes state.
+ * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
+ * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
+ * @param[in] user_data opaque pointer to client's data
+ */
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
+
+/**
+ * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline receives XWindow KeyRelease events for the Tiled Display.
+ * @param[in] key UNICODE key string for the key pressed
  * @param[in] user_data opaque pointer to client's user data
  */
-typedef boolean (*dsl_display_event_handler_cb)(uint prev_state, uint curr_state, void* user_data);
+typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_data);
+
+/**
+ * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline receives XWindow ButtonPress events for the Tiled Display.
+ * @param[in] key UNICODE key string for the key pressed
+ * @param[in] user_data opaque pointer to client's user data
+ */
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* user_data);
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -789,15 +801,6 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filenam
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename);
 
 /**
- * @brief callback typedef for a client listener function. Once added to a Pipeline, 
- * the function will be called when the Pipeline changes state.
- * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
- * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
- * @param[in] user_data opaque pointer to client's data
- */
-typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
-
-/**
  * @brief adds a callback to be notified on change of Pipeline state
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
@@ -817,23 +820,42 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
     dsl_state_change_listener_cb listener);
 
 /**
- * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+ * @brief adds a callback to be notified on XWindow KeyRelease Event
  * @param[in] pipeline name of the pipeline to update
- * @param[in] handler pointer to the client's function to call to handle window events.
- * @param[in] user_data opaque pointer to client data passed into the listner function.
+ * @param[in] handler pointer to the client's function to handle XWindow key events.
+ * @param[in] user_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_display_event_handler_add(const wchar_t* pipeline, 
-    dsl_display_event_handler_cb handler, void* user_data);
+DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_key_event_handler_cb handler, void* user_data);
 
 /**
- * @brief removes a callback previously added with dsl_display_event_handler_add
+ * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_display_event_handler_remove(const wchar_t* pipeline, 
-    dsl_display_event_handler_cb handler);
+DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipeline, 
+    dsl_xwindow_key_event_handler_cb handler);
+
+/**
+ * @brief adds a callback to be notified on XWindow ButtonPress Event
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's function to call to handle XWindow button events.
+ * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_button_event_handler_cb handler, void* user_data);
+
+/**
+ * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pipeline, 
+    dsl_xwindow_button_event_handler_cb handler);
 
 /**
  * @brief entry point to the GST Main Loop

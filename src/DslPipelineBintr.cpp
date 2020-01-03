@@ -563,75 +563,88 @@ namespace DSL
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
 
-    DslReturnType PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    bool PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
         
         if (m_stateChangeListeners[listener])
         {   
             LOG_ERROR("Pipeline listener is not unique");
-            return DSL_RESULT_PIPELINE_LISTENER_NOT_UNIQUE;
+            return false;
         }
         m_stateChangeListeners[listener] = userdata;
         
-        return DSL_RESULT_SUCCESS;
+        return true;
     }
 
-    bool PipelineBintr::IsChildStateChangeListener(dsl_state_change_listener_cb listener)
-    {
-        LOG_FUNC();
-        
-        return (bool)m_stateChangeListeners[listener];
-    }
-    
-    DslReturnType PipelineBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
+    bool PipelineBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         
         if (!m_stateChangeListeners[listener])
         {   
             LOG_ERROR("Pipeline listener was not found");
-            return DSL_RESULT_PIPELINE_LISTENER_NOT_FOUND;
+            return false;
         }
         m_stateChangeListeners.erase(listener);
         
-        return DSL_RESULT_SUCCESS;
+        return true;
     }
 
-    DslReturnType PipelineBintr::AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata)
+    bool PipelineBintr::AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* userdata)
     {
         LOG_FUNC();
 
-        if (m_displayEventHandlers[handler])
+        if (m_xWindowKeyEventHandlers[handler])
         {   
             LOG_ERROR("Pipeline handler is not unique");
-            return DSL_RESULT_PIPELINE_HANDLER_NOT_UNIQUE;
+            return false;
         }
-        m_displayEventHandlers[handler] = userdata;
+        m_xWindowKeyEventHandlers[handler] = userdata;
         
-        return DSL_RESULT_SUCCESS;
+        return true;
     }
 
-    bool PipelineBintr::IsChildDisplayEventHandler(dsl_display_event_handler_cb handler)
+    bool PipelineBintr::RemoveXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler)
     {
         LOG_FUNC();
 
-        return (bool)m_displayEventHandlers[handler];
-        
-    }
-
-    DslReturnType PipelineBintr::RemoveDisplayEventHandler(dsl_display_event_handler_cb handler)
-    {
-        LOG_FUNC();
-
-        if (!m_displayEventHandlers[handler])
+        if (!m_xWindowKeyEventHandlers[handler])
         {   
             LOG_ERROR("Pipeline handler was not found");
-            return DSL_RESULT_PIPELINE_HANDLER_NOT_FOUND;
+            return false;
         }
-        m_displayEventHandlers.erase(handler);
+        m_xWindowKeyEventHandlers.erase(handler);
         
-        return DSL_RESULT_SUCCESS;
+        return true;
+    }
+    
+    bool PipelineBintr::AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowButtonEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return false;
+        }
+        m_xWindowButtonEventHandlers[handler] = userdata;
+        
+        return true;
+    }
+
+    bool PipelineBintr::RemoveXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (!m_xWindowButtonEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return false;
+        }
+        m_xWindowButtonEventHandlers.erase(handler);
+        
+        return true;
     }
     
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
@@ -740,17 +753,31 @@ namespace DSL
                     XNextEvent(m_pXDisplay, &xEvent);
                     switch (xEvent.type) 
                     {
-                    case ButtonPress:                
-                        LOG_INFO("Button pressed");
+                    case ButtonPress:
+                        LOG_INFO("Button pressed: xpos = " << xEvent.xbutton.x << ": ypos = " << xEvent.xbutton.y);
+                        
+                        // iterate through the map of XWindow Button Event handlers calling each
+                        for(auto const& imap: m_xWindowButtonEventHandlers)
+                        {
+                            imap.first((uint)xEvent.xbutton.x, (uint)xEvent.xbutton.y, imap.second);
+                        }
                         break;
                         
-                    case KeyPress:
-                        LOG_INFO("Key pressed"); 
-                        break;
-
                     case KeyRelease:
-                        LOG_INFO("Key released");
-                        
+                        KeySym key;
+                        char keyString[255];
+                        if (XLookupString(&xEvent.xkey, keyString, 255, &key,0))
+                        {   keyString[1] = 0;
+                            std::string cstrKeyString(keyString);
+                            std::wstring wstrKeyString(cstrKeyString.begin(), cstrKeyString.end());
+                            LOG_INFO("Key released = '" << cstrKeyString << "'"); 
+                            
+                            // iterate through the map of XWindow Key Event handlers calling each
+                            for(auto const& imap: m_xWindowKeyEventHandlers)
+                            {
+                                imap.first(wstrKeyString.c_str(), imap.second);
+                            }
+                        }
                         break;
                         
                     case ClientMessage:

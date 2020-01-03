@@ -227,21 +227,14 @@ namespace DSL
          * @param[in] userdata opaque pointer to client data passed into the listner function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
-
-        /**
-         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
-         * @param listener calback to check if in use
-         * @return true if currently a child in use
-         */
-        bool IsChildStateChangeListener(dsl_state_change_listener_cb listener);
+        bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
 
         /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType RemoveStateChangeListener(dsl_state_change_listener_cb listener);
+        bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
             
         /**
          * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
@@ -249,21 +242,29 @@ namespace DSL
          * @param[in] userdata opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType AddDisplayEventHandler(dsl_display_event_handler_cb handler, void* userdata);
-
-        /**
-         * @brief called to determine if a CB is currently a child (in-ues) by the Pipeline
-         * @param handler calback to check if in use
-         * @return true if currently a child in use
-         */
-        bool IsChildDisplayEventHandler(dsl_display_event_handler_cb handler);
+        bool AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* userdata);
 
         /**
          * @brief removes a previously added callback
          * @param[in] handler pointer to the client's function to remove
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        DslReturnType RemoveDisplayEventHandler(dsl_display_event_handler_cb handler);
+        bool RemoveXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler);
+            
+        /**
+         * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+         * @param[in] handler pointer to the client's function to call on Display event
+         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool RemoveXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler);
             
         /**
          * @brief handles incoming Message Packets received
@@ -363,10 +364,16 @@ namespace DSL
         std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
         
         /**
-         * @brief map of all currently registered display-event-handlers
+         * @brief map of all currently registered XWindow-key-event-handlers
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_display_event_handler_cb, void*>m_displayEventHandlers;
+        std::map<dsl_xwindow_key_event_handler_cb, void*>m_xWindowKeyEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-button-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_xwindow_button_event_handler_cb, void*>m_xWindowButtonEventHandlers;
 
         /**
          * @brief mutex to prevent callback reentry
