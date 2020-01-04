@@ -237,6 +237,21 @@ namespace DSL
         bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
             
         /**
+         * @brief adds a callback to be notified on change of Pipeline state
+         * @param[in] listener pointer to the client's function to call on state change
+         * @param[in] userdata opaque pointer to client data passed into the listner function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool AddEosListener(dsl_eos_listener_cb listener, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool RemoveEosListener(dsl_eos_listener_cb listener);
+            
+        /**
          * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
          * @param[in] handler pointer to the client's function to call on Display event
          * @param[in] userdata opaque pointer to client data passed into the handler function.
@@ -305,6 +320,12 @@ namespace DSL
 
     private:
 
+        bool HandleStateChanged(GstMessage* pMessage);
+        
+        void HandleEosMessage(GstMessage* pMessage);
+        
+        void HandleErrorMessage(GstMessage* pMessage);
+
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**
@@ -362,6 +383,12 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
+        
+        /**
+         * @brief map of all currently registered end-of-stream-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_eos_listener_cb, void*>m_eosListeners;
         
         /**
          * @brief map of all currently registered XWindow-key-event-handlers
@@ -424,10 +451,6 @@ namespace DSL
          * @brief maps a GstMessage constant value to a string for logging
          */
         std::map<GstMessageType, std::string> m_mapMessageTypes;
-
-        bool HandleStateChanged(GstMessage* pMessage);
-        
-        void HandleErrorMessage(GstMessage* pMessage);
 
         /**
          * @brief initializes the "constant-value-to-string" maps

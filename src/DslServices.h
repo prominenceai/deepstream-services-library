@@ -181,6 +181,12 @@ namespace DSL {
         DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
             dsl_state_change_listener_cb listener);
                         
+        DslReturnType PipelineEosListenerAdd(const char* pipeline, 
+            dsl_eos_listener_cb listener, void* userdata);
+        
+        DslReturnType PipelineEosListenerRemove(const char* pipeline, 
+            dsl_eos_listener_cb listener);
+                        
         DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
             dsl_xwindow_key_event_handler_cb handler, void* userdata);
 

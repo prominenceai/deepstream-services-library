@@ -10,7 +10,15 @@ DSL_RETURN_SUCCESS = 0
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
 
-source_uri = "../../test/streams/sample_1080p_h264.mp4"
+source_uri = '../../test/streams/sample_1080p_h264.mp4'
+
+# Function to be called on every change of Pipeline state
+def state_change_listener(prev_state, new_state, client_data):
+    print('previous state = ', prev_state, ', new state = ', new_state)
+
+# Function to be called on EOS
+def eos_listener(client_data):
+    dsl_main_loop_quit()
 
 while True:
 
@@ -45,23 +53,28 @@ while True:
         break
 
     # New Pipeline to use with the above components
-    retval = dsl_pipeline_new('simple-pipeline')
+    retval = dsl_pipeline_new('pipeline-1')
     if retval != DSL_RETURN_SUCCESS:
         break
 
     # Add all the components to our pipeline
-    retval = dsl_pipeline_component_add_many('simple-pipeline', 
+    retval = dsl_pipeline_component_add_many('pipeline-1', 
         ['uri-source', 'primary-gie', 'ktl-tracker', 'tiled-display', 'on-screen-display', 'window-sink', None])
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    
+    # Add the listener callback functions defined above
+    retval = dsl_pipeline_state_change_listener_add('pipeline-1', state_change_listener, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval = dsl_pipeline_eos_listener_add('pipeline-1', eos_listener, None)
     if retval != DSL_RETURN_SUCCESS:
         break
 
     # Play the pipeline
-    retval = dsl_pipeline_play('simple-pipeline')
+    retval = dsl_pipeline_play('pipeline-1')
     if retval != DSL_RETURN_SUCCESS:
         break
-
-    # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-    dsl_pipeline_dump_to_dot('simple-pipeline', "state-playing")
 
     # Wait for the User to Interrupt the script with Ctrl-C
     dsl_main_loop_run()

@@ -622,6 +622,26 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
         PipelineStateChangeListenerRemove(cstrPipeline.c_str(), listener);
 }
 
+DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
+    dsl_eos_listener_cb listener, void* userdata)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineEosListenerAdd(cstrPipeline.c_str(), listener, userdata);
+}
+
+DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
+    dsl_eos_listener_cb listener)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineEosListenerRemove(cstrPipeline.c_str(), listener);
+}
+
 DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
     dsl_xwindow_key_event_handler_cb handler, void* user_data)
 {
@@ -688,13 +708,7 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
  */
 static void PrgItrSigIsr(int signum)
 {
-    INIT_STRUCT(sigaction, sa);
-
-    sa.sa_handler = SIG_DFL;
-
-    sigaction(SIGINT, &sa, NULL);
-
-    g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
+    dsl_main_loop_quit();
 }
 
 /**
@@ -705,7 +719,17 @@ static void PrgItrSigIsrInstall(void)
     INIT_STRUCT(sigaction, sa);
 
     sa.sa_handler = PrgItrSigIsr;
+    sigaction(SIGINT, &sa, NULL);
+}    
 
+/**
+ * Function to uninstall custom handler for program interrupt signal.
+ */
+static void PrgItrSigIsrUninstall(void)
+{
+    INIT_STRUCT(sigaction, sa);
+
+    sa.sa_handler = SIG_DFL;
     sigaction(SIGINT, &sa, NULL);
 }    
 
@@ -715,6 +739,11 @@ void dsl_main_loop_run()
     g_main_loop_run(DSL::Services::GetServices()->GetMainLoopHandle());
 }
 
+void dsl_main_loop_quit()
+{
+    PrgItrSigIsrUninstall();
+    g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
+}
 
 namespace DSL
 {
@@ -776,8 +805,6 @@ namespace DSL
             
             if (m_pMainLoop)
             {
-                LOG_WARN("Main loop is still running!");
-                g_main_loop_quit(m_pMainLoop);
                 g_main_loop_unref(m_pMainLoop);
             }
         }
@@ -2168,6 +2195,56 @@ namespace DSL
         try
         {
             if (!m_pipelines[pipeline]->RemoveStateChangeListener(listener))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to remove a State Change Listener");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing a State Change Lister");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::PipelineEosListenerAdd(const char* pipeline, 
+        dsl_eos_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            if (!m_pipelines[pipeline]->AddEosListener(listener, userdata))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to add a EOS Listener");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception adding a EOS Lister");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineEosListenerRemove(const char* pipeline, 
+        dsl_eos_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+    
+        try
+        {
+            if (!m_pipelines[pipeline]->RemoveEosListener(listener))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to remove a State Change Listener");
