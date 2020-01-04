@@ -591,6 +591,34 @@ namespace DSL
         return true;
     }
 
+    bool PipelineBintr::AddEosListener(dsl_eos_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        
+        if (m_eosListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener is not unique");
+            return false;
+        }
+        m_eosListeners[listener] = userdata;
+        
+        return true;
+    }
+
+    bool PipelineBintr::RemoveEosListener(dsl_eos_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        if (!m_eosListeners[listener])
+        {   
+            LOG_ERROR("Pipeline listener was not found");
+            return false;
+        }
+        m_eosListeners.erase(listener);
+        
+        return true;
+    }
+
     bool PipelineBintr::AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* userdata)
     {
         LOG_FUNC();
@@ -650,7 +678,7 @@ namespace DSL
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
-        UNREF_MESSAGE_ON_RETURN(pMessage);
+//        UNREF_MESSAGE_ON_RETURN(pMessage);
         
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -663,6 +691,9 @@ namespace DSL
         case GST_MESSAGE_TAG:
             LOG_INFO("Message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
             return true;
+        case GST_MESSAGE_EOS:
+            HandleEosMessage(pMessage);
+            return true;
         case GST_MESSAGE_INFO:
             return true;
         case GST_MESSAGE_WARNING:
@@ -673,9 +704,6 @@ namespace DSL
         case GST_MESSAGE_STATE_CHANGED:
             HandleStateChanged(pMessage);
             return true;
-        case GST_MESSAGE_EOS:
-    	    g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
-	    break;
         default:
             LOG_INFO("Unhandled message type:: " << GST_MESSAGE_TYPE(pMessage));
         }
@@ -685,7 +713,6 @@ namespace DSL
     GstBusSyncReply PipelineBintr::HandleBusSyncMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busSyncMutex);
-        UNREF_MESSAGE_ON_RETURN(pMessage);
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -703,32 +730,26 @@ namespace DSL
                     GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)), m_pXWindow);
                 gst_video_overlay_expose(
                     GST_VIDEO_OVERLAY(GST_MESSAGE_SRC(pMessage)));
-                    
-            }
-            if (GST_MESSAGE_SRC(pMessage) == GST_OBJECT(m_pGstObj))
-            {
-                const GstStructure *structure;
-                structure = gst_message_get_structure(pMessage);
+                UNREF_MESSAGE_ON_RETURN(pMessage);
+                return GST_BUS_DROP;
             }
             break;
         default:
             break;
         }
-        return GST_BUS_DROP;
+        return GST_BUS_PASS;
     }
     
     bool PipelineBintr::HandleStateChanged(GstMessage* pMessage)
     {
-
         if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != GST_ELEMENT(m_pGstObj))
         {
             return false;
         }
 
         GstState oldstate, newstate;
-
         gst_message_parse_state_changed(pMessage, &oldstate, &newstate, NULL);
-        
+
         LOG_INFO(m_mapPipelineStates[oldstate] << " => " << m_mapPipelineStates[newstate]);
 
         // iterate through the map of state-change-listeners calling each
@@ -739,16 +760,25 @@ namespace DSL
         return true;
     }
     
+    void PipelineBintr::HandleEosMessage(GstMessage* pMessage)
+    {
+        LOG_INFO("EOS message recieved");
+        
+        // iterate through the map of EOS-listeners calling each
+        for(auto const& imap: m_eosListeners)
+        {
+            imap.first(imap.second);
+        }
+    }
+    
     void PipelineBintr::HandleXWindowEvents()
     {
-            
         while (m_pXDisplay)
         {
             {
                 LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
                 while (m_pXDisplay and XPending(m_pXDisplay)) 
                 {
-
                     XEvent xEvent;
                     XNextEvent(m_pXDisplay, &xEvent);
                     switch (xEvent.type) 
@@ -767,7 +797,8 @@ namespace DSL
                         KeySym key;
                         char keyString[255];
                         if (XLookupString(&xEvent.xkey, keyString, 255, &key,0))
-                        {   keyString[1] = 0;
+                        {   
+                            keyString[1] = 0;
                             std::string cstrKeyString(keyString);
                             std::wstring wstrKeyString(cstrKeyString.begin(), cstrKeyString.end());
                             LOG_INFO("Key released = '" << cstrKeyString << "'"); 

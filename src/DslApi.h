@@ -208,6 +208,13 @@ typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
 typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
 
 /**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called on receipt of EOS message from the Pipeline bus.
+ * @param[in] user_data opaque pointer to client's data
+ */
+typedef void (*dsl_eos_listener_cb)(void* user_data);
+
+/**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow KeyRelease events for the Tiled Display.
  * @param[in] key UNICODE key string for the key pressed
@@ -801,6 +808,25 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filenam
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename);
 
 /**
+ * @brief adds a callback to be notified on End of Stream (EOS)
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] listener pointer to the client's function to call on EOS
+ * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
+    dsl_eos_listener_cb listener, void* userdata);
+
+/**
+ * @brief removes a callback previously added with dsl_pipeline_eos_listener_add
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] listener pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
+    dsl_eos_listener_cb listener);
+
+/**
  * @brief adds a callback to be notified on change of Pipeline state
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
@@ -862,6 +888,12 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
  * Note: This is a blocking call - executes an endless loop
  */
 void dsl_main_loop_run();
+
+/**
+ * @brief Terminates the GST Main Loop and releases
+ * the caller blocked on dsl_main_loop_run()
+ */
+void dsl_main_loop_quit();
 
 EXTERN_C_END
 
