@@ -415,6 +415,9 @@ DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window ha
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
 ### *dsl_pipeline_xwindow_dimensions_get*
 This service returns the current XWindow dimensions to use on XWindow creation for the uniquely named Pipeline.
 ```C++
