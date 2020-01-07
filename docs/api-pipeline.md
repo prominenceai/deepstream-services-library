@@ -296,11 +296,26 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 
 ### *dsl_pipeline_component_remove_many*
 ```C++
-DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, const wchar_t** components);
+DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, const wchar_t** components);
 ```
-Removes a list of named components from a named Pipeline. The add service will fail if any of components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to *false* on successful removel. 
+Removes a list of named components from a named Pipeline. The remove service will fail if any of components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal. 
 
 If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `components` - [in] a NULL terminated array of uniquely named Components to add.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_component_remove_all*
+```C++
+DslReturnType dsl_pipeline_component_add_(const wchar_t* pipeline, const wchar_t** components);
+```
+Removes all child components from a named Pipeline. The add service will fail if any of components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to *false* on successful removal. 
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
