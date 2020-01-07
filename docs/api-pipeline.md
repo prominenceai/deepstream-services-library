@@ -5,6 +5,8 @@ Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [d
 
 Child Components - Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of Child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
 
+Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will return all Child components to a state of `not_in_use`. It's left to calling application to delete all Child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
+
 Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), paused by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
 
 Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
@@ -13,9 +15,9 @@ Clients can be notified of Pipeline State-Changes by registering one or more cal
 * `End of Stream (EOS)` events - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) and [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
 * `Quality of Service (QOS)` events - with [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add) and [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove).
 
-Pipelines - that have at least one Window-Sink - will create an XWindow by default, unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_display_window_handle_get](#dsl_pipeline_display_window_handle_get). The Client can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_display_window_handle_set](#dsl_pipeline_display_window_handle_set). 
+Pipelines - that have at least one Window-Sink - will create an XWindow by default, unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set). 
 
-In the case "the Pipeline creates the XWindow", Clients can be notified of XWindow `KeyRelease` events - by registering one or more callback functions with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Notifications are stopped by calling [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove). Notifications of XWindow `ButtonPress` events can be enabled and stopped by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add) and [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove) respectively.
+In the case that "the Pipeline creates the XWindow", Clients can be notified of XWindow `KeyRelease` events by registering one or more callback functions with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Notifications are stopped by calling [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove). Notifications of XWindow `ButtonPress` events can be enabled and stopped by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add) and [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove) respectively.
 
 ---
 ## Pipeline API
@@ -28,19 +30,23 @@ In the case "the Pipeline creates the XWindow", Clients can be notified of XWind
 * [dsl_pipeline_component_add](#dsl_pipeline_component_add)
 * [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many)
 * [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
-* [dsl_pipeline_component_list_all](#dsl_pipeline_component_list_all)
 * [dsl_pipeline_component_remove](#dsl_pipeline_component_remove)
 * [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
 * [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
 * [dsl_pipeline_component_replace](#dsl_pipeline_component_replace)
 * [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get)
-* [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
 * [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
+* [dsl_pipeline_xwindow_handle_set](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_set)
 * [dsl_pipeline_xwindow_dimensions_get](#dsl_pipeline_xwindow_dimensions_get)
 * [dsl_pipeline_xwindow_dimensions_set](#dsl_pipeline_xwindow_dimensions_set)
 * [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get)
 * [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
+* [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add)
+* [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove)
+* [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
+* [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove)
 * [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_pause](#dsl_pipeline_pause)
 * [dsl_pipeline_stop](#dsl_pipeline_stop)
@@ -51,10 +57,6 @@ In the case "the Pipeline creates the XWindow", Clients can be notified of XWind
 * [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove)
 * [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add)
 * [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove)
-* [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add)
-* [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove)
-* [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
-* [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove)
 * [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](#dsl_pipeline_dump_to_dot_with_ts)
 
@@ -101,7 +103,7 @@ if the name is currently in use.
 ```C++
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 ```
-The constructor creates multiple uniquely named Pipelines at once. All names are checked for uniqueness before any construction takes place. The call will fail if any of the names are duplicates, or are currently in use.
+The constructor creates multiple uniquely named Pipelines at once. All names are checked for uniqueness, with the call failing on first occurence of a duplicate.
 
 **Parameters**
 * `pipelines` - [in] a NULL terminated array of unique names for the Pipelines to create.
@@ -132,8 +134,7 @@ All components owned by the pipeline move to a state of `not-in-use`.
 ```C++
 DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines);
 ```
-This destructor deletes multiple uniquely named Pipelines. All names are first checked for existence. 
-The function returns DSL_RESULT_PIPELINE_NAME_NOT_FOUND on first occurrence of not found, before making any deletions. 
+This destructor deletes multiple uniquely named Pipelines. Each name is checked for existence, with the function returning DSL_RESULT_PIPELINE_NAME_NOT_FOUND on first occurrence of failure. 
 All components owned by the Pipelines move to a state of `not-in-use`
 
 **Parameters**
@@ -164,9 +165,9 @@ typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, voi
 Callback typedef for a client state-change listener. Functions of this type are added to a Pipeline by calling [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Once added, the function will be called on every change of Pipeline state until the client removes the listener by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 
 **Parameters**
-* `old_state` [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the old (previous) pipeline state
-* `new_state` [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the new pipeline state
-* `user_data` [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `old_state` - [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the old (previous) pipeline state
+* `new_state` - [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the new pipeline state
+* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
@@ -177,7 +178,18 @@ typedef void (*dsl_eos_listener_cb)(void* user_data);
 Callback typedef for a client EOS listener function, Functions of this type are added to a Pipeline be calling [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add). Once added, the function will be called on the event of Pipeline end-of-stream (EOS). The listener function is removed by calling [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove) . 
 
 **Parameters**
-* `user_data` [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+
+<br>
+
+### *dsl_qos_listener_cb*
+```C++
+typedef void (*dsl_eos_listener_cb)(void* user_data);
+```
+Callback typedef for a client QOS listener function, Functions of this type are added to a Pipeline be calling [dsl_pipeline_qos_listener_add](#dsl_pipeline_eos_listener_add). Once added, the function will be called on the event that one or more of the Pipeline's components has detected a degradation in the Quality-of-Service (QOS). The listener function is removed by calling [dsl_pipeline_qos_listener_remove](#dsl_pipeline_eos_listener_remove). 
+
+**Parameters**
+* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
@@ -222,7 +234,7 @@ This method returns the size of the current list of Pipelines in memory
 ```C++
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, const wchar_t* component);
 ```
-Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will fail if adding a `one-only` type of Component, such as a Tiled-Display, for which the Pipeline already has. The Component's `in-use` state will be set to *true* on successful add. 
+Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, for which the Pipeline already has. The Component's `in-use` state will be set to `true` on successful add. 
 
 If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
 
@@ -301,9 +313,9 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 
 ### *dsl_pipeline_component_replace*
 ```C++
-DslReturnType dsl_pipeline_component_replace(const wchar_t* pipeline, const wchar_t* prev, const wchar_t* next);
+DslReturnType dsl_pipeline_component_replace(const wchar_t* pipeline, const wchar_t* old, const wchar_t* new);
 ```
-Replaces a single Component `in-use` by the named Pipeline with a new Component of the same type. The replace service will fail under the if the two component are of different types, or if the new Component is already `in-use` by another Pipeline. The previous Component's `in-use` state will be set to *false* and the new Component's state to *true* on successful replacement.  
+Replaces a single Component `in-use` by the named Pipeline with a new Component of the same type. The replace service will fail if the two component are of different types, or if the new Component is already `in-use` by another Pipeline. The previous Component's `in-use` state will be set to `false` and the new Component's state to `true` on successful replacement.  
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
@@ -317,28 +329,21 @@ Replaces a single Component `in-use` by the named Pipeline with a new Component 
 
 ### *dsl_pipeline_streammux_batch_properties_get*
 ```C++
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
+    uint* batch_size, uint* batch_timeout);
 ```
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `batch_size` - [out] the current batch size, set by the Pipelein according to the current number of Child Source components.
+* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. The property is set by the Pipeline relative to the Child Source component with the minimum frame-rate.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-<br>
-
-### *dsl_pipeline_streammux_batch_properties_set*
-```C++
-```
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-
-**Returns**
-`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
 ### *dsl_pipeline_streammux_dimensions_get*
-This service returns the current Stream Muxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+This service returns the current Stream Muxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can be changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
 
 ```C++
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
@@ -346,8 +351,8 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
 ```
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
-* `width` - [in] width of the Stream Muxer output in pixels.
-* `height` - [in] height of the Stream Muxer output in pixels.
+* `width` - [out] width of the Stream Muxer output in pixels.
+* `height` - [out] height of the Stream Muxer output in pixels.
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -355,7 +360,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
 <br>
 
 ### *dsl_pipeline_streammux_dimensions_set*
-This service sets the current Strem Muxer output dimensions for the uniquely named Pipeline. The dimesions cannot be updated while the Pipeline is in a state of play.
+This service sets the current Strem Muxer output dimensions for the uniquely named Pipeline. The dimesions cannot be updated while the Pipeline is in a state of `passed` or `playing`.
 ```C++
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
@@ -370,6 +375,31 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 
 <br>
 
+### *dsl_pipeline_xwindow_handle_get*
+This service returns the current XWindow handle in use by the named Pipeline. The handle is set to `Null` on Pipeline creation, and updated on either Pipeline XWindow creation, or passed into the Pipeline by the client.
+```C++
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, Window* handle);
+```
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `handle` - [out] width of the XWindow in pixels.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_pipeline_xwindow_handle_set*
+This service updates the dimensions to use on XWindow creation. This service will fail if the Pipeline has an existing XWindow handle. 
+```C++
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window handle);
+```
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `handle` - [in] XWindow handle to use by all Child Window-Sink components of this Pipeline.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 ### *dsl_pipeline_xwindow_dimensions_get*
 This service returns the current XWindow dimensions to use on XWindow creation for the uniquely named Pipeline.
 ```C++
@@ -387,7 +417,7 @@ DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline,
 <br>
 
 ### *dsl_pipeline_xwindow_dimensions_set*
-This service updates the dimensions to use on XWindow creation.
+This service updates the dimensions to use on XWindow creation. This service will fail if the Pipeline has an existing XWindow handle. 
 ```C++
 DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
@@ -399,87 +429,6 @@ DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline,
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-<br>
-
-### *dsl_pipeline_play*
-```C++
-bool dsl_pipeline_play(wchar_t* pipeline);
-```
-This service is used to play a named Pipeline. The service will fail if the Pipeline's list of components are insufficient for the Pipeline to play. The service will also fail if one of the Pipeline's components fails to transition to a state of `playing`.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to play.
-
-**Returns** *true* if the named Pipeline is able to succesfully transition to a state of `playing`
-
-<br>
-
-### *dsl_pipeline_pause*
-```C++
-bool dsl_pipeline_pause(wchar_t* pipeline);
-```
-This service is used to pause a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to pause.
-
-**Returns** *true* if the named Pipeline is able to succesfully transition to a state of `paused`, *false* otherwise.
-
-<br>
-
-### *dsl_pipeline_stop*
-```C++
-bool dsl_pipeline_stop(wchar_t* pipeline);
-```
-This service is used to stop a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `stoped`.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to stop.
-
-**Returns** *true* if the named Pipeline is able to succesfully transition to a state of `stopped`, *false* otherwise.
-
-<br>
-
-### *dsl_pipeline_state_get*
-```C++
-unit dsl_pipeline_state_get(wchar_t* pipeline);
-```
-This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-
-**Returns** the current [state]() of the named Pipeline if found. One of the [Return Values](#return-values) defined above on failure.
-
-<br>
-
-### *dsl_pipeline_state_change_listener_add*
-```C++
-DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
-    state_change_listener_cb listener, void* user_data);
-```
-This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline `change-of-state` with 
-current and previous state information and the client provided `user_data`. Multiple calback functions can be 
-registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the listner is called back
-
-**Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
-
-<br>
-
-### *dsl_pipeline_state_change_listener_remove*
-```C++
-DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
-    state_change_listener_cb listener);
-```
-This service removes a callback function of type [state_change_listener_cb](#state_change_listener_cb) from a
-pipeline identified by it's unique name.
 
 <br>
 
@@ -547,6 +496,141 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipel
 
 <br>
 
+### *dsl_pipeline_play*
+```C++
+bool dsl_pipeline_play(wchar_t* pipeline);
+```
+This service is used to play a named Pipeline. The service will fail if the Pipeline's list of components are insufficient for the Pipeline to play. The service will also fail if one of the Pipeline's components fails to transition to a state of `playing`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to play.
+
+**Returns** 
+`true` if the named Pipeline is able to succesfully transition to a state of `playing`
+
+<br>
+
+### *dsl_pipeline_pause*
+```C++
+bool dsl_pipeline_pause(wchar_t* pipeline);
+```
+This service is used to pause a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to pause.
+
+**Returns** `
+true` if the named Pipeline is able to succesfully transition to a state of `paused`, `false` otherwise.
+
+<br>
+
+### *dsl_pipeline_stop*
+```C++
+bool dsl_pipeline_stop(wchar_t* pipeline);
+```
+This service is used to stop a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `stoped`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to stop.
+
+**Returns**
+`true` if the named Pipeline is able to succesfully transition to a state of `stopped`, `false` otherwise.
+
+<br>
+
+### *dsl_pipeline_state_get*
+```C++
+unit dsl_pipeline_state_get(wchar_t* pipeline);
+```
+This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+
+**Returns** the current [state]() of the named Pipeline if found. One of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_state_change_listener_add*
+```C++
+DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
+    state_change_listener_cb listener, void* user_data);
+```
+This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
+pipeline identified by it's unique name. The function will be called on every Pipeline `change-of-state` with 
+current and previous state information and the client provided `user_data`. Multiple calback functions can be 
+registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `listener` - [in] state change listener callback function to add.
+* `user_data` - [in] opaque pointer to user data returned to the listner is called back
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_state_change_listener_remove*
+```C++
+DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
+    state_change_listener_cb listener);
+```
+This service removes a callback function of type [state_change_listener_cb](#state_change_listener_cb) from a
+pipeline identified by it's unique name.
+
+<br>
+
+### *dsl_pipeline_eos_listener_add*
+```C++
+DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
+    eos_listener_cb listener, void* user_data);
+```
+This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) to a pipeline identified by it's unique name. The function will be called on a Pipeline `EOS` event. Multiple calback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `listener` - [in] state change listener callback function to add.
+* `user_data` - [in] opaque pointer to user data returned to the listner is called back
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_eos_listener_remove*
+```C++
+DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
+    dsl_eos_listener_cb listener);
+```
+This service removes a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) from a
+pipeline identified by it's unique name.
+
+<br>
+
+### *dsl_pipeline_qos_listener_add*
+```C++
+DslReturnType dsl_pipeline_qos_listener_add(const wchar_t* pipeline, 
+    dsl_qos_listener_cb listener, void* user_data);
+```
+This service adds a callback function of type [dsl_qos_listener_cb](#dsl_qos_listener_cb) to a pipeline identified by it's unique name. The function will be called on every Pipeline `QOS` event. Multiple calback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `listener` - [in] state change listener callback function to add.
+* `user_data` - [in] opaque pointer to user data returned to the listner is called back
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_qos_listener_remove*
+```C++
+DslReturnType dsl_pipeline_qos_listener_remove(const wchar_t* pipeline, 
+    qos_listener_cb listener);
+```
+This service removes a callback function of type [dsl_qos_listener_cb](#dsl_qos_listener_cb) from a pipeline identified by it's unique name.
+
+<br>
+
 ### *dsl_pipeline_dump_to_dot*
 ```C++
 DslReturnType dsl_pipeline_dump_to_dot(const char* pipeline, char* filename);
@@ -560,8 +644,8 @@ the environment variable. The caller of this service is responsible for providin
 correctly formatted and filename. 
 
 **Parameters**
-* `pipeline` - unique name of the Pipeline to dump
-* `filename` - name of the file without extension.
+* `pipeline` - [in] unique name of the Pipeline to dump
+* `filename` - [in] name of the file without extension.
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
 
@@ -575,4 +659,9 @@ This method dumps a Pipeline's graph to dot file prefixed with the current times
 Except for the prefix, this method performs the identical service as 
 [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot).
 
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to dump
+* `filename` - [in] name of the file without extension.
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
 <br>
