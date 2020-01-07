@@ -1,20 +1,26 @@
 # Pipeline API Refernce
-Pipelines are the top level component in DSL. They manage and synchronize Child components when called to `play`, `pause`, and `stop`.
+Pipelines are the top level component in DSL. They manage and synchronize their Child components when transitioning to states of `ready`, `pauseed`, `playing`, and `stopped`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources and Sinks in-use by one or more Pipelines at any one time; counts constrained by the Jetson Hardware in use.
 
-Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). The current number of Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size).
-
-Child Components - Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of Child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
+#### Pipeline Construction and Destruction
+ Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). The current number of Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size).
 
 Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will return all Child components to a state of `not_in_use`. It's left to calling application to delete all Child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
 
-Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), paused by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and [dsl_pipeline_stop](#dsl_pipeline_stop).
+#### Adding and Removing Components
+Child Components - Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of Child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
 
 Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
+#### Playing, Pauing and Stoping a Pipeline
 
-Clients can be notified of Pipeline State-Changes by registering one or more callback functions with [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Notifications are stopped by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove). Additional lister `add` and `remove` services are available for 
-* `End of Stream (EOS)` events - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) and [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
-* `Quality of Service (QOS)` events - with [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add) and [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove).
+Pipelines - with a minimum required set of components - can be played by calling [dsl_pipeline_play](#dsl_pipeline_play), paused by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and Stoped by calling[dsl_pipeline_stop](#dsl_pipeline_stop).
 
+#### Pipeline Client-Listener Notifications
+Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
+* Change of State `(COS)` events -[dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add) / [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove). 
+* End of Stream `(EOS)` events - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
+* Quality of Service `(QOS)` events - with [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add) / [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove).
+
+#### Pipeline XWindow Support
 Pipelines - that have at least one Window-Sink - will create an XWindow by default, unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set). 
 
 In the case that "the Pipeline creates the XWindow", Clients can be notified of XWindow `KeyRelease` events by registering one or more callback functions with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Notifications are stopped by calling [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove). Notifications of XWindow `ButtonPress` events can be enabled and stopped by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add) and [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove) respectively.
