@@ -106,9 +106,6 @@ if the name is currently in use.
 **Python Example**
 ```Python
 retval = dsl_pipeline_new('my-pipeline')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -128,9 +125,6 @@ The constructor creates multiple uniquely named Pipelines at once. All names are
 **Python Example**
 ```Python
 retval = dsl_pipeline_new_many(['my-pipeline-a', 'my-pipeline-b', 'my-pipeline-c', None])
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -153,9 +147,6 @@ All components owned by the pipeline move to a state of `not-in-use`.
 **Python Example**
 ```Python
 retval = dsl_pipeline_delete('my-pipeline')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -176,9 +167,6 @@ All components owned by the Pipelines move to a state of `not-in-use`
 **Python Example**
 ```Python
 retval = dsl_pipeline_delete_many(['my-pipeline-a', 'my-pipeline-b', 'my-pipeline-c', None])
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -286,14 +274,9 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 **Python Example**
 ```Python
 retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval = dsl_pipeline_new('my-pipeline')
 
 retval = dsl_pipeline_component_add('my-pipeline', 'my-camera-source')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -316,19 +299,10 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 **Python Example**
 ```Python
 retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
-
 retval = dsl_display_new('my-tiled-display', 1280, 720)
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval = dsl_pipeline_new('my-pipeline')
 
 retval = dsl_pipeline_component_add_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -364,9 +338,6 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 **Python Example**
 ```Python
 retval = dsl_pipeline_component_remove('my-pipeline', 'my-camera-source')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 <br>
 
@@ -388,9 +359,6 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 **Python Example**
 ```Python
 retval = dsl_pipeline_component_remove_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 
 <br>
@@ -441,10 +409,9 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipelin
 
 **Python Example**
 ```Python
-retval, batch_size, batch_timeout = dsl_pipeline_streammux_batch_properties_get('my-pipeline')
+retval = dsl_pipeline_new('my-pipeline')
 
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval, batch_size, batch_timeout = dsl_pipeline_streammux_batch_properties_get('my-pipeline')
 ```
 <br>
 
@@ -465,10 +432,9 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
 
 **Python Example**
 ```Python
-retval, width, height = dsl_pipeline_streammux_dimensions_get('my-pipeline')
+retval = dsl_pipeline_new('my-pipeline')
 
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval, width, height = dsl_pipeline_streammux_dimensions_get('my-pipeline')
 ```
 <br>
 
@@ -488,10 +454,9 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
+retval = dsl_pipeline_new('my-pipeline')
 
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
 ```
 <br>
 
@@ -510,9 +475,6 @@ DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, Window* h
 **Python Example**
 ```Python
 retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 <br>
 
@@ -528,15 +490,9 @@ DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window ha
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
 **Python Example**
 ```Python
 retval = dsl_pipeline_xwindow_handle_set('my-pipeline', x_window)
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
 ```
 <br>
 
@@ -554,12 +510,9 @@ DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline,
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
-
+**Python Example**
 ```Python
-retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
-
-if retval != DSL_RESULT_SUCCESS:
-    # handle error
+retval, width, height = dsl_pipeline_xwindow_dimensions_get('my-pipeline')
 ```
 
 <br>
@@ -577,6 +530,11 @@ DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline,
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_dimensions_set('my-pipeline', 1280, 720)
+```
 
 <br>
 
@@ -597,6 +555,14 @@ pipeline identified by it's unique name. The function will be called on every Pi
 **Returns** 
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+def key_event_handler(key_string, user_data):
+    print('key pressed = ', key_string)
+    
+retval = dsl_pipeline_xwindow_key_event_handler_add('my-pipeline', key_event_handler, None)
+```
+
 <br>
 
 ### *dsl_pipeline_xwindow_key_event_handler_remove*
@@ -611,6 +577,11 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const char* pipeline
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_key_event_handler_remove('my-pipeline', key_event_handler)
+```
 
 <br>
 
@@ -631,6 +602,16 @@ pipeline identified by it's unique name. The function will be called on every Pi
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+def button_event_handler(button, xpos, ypos, user_data):
+    print('button = ', button)
+    print('xpos = ', xpos)
+    print('ypos = ', ypos)
+    
+retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', button_event_handler, None)
+```
+
 <br>
 
 ### *dsl_pipeline_xwindow_button_event_handler_remove*
@@ -645,6 +626,11 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipel
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_event_handler)
+```
 
 <br>
 
@@ -722,12 +708,14 @@ registered with one Pipeline, and one callback function can be registered with m
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to remove.
-
-**Returns**  
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+**Python Example**
+```Python
+def state_change_listener(old_state, new_state, user_data):
+    print('old_state = ', old_state)
+    print('new_state = ', new_state)
+    
+retval = dsl_pipeline_state_change_listener_add('my-pipeline', state_change_listener, None)
+```
 
 <br>
 
@@ -746,6 +734,11 @@ pipeline identified by it's unique name.
 **Returns**  
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_listener, None)
+```
+
 <br>
 
 ### *dsl_pipeline_eos_listener_add*
@@ -761,6 +754,14 @@ This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_lis
 * `user_data` - [in] opaque pointer to user data returned to the listner is called back
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def eos_listener(user_data):
+    print('EOS event received')
+    
+retval = dsl_pipeline_eos_listener_add('my-pipeline', eos_listener, None)
+```
 
 <br>
 
@@ -779,6 +780,11 @@ pipeline identified by it's unique name.
 **Returns**  
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+retval = dsl_pipeline_eos_listener_remove('my-pipeline', eos_listener)
+```
+
 <br>
 
 ### *dsl_pipeline_qos_listener_add*
@@ -795,6 +801,14 @@ This service adds a callback function of type [dsl_qos_listener_cb](#dsl_qos_lis
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
+**Python Example**
+```Python
+def qos_listener(user_data):
+    print('QOS event received')
+    
+retval = dsl_pipeline_qos_listener_add('my-pipeline', qos_listener, None)
+```
+
 <br>
 
 ### *dsl_pipeline_qos_listener_remove*
@@ -810,6 +824,11 @@ This service removes a callback function of type [dsl_qos_listener_cb](#dsl_qos_
 
 **Returns**  
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_qos_listener_remove('my-pipeline', qos_listener)
+```
 
 <br>
 
