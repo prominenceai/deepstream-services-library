@@ -81,6 +81,37 @@ def osd_batch_meta_handler_cb(buffer, user_data):
             break
     return True
 
+####################################################
+#   This callback handles EOS messages
+####################################################
+
+def eos_listener(client_data):
+    global eos_count
+    if eos_count == 0:
+        print("EOS Callback primed")
+        eos_count = 1
+    else :
+        print("EOS shutdown received")
+        eos_count = 0
+        dsl_main_loop_quit()
+
+####################################################
+# Function to be called on XWindow ButtonPress event
+####################################################
+def xwindow_button_event_handler(xpos, ypos, client_data):
+    print('button pressed: xpos = ', xpos, ', ypos = ', ypos)
+
+# Function to be called on XWindow KeyRelease event
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline1')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline1')
+    elif key_string.upper() == 'Q':
+        dsl_main_loop_quit()
+
+
 #####################################################
 #
 #   Function: test1()
@@ -115,6 +146,7 @@ def test1():
     retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
+
     # New Secondary GIE set to Infer on the Primary GIE defined above
     retval = dsl_gie_secondary_new('sgie', sgie_config_file, sgie_model_file, 'primary-gie')
     if retval != DSL_RETURN_SUCCESS:
@@ -159,6 +191,14 @@ def test1():
         print(retVal)
 
     #########################################
+    #   Create sink window
+    #########################################
+
+    retVal = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+    if retVal != DSL_RETURN_SUCCESS:
+        print(retVal) 
+
+    #########################################
     #   Create pipeline1
     #########################################
 
@@ -172,10 +212,11 @@ def test1():
     #########################################
     
     retVal = dsl_pipeline_component_add_many('pipeline1', ['video1', 'display1', 'on-screen-display', 
-        'primary-gie','sgie', 'sgie2', 'sgie3', 'ktl-tracker', 'sink1', None])
+        'primary-gie','sgie', 'sgie2', 'sgie3', 'ktl-tracker', 'window-sink', None])
     
     if retVal != DSL_RETURN_SUCCESS:
         print(retVal)
+
 
     #########################################
     # Play video
@@ -187,6 +228,28 @@ def test1():
 
 
     dsl_pipeline_dump_to_dot('pipeline1',"state-playing")    
+
+    #########################################
+    #   Add an EOS listener
+    #########################################
+
+    retVal = dsl_pipeline_eos_listener_add('pipeline1', eos_listener, None)
+
+    if retVal != DSL_RETURN_SUCCESS:
+        print(retVal)
+
+    #########################################
+    # Add the XWindow event handler functions defined above
+    #########################################
+    
+    retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline1", xwindow_key_event_handler, None)
+    if retval != DSL_RETURN_SUCCESS:
+       print(retVal)
+
+    retval = dsl_pipeline_xwindow_button_event_handler_add("pipeline1", xwindow_button_event_handler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        print(retVal)
+
 
     #########################################
     # Run main loop
@@ -219,7 +282,7 @@ def main():
         print("#################################################################")
         print("#")
         print("#    Error: Missing source file name.")
-        print("#    Calling sequence: python3 ds_bike_test.py <Video source file>")
+        print("#    Calling sequence: python3 ds_3sgie_test.py <Video source file>")
         print("#")
         print("##################################################################")
     else:
@@ -228,4 +291,5 @@ def main():
             test1()
 
 if __name__ == '__main__':
+    eos_count = 0
     main()
