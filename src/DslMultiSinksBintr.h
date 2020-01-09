@@ -34,31 +34,31 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_PIPELINE_SINKS_PTR std::shared_ptr<PipelineSinksBintr>
-    #define DSL_PIPELINE_SINKS_NEW(name) \
-        std::shared_ptr<PipelineSinksBintr>(new PipelineSinksBintr(name))
+    #define DSL_MULTI_SINKS_PTR std::shared_ptr<MultiSinksBintr>
+    #define DSL_MULTI_SINKS_NEW(name) \
+        std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
     /**
      * @class ProcessBintr
      * @brief 
      */
-    class PipelineSinksBintr : public Bintr
+    class MultiSinksBintr : public Bintr
     {
     public: 
     
-        PipelineSinksBintr(const char* name);
+        MultiSinksBintr(const char* name);
 
-        ~PipelineSinksBintr();
+        ~MultiSinksBintr();
         
         /**
-         * @brief adds a child SinkBintr to this PipelineSinksBintr
+         * @brief adds a child SinkBintr to this MultiSinksBintr
          * @param pChildSink shared pointer to SinkBintr to add
          * @return true if the SinkBintr was added correctly, false otherwise
          */
         bool AddChild(DSL_SINK_PTR pChildSink);
         
         /**
-         * @brief removes a child SinkBintr from this PipelineSinksBintr
+         * @brief removes a child SinkBintr from this MultiSinksBintr
          * @param pChildSink a shared pointer to SinkBintr to remove
          * @return true if the SinkBintr was removed correctly, false otherwise
          */
@@ -73,7 +73,7 @@ namespace DSL
          * @brief overrides the base Noder method to only return the number of 
          * child SinkBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child SinkBintrs held by this PipelineSinksBintr
+         * @return the number of Child SinkBintrs held by this MultiSinksBintr
          */
         uint GetNumChildren()
         {
@@ -111,7 +111,7 @@ namespace DSL
         bool AddChild(DSL_NODETR_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this PipelineSinksBintr
+         * @brief removes a child Elementr from this MultiSinksBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_NODETR_PTR pChildElement);

@@ -24,12 +24,12 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSinkBintr.h"
-#include "DslPipelineSinksBintr.h"
+#include "DslMultiSinksBintr.h"
 
 namespace DSL
 {
 
-    PipelineSinksBintr::PipelineSinksBintr(const char* name)
+    MultiSinksBintr::MultiSinksBintr(const char* name)
         : Bintr(name)
     {
         LOG_FUNC();
@@ -41,11 +41,11 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
-        // Float the Queue sink pad as a Ghost Pad for this PipelineSinksBintr
+        // Float the Queue sink pad as a Ghost Pad for this MultiSinksBintr
         m_pQueue->AddGhostPadToParent("sink");
     }
     
-    PipelineSinksBintr::~PipelineSinksBintr()
+    MultiSinksBintr::~MultiSinksBintr()
     {
         LOG_FUNC();
 
@@ -55,14 +55,14 @@ namespace DSL
         }
     }
      
-    bool PipelineSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool MultiSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
 
-    bool PipelineSinksBintr::AddChild(DSL_SINK_PTR pChildSink)
+    bool MultiSinksBintr::AddChild(DSL_SINK_PTR pChildSink)
     {
         LOG_FUNC();
         
@@ -80,14 +80,14 @@ namespace DSL
         return Bintr::AddChild(pChildSink);
     }
     
-    bool PipelineSinksBintr::IsChild(DSL_SINK_PTR pChildSink)
+    bool MultiSinksBintr::IsChild(DSL_SINK_PTR pChildSink)
     {
         LOG_FUNC();
         
         return (bool)m_pChildSinks[pChildSink->GetName()];
     }
 
-    bool PipelineSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool MultiSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -95,7 +95,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool PipelineSinksBintr::RemoveChild(DSL_SINK_PTR pChildSink)
+    bool MultiSinksBintr::RemoveChild(DSL_SINK_PTR pChildSink)
     {
         LOG_FUNC();
 
@@ -118,13 +118,13 @@ namespace DSL
     }
 
 
-    bool PipelineSinksBintr::LinkAll()
+    bool MultiSinksBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("PipelineSinksBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("MultiSinksBintr '" << GetName() << "' is already linked");
             return false;
         }
         m_pQueue->LinkToSink(m_pTee);
@@ -137,7 +137,7 @@ namespace DSL
             imap.second->SetSinkId(id++);
             if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
             {
-                LOG_ERROR("PipelineSinksBintr '" << GetName() 
+                LOG_ERROR("MultiSinksBintr '" << GetName() 
                     << "' failed to Link Child Sink '" << imap.second->GetName() << "'");
                 return false;
             }
@@ -146,13 +146,13 @@ namespace DSL
         return true;
     }
 
-    void PipelineSinksBintr::UnlinkAll()
+    void MultiSinksBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("PipelineSinksBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("MultiSinksBintr '" << GetName() << "' is not linked");
             return;
         }
         for (auto const& imap: m_pChildSinks)
@@ -161,7 +161,7 @@ namespace DSL
             LOG_INFO("Unlinking " << m_pTee->GetName() << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSource())
             {
-                LOG_ERROR("PipelineSinksBintr '" << GetName() 
+                LOG_ERROR("MultiSinksBintr '" << GetName() 
                     << "' failed to Unlink Child Sink '" << imap.second->GetName() << "'");
                 return;
             }

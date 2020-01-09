@@ -211,7 +211,7 @@ namespace DSL
         // Create the shared Sinks bintr if it doesn't exist
         if (!m_pPipelineSinksBintr)
         {
-            m_pPipelineSinksBintr = DSL_PIPELINE_SINKS_NEW("sinks-bin");
+            m_pPipelineSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
             AddChild(m_pPipelineSinksBintr);
         }
         return m_pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));

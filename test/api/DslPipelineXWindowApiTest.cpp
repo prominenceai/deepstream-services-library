@@ -23,8 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslPipelineSinksBintr.h"
-#include "DslSinkBintr.h"
+#include "DslPipelineBintr.h"
 
 using namespace DSL;
 

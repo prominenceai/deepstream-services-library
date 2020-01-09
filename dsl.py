@@ -524,7 +524,7 @@ def dsl_pipeline_streammux_padding_get(name):
     global _dsl
     enabled = c_bool(0)
     result = _dsl.dsl_pipeline_streammux_padding_get(name, DSL_BOOL_P(enabled))
-    return int(result), b_enabled.value
+    return int(result), enabled.value
 
 #print(dsl_pipeline_new("pipeline-1"))
 #print(dsl_pipeline_streammux_padding_get("pipeline-1"))

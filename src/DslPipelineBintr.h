@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include "DslDisplayBintr.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslPipelineSGiesBintr.h"
-#include "DslPipelineSinksBintr.h"
+#include "DslMultiSinksBintr.h"
 #include "DslSinkBintr.h"
     
 namespace DSL 
@@ -381,7 +381,7 @@ namespace DSL
         /**
          * @brief parent bin for all Sink bins in this Pipeline
          */
-        DSL_PIPELINE_SINKS_PTR m_pPipelineSinksBintr;
+        DSL_MULTI_SINKS_PTR m_pPipelineSinksBintr;
         
         /**
          * @brief width setting to use on XWindow creation in pixels
