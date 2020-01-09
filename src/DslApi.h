@@ -216,7 +216,7 @@ typedef void (*dsl_eos_listener_cb)(void* user_data);
 
 /**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives XWindow KeyRelease events for the Tiled Display.
+ * the function will be called when the Pipeline receives XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] user_data opaque pointer to client's user data
  */
@@ -224,11 +224,19 @@ typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives XWindow ButtonPress events for the Tiled Display.
- * @param[in] key UNICODE key string for the key pressed
+ * the function will be called when the Pipeline receives XWindow ButtonPress events.
+ * @param[in] xpos from the top left corner of the window
+ * @param[in] ypos from the top left corner of the window
  * @param[in] user_data opaque pointer to client's user data
  */
 typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* user_data);
+
+/**
+ * @brief callback typedef for a client XWindow Delete Message event handler function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline receives XWindow Delete Message event.
+ * @param[in] user_data opaque pointer to client's user data
+ */
+typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -882,6 +890,25 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipel
  */
 DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pipeline, 
     dsl_xwindow_button_event_handler_cb handler);
+
+/**
+ * @brief adds a callback to be notified on XWindow Delete Message Event
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
+ * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_delete_event_handler_cb handler, void* user_data);
+
+/**
+ * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
+    dsl_xwindow_delete_event_handler_cb handler);
 
 /**
  * @brief entry point to the GST Main Loop

@@ -79,6 +79,60 @@ SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
     }
 }
 
+SCENARIO( "A EOS-listener must be unique", "[pipeline-cb-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+    dsl_eos_listener_cb listener;
+
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A EOS-listner is added" )
+        {
+            REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
+                listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same listner can't be added again" ) 
+            {
+                REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
+                    listener, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A EOS-listener can be removed", "[pipeline-cb-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+    dsl_eos_listener_cb listener;
+
+    GIVEN( "A Pipeline with one EOS-listener" )
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
+            listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A EOS-listner is removed" )
+        {
+            REQUIRE( dsl_pipeline_eos_listener_remove(pipelineName.c_str(),
+                listener) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same handler can't be removed again" ) 
+            {
+                REQUIRE( dsl_pipeline_eos_listener_remove(pipelineName.c_str(),
+                    listener) == DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A XWindow Key Event Handler must be unique", "[pipeline-cb-api]" )
 {
     std::wstring pipelineName = L"test-pipeline";
@@ -180,6 +234,61 @@ SCENARIO( "A XWindow Button Event Handler can be removed", "[pipeline-cb-api]" )
             THEN( "The same handler can't be removed again" ) 
             {
                 REQUIRE( dsl_pipeline_xwindow_button_event_handler_remove(pipelineName.c_str(),
+                    handler) == DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A XWindow Delete Event Handler must be unique", "[pipeline-cb-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+    dsl_xwindow_delete_event_handler_cb handler;
+
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "A XWindow Delete Event Handler is added" )
+        {
+            REQUIRE( dsl_pipeline_xwindow_delete_event_handler_add(pipelineName.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same handler can't be added again" ) 
+            {
+                REQUIRE( dsl_pipeline_xwindow_delete_event_handler_add(pipelineName.c_str(),
+                    handler, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+   
+SCENARIO( "A XWindow Delete Event Handler can be removed", "[pipeline-cb-api]" )
+{
+
+    std::wstring pipelineName = L"test-pipeline";
+    dsl_xwindow_delete_event_handler_cb handler;
+
+    GIVEN( "A Pipeline with one event handler" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_xwindow_delete_event_handler_add(pipelineName.c_str(),
+            handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+            
+        WHEN( "A XWindow Delete Event Handler is removed" )
+        {
+            REQUIRE( dsl_pipeline_xwindow_delete_event_handler_remove(pipelineName.c_str(),
+                handler) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same handler can't be removed again" ) 
+            {
+                REQUIRE( dsl_pipeline_xwindow_delete_event_handler_remove(pipelineName.c_str(),
                     handler) == DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

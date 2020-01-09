@@ -26,43 +26,62 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q':
         dsl_main_loop_quit()
 
+# Function to be called on XWindow Delete event
+def xwindow_delete_event_handler(client_data):
+    print('delete window event')
+    dsl_main_loop_quit()
+
 # Function to be called on every change of Pipeline state
 def state_change_listener(prev_state, new_state, client_data):
     print('previous state = ', prev_state, ', new state = ', new_state)
 
 while True:
 
-    # First new URI File Source
+    ## 
+    ## First new URI File Source
+    ## 
     retval = dsl_source_uri_new('uri-source', source_uri, False, 0, 0, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
         
-    # New Primary GIE using the filespecs above with interval = 0
+    ## 
+    ## New Primary GIE using the filespecs above with interval = 0
+    ## 
     retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New KTL Tracker, setting max width and height of input frame
+    ## 
+    ## New KTL Tracker, setting max width and height of input frame
+    ## 
     retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New Tiled Display, setting width and height, use default cols/rows set by source count
+    ## 
+    ## New Tiled Display, setting width and height, use default cols/rows set by source count
+    ## 
     retval = dsl_display_new('tiled-display', 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New OSD with clock enabled... using default values.
+    ## 
+    ## New OSD with clock enabled... using default values.
+    ## 
     retval = dsl_osd_new('on-screen-display', False)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+    ## 
+    ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+    ## 
     retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New Pipeline to use with the above components
+    ## 
+    ## New Pipeline to use with the above components
+    ## 
     retval = dsl_pipeline_new('pipeline-1')
     if retval != DSL_RETURN_SUCCESS:
         break
@@ -72,19 +91,29 @@ while True:
         ['uri-source', 'primary-gie', 'ktl-tracker', 'tiled-display', 'on-screen-display', 'window-sink', None])
     if retval != DSL_RETURN_SUCCESS:
         break
-    
-   # Add the XWindow event handler functions defined above
+    ## 
+    ## Add the XWindow event handler functions defined above
+    ##
     retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline-1", xwindow_key_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
+
     retval = dsl_pipeline_xwindow_button_event_handler_add("pipeline-1", xwindow_button_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # Add the listener callback function defined above
+    retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline-1", xwindow_delete_event_handler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    ## 
+    ## Add the listener callback function defined above
+    ## 
     retval = dsl_pipeline_state_change_listener_add('pipeline-1', state_change_listener, None)
 
+    ## 
     # Play the pipeline
+    ## 
     retval = dsl_pipeline_play('pipeline-1')
     if retval != DSL_RETURN_SUCCESS:
         break

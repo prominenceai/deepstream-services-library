@@ -675,6 +675,33 @@ namespace DSL
         return true;
     }
     
+    bool PipelineBintr::AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowDeleteEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return false;
+        }
+        m_xWindowDeleteEventHandlers[handler] = userdata;
+        
+        return true;
+    }
+
+    bool PipelineBintr::RemoveXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (!m_xWindowDeleteEventHandlers[handler])
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return false;
+        }
+        m_xWindowDeleteEventHandlers.erase(handler);
+        
+        return true;
+    }
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
@@ -818,7 +845,12 @@ namespace DSL
                         {
                             LOG_INFO("WM_DELETE_WINDOW message received");
                             Stop();
-                            g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
+                            // iterate through the map of XWindow Delete Event handlers calling each
+                            for(auto const& imap: m_xWindowDeleteEventHandlers)
+                            {
+                                imap.first(imap.second);
+                            }
+//                            g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
                         }
                         break;
                         
