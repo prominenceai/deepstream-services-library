@@ -11,6 +11,12 @@ DSL_RTP_TCP = 4
 DSL_RTP_ALL = 7
 
 ##
+## Pointer Typedefs
+##
+DSL_UINT_P = POINTER(c_uint)
+DSL_BOOL_P = POINTER(c_bool)
+
+##
 ## Callback Typedefs
 ##
 DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
@@ -178,12 +184,10 @@ _dsl.dsl_tracker_max_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POIN
 _dsl.dsl_tracker_max_dimensions_get.restype = c_uint
 def dsl_tracker_max_dimensions_get(name):
     global _dsl
-    p_max_width = POINTER(c_uint)
-    p_max_height = POINTER(c_uint)
-    u_max_width = c_uint(0)
-    u_max_height = c_uint(0)
-    result = _dsl.dsl_tracker_max_dimensions_get(name, p_max_width(u_max_width), p_max_height(u_max_height))
-    return int(result), u_max_width.value, u_max_height.value 
+    max_width = c_uint(0)
+    max_height = c_uint(0)
+    result = _dsl.dsl_tracker_max_dimensions_get(name, DSL_UINT_P(max_width), DSL_UINT_P(max_height))
+    return int(result), max_width.value, max_height.value 
 
 #print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
 #print(dsl_tracker_max_dimensions_get("ktl-tracker",))
@@ -470,6 +474,95 @@ def dsl_pipeline_component_add_many(pipeline, components):
 #print(dsl_display_new("tiled-display-2", 1280, 720))
 #print(dsl_pipeline_new("pipeline-2"))
 #print(dsl_pipeline_component_add_many("pipeline-2", ["tiled-display-2", None]))
+
+##
+## dsl_pipeline_streammux_batch_properties_get()
+##
+_dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_batch_properties_get.restype = c_uint
+def dsl_pipeline_streammux_batch_properties_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    batch_timeout = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), DSL_UINT_P(batch_timeout))
+    return int(result), batch_size.value, batch_timeout.value 
+
+#print(dsl_pipeline_new("pipeline-1"))
+#print(dsl_pipeline_streammux_batch_properties_get("pipeline-1"))
+
+##
+## dsl_pipeline_streammux_dimensions_get()
+##
+_dsl.dsl_pipeline_streammux_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_dimensions_get.restype = c_uint
+def dsl_pipeline_streammux_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+#print(dsl_pipeline_new("pipeline-1"))
+#print(dsl_pipeline_streammux_dimensions_get("pipeline-1"))
+
+##
+## dsl_pipeline_streammux_dimensions_set()
+##
+_dsl.dsl_pipeline_streammux_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_pipeline_streammux_dimensions_set.restype = c_uint
+def dsl_pipeline_streammux_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_padding_get()
+##
+_dsl.dsl_pipeline_streammux_padding_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_pipeline_streammux_padding_get.restype = c_uint
+def dsl_pipeline_streammux_padding_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_streammux_padding_get(name, DSL_BOOL_P(enabled))
+    return int(result), b_enabled.value
+
+#print(dsl_pipeline_new("pipeline-1"))
+#print(dsl_pipeline_streammux_padding_get("pipeline-1"))
+
+##
+## dsl_pipeline_streammux_padding_set()
+##
+_dsl.dsl_pipeline_streammux_padding_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
+def dsl_pipeline_streammux_padding_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_dimensions_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_xwindow_dimensions_get()
+##
+_dsl.dsl_pipeline_xwindow_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_xwindow_dimensions_get.restype = c_uint
+def dsl_pipeline_xwindow_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_pipeline_xwindow_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+print(dsl_pipeline_new("pipeline-1"))
+print(dsl_pipeline_xwindow_dimensions_get("pipeline-1"))
+
+##
+## dsl_pipeline_xwindow_dimensions_set()
+##
+_dsl.dsl_pipeline_xwindow_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_pipeline_xwindow_dimensions_set.restype = c_uint
+def dsl_pipeline_xwindow_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_dimensions_set(name, width, height)
+    return int(result)
 
 ##
 ## dsl_pipeline_pause()
