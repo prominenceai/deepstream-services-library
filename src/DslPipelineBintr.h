@@ -282,6 +282,21 @@ namespace DSL
         bool RemoveXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler);
             
         /**
+         * @brief adds a callback to be notified on XWindow Delete message event
+         * @param[in] handler pointer to the client's function to call on XWindow Delete event
+         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool RemoveXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler);
+            
+        /**
          * @brief handles incoming Message Packets received
          * by the bus watcher callback function
          * @return true if the message was handled correctly 
@@ -401,6 +416,12 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_xwindow_button_event_handler_cb, void*>m_xWindowButtonEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-delete-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_xwindow_delete_event_handler_cb, void*>m_xWindowDeleteEventHandlers;
 
         /**
          * @brief mutex to prevent callback reentry

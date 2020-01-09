@@ -199,6 +199,12 @@ namespace DSL {
         DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_button_event_handler_cb handler);
         
+        DslReturnType PipelineXWindowDeleteEventHandlerAdd(const char* pipeline, 
+            dsl_xwindow_delete_event_handler_cb handler, void* userdata);
+
+        DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
+            dsl_xwindow_delete_event_handler_cb handler);
+        
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();

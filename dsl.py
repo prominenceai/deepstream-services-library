@@ -18,6 +18,7 @@ DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 
 callbacks = []
 ##
@@ -649,6 +650,38 @@ def dsl_pipeline_xwindow_button_event_handler_remove(name, handler):
 #print(dsl_pipeline_new("pipeline-1"))
 #print(dsl_pipeline_xwindow_button_event_handler_add("pipeline-1", handler, None))
 #print(dsl_pipeline_xwindow_button_event_handler_remove("pipeline-1", handler))
+
+##
+## dsl_pipeline_xwindow_delete_event_handler_add()
+##
+_dsl.dsl_pipeline_xwindow_delete_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_DELETE_EVENT_HANDLER, c_void_p]
+_dsl.dsl_pipeline_xwindow_delete_event_handler_add.restype = c_uint
+def dsl_pipeline_xwindow_delete_event_handler_add(name, handler, user_data):
+    global _dsl
+    print(handler)
+    client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(handler)
+    print(client_handler)
+    callbacks.append(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_add(name, client_handler, user_data)
+    return int(result)
+
+##
+## dsl_pipeline_xwindow_delete_event_handler_remove()
+##
+_dsl.dsl_pipeline_xwindow_delete_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER]
+_dsl.dsl_pipeline_xwindow_delete_event_handler_remove.restype = c_uint
+def dsl_pipeline_xwindow_delete_event_handler_remove(name, handler):
+    global _dsl
+    client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(handler)
+    print(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler)
+    return int(result)
+#def handler(prev_state, new_state, user_data):
+#    print(prev_state)
+#    print(new_state)
+#print(dsl_pipeline_new("pipeline-1"))
+#print(dsl_pipeline_xwindow_delete_event_handler_add("pipeline-1", handler, None))
+#print(dsl_pipeline_xwindow_delete_event_handler_remove("pipeline-1", handler))
 
 ##
 ## dsl_main_loop_run()

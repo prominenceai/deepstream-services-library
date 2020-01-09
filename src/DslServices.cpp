@@ -682,6 +682,26 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
         PipelineXWindowButtonEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_delete_event_handler_cb handler, void* user_data)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineXWindowDeleteEventHandlerAdd(cstrPipeline.c_str(), handler, user_data);
+}    
+
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
+    dsl_xwindow_delete_event_handler_cb handler)    
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
+}
+
 #define RETURN_IF_PIPELINE_NAME_NOT_FOUND(_pipelines_, _name_) do \
 { \
     if (!_pipelines_[_name_]) \
@@ -2355,6 +2375,56 @@ namespace DSL
         {
             LOG_ERROR("Pipeline '" << pipeline 
                 << "' threw an exception removing XWindow Button Event Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineXWindowDeleteEventHandlerAdd(const char* pipeline, 
+        dsl_xwindow_delete_event_handler_cb handler, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        try
+        {
+            if (!m_pipelines[pipeline]->AddXWindowDeleteEventHandler(handler, userdata))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to add XWindow Delete Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception adding XWindow Delete Event Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
+        dsl_xwindow_delete_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        
+        try
+        {
+            if (!m_pipelines[pipeline]->RemoveXWindowDeleteEventHandler(handler))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to remove XWindow Delete Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing XWindow Delete Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
