@@ -59,7 +59,11 @@ namespace DSL {
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
-            
+        
+        DslReturnType SourceSinkAdd(const char* source, const char* sink);
+    
+        DslReturnType SourceSinkRemove(const char* source, const char* sink);
+    
         DslReturnType SourcePause(const char* name);
 
         DslReturnType SourceResume(const char* name);

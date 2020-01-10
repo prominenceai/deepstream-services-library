@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
+#include "DslMultiSinksBintr.h"
 
 namespace DSL
 {
@@ -118,6 +119,26 @@ namespace DSL
          * @brief Unlinks this Streaming Source from a previously linked to Stream Muxer
          */
         bool UnlinkFromSink();
+        
+        /**
+         * @brief adds a single Sink Bintr to this SourceBintr 
+         * @param[in] pSinkBintr shared pointer to SinkBintr to add
+         */
+        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
+        /**
+         * @brief checks if a SinkBintr is a child of the SourceBintr
+         * @param pSinkBintr
+         * @return true if SinkBintr is a child, false otherwise
+         */
+        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
+
+        /**
+         * @brief removes a single Sink Bintr from this Pipeline 
+         * @param[in] pSinkBintr shared pointer to SinkBintr to remove
+         */
+        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
+
 
     public:
             
@@ -171,6 +192,11 @@ namespace DSL
          * @brief Soure Element for this SourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceElement;
+        
+        /**
+         * @brief Optional collection of SinkBintrs for each SourceBintr
+         */
+        DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
 
     };
 

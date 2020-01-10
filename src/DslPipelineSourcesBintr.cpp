@@ -133,7 +133,7 @@ namespace DSL
         if (!IsChild(pChildSource))
         {
             LOG_ERROR("Source '" << pChildSource->GetName() << "' is not a child of '" << GetName() << "'");
-            throw;
+            return false;
         }
 
         if (pChildSource->IsLinkedToSink())

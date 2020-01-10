@@ -61,6 +61,59 @@ def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, dro
 #print(dsl_source_uri_new("rtsp-source", "???????", DSL_RTP_ALL, 0, 0, 0))
 
 ##
+## dsl_source_dimensions_get()
+##
+_dsl.dsl_source_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_dimensions_get.restype = c_uint
+def dsl_source_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_source_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+#print(dsl_source_csi_new("csi-source", 1280, 720, 30, 1))
+#print(dsl_source_dimensions_get("csi-source"))
+
+##
+## dsl_source_frame_rate_get()
+##
+_dsl.dsl_source_frame_rate_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_frame_rate_get.restype = c_uint
+def dsl_source_frame_rate_get(name):
+    global _dsl
+    fps_n = c_uint(0)
+    fps_d = c_uint(0)
+    result = _dsl.dsl_source_frame_rate_get(name, DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
+    return int(result), fps_n.value, fps_d.value 
+#print(dsl_source_csi_new("csi-source", 1280, 720, 30, 1))
+#print(dsl_source_frame_rate_get("csi-source"))
+
+##
+## dsl_source_sink_add()
+##
+_dsl.dsl_source_sink_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_sink_add.restype = c_uint
+def dsl_source_sink_add(source, sink):
+    global _dsl
+    result = _dsl.dsl_source_sink_add(source, sink)
+    return int(result)
+    
+##
+## dsl_source_sink_remove()
+##
+_dsl.dsl_source_sink_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_sink_remove.restype = c_uint
+def dsl_source_sink_remove(source, sink):
+    global _dsl
+    result = _dsl.dsl_source_sink_remove(source, sink)
+    return int(result)
+# *** move to end of file (below sink new) for testing    
+#print(dsl_source_csi_new("csi-source", 1280, 720, 30, 1))
+#print(dsl_sink_window_new("overlay-sink", 0, 0, 1280, 720))
+#print(dsl_source_sink_add("csi-source", "overlay-sink"))
+#print(dsl_source_sink_remove("csi-source", "overlay-sink"))
+
+##
 ## dsl_source_is_live()
 ##
 _dsl.dsl_source_is_live.argtypes = [c_wchar_p]
@@ -551,8 +604,8 @@ def dsl_pipeline_xwindow_dimensions_get(name):
     result = _dsl.dsl_pipeline_xwindow_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), width.value, height.value 
 
-print(dsl_pipeline_new("pipeline-1"))
-print(dsl_pipeline_xwindow_dimensions_get("pipeline-1"))
+#print(dsl_pipeline_new("pipeline-1"))
+#print(dsl_pipeline_xwindow_dimensions_get("pipeline-1"))
 
 ##
 ## dsl_pipeline_xwindow_dimensions_set()
@@ -789,4 +842,3 @@ def dsl_main_loop_run():
 def dsl_main_loop_quit():
     global _dsl
     _dsl.dsl_main_loop_quit()
-
