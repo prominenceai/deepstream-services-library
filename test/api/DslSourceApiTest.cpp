@@ -425,3 +425,47 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
     }
 }    
     
+SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[source-api]" )
+{
+    GIVEN( "A new Source and new Sink" )
+    {
+        std::wstring sourceName = L"uri-source";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Sink is added to the Source" ) 
+        {
+            REQUIRE( dsl_source_sink_add(sourceName.c_str(), 
+                overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same Sink can't be added again, but can be removed" )
+            {
+                REQUIRE( dsl_source_sink_add(sourceName.c_str(), 
+                    overlaySinkName.c_str()) == DSL_RESULT_SOURCE_SINK_ADD_FAILED );
+
+                REQUIRE( dsl_source_sink_remove(sourceName.c_str(), 
+                    overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( dsl_source_sink_remove(sourceName.c_str(), 
+                    overlaySinkName.c_str()) == DSL_RESULT_SOURCE_SINK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}

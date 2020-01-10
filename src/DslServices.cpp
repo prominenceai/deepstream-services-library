@@ -84,6 +84,26 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
     return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
 }
 
+DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink)
+{
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrSink(sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->SourceSinkAdd(cstrSource.c_str(), cstrSink.c_str());
+}
+
+DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink)
+{
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrSink(sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->SourceSinkRemove(cstrSource.c_str(), cstrSink.c_str());
+}
+
 DslReturnType dsl_source_pause(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -934,10 +954,10 @@ namespace DSL
         
         try
         {
-            DSL_SOURCE_PTR sourceBintr = 
+            DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            sourceBintr->GetDimensions(width, height);
+            pSourceBintr->GetDimensions(width, height);
         }
         catch(...)
         {
@@ -955,10 +975,10 @@ namespace DSL
         
         try
         {
-            DSL_SOURCE_PTR sourceBintr = 
+            DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            sourceBintr->GetFrameRate(fps_n, fps_d);
+            pSourceBintr->GetFrameRate(fps_n, fps_d);
         }
         catch(...)
         {
@@ -966,7 +986,65 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
-    }                
+    }
+    
+    DslReturnType Services::SourceSinkAdd(const char* source, const char* sink)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+
+        try
+        {
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+         
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
+         
+            if (!pSourceBintr->AddSinkBintr(pSinkBintr))
+            {
+                LOG_ERROR("Failed to add Sink '" << sink << "' to Source '" << source << "'");
+                return DSL_RESULT_SOURCE_SINK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << source << "' threw exception adding Sink");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SourceSinkRemove(const char* source, const char* sink)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+
+        try
+        {
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+         
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
+         
+            if (!pSourceBintr->RemoveSinkBintr(pSinkBintr))
+            {
+                LOG_ERROR("Failed to remove Sink '" << sink << "' from Source '" << source << "'");
+                return DSL_RESULT_SOURCE_SINK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << source << "' threw exception removing Sink");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
 
     DslReturnType Services::SourcePause(const char* name)
     {
@@ -976,20 +1054,20 @@ namespace DSL
         
         try
         {
-            DSL_SOURCE_PTR sourceBintr = 
+            DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
                 
-            if (!sourceBintr->IsInUse())
+            if (!pSourceBintr->IsInUse())
             {
                 LOG_ERROR("Source '" << name << "' can not be paused - is not in use");
                 return DSL_RESULT_SOURCE_NOT_IN_USE;
             }
-            if (sourceBintr->GetState() != GST_STATE_PLAYING)
+            if (pSourceBintr->GetState() != GST_STATE_PLAYING)
             {
                 LOG_ERROR("Source '" << name << "' can not be paused - is not in play");
                 return DSL_RESULT_SOURCE_NOT_IN_PLAY;
             }
-            if (!sourceBintr->Pause())
+            if (!pSourceBintr->Pause())
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to paused");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -1011,21 +1089,21 @@ namespace DSL
         
         try
         {
-            DSL_SOURCE_PTR sourceBintr = 
+            DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
                 
-            if (!sourceBintr->IsInUse())
+            if (!pSourceBintr->IsInUse())
             {
                 LOG_ERROR("Source '" << name << "' can not be resumed - is not in use");
                 return DSL_RESULT_SOURCE_NOT_IN_USE;
             }
-            if (sourceBintr->GetState() != GST_STATE_PAUSED)
+            if (pSourceBintr->GetState() != GST_STATE_PAUSED)
             {
                 LOG_ERROR("Source '" << name << "' can not be resumed - is not in pause");
                 return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
             }
 
-            if (!sourceBintr->Play())
+            if (!pSourceBintr->Play())
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to play");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;

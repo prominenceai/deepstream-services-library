@@ -170,6 +170,45 @@ namespace DSL
         return Nodetr::UnlinkFromSink();
     }
     
+    bool SourceBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    {
+        LOG_FUNC();
+        
+        // Create the shared Sinks bintr if it doesn't exist
+        if (!m_pMultiSinksBintr)
+        {
+            m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("source-sinks-bin");
+            AddChild(m_pMultiSinksBintr);
+        }
+        return m_pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
+    }
+
+    bool SourceBintr::IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr)
+    {
+        LOG_FUNC();
+
+        if (!m_pMultiSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            return false;
+        }
+        return (m_pMultiSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
+    }
+
+    bool SourceBintr::RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    {
+        LOG_FUNC();
+
+        if (!m_pMultiSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            return false;
+        }
+
+        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
+        return m_pMultiSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
+    }
+    
     //*********************************************************************************
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
