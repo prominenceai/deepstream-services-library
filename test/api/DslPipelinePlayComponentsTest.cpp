@@ -38,7 +38,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -59,10 +59,10 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        // new display for this scenario
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source", L"tiled-display", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -97,7 +97,7 @@ SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Displa
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -119,10 +119,10 @@ SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Displa
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        // new display for this scenario
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source", L"tiled-display", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -157,7 +157,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -179,10 +179,10 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        // new display for this scenario
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source", L"tiled-display", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"tiler", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -222,7 +222,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine";
         
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -245,9 +245,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"tiled-display", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -290,7 +290,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         uint trackerW(480);
         uint trackerH(272);
 
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -315,9 +315,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"ktl-tracker", L"tiled-display", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -360,7 +360,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         uint trackerW(480);
         uint trackerH(272);
 
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -390,10 +390,10 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", 
-            L"tiled-display", L"on-screen-display", L"overlay-sink", NULL};
+            L"tiler", L"on-screen-display", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

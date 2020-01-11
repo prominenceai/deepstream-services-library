@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
-#include "DslDisplayBintr.h"
+#include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
 
@@ -266,61 +266,61 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad)
     return DSL::Services::GetServices()->OsdBatchMetaHandlerRemove(cstrName.c_str(), pad);
 }
     
-DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height)
+DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayNew(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TilerNew(cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height)
+DslReturnType dsl_tiler_dimensions_get(const wchar_t* name, uint* width, uint* height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayDimensionsGet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TilerDimensionsGet(cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height)
+DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayDimensionsSet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TilerDimensionsSet(cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows)
+DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayTilesGet(cstrName.c_str(), cols, rows);
+    return DSL::Services::GetServices()->TilerTilesGet(cstrName.c_str(), cols, rows);
 }
 
-DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows)
+DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayTilesSet(cstrName.c_str(), cols, rows);
+    return DSL::Services::GetServices()->TilerTilesSet(cstrName.c_str(), cols, rows);
 }
 
-DslReturnType dsl_display_batch_meta_handler_add(const wchar_t* name, uint pad, 
+DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->DisplayBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+    return DSL::Services::GetServices()->TilerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_display_batch_meta_handler_remove(const wchar_t* name, uint pad)
+DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->DisplayBatchMetaHandlerRemove(cstrName.c_str(), pad);
+    return DSL::Services::GetServices()->TilerBatchMetaHandlerRemove(cstrName.c_str(), pad);
 }
 
 DslReturnType dsl_sink_overlay_new(const wchar_t* name,
@@ -1263,7 +1263,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -1406,7 +1406,7 @@ namespace DSL
         {
             LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
                 << "' as it's currently in use");
-            return DSL_RESULT_DISPLAY_IS_IN_USE;
+            return DSL_RESULT_TILER_IS_IN_USE;
         }
         try
         {
@@ -1483,12 +1483,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
    
-    DslReturnType Services::DisplayNew(const char* name, uint width, uint height)
+    DslReturnType Services::TilerNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1496,25 +1496,25 @@ namespace DSL
         // ensure component name uniqueness 
         if (m_components[name])
         {   
-            LOG_ERROR("Display name '" << name << "' is not unique");
-            return DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE;
+            LOG_ERROR("Tiler name '" << name << "' is not unique");
+            return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_components[name] = std::shared_ptr<Bintr>(new DisplayBintr(
+            m_components[name] = std::shared_ptr<Bintr>(new TilerBintr(
                 name, width, height));
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display New'" << name << "' threw exception on create");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler New'" << name << "' threw exception on create");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        LOG_INFO("new Display '" << name << "' created successfully");
+        LOG_INFO("new Tiler '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::TilerDimensionsGet(const char* name, uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1522,21 +1522,21 @@ namespace DSL
 
         try
         {
-            DSL_DISPLAY_PTR displayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            displayBintr->GetDimensions(width, height);
+            tilerBintr->GetDimensions(width, height);
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display '" << name << "' threw an exception getting dimensions");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::TilerDimensionsSet(const char* name, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1544,31 +1544,31 @@ namespace DSL
         
         if (m_components[name]->IsInUse())
         {
-            LOG_ERROR("Unable to set Dimensions for Tiled Display '" << name 
+            LOG_ERROR("Unable to set Dimensions for Tiler '" << name 
                 << "' as it's currently in use");
-            return DSL_RESULT_DISPLAY_IS_IN_USE;
+            return DSL_RESULT_TILER_IS_IN_USE;
         }
         try
         {
-            DSL_DISPLAY_PTR displayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!displayBintr->SetDimensions(width, height))
+            if (!tilerBintr->SetDimensions(width, height))
             {
-                LOG_ERROR("Tiled Display '" << name << "' failed to settin dimensions");
-                return DSL_RESULT_DISPLAY_SET_FAILED;
+                LOG_ERROR("Tiler '" << name << "' failed to settin dimensions");
+                return DSL_RESULT_TILER_SET_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display '" << name << "' threw an exception setting dimensions");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayTilesGet(const char* name, uint* cols, uint* rows)
+    DslReturnType Services::TilerTilesGet(const char* name, uint* cols, uint* rows)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1576,21 +1576,21 @@ namespace DSL
 
         try
         {
-            DSL_DISPLAY_PTR displayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            displayBintr->GetTiles(cols, rows);
+            tilerBintr->GetTiles(cols, rows);
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display '" << name << "' threw an exception getting Tiles");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception getting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayTilesSet(const char* name, uint cols, uint rows)
+    DslReturnType Services::TilerTilesSet(const char* name, uint cols, uint rows)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1598,31 +1598,31 @@ namespace DSL
 
         if (m_components[name]->IsInUse())
         {
-            LOG_ERROR("Unable to set Tiles for Tiled Display '" << name 
+            LOG_ERROR("Unable to set Tiles for Tiler '" << name 
                 << "' as it's currently in use");
-            return DSL_RESULT_DISPLAY_IS_IN_USE;
+            return DSL_RESULT_TILER_IS_IN_USE;
         }
         try
         {
-            DSL_DISPLAY_PTR displayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!displayBintr->SetTiles(cols, rows))
+            if (!tilerBintr->SetTiles(cols, rows))
             {
-                LOG_ERROR("Tiled Display '" << name << "' failed to set Tiles");
-                return DSL_RESULT_DISPLAY_SET_FAILED;
+                LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
+                return DSL_RESULT_TILER_SET_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Tiled Display '" << name << "' threw an exception setting Tiles");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1630,29 +1630,29 @@ namespace DSL
         
         if (pad > DSL_PAD_SRC)
         {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiled Display '" << name << "'");
-            return DSL_RESULT_DISPLAY_PAD_TYPE_INVALID;
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
         }
         try
         {
-            DSL_DISPLAY_PTR pDisplayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            if (!pDisplayBintr->AddBatchMetaHandler(pad, handler, user_data))
+            if (!pTilerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Tiled Display '" << name << "' already has a Batch Meta Handler");
-                return DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED;
+                LOG_ERROR("Tiler '" << name << "' already has a Batch Meta Handler");
+                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
             }
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DisplayBatchMetaHandlerRemove(const char* name, uint pad)
+    DslReturnType Services::TilerBatchMetaHandlerRemove(const char* name, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1660,24 +1660,24 @@ namespace DSL
         
         if (pad > DSL_PAD_SRC)
         {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiled Display '" << name << "'");
-            return DSL_RESULT_DISPLAY_PAD_TYPE_INVALID;
+            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
         }
         try
         {
-            DSL_DISPLAY_PTR pDisplayBintr = 
-                std::dynamic_pointer_cast<DisplayBintr>(m_components[name]);
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            if (!pDisplayBintr->RemoveBatchMetaHandler(pad))
+            if (!pTilerBintr->RemoveBatchMetaHandler(pad))
             {
-                LOG_ERROR("Tiled Display '" << name << "' has no Batch Meta Handler");
-                return DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED;
+                LOG_ERROR("Tiler '" << name << "' has no Batch Meta Handler");
+                return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -1763,7 +1763,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_DISPLAY_THREW_EXCEPTION;
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }

@@ -174,7 +174,6 @@ _dsl.dsl_gie_primary_batch_meta_handler_add.restype = c_uint
 def dsl_gie_primary_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
-    print(meta_handler)
     result = _dsl.dsl_gie_primary_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
@@ -263,7 +262,6 @@ _dsl.dsl_tracker_batch_meta_handler_add.restype = c_uint
 def dsl_tracker_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
-    print(meta_handler)
     result = _dsl.dsl_tracker_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
@@ -304,7 +302,6 @@ _dsl.dsl_osd_batch_meta_handler_add.restype = c_uint
 def dsl_osd_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
-    print(meta_handler)
     result = _dsl.dsl_osd_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
@@ -327,45 +324,44 @@ def dsl_osd_batch_meta_handler_remove(name, pad):
 #print(dsl_osd_batch_meta_handler_remove("on-screen-display"))
 
 ##
-## dsl_display_new()
+## dsl_tiler_new()
 ##
-_dsl.dsl_display_new.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_display_new.restype = c_uint
-def dsl_display_new(name, width, height):
+_dsl.dsl_tiler_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tiler_new.restype = c_uint
+def dsl_tiler_new(name, width, height):
     global _dsl
-    result =_dsl.dsl_display_new(name, width, height)
+    result =_dsl.dsl_tiler_new(name, width, height)
     return int(result)
-#print(dsl_display_new("tiled-display", 1280, 720))
+#print(dsl_tiler_new("tiler", 1280, 720))
 
 ##
-## dsl_display_batch_meta_handler_add()
+## dsl_tiler_batch_meta_handler_add()
 ##
-_dsl.dsl_display_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
-_dsl.dsl_display_batch_meta_handler_add.restype = c_uint
-def dsl_display_batch_meta_handler_add(name, pad, handler, user_data):
+_dsl.dsl_tiler_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_tiler_batch_meta_handler_add.restype = c_uint
+def dsl_tiler_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
-    print(meta_handler)
-    result = _dsl.dsl_display_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    result = _dsl.dsl_tiler_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
 #def mb_handler(buffer, user_data):
 #    print(buffer)
 #    print(user_data)
     
-#print(dsl_display_new("tiled-display", True))
-#print(dsl_display_batch_meta_handler_add("tiled-display", mb_handler, None))
+#print(dsl_tiler_new("tiler", True))
+#print(dsl_tiler_batch_meta_handler_add("tiler", mb_handler, None))
 
 ##
-## dsl_display_batch_meta_handler_remove()
+## dsl_tiler_batch_meta_handler_remove()
 ##
-_dsl.dsl_display_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_display_batch_meta_handler_remove.restype = c_uint
-def dsl_display_batch_meta_handler_remove(name, pad):
+_dsl.dsl_tiler_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tiler_batch_meta_handler_remove.restype = c_uint
+def dsl_tiler_batch_meta_handler_remove(name, pad):
     global _dsl
-    result = _dsl.dsl_display_batch_meta_handler_remove(name, pad)
+    result = _dsl.dsl_tiler_batch_meta_handler_remove(name, pad)
     return int(result)
-#print(dsl_display_batch_meta_handler_remove("tiled-display"))
+#print(dsl_tiler_batch_meta_handler_remove("tiler"))
 
 ##
 ## dsl_sink_overlay_new()
@@ -398,7 +394,7 @@ def dsl_component_delete(name):
     global _dsl
     result =_dsl.dsl_component_delete(name)
     return int(result)
-#print(dsl_component_delete("tiled-display"))
+#print(dsl_component_delete("tiler"))
 
 ##
 ## dsl_component_delete_many()
@@ -509,9 +505,9 @@ def dsl_pipeline_component_add(pipeline, component):
     global _dsl
     result =_dsl.dsl_pipeline_component_add(pipeline, component)
     return int(result)
-#print(dsl_display_new("tiled-display", 1280, 720))
+#print(dsl_tiler_new("tiler", 1280, 720))
 #print(dsl_pipeline_new("pipeline-1"))
-#print(dsl_pipeline_component_add("pipeline-1", "tiled-display"))
+#print(dsl_pipeline_component_add("pipeline-1", "tiler"))
 
 ##
 ## dsl_pipeline_component_add_many()
@@ -524,9 +520,9 @@ def dsl_pipeline_component_add_many(pipeline, components):
     arr[:] = components
     result =_dsl.dsl_pipeline_component_add_many(pipeline, arr)
     return int(result)
-#print(dsl_display_new("tiled-display-2", 1280, 720))
+#print(dsl_tiler_new("tiler-2", 1280, 720))
 #print(dsl_pipeline_new("pipeline-2"))
-#print(dsl_pipeline_component_add_many("pipeline-2", ["tiled-display-2", None]))
+#print(dsl_pipeline_component_add_many("pipeline-2", ["tiler-2", None]))
 
 ##
 ## dsl_pipeline_streammux_batch_properties_get()
@@ -603,7 +599,6 @@ def dsl_pipeline_xwindow_dimensions_get(name):
     height = c_uint(0)
     result = _dsl.dsl_pipeline_xwindow_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
     return int(result), width.value, height.value 
-
 #print(dsl_pipeline_new("pipeline-1"))
 #print(dsl_pipeline_xwindow_dimensions_get("pipeline-1"))
 

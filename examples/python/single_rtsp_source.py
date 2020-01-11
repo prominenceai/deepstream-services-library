@@ -30,7 +30,7 @@ while True:
         break
 
     # New Tiled Display, setting width and height, use default cols/rows set by source count
-    retval = dsl_display_new('tiled-display', 1280, 720)
+    retval = dsl_tiler_new('tiler', 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         break
 
@@ -51,7 +51,7 @@ while True:
 
     # Add all the components to our pipeline
     retval = dsl_pipeline_component_add_many('simple-pipeline', 
-        ['rtsp-source', 'primary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
+        ['rtsp-source', 'primary-gie', 'tiler', 'on-screen-display', 'overlay-sink', None])
     if retval != DSL_RETURN_SUCCESS:
         break
 

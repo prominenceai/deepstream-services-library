@@ -16,13 +16,13 @@ while True:
         break
 
     # New Primary GIE using the filespecs above, with interval and Id
-    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4, 1)
+    retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
 
     # New Tiled Display, setting width and height, use default cols/rows set by source count
-    retval = dsl_display_new('tiled-display', 1280, 720)
+    retval = dsl_tiler_new('tiler', 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         print(retval)
         break
@@ -47,7 +47,7 @@ while True:
 
     # Add all the components to our pipeline
     retval = dsl_pipeline_component_add_many('simple-pipeline', 
-        ['csi-source', 'primary-gie', 'tiled-display', 'on-screen-display', 'overlay-sink', None])
+        ['csi-source', 'primary-gie', 'tiler', 'on-screen-display', 'overlay-sink', None])
 
     if retval != DSL_RETURN_SUCCESS:
         print(retval)

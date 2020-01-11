@@ -98,19 +98,19 @@ namespace DSL {
 
         DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad);
         
-        DslReturnType DisplayNew(const char* name, uint width, uint height);
+        DslReturnType TilerNew(const char* name, uint width, uint height);
         
-        DslReturnType DisplayDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType TilerDimensionsGet(const char* name, uint* width, uint* height);
 
-        DslReturnType DisplayDimensionsSet(const char* name, uint width, uint height);
+        DslReturnType TilerDimensionsSet(const char* name, uint width, uint height);
 
-        DslReturnType DisplayTilesGet(const char* name, uint* cols, uint* rows);
+        DslReturnType TilerTilesGet(const char* name, uint* cols, uint* rows);
 
-        DslReturnType DisplayTilesSet(const char* name, uint cols, uint rows);
+        DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
 
-        DslReturnType DisplayBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
-        DslReturnType DisplayBatchMetaHandlerRemove(const char* name, uint pad);
+        DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad);
         
         DslReturnType OsdNew(const char* name, boolean isClockEnabled);
 

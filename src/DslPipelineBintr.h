@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOsdBintr.h"
-#include "DslDisplayBintr.h"
+#include "DslTilerBintr.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslPipelineSGiesBintr.h"
 #include "DslMultiSinksBintr.h"
@@ -110,16 +110,16 @@ namespace DSL
         bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
 
         /**
-         * @brief adds a single Display Bintr to this Pipeline 
-         * @param[in] pDisplayBintr shared pointer to Display Bintr to add
+         * @brief adds a single Tracker Bintr to this Pipeline 
+         * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
          */
         bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
         
         /**
-         * @brief adds a single Display Bintr to this Pipeline 
-         * @param[in] pDisplayBintr shared pointer to Display Bintr to add
+         * @brief adds a single Tiler Bintr to this Pipeline 
+         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr);
+        bool AddTilerBintr(DSL_NODETR_PTR pTilerBintr);
         
         /**
          * @brief adds a single OSD Bintr to this Pipeline 
@@ -258,7 +258,7 @@ namespace DSL
             
         /**
          * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
-         * @param[in] handler pointer to the client's function to call on Display event
+         * @param[in] handler pointer to the client's function to call on XWindow event
          * @param[in] userdata opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
@@ -273,7 +273,7 @@ namespace DSL
             
         /**
          * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
-         * @param[in] handler pointer to the client's function to call on Display event
+         * @param[in] handler pointer to the client's function to call on XWindow event
          * @param[in] userdata opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
@@ -381,7 +381,7 @@ namespace DSL
         /**
          * @brief optional one and only optional Tiled Display for this Pipeline
          */
-        DSL_DISPLAY_PTR m_pDisplayBintr;
+        DSL_TILER_PTR m_pTilerBintr;
                         
         /**
          * @brief parent bin for all Sink bins in this Pipeline

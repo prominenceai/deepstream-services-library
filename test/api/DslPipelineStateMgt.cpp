@@ -36,7 +36,7 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
-        std::wstring tiledDisplayName = L"tiled-display-name";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -53,12 +53,12 @@ SCENARIO( "A new Pipeline with minimal components can Play", "[PipelineStateMgt]
         REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
-        const wchar_t* components[] = {L"test-uri-source", L"tiled-display-name", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"test-uri-source", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {

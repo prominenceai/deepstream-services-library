@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslDisplayBintr.h"
+#include "DslTilerBintr.h"
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
@@ -59,8 +59,8 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
         std::string sinkName = "overlay-sink";
         std::string pipelineName = "pipeline";
 
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -69,7 +69,7 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -99,21 +99,21 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
 
 SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr with a Display" ) 
+    GIVEN( "A PipelineBintr with a Tiler" ) 
     {
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
 
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
 
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        pDisplayBintr->AddToParent(pPipelineBintr);
+        pTilerBintr->AddToParent(pPipelineBintr);
 
         WHEN( "The new PipelineBintr's XWindow is created" )
         {
@@ -129,15 +129,15 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "csi-source";
         std::string sinkName = "overlay-sink";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
 
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -146,10 +146,10 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -159,7 +159,7 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
         WHEN( "All components are added to the PipelineBintr" )
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
@@ -172,15 +172,15 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
 
 SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "csi-source";
         std::string sinkName = "overlay-sink";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
 
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -189,10 +189,10 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -202,7 +202,7 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
         WHEN( "All components are added and the PipelineBintr is Linked" )
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPipelineBintr->LinkAll() == true );
 
@@ -216,19 +216,19 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "csi-source";
         std::string sinkName = "overlay-sink";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
         std::string primaryGieName = "primary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
         std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -237,10 +237,10 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -255,7 +255,7 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
@@ -268,11 +268,11 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
 
 SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, SecondaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, SecondaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
         std::string sourceName = "csi-source";
         std::string sinkName = "overlay-sink";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
@@ -280,8 +280,8 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
         
         uint interval(1);
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -290,10 +290,10 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -308,7 +308,7 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPipelineBintr->IsLinked() == false );
 
@@ -323,20 +323,20 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr and OsdBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string sourceName = "csi-source";
         std::string primaryGieName = "primary-gie";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string sinkName = "overlay-sink";
-        std::string osdName = "on-screen-display";
+        std::string osdName = "on-screen-tiler";
         std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
         std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -345,10 +345,10 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -366,7 +366,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
@@ -383,23 +383,23 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, OsdBintr, and TrackerBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string sourceName = "csi-source";
         std::string trackerName = "ktl-tracker";
         std::string primaryGieName = "primary-gie";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string sinkName = "overlay-sink";
-        std::string osdName = "on-screen-display";
+        std::string osdName = "on-screen-tiler";
         std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
         std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         
         uint interval(1);
         uint trackerW(300);
         uint trackerH(150);
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -408,7 +408,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
@@ -417,8 +417,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true);
@@ -433,7 +433,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
@@ -450,11 +450,11 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new DisplayBintr, CsiSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
         std::string sourceName = "csi-source";
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiler";
         std::string sinkName = "overlay-sink";
         std::string trackerName = "ktl-tracker";
         std::string primaryGieName = "primary-gie";
@@ -463,13 +463,13 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         std::string secondaryGieName = "secondary-gie";
         std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
         std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        std::string osdName = "on-screen-display";
+        std::string osdName = "on-screen-tiler";
         
         uint interval(1);
         uint trackerW(300);
         uint trackerH(150);
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
         uint fps_n(1);
         uint fps_d(30);
         uint offsetX(0);
@@ -478,7 +478,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         uint sinkH(0);
 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), displayW, displayH, fps_n, fps_d);
+            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
 
         DSL_KTL_TRACKER_PTR pTrackerBintr = 
             DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
@@ -494,8 +494,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -509,7 +509,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDisplayBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline is able to LinkAll and UnlinkAll correctly" )
@@ -552,32 +552,32 @@ SCENARIO( "A Pipeline can have at most one DewarperBintr", "[PipelineBintr]" )
     }
 }
 
-SCENARIO( "A Pipeline can have at most one DisplayBintr", "[PipelineBintr]" )
+SCENARIO( "A Pipeline can have at most one TilerBintr", "[PipelineBintr]" )
 {
-    GIVEN( "Two new DisplayBintrs and PipelineBintr" ) 
+    GIVEN( "Two new TilerBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
-        std::string displayName1 = "tiled-display-1";
-        std::string displayName2 = "tiled-display-2";
+        std::string tilerName1 = "tiler-1";
+        std::string tilerName2 = "tiler-2";
 
-        uint displayW(1280);
-        uint displayH(720);
+        uint tilerW(1280);
+        uint tilerH(720);
 
-        DSL_DISPLAY_PTR pDisplayBintr1 = 
-            DSL_DISPLAY_NEW(displayName1.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr1 = 
+            DSL_TILER_NEW(tilerName1.c_str(), tilerW, tilerH);
 
-        DSL_DISPLAY_PTR pDisplayBintr2 = 
-            DSL_DISPLAY_NEW(displayName2.c_str(), displayW, displayH);
+        DSL_TILER_PTR pTilerBintr2 = 
+            DSL_TILER_NEW(tilerName2.c_str(), tilerW, tilerH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        WHEN( "A DisplayBintr is added to the PipelineBintr" )
+        WHEN( "A TilerBintr is added to the PipelineBintr" )
         {
-            REQUIRE( pDisplayBintr1->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr1->AddToParent(pPipelineBintr) == true );
 
-            THEN( "A second DisplayBintr can not be added" )
+            THEN( "A second TilerBintr can not be added" )
             {
-                REQUIRE( pDisplayBintr2->AddToParent(pPipelineBintr) == false );
+                REQUIRE( pTilerBintr2->AddToParent(pPipelineBintr) == false );
             }
         }
     }
@@ -653,8 +653,8 @@ SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
     GIVEN( "Two new OsdBintrs and PipelineBintr" ) 
     {
         std::string pipelineName = "pipeline";
-        std::string osdName1 = "on-screen-display-1";
-        std::string osdName2 = "on-screen-display-2";
+        std::string osdName1 = "on-screen-tiler-1";
+        std::string osdName2 = "on-screen-tiler-2";
 
         DSL_OSD_PTR pOsdBintr1 = 
             DSL_OSD_NEW(osdName1.c_str(), true);

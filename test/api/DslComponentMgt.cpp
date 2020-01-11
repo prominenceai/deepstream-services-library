@@ -32,7 +32,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
     {
         std::wstring sourceName  = L"csi-source";
         std::wstring overlaySinkName = L"overlay-sink";
-        std::wstring tiledDisplayName = L"tiled-display";
+        std::wstring tilerName = L"tiler";
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -41,7 +41,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
 
             REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_display_new(tiledDisplayName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {

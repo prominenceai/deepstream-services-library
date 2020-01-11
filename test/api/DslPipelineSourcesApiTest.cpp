@@ -41,7 +41,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
-        std::wstring tiledDisplayName = L"tiled-display-name";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -64,13 +64,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiled-display-name", L"overlay-sink", NULL};
+            L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {
@@ -106,7 +106,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
-        std::wstring tiledDisplayName = L"tiled-display-name";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -129,13 +129,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiled-display-name", L"overlay-sink", NULL};
+            L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -176,7 +176,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
         uint intrDecode(false);
         uint dropFrameInterval(2);
 
-        std::wstring tiledDisplayName = L"tiled-display-name";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -199,13 +199,13 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiled-display-name", L"overlay-sink", NULL};
+            L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -248,7 +248,7 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
         uint intrDecode(false);
         uint dropFrameInterval(0);
 
-        std::wstring tiledDisplayName = L"tiled-display-name";
+        std::wstring tilerName = L"tiler";
         uint width(1280);
         uint height(720);
 
@@ -271,13 +271,13 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
         REQUIRE( dsl_source_uri_new(sourceName4.c_str(), uri.c_str(), cudadecMemType, 
             intrDecode, false, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_new(tiledDisplayName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiled-display-name", L"overlay-sink", NULL};
+            L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {

@@ -125,16 +125,16 @@ THE SOFTWARE.
 /**
  * Display API Return Values
  */
-#define DSL_RESULT_DISPLAY_RESULT                                   0x00070000
-#define DSL_RESULT_DISPLAY_NAME_NOT_UNIQUE                          0x00070001
-#define DSL_RESULT_DISPLAY_NAME_NOT_FOUND                           0x00070002
-#define DSL_RESULT_DISPLAY_NAME_BAD_FORMAT                          0x00070003
-#define DSL_RESULT_DISPLAY_THREW_EXCEPTION                          0x00070004
-#define DSL_RESULT_DISPLAY_IS_IN_USE                                0x00070005
-#define DSL_RESULT_DISPLAY_SET_FAILED                               0x00070006
-#define DSL_RESULT_DISPLAY_HANDLER_ADD_FAILED                       0x00070007
-#define DSL_RESULT_DISPLAY_HANDLER_REMOVE_FAILED                    0x00070008
-#define DSL_RESULT_DISPLAY_PAD_TYPE_INVALID                         0x00070009
+#define DSL_RESULT_TILER_RESULT                                   0x00070000
+#define DSL_RESULT_TILER_NAME_NOT_UNIQUE                          0x00070001
+#define DSL_RESULT_TILER_NAME_NOT_FOUND                           0x00070002
+#define DSL_RESULT_TILER_NAME_BAD_FORMAT                          0x00070003
+#define DSL_RESULT_TILER_THREW_EXCEPTION                          0x00070004
+#define DSL_RESULT_TILER_IS_IN_USE                                0x00070005
+#define DSL_RESULT_TILER_SET_FAILED                               0x00070006
+#define DSL_RESULT_TILER_HANDLER_ADD_FAILED                       0x00070007
+#define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                    0x00070008
+#define DSL_RESULT_TILER_PAD_TYPE_INVALID                         0x00070009
 
 /**
  * Pipeline API Return Values
@@ -516,45 +516,45 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
  * @param[in] name unique name for the new Display
  * @param[in] width width of the Display in pixels
  * @param[in] height height of the Display in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_display_new(const wchar_t* name, uint width, uint height);
+DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height);
 
 /**
  * @brief returns the dimensions, width and height, for the named Tiled Display
  * @param[in] name name of the Display to query
- * @param[out] width current width of the display in pixels
- * @param[out] height current height of the display in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @param[out] width current width of the tiler in pixels
+ * @param[out] height current height of the tiler in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_display_dimensions_get(const wchar_t* name, uint* width, uint* height);
+DslReturnType dsl_tiler_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
 /**
  * @brief sets the dimensions, width and height, for the named Tiled Display
  * @param[in] name name of the Display to update
- * @param[in] width width to set the display in pixels
- * @param[in] height height to set the display in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @param[in] width width to set the tiler in pixels
+ * @param[in] height height to set the tiler in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_display_dimensions_set(const wchar_t* name, uint width, uint height);
+DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
  * @brief returns the number of columns and rows for the named Tiled Display
  * @param[in] name name of the Display to query
  * @param[out] cols current number of colums for all Tiles
  * @param[out] rows current number of rows for all Tiles
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_display_tiles_get(const wchar_t* name, uint* cols, uint* rows);
+DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
 
 /**
  * @brief Sets the number of columns and rows for the named Tiled Display
  * @param[in] name name of the Display to update
  * @param[in] cols current number of colums for all Tiles
  * @param[in] rows current number of rows for all Tiles
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
+DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
@@ -563,18 +563,18 @@ DslReturnType dsl_display_tiles_set(const wchar_t* name, uint cols, uint rows);
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_display_batch_meta_handler_add(const wchar_t* name, uint type, 
+DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
  * @brief Removes a batch meta handler callback function from the Tiled Display
  * @param name unique name of the Tiled Dislplay to update
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_display_batch_meta_handler_remove(const wchar_t* name, uint pad);
+DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
@@ -769,7 +769,7 @@ DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline,
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to query
  * @param[out] enable true if the aspect ration is fixed, false if not
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* enabled);
 
@@ -778,7 +778,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* e
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to update
  * @param[out] enable set true to fix the aspect ratio, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DISPLAY_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
 
