@@ -133,6 +133,11 @@ namespace DSL
          */
         bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
+        /**
+         * @brief check if a SinkBintr is a child of the PipelineBintr
+         * @param pSinkBintr
+         * @return true if SinkBintr is a child, false otherwise
+         */
         bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
 
         /**

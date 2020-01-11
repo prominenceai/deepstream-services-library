@@ -63,6 +63,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
+#define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
+#define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
 
 /**
  * Tracker API Return Values
@@ -293,6 +295,22 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
+
+/**
+ * @brief adds a named Sink object to a named Source object
+ * @param source name of the Source object update
+ * @param sink name of the Sink object to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
+
+/**
+ * @brief removes a named Sink object from a named Source object
+ * @param source name of the Source object update
+ * @param sink name of the Sink object to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
 
 /**
  * @brief pauses a single Source object if the Source is 

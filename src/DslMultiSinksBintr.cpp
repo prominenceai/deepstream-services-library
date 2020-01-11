@@ -102,7 +102,7 @@ namespace DSL
         if (!IsChild(pChildSink))
         {
             LOG_ERROR("' " << pChildSink->GetName() << "' is NOT a child of '" << GetName() << "'");
-            throw;
+            return false;
         }
         if (pChildSink->IsLinkedToSource())
         {
