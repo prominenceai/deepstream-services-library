@@ -23,38 +23,38 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslDisplayBintr.h"
+#include "DslTilerBintr.h"
 
 using namespace DSL;
 
-SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
+SCENARIO( "A TilerBintr's dimensions can be updated",  "[TilerBintr]" )
 {
-    GIVEN( "A new Tiled Display in memory" ) 
+    GIVEN( "A new TilerBintr in memory" ) 
     {
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiled-display";
         uint initWidth(200);
         uint initHeight(100);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), initWidth, initHeight);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), initWidth, initHeight);
             
         uint currWidth(0);
         uint currHeight(0);
     
-        pDisplayBintr->GetDimensions(&currWidth, &currHeight);
+        pTilerBintr->GetDimensions(&currWidth, &currHeight);
         REQUIRE( currWidth == initWidth );
         REQUIRE( currHeight == initHeight );
 
-        WHEN( "The Display's demensions are Set" )
+        WHEN( "The Tiler's demensions are Set" )
         {
             uint newWidth(1280);
             uint newHeight(720);
             
-            pDisplayBintr->SetDimensions(newWidth, newHeight);
+            pTilerBintr->SetDimensions(newWidth, newHeight);
 
-            THEN( "The Display's new demensions are returned on Get")
+            THEN( "The Tiler's new demensions are returned on Get")
             {
-                pDisplayBintr->GetDimensions(&currWidth, &currHeight);
+                pTilerBintr->GetDimensions(&currWidth, &currHeight);
                 REQUIRE( currWidth == newWidth );
                 REQUIRE( currHeight == newHeight );
             }
@@ -62,34 +62,34 @@ SCENARIO( "A Tiled Display's dimensions can be updated",  "[DisplayBintr]" )
     }
 }
 
-SCENARIO( "A Tiled Display's tiles can be updated",  "[DisplayBintr]" )
+SCENARIO( "A Tiled Tiler's tiles can be updated",  "[TilerBintr]" )
 {
-    GIVEN( "A new Tiled Display in memory" ) 
+    GIVEN( "A new Tiled Tiler in memory" ) 
     {
-        std::string displayName = "tiled-display";
+        std::string tilerName = "tiled-display";
         uint width(1280);
         uint height(720);
 
-        DSL_DISPLAY_PTR pDisplayBintr = 
-            DSL_DISPLAY_NEW(displayName.c_str(), width, height);
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), width, height);
             
         uint currRows(0);
         uint currColumns(0);
     
-        pDisplayBintr->GetTiles(&currRows, &currColumns);
+        pTilerBintr->GetTiles(&currRows, &currColumns);
         REQUIRE( currRows == 0 );
         REQUIRE( currColumns == 0 );
 
-        WHEN( "The Display's tile layout is Set" )
+        WHEN( "The Tiler's tile layout is Set" )
         {
             uint newRows(10);
             uint newColumns(10);
             
-            pDisplayBintr->SetTiles(newRows, newColumns);
+            pTilerBintr->SetTiles(newRows, newColumns);
 
-            THEN( "The Display's new tile layout is returned on Get")
+            THEN( "The Tiler's new tile layout is returned on Get")
             {
-                pDisplayBintr->GetTiles(&currRows, &currColumns);
+                pTilerBintr->GetTiles(&currRows, &currColumns);
                 REQUIRE( currRows == newRows );
                 REQUIRE( currColumns == newColumns );
             }

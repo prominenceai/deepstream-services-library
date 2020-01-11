@@ -243,18 +243,18 @@ namespace DSL
         return m_pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
 
-    bool PipelineBintr::AddDisplayBintr(DSL_NODETR_PTR pDisplayBintr)
+    bool PipelineBintr::AddTilerBintr(DSL_NODETR_PTR pTilerBintr)
     {
         LOG_FUNC();
 
-        if (m_pDisplayBintr)
+        if (m_pTilerBintr)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tiled Display");
+            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tiler");
             return false;
         }
-        m_pDisplayBintr = std::dynamic_pointer_cast<DisplayBintr>(pDisplayBintr);
+        m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
         
-        return AddChild(pDisplayBintr);
+        return AddChild(pTilerBintr);
     }
 
     bool PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
@@ -453,15 +453,15 @@ namespace DSL
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);
         }
         
-        if (m_pDisplayBintr)
+        if (m_pTilerBintr)
         {
-            // Link All Tiled Display Elementrs and add as the next component in the Pipeline
-            if (!m_pDisplayBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pDisplayBintr))
+            // Link All Tiled Tiler Elementrs and add as the next component in the Pipeline
+            if (!m_pTilerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pTilerBintr))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pDisplayBintr);
+            m_linkedComponents.push_back(m_pTilerBintr);
         }
 
         if (m_pOsdBintr)
@@ -865,15 +865,15 @@ namespace DSL
 
     bool PipelineBintr::CreateXWindow()
     {
-        if (!m_pDisplayBintr)
+        if (!m_pTilerBintr)
         {
-            LOG_ERROR("Create XWindow error: Miissing Display Bintr for Pipeline '" << GetName() << '"');
+            LOG_ERROR("Create XWindow error: Miissing Tiler Bintr for Pipeline '" << GetName() << '"');
             return false;
         }
 
         // calculate the minimum width and heigh for XWindow creation
         uint displayWidth(0), displayHeight(0);
-        m_pDisplayBintr->GetDimensions(&displayWidth, &displayHeight);
+        m_pTilerBintr->GetDimensions(&displayWidth, &displayHeight);
         
         m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
         m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
