@@ -166,7 +166,7 @@ def test1():
     #   Create Display 
     #########################################
 
-    retVal = dsl_display_new("display1", 1280, 720)
+    retVal = dsl_tiler_new("display1", 1280, 720)
     
     if retVal != DSL_RETURN_SUCCESS:
         print(retVal)
