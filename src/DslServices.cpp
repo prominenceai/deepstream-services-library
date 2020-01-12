@@ -343,6 +343,38 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
         offsetX, offsetY, width, height);
 }
 
+DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
+     uint codec, uint muxer, uint bit_rate, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPath(filepath);
+    std::string cstrPath(wstrPath.begin(), wstrPath.end());
+
+    return DSL::Services::GetServices()->SinkFileNew(cstrName.c_str(), 
+        cstrPath.c_str(), codec, muxer, bit_rate, interval);
+}     
+
+DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
+    uint* bit_rate, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkFileEncoderSettingsGet(cstrName.c_str(), 
+        bit_rate, interval);
+}    
+
+DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
+    uint bit_rate, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkFileEncoderSettingsSet(cstrName.c_str(), 
+        bit_rate, interval);
+}    
+    
 DslReturnType dsl_component_delete(const wchar_t* component)
 {
     std::wstring wstrComponent(component);
@@ -1820,6 +1852,84 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
+            uint codec, uint muxer, uint bit_rate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components[name])
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, muxer, bit_rate, interval);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("New File Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SinkFileEncoderSettingsGet(const char* name, uint* bit_rate, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        try
+        {
+            DSL_FILE_SINK_PTR fileSinkBintr = 
+                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+
+            fileSinkBintr->GetEncoderSettings(bit_rate, interval);
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkFileEncoderSettingsSet(const char* name, uint bit_rate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        if (m_components[name]->IsInUse())
+        {
+            LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
+                << "' as it's currently in use");
+            return DSL_RESULT_SINK_IS_IN_USE;
+        }
+        try
+        {
+            DSL_FILE_SINK_PTR fileSinkBintr = 
+                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+
+            if (!fileSinkBintr->SetEncoderSettings(bit_rate, interval))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();
@@ -2512,7 +2622,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H263] = "h263parse";
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H264] = "h264parse";
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H265] = "h265parse";
     }

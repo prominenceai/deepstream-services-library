@@ -90,6 +90,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x00040002
 #define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x00040003
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
+#define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
+#define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
+#define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
 
 /**
  * OSD API Return Values
@@ -162,14 +165,20 @@ THE SOFTWARE.
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 
-#define DSL_SOURCE_CODEC_PARSER_H263                                0
-#define DSL_SOURCE_CODEC_PARSER_H264                                1
-#define DSL_SOURCE_CODEC_PARSER_H265                                2
+#define DSL_SOURCE_CODEC_PARSER_H264                                0
+#define DSL_SOURCE_CODEC_PARSER_H265                                1
 
-#define DSL_STATE_NULL                                              0
-#define DSL_STATE_READY                                             1
-#define DSL_STATE_PLAYING                                           2
-#define DSL_STATE_PAUSED                                            4
+#define DSL_CODEC_H264                                              0
+#define DSL_CODEC_H265                                              1
+#define DSL_CODEC_MPEG4                                             2
+
+#define DSL_MUXER_MPEG4                                             0
+#define DSL_MUXER_MK4                                               1
+
+#define DSL_STATE_NULL                                              1
+#define DSL_STATE_READY                                             2
+#define DSL_STATE_PAUSED                                            3
+#define DSL_STATE_PLAYING                                           4
 #define DSL_STATE_IN_TRANSITION                                     5
 
 #define DSL_PAD_SINK                                                0
@@ -599,6 +608,39 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name,
  */
 DslReturnType dsl_sink_window_new(const wchar_t* name, 
     uint offsetX, uint offsetY, uint width, uint height);
+
+/**
+ * @brief creates a new, uniquely named File Sink component
+ * @param name unique component name for the new File Sink
+ * @param filepath absolute or relative file path including extension
+ * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param muxer one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param bit_rate in bits per second - H264 and H265 only
+ * @param interval iframe interval to wite out at
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
+     uint codec, uint muxer, uint bit_rate, uint interval);
+
+/**
+ * @brief gets the current bit_rate and interval settings for the named File Sink
+ * @param name unique name of the File Sink to query
+ * @param bit_rate current Encoder bit-rate in bits/sec for the named File Sink
+ * @param interval current Encoder iframe interval value
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
+    uint* bit_rate, uint* interval);
+
+/**
+ * @brief sets new bit_rate and interval settings for the named File Sink
+ * @param name unique name of the File Sink to update
+ * @param bit_rate new Encoder bit-rate in bits/sec for the named File Sink
+ * @param interval new Encoder iframe interval value to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
+    uint bit_rate, uint interval);
 
 /**
  * @brief deletes a Component object by name

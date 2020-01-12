@@ -345,3 +345,97 @@ SCENARIO( "A Window Sink in use can't be added to a second Pipeline", "[window-s
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new File Sink", "[file-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring fileSinkName(L"file-sink");
+        std::wstring filePath(L"./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint muxer(DSL_MUXER_MPEG4);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new File Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
+                codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on File Sink delete", "[file-sink-api]" )
+{
+    GIVEN( "An Window Sink Component" ) 
+    {
+        std::wstring fileSinkName(L"file-sink");
+        std::wstring filePath(L"./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint muxer(DSL_MUXER_MPEG4);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
+            codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new File Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(fileSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An File Sink's Encoder settings can be updated", "[file-sink-api]" )
+{
+    GIVEN( "A new File Sink" ) 
+    {
+        std::wstring fileSinkName(L"file-sink");
+        std::wstring filePath(L"./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint muxer(DSL_MUXER_MPEG4);
+        uint initBitrate(2000000);
+        uint initInterval(0);
+
+        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
+            codec, muxer, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
+            
+        uint currBitRate(0);
+        uint currInterval(0);
+    
+        REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitRate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( currBitRate == initBitrate );
+        REQUIRE( currInterval == initInterval );
+
+        WHEN( "The FileSinkBintr's Encoder settings are Set" )
+        {
+            uint newBitRate(2500000);
+            uint newInterval(10);
+            
+            REQUIRE( dsl_sink_file_encoder_settings_set(fileSinkName.c_str(), newBitRate, newInterval) == DSL_RESULT_SUCCESS);
+
+            THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
+            {
+                REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitRate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( currBitRate == newBitRate );
+                REQUIRE( currInterval == newInterval );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

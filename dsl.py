@@ -10,6 +10,13 @@ DSL_PAD_SRC = 1
 DSL_RTP_TCP = 4
 DSL_RTP_ALL = 7
 
+DSL_CODEC_H264 = 0
+DSL_CODEC_H265 = 1
+DSL_CODEC_MPEG4 = 2
+
+DSL_MUXER_MPEG4 = 0
+DSL_MUXER_MK4 = 1
+
 ##
 ## Pointer Typedefs
 ##
@@ -384,6 +391,17 @@ def dsl_sink_window_new(name, offsetX, offsetY, width, height):
     result =_dsl.dsl_sink_window_new(name, offsetX, offsetY, width, height)
     return int(result)
 #print(dsl_sink_window_new("overlay-sink", 0, 0, 1280, 720))
+
+##
+## dsl_sink_file_new()
+##
+_dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_file_new.restype = c_uint
+def dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval)
+    return int(result)
+#print(dsl_sink_file_new("file-sink", "./output.mp4", DSL_CODEC_H265, DSL_MUXER_MPEG4, 2000000, 1))
 
 ##
 ## dsl_component_delete()

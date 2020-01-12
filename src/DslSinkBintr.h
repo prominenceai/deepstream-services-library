@@ -35,14 +35,20 @@ namespace DSL
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height) \
+    #define DSL_OVERLAY_SINK_NEW(sink, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(name, offsetX, offsetY, width, height))
+        new OverlaySinkBintr(sink, offsetX, offsetY, width, height))
 
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
-    #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
+    #define DSL_WINDOW_SINK_NEW(sink, offsetX, offsetY, width, height) \
         std::shared_ptr<WindowSinkBintr>( \
-        new WindowSinkBintr(name, offsetX, offsetY, width, height))
+        new WindowSinkBintr(sink, offsetX, offsetY, width, height))
+        
+    #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
+    #define DSL_FILE_SINK_NEW(sink, filepath, codec, muxer, bitRate, interval) \
+        std::shared_ptr<FileSinkBintr>( \
+        new FileSinkBintr(sink, filepath, codec, muxer, bitRate, interval))
+        
 
     class SinkBintr : public Bintr
     {
@@ -160,7 +166,6 @@ namespace DSL
         uint m_depth;
 
         DSL_ELEMENT_PTR m_pOverlay;
-        
     };
 
     class WindowSinkBintr : public SinkBintr
@@ -185,8 +190,8 @@ namespace DSL
         /**
          * @brief Sets the current X and Y offset settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
+         * @param[in] offsetX the offset in the X direction to set in pixels
+         * @param[in] offsetY the offset in the Y direction to set in pixels
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
@@ -220,7 +225,52 @@ namespace DSL
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pEglGles;
     };
-}
 
+    class FileSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        FileSinkBintr(const char* sink, const char* filepath, 
+            uint codec, uint muxer, uint bitRate, uint interval);
+
+        ~FileSinkBintr();
+  
+        bool LinkAll();
+        
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current bit-rate and interval settings for the Encoder in use
+         * @param[out] bitRate the current bit-rate setting for the Encoder in use
+         * @param[out] interval the current iframe interval to write to file
+         */ 
+        void GetEncoderSettings(uint* bitRate, uint* interval);
+
+        /**
+         * @brief Sets the current bit-rate and interval settings for the Encoder in use
+         * @param[in] bitRate the new bit-rate setting in units of bits/sec
+         * @param[in] interval the new iframe-interval setting
+         * @return false if the FileSink is currently in Use. True otherwise
+         */ 
+        bool SetEncoderSettings(uint bitRate, uint interval);
+
+    private:
+
+        uint m_codec;
+        uint m_muxer;
+        uint m_bitRate;
+        uint m_interval;
+        boolean m_sync;
+        boolean m_async;
+ 
+        DSL_ELEMENT_PTR m_pFileSink;
+        DSL_ELEMENT_PTR m_pTransform;
+        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pEncoder;
+        DSL_ELEMENT_PTR m_pParser;
+        DSL_ELEMENT_PTR m_pMuxer;       
+    };
+}
+    
 #endif // _DSL_SINK_BINTR_H
     

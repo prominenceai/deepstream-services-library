@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[test]" )
+SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[pipeline-xwindow-api]" )
 {
     GIVEN( "A new Pipeline in memeory" ) 
     {
@@ -51,7 +51,7 @@ SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[test]" )
     }
 }
 
-SCENARIO( "A Pipeline's XWindow Dimensions can be updated", "[test]" )
+SCENARIO( "A Pipeline's XWindow Dimensions can be updated", "[pipeline-xwindow-api]" )
 {
     GIVEN( "A new Pipeline in memeory" ) 
     {
