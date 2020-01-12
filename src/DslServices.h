@@ -124,8 +124,15 @@ namespace DSL {
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
                 
-// TODO        
-//        boolean ComponentIsInUse(const char* component);
+        DslReturnType SinkFileNew(const char* name, const char* filepath, 
+            uint codec, uint muxer, uint bit_rate, uint interval);
+            
+        DslReturnType SinkFileEncoderSettingsGet(const char* name, uint* bit_rate, uint* interval);
+
+        DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bit_rate, uint interval);
+
+        // TODO        
+        // boolean ComponentIsInUse(const char* component);
         
         DslReturnType ComponentDelete(const char* component);
 

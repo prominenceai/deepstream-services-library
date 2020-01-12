@@ -423,4 +423,160 @@ namespace DSL
         
         return true;
     }
+    
+    FileSinkBintr::FileSinkBintr(const char* sink, const char* filepath, 
+        uint codec, uint muxer, uint bitRate, uint interval)
+        : SinkBintr(sink)
+        , m_sync(FALSE)
+        , m_async(FALSE)
+        , m_codec(codec)
+        , m_bitRate(bitRate)
+        , m_interval(interval)
+        , m_muxer(muxer)
+    {
+        LOG_FUNC();
+        
+        m_isWindowCapable = false;
+
+        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "sink-bin-file");
+        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "sink-bin-caps-filter");
+
+        m_pFileSink->SetAttribute("location", filepath);
+        m_pFileSink->SetAttribute("sync", m_sync);
+        m_pFileSink->SetAttribute("async", m_async);
+        
+        m_pTransform->SetAttribute("gpu-id", m_gpuId);
+
+        GstCaps* caps(NULL);
+        switch (codec)
+        {
+        case DSL_CODEC_H264 :
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "sink-bin-encoder");
+            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+            m_pParser = DSL_ELEMENT_NEW("h264parse", "sink-bin-parser");
+            caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+            break;
+        case DSL_CODEC_H265 :
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "sink-bin-encoder");
+            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+            m_pParser = DSL_ELEMENT_NEW("h265parse", "sink-bin-parser");
+            caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+            break;
+        case DSL_CODEC_MPEG4 :
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "sink-bin-encoder");
+            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "sink-bin-parser");
+            caps = gst_caps_from_string("video/x-raw, format=I420");
+            break;
+        default:
+            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << sink << "'");
+            throw;
+        }
+
+        m_pEncoder->SetAttribute("bufapi-version", true);
+        m_pCapsFilter->SetAttribute("caps", caps);
+        
+        switch (muxer)
+        {
+        case DSL_MUXER_MPEG4 :
+            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "sink-bin-muxer");        
+            break;
+        case DSL_MUXER_MK4 :
+            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "sink-bin-muxer");        
+            break;
+        default:
+            LOG_ERROR("Invalid muxer = '" << muxer << "' for new Sink '" << sink << "'");
+            throw;
+        }
+
+        AddChild(m_pFileSink);
+        AddChild(m_pTransform);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pEncoder);
+        AddChild(m_pParser);
+        AddChild(m_pMuxer);
+    }
+    
+    FileSinkBintr::~FileSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool FileSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pMuxer) or
+            !m_pMuxer->LinkToSink(m_pFileSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void FileSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is not linked");
+            return;
+        }
+        m_pMuxer->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    void  FileSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
+    {
+        LOG_FUNC();
+        
+        *bitRate = m_bitRate;
+        *interval = m_interval;
+    }
+    
+    bool FileSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_bitRate = bitRate;
+        m_interval = interval;
+
+        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
+        {
+            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        }
+        return true;
+    }
+    
 }    
