@@ -433,7 +433,7 @@ retval = dsl_sink_file_settings_set('my-window-sink', 2000000, 1)
 
 <br>
 
-### dsl_sink_num_in_use_get
+### *dsl_sink_num_in_use_get*
 ```C++
 uint dsl_sink_num_in_use_get();
 ```
@@ -449,7 +449,7 @@ sinks_in_use = dsl_sink_num_in_use_get()
 
 <br>
 
-### dsl_sink_num_in_use_max_get
+### *dsl_sink_num_in_use_max_get*
 ```C++
 uint dsl_sink_num_in_use_max_get();
 ```
@@ -465,7 +465,7 @@ max_sinks_in_use = dsl_sink_num_in_use_max_get()
 
 <br>
 
-### dsl_sink_num_in_use_max_set
+### *dsl_sink_num_in_use_max_set*
 ```C++
 boolean dsl_sink_num_in_use_max_set(24);
 ```
