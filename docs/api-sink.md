@@ -40,9 +40,9 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_file_settings_set](#dsl_sink_file_settings_set)
 * [dsl_sink_rtsp_settings_get](#dsl_sink_rtsp_settings_get)
 * [dsl_sink_rtsp_settings_set](#dsl_sink_rtsp_settings_set)
+* [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
 * [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)
-* [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
 
 ## Return Values
 The following return codes are used by the Sink API
@@ -174,11 +174,12 @@ retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, DSL_CODEC_H265, 200000, 0)
 
 ## Methods
 ### *dsl_sink_overlay_offsets_get*
-This service returns the current X and Y offsets for the uniquely named Overlay Sink.
 ```C++
 DslReturnType dsl_sink_overlay_offsets_get(const wchar_t* name, 
     uint* x_offset, uint* y_offsetY);
 ```
+This service returns the current X and Y offsets for the uniquely named Overlay Sink.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to query.
 * `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the display.
@@ -195,11 +196,12 @@ retval, x_offset, y_offset = dsl_sink_overlay_offsets_get('my-overlay-sink')
 <br>
 
 ### *dsl_sink_overlay_offsets_set*
-This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
 ```C++
 DslReturnType dsl_sink_overlay_offsets_set(const wchar_t* name, 
     uint x_offset, uint y_offset);
 ```
+This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to update.
 * `x_offset` - [in] new offset in the X direction in pixels from the upper left most corner of the parent display.
@@ -216,11 +218,12 @@ retval = dsl_sink_overlay_dimensions_set('my-overlay-sink', 100, 100)
 <br>
 
 ### *dsl_sink_overlay_dimensions_get*
-This service returns the current dimensions for the uniquely named Overlay Sink.
 ```C++
 DslReturnType dsl_sink_overlay_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
+This service returns the current dimensions for the uniquely named Overlay Sink.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to query.
 * `width` - [out] width of the Overlay Sink in pixels.
@@ -237,11 +240,12 @@ retval, width, height = dsl_sink_overlay_dimensions_get('my-overlay-sink')
 <br>
 
 ### *dsl_sink_overlay_dimensions_set*
-This service updates the dimensions of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
 ```C++
 DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
+This service updates the dimensions of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to update.
 * `width` - [in] new width setting for the Overlay Sink.
@@ -258,11 +262,12 @@ retval = dsl_sink_overlay_dimensions_set('my-overlay-sink', 1280, 720)
 <br>
 
 ### *dsl_sink_window_offsets_get*
-This service returns the current X and Y offsets for the uniquely named Overlay Sink.
 ```C++
 DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
     uint* x_offset, uint* y_offset);
 ```
+This service returns the current X and Y offsets for the uniquely named Overlay Sink.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to query.
 * `x_offset` - [out] offset in the X direction in pixels from the upper left most corner from the parent XWindow.
@@ -279,11 +284,12 @@ retval, x_offset, y_offset = dsl_sink_window_offsets_get('my-overlay-sink')
 <br>
 
 ### *dsl_sink_overlay_offsets_set*
-This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
 ```C++
 DslReturnType dsl_sink_overlay_offsets_set(const wchar_t* name, 
     uint* x_offset, uint* y_offset);
 ```
+This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
+
 **Parameters**
 * `name` - [in] unique name of the Overlay Sink to update.
 * `x_offset` - [in] new offset the X direction in pixels from the upper left most corner of the parent XWindow.
@@ -300,11 +306,12 @@ retval = dsl_sink_window_offsets_set('my-overlay-sink', 100, 100)
 <br>
 
 ### *dsl_sink_window_dimensions_get*
-This service returns the current dimensions for the uniquely named Window Sink.
 ```C++
 DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
+This service returns the current dimensions for the uniquely named Window Sink.
+
 **Parameters**
 * `name` - [in] unique name of the Window Sink to query.
 * `width` - [out] width of the Window Sink in pixels.
@@ -321,11 +328,12 @@ retval, width, height = dsl_sink_window_dimensions_get('my-window-sink')
 <br>
 
 ### *dsl_sink_window_dimensions_set*
-This service updates the dimensions of a named Window Sink. This service will fail if the Window Sink is currently `in-use`.
 ```C++
 DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
+This service updates the dimensions of a named Window Sink. This service will fail if the Window Sink is currently `in-use`.
+
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
 * `width` - [in] new width setting to use for the Window Sink in pixels.
@@ -425,3 +433,50 @@ retval = dsl_sink_file_settings_set('my-window-sink', 2000000, 1)
 
 <br>
 
+### dsl_sink_num_in_use_get
+```C++
+uint dsl_sink_num_in_use_get();
+```
+This service returns the total number of all Sinks currently `in-use` by all Pipelines.
+
+**Returns**
+The current number of Sinks `in-use`
+
+**Python Example**
+```Python
+sinks_in_use = dsl_sink_num_in_use_get()
+```
+
+<br>
+
+### dsl_sink_num_in_use_max_get
+```C++
+uint dsl_sink_num_in_use_max_get();
+```
+This service return the "maximum number of Sinks" setting, defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initilization, and can be updated by calling [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+
+**Returns**
+The current max number of Sinks that can be `in-use` at any onetime. 
+
+**Python Example**
+```Python
+max_sinks_in_use = dsl_sink_num_in_use_max_get()
+```
+
+<br>
+
+### dsl_sink_num_in_use_max_set
+```C++
+boolean dsl_sink_num_in_use_max_set(24);
+```
+This service sets the "maximum number of Sinks" setting. The value is defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+
+**Returns**
+`true` if the setting could be updated succesfully, `false` if the new value is less than the actual current number of Sinks in use.
+
+**Python Example**
+```Python
+retval = dsl_sink_num_in_use_max_set(24)
+```
+
+<br>
