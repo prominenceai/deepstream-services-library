@@ -1,6 +1,6 @@
 # DSL API Reference
 
-#### Pipeline API:
+### Pipeline API:
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
 * [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
 * [dsl_pipeline_delete](/docs/api-pipeline.md#dsl_pipeline_delete)
@@ -40,7 +40,7 @@
 * Other TBD
 
 
-#### Component API:
+### Component API:
 * dsl_component_copy
 * [dsl_component_delete](/docs/api-component.md#dsl_component_delete)
 * [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many)
@@ -54,7 +54,7 @@
 * Other TBD
 
 
-#### Source API:
+### Source API:
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
 * [dsl_source_v4l2_new](/docs/api-source.md#dsl_source_v4l2_new)
 * [dsl_source_uri_new](/docs/api-source.md#dsl_source_uri_new)
@@ -70,7 +70,7 @@
 * [dsl_source_set_num_in_use_max](/docs/api-source.md#dsl_source_set_num_in_use_max)
 * Other TBD
 
-#### Primary and Secondary GIE API:
+### Primary and Secondary GIE API:
 * [dsl_gie_primary_new](/docs/api-gie.md#dsl_gie_primary_new)
 * [dsl_gie_secondary_new](/docs/api-gie.md#dsl_gie_secondary_new)
 * [dsl_gie_infer_config_file_get](/docs/api-gie.md#dsl_gie_infer_config_file_get)
@@ -85,7 +85,7 @@
 * [dsl_gie_primary_meta_batch_handler_remove](/docs/api-gie.md#dsl_gie_primary_meta_batch_handler_remove)
 * Other TBD
 
-#### Tracker:
+### Tracker:
 * [dsl_tracker_ktl_new](/docs/api-tracker.md#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](/docs/api-tracker.md#dsl_tracker_iou_new)
 * [dsl_tracker_max_dimensions_get](/docs/api-tracker.md#dsl_tracker_dimensions_get)
@@ -96,29 +96,44 @@
 * [dsl_tracker_meta_batch_handler_remove](/docs/api-tracker.md#dsl_tracker_meta_batch_handler_remove)
 * Other TBD
 
-#### Tiled Display:
+### Tiled Display (Tiler):
 * [dsl_display_new](/docs/api-display.md#dsl_display_new)
-* [dsl_display_dimensions_get](/docs/api-display.md#dsl_display_dimensions_get)
-* [dsl_display_dimensions_set](/docs/api-display.md#dsl_display_dimensions_set)
-* [dsl_display_tiles_get](/docs/api-display.md#dsl_display_tiles_get)
-* [dsl_display_tiles_set](/docs/api-display.md#dsl_display_tiles_set)
+* [dsl_tiler_new](/docs/api-display.md#dsl_tiler_new)
+* [dsl_tiler_dimensions_get](/docs/api-display.md#dsl_tiler_dimensions_get)
+* [dsl_tiler_dimensions_set](/docs/api-display.md#dsl_tiler_dimensions_set)
+* [dsl_tiler_tiles_get](/docs/api-display.md#dsl_display_tiles_get)
+* [dsl_tiler_tiles_set](/docs/api-display.md#dsl_display_tiles_set)
+* [dsl_tiler_batch_meta_handler_add](/docs/api-display.md#dsl_tiler_batch_meta_handler_add).
+* [dsl_tiler_batch_meta_handler_remove](/docs/api-display.md#dsl_tiler_batch_meta_handler_remove).
 
-#### On-Screen Display (OSD);
+### On-Screen Display (OSD);
 * dsl_osd_new
 * dsl_osd_clock_enable
 * dsl_osd_clock_disable
 * dsl_osd_clock_state_is
 * Other TBD
 
-#### Sink:
-* dsl_sink_overlay_new
-* dsl_sink_rtsp_new
-* dsl_sink_fake_new
-* dsl_sink_egl_new
-* dsl_sink_get_num_in_use
-* dsl_sink_get_num_in_use_max
-* dsl_sink_set_num_in_use_max
+### Sink:
+* [dsl_sink_overlay_offsets_get](/docs/api-sink.md#dsl_sink_overlay_offsets_get)
+* [dsl_sink_overlay_offsets_set](/docs/api-sink.md#dsl_sink_overlay_offsets_set)
+* [dsl_sink_overlay_dimensions_get](/docs/api-sink.md#dsl_sink_overlay_dimensions_get)
+* [dsl_sink_overlay_dimensions_set](/docs/api-sink.md#dsl_sink_overlay_dimensions_set)
+* [dsl_sink_window_offsets_get](/docs/api-sink.md#dsl_sink_window_offsets_get)
+* [dsl_sink_window_offsets_set](/docs/api-sink.md#dsl_sink_window_offsets_set)
+* [dsl_sink_window_dimensions_get](/docs/api-sink.md#dsl_sink_window_dimensions_get)
+* [dsl_sink_window_dimensions_set](/docs/api-sink.md#dsl_sink_window_dimensions_set)
+* [dsl_sink_file_video_formats_get](/docs/api-sink.md#dsl_sink_file_video_formats_get)
+* [dsl_sink_file_video_formats_set](/docs/api-sink.md#dsl_sink_file_video_formats_set)
+* [dsl_sink_file_code_settings_get](/docs/api-sink.md#dsl_sink_file_code_settings_get)
+* [dsl_sink_file_code_settings_set](/docs/api-sink.md#dsl_sink_file_code_settings_set)
+* [dsl_sink_rtsp_server_settings_get](/docs/api-sink.md#dsl_sink_rtsp_server_settings_get)
+* [dsl_sink_rtsp_server_settings_set](/docs/api-sink.md#dsl_sink_rtsp_server_settings_set)
+* [dsl_sink_rtsp_code_settings_get](/docs/api-sink.md#dsl_sink_rtsp_code_settings_get)
+* [dsl_sink_rtsp_code_settings_set](/docs/api-sink.md#dsl_sink_rtsp_code_settings_set)
+* [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
+* [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
+* [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
 * other TBD
 
-#### Dewarpper:
+### Dewarpper:
 * Other TBD
