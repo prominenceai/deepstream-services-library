@@ -37,8 +37,8 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_file_video_formats_set](#dsl_sink_file_video_formats_set)
 * [dsl_sink_file_code_settings_get](#dsl_sink_file_code_settings_get)
 * [dsl_sink_file_code_settings_set](#dsl_sink_file_code_settings_set)
-* [dsl_sink_rtsp_server_settings_set](#dsl_sink_file_settings_set)
-* [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_settings_get)
+* [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
+* [dsl_sink_rtsp_server_settings_set](#dsl_sink_rtsp_server_settings_set)
 * [dsl_sink_rtsp_code_settings_get](#dsl_sink_rtsp_code_settings_get)
 * [dsl_sink_rtsp_code_settings_set](#dsl_sink_rtsp_code_settings_set)
 * [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
@@ -284,9 +284,9 @@ retval, x_offset, y_offset = dsl_sink_window_offsets_get('my-overlay-sink')
 
 <br>
 
-### *dsl_sink_overlay_offsets_set*
+### *dsl_sink_window_offsets_set*
 ```C++
-DslReturnType dsl_sink_overlay_offsets_set(const wchar_t* name, 
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
     uint* x_offset, uint* y_offset);
 ```
 This service updates the X and Y offsets of a named Overlay Sink. This service will fail if the Overlay Sink is currently `in-use`.
@@ -301,7 +301,7 @@ This service updates the X and Y offsets of a named Overlay Sink. This service w
 
 **Python Example**
 ```Python
-retval = dsl_sink_window_offsets_set('my-overlay-sink', 100, 100)
+retval = dsl_sink_window_offsets_set('my-window-sink', 100, 100)
 ```
 
 <br>
@@ -434,48 +434,6 @@ retval = dsl_sink_file_code_settings_set('my-file-sink', 2000000, 1)
 
 <br>
 
-### *dsl_sink_rtsp_code_settings_get*
-This service returns the current bitrate and interval settings for the uniquely named RTSP Sink.
-```C++
-DslReturnType dsl_sink_rtsp_code_settings_get(const wchar_t* name, 
-    uint* bitrate, uint* interval);
-```
-**Parameters**
-* `name` - [in] unique name of the RTSP Sink to query.
-* `bitrate` - [out] current bitrate at which to code the video
-* `interval` - [out] current frame interval at which to code the video. 0 equals code every frame
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, bitrate, interval = dsl_sink_rtsp_code_settings_get('my-rtsp-sink')
-```
-
-<br>
-
-### *dsl_sink_rtsp_code_settings_set*
-This service sets the bitrate and interval settings for the uniquely named RTSP Sink. The service will fail if the File Sink is currently `in-use`.
-```C++
-DslReturnType dsl_sink_rtsp_settings_set(const wchar_t* name, 
-    uint bitrate, uint interval);
-```
-**Parameters**
-* `name` - [in] unique name of the RTSP Sink to update.
-* `bitrate` - [in] new bitrate at which to code the video
-* `interval` - [in] new frame interval at which to code the video. Set to 0 to code every frame
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_sink_rtsp_code_settings_set('my-rtsp-sink', 4000000, 1)
-```
-
-<br>
-
 ### *dsl_sink_rtsp_server_settings_get*
 This service returns the current RTSP video codec and Port settings for the uniquely named RTSP Sink.
 ```C++
@@ -514,6 +472,48 @@ DslReturnType dsl_sink_rtsp_server_settings_set(const wchar_t* name,
 **Python Example**
 ```Python
 retval = dsl_sink_rtsp_server_settings_set('my-rtsp-sink', DSL_CODEC_H265, 8080)
+```
+
+<br>
+
+### *dsl_sink_rtsp_code_settings_get*
+This service returns the current bitrate and interval settings for the uniquely named RTSP Sink.
+```C++
+DslReturnType dsl_sink_rtsp_code_settings_get(const wchar_t* name, 
+    uint* bitrate, uint* interval);
+```
+**Parameters**
+* `name` - [in] unique name of the RTSP Sink to query.
+* `bitrate` - [out] current bitrate at which to code the video
+* `interval` - [out] current frame interval at which to code the video. 0 equals code every frame
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, bitrate, interval = dsl_sink_rtsp_code_settings_get('my-rtsp-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_code_settings_set*
+This service sets the bitrate and interval settings for the uniquely named RTSP Sink. The service will fail if the File Sink is currently `in-use`.
+```C++
+DslReturnType dsl_sink_rtsp_settings_set(const wchar_t* name, 
+    uint bitrate, uint interval);
+```
+**Parameters**
+* `name` - [in] unique name of the RTSP Sink to update.
+* `bitrate` - [in] new bitrate at which to code the video
+* `interval` - [in] new frame interval at which to code the video. Set to 0 to code every frame
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_code_settings_set('my-rtsp-sink', 4000000, 1)
 ```
 
 <br>
