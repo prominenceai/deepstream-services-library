@@ -114,11 +114,6 @@
 * Other TBD
 
 ### Sink:
-* [dsl_sink_overlay_new](/docs/api-sink.md#dsl_sink_overlay_new)
-* [dsl_sink_window_new](/docs/api-sink.md#dsl_sink_window_new)
-* [dsl_sink_file_new](/docs/api-sink.md#dsl_sink_file_new)
-* [dsl_sink_rtsp_new](/docs/api-sink.md#dsl_sink_rtsp_new)
-* [dsl_sink_fake_new](/docs/api-sink.md#dsl_sink_fake_new)
 * [dsl_sink_overlay_offsets_get](/docs/api-sink.md#dsl_sink_overlay_offsets_get)
 * [dsl_sink_overlay_offsets_set](/docs/api-sink.md#dsl_sink_overlay_offsets_set)
 * [dsl_sink_overlay_dimensions_get](/docs/api-sink.md#dsl_sink_overlay_dimensions_get)
@@ -131,13 +126,14 @@
 * [dsl_sink_file_video_formats_set](/docs/api-sink.md#dsl_sink_file_video_formats_set)
 * [dsl_sink_file_code_settings_get](/docs/api-sink.md#dsl_sink_file_code_settings_get)
 * [dsl_sink_file_code_settings_set](/docs/api-sink.md#dsl_sink_file_code_settings_set)
-* [dsl_sink_rtsp_server_settings_set](/docs/api-sink.md#dsl_sink_file_settings_set)
-* [dsl_sink_rtsp_server_settings_get](/docs/api-sink.md#dsl_sink_rtsp_settings_get)
+* [dsl_sink_rtsp_server_settings_get](/docs/api-sink.md#dsl_sink_rtsp_server_settings_get)
+* [dsl_sink_rtsp_server_settings_set](/docs/api-sink.md#dsl_sink_rtsp_server_settings_set)
 * [dsl_sink_rtsp_code_settings_get](/docs/api-sink.md#dsl_sink_rtsp_code_settings_get)
 * [dsl_sink_rtsp_code_settings_set](/docs/api-sink.md#dsl_sink_rtsp_code_settings_set)
-* [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
-* [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
-* [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)* other TBD
+* [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
+* [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
+* [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
+* other TBD
 
 ### Dewarpper:
 * Other TBD
