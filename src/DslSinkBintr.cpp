@@ -438,9 +438,9 @@ namespace DSL
         
         m_isWindowCapable = false;
 
-        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "sink-bin-file");
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "sink-bin-transform");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "sink-bin-caps-filter");
+        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "file-sink-bin");
+        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "file-sink-bin-transform");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "file-sink-bin-caps-filter");
 
         m_pFileSink->SetAttribute("location", filepath);
         m_pFileSink->SetAttribute("sync", m_sync);
@@ -452,22 +452,22 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pParser = DSL_ELEMENT_NEW("h264parse", "sink-bin-parser");
             caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "sink-bin-parser");
+            m_pParser = DSL_ELEMENT_NEW("h265parse", "file-sink-bin-parser");
             caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_MPEG4 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "sink-bin-encoder");
-            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "sink-bin-parser");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "file-sink-bin-encoder");
+            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "file-sink-bin-parser");
             caps = gst_caps_from_string("video/x-raw, format=I420");
             break;
         default:
@@ -481,10 +481,10 @@ namespace DSL
         switch (muxer)
         {
         case DSL_MUXER_MPEG4 :
-            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "sink-bin-muxer");        
+            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "file-sink-bin-muxer");        
             break;
         case DSL_MUXER_MK4 :
-            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "sink-bin-muxer");        
+            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-muxer");        
             break;
         default:
             LOG_ERROR("Invalid muxer = '" << muxer << "' for new Sink '" << sink << "'");
@@ -515,7 +515,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("FileSinkBintr '" << m_name << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pTransform) or
@@ -537,7 +537,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
             return;
         }
         m_pMuxer->UnlinkFromSink();
@@ -579,4 +579,182 @@ namespace DSL
         return true;
     }
     
+    RtspSinkBintr::RtspSinkBintr(const char* sink, uint port, 
+        uint codec, uint bitRate, uint interval)
+        : SinkBintr(sink)
+        , m_host("224.224.255.255")
+        , m_port(port)
+        , m_sync(FALSE)
+        , m_async(FALSE)
+        , m_codec(codec)
+        , m_bitRate(bitRate)
+        , m_interval(interval)
+        , m_pServer(NULL)
+        , m_pFactory(NULL)
+    {
+        LOG_FUNC();
+        
+        m_isWindowCapable = false;
+
+        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", "rtsp-sink-bin");
+        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "rtsp-sink-bin-transform");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "rtsp-sink-bin-caps-filter");
+
+        m_pUdpSink->SetAttribute("host", m_host.c_str());
+        m_pUdpSink->SetAttribute("port", m_port);
+        m_pUdpSink->SetAttribute("sync", m_sync);
+        m_pUdpSink->SetAttribute("async", m_async);
+
+        GstCaps* caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+        m_pCapsFilter->SetAttribute("caps", caps);
+        
+        std::string codecString;
+        switch (codec)
+        {
+        case DSL_CODEC_H264 :
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "rtsp-sink-bin-encoder");
+            m_pParser = DSL_ELEMENT_NEW("h264parse", "rtsp-sink-bin-h264-parser");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "rtsp-sink-bin-h264-payloader");
+            codecString.assign("H264");
+            break;
+        case DSL_CODEC_H265 :
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "rtsp-sink-bin-encoder");
+            m_pParser = DSL_ELEMENT_NEW("h265parse", "rtsp-sink-bin-h265-parser");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h264-payloader");
+            codecString.assign("H265");
+            break;
+        default:
+            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << sink << "'");
+            throw;
+        }
+
+        m_pEncoder->SetAttribute("bitrate", m_bitRate);
+        m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        m_pEncoder->SetAttribute("preset-level", true);
+        m_pEncoder->SetAttribute("insert-sps-pps", true);
+        m_pEncoder->SetAttribute("bufapi-version", true);
+        
+        // Setup the GST RTSP Server
+        m_pServer = gst_rtsp_server_new();
+        g_object_set(m_pServer, "service", std::to_string(m_port).c_str(), NULL);
+
+        std::string udpSrc = "( udpsrc name=pay0 port=" + std::to_string(m_port) + 
+            " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
+            codecString + ", payload=96 \" )";
+        
+        // Create a nw RTSP Media Factory and set the launch settings
+        // to the UDP source defined above
+        m_pFactory = gst_rtsp_media_factory_new();
+        gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
+
+        LOG_INFO("UDP Src for RtspSinkBintr '" << m_name << "' = " << udpSrc);
+
+        // Get a handle to the Mount-Points object from the new RTSP Server
+        GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
+
+        // Attach the RTSP Media Factory to the mount-point-path in the mounts object.
+        std::string uniquePath = "/" + m_name + "-dsl-rtsp";
+        gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
+        g_object_unref(pMounts);
+
+        AddChild(m_pUdpSink);
+        AddChild(m_pTransform);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pEncoder);
+        AddChild(m_pParser);
+        AddChild(m_pPayloader);
+    }
+    
+    RtspSinkBintr::~RtspSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RtspSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtspSinkBintr '" << m_name << "' is already linked");
+            return false;
+        }
+        
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pPayloader) or
+            !m_pPayloader->LinkToSink(m_pUdpSink))
+        {
+            return false;
+        }
+
+        // Attach the server to the Main loop context. Server will accept
+        // connections the once main loop has been started
+        m_pServerSrcId = gst_rtsp_server_attach(m_pServer, NULL);
+
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RtspSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RtspSinkBintr '" << m_name << "' is not linked");
+            return;
+        }
+        if (m_pServerSrcId)
+        {
+            // Remove (destroy) the source from the Main loop context
+            g_source_remove(m_pServerSrcId);
+            m_pServerSrcId = 0;
+        }
+        
+        m_pPayloader->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    void  RtspSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
+    {
+        LOG_FUNC();
+        
+        *bitRate = m_bitRate;
+        *interval = m_interval;
+    }
+    
+    bool RtspSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_bitRate = bitRate;
+        m_interval = interval;
+
+        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
+        {
+            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        }
+        return true;
+    }
 }    

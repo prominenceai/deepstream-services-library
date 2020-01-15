@@ -639,3 +639,26 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
         }
     }
 }
+
+SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
+{
+    GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        uint port(8080);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        WHEN( "The DSL_CODEC_H264 RtspSinkBintr is created " )
+        {
+            DSL_RTSP_SINK_PTR pSinkBintr = 
+                DSL_RTSP_SINK_NEW(sinkName.c_str(), port, codec, bitrate, interval);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->IsWindowCapable() == false );
+            }
+        }
+    }
+}

@@ -49,6 +49,11 @@ namespace DSL
         std::shared_ptr<FileSinkBintr>( \
         new FileSinkBintr(sink, filepath, codec, muxer, bitRate, interval))
         
+    #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
+    #define DSL_RTSP_SINK_NEW(sink, port, codec, bitRate, interval) \
+        std::shared_ptr<RtspSinkBintr>( \
+        new RtspSinkBintr(sink, port, codec, bitRate, interval))
+        
 
     class SinkBintr : public Bintr
     {
@@ -270,7 +275,56 @@ namespace DSL
         DSL_ELEMENT_PTR m_pParser;
         DSL_ELEMENT_PTR m_pMuxer;       
     };
-}
     
+    class RtspSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        RtspSinkBintr(const char* sink, uint port, 
+            uint codec, uint bitRate, uint interval);
+
+        ~RtspSinkBintr();
+  
+        bool LinkAll();
+        
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current bit-rate and interval settings for the Encoder in use
+         * @param[out] bitRate the current bit-rate setting for the Encoder in use
+         * @param[out] interval the current iframe interval to write to file
+         */ 
+        void GetEncoderSettings(uint* bitRate, uint* interval);
+
+        /**
+         * @brief Sets the current bit-rate and interval settings for the Encoder in use
+         * @param[in] bitRate the new bit-rate setting in units of bits/sec
+         * @param[in] interval the new iframe-interval setting
+         * @return false if the FileSink is currently in Use. True otherwise
+         */ 
+        bool SetEncoderSettings(uint bitRate, uint interval);
+
+    private:
+
+        std::string m_host;
+        uint m_port;
+        uint m_codec;
+        uint m_bitRate;
+        uint m_interval;
+        boolean m_sync;
+        boolean m_async;
+        
+        GstRTSPServer* m_pServer;
+        uint m_pServerSrcId;
+        GstRTSPMediaFactory* m_pFactory;
+ 
+        DSL_ELEMENT_PTR m_pUdpSink;
+        DSL_ELEMENT_PTR m_pTransform;
+        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pEncoder;
+        DSL_ELEMENT_PTR m_pParser;
+        DSL_ELEMENT_PTR m_pPayloader;  
+    };
+}
 #endif // _DSL_SINK_BINTR_H
     

@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 #include <gst/gst.h>
 #include <gst/video/videooverlay.h>
+#include <gst/rtsp-server/rtsp-server.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
@@ -47,7 +48,6 @@ THE SOFTWARE.
 #include <deepstream_perf.h>
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
-
 
 #include "DslApi.h"
 #include "DslMutex.h"
