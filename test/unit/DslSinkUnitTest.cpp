@@ -361,22 +361,26 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[WindowSinkBintr]" 
 
 SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[FileSinkBintr]" )
 {
-    GIVEN( "Attributes for a new DSL_CODEC_MPEG4 ile Sink" ) 
+    GIVEN( "Attributes for a new DSL_CODEC_MPEG4 File Sink" ) 
     {
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         WHEN( "The DSL_CODEC_MPEG4 FileSinkBintr is created " )
         {
             DSL_FILE_SINK_PTR pSinkBintr = 
-                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
+                uint retCodec(0), retContainer(0);
+                pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
+                REQUIRE( retCodec == codec );
+                REQUIRE( retContainer == container);
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
@@ -390,12 +394,12 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "[F
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -418,12 +422,12 @@ SCENARIO( "A Linked DSL_CODEC_MPEG4 FileSinkBintr can UnlinkAll Child Elementrs"
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
@@ -447,17 +451,21 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSink
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H264 FileSinkBintr is created " )
         {
             DSL_FILE_SINK_PTR pSinkBintr = 
-                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
+                uint retCodec(0), retContainer(0);
+                pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
+                REQUIRE( retCodec == codec );
+                REQUIRE( retContainer == container);
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
@@ -471,12 +479,12 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[Fi
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -499,12 +507,12 @@ SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
@@ -528,17 +536,21 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSink
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H265 FileSinkBintr is created " )
         {
             DSL_FILE_SINK_PTR pSinkBintr = 
-                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+                DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
+                uint retCodec(0), retContainer(0);
+                pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
+                REQUIRE( retCodec == codec );
+                REQUIRE( retContainer == container);
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
@@ -552,12 +564,12 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[Fi
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -580,12 +592,12 @@ SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, bitrate, interval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
@@ -609,31 +621,31 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint container(DSL_CONTAINER_MPEG4);
         uint initBitrate(2000000);
         uint initInterval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
-            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, muxer, initBitrate, initInterval);
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, initBitrate, initInterval);
             
-        uint currBitRate(0);
+        uint currBitrate(0);
         uint currInterval(0);
     
-        pSinkBintr->GetEncoderSettings(&currBitRate, &currInterval);
-        REQUIRE( currBitRate == initBitrate );
+        pSinkBintr->GetEncoderSettings(&currBitrate, &currInterval);
+        REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
         {
-            uint newBitRate(3000000);
+            uint newBitrate(3000000);
             uint newInterval(5);
             
-            pSinkBintr->SetEncoderSettings(newBitRate, newInterval);
+            pSinkBintr->SetEncoderSettings(newBitrate, newInterval);
 
             THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
             {
-                pSinkBintr->GetEncoderSettings(&currBitRate, &currInterval);
-                REQUIRE( currBitRate == newBitRate );
+                pSinkBintr->GetEncoderSettings(&currBitrate, &currInterval);
+                REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
             }
         }
@@ -645,6 +657,7 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
     {
         std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
         uint port(8080);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
@@ -653,11 +666,157 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
         WHEN( "The DSL_CODEC_H264 RtspSinkBintr is created " )
         {
             DSL_RTSP_SINK_PTR pSinkBintr = 
-                DSL_RTSP_SINK_NEW(sinkName.c_str(), port, codec, bitrate, interval);
+                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
+                uint retPort(0), retCodec(0);
+                pSinkBintr->GetServerSettings(&retPort, &retCodec);
+                REQUIRE( retPort == port);
+                REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[RtspSinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_H264 RtspSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint port(8080);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        DSL_RTSP_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CODEC_H264 RtspSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H264 RtspSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs", "[RtspSinkBintr]" )
+{
+    GIVEN( "A DSL_CODEC_H264 RtspSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint port(8080);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        DSL_RTSP_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CODEC_H264 RtspSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CODEC_H264 RtspSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
+{
+    GIVEN( "Attributes for a new DSL_CODEC_H265 File Sink" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint port(8080);
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        WHEN( "The DSL_CODEC_H265 RtspSinkBintr is created " )
+        {
+            DSL_RTSP_SINK_PTR pSinkBintr = 
+                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                uint retPort(0), retCodec(0);
+                pSinkBintr->GetServerSettings(&retPort, &retCodec);
+                REQUIRE( retPort == port);
+                REQUIRE( retCodec == codec );
+                REQUIRE( pSinkBintr->IsWindowCapable() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[RtspSinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint port(8080);
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        DSL_RTSP_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CODEC_H265 RtspSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H265 RtspSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs", "[RtspSinkBintr]" )
+{
+    GIVEN( "A DSL_CODEC_H265 RtspSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint port(8080);
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(4000000);
+        uint interval(0);
+
+        DSL_RTSP_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CODEC_H265 RtspSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CODEC_H265 RtspSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
             }
         }
     }

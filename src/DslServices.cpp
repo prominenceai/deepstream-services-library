@@ -344,7 +344,7 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
-     uint codec, uint muxer, uint bit_rate, uint interval)
+     uint codec, uint container, uint bitrate, uint interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -352,27 +352,78 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
     std::string cstrPath(wstrPath.begin(), wstrPath.end());
 
     return DSL::Services::GetServices()->SinkFileNew(cstrName.c_str(), 
-        cstrPath.c_str(), codec, muxer, bit_rate, interval);
+        cstrPath.c_str(), codec, container, bitrate, interval);
 }     
 
+DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
+    uint* codec, uint* container)
+{    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkFileVideoFormatsGet(cstrName.c_str(), 
+        codec, container);
+}
+
 DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
-    uint* bit_rate, uint* interval)
+    uint* bitrate, uint* interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkFileEncoderSettingsGet(cstrName.c_str(), 
-        bit_rate, interval);
+        bitrate, interval);
 }    
 
 DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
-    uint bit_rate, uint interval)
+    uint bitrate, uint interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkFileEncoderSettingsSet(cstrName.c_str(), 
-        bit_rate, interval);
+        bitrate, interval);
+}    
+    
+DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+     uint port, uint codec, uint bitrate, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHost(host);
+    std::string cstrHost(wstrHost.begin(), wstrHost.end());
+
+    return DSL::Services::GetServices()->SinkRtspNew(cstrName.c_str(), 
+        cstrHost.c_str(), port, codec, bitrate, interval);
+}     
+
+DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
+    uint* port, uint* codec)
+{    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkRtspServerSettingsGet(cstrName.c_str(), 
+        port, codec);
+}    
+DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
+    uint* bitrate, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkRtspEncoderSettingsGet(cstrName.c_str(), 
+        bitrate, interval);
+}    
+
+DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
+    uint bitrate, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), 
+        bitrate, interval);
 }    
     
 DslReturnType dsl_component_delete(const wchar_t* component)
@@ -890,7 +941,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
@@ -916,7 +967,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
@@ -958,7 +1009,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Source name '" << name << "' is not unique");
             return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
@@ -1202,7 +1253,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("GIE name '" << name << "' is not unique");
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
@@ -1307,7 +1358,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("GIE name '" << name << "' is not unique");
             return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
@@ -1351,7 +1402,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("KTL Tracker name '" << name << "' is not unique");
             return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
@@ -1378,7 +1429,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("IOU Tracker name '" << name << "' is not unique");
             return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
@@ -1526,7 +1577,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Tiler name '" << name << "' is not unique");
             return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
@@ -1720,7 +1771,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("OSD name '" << name << "' is not unique");
             return DSL_RESULT_OSD_NAME_NOT_UNIQUE;
@@ -1807,7 +1858,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Sink name '" << name << "' is not unique");
             return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
@@ -1833,7 +1884,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Sink name '" << name << "' is not unique");
             return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
@@ -1853,20 +1904,30 @@ namespace DSL
     }
     
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint muxer, uint bit_rate, uint interval)
+            uint codec, uint container, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure component name uniqueness 
-        if (m_components[name])
+        if (m_components.find(name) != m_components.end())
         {   
             LOG_ERROR("Sink name '" << name << "' is not unique");
             return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
         }
+        if (codec > DSL_CODEC_MPEG4)
+        {   
+            LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+            return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+        }
+        if (container > DSL_CONTAINER_MK4)
+        {   
+            LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+            return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
+        }
         try
         {
-            m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, muxer, bit_rate, interval);
+            m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval);
         }
         catch(...)
         {
@@ -1878,7 +1939,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkFileEncoderSettingsGet(const char* name, uint* bit_rate, uint* interval)
+    DslReturnType Services::SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1889,7 +1950,28 @@ namespace DSL
             DSL_FILE_SINK_PTR fileSinkBintr = 
                 std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
 
-            fileSinkBintr->GetEncoderSettings(bit_rate, interval);
+            fileSinkBintr->GetVideoFormats(codec, container);
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink '" << name << "' threw an exception getting Video formats");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        try
+        {
+            DSL_FILE_SINK_PTR fileSinkBintr = 
+                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+
+            fileSinkBintr->GetEncoderSettings(bitrate, interval);
         }
         catch(...)
         {
@@ -1899,7 +1981,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkFileEncoderSettingsSet(const char* name, uint bit_rate, uint interval)
+    DslReturnType Services::SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1916,19 +1998,124 @@ namespace DSL
             DSL_FILE_SINK_PTR fileSinkBintr = 
                 std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
 
-            if (!fileSinkBintr->SetEncoderSettings(bit_rate, interval))
+            if (!fileSinkBintr->SetEncoderSettings(bitrate, interval))
             {
-                LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
+                LOG_ERROR("File Sink '" << name << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
+            uint port, uint codec, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        if (codec > DSL_CODEC_H265)
+        {   
+            LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+            return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+        }
+        try
+        {
+            m_components[name] = DSL_RTSP_SINK_NEW(name, host, port, codec, bitrate, interval);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTSP Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("New RTSP Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* port, uint* codec)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        try
+        {
+            DSL_RTSP_SINK_PTR rtspSinkBintr = 
+                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+
+            rtspSinkBintr->GetServerSettings(port, codec);
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        try
+        {
+            DSL_RTSP_SINK_PTR rtspSinkBintr = 
+                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+
+            rtspSinkBintr->GetEncoderSettings(bitrate, interval);
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+
+        if (m_components[name]->IsInUse())
+        {
+            LOG_ERROR("Unable to set Encoder settings for RTSP Sink '" << name 
+                << "' as it's currently in use");
+            return DSL_RESULT_SINK_IS_IN_USE;
+        }
+        try
+        {
+            DSL_RTSP_SINK_PTR rtspSinkBintr = 
+                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+
+            if (!rtspSinkBintr->SetEncoderSettings(bitrate, interval))
+            {
+                LOG_ERROR("RTSP Sink '" << name << "' failed to set Encoder settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Sink '" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
 
     DslReturnType Services::ComponentDelete(const char* component)
     {

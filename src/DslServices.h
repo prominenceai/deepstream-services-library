@@ -127,9 +127,20 @@ namespace DSL {
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
             
-        DslReturnType SinkFileEncoderSettingsGet(const char* name, uint* bit_rate, uint* interval);
+        DslReturnType SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container);
 
-        DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bit_rate, uint interval);
+        DslReturnType SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
+
+        DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+
+        DslReturnType SinkRtspNew(const char* name, const char* host, 
+            uint port, uint codec, uint bit_rate, uint interval);
+            
+        DslReturnType SinkRtspServerSettingsGet(const char* name, uint* port, uint* codec);
+
+        DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
+
+        DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
 
         // TODO        
         // boolean ComponentIsInUse(const char* component);

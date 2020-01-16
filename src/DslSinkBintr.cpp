@@ -425,14 +425,14 @@ namespace DSL
     }
     
     FileSinkBintr::FileSinkBintr(const char* sink, const char* filepath, 
-        uint codec, uint muxer, uint bitRate, uint interval)
+        uint codec, uint container, uint bitRate, uint interval)
         : SinkBintr(sink)
         , m_sync(FALSE)
         , m_async(FALSE)
         , m_codec(codec)
         , m_bitRate(bitRate)
         , m_interval(interval)
-        , m_muxer(muxer)
+        , m_container(container)
     {
         LOG_FUNC();
         
@@ -478,16 +478,16 @@ namespace DSL
         m_pEncoder->SetAttribute("bufapi-version", true);
         m_pCapsFilter->SetAttribute("caps", caps);
         
-        switch (muxer)
+        switch (container)
         {
-        case DSL_MUXER_MPEG4 :
-            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "file-sink-bin-muxer");        
+        case DSL_CONTAINER_MPEG4 :
+            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "file-sink-bin-container");        
             break;
-        case DSL_MUXER_MK4 :
-            m_pMuxer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-muxer");        
+        case DSL_CONTAINER_MK4 :
+            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-container");        
             break;
         default:
-            LOG_ERROR("Invalid muxer = '" << muxer << "' for new Sink '" << sink << "'");
+            LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << sink << "'");
             throw;
         }
 
@@ -496,7 +496,7 @@ namespace DSL
         AddChild(m_pCapsFilter);
         AddChild(m_pEncoder);
         AddChild(m_pParser);
-        AddChild(m_pMuxer);
+        AddChild(m_pContainer);
     }
     
     FileSinkBintr::~FileSinkBintr()
@@ -522,8 +522,8 @@ namespace DSL
             !m_pTransform->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
             !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pMuxer) or
-            !m_pMuxer->LinkToSink(m_pFileSink))
+            !m_pParser->LinkToSink(m_pContainer) or
+            !m_pContainer->LinkToSink(m_pFileSink))
         {
             return false;
         }
@@ -540,7 +540,7 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pMuxer->UnlinkFromSink();
+        m_pContainer->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
         m_pEncoder->UnlinkFromSink();
         m_pCapsFilter->UnlinkFromSink();
@@ -549,6 +549,14 @@ namespace DSL
         m_isLinked = false;
     }
 
+    void  FileSinkBintr::GetVideoFormats(uint* codec, uint* container)
+    {
+        LOG_FUNC();
+        
+        *codec = m_codec;
+        *container = m_container;
+    }
+    
     void  FileSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
     {
         LOG_FUNC();
@@ -578,11 +586,10 @@ namespace DSL
         }
         return true;
     }
-    
-    RtspSinkBintr::RtspSinkBintr(const char* sink, uint port, 
-        uint codec, uint bitRate, uint interval)
+    RtspSinkBintr::RtspSinkBintr(const char* sink, const char* host, uint port, uint codec,  
+        uint bitRate, uint interval)
         : SinkBintr(sink)
-        , m_host("224.224.255.255")
+        , m_host(host)
         , m_port(port)
         , m_sync(FALSE)
         , m_async(FALSE)
@@ -612,15 +619,15 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "rtsp-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "rtsp-sink-bin-h264-encoder");
             m_pParser = DSL_ELEMENT_NEW("h264parse", "rtsp-sink-bin-h264-parser");
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "rtsp-sink-bin-h264-payloader");
             codecString.assign("H264");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "rtsp-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "rtsp-sink-bin-h265-encoder");
             m_pParser = DSL_ELEMENT_NEW("h265parse", "rtsp-sink-bin-h265-parser");
-            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h264-payloader");
+            m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h265-payloader");
             codecString.assign("H265");
             break;
         default:
@@ -638,9 +645,9 @@ namespace DSL
         m_pServer = gst_rtsp_server_new();
         g_object_set(m_pServer, "service", std::to_string(m_port).c_str(), NULL);
 
-        std::string udpSrc = "( udpsrc name=pay0 port=" + std::to_string(m_port) + 
+        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_port) + 
             " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
-            codecString + ", payload=96 \" )";
+            codecString + ", payload=96 \")";
         
         // Create a nw RTSP Media Factory and set the launch settings
         // to the UDP source defined above
@@ -653,7 +660,7 @@ namespace DSL
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
 
         // Attach the RTSP Media Factory to the mount-point-path in the mounts object.
-        std::string uniquePath = "/" + m_name + "-dsl-rtsp";
+        std::string uniquePath = "/" + m_name;
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
@@ -727,7 +734,15 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
-
+    
+    void RtspSinkBintr::GetServerSettings(uint* port, uint* codec)
+    {
+        LOG_FUNC();
+        
+        *port = m_port;
+        *codec = m_codec;
+    }
+    
     void  RtspSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
     {
         LOG_FUNC();
