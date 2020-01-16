@@ -103,7 +103,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (m_pChildren[pChild->m_name])
+            if (IsChild(pChild))
             {
                 LOG_ERROR("Child '" << pChild->m_name << "' is not unique for Parent '" <<m_name << "'");
                 return false;
@@ -163,7 +163,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return bool(m_pChildren[pChild->GetName()]);
+            return (m_pChildren.find(pChild->GetName()) != m_pChildren.end());
         }
         
         /**

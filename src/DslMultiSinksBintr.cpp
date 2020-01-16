@@ -84,7 +84,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (bool)m_pChildSinks[pChildSink->GetName()];
+        return (m_pChildSinks.find(pChildSink->GetName()) != m_pChildSinks.end());
     }
 
     bool MultiSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)

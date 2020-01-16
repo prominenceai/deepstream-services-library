@@ -149,7 +149,7 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set Tiles for TilerBintr '" << GetName() 
+            LOG_ERROR("Unable to set Dimensions for TilerBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }

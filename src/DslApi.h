@@ -93,6 +93,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
+#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
+
 
 /**
  * OSD API Return Values
@@ -128,16 +131,16 @@ THE SOFTWARE.
 /**
  * Display API Return Values
  */
-#define DSL_RESULT_TILER_RESULT                                   0x00070000
-#define DSL_RESULT_TILER_NAME_NOT_UNIQUE                          0x00070001
-#define DSL_RESULT_TILER_NAME_NOT_FOUND                           0x00070002
-#define DSL_RESULT_TILER_NAME_BAD_FORMAT                          0x00070003
-#define DSL_RESULT_TILER_THREW_EXCEPTION                          0x00070004
-#define DSL_RESULT_TILER_IS_IN_USE                                0x00070005
-#define DSL_RESULT_TILER_SET_FAILED                               0x00070006
-#define DSL_RESULT_TILER_HANDLER_ADD_FAILED                       0x00070007
-#define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                    0x00070008
-#define DSL_RESULT_TILER_PAD_TYPE_INVALID                         0x00070009
+#define DSL_RESULT_TILER_RESULT                                     0x00070000
+#define DSL_RESULT_TILER_NAME_NOT_UNIQUE                            0x00070001
+#define DSL_RESULT_TILER_NAME_NOT_FOUND                             0x00070002
+#define DSL_RESULT_TILER_NAME_BAD_FORMAT                            0x00070003
+#define DSL_RESULT_TILER_THREW_EXCEPTION                            0x00070004
+#define DSL_RESULT_TILER_IS_IN_USE                                  0x00070005
+#define DSL_RESULT_TILER_SET_FAILED                                 0x00070006
+#define DSL_RESULT_TILER_HANDLER_ADD_FAILED                         0x00070007
+#define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
+#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 
 /**
  * Pipeline API Return Values
@@ -172,8 +175,8 @@ THE SOFTWARE.
 #define DSL_CODEC_H265                                              1
 #define DSL_CODEC_MPEG4                                             2
 
-#define DSL_MUXER_MPEG4                                             0
-#define DSL_MUXER_MK4                                               1
+#define DSL_CONTAINER_MPEG4                                         0
+#define DSL_CONTAINER_MK4                                           1
 
 #define DSL_STATE_NULL                                              1
 #define DSL_STATE_READY                                             2
@@ -614,33 +617,86 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
  * @param name unique component name for the new File Sink
  * @param filepath absolute or relative file path including extension
  * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
- * @param muxer one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param bit_rate in bits per second - H264 and H265 only
- * @param interval iframe interval to wite out at
+ * @param container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param bitrate in bits per second - H264 and H265 only
+ * @param interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
-     uint codec, uint muxer, uint bit_rate, uint interval);
+     uint codec, uint container, uint bitrate, uint interval);
 
 /**
- * @brief gets the current bit_rate and interval settings for the named File Sink
+ * @brief gets the current codec and video media container formats
+ * @param[in] name unique name of the Sink to query
+ * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
+    uint* codec, uint* container);
+
+/**
+ * @brief gets the current bit-rate and interval settings for the named File Sink
  * @param name unique name of the File Sink to query
- * @param bit_rate current Encoder bit-rate in bits/sec for the named File Sink
+ * @param bitrate current Encoder bit-rate in bits/sec for the named File Sink
  * @param interval current Encoder iframe interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
-    uint* bit_rate, uint* interval);
+    uint* bitrate, uint* interval);
 
 /**
  * @brief sets new bit_rate and interval settings for the named File Sink
  * @param name unique name of the File Sink to update
- * @param bit_rate new Encoder bit-rate in bits/sec for the named File Sink
+ * @param bitrate new Encoder bit-rate in bits/sec for the named File Sink
  * @param interval new Encoder iframe interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
-    uint bit_rate, uint interval);
+    uint bitrate, uint interval);
+
+/**
+ * @brief creates a new, uniquely named RTSP Sink component
+ * @param name unique coomponent name for the new RTSP Sink
+ * @param host address for the RTSP Server
+ * @param port UDP port number for the RTSP Server
+ * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265
+ * @param bitrate in bits per second
+ * @param interval iframe interval to encode at
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+     uint port, uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief gets the current codec and video media container formats
+ * @param[in] name unique name of the Sink to query
+ * @param[out] port UDP Port number to use
+ * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
+    uint* port, uint* codec);
+
+/**
+ * @brief gets the current bit-rate and interval settings for the named RTSP Sink
+ * @param name unique name of the RTSP Sink to query
+ * @param bitrate current Encoder bit-rate in bits/sec for the named RTSP Sink
+ * @param interval current Encoder iframe interval value
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
+    uint* bitrate, uint* interval);
+
+/**
+ * @brief sets new bit_rate and interval settings for the named RTSP Sink
+ * @param name unique name of the RTSP Sink to update
+ * @param bitrate new Encoder bit-rate in bits/sec for the named RTSP Sink
+ * @param interval new Encoder iframe interval value to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
+    uint bitrate, uint interval);
 
 /**
  * @brief deletes a Component object by name

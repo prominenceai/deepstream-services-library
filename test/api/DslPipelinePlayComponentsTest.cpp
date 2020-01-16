@@ -520,7 +520,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint muxer(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -549,7 +549,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -578,7 +578,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint muxer(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -607,7 +607,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -636,7 +636,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_M
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint muxer(DSL_MUXER_MPEG4);
+        uint muxer(DSL_CONTAINER_MPEG4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -665,7 +665,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_M
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

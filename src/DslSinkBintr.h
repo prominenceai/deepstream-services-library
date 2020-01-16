@@ -45,9 +45,14 @@ namespace DSL
         new WindowSinkBintr(sink, offsetX, offsetY, width, height))
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
-    #define DSL_FILE_SINK_NEW(sink, filepath, codec, muxer, bitRate, interval) \
+    #define DSL_FILE_SINK_NEW(sink, filepath, codec, container, bitRate, interval) \
         std::shared_ptr<FileSinkBintr>( \
-        new FileSinkBintr(sink, filepath, codec, muxer, bitRate, interval))
+        new FileSinkBintr(sink, filepath, codec, container, bitRate, interval))
+        
+    #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
+    #define DSL_RTSP_SINK_NEW(sink, host, port, codec, bitRate, interval) \
+        std::shared_ptr<RtspSinkBintr>( \
+        new RtspSinkBintr(sink, host, port, codec, bitRate, interval))
         
 
     class SinkBintr : public Bintr
@@ -111,8 +116,16 @@ namespace DSL
 
         ~OverlaySinkBintr();
   
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
         void UnlinkAll();
 
         int GetDisplayId();
@@ -176,8 +189,16 @@ namespace DSL
 
         ~WindowSinkBintr();
   
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
         void UnlinkAll();
 
         /**
@@ -231,13 +252,88 @@ namespace DSL
     public: 
     
         FileSinkBintr(const char* sink, const char* filepath, 
-            uint codec, uint muxer, uint bitRate, uint interval);
+            uint codec, uint container, uint bitRate, uint interval);
 
         ~FileSinkBintr();
   
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
         bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
         void UnlinkAll();
+
+        /**
+         * @brief Gets the current codec and media container formats for FileSinkBintr
+         * @param[out] codec the current codec format in use [MPEG, H.264, H.265]
+         * @param[out] container the current media container format [MPEG, MK4]
+         */ 
+        void GetVideoFormats(uint* codec, uint* container);
+
+        /**
+         * @brief Gets the current bit-rate and interval settings for the Encoder in use
+         * @param[out] bitRate the current bit-rate setting for the encoder in use
+         * @param[out] interval the current iframe interval for the encoder in use
+         */ 
+        void GetEncoderSettings(uint* bitRate, uint* interval);
+
+        /**
+         * @brief Sets the current bit-rate and interval settings for the Encoder in use
+         * @param[in] bitRate the new bit-rate setting in units of bits/sec
+         * @param[in] interval the new iframe-interval setting
+         * @return false if the FileSink is currently in Use. True otherwise
+         */ 
+        bool SetEncoderSettings(uint bitRate, uint interval);
+
+    private:
+
+        uint m_codec;
+        uint m_container;
+        uint m_bitRate;
+        uint m_interval;
+        boolean m_sync;
+        boolean m_async;
+ 
+        DSL_ELEMENT_PTR m_pFileSink;
+        DSL_ELEMENT_PTR m_pTransform;
+        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pEncoder;
+        DSL_ELEMENT_PTR m_pParser;
+        DSL_ELEMENT_PTR m_pContainer;       
+    };
+    
+    class RtspSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        RtspSinkBintr(const char* sink, const char* host, uint port, uint codec, 
+            uint bitRate, uint interval);
+
+        ~RtspSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current codec and media container formats for RtspSinkBintr
+         * @param[out] port the current UDP port number for the RTSP Server
+         * @param[out] codec the current codec format in use [H.264, H.265]
+         */ 
+        void GetServerSettings( uint* port, uint* codec);
 
         /**
          * @brief Gets the current bit-rate and interval settings for the Encoder in use
@@ -256,21 +352,25 @@ namespace DSL
 
     private:
 
+        std::string m_host;
+        uint m_port;
         uint m_codec;
-        uint m_muxer;
         uint m_bitRate;
         uint m_interval;
         boolean m_sync;
         boolean m_async;
+        
+        GstRTSPServer* m_pServer;
+        uint m_pServerSrcId;
+        GstRTSPMediaFactory* m_pFactory;
  
-        DSL_ELEMENT_PTR m_pFileSink;
+        DSL_ELEMENT_PTR m_pUdpSink;
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pCapsFilter;
         DSL_ELEMENT_PTR m_pEncoder;
         DSL_ELEMENT_PTR m_pParser;
-        DSL_ELEMENT_PTR m_pMuxer;       
+        DSL_ELEMENT_PTR m_pPayloader;  
     };
 }
-    
 #endif // _DSL_SINK_BINTR_H
     

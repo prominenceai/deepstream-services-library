@@ -114,7 +114,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (bool)m_pChildSources[pChildSource->GetName()];
+        return (m_pChildSources.find(pChildSource->GetName()) != m_pChildSources.end());
     }
 
     bool PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
