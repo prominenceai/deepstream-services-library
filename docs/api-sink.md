@@ -34,13 +34,11 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_window_dimensions_get](#dsl_sink_window_dimensions_get)
 * [dsl_sink_window_dimensions_set](#dsl_sink_window_dimensions_set)
 * [dsl_sink_file_video_formats_get](#dsl_sink_file_video_formats_get)
-* [dsl_sink_file_video_formats_set](#dsl_sink_file_video_formats_set)
-* [dsl_sink_file_code_settings_get](#dsl_sink_file_code_settings_get)
-* [dsl_sink_file_code_settings_set](#dsl_sink_file_code_settings_set)
+* [dsl_sink_file_encoder_settings_get](#dsl_sink_file_encoder_settings_get)
+* [dsl_sink_file_encoder_settings_set](#dsl_sink_file_encoder_settings_set)
 * [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
-* [dsl_sink_rtsp_server_settings_set](#dsl_sink_rtsp_server_settings_set)
-* [dsl_sink_rtsp_code_settings_get](#dsl_sink_rtsp_code_settings_get)
-* [dsl_sink_rtsp_code_settings_set](#dsl_sink_rtsp_code_settings_set)
+* [dsl_sink_rtsp_encoder_settings_get](#dsl_sink_rtsp_code_settings_get)
+* [dsl_sink_rtsp_encoder_settings_set](#dsl_sink_rtsp_code_settings_set)
 * [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
 * [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)
@@ -371,31 +369,10 @@ retval, codec, container = dsl_sink_file_video_formats_get('my-window-sink')
 
 <br>
 
-### *dsl_sink_file_video_formats_set*
-This service sets the current codec and container formats for the uniquely named File Sink. The service will fail if the File Sink is currently `in-use`.
-```C++
-DslReturnType dsl_sink_file_video_formats_set(const wchar_t* name, 
-    uint codec, uint container);
-```
-**Parameters**
-* `name` - [in] unique name of the File Sink to update.
-* `codec` - [in] the new [Codec Type](#Codec Types) setting to use.
-* `container` - [in] the new  [Video Container Type](#Video Container Types) setting to use.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_sink_file_video_formats_set('my-file-sink', DSL_CODEC_H265, DSL_CONTAINER_MK4)
-```
-
-<br>
-
-### *dsl_sink_file_code_settings_get*
+### *dsl_sink_file_encoder_settings_get*
 This service returns the current bitrate and interval settings for the uniquely named File Sink.
 ```C++
-DslReturnType dsl_sink_file_code_settings_get(const wchar_t* name, 
+DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name, 
     uint* bitrate, uint* interval);
 ```
 **Parameters**
@@ -408,15 +385,15 @@ DslReturnType dsl_sink_file_code_settings_get(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval, bitrate, interval = dsl_sink_file_code_settings_get('my-file-sink')
+retval, bitrate, interval = dsl_sink_file_encoder_settings_get('my-file-sink')
 ```
 
 <br>
 
-### *dsl_sink_file_code_settings_set*
+### *dsl_sink_file_encoder_settings_set*
 This service sets the bitrate and interval settings for the uniquely named File Sink. The service will fail if the File Sink is currently `in-use`.
 ```C++
-DslReturnType dsl_sink_file_settings_set(const wchar_t* name, 
+DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name, 
     uint bitrate, uint interval);
 ```
 **Parameters**
@@ -429,7 +406,7 @@ DslReturnType dsl_sink_file_settings_set(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval = dsl_sink_file_code_settings_set('my-file-sink', 2000000, 1)
+retval = dsl_sink_file_encoder_settings_set('my-file-sink', 2000000, 1)
 ```
 
 <br>
@@ -455,31 +432,10 @@ retval, codec, port = dsl_sink_rtsp_server_settings_get('my-rtsp-sink')
 
 <br>
 
-### *dsl_sink_rtsp_server_settings_set*
-This service sets the current codec and container formats for the named RTSP Sink. The service will fail if the File Sink is currently `in-use`.
-```C++
-DslReturnType dsl_sink_rtsp_server_settings_set(const wchar_t* name, 
-    uint codec, uint container);
-```
-**Parameters**
-* `name` - [in] unique name of the RTSP Sink to update.
-* `codec` - [in] the new [Codec Type](#Codec Types) setting to use.
-* `container` - [in] the new UDP Port numbre to use.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_sink_rtsp_server_settings_set('my-rtsp-sink', DSL_CODEC_H265, 8080)
-```
-
-<br>
-
-### *dsl_sink_rtsp_code_settings_get*
+### *dsl_sink_rtsp_encoder_settings_get*
 This service returns the current bitrate and interval settings for the uniquely named RTSP Sink.
 ```C++
-DslReturnType dsl_sink_rtsp_code_settings_get(const wchar_t* name, 
+DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name, 
     uint* bitrate, uint* interval);
 ```
 **Parameters**
@@ -492,15 +448,15 @@ DslReturnType dsl_sink_rtsp_code_settings_get(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval, bitrate, interval = dsl_sink_rtsp_code_settings_get('my-rtsp-sink')
+retval, bitrate, interval = dsl_sink_rtsp_encoder_settings_get('my-rtsp-sink')
 ```
 
 <br>
 
-### *dsl_sink_rtsp_code_settings_set*
+### *dsl_sink_rtsp_encoder_settings_set*
 This service sets the bitrate and interval settings for the uniquely named RTSP Sink. The service will fail if the File Sink is currently `in-use`.
 ```C++
-DslReturnType dsl_sink_rtsp_settings_set(const wchar_t* name, 
+DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name, 
     uint bitrate, uint interval);
 ```
 **Parameters**
@@ -513,7 +469,7 @@ DslReturnType dsl_sink_rtsp_settings_set(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval = dsl_sink_rtsp_code_settings_set('my-rtsp-sink', 4000000, 1)
+retval = dsl_sink_rtsp_encoder_settings_set('my-rtsp-sink', 4000000, 1)
 ```
 
 <br>
