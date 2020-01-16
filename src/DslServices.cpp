@@ -805,20 +805,20 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
-#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(_pipelines_, _name_) do \
+#define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
 { \
-    if (!_pipelines_[_name_]) \
+    if (pipelines.find(name) == pipelines.end()) \
     { \
-        LOG_ERROR("Pipeline name '" << _name_ << "' was not found"); \
+        LOG_ERROR("Pipeline name '" << name << "' was not found"); \
         return DSL_RESULT_PIPELINE_NAME_NOT_FOUND; \
     } \
 }while(0); 
     
-#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(_components_, _name_) do \
+#define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
 { \
-    if (!_components_[_name_]) \
+    if (components.find(name) == components.end()) \
     { \
-        LOG_ERROR("Component name '" << _name_ << "' was not found"); \
+        LOG_ERROR("Component name '" << name << "' was not found"); \
         return DSL_RESULT_COMPONENT_NAME_NOT_FOUND; \
     } \
 }while(0); 

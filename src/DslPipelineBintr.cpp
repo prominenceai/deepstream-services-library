@@ -567,7 +567,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (m_stateChangeListeners[listener])
+        if (m_stateChangeListeners.find(listener) != m_stateChangeListeners.end())
         {   
             LOG_ERROR("Pipeline listener is not unique");
             return false;
@@ -581,7 +581,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_stateChangeListeners[listener])
+        if (m_stateChangeListeners.find(listener) == m_stateChangeListeners.end())
         {   
             LOG_ERROR("Pipeline listener was not found");
             return false;
@@ -595,7 +595,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (m_eosListeners[listener])
+        if (m_eosListeners.find(listener) != m_eosListeners.end())
         {   
             LOG_ERROR("Pipeline listener is not unique");
             return false;
@@ -609,7 +609,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_eosListeners[listener])
+        if (m_eosListeners.find(listener) == m_eosListeners.end())
         {   
             LOG_ERROR("Pipeline listener was not found");
             return false;
@@ -623,7 +623,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_xWindowKeyEventHandlers[handler])
+        if (m_xWindowKeyEventHandlers.find(handler) != m_xWindowKeyEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler is not unique");
             return false;
@@ -637,7 +637,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_xWindowKeyEventHandlers[handler])
+        if (m_xWindowKeyEventHandlers.find(handler) == m_xWindowKeyEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler was not found");
             return false;
@@ -651,7 +651,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_xWindowButtonEventHandlers[handler])
+        if (m_xWindowButtonEventHandlers.find(handler) != m_xWindowButtonEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler is not unique");
             return false;
@@ -665,7 +665,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_xWindowButtonEventHandlers[handler])
+        if (m_xWindowButtonEventHandlers.find(handler) == m_xWindowButtonEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler was not found");
             return false;
@@ -679,7 +679,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_xWindowDeleteEventHandlers[handler])
+        if (m_xWindowDeleteEventHandlers.find(handler) != m_xWindowDeleteEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler is not unique");
             return false;
@@ -693,7 +693,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_xWindowDeleteEventHandlers[handler])
+        if (m_xWindowDeleteEventHandlers.find(handler) == m_xWindowDeleteEventHandlers.end())
         {   
             LOG_ERROR("Pipeline handler was not found");
             return false;

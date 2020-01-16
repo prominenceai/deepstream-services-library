@@ -455,13 +455,15 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "sink-bin-parser");
+            m_pEncoder->SetAttribute("bufapi-version", true);
+            m_pParser = DSL_ELEMENT_NEW("h264parse", "file-sink-bin-parser");
             caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
+            m_pEncoder->SetAttribute("bufapi-version", true);
             m_pParser = DSL_ELEMENT_NEW("h265parse", "file-sink-bin-parser");
             caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
@@ -475,7 +477,6 @@ namespace DSL
             throw;
         }
 
-        m_pEncoder->SetAttribute("bufapi-version", true);
         m_pCapsFilter->SetAttribute("caps", caps);
         
         switch (container)

@@ -141,7 +141,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (bool)m_pChildSecondaryGies[pChildSecondaryGie->GetName()];
+        return (m_pChildSecondaryGies.find(pChildSecondaryGie->GetName()) != m_pChildSecondaryGies.end());
     }
 
     bool PipelineSecondaryGiesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
