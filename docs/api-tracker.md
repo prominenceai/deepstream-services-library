@@ -136,3 +136,15 @@ DslReturnType dsl_tracker_meta_batch_handler_remove(const wchar_t* name,
 `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 <br>
 
+---
+
+## API Reference
+* [Source](/docs/source-api.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-gie.md)
+* **Tracker**
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](docs/api-sink.md)
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
