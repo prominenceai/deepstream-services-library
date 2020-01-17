@@ -44,7 +44,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
 
 ## Return Values
-Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md#Return Values).
+Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
 ```C++
 #define DSL_RESULT_SUCCESS                                          0x00000000
 
@@ -381,3 +381,17 @@ This service sets the "maximum number of Source" that can be `in-use` at any one
 ```Python
 retval = dsl_source_num_in_use_max_set(24)
 ```
+---
+
+## API Reference
+* **Source**
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-gie.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](docs/api-sink.md)
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
+
+
