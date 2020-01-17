@@ -10,9 +10,9 @@ Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete),
 Child components - Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks - are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of Child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
 
 Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
-#### Playing, Pauing and Stoping a Pipeline
+#### Playing, Pauing and Stopping a Pipeline
 
-Pipelines - with a minimum required set of components - can be `played` by calling [dsl_pipeline_play](#dsl_pipeline_play), `paused` by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and `stoped` by calling [dsl_pipeline_stop](#dsl_pipeline_stop).
+Pipelines - with a minimum required set of components - can be `played` by calling [dsl_pipeline_play](#dsl_pipeline_play), `paused` by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and `stopped` by calling [dsl_pipeline_stop](#dsl_pipeline_stop).
 
 #### Pipeline Client-Listener Notifications
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
