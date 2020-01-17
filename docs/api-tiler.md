@@ -142,9 +142,9 @@ added to more than one Tiled Display.
 * [Source](/docs/source-api.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Seconday GIE](/docs/api-git.md)
-* **Tracker**
+* [Tracker](/docs/api-tracker)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler](/docs/api-tiler.md)
+* **Tiler**
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
 * [Pipeline](/docs/api-pipeline.md)
