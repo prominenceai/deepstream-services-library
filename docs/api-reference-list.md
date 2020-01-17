@@ -19,6 +19,9 @@
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
 * Other TBD
 
+### Dewarpper:
+* Other TBD
+
 ### Primary and Secondary GIE API:
 * [dsl_gie_primary_new](/docs/api-gie.md#dsl_gie_primary_new)
 * [dsl_gie_secondary_new](/docs/api-gie.md#dsl_gie_secondary_new)
