@@ -44,7 +44,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
 
 ## Return Values
-Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](api-component.md#Return Values).
+Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md#Return Values).
 ```C++
 #define DSL_RESULT_SUCCESS                                          0x00000000
 
@@ -76,7 +76,7 @@ Streaming Source Methods use the following return codes, in addition to the gene
 ### *dsl_source_csi_new*
 ```C++
 DslReturnType dsl_source_csi_new(const wchar_t* source,
-    guint width, guint height, guint fps_n, guint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named CSI Camera Source object. 
 
