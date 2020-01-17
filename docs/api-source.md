@@ -1,24 +1,24 @@
 # Sources
-Streaming Sources are the head component for any DSL GStreamer Pipeline. At minimum, a Pipeline must have one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources:
-1. Camera Serial Interface ( CSI )
-2. Video For Linux ( V4L2 )
+Sources are the head components for all DSL GStreamer Pipeline. Pipeline must have at least one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources:
+1. Camera Serial Interface ( CSI ) - 
+2. Universal Serial Bus ( USB )
 2. Uniform Resource Identifier ( URI )
 4. Real-time Messaging Protocol ( RTMP )
 
 Sources are created using one of four type-specific constructors. As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
 
-Streaming Sources are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](#dsl_pipeline_component_remove) or [dsl_pipeline_component_remove_many](dsl_pipeline_component_remove_many). 
+Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all]((api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. Sources are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many)
+The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can used with another. Sinks are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
-There is no (practical) limit to the number of Sources that can be created, just to the number of Sources that can be **in use** - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use. 
+There is no (practical) limit to the number of Sources that can be created, just to the number of Sources that can be `in use` - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use. 
 
-The maximum number of in-use sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_source_get_num_in_use_max](#dsl_source_get_num_in_use_max) and updated with [dsl_source_set_num_in_use_max](#dsl_source_set_num_in_use_max). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use). 
+The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get) and updated with [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use). 
 
 
 ## Source API
 * [dsl_source_csi_new](#dsl_source_csi_new)
-* [dsl_source_v4l2_new](#dsl_source_v4l2_new)
+* [dsl_source_usb_new](#dsl_source_usb_new)
 * [dsl_source_uri_new](#dsl_source_uri_new)
 * [dsl_source_rtmp_new](#dsl_source_rtmp_new)
 * [dsl_source_pause](#dsl_source_pause)
@@ -34,15 +34,22 @@ Streaming Source Methods use the following return codes
 ```C++
 #define DSL_RESULT_SUCCESS                                          0x00000000
 
-#define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00100001
-#define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00100010
-#define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00100011
-#define DSL_RESULT_SOURCE_NEW_EXCEPTION                             0x00100100
-#define DSL_RESULT_SOURCE_STREAM_FILE_NOT_FOUND                     0x00100101
-#define DSL_RESULT_SOURCE_STATE_READY                               0x00100110
-#define DSL_RESULT_SOURCE_STATE_PAUSED                              0x00100111
-#define DSL_RESULT_SOURCE_STATE_PLAYING                             0x00101000
+#define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
+#define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
+#define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
+#define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
+#define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
 ```
+
+<br>
+
 ## Constructors
 
 ### *dsl_source_csi_new*
@@ -59,11 +66,12 @@ Creates a new, uniquely named CSI Camera Source object
 * `fps-n` - frames per second fraction numerator
 * `fps-d` - frames per second fraction denominator
 
-**Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
-### *dsl_source_v4l2_new*
+### *dsl_source_usb_new*
 TBI
 
 <br>
@@ -85,7 +93,8 @@ Cuda decode memory types
 #define DSL_CUDADEC_MEMTYPE_PINNED   1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED  2
 ```
-**Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
@@ -93,7 +102,7 @@ Cuda decode memory types
 TBI
 
 ## Destructors
-As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many).
+As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 ## Methods
 
@@ -101,13 +110,16 @@ As with all Pipeline components, Sources are deleted by calling [dsl_component_d
 ```C++
 DslReturnType dsl_source_play(const char* source);
 ```
-Sets the state of the Source component to Playing. This method tries to change the state of an *in-use* Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
+Sets the state of the Source component to Playing. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
 state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
+
+<br>
 
 **Parameters**
 * `source` - unique name of the Source to play
 
-**Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
@@ -120,61 +132,82 @@ Sets the state of the Source component to Paused. This method tries to change th
 **Parameters**
 * `source` - unique name of the Source to pause
 
-**Returns**  - ```DSL_RESULT_SUCCESS``` on success. One of ```DSL_RESULT_SOURCE_RESULT``` values on failure.
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
 ### *dsl_source_state_is*
 ```C++
-uint dsl_source_state_is(const char* source);
+DslReturnType dsl_source_state_is(const wchar_t* source, uint* state);
 ```
 Returns a Source component's current state as defined by the [DSL_STATE](#DSL_STATE) values.
 
 **Parameters**
-* `source` - unique name of the Source to query
+* `source` - [in] unique name of the Source to query
+* `state` - [out] one of the [DSL_STATE](#DSL_STATE) values.
 
-**Returns**  - One of [DSL_STATE](#) values.
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
 ### *dsl_source_is_live*
 ```C++
-boolean dsl_source_is_live(const char* source);
+DslReturnType dsl_source_is_live(const wchar_t* source, boolean* is_live);
 ```
-Returns `True` if the Source component's stream is live. CSI and V4L2 Camera sources will always return `True`.
+Returns `true` if the Source component's stream is live. CSI and V4L2 Camera sources will always return `True`.
 
 **Parameters**
-* `source` - unique name of the Source to query
+* `source` - [in] unique name of the Source to query
+* `is_live` - [out] `true` if the source is live, false otherwise
 
-**Returns**  - `True` if Source component's stream is live, `False` otherwise
-
-<br>
-
-### *dsl_source_get_num_in_use*
-```C++
-uint dsl_source_get_num_in_use();
-```
-Queries DSL for the number of Source components currently in-use by all Pipelines.
-
-**Returns**  - The number of Source components in use.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 <br>
 
-### *dsl_source_get_num_in_use_max*
+### *dsl_sink_num_in_use_get*
 ```C++
-uint dsl_source_get_num_in_use_max();
+uint dsl_sink_num_in_use_get();
 ```
-Queries DSL for the number maximum number of in-use sources that can be serviced, as limited by Hardware, 
+This service returns the total number of all Sinks currently `in-use` by all Pipelines.
 
-**Returns**  - The maximum number of Source components that can be in-use.
+**Returns**
+* The current number of Sinks `in-use`
+
+**Python Example**
+```Python
+sources_in_use = dsl_source_num_in_use_get()
+```
 
 <br>
 
-### *dsl_source_set_num_in_use_max*
+### *dsl_source_num_in_use_max_get*
 ```C++
-void dsl_source_set_num_in_use_max(uint max);
+uint dsl_source_num_in_use_max_get();
 ```
-Sets the maximum number of in-use sources that can be serviced. **Note!** it is the responsibility of the client to set max in-use value within the limit imposed by Hardware.
+This service returns the "maximum number of Sources" that can be `in-use` at any one time, defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization, and can be updated by calling [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
 
-**Parameters**
-* `max` - the value for the new maximum
+**Returns**
+* The current max number of Sources that can be `in-use` by all Pipelines at any one time. 
+
+**Python Example**
+```Python
+max_source_in_use = dsl_source_num_in_use_max_get()
+```
+
+<br>
+
+### *dsl_source_num_in_use_max_set*
+```C++
+boolean dsl_source_num_in_use_max_set(uint max);
+```
+This service sets the "maximum number of Source" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+
+**Returns**
+* `false` if the new value is less than the actual current number of Sources in use, `true` otherwise
+
+**Python Example**
+```Python
+retval = dsl_source_num_in_use_max_set(24)
+```
