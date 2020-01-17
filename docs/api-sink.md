@@ -526,3 +526,17 @@ retval = dsl_sink_num_in_use_max_set(24)
 ```
 
 <br>
+
+---
+
+## API Reference
+* [Source](/docs/source-api.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-git.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* **Sink**
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
+
