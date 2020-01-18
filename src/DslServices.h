@@ -70,11 +70,11 @@ namespace DSL {
 
         boolean SourceIsLive(const char* name);
         
-        uint GetNumSourceInUse();
+        uint SourceNumInUseGet();
         
-        uint GetNumSourceInUseMax();
+        uint SourceNumInUseMaxGet();
         
-        void SetNumSourceInUseMax(uint max);
+        boolean SourceNumInUseMaxSet(uint max);
         
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
@@ -141,6 +141,12 @@ namespace DSL {
         DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
 
         DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+
+        uint SinkNumInUseGet();
+        
+        uint SinkNumInUseMaxGet();
+        
+        boolean SinkNumInUseMaxSet(uint max);
 
         // TODO        
         // boolean ComponentIsInUse(const char* component);
@@ -286,7 +292,14 @@ namespace DSL {
          * Set to the default in service contructor, the value can be read
          * and updated as the first call to DSL.
          */
-        uint m_numSourceInUseMax;
+        uint m_sourceNumInUseMax;
+        
+        /**
+         * @brief maximum number of sinks that can be in use at one time
+         * Set to the default in service contructor, the value can be read
+         * and updated as the first call to DSL.
+         */
+        uint m_sinkNumInUseMax;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

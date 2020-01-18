@@ -652,3 +652,136 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[rtsp-sink-api]" )
         }
     }
 }
+
+SCENARIO( "A Client is able to update the Sink in-use max", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_num_in_use_max_get() == DSL_DEFAULT_SINK_IN_USE_MAX );
+        REQUIRE( dsl_sink_num_in_use_get() == 0 );
+        
+        WHEN( "The in-use-max is updated by the client" )   
+        {
+            uint new_max = 128;
+            
+            REQUIRE( dsl_sink_num_in_use_max_set(new_max) == true );
+            
+            THEN( "The new in-use-max will be returned to the client on get" )
+            {
+                REQUIRE( dsl_sink_num_in_use_max_get() == new_max );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Sink added to a Pipeline updates the in-use number", "[sink-api]" )
+{
+    GIVEN( "A new Sink and new Pipeline" )
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        REQUIRE( dsl_sink_overlay_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_num_in_use_get() == 0 );
+
+        WHEN( "The Window Sink is added to the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+                windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_sink_num_in_use_get() == 1 );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Sink removed from a Pipeline updates the in-use number", "[sink-api]" )
+{
+    GIVEN( "A new Pipeline with a Sink" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        REQUIRE( dsl_sink_overlay_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
+            windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_num_in_use_get() == 1 );
+
+        WHEN( "The Source is removed from, the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(),
+                windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_sink_num_in_use_get() == 0 );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "Adding multiple Sinks to multiple Pipelines updates the in-use number", "[sink-api]" )
+{
+    GIVEN( "Two new Sinks and two new Pipeline" )
+    {
+        std::wstring sinkName1 = L"window-sink1";
+        std::wstring pipelineName1  = L"test-pipeline1";
+        std::wstring sinkName2 = L"window-sink2";
+        std::wstring pipelineName2  = L"test-pipeline2";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        REQUIRE( dsl_sink_overlay_new(sinkName1.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_overlay_new(sinkName2.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_num_in_use_get() == 0 );
+
+        WHEN( "Each Sink is added to a different Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
+                sinkName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
+                sinkName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct in-use number is returned to the client" )
+            {
+                REQUIRE( dsl_sink_num_in_use_get() == 2 );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_num_in_use_get() == 0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}

@@ -212,18 +212,18 @@ SCENARIO( "A Client is able to update the Source in-use max", "[source-api]" )
     GIVEN( "An empty list of Components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_source_get_num_in_use_max() == DSL_DEFAULT_SOURCE_IN_USE_MAX );
-        REQUIRE( dsl_source_get_num_in_use() == 0 );
+        REQUIRE( dsl_source_num_in_use_max_get() == DSL_DEFAULT_SOURCE_IN_USE_MAX );
+        REQUIRE( dsl_source_num_in_use_get() == 0 );
         
         WHEN( "The in-use-max is updated by the client" )   
         {
             uint new_max = 128;
             
-            dsl_source_set_num_in_use_max(new_max);
+            REQUIRE( dsl_source_num_in_use_max_set(new_max) == true );
             
             THEN( "The new in-use-max will be returned to the client on get" )
             {
-                REQUIRE( dsl_source_get_num_in_use_max() == new_max );
+                REQUIRE( dsl_source_num_in_use_max_get() == new_max );
             }
         }
     }
@@ -244,7 +244,7 @@ SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api
 
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_get_num_in_use() == 0 );
+        REQUIRE( dsl_source_num_in_use_get() == 0 );
 
         WHEN( "The Source is added to the Pipeline" ) 
         {
@@ -253,7 +253,7 @@ SCENARIO( "A Source added to a Pipeline updates the in-use number", "[source-api
 
             THEN( "The correct in-use number is returned to the client" )
             {
-                REQUIRE( dsl_source_get_num_in_use() == 1 );
+                REQUIRE( dsl_source_num_in_use_get() == 1 );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -281,7 +281,7 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             sourceName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_get_num_in_use() == 1 );
+        REQUIRE( dsl_source_num_in_use_get() == 1 );
 
         WHEN( "The Source is removed from, the Pipeline" ) 
         {
@@ -290,7 +290,7 @@ SCENARIO( "A Source removed from a Pipeline updates the in-use number", "[source
 
             THEN( "The correct in-use number is returned to the client" )
             {
-                REQUIRE( dsl_source_get_num_in_use() == 0 );
+                REQUIRE( dsl_source_num_in_use_get() == 0 );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -312,7 +312,7 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
         REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_csi_new(sourceName2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_get_num_in_use() == 0 );
+        REQUIRE( dsl_source_num_in_use_get() == 0 );
 
         WHEN( "Each Sources is added to a different Pipeline" ) 
         {
@@ -323,7 +323,7 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
 
             THEN( "The correct in-use number is returned to the client" )
             {
-                REQUIRE( dsl_source_get_num_in_use() == 2 );
+                REQUIRE( dsl_source_num_in_use_get() == 2 );
 
                 REQUIRE( dsl_pipeline_component_remove(pipelineName1.c_str(), 
                     sourceName1.c_str()) == DSL_RESULT_SUCCESS );
@@ -332,7 +332,7 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_get_num_in_use() == 0 );
+                REQUIRE( dsl_source_num_in_use_get() == 0 );
             }
         }
     }

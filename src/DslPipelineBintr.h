@@ -147,6 +147,19 @@ namespace DSL
         bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
         /**
+         * @brief returns the number of Sinks currently in use by
+         * this Pipeline
+         */
+        uint GetNumSinksInUse()
+        {
+            if (!m_pPipelineSinksBintr)
+            {
+                return 0;
+            }
+            return m_pPipelineSinksBintr->GetNumChildren();
+        } 
+
+        /**
          * @brief Gets the current batch settings for the Pipeline's Stream Muxer
          * @param[out] batchSize current batchSize, default == the number of source
          * @param[out] batchTimeout current batch timeout

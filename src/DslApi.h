@@ -194,7 +194,8 @@ THE SOFTWARE.
  * @brief DSL_DEFAULT values initialized on first call to DSL
  */
 //TODO move to new defaults schema
-#define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8 
+#define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
+#define DSL_DEFAULT_SINK_IN_USE_MAX                                 32
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 
@@ -348,28 +349,28 @@ DslReturnType dsl_source_resume(const wchar_t* name);
 boolean dsl_source_is_live(const wchar_t* name);
 
 /**
- * @brief returns the number of sources currently in use by 
- * all of the Pipelines in memeroy. 
- * @return number of Sources in use
+ * @brief returns the number of Sources currently in use by 
+ * all Pipelines in memory. 
+ * @return the current number of Sources in use
  */
-uint dsl_source_get_num_in_use();  
+uint dsl_source_num_in_use_get();  
 
 /**
- * @brief Get the maximum number of in-memory sources 
- * that can be in use at any time. The maximum number is 
- * limited by Hardware, see dsl_source_set_num_in_use_max() 
- * @return the current max sources in use setting.
+ * @brief Returns the maximum number of sources that can be in-use
+ * by all parent Pipelines at one time. The maximum number is 
+ * impossed by the Jetson hardware in use, see dsl_source_num_in_use_max_set() 
+ * @return the current sources in use max setting.
  */
-uint dsl_source_get_num_in_use_max();  
+uint dsl_source_num_in_use_max_get();  
 
 /**
  * @brief Sets the maximum number of in-memory sources 
  * that can be in use at any time. The function overrides 
  * the default value on first call. The maximum number is 
  * limited by Hardware. The caller must ensure to set the 
- * number correctly, based on the TEGRA platform in use.
+ * number correctly based on the Jetson hardware in use.
  */
-void dsl_source_set_num_in_use_max(uint max);  
+boolean dsl_source_num_in_use_max_set(uint max);  
 
 /**
  * @brief creates a new, uniquely named Primary GIE object
@@ -697,6 +698,30 @@ DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
+
+/**
+ * @brief returns the number of Sinks currently in use by 
+ * all Pipelines in memory. 
+ * @return the current number of Sinks in use
+ */
+uint dsl_sink_num_in_use_get();  
+
+/**
+ * @brief Returns the maximum number of Sinks that can be in-use
+ * by all parent Pipelines at one time. The maximum number is 
+ * impossed by the Jetson hardware in use, see dsl_sink_num_in_use_max_set() 
+ * @return the current Sinks in use max setting.
+ */
+uint dsl_sink_num_in_use_max_get();  
+
+/**
+ * @brief Sets the maximum number of in-memory Sinks 
+ * that can be in use at any time. The function overrides 
+ * the default value on first call. The maximum number is 
+ * limited by Hardware. The caller must ensure to set the 
+ * number correctly based on the Jetson hardware in use.
+ */
+boolean dsl_sink_num_in_use_max_set(uint max);  
 
 /**
  * @brief deletes a Component object by name
