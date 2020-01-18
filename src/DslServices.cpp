@@ -128,19 +128,19 @@ boolean dsl_source_is_live(const wchar_t* name)
     return DSL::Services::GetServices()->SourceIsLive(cstrName.c_str());
 }
 
-uint dsl_source_get_num_in_use()
+uint dsl_source_num_in_use_get()
 {
-    return DSL::Services::GetServices()->GetNumSourceInUse();
+    return DSL::Services::GetServices()->SourceNumInUseGet();
 }
 
-uint dsl_source_get_num_in_use_max()
+uint dsl_source_num_in_use_max_get()
 {
-    return DSL::Services::GetServices()->GetNumSourceInUseMax();
+    return DSL::Services::GetServices()->SourceNumInUseMaxGet();
 }
 
-void dsl_source_set_num_in_use_max(uint max)
+boolean dsl_source_num_in_use_max_set(uint max)
 {
-    return DSL::Services::GetServices()->SetNumSourceInUseMax(max);
+    return DSL::Services::GetServices()->SourceNumInUseMaxSet(max);
 }
 
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -426,6 +426,21 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
         bitrate, interval);
 }    
     
+uint dsl_sink_num_in_use_get()
+{
+    return DSL::Services::GetServices()->SinkNumInUseGet();
+}
+
+uint dsl_sink_num_in_use_max_get()
+{
+    return DSL::Services::GetServices()->SinkNumInUseMaxGet();
+}
+
+boolean dsl_sink_num_in_use_max_set(uint max)
+{
+    return DSL::Services::GetServices()->SinkNumInUseMaxSet(max);
+}
+
 DslReturnType dsl_component_delete(const wchar_t* component)
 {
     std::wstring wstrComponent(component);
@@ -906,7 +921,8 @@ namespace DSL
     Services::Services(bool doGstDeinit)
         : m_doGstDeinit(doGstDeinit)
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
-        , m_numSourceInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
+        , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
+        , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
     {
         LOG_FUNC();
         
@@ -1217,7 +1233,7 @@ namespace DSL
         }
     }
     
-    uint Services::GetNumSourceInUse()
+    uint Services::SourceNumInUseGet()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1231,19 +1247,33 @@ namespace DSL
         return numInUse;
     }
     
-    uint Services::GetNumSourceInUseMax()
+    uint Services::SourceNumInUseMaxGet()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        return m_numSourceInUseMax;
+        return m_sourceNumInUseMax;
     }
     
-    void Services::SetNumSourceInUseMax(uint max)
+    boolean Services::SourceNumInUseMaxSet(uint max)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        m_numSourceInUseMax = max;
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSourceInUse();
+        }
+        if (max < numInUse)
+        {
+            LOG_ERROR("max setting = " << max << 
+                " is less than the current number of Sources in use = " << numInUse);
+            return false;
+        }
+        m_sourceNumInUseMax = max;
+        return true;
     }
 
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
@@ -2114,6 +2144,49 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::SinkNumInUseGet()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSinksInUse();
+        }
+        return numInUse;
+    }
+    
+    uint Services::SinkNumInUseMaxGet()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_sinkNumInUseMax;
+    }
+    
+    boolean Services::SinkNumInUseMaxSet(uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSinksInUse();
+        }
+        if (max < numInUse)
+        {
+            LOG_ERROR("max setting = " << max << 
+                " is less than the current number of Sinks in use = " << numInUse);
+            return false;
+        }
+        m_sinkNumInUseMax = max;
+        return true;
     }
 
 
