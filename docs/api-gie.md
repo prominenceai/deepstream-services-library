@@ -180,3 +180,16 @@ DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 **Returns**
 `DSL_RESULT_SUCCESS` if the GIE exists, and the interval was within range. one of the 
 [Return Values](#return-values) defined above on failure
+
+---
+
+## API Reference
+* [Source](/docs/api-source.md)
+* [Dewarper](api-dewarper.md)
+* **Primary and Seconday GIE**
+* [Tracker](api-tracker.md)
+* [On-Screen Display](api-osd.md)
+* [Tiler](api-tiler.md)
+* [Sink](api-sink.md)
+* [Component](api-component.md)
+* [Pipeline](api-pipeline.md)

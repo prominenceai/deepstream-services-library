@@ -14,7 +14,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 
 There is no (practical) limit to the number of Sinks that can be created, just to the number of Sinks that can be `in use` - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use. 
 
-The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get) and updated with [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The number of Sources in use by all Pipelines can obtained by calling [dsl_sink_get_num_in_use](#dsl_sink_get_num_in_use). 
+The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get) and updated with [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The number of Sinks in use by all Pipelines can obtained by calling [dsl_sink_get_num_in_use](#dsl_sink_get_num_in_use). 
 
 ## Sink API
 **Constructors:**
@@ -168,6 +168,11 @@ http://localhost::8080/my-sink-name
 ```Python
 retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, DSL_CODEC_H265, 200000, 0)
 ```
+
+<br>
+
+## Destructors
+As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 <br>
 
@@ -521,3 +526,17 @@ retval = dsl_sink_num_in_use_max_set(24)
 ```
 
 <br>
+
+---
+
+## API Reference
+* [Source](/docs/source-api.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-git.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* **Sink**
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
+

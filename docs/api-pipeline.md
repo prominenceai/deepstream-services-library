@@ -878,3 +878,14 @@ Except for the prefix, this method performs the identical service as
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful file dump. One of the [Return Values](#return-values) defined above on failure.
 <br>
+
+## API Reference
+* [Source](/docs/source-api.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-git.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](/docs/api-sink.md)
+* [Component](/docs/api-component.md)
+* **Pipeline**

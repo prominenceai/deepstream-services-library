@@ -136,3 +136,15 @@ added to more than one Tiled Display.
 
 <br>
 
+---
+
+## API Reference
+* [Source](/docs/api-source.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Seconday GIE](/docs/api-git.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* **Tiler**
+* [Sink](/docs/api-sink.md)
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
