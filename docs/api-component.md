@@ -8,9 +8,9 @@
 * [dsl_component_list_all](#dsl_component_list_all)
 
 ## API Reference
-* [Source](/docs/source-api.md)
+* [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Seconday GIE](/docs/api-git.md)
+* [Primary and Seconday GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
