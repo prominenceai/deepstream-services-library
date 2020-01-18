@@ -184,12 +184,12 @@ DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 ---
 
 ## API Reference
-* [Source](docs/source-api.md)
-* [Dewarper](docs/api-dewarper.md)
+* [Source](source-api.md)
+* [Dewarper](api-dewarper.md)
 * **Primary and Seconday GIE**
-* [Tracker](docs/api-tracker.md)
-* [On-Screen Display](docs/api-osd.md)
-* [Tiler](docs/api-tiler.md)
-* [Sink](docs/api-sink.md)
-* [Component](docs/api-component.md)
-* [Pipeline](docs/api-pipeline.md)
+* [Tracker](api-tracker.md)
+* [On-Screen Display](api-osd.md)
+* [Tiler](api-tiler.md)
+* [Sink](api-sink.md)
+* [Component](api-component.md)
+* [Pipeline](api-pipeline.md)
