@@ -184,7 +184,7 @@ DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 ---
 
 ## API Reference
-* [Source](source-api.md)
+* [Source](/docs/api-source.md)
 * [Dewarper](api-dewarper.md)
 * **Primary and Seconday GIE**
 * [Tracker](api-tracker.md)
