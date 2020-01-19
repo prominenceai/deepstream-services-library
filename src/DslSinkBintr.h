@@ -50,9 +50,9 @@ namespace DSL
         new FileSinkBintr(sink, filepath, codec, container, bitRate, interval))
         
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
-    #define DSL_RTSP_SINK_NEW(sink, host, port, codec, bitRate, interval) \
+    #define DSL_RTSP_SINK_NEW(sink, host, udpPort, rtspPort, codec, bitRate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
-        new RtspSinkBintr(sink, host, port, codec, bitRate, interval))
+        new RtspSinkBintr(sink, host, udpPort, rtspPort, codec, bitRate, interval))
         
 
     class SinkBintr : public Bintr
@@ -311,8 +311,8 @@ namespace DSL
     {
     public: 
     
-        RtspSinkBintr(const char* sink, const char* host, uint port, uint codec, 
-            uint bitRate, uint interval);
+        RtspSinkBintr(const char* sink, const char* host, uint udpPort, uint rtspPort,
+         uint codec, uint bitRate, uint interval);
 
         ~RtspSinkBintr();
   
@@ -331,9 +331,10 @@ namespace DSL
         /**
          * @brief Gets the current codec and media container formats for RtspSinkBintr
          * @param[out] port the current UDP port number for the RTSP Server
+         * @param[out] port the current RTSP port number for the RTSP Server
          * @param[out] codec the current codec format in use [H.264, H.265]
          */ 
-        void GetServerSettings( uint* port, uint* codec);
+        void GetServerSettings(uint* udpPort, uint* rtspPort, uint* codec);
 
         /**
          * @brief Gets the current bit-rate and interval settings for the Encoder in use
@@ -353,7 +354,8 @@ namespace DSL
     private:
 
         std::string m_host;
-        uint m_port;
+        uint m_udpPort;
+        uint m_rtspPort;
         uint m_codec;
         uint m_bitRate;
         uint m_interval;

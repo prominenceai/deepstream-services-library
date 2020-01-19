@@ -658,7 +658,8 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
         uint interval(0);
@@ -666,13 +667,14 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
         WHEN( "The DSL_CODEC_H264 RtspSinkBintr is created " )
         {
             DSL_RTSP_SINK_PTR pSinkBintr = 
-                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
-                uint retPort(0), retCodec(0);
-                pSinkBintr->GetServerSettings(&retPort, &retCodec);
-                REQUIRE( retPort == port);
+                uint retUdpPort(0), retRtspPort(0), retCodec(0);
+                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort, &retCodec);
+                REQUIRE( retUdpPort == udpPort );
+                REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
@@ -686,13 +688,14 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[Rt
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
         uint interval(0);
 
         DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -714,13 +717,14 @@ SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs",
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
         uint interval(0);
 
         DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
@@ -743,7 +747,8 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint bitrate(4000000);
         uint interval(0);
@@ -751,13 +756,14 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
         WHEN( "The DSL_CODEC_H265 RtspSinkBintr is created " )
         {
             DSL_RTSP_SINK_PTR pSinkBintr = 
-                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
-                uint retPort(0), retCodec(0);
-                pSinkBintr->GetServerSettings(&retPort, &retCodec);
-                REQUIRE( retPort == port);
+                uint retUdpPort(0), retRtspPort(0), retCodec(0);
+                pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort, &retCodec);
+                REQUIRE( retUdpPort == udpPort);
+                REQUIRE( retRtspPort == rtspPort);
                 REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
@@ -771,13 +777,14 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[Rt
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint bitrate(4000000);
         uint interval(0);
 
         DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -799,13 +806,14 @@ SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs",
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint bitrate(4000000);
         uint interval(0);
 
         DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), port, codec, bitrate, interval);
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );

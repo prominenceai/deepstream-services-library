@@ -386,7 +386,7 @@ DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
 }    
     
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
-     uint port, uint codec, uint bitrate, uint interval)
+     uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -394,18 +394,19 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
     std::string cstrHost(wstrHost.begin(), wstrHost.end());
 
     return DSL::Services::GetServices()->SinkRtspNew(cstrName.c_str(), 
-        cstrHost.c_str(), port, codec, bitrate, interval);
+        cstrHost.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 }     
 
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
-    uint* port, uint* codec)
+    uint* udpPort, uint* rtspPort, uint* codec)
 {    
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkRtspServerSettingsGet(cstrName.c_str(), 
-        port, codec);
+        udpPort, rtspPort, codec);
 }    
+
 DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
     uint* bitrate, uint* interval)
 {
@@ -2043,7 +2044,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
-            uint port, uint codec, uint bitrate, uint interval)
+            uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2061,7 +2062,7 @@ namespace DSL
         }
         try
         {
-            m_components[name] = DSL_RTSP_SINK_NEW(name, host, port, codec, bitrate, interval);
+            m_components[name] = DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval);
         }
         catch(...)
         {
@@ -2073,7 +2074,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* port, uint* codec)
+    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort, uint* codec)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2084,7 +2085,7 @@ namespace DSL
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
 
-            rtspSinkBintr->GetServerSettings(port, codec);
+            rtspSinkBintr->GetServerSettings(udpPort, rtspPort, codec);
         }
         catch(...)
         {

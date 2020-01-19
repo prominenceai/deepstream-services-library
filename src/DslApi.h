@@ -661,13 +661,14 @@ DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
  * @param name unique coomponent name for the new RTSP Sink
  * @param host address for the RTSP Server
  * @param port UDP port number for the RTSP Server
+ * @param port RTSP port number for the RTSP Server
  * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265
  * @param bitrate in bits per second
  * @param interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
-     uint port, uint codec, uint bitrate, uint interval);
+     uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
 
 /**
  * @brief gets the current codec and video media container formats
@@ -677,7 +678,7 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
-    uint* port, uint* codec);
+    uint* udpPort, uint* rtspPort, uint* codec);
 
 /**
  * @brief gets the current bit-rate and interval settings for the named RTSP Sink

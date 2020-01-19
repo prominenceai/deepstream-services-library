@@ -503,7 +503,8 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
     {
         std::wstring rtspSinkName(L"rtsp-sink");
         std::wstring host(L"224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
         uint interval(0);
@@ -513,13 +514,14 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
         WHEN( "A new RTSP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-                port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+                udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
-                uint retPort(0), retCodec(0);
-                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retPort, &retCodec);
-                REQUIRE( retPort == port );
+                uint retUdpPort(0), retRtspPort(0), retCodec(0);
+                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort, &retCodec);
+                REQUIRE( retUdpPort == udpPort );
+                REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( dsl_component_list_size() == 1 );
             }
@@ -534,14 +536,15 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H264 RTSP 
     {
         std::wstring rtspSinkName(L"rtsp-sink");
         std::wstring host(L"224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);
         uint bitrate(4000000);
         uint interval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-            port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
         {
@@ -561,7 +564,8 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
     {
         std::wstring rtspSinkName(L"rtsp-sink");
         std::wstring host(L"224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint bitrate(4000000);
         uint interval(0);
@@ -571,13 +575,14 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
         WHEN( "A new RTSP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-                port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+                udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
-                uint retPort(0), retCodec(0);
-                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retPort, &retCodec);
-                REQUIRE( retPort == port );
+                uint retUdpPort(0), retRtspPort(0), retCodec(0);
+                dsl_sink_rtsp_server_settings_get(rtspSinkName.c_str(), &retUdpPort, &retRtspPort, &retCodec);
+                REQUIRE( retUdpPort == udpPort );
+                REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( dsl_component_list_size() == 1 );
             }
@@ -592,14 +597,15 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H265 RTSP 
     {
         std::wstring rtspSinkName(L"rtsp-sink");
         std::wstring host(L"224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint bitrate(4000000);
         uint interval(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-            port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
         {
@@ -618,13 +624,14 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[rtsp-sink-api]" )
     {
         std::wstring rtspSinkName(L"rtsp-sink");
         std::wstring host(L"224.224.255.255");
-        uint port(8080);
+        uint udpPort(5400);
+        uint rtspPort(8554);
         uint codec(DSL_CODEC_H265);
         uint initBitrate(4000000);
         uint initInterval(0);
 
         REQUIRE( dsl_sink_rtsp_new(rtspSinkName.c_str(), host.c_str(),
-            port, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
             
         uint currBitrate(0);
         uint currInterval(0);

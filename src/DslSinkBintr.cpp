@@ -587,11 +587,12 @@ namespace DSL
         }
         return true;
     }
-    RtspSinkBintr::RtspSinkBintr(const char* sink, const char* host, uint port, uint codec,  
-        uint bitRate, uint interval)
+    RtspSinkBintr::RtspSinkBintr(const char* sink, const char* host, uint udpPort, uint rtspPort,
+         uint codec, uint bitRate, uint interval)
         : SinkBintr(sink)
         , m_host(host)
-        , m_port(port)
+        , m_udpPort(udpPort)
+        , m_rtspPort(rtspPort)
         , m_sync(FALSE)
         , m_async(FALSE)
         , m_codec(codec)
@@ -609,7 +610,7 @@ namespace DSL
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "rtsp-sink-bin-caps-filter");
 
         m_pUdpSink->SetAttribute("host", m_host.c_str());
-        m_pUdpSink->SetAttribute("port", m_port);
+        m_pUdpSink->SetAttribute("port", m_udpPort);
         m_pUdpSink->SetAttribute("sync", m_sync);
         m_pUdpSink->SetAttribute("async", m_async);
 
@@ -644,9 +645,9 @@ namespace DSL
         
         // Setup the GST RTSP Server
         m_pServer = gst_rtsp_server_new();
-        g_object_set(m_pServer, "service", std::to_string(m_port).c_str(), NULL);
+        g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);
 
-        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_port) + 
+        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) + 
             " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
             codecString + ", payload=96 \")";
         
@@ -736,11 +737,12 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void RtspSinkBintr::GetServerSettings(uint* port, uint* codec)
+    void RtspSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort, uint* codec)
     {
         LOG_FUNC();
         
-        *port = m_port;
+        *udpPort = m_udpPort;
+        *rtspPort = m_rtspPort;
         *codec = m_codec;
     }
     
