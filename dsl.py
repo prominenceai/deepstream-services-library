@@ -14,8 +14,8 @@ DSL_CODEC_H264 = 0
 DSL_CODEC_H265 = 1
 DSL_CODEC_MPEG4 = 2
 
-DSL_MUXER_MPEG4 = 0
-DSL_MUXER_MK4 = 1
+DSL_CONTAINER_MPEG4 = 0
+DSL_CONTAINER_MK4 = 1
 
 ##
 ## Pointer Typedefs
@@ -132,34 +132,34 @@ def dsl_source_is_live(name):
 #print(dsl_source_is_live("uri-source"))
 
 ##
-## dsl_source_get_num_in_use()
+## dsl_source_num_in_use_get()
 ##
-_dsl.dsl_source_get_num_in_use.restype = c_uint
-def dsl_source_get_num_in_use():
+_dsl.dsl_source_num_in_use_get.restype = c_uint
+def dsl_source_num_in_use_get():
     global _dsl
-    result = _dsl.dsl_source_get_num_in_use()
+    result = _dsl.dsl_source_num_in_use_get()
     return int(result)
-#print(dsl_source_get_num_in_use())
+#print(dsl_source_num_in_use_get())
 
 ##
-## dsl_source_get_num_in_use_max()
+## dsl_source_num_in_use_max_get()
 ##
-_dsl.dsl_source_get_num_in_use_max.restype = c_uint
-def dsl_source_get_num_in_use_max():
+_dsl.dsl_source_num_in_use_max_get.restype = c_uint
+def dsl_source_num_in_use_max_get():
     global _dsl
-    result = _dsl.dsl_source_get_num_in_use_max()
+    result = _dsl.dsl_source_num_in_use_max_get()
     return int(result)
-#print(dsl_source_get_num_in_use_max())
+#print(dsl_source_num_in_use_max_get())
 
 ##
-## dsl_source_set_num_in_use_max()
+## dsl_source_num_in_use_max_set()
 ##
-_dsl.dsl_source_set_num_in_use_max.argtypes = [c_uint]
-def dsl_source_set_num_in_use_max(max):
+_dsl.dsl_source_num_in_use_max_set.argtypes = [c_uint]
+def dsl_source_num_in_use_max_set(max):
     global _dsl
-    result = _dsl.dsl_source_set_num_in_use_max(max)
-dsl_source_set_num_in_use_max(20)
-#print(dsl_source_get_num_in_use_max())
+    result = _dsl.dsl_source_num_in_use_max_set(max)
+dsl_source_num_in_use_max_set(20)
+#print(dsl_source_num_in_use_max_get())
 
 ##
 ## dsl_gie_primary_new()
@@ -401,7 +401,123 @@ def dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval):
     global _dsl
     result =_dsl.dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval)
     return int(result)
-#print(dsl_sink_file_new("file-sink", "./output.mp4", DSL_CODEC_H265, DSL_MUXER_MPEG4, 2000000, 1))
+
+##
+## dsl_sink_file_video_formats_get()
+##
+_dsl.dsl_sink_file_video_formats_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_file_video_formats_get.restype = c_uint
+def dsl_sink_file_video_formats_get(name):
+    global _dsl
+    codec = c_uint(0)
+    container = c_uint(0)
+    result = _dsl.dsl_sink_file_video_formats_get(name, DSL_UINT_P(codec), DSL_UINT_P(container))
+    return int(result), codec.value, container.value 
+
+##
+## dsl_sink_file_encoder_settings_get()
+##
+_dsl.dsl_sink_file_encoder_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_file_encoder_settings_get.restype = c_uint
+def dsl_sink_file_encoder_settings_get(name):
+    global _dsl
+    bitrate = c_uint(0)
+    interval = c_uint(0)
+    result = _dsl.dsl_sink_file_encoder_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
+    return int(result), bitrate.value, interval.value 
+
+##
+## dsl_sink_file_encoder_settings_set()
+##
+_dsl.dsl_sink_file_encoder_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_file_encoder_settings_set.restype = c_uint
+def dsl_sink_file_encoder_settings_set(name, bitrate, interval):
+    global _dsl
+    result = _dsl.dsl_sink_file_encoder_settings_set(name, bitrate, interval)
+    return int(result)
+#print(dsl_sink_file_new("file-sink", "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MPEG4, 2000000, 1))
+#print(dsl_sink_file_video_formats_get("file-sink"))
+#print(dsl_sink_file_encoder_settings_get("file-sink"))
+#print(dsl_sink_file_encoder_settings_set("file-sink", 2500000, 5))
+
+##
+## dsl_sink_rtsp_new()
+##
+_dsl.dsl_sink_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_new.restype = c_uint
+def dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_rtsp_server_settings_get()
+##
+_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_server_settings_get.restype = c_uint
+def dsl_sink_rtsp_server_settings_get(name):
+    global _dsl
+    udp_port = c_uint(0)
+    rtsp_port = c_uint(0)
+    codec = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_server_settings_get(name, DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port), DSL_UINT_P(codec))
+    return int(result), udp_port.value, rtsp_port.value, codec.value 
+
+##
+## dsl_sink_rtsp_encoder_settings_get()
+##
+_dsl.dsl_sink_rtsp_encoder_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_encoder_settings_get.restype = c_uint
+def dsl_sink_rtsp_encoder_settings_get(name):
+    global _dsl
+    bitrate = c_uint(0)
+    interval = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_encoder_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
+    return int(result), bitrate.value, interval.value 
+
+##
+## dsl_sink_rtsp_encoder_settings_set()
+##
+_dsl.dsl_sink_rtsp_encoder_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_encoder_settings_set.restype = c_uint
+def dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval)
+    return int(result)
+print(dsl_sink_rtsp_new("rtsp-sink", "224.224.255.255", 5400, 8554, DSL_CODEC_H265, 4000000, 0))
+print(dsl_sink_rtsp_server_settings_get("rtsp-sink"))
+print(dsl_sink_rtsp_encoder_settings_get("rtsp-sink"))
+print(dsl_sink_rtsp_encoder_settings_set("rtsp-sink", 4500000, 5))
+
+##
+## dsl_sink_num_in_use_get()
+##
+_dsl.dsl_sink_num_in_use_get.restype = c_uint
+def dsl_sink_num_in_use_get():
+    global _dsl
+    result = _dsl.dsl_sink_num_in_use_get()
+    return int(result)
+#print(dsl_sink_num_in_use_get())
+
+##
+## dsl_sink_num_in_use_max_get()
+##
+_dsl.dsl_sink_num_in_use_max_get.restype = c_uint
+def dsl_sink_num_in_use_max_get():
+    global _dsl
+    result = _dsl.dsl_sink_num_in_use_max_get()
+    return int(result)
+#print(dsl_sink_num_in_use_max_get())
+
+##
+## dsl_sink_num_in_use_max_set()
+##
+_dsl.dsl_sink_num_in_use_max_set.argtypes = [c_uint]
+def dsl_sink_num_in_use_max_set(max):
+    global _dsl
+    result = _dsl.dsl_sink_num_in_use_max_set(max)
+dsl_sink_num_in_use_max_set(20)
+#print(dsl_sink_num_in_use_max_get())
 
 ##
 ## dsl_component_delete()
