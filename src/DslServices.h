@@ -134,9 +134,9 @@ namespace DSL {
         DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval);
 
         DslReturnType SinkRtspNew(const char* name, const char* host, 
-            uint port, uint codec, uint bit_rate, uint interval);
+            uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);
             
-        DslReturnType SinkRtspServerSettingsGet(const char* name, uint* port, uint* codec);
+        DslReturnType SinkRtspServerSettingsGet(const char* name, uint* updPort, uint* rtspPort, uint* codec);
 
         DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
 
