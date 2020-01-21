@@ -118,6 +118,8 @@ namespace DSL {
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad);
 
+        DslReturnType SinkFakeNew(const char* name);
+
         DslReturnType SinkOverlayNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
                 

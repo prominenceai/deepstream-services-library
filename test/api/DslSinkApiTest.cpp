@@ -25,6 +25,49 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
+SCENARIO( "The Components container is updated correctly on new Fake Sink", "[fake-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"fake-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Overlay Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on Fink Sink delete", "[fake-sink-api]" )
+{
+    GIVEN( "A Fake Sink Component" ) 
+    {
+        std::wstring sinkName = L"fake-sink";
+
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Overlay Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Components container is updated correctly on new Overlay Sink", "[overlay-sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
