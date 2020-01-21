@@ -152,7 +152,64 @@ namespace DSL
         
         return Nodetr::UnlinkFromSource();
     }
+
+    FakeSinkBintr::FakeSinkBintr(const char* sink)
+        : SinkBintr(sink)
+        , m_sync(TRUE)
+        , m_async(FALSE)
+        , m_qos(TRUE)
+    {
+        LOG_FUNC();
+        
+        m_isWindowCapable = false;
+
+        m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
+        m_pFakeSink->SetAttribute("sync", m_sync);
+        m_pFakeSink->SetAttribute("max-lateness", -1);
+        m_pFakeSink->SetAttribute("async", m_async);
+        m_pFakeSink->SetAttribute("qos", m_qos);
+        
+        AddChild(m_pFakeSink);
+    }
     
+    FakeSinkBintr::~FakeSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool FakeSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("FakeSinkBintr '" << m_name << "' is already linked");
+            return false;
+        }
+        // Single element, nothing to link
+        m_isLinked = true;
+        return true;
+    }
+    
+    void FakeSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("FakeSinkBintr '" << m_name << "' is not linked");
+            return;
+        }
+        m_isLinked = false;
+    }
+    
+    //-------------------------------------------------------------------------
+
     OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, 
         guint width, guint height)
         : SinkBintr(sink)
@@ -295,6 +352,8 @@ namespace DSL
         return true;
     }
     
+    //-------------------------------------------------------------------------
+
     WindowSinkBintr::WindowSinkBintr(const char* sink, guint offsetX, guint offsetY, 
         guint width, guint height)
         : SinkBintr(sink)
@@ -423,6 +482,8 @@ namespace DSL
         
         return true;
     }
+    
+    //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* sink, const char* filepath, 
         uint codec, uint container, uint bitRate, uint interval)

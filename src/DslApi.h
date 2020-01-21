@@ -590,6 +590,13 @@ DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type,
 DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad);
 
 /**
+ * @brief creates a new, uniquely named Fake Sink component
+ * @param[in] name unique component name for the new Overlay Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_fake_new(const wchar_t* name);
+
+/**
  * @brief creates a new, uniquely named Ovelay Sink component
  * @param[in] name unique component name for the new Overlay Sink
  * @param[in] offsetX upper left corner offset in the X direction in pixels

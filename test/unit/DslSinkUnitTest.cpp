@@ -28,6 +28,74 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
+{
+    GIVEN( "Attributes for a new Overlay Sink" ) 
+    {
+        std::string sinkName("fake-sink");
+
+        WHEN( "The OverlaySinkBintr is created " )
+        {
+            DSL_FAKE_SINK_PTR pSinkBintr = 
+                DSL_FAKE_SINK_NEW(sinkName.c_str());
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->IsWindowCapable() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[FakeSinkBintr]" )
+{
+    GIVEN( "A new FakeSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("fake-sink");
+
+        DSL_FAKE_SINK_PTR pSinkBintr = 
+            DSL_FAKE_SINK_NEW(sinkName.c_str());
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new FakeSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The FakeSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked FakeSinkBintr can UnlinkAll Child Elementrs", "[FakeSinkBintr]" )
+{
+    GIVEN( "A OsdBintr in a linked state" ) 
+    {
+        std::string sinkName("overlay-sink");
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        DSL_FAKE_SINK_PTR pSinkBintr = 
+            DSL_FAKE_SINK_NEW(sinkName.c_str());
+
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A FakeSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The FakeSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
 SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
 {
     GIVEN( "Attributes for a new Overlay Sink" ) 

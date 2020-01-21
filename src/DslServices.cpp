@@ -323,6 +323,14 @@ DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad)
     return DSL::Services::GetServices()->TilerBatchMetaHandlerRemove(cstrName.c_str(), pad);
 }
 
+DslReturnType dsl_sink_fake_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
+}
+
 DslReturnType dsl_sink_overlay_new(const wchar_t* name,
     uint offsetX, uint offsetY, uint width, uint height)
 {
@@ -1882,6 +1890,31 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType Services::SinkFakeNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_FAKE_SINK_NEW(name);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Fake Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::SinkOverlayNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {

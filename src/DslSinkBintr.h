@@ -34,6 +34,11 @@ namespace DSL
 {
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
 
+    #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
+    #define DSL_FAKE_SINK_NEW(sink) \
+        std::shared_ptr<FakeSinkBintr>( \
+        new FakeSinkBintr(sink))
+
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
     #define DSL_OVERLAY_SINK_NEW(sink, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
@@ -106,6 +111,38 @@ namespace DSL
         int m_sinkId;
         
         
+    };
+
+    class FakeSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        FakeSinkBintr(const char* sink);
+
+        ~FakeSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    private:
+
+        boolean m_sync;
+        boolean m_async;
+        boolean m_qos;
+        
+        /**
+         * @brief Fake Sink element for the Sink Bintr.
+         */
+        DSL_ELEMENT_PTR m_pFakeSink;
     };
 
     class OverlaySinkBintr : public SinkBintr

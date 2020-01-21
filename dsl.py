@@ -484,10 +484,10 @@ def dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval):
     global _dsl
     result = _dsl.dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval)
     return int(result)
-print(dsl_sink_rtsp_new("rtsp-sink", "224.224.255.255", 5400, 8554, DSL_CODEC_H265, 4000000, 0))
-print(dsl_sink_rtsp_server_settings_get("rtsp-sink"))
-print(dsl_sink_rtsp_encoder_settings_get("rtsp-sink"))
-print(dsl_sink_rtsp_encoder_settings_set("rtsp-sink", 4500000, 5))
+#print(dsl_sink_rtsp_new("rtsp-sink", "224.224.255.255", 5400, 8554, DSL_CODEC_H265, 4000000, 0))
+#print(dsl_sink_rtsp_server_settings_get("rtsp-sink"))
+#print(dsl_sink_rtsp_encoder_settings_get("rtsp-sink"))
+#print(dsl_sink_rtsp_encoder_settings_set("rtsp-sink", 4500000, 5))
 
 ##
 ## dsl_sink_num_in_use_get()
