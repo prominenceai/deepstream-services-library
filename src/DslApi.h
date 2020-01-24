@@ -100,7 +100,6 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 
-
 /**
  * OSD API Return Values
  */
@@ -170,7 +169,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_OBJECT_IS_NOT_PIPELINE                  0x0007000A
+#define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED                0x00080012
+#define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED                  0x00080013
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1

@@ -1308,7 +1308,7 @@ namespace DSL
         
         for (auto const& imap: m_pipelines)
         {
-            numInUse += imap.second->GetNumSourceInUse();
+            numInUse += imap.second->GetNumSourcesInUse();
         }
         return numInUse;
     }
@@ -1328,11 +1328,7 @@ namespace DSL
         
         uint numInUse(0);
         
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourceInUse();
-        }
-        if (max < numInUse)
+        if (max < GetNumSourcesInUse())
         {
             LOG_ERROR("max setting = " << max << 
                 " is less than the current number of Sources in use = " << numInUse);
@@ -2287,13 +2283,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSinksInUse();
-        }
-        return numInUse;
+        return GetNumSinksInUse();
     }
     
     uint Services::SinkNumInUseMaxGet()
@@ -2311,11 +2301,7 @@ namespace DSL
         
         uint numInUse(0);
         
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSinksInUse();
-        }
-        if (max < numInUse)
+        if (max < GetNumSinksInUse())
         {
             LOG_ERROR("max setting = " << max << 
                 " is less than the current number of Sinks in use = " << numInUse);
@@ -2445,14 +2431,31 @@ namespace DSL
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
-        if (m_components[component]->IsInUse())
-        {
-            LOG_ERROR("Unable to add component '" << component 
-                << "' as it's currently in use");
-            return DSL_RESULT_COMPONENT_IN_USE;
-        }
         try
         {
+            // Can't add components if they're In use by another Pipeline
+            if (m_components[component]->IsInUse())
+            {
+                LOG_ERROR("Unable to add component '" << component 
+                    << "' as it's currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+
+            // Check for MAX Sources in Use - Do not exceed!
+            if (IsSourceComponent(component) and (GetNumSourcesInUse() == m_sourceNumInUseMax))
+            {
+                LOG_ERROR("Adding Source '" << component << "' to Pipeline '" << pipeline << 
+                    "' would exceed the maximum num-in-use limit");
+                return DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED;
+            }
+
+            if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
+            {
+                LOG_ERROR("Adding Sink '" << component << "' to Pipeline '" << pipeline << 
+                    "' would exceed the maximum num-in-use limit");
+                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED;
+            }
+
             m_components[component]->AddToParent(m_pipelines[pipeline]);
             LOG_INFO("Component '" << component 
                 << "' was added to Pipeline '" << pipeline << "' successfully");
@@ -3021,6 +3024,51 @@ namespace DSL
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H264] = "h264parse";
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H265] = "h265parse";
     }
+
+    bool Services::IsSourceComponent(const char* component)
+    {
+        LOG_FUNC();
+     
+        return (m_components[component]->IsType(typeid(CsiSourceBintr)) or 
+            m_components[component]->IsType(typeid(UriSourceBintr)) or
+            m_components[component]->IsType(typeid(RtspSourceBintr)));
+    }
+ 
+    uint Services::GetNumSourcesInUse()
+    {
+        LOG_FUNC();
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSourcesInUse();
+        }
+        return numInUse;
+    }
     
+    bool Services::IsSinkComponent(const char* component)
+    {
+        LOG_FUNC();
+     
+        return (m_components[component]->IsType(typeid(FakeSinkBintr)) or 
+            m_components[component]->IsType(typeid(OverlaySinkBintr)) or
+            m_components[component]->IsType(typeid(WindowSinkBintr)) or
+            m_components[component]->IsType(typeid(FileSinkBintr)) or
+            m_components[component]->IsType(typeid(RtspSinkBintr)));
+    }
+ 
+    uint Services::GetNumSinksInUse()
+    {
+        LOG_FUNC();
+        
+        uint numInUse(0);
+        
+        for (auto const& imap: m_pipelines)
+        {
+            numInUse += imap.second->GetNumSinksInUse();
+        }
+        return numInUse;
+    }
 
 } // namespace 
