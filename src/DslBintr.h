@@ -74,6 +74,13 @@ namespace DSL
         {
             LOG_FUNC();
         }
+        
+        bool IsType(const std::type_info& typeInfo)
+        {
+            LOG_FUNC();
+            
+            return (typeInfo.hash_code() == typeid(*this).hash_code());
+        }
 
         /**
          * @brief Adds this Bintr as a child to a ParentBinter

@@ -540,6 +540,38 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
     }
 }
 
+SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[file-sink-api]" )
+{
+    GIVEN( "A new Fake Sink as incorrect Sink Type" ) 
+    {
+        std::wstring fakeSinkName(L"fake-sink");
+            
+        uint currBitrate(0);
+        uint currInterval(0);
+    
+        uint newBitrate(2500000);
+        uint newInterval(10);
+
+        WHEN( "The File Sink Get-Set API called with a Fake sink" )
+        {
+            
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
+
+            THEN( "The File Sink encoder settings APIs fail correctly")
+            {
+                REQUIRE( dsl_sink_file_encoder_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_sink_file_encoder_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[rtsp-sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -702,6 +734,38 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[rtsp-sink-api]" )
         }
     }
 }
+
+SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[file-sink-api]" )
+{
+    GIVEN( "A new Fake Sink as incorrect Sink Type" ) 
+    {
+        std::wstring fakeSinkName(L"fake-sink");
+            
+        uint currBitrate(0);
+        uint currInterval(0);
+    
+        uint newBitrate(2500000);
+        uint newInterval(10);
+
+        WHEN( "The RTSP Sink Get-Set API called with a Fake sink" )
+        {
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
+
+            THEN( "The RTSP Sink encoder settings APIs fail correctly")
+            {
+                REQUIRE( dsl_sink_rtsp_encoder_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_sink_rtsp_encoder_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
+                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+
 
 SCENARIO( "A Client is able to update the Sink in-use max", "[sink-api]" )
 {

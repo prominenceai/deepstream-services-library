@@ -397,3 +397,35 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Tracker"
         }
     }
 }
+
+SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker-api]" )
+{
+    GIVEN( "A new Fake Sink as incorrect Tracker Type" ) 
+    {
+        std::wstring fakeSinkName(L"fake-sink");
+
+        WHEN( "The Tracker Get-Set API called with a Fake sink" )
+        {
+            
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
+
+            THEN( "The Trakcer Get-Set APIs fail correctly")
+            {
+                uint width(0), height(0);
+                const wchar_t* config;
+                
+                REQUIRE( dsl_tracker_max_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
+                REQUIRE( dsl_tracker_max_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
+
+                REQUIRE ( dsl_tracker_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER );
+                REQUIRE ( dsl_tracker_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER );
+                
+//                REQUIRE ( dsl_tracker_iou_config_file_get(fakeSinkName.c_str(), &config) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+//                REQUIRE ( dsl_tracker_iou_config_file_set(fakeSinkName.c_str(), config) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

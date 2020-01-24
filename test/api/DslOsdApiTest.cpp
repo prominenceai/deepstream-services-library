@@ -294,3 +294,32 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a OSD", "[
         }
     }
 }
+
+SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls", "[osd-api]" )
+{
+    GIVEN( "A new Fake Sink as incorrect Source Type" ) 
+    {
+        std::wstring fakeSinkName(L"fake-sink");
+            
+        uint currBitrate(0);
+        uint currInterval(0);
+    
+        uint newBitrate(2500000);
+        uint newInterval(10);
+
+        WHEN( "The On-Screen Display Get-Set API called with a Fake sink" )
+        {
+            
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
+
+            THEN( "The On-Screen Display APIs fail correctly")
+            {
+                REQUIRE ( dsl_osd_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                REQUIRE ( dsl_osd_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
