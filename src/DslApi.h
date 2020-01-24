@@ -48,6 +48,7 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
 #define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
+#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010006 
 
 /**
  * Source API Return Values
@@ -65,6 +66,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
 #define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000D
 
 /**
  * Tracker API Return Values
@@ -81,6 +83,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030009
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x0003000A
 #define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000B
+#define DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER                 0x0003000C
 
 /**
  * Sink API Return Values
@@ -95,6 +98,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
 #define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 
 
 /**
@@ -111,6 +115,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00050008
 #define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
+#define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 
 /**
  * GIE API Return Values
@@ -127,6 +132,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_HANDLER_ADD_FAILED                           0x00060009
 #define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x0006000A
 #define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x0006000B
+#define DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE                         0x0006000C
 
 /**
  * Display API Return Values
@@ -141,6 +147,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TILER_HANDLER_ADD_FAILED                         0x00070007
 #define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
 #define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
+#define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
 
 /**
  * Pipeline API Return Values
@@ -163,6 +170,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
+#define DSL_RESULT_PIPELINE_OBJECT_IS_NOT_PIPELINE                  0x0007000A
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1

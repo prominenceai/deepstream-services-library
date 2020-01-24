@@ -847,6 +847,49 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     } \
 }while(0); 
 
+#define RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(components, name, bintr) do \
+{ \
+    if (!components[name]->IsType(typeid(bintr)))\
+    { \
+        LOG_ERROR("Component '" << name << "' is not the correct type"); \
+        return DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr))) \
+    { \
+        LOG_ERROR("Component name '" << name << "' is not a Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(KtlTrackerBintr)) and  \
+        !components[name]->IsType(typeid(IouTrackerBintr))) \
+    { \
+        LOG_ERROR("Component name '" << name << "' is not a Tracker"); \
+        return DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtspSinkBintr))) \
+    { \
+        LOG_ERROR("Component name '" << name << "' is not a Sink"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0); 
+
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
 /**
@@ -1058,10 +1101,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-        
+
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
@@ -1079,10 +1124,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
@@ -1100,11 +1147,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
          
@@ -1129,11 +1178,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
          
@@ -1158,10 +1209,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
                 
@@ -1193,10 +1246,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
                 
@@ -1229,10 +1284,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
             return std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
         }
         catch(...)
@@ -1334,7 +1391,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1343,6 +1399,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
+            
             DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
                 std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
 
@@ -1364,7 +1423,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1373,6 +1431,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
+            
             DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
                 std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
 
@@ -1500,10 +1561,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
@@ -1522,16 +1585,19 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (m_components[name]->IsInUse())
-        {
-            LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
-                << "' as it's currently in use");
-            return DSL_RESULT_TILER_IS_IN_USE;
-        }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set Max Dimensions for Tracker '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_TILER_IS_IN_USE;
+            }
+
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
@@ -1554,7 +1620,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1563,6 +1628,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
@@ -1584,7 +1652,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1593,6 +1660,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
@@ -1640,10 +1710,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1662,16 +1734,19 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (m_components[name]->IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for Tiler '" << name 
-                << "' as it's currently in use");
-            return DSL_RESULT_TILER_IS_IN_USE;
-        }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set Dimensions for Tiler '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_TILER_IS_IN_USE;
+            }
+
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1694,10 +1769,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1718,14 +1795,18 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
-        if (m_components[name]->IsInUse())
-        {
-            LOG_ERROR("Unable to set Tiles for Tiler '" << name 
-                << "' as it's currently in use");
-            return DSL_RESULT_TILER_IS_IN_USE;
-        }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set Tiles for Tiler '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_TILER_IS_IN_USE;
+            }
+
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1748,7 +1829,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1757,6 +1837,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1787,6 +1870,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
@@ -1834,7 +1920,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1843,6 +1928,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
             DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
@@ -1864,7 +1952,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         if (pad > DSL_PAD_SRC)
         {
@@ -1873,6 +1960,9 @@ namespace DSL
         }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
             DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
@@ -2007,10 +2097,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+
             DSL_FILE_SINK_PTR fileSinkBintr = 
                 std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
 
@@ -2028,10 +2120,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+
             DSL_FILE_SINK_PTR fileSinkBintr = 
                 std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
 
@@ -2049,16 +2143,19 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
-        if (m_components[name]->IsInUse())
-        {
-            LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
-                << "' as it's currently in use");
-            return DSL_RESULT_SINK_IS_IN_USE;
-        }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_SINK_IS_IN_USE;
+            }
+
             DSL_FILE_SINK_PTR fileSinkBintr = 
                 std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
 
@@ -2132,10 +2229,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
 
@@ -2153,18 +2252,21 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
-        if (m_components[name]->IsInUse())
-        {
-            LOG_ERROR("Unable to set Encoder settings for RTSP Sink '" << name 
-                << "' as it's currently in use");
-            return DSL_RESULT_SINK_IS_IN_USE;
-        }
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set Encoder settings for RTSP Sink '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_SINK_IS_IN_USE;
+            }
 
             if (!rtspSinkBintr->SetEncoderSettings(bitrate, interval))
             {

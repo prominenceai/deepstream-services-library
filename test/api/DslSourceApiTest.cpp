@@ -469,3 +469,39 @@ SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[so
         }
     }
 }
+
+SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-api]" )
+{
+    GIVEN( "A new Fake Sink as incorrect Source Type" ) 
+    {
+        std::wstring fakeSinkName(L"fake-sink");
+            
+        uint currBitrate(0);
+        uint currInterval(0);
+    
+        uint newBitrate(2500000);
+        uint newInterval(10);
+
+        WHEN( "The File Sink Get-Set API called with a Fake sink" )
+        {
+            
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
+
+            THEN( "The Source Pause and Resume APIs fail correctly")
+            {
+                uint width(0), height(0);
+                uint fps_n(0), fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_frame_rate_get(fakeSinkName.c_str(), &fps_n, &fps_d) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_pause(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_pause(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_resume(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+                REQUIRE( dsl_source_is_live(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
