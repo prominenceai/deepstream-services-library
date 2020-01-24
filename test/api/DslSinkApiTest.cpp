@@ -899,3 +899,45 @@ SCENARIO( "Adding multiple Sinks to multiple Pipelines updates the in-use number
         }
     }
 }
+
+SCENARIO( "Adding greater than max Sinks to all Pipelines fails", "[sink-api]" )
+{
+    std::wstring sinkName1  = L"fake-sink1";
+    std::wstring pipelineName1  = L"test-pipeline1";
+    std::wstring sinkName2  = L"fake-sink2";
+    std::wstring pipelineName2  = L"test-pipeline2";
+    std::wstring sinkName3  = L"fake-sink3";
+    std::wstring pipelineName3  = L"test-pipeline3";
+
+    GIVEN( "Two new Sources and two new Pipeline" )
+    {
+        REQUIRE( dsl_sink_fake_new(sinkName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_fake_new(sinkName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_fake_new(sinkName3.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName3.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_num_in_use_get() == 0 );
+
+        // Reduce the max to less than 3
+        REQUIRE( dsl_sink_num_in_use_max_set(2) == true );
+
+        WHEN( "The max number of sinks are added to Pipelines" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
+                sinkName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
+                sinkName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "Adding an additional Source to a Pipeline will fail" )
+            {
+                REQUIRE( dsl_pipeline_component_add(pipelineName3.c_str(), 
+                    sinkName3.c_str()) == DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_num_in_use_get() == 0 );
+            }
+        }
+    }
+}

@@ -338,6 +338,49 @@ SCENARIO( "Adding multiple Sources to a Pipelines updates the in-use number", "[
     }
 }
 
+SCENARIO( "Adding greater than max Sources to all Pipelines fails", "[source-api]" )
+{
+    std::wstring sourceName1  = L"csi-source1";
+    std::wstring pipelineName1  = L"test-pipeline1";
+    std::wstring sourceName2  = L"csi-source2";
+    std::wstring pipelineName2  = L"test-pipeline2";
+    std::wstring sourceName3  = L"csi-source3";
+    std::wstring pipelineName3  = L"test-pipeline3";
+
+    GIVEN( "Two new Sources and two new Pipeline" )
+    {
+        REQUIRE( dsl_source_csi_new(sourceName1.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(sourceName2.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_csi_new(sourceName3.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName3.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_num_in_use_get() == 0 );
+
+        // Reduce the max to less than 3
+        REQUIRE( dsl_source_num_in_use_max_set(2) == true );
+
+        WHEN( "The max number of sources are added to Pipelines" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
+                sourceName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
+                sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "Adding an additional Source to a Pipeline will fail" )
+            {
+                REQUIRE( dsl_pipeline_component_add(pipelineName3.c_str(), 
+                    sourceName3.c_str()) == DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_num_in_use_get() == 0 );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
 {
     GIVEN( "A new Source not in use by a Pipeline" ) 
@@ -493,7 +536,6 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
                 uint fps_n(0), fps_d(0);
                 REQUIRE( dsl_source_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_frame_rate_get(fakeSinkName.c_str(), &fps_n, &fps_d) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
-                REQUIRE( dsl_source_pause(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_pause(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_resume(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);
                 REQUIRE( dsl_source_is_live(fakeSinkName.c_str()) == DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE);

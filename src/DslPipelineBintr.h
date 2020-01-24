@@ -76,7 +76,7 @@ namespace DSL
          * @brief returns the number of Sources currently in use by
          * this Pipeline
          */
-        uint GetNumSourceInUse()
+        uint GetNumSourcesInUse()
         {
             if (!m_pPipelineSourcesBintr)
             {

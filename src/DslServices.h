@@ -251,11 +251,6 @@ namespace DSL {
         bool HandleXWindowEvents(); 
 
     private:
-    
-        /**
-         * @brief called during construction to intialize all const-to-string maps
-         */
-        void _initMaps();
 
         /**
          * @brief private ctor for this singleton class
@@ -267,6 +262,37 @@ namespace DSL {
          * @brief private dtor for this singleton class
          */
         ~Services();
+
+        /**
+         * @brief private helper function to test component for Source Type identity
+         * @param[in] unique component name check
+         * @returns true if component is a sink. 
+         */
+        bool IsSourceComponent(const char* component);
+    
+        /**
+         * @brief private helper function to collect Sources in use stats from all Pipelines
+         * @returns the current total number of all sinks in use
+         */
+        uint GetNumSourcesInUse();
+        
+        /**
+         * @brief private helper function to test component for Sink Type identity
+         * @param[in] unique component name to check
+         * @returns true if component is a sink. 
+         */
+        bool IsSinkComponent(const char* component);
+    
+        /**
+         * @brief private helper function to collect Sinks in use stats from all Pipelines
+         * @returns the current total number of all sinks in use
+         */
+        uint GetNumSinksInUse();
+        
+        /**
+         * @brief called during construction to intialize all const-to-string maps
+         */
+        void _initMaps();
         
         /**
          * @brief instance pointer for this singleton class
