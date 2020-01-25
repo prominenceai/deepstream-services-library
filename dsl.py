@@ -158,8 +158,19 @@ _dsl.dsl_source_num_in_use_max_set.argtypes = [c_uint]
 def dsl_source_num_in_use_max_set(max):
     global _dsl
     result = _dsl.dsl_source_num_in_use_max_set(max)
-dsl_source_num_in_use_max_set(20)
+#dsl_source_num_in_use_max_set(20)
 #print(dsl_source_num_in_use_max_get())
+
+##
+## dsl_dewarper_new()
+##
+_dsl.dsl_dewarper_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_dewarper_new.restype = c_uint
+def dsl_dewarper_new(name, config_file):
+    global _dsl
+    result = _dsl.dsl_dewarper_new(name, config_file)
+    return int(result)
+#print(dsl_dewarper_new("dewarper", "./test/configs/config_dewarper.txt"))
 
 ##
 ## dsl_gie_primary_new()
@@ -170,8 +181,8 @@ def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
     global _dsl
     result = _dsl.dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval)
     return int(result)
-#print(dsl_gie_primary_new("primary-gie", "../../test/configs/config_infer_primary_nano.txt", 
-#    "../../test/models/Primary_Detector_Nano/resnet10.caffemodel", 0, 0))
+#print(dsl_gie_primary_new("primary-gie", "./test/configs/config_infer_primary_nano.txt", 
+#    "./test/models/Primary_Detector_Nano/resnet10.caffemodel", 0))
 
 ##
 ## dsl_gie_primary_batch_meta_handler_add()

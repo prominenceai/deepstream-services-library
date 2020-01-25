@@ -166,10 +166,10 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrConfig(infer_config_file);
+    std::wstring wstrConfig(config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
 
-    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str();
+    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str());
 }
 
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -1436,6 +1436,41 @@ namespace DSL
         return true;
     }
 
+    DslReturnType Services::DewarperNew(const char* name, const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Dewarper name '" << name << "' is not unique");
+            return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
+        }
+        
+        LOG_INFO("Dewarper config file: " << configFile);
+        
+        std::ifstream ifsConfigFile(configFile);
+        if (!ifsConfigFile.good())
+        {
+            LOG_ERROR("Dewarper Config File not found");
+            return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+        }
+
+        try
+        {
+            m_components[name] = DSL_DEWARPER_NEW(name, configFile);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Dewarper '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
     {

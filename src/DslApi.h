@@ -71,6 +71,16 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
 
 /**
+ * Dewarper API Return Values
+ */
+#define DSL_RESULT_DEWARPER_RESULT                                  0x00090000
+#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x00090001
+#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x00090002
+#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
+#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
+#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
+
+/**
  * Tracker API Return Values
  */
 #define DSL_RESULT_TRACKER_RESULT                                   0x00030000

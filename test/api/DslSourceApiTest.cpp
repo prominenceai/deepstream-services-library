@@ -547,3 +547,74 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
     }
 }
 
+SCENARIO( "A Dewarper can be added to and removed from a Decode Source Object", "[source-api]" )
+{
+    GIVEN( "A new Source and new Dewarper" )
+    {
+        std::wstring sourceName = L"uri-source";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring dewarperName(L"dewarper");
+        std::wstring defConfigFile(L"./test/configs/config_dewarper.txt");
+
+        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_dewarper_new(dewarperName.c_str(), defConfigFile.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Dewarper is added to the Source" ) 
+        {
+            REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
+                dewarperName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Dewarper can be removed" )
+            {
+                // A second call must fail
+                REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
+                    dewarperName.c_str()) == DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED );
+
+                REQUIRE( dsl_source_decode_dewarper_remove(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+
+                // A second time must fail
+                REQUIRE( dsl_source_decode_dewarper_remove(sourceName.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "Adding an invalid Dewarper to a Decode Source Object fails", "[source-api]" )
+{
+    GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
+    {
+        std::wstring sourceName = L"uri-source";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring fakeSinkName(L"fake-sink");
+
+        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Fake Sink is used as Dewarper" ) 
+        {
+            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "Adding the Fake Sink as a Dewarper will fail" )
+            {
+                REQUIRE( dsl_source_decode_dewarper_add(sourceName.c_str(), 
+                    fakeSinkName.c_str()) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
