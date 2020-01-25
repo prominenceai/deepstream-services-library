@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
 
+// Single GST debug catagory initialization
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
@@ -104,6 +105,24 @@ DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink)
     return DSL::Services::GetServices()->SourceSinkRemove(cstrSource.c_str(), cstrSink.c_str());
 }
 
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* source, const wchar_t* dewarper)
+{
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrDewarper(dewarper);
+    std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
+
+    return DSL::Services::GetServices()->SourceDecodeDewarperAdd(cstrSource.c_str(), cstrDewarper.c_str());
+}
+
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* source)
+{
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrSource.c_str());
+}
+
 DslReturnType dsl_source_pause(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -141,6 +160,16 @@ uint dsl_source_num_in_use_max_get()
 boolean dsl_source_num_in_use_max_set(uint max)
 {
     return DSL::Services::GetServices()->SourceNumInUseMaxSet(max);
+}
+
+DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str());
 }
 
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -862,7 +891,17 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
-        LOG_ERROR("Component name '" << name << "' is not a Source"); \
+        LOG_ERROR("Component '" << name << "' is not a Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
         return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
     } \
 }while(0); 
@@ -872,7 +911,7 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     if (!components[name]->IsType(typeid(KtlTrackerBintr)) and  \
         !components[name]->IsType(typeid(IouTrackerBintr))) \
     { \
-        LOG_ERROR("Component name '" << name << "' is not a Tracker"); \
+        LOG_ERROR("Component '" << name << "' is not a Tracker"); \
         return DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER; \
     } \
 }while(0); 
@@ -885,7 +924,7 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr))) \
     { \
-        LOG_ERROR("Component name '" << name << "' is not a Sink"); \
+        LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
     } \
 }while(0); 
@@ -1205,6 +1244,65 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SourceDecodeDewarperAdd(const char* source, const char* dewarper)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[source]);
+         
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
+         
+            if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
+            {
+                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << source << "'");
+                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << source << "' threw exception adding Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SourceDecodeDewarperRemove(const char* source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, source);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[source]);
+         
+            if (!pSourceBintr->RemoveDewarperBintr())
+            {
+                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << source << "'");
+                return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << source << "' threw exception removing Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::SourcePause(const char* name)
     {
         LOG_FUNC();
@@ -1338,6 +1436,41 @@ namespace DSL
         return true;
     }
 
+    DslReturnType Services::DewarperNew(const char* name, const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Dewarper name '" << name << "' is not unique");
+            return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
+        }
+        
+        LOG_INFO("Dewarper config file: " << configFile);
+        
+        std::ifstream ifsConfigFile(configFile);
+        if (!ifsConfigFile.good())
+        {
+            LOG_ERROR("Dewarper Config File not found");
+            return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+        }
+
+        try
+        {
+            m_components[name] = DSL_DEWARPER_NEW(name, configFile);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Dewarper '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
     {

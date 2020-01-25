@@ -64,6 +64,10 @@ namespace DSL {
     
         DslReturnType SourceSinkRemove(const char* source, const char* sink);
     
+        DslReturnType SourceDecodeDewarperAdd(const char* source, const char* dewarper);
+    
+        DslReturnType SourceDecodeDewarperRemove(const char* source);
+    
         DslReturnType SourcePause(const char* name);
 
         DslReturnType SourceResume(const char* name);
@@ -76,6 +80,8 @@ namespace DSL {
         
         boolean SourceNumInUseMaxSet(uint max);
         
+        DslReturnType DewarperNew(const char* name, const char* configFile);
+
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
         
