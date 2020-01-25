@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslSourceBintr.h"
 
+
 using namespace DSL;
 
 SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
@@ -207,7 +208,7 @@ SCENARIO( "A UriSourceBintr can LinkAll child Elementrs correctly",  "[UriSource
 
         WHEN( "The UriSourceBintr is called to LinkAll" )
         {
-            pSourceBintr->LinkAll();
+            REQUIRE( pSourceBintr->LinkAll() == true );
 
             THEN( "The UriSourceBintr IsLinked state is updated correctly" )
             {
@@ -230,7 +231,7 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Uri
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
 
-        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->LinkAll() == true );
         REQUIRE( pSourceBintr->IsLinked() == true );
 
         WHEN( "The UriSourceBintr is called to UnlinkAll" )
@@ -387,6 +388,181 @@ SCENARIO( "A UriSourceBintr with a child SinkBintr can UnlinkAll correctly",  "[
     }
 }
 
+SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        WHEN( "The DewarperBintr is added to UriSourceBintr" )
+        {
+            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+            THEN( "The UriSourceBintr correctly returns that it has a dewarper" )
+            {
+                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can Remove a Child DewarperBintr",  "[DecodeSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+        WHEN( "The DewarperBintr is removed from the UriSourceBintr" )
+        {
+            REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
+            
+            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
+            {
+                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can ensure a single Child DewarperBintr",  "[DecodeSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        std::string dewarperName1("dewarper1");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        std::string dewarperName2("dewarper2");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr1 = 
+            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
+
+        DSL_DEWARPER_PTR pDewarperBintr2 = 
+            DSL_DEWARPER_NEW(dewarperName2.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr1) == true );
+
+        WHEN( "Adding a second DewarperBintr should fail" )
+        {
+            REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr2) == false );
+            
+            THEN( "The UriSourceBintr correctly returns that it does not have a dewarper" )
+            {
+                REQUIRE( pSourceBintr->HasDewarperBintr() == true );
+                REQUIRE( pSourceBintr->RemoveDewarperBintr() == true );
+                // removing a second time must fail
+                REQUIRE( pSourceBintr->RemoveDewarperBintr() == false );
+                REQUIRE( pSourceBintr->HasDewarperBintr() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr with a child DewarperBintr can LinkAll child Elementrs correctly",  "[DecodeSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+        WHEN( "The UriSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll child Elementrs correctly",  "[DecodeSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr with a child DewarperBintr" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pSourceBintr->AddDewarperBintr(pDewarperBintr) == true );
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+
+        WHEN( "The UriSourceBintr is called to LinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+            
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
@@ -427,3 +603,4 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
         }
     }
 }
+

@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslElementr.h"
 #include "DslMultiSinksBintr.h"
+#include "DslDewarperBintr.h"
 
 namespace DSL
 {
@@ -43,6 +44,8 @@ namespace DSL
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
+        
+    #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
     #define DSL_URI_SOURCE_NEW(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval) \
@@ -288,6 +291,26 @@ namespace DSL
          * @return 
          */
         gboolean HandleStreamBufferSeek();
+
+        /**
+         * @brief adds a single Dewarper Bintr to this DecodeSourceBintr 
+         * @param[in] pDewarperBintr shared pointer to Dewarper to add
+         * @returns true if the Dewarper could be added, false otherwise
+         */
+        bool AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr);
+
+        /**
+         * @brief remove a previously added Dewarper Bintr from this DecodeSourceBintr 
+         * @returns true if the Dewarper could be removed, false otherwise
+         */
+        bool RemoveDewarperBintr();
+        
+        /**
+         * @brief call to query the Decode Source if it has a Dewarper
+         * @return true if the Source has a Child
+         */
+        bool HasDewarperBintr();
+
         
     protected:
 
@@ -347,9 +370,14 @@ namespace DSL
         DSL_ELEMENT_PTR m_pFakeSink;
 
         /**
-         * @brief
+         * @brief 
          */
         DSL_ELEMENT_PTR m_pFakeSinkQueue;
+        
+        /**
+         * @brief Single, optional dewarper for the DecodeSourceBintr
+         */ 
+        DSL_NODETR_PTR m_pDewarperBintr;
 
     };
     

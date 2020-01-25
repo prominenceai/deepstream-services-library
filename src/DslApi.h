@@ -66,7 +66,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
 #define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000D
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
 
 /**
  * Tracker API Return Values
@@ -334,6 +336,21 @@ DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
 DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
 
 /**
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param source name of the source object to update
+ * @param dewarper name of the dewarper to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* source, const wchar_t* dewarper);
+
+/**
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param source name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* source);
+
+/**
  * @brief pauses a single Source object if the Source is 
  * currently in a state of in-use and Playing..
  * @param name the name of Source component to pause
@@ -379,6 +396,14 @@ uint dsl_source_num_in_use_max_get();
  * number correctly based on the Jetson hardware in use.
  */
 boolean dsl_source_num_in_use_max_set(uint max);  
+
+/**
+ * @brief create a new, uniquely named Dewarper object
+ * @param name unique name for the new Dewarper object
+ * @param config_file absolute or relative path to Dewarper config text file
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
+DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
 
 /**
  * @brief creates a new, uniquely named Primary GIE object

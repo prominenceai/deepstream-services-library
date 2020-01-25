@@ -480,6 +480,41 @@ namespace DSL
         Play();
         return false;
     }
+    
+    bool DecodeSourceBintr::AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pDewarperBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' allready has a Dewarper");
+            return false;
+        }
+        m_pDewarperBintr = pDewarperBintr;
+        AddChild(pDewarperBintr);
+        return true;
+    }
+
+    bool DecodeSourceBintr::RemoveDewarperBintr()
+    {
+        LOG_FUNC();
+
+        if (!m_pDewarperBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' does not have a Dewarper");
+            return false;
+        }
+        RemoveChild(m_pDewarperBintr);
+        m_pDewarperBintr = nullptr;
+        return true;
+    }
+    
+    bool DecodeSourceBintr::HasDewarperBintr()
+    {
+        LOG_FUNC();
+        
+        return (m_pDewarperBintr != nullptr);
+    }
 
     //*********************************************************************************
 
@@ -560,7 +595,21 @@ namespace DSL
         std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_sourceId);
 
         m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
-        m_pSourceQueue->LinkToSource(m_pTee);
+        
+        if (HasDewarperBintr())
+        {
+            if (!m_pDewarperBintr->LinkToSource(m_pTee) or !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            {
+                return false;
+            }            
+        }
+        else
+        {
+            if (!m_pSourceQueue->LinkToSource(m_pTee))
+            {
+                return false;
+            }
+        }
 
         pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
         if (!pGstRequestedSourcePad)
@@ -590,23 +639,17 @@ namespace DSL
             LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
-        // If the Source Queue is Linked back with Tee
-        if (m_pSourceQueue->IsLinkedToSource())
+        m_pFakeSinkQueue->UnlinkFromSource();
+        m_pFakeSinkQueue->UnlinkFromSink();
+
+        if (HasDewarperBintr())
+        {
+            m_pDewarperBintr->UnlinkFromSource();
+            m_pDewarperBintr->UnlinkFromSink();
+        }
+        else
         {
             m_pSourceQueue->UnlinkFromSource();
-        }
-        if (m_pSourceQueue->IsLinkedToSink())
-        {
-            m_pSourceQueue->UnlinkFromSink();
-        }
-        // If the Source Queue is Linked back with Tee
-        if (m_pFakeSinkQueue->IsLinkedToSource())
-        {
-            m_pFakeSinkQueue->UnlinkFromSource();
-        }
-        if (m_pFakeSinkQueue->IsLinkedToSink())
-        {
-            m_pFakeSinkQueue->UnlinkFromSink();
         }
 
         for (auto const& imap: m_pGstRequestedSourcePads)

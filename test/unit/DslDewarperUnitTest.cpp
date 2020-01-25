@@ -48,3 +48,49 @@ SCENARIO( "A Dewarper is created correctly",  "[DewarperBintr]" )
         }
     }
 }
+
+SCENARIO( "A Dewarper can LinkAll child Elementrs correctly",  "[DewarperBintr]" )
+{
+    GIVEN( "A new DewarperBintr in memory" ) 
+    {
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        WHEN( "The DewarperBintr is called to LinkAll" )
+        {
+            REQUIRE( pDewarperBintr->LinkAll() == true );
+
+            THEN( "The DewarperBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pDewarperBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Dewarper can UnlinkAll child Elementrs correctly",  "[DewarperBintr]" )
+{
+    GIVEN( "A new DewarperBintr in memory" ) 
+    {
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pDewarperBintr->LinkAll() == true );
+        
+        WHEN( "The DewarperBintr is called to UnlinkAll" )
+        {
+            pDewarperBintr->UnlinkAll();
+
+            THEN( "The DewarperBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pDewarperBintr->IsLinked() == false );
+            }
+        }
+    }
+}
