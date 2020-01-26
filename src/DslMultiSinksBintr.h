@@ -46,20 +46,27 @@ namespace DSL
     {
     public: 
     
+        /**
+         * @brief ctor for the MultiSinksBintr
+         * @param[in] name name to give the new Bintr
+         */
         MultiSinksBintr(const char* name);
 
+        /**
+         * @brief dtor for the MultiSinksBintr
+         */
         ~MultiSinksBintr();
         
         /**
          * @brief adds a child SinkBintr to this MultiSinksBintr
-         * @param pChildSink shared pointer to SinkBintr to add
+         * @param[in] pChildSink shared pointer to SinkBintr to add
          * @return true if the SinkBintr was added correctly, false otherwise
          */
         bool AddChild(DSL_SINK_PTR pChildSink);
         
         /**
          * @brief removes a child SinkBintr from this MultiSinksBintr
-         * @param pChildSink a shared pointer to SinkBintr to remove
+         * @param[in] pChildSink a shared pointer to SinkBintr to remove
          * @return true if the SinkBintr was removed correctly, false otherwise
          */
         bool RemoveChild(DSL_SINK_PTR pChildSink);

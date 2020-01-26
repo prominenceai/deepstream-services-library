@@ -97,7 +97,7 @@ namespace DSL
         
         /**
          * @brief adds a child Nodetr to this parent Nodetr
-         * @param pChild to add to this parent Nodetr. 
+         * @param[in] pChild to add to this parent Nodetr. 
          */
         virtual bool AddChild(DSL_NODETR_PTR pChild)
         {
@@ -118,7 +118,7 @@ namespace DSL
         
         /**
          * @brief removed a child Nodetr of this parent Nodetr
-         * @param pChild to remove
+         * @param[in] pChild to remove
          */
         virtual bool RemoveChild(DSL_NODETR_PTR pChild)
         {
@@ -139,8 +139,7 @@ namespace DSL
         }
 
         /**
-         * @brief removed a child Nodetr of this parent Nodetr
-         * @param pChild to remove
+         * @brief removes all child Nodetrs from this parent Nodetr
          */
         virtual void RemoveAllChildren()
         {
@@ -156,7 +155,7 @@ namespace DSL
         
         /**
          * @brief function to determine if a Nodetr is a child of this Nodetr
-         * @param pChild Nodetr to test for the child relationship
+         * @param[in] pChild Nodetr to test for the child relationship
          * @return true if pChild is a child of this Nodetr
          */
         virtual bool IsChild(DSL_NODETR_PTR pChild)
@@ -168,7 +167,7 @@ namespace DSL
         
         /**
          * @brief determines whether this Nodetr is a child of a given pParent
-         * @param pParent the Nodetr to check for a Parental relationship
+         * @param[in] pParent the Nodetr to check for a Parental relationship
          * @return True if the provided Nodetr is this Nodetr's Parent
          */
         virtual bool IsParent(DSL_NODETR_PTR pParent)
@@ -180,7 +179,7 @@ namespace DSL
         
         /**
          * @brief Links this Noder, becoming a source, to a sink Nodre
-         * @param pSink Sink Nodre to link this Source Nodre to
+         * @param[in] pSink Sink Nodre to link this Source Nodre to
          */
         virtual bool LinkToSink(DSL_NODETR_PTR pSink)
         {
@@ -219,7 +218,7 @@ namespace DSL
         
         /**
          * @brief Links this Noder, becoming a source, to a sink Nodre
-         * @param pSink Sink Nodre to link this Source Nodre to
+         * @param[in] pSource Nodre to link this Sink Nodre back to
          */
         virtual bool LinkToSource(DSL_NODETR_PTR pSource)
         {
@@ -446,7 +445,7 @@ namespace DSL
 
         /**
          * @brief adds a child Bintr to this parent Bintr
-         * @param pChildBintr to add. Once added, calling InUse()
+         * @param[in] pChildBintr to add. Once added, calling InUse()
          *  on the Child Bintr will return true
          * @return true if pChild was added successfully, false otherwise
          */
@@ -465,7 +464,7 @@ namespace DSL
         
         /**
          * @brief removes a child Bintr from this parent Bintr
-         * @param pChildBintr to remove. Once removed, calling InUse()
+         * @param[in] pChildBintr to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
         bool RemoveChild(DSL_NODETR_PTR pChild)
@@ -491,7 +490,7 @@ namespace DSL
 
         /**
          * @brief removed a child Nodetr of this parent Nodetr
-         * @param pChild to remove
+         * @param[in] pChild to remove
          */
         void RemoveAllChildren()
         {
@@ -515,6 +514,7 @@ namespace DSL
         
         /**
          * @brief Creates a new Ghost Sink pad for this Gst Element
+         * @param[in] name unique name for the Ghost Pad
          * and adds it to the parent Gst Bin.
          * @throws a general exception on failure
          */
@@ -534,7 +534,7 @@ namespace DSL
 
         /**
          * @brief links this Elementr as Source to a given Sink Elementr
-         * @param pSinkBintr to link to
+         * @param[in] pSink to link to
          */
         bool LinkToSink(DSL_NODETR_PTR pSink)
         { 
@@ -576,7 +576,7 @@ namespace DSL
 
         /**
          * @brief links this Elementr as Sink to a given Source Nodetr
-         * @param pSinkBintr to link to
+         * @param[in] pSinkBintr to link to
          */
         bool LinkToSource(DSL_NODETR_PTR pSource)
         { 
