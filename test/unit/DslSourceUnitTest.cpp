@@ -39,7 +39,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
         uint fpsD(1);
         std::string sourceName("test-csi-source");
 
-        WHEN( "The UriSourceBintr is created " )
+        WHEN( "The CsiSourceBintr is created " )
         {
         
             DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
@@ -147,6 +147,93 @@ SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[Csi
     }
 }
 
+SCENARIO( "A new UsbSourceBintr is created correctly",  "[UsbSourceBintr]" )
+{
+    GIVEN( "A name for a new UsbSourceBintr" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fpsN(30);
+        uint fpsD(1);
+        std::string sourceName("usb-source");
+
+        WHEN( "The UsbSourceBintr is created " )
+        {
+        
+            DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
+                sourceName.c_str(), width, height, fpsN, fpsD);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->IsLive() == true );
+                
+                uint retWidth, retHeight, retFpsN, retFpsD;
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( width == retWidth );
+                REQUIRE( height == retHeight );
+                REQUIRE( fpsN == retFpsN );
+                REQUIRE( fpsD == retFpsD );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[UsbSourceBintr]" )
+{
+    GIVEN( "A new UsbSourceBintr in memory" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(30);
+        uint fps_d(1);
+        std::string sourceName("usb-source");
+
+        DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        WHEN( "The UsbSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The UsbSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[UsbSourceBintr]" )
+{
+    GIVEN( "A new, linked UsbSourceBintr " ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(30);
+        uint fps_d(1);
+        std::string sourceName("usb-source");
+
+        DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The UsbSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The UsbSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
 {

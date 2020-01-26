@@ -45,6 +45,16 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
         width, height, fps_n, fps_d);
 }
 
+DslReturnType dsl_source_usb_new(const wchar_t* name, 
+    uint width, uint height, uint fps_n, uint fps_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceUsbNew(cstrName.c_str(), 
+        width, height, fps_n, fps_d);
+}
+
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
     boolean is_live, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
 {
@@ -888,6 +898,7 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
 #define RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
@@ -1063,6 +1074,32 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         LOG_INFO("new CSI Source '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SourceUsbNew(const char* name,
+        uint width, uint height, uint fps_n, uint fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Source name '" << name << "' is not unique");
+            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New USB Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("new USB Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }

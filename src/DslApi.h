@@ -286,6 +286,18 @@ DslReturnType dsl_source_csi_new(const wchar_t* name,
     uint width, uint height, uint fps_n, uint fps_d);
 
 /**
+ * @brief creates a new, uniquely named USB Camera Source component
+ * @param[in] name unique name for the new Source
+ * @param[in] width width of the source in pixels
+ * @param[in] height height of the source in pixels
+ * @param[in] fps-n frames/second fraction numerator
+ * @param[in] fps-d frames/second fraction denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_usb_new(const wchar_t* name,
+    uint width, uint height, uint fps_n, uint fps_d);
+
+/**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file

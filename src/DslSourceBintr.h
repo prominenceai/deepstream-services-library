@@ -45,6 +45,10 @@ namespace DSL
     #define DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fps_n, fps_d))
         
+    #define DSL_USB_SOURCE_PTR std::shared_ptr<UsbSourceBintr>
+    #define DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d) \
+        std::shared_ptr<UsbSourceBintr>(new UsbSourceBintr(name, width, height, fps_n, fps_d))
+        
     #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
@@ -236,6 +240,51 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
+    };    
+
+    //*********************************************************************************
+    /**
+     * @class UsbSourceBintr
+     * @brief 
+     */
+    class UsbSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        UsbSourceBintr(const char* name, uint width, uint height, 
+            uint fps_n, uint fps_d);
+
+        ~UsbSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+        
+    private:
+    
+        uint m_sensorId;
+        
+        /**
+         * @brief
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+        
+        /**
+         * @brief
+         */
+        DSL_ELEMENT_PTR m_pVidConv1;
+
+        /**
+         * @brief
+         */
+        DSL_ELEMENT_PTR m_pVidConv2;
     };    
 
     //*********************************************************************************

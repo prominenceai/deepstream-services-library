@@ -293,6 +293,99 @@ namespace DSL
 
     //*********************************************************************************
 
+    UsbSourceBintr::UsbSourceBintr(const char* name, 
+        guint width, guint height, guint fps_n, guint fps_d)
+        : SourceBintr(name)
+        , m_sensorId(0)
+    {
+        LOG_FUNC();
+
+        m_width = width;
+        m_height = height;
+        m_fps_n = fps_n;
+        m_fps_d = fps_d;
+        
+        m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
+        m_pVidConv1 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv1");
+        m_pVidConv2 = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "src_video_conv2");
+
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
+            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            throw;  
+        }
+
+        GstCapsFeatures *feature = NULL;
+        feature = gst_caps_features_new("memory:NVMM", NULL);
+        gst_caps_set_features(pCaps, 0, feature);
+
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        
+        gst_caps_unref(pCaps);        
+        
+        m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv2->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+
+        AddChild(m_pSourceElement);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pVidConv1);
+        AddChild(m_pVidConv2);
+        
+        m_pCapsFilter->AddGhostPadToParent("src");
+    }
+
+    UsbSourceBintr::~UsbSourceBintr()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool UsbSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        if (!m_pSourceElement->LinkToSink(m_pVidConv1) or 
+            !m_pVidConv1->LinkToSink(m_pVidConv2) or
+            !m_pVidConv2->LinkToSink(m_pCapsFilter))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void UsbSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        m_pVidConv2->UnlinkFromSink();
+        m_pVidConv1->UnlinkFromSink();
+        m_pSourceElement->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
+
+    //*********************************************************************************
+
     DecodeSourceBintr::DecodeSourceBintr(const char* name, const char* factoryName, const char* uri,
         bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
         : SourceBintr(name)
