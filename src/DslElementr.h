@@ -48,6 +48,8 @@ namespace DSL
 
         /**
          * @brief ctor for the container class
+         * @brief[in] factoryname unique GST factory name to create from
+         * @brief[in] name unique name for the Element
          */
         Elementr(const char* factoryname, const char* name)
             : GstNodetr(name)
@@ -62,6 +64,9 @@ namespace DSL
             }
         };
         
+        /**
+         * @brief ctor for the GST Element container class
+         */
         ~Elementr()
         {
             LOG_FUNC();
@@ -69,8 +74,8 @@ namespace DSL
 
         /**
          * @brief Gets a GST Element's attribute of type uint, owned by this Elementr
-         * @param name name of the attribute to set
-         * @param value unsigned integer value to set the attribute
+         * @param[in] name name of the attribute to set
+         * @param[out] value unsigned integer value to set the attribute
          */
         void GetAttribute(const char* name, uint* value)
         {
@@ -83,8 +88,8 @@ namespace DSL
 
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a value of uint
-         * @param name name of the attribute to set
-         * @param value unsigned integer value to set the attribute
+         * @param[in] name name of the attribute to set
+         * @param[in] value unsigned integer value to set the attribute
          */
         void SetAttribute(const char* name, uint value)
         {
@@ -98,8 +103,8 @@ namespace DSL
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * null terminated array of characters (char*)
-         * @param name name of the attribute to set
-         * @param value char* string value to set the attribute
+         * @param[in] name name of the attribute to set
+         * @param[in] value char* string value to set the attribute
          */
         void SetAttribute(const char* name, const char* value)
         {
@@ -113,14 +118,14 @@ namespace DSL
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of type GstCaps, created with one of gst_caps_new_* 
-         * @param name name of the attribute to set
-         * @param value char* string value to set the attribute
+         * @param[in] name name of the attribute to set
+         * @param[in] value char* string value to set the attribute
          */
         void SetAttribute(const char* name, const GstCaps * value)
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Setting attribute '" << name << "' to char* value '" << value << "'");
+            LOG_DEBUG("Setting attribute '" << name << "' to GstCaps* value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }

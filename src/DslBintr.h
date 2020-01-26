@@ -75,6 +75,11 @@ namespace DSL
             LOG_FUNC();
         }
         
+        /**
+         * @brief Allows a client to determined derived type from base pointer
+         * @param[in] typeInfo to compare against
+         * @return true if this Bintr is of typeInfo, false otherwise
+         */
         bool IsType(const std::type_info& typeInfo)
         {
             LOG_FUNC();
@@ -84,7 +89,7 @@ namespace DSL
 
         /**
          * @brief Adds this Bintr as a child to a ParentBinter
-         * @param pParentBintr to add to
+         * @param[in] pParentBintr to add to
          */
         virtual bool AddToParent(DSL_NODETR_PTR pParent)
         {
@@ -95,7 +100,7 @@ namespace DSL
         
         /**
          * @brief removes this Bintr from the provided pParentBintr
-         * @param pParentBintr Bintr to remove from
+         * @param[in] pParentBintr Bintr to remove from
          */
         virtual bool RemoveFromParent(DSL_NODETR_PTR pParentBintr)
         {
@@ -104,6 +109,11 @@ namespace DSL
             return pParentBintr->RemoveChild(shared_from_this());
         }
         
+        /**
+         * @brief Adds a named Ghost Pad to this Bintr using a provided Elementr
+         * @param[in] name for the new Ghost Pad
+         * @param[in] pElementr to retrieve the static Sink pad from
+         */
         virtual void AddGhostPad(const char* name, DSL_NODETR_PTR pElementr)
         {
             LOG_FUNC();
@@ -152,6 +162,10 @@ namespace DSL
             return (bool)GetParentGstElement();
         }
 
+        /**
+         * @brief Attempts to set the state of this Bintr's GST Element to Playing
+         * @return true if successful transition, false on failure
+         */
         bool Play()
         {
             LOG_FUNC();
@@ -169,6 +183,10 @@ namespace DSL
             return true;
         }
 
+        /**
+         * @brief Attempts to set the state of this Bintr's GST Element to Paused
+         * @return true if successful transition, false on failure
+         */
         bool Pause()
         {
             LOG_FUNC();
@@ -186,6 +204,10 @@ namespace DSL
             return true;
         }
 
+        /**
+         * @brief Attempts to set the state of this Bintr's GST Element back to ready
+         * @return true if successful transition, false on failure
+         */
         bool Stop()
         {
             LOG_FUNC();
@@ -194,6 +216,7 @@ namespace DSL
             
             if ((currentState == GST_STATE_PLAYING) or (currentState == GST_STATE_PAUSED))
             {
+                SendEos();
                 gst_element_set_state(GetGstElement(), GST_STATE_READY);
 
                 // Wait until state change or failure, no timeout.
@@ -220,9 +243,9 @@ namespace DSL
         
         /**
          * @brief Adds a Batch Meta Handler callback function to the Bintr
-         * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
-         * @param pClientBatchMetaHandler callback function pointer to add
-         * @param pClientUserData user data to return on callback
+         * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+         * @param[in] pClientBatchMetaHandler callback function pointer to add
+         * @param[in] pClientUserData user data to return on callback
          * @return false if the Bintr has an existing Batch Meta Handler for the given pad
          */
         bool AddBatchMetaHandler(uint pad, dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
@@ -244,7 +267,7 @@ namespace DSL
             
         /**
          * @brief Removes a Batch Meta Handler callback function from the Bintr
-         * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+         * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
          * @return false if the Bintr does not have a Meta Batch Handler to remove for the give pad.
          */
         bool RemoveBatchMetaHandler(uint pad)
@@ -265,7 +288,7 @@ namespace DSL
         
         /**
          * @brief Returns the current Batch Meta Handler, 
-         * @param pad pad to get the handler from; DSL_PAD_SINK | DSL_PAD SRC
+         * @param[in] pad pad to get the handler from; DSL_PAD_SINK | DSL_PAD SRC
          * @return Function pointer if the Bintr has a Handler, NULL otherwise.
          */
         dsl_batch_meta_handler_cb GetBatchMetaHandler(uint pad)
@@ -286,15 +309,19 @@ namespace DSL
 
     public:
     
+        /**
+         * @brief current is-linked state for this Bintr
+         */
+
         bool m_isLinked;
 
         /**
-         * @brief
+         * @brief current GPU Id in used by this Bintr
          */
         guint m_gpuId;
 
         /**
-         * @brief
+         * @brief current Memory Type used by this Bintr
          */
         guint m_nvbufMemoryType;
 

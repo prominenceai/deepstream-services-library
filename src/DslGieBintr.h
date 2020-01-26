@@ -124,22 +124,22 @@ namespace DSL
         std::string m_modelEngineFile;
         
         /**
-         * @brief 
+         * @brief current batch-size setting for the GieBintr
          */
         uint m_batchSize;
         
         /**
-         * @brief 
+         * @brief current infer interval for the GieBintr
          */
         uint m_interval;
         
         /**
-         * @brief 
+         * @brief Unique GIE ID derived from unique name
          */
         uint m_uniqueId;
 
         /**
-         @brief
+         @brief Current process mode in use by the Primary
          */
         uint m_processMode;
 
@@ -153,6 +153,9 @@ namespace DSL
          */
         DSL_ELEMENT_PTR  m_pInferEngine;
 
+        /**
+         * @brief Fake sink used by GieBintr
+         */
         DSL_ELEMENT_PTR  m_pFakeSink;
 
     };
@@ -206,7 +209,9 @@ namespace DSL
          */
         DSL_ELEMENT_PTR  m_pVidConv;
     
-
+        /**
+         * @brief Tee Elementr for this PrimaryGieBintr
+         */
         DSL_ELEMENT_PTR  m_pTee;
 
 
@@ -237,7 +242,7 @@ namespace DSL
 
         /**
          * @brief Adds the SecondaryGieBintr to a Parent Bintr
-         * @param pParentBintr Parent to add this Bintr to
+         * @param[in] pParentBintr Parent to add this Bintr to
          */
         bool AddToParent(DSL_NODETR_PTR pParentBintr);
 
@@ -255,14 +260,13 @@ namespace DSL
         
         /**
          * @brief Links this SGIE's Queue Elementr as sink back to the provided source pTee
-         * @param pTee that is source for this Secondary GIE
-         * @return trueif this SGIE was able to link with source Tee, false otherwise
+         * @param[in] pTee that is source for this Secondary GIE
+         * @return true if this SGIE was able to link with source Tee, false otherwise
          */
         bool LinkToSource(DSL_NODETR_PTR pTee);
 
         /**
          * @brief Unlinks this SGIE's Queue Elementr from the previously linked-to source pTee
-         * @param pTee that is source for this Secondary GIE
          * @return trueif this SGIE was able to unlink from the source Tee, false otherwise
          */
         bool UnlinkFromSource();
@@ -275,7 +279,7 @@ namespace DSL
         
         /**
          * @brief sets the Infer-on-GIE name for this Bintr
-         * @param the new name of the GIE to infer on 
+         * @param[in] the new name of the GIE to infer on 
          */
         void SetInferOnGieName(const char* name);
         

@@ -50,8 +50,8 @@ namespace DSL
     
         /**
          * @brief ctor for the OsdBintr class
-         * @param name name to give the new OsdBintr
-         * @param isClockEnabled true if clock is to be displayed
+         * @param[in] name name to give the new OsdBintr
+         * @param[in] isClockEnabled true if clock is to be displayed
          */
         OsdBintr(const char* osd, gboolean isClockEnabled);
 
@@ -62,7 +62,7 @@ namespace DSL
 
         /**
          * @brief Adds this OsdBintr to a Parent Pipline Bintr
-         * @param pParentBintr
+         * @param[in] pParentBintr
          */
         bool AddToParent(DSL_NODETR_PTR pParentBintr);
         

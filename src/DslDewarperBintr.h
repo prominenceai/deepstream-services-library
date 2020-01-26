@@ -42,8 +42,16 @@ namespace DSL
     {
     public: 
     
+        /**
+         * @brief Ctor for the DewarperBintr class
+         * @param[in] name unique name to give to the Dewarper
+         * @param[in] absolute or relative path to the Dewarper config text file
+         */
         DewarperBintr(const char* name, const char* configFile);
 
+        /**
+         * @brief dtor for the DewarperBintr class
+         */
         ~DewarperBintr();
 
         /**
