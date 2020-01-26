@@ -46,6 +46,17 @@ def dsl_source_csi_new(name, width, height, fps_n, fps_d):
 #print(dsl_source_csi_new("csi-source", 1280, 720, 30, 1))
 
 ##
+## dsl_source_usb_new()
+##
+_dsl.dsl_source_usb_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_usb_new.restype = c_uint
+def dsl_source_usb_new(name, width, height, fps_n, fps_d):
+    global _dsl
+    result =_dsl.dsl_source_usb_new(name, width, height, fps_n, fps_d)
+    return int(result)
+#print(dsl_source_usb_new("usb-source", 1280, 720, 30, 1))
+
+##
 ## dsl_source_uri_new()
 ##
 _dsl.dsl_source_uri_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]

@@ -149,31 +149,6 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
     }
 }
 
-SCENARIO( "A new CSI Camera Source is live", "[source-api]" )
-{
-    GIVEN( "An empty list of Components" ) 
-    {
-        std::wstring sourceName(L"csi-source");
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        WHEN( "A new Source is created" ) 
-        {
-            REQUIRE( dsl_source_csi_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-
-            THEN( "The list size and contents are updated correctly" ) 
-            {
-                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}    
-
 SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -199,6 +174,40 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values", "[sour
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
+                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new USB Camera Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sourceName(L"usb-source");
+        uint width(1280);
+        uint height(720);
+        uint fps_n(30);
+        uint fps_d(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new USB Source is created" ) 
+        {
+            REQUIRE( dsl_source_usb_new(sourceName.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(sourceName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(sourceName.c_str(), &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == width );
+                REQUIRE( ret_height == height );
+                REQUIRE( ret_fps_n == fps_n );
+                REQUIRE( ret_fps_d == fps_d );
+                REQUIRE( dsl_source_is_live(sourceName.c_str()) == true );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
