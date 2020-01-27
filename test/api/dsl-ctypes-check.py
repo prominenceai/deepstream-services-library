@@ -169,6 +169,39 @@ print(dsl_osd_new("on-screen-display", False))
 print(dsl_component_delete("on-screen-display"))
 
 ##
+## dsl_osd_clock_enabled_get()
+## dsl_osd_clock_enabled_set()
+##
+print("dsl_osd_clock_enabled_get")
+print("dsl_osd_clock_enabled_set")
+print(dsl_osd_new("on-screen-display", False))
+print(dsl_osd_clock_enabled_set("on-screen-display", True))
+print(dsl_osd_clock_enabled_get("on-screen-display"))
+print(dsl_component_delete("on-screen-display"))
+
+##
+## dsl_osd_clock_offsets_get()
+## dsl_osd_clock_offsets_set()
+##
+print("dsl_osd_clock_offsets_get")
+print("dsl_osd_clock_offsets_set")
+print(dsl_osd_new("on-screen-display", False))
+print(dsl_osd_clock_offsets_set("on-screen-display", 100, 100))
+print(dsl_osd_clock_offsets_get("on-screen-display",))
+print(dsl_component_delete("on-screen-display"))
+
+##
+## dsl_osd_clock_color_get()
+## dsl_osd_clock_color_set()
+##
+print("dsl_osd_clock_color_get")
+print("dsl_osd_clock_color_set")
+print(dsl_osd_new("on-screen-display", False))
+print(dsl_osd_clock_color_set("on-screen-display", 255, 255, 255))
+print(dsl_osd_clock_color_get("on-screen-display",))
+print(dsl_component_delete("on-screen-display"))
+
+##
 ## dsl_osd_batch_meta_handler_add()
 ## dsl_osd_batch_meta_handler_remove()
 ##

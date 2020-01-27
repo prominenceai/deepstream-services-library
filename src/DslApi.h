@@ -560,6 +560,78 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t
 DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
 
 /**
+ * @brief returns the current clock enabled setting for the named On-Screen Display
+ * @param[in] name name of the Display to query
+ * @param[out] enabled current setting for OSD clock in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the the clock enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update
+ * @param[in] enabled new enabled setting for the OSD clocks
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current X and Y offsets for On-Screen-Display clocks
+ * @param[in] name name of the OSD to query
+ * @param[out] offsetX current offset in the X direction for the OSD clock in pixels
+ * @param[out] offsetY current offset in the Y direction for the OSD clock in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY);
+
+/**
+ * @brief sets the X and Y offsets for the On-Screen-Display clocks
+ * @param[in] name name of the OSD to update
+ * @param[in] offsetX new offset for the OSD clock in the X direction in pixels
+ * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
+
+/**
+ * @brief returns the font name and size for On-Screen-Display clocks
+ * @param[in] name name of the OSD to query
+ * @param[out] font current font string for the OSD clocks
+ * @param[out] size current font size for the OSD clocks
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint size);
+
+/**
+ * @brief sets the font name and size for the On-Screen-Display clocks
+ * @param[in] name name of the OSD to update
+ * @param[in] font new font string to use for the OSD clocks
+ * @param[in] size new size string to use for the OSD clocks
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
+
+/**
+ * @brief returns the font name and size for On-Screen-Display clocks
+ * @param[in] name name of the OSD to query
+ * @param[in] red current red color value for the OSD clocks
+ * @param[in] gren current green color value for the OSD clocks
+ * @param[in] blue current blue color value for the OSD clocks
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue);
+
+/**
+ * @brief sets the font name and size for the On-Screen-Display clocks
+ * @param[in] name name of the OSD to update
+ * @param[in] red new red color value for the OSD clocks
+ * @param[in] gren new green color value for the OSD clocks
+ * @param[in] blue new blue color value for the OSD clocks
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
+
+/**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
  * An On-Screen-Display can have at most one Sink and Source batch meta handler each
  * @param name unique name of the OSD to update

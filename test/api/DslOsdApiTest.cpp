@@ -160,6 +160,85 @@ SCENARIO( "An OSD in use can't be added to a second Pipeline", "[osd-api]" )
     }
 }
 
+SCENARIO( "An OSD's Clock Enabled Setting can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean preEnabled(false), retEnabled(false);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS );
+        dsl_osd_clock_enabled_get(osdName.c_str(), &retEnabled);
+        REQUIRE( preEnabled == retEnabled);
+        
+        WHEN( "The OSD's Clock Enabled is Set" ) 
+        {
+            preEnabled = false;
+            REQUIRE( dsl_osd_clock_enabled_set(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct value is returned on Get" ) 
+            {
+                dsl_osd_clock_enabled_get(osdName.c_str(), &retEnabled);
+                REQUIRE( preEnabled == retEnabled);
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}
+
+SCENARIO( "An OSD's Clock Offsets can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean enabled(true);
+        uint preOffsetX(100), preOffsetY(100);
+        uint retOffsetX(0), retOffsetY(0);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The OSD's Clock Offsets are Set" ) 
+        {
+            REQUIRE( dsl_osd_clock_offsets_set(osdName.c_str(), preOffsetX, preOffsetY) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                dsl_osd_clock_offsets_get(osdName.c_str(), &retOffsetX, &retOffsetY);
+                REQUIRE( preOffsetX == retOffsetX);
+                REQUIRE( preOffsetY == retOffsetY);
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}
+
+SCENARIO( "An OSD's Clock Color can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean enabled(true);
+        uint preRed(0xFF), preGreen(0xFF), preBlue(0xFF);
+        uint retRed(0x00), retGreen(0x00), retBlue(0x00);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The OSD's Clock Color are Set" ) 
+        {
+            REQUIRE( dsl_osd_clock_color_set(osdName.c_str(), preRed, preGreen, preBlue) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                dsl_osd_clock_color_get(osdName.c_str(), &retRed, &retGreen, &retBlue);
+                REQUIRE( preRed == retRed);
+                REQUIRE( preGreen == retGreen);
+                REQUIRE( preBlue == retBlue);
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}
+
 static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
 {
 }

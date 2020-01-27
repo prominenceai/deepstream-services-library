@@ -280,12 +280,78 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pa
     return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad);
 }
     
-DslReturnType dsl_osd_new(const wchar_t* name, boolean isClockEnabled)
+DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), isClockEnabled);
+    return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), clock_enabled);
+}
+
+DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offsetX, offsetY);
+}
+
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offsetX, offsetY);
+}
+
+//DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint size);
+//{
+//    std::wstring wstrName(name);
+//    std::string cstrName(wstrName.begin(), wstrName.end());
+//
+//    return DSL::Services::GetServices()->OsdClockFontsGet(cstrFont.c_str(), font, size);
+//}
+
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+
+    return DSL::Services::GetServices()->OsdClockFontSet(cstrFont.c_str(), cstrFont.c_str(), size);
+}
+
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue);
+}
+
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue);
 }
 
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -1959,7 +2025,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
@@ -2079,6 +2144,238 @@ namespace DSL
         }
         LOG_INFO("new OSD '" << name << "' created successfully");
 
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OsdClockEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            osdBintr->GetClockEnabled(enabled);
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting clock enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set The clock enabled setting for the OSD '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_OSD_IS_IN_USE;
+            }
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!osdBintr->SetClockEnabled(enabled))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Clock enabled");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            osdBintr->GetClockOffsets(offsetX, offsetY);
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting clock offsets");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set The clock offsets for the OSD '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_OSD_IS_IN_USE;
+            }
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!osdBintr->SetClockOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Clock offsets");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockFontGet(const char* name, const char** font, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            osdBintr->GetClockFont(font, size);
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting clock font");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockFontSet(const char* name, const char* font, uint size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set The clock offsets for the OSD '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_OSD_IS_IN_USE;
+            }
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!osdBintr->SetClockFont(font, size))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Clock font");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            osdBintr->GetClockColor(red, green, blue);
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting clock font");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdClockColorSet(const char* name, uint red, uint green, uint blue)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (m_components[name]->IsInUse())
+            {
+                LOG_ERROR("Unable to set The clock RGB colors for the OSD '" << name 
+                    << "' as it's currently in use");
+                return DSL_RESULT_OSD_IS_IN_USE;
+            }
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!osdBintr->SetClockColor(red, green, blue))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Clock RGB colors");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
         return DSL_RESULT_SUCCESS;
     }
     

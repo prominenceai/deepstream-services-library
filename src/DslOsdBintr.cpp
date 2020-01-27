@@ -33,11 +33,13 @@ namespace DSL
         : Bintr(osd)
         , m_isClockEnabled(isClockEnabled)
         , m_processMode(0)
-        , m_sClockFont("Serif")
-        , m_sClockFontSize(12)
-        , m_sClockOffsetX(800)
-        , m_sClockOffsetY(820)
-        , m_sClockColor(0)
+        , m_clockFont("Serif")
+        , m_clockFontSize(12)
+        , m_clockOffsetX(800)
+        , m_clockOffsetY(820)
+        , m_clockColorRed(0)
+        , m_clockColorGreen(0)
+        , m_clockColorBlue(0)
     {
         LOG_FUNC();
         
@@ -50,13 +52,15 @@ namespace DSL
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
+        
         m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
-        m_pOsd->SetAttribute("clock-font", m_sClockFont.c_str()); 
-        m_pOsd->SetAttribute("x-clock-offset", m_sClockOffsetX);
-        m_pOsd->SetAttribute("y-clock-offset", m_sClockOffsetY);
-        m_pOsd->SetAttribute("clock-color", m_sClockColor);
-        m_pOsd->SetAttribute("clock-font-size", m_sClockFontSize);
+        m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
+        m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
+        m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
+        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
+        
+        SetClockColor(m_clockColorRed, m_clockColorGreen, m_clockColorBlue);
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
@@ -121,27 +125,116 @@ namespace DSL
             AddOsdBintr(shared_from_this());
     }
 
-    bool OsdBintr::IsClockEnabled()
+    void OsdBintr::GetClockEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
-        return m_isClockEnabled;
+        *enabled = m_isClockEnabled;
+    }
+    
+    bool OsdBintr::SetClockEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to Set the Clock Enabled attribute for OsdBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        m_isClockEnabled = enabled;
+        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+        
+        return true;
     }
 
-    void OsdBintr::EnableClock()
+    void  OsdBintr::GetClockOffsets(uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
         
-        m_isClockEnabled = true;
-        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+        *offsetX = m_clockOffsetX;
+        *offsetY = m_clockOffsetY;
     }
     
-    void OsdBintr::DisableClock()
+    bool OsdBintr::SetClockOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
         
-        m_isClockEnabled = false;
-        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Clock Offsets for OsdBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_clockOffsetX = offsetX;
+        m_clockOffsetY = offsetY;
+
+        m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
+        m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
+        
+        return true;
     }
-    
+
+    void OsdBintr::GetClockFont(const char** name, uint *size)
+    {
+        LOG_FUNC();
+
+        *name = m_clockFont.c_str();
+        *size = m_clockFontSize;
+    }
+
+    bool OsdBintr::SetClockFont(const char* name, uint size)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Clock Font for OsdBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_clockFont.assign(name);
+        m_clockFontSize = size;
+        
+        m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
+        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
+        
+        return true;
+    }
+
+    void OsdBintr::GetClockColor(uint* red, uint* green, uint* blue)
+    {
+        LOG_FUNC();
+        
+        *red = m_clockColorRed;
+        *green = m_clockColorGreen;
+        *blue = m_clockColorBlue;
+    }
+
+    bool OsdBintr::SetClockColor(uint red, uint green, uint blue)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Clock Color for OsdBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_clockColorRed = red;
+        m_clockColorGreen = green;
+        m_clockColorBlue = blue;
+        
+        uint clockColor =
+          ((m_clockColorRed & 0xFF) << 24) |
+          ((m_clockColorGreen & 0xFF) << 16) |
+          ((m_clockColorBlue & 0xFF) << 8) | 0xFF;
+              
+        m_pOsd->SetAttribute("clock-color", clockColor);
+        
+        return true;
+    }
 }    

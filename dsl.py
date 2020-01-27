@@ -279,6 +279,72 @@ def dsl_osd_new(name, is_clock_enabled):
     return int(result)
 
 ##
+## dsl_osd_clock_offsets_get()
+##
+_dsl.dsl_osd_clock_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_offsets_get.restype = c_uint
+def dsl_osd_clock_offsets_get(name):
+    global _dsl
+    x_offset = c_uint(0)
+    y_offset = c_uint(0)
+    result = _dsl.dsl_osd_clock_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
+    return int(result), x_offset.value, y_offset.value 
+
+##
+## dsl_osd_clock_enabled_set()
+##
+_dsl.dsl_osd_clock_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_clock_enabled_set.restype = c_uint
+def dsl_osd_clock_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_clock_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_osd_clock_enabled_get()
+##
+_dsl.dsl_osd_clock_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_clock_enabled_get.restype = c_uint
+def dsl_osd_clock_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_clock_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_clock_offsets_set()
+##
+_dsl.dsl_osd_clock_offsets_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_osd_clock_offsets_set.restype = c_uint
+def dsl_osd_clock_offsets_set(name, x_offset, y_offset):
+    global _dsl
+    result = _dsl.dsl_osd_clock_offsets_set(name, x_offset, y_offset)
+    return int(result)
+
+##
+## dsl_osd_clock_color_get()
+##
+_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_color_get.restype = c_uint
+def dsl_osd_clock_color_get(name):
+    global _dsl
+    red = c_uint(0)
+    green = c_uint(0)
+    blue = c_uint(0)
+    result = _dsl.dsl_osd_clock_color_get(name, DSL_UINT_P(red), DSL_UINT_P(green), DSL_UINT_P(blue))
+    return int(result), red.value, green.value, blue.value 
+
+##
+## dsl_osd_clock_color_set()
+##
+_dsl.dsl_osd_clock_color_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_osd_clock_color_set.restype = c_uint
+def dsl_osd_clock_color_set(name, red, green, blue):
+    global _dsl
+    result = _dsl.dsl_osd_clock_color_set(name, red, green, blue)
+    return int(result)
+
+##
 ## dsl_osd_batch_meta_handler_add()
 ##
 _dsl.dsl_osd_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]

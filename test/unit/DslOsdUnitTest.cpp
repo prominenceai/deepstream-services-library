@@ -32,7 +32,7 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
     GIVEN( "Attributes for a new OsdBintr" ) 
     {
         std::string osdName = "osd";
-        bool enableClock(false);
+        boolean enableClock(false);
 
         WHEN( "A new Osd is created" )
         {
@@ -41,7 +41,8 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
             THEN( "The PrimaryGieBintr's memebers are setup and returned correctly" )
             {
                 REQUIRE( pOsdBintr->GetGstObject() != NULL );
-                REQUIRE( pOsdBintr->IsClockEnabled() == enableClock );
+                pOsdBintr->GetClockEnabled(&enableClock);
+                REQUIRE( enableClock == false );
             }
         }
     }
@@ -96,22 +97,97 @@ SCENARIO( "An OsdBintr's clock can be enabled", "[OsdBintr]" )
     GIVEN( "An OsdBintr in memory with its clock disabled" ) 
     {
         std::string osdName = "osd";
-        bool enableClock(false);
+        boolean enableClock(false);
 
         DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
 
-        REQUIRE( pOsdBintr->LinkAll() == true );
-
         WHEN( "The OsdBintr's clock is enabled" )
         {
-            pOsdBintr->EnableClock();
+            REQUIRE( pOsdBintr->SetClockEnabled(true) == true);
             
             THEN( "The OsdBintr is updated correctly" )
             {
-                REQUIRE( pOsdBintr->IsClockEnabled() == true );
+                pOsdBintr->GetClockEnabled(&enableClock);
+                REQUIRE( enableClock == true );
             }
         }
     }
 }
+            
+SCENARIO( "An OsdBintr can get and set the clock's X and Y Offsets", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+    {
+        std::string osdName = "osd";
+        boolean enableClock(true);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+
+        WHEN( "The clock's offsets are set" )
+        {
+            uint newOffsetX(500), newOffsetY(300);
+            REQUIRE( pOsdBintr->SetClockOffsets(newOffsetX, newOffsetY) == true);
+            
+            THEN( "The new clock offsets are returned on get" )
+            {
+                uint retOffsetX(0), retOffsetY(0);
+                pOsdBintr->GetClockOffsets(&retOffsetX, &retOffsetY);
+                REQUIRE( retOffsetX == newOffsetX );
+                REQUIRE( retOffsetY == newOffsetY );
+            }
+        }
+    }
+}
+            
+SCENARIO( "An OsdBintr can get and set the clock's font", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+    {
+        std::string osdName = "osd";
+        boolean enableClock(true);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+
+        WHEN( "The clock font name and size is " )
+        {
+            REQUIRE( pOsdBintr->SetClockFont("arial", 8) == true);
+            
+            THEN( "The new name and size are returned on get" )
+            {
+                const char* name(NULL); 
+                uint size(0);
+                pOsdBintr->GetClockFont(&name, &size);
+                REQUIRE( size == 8 );
+            }
+        }
+    }
+}
+            
+SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+    {
+        std::string osdName = "osd";
+        boolean enableClock(true);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+
+        WHEN( "The clock's RGB colors are set  " )
+        {
+            uint newRed(255), newGreen(255), newBlue(255);
+            REQUIRE( pOsdBintr->SetClockColor(newRed, newGreen, newBlue) == true);
+            
+            THEN( "The new name and size are returned on get" )
+            {
+                uint retRed(0), retGreen(0), retBlue(0);
+                pOsdBintr->GetClockColor(&retRed, &retGreen, &retBlue);
+                REQUIRE( retRed == newRed );
+                REQUIRE( retGreen == newGreen );
+                REQUIRE( retBlue == newBlue );
+            }
+        }
+    }
+}
+            
             
             

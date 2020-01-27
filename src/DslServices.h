@@ -121,7 +121,23 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad);
         
-        DslReturnType OsdNew(const char* name, boolean isClockEnabled);
+        DslReturnType OsdNew(const char* name, boolean clockEnabled);
+        
+        DslReturnType OsdClockEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdClockEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OsdClockOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType OsdClockOffsetsSet(const char* name, uint offsetX, uint offsetY);
+
+        DslReturnType OsdClockFontGet(const char* name, const char** font, uint* size);
+
+        DslReturnType OsdClockFontSet(const char* name, const char* font, uint size);
+
+        DslReturnType OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue);
+
+        DslReturnType OsdClockColorSet(const char* name, uint red, uint green, uint blue);
 
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
