@@ -77,21 +77,76 @@ namespace DSL
          */
         void UnlinkAll();
 
-        bool IsClockEnabled();
+        /**
+         * @brief Gets the current state of the On-screen clock
+         * @param[out] enabled true if the OSD clock is current enabled, false otherwise
+         */
+        void GetClockEnabled(boolean* enabled);
 
-        void EnableClock();
+        /**
+         * @brief Sets the current state of the On-screen clock
+         * @param[in] enabled true if the OSD clock is to be enabled, false otherwise
+         */
+        bool SetClockEnabled(boolean enabled);
         
-        void DisableClock();
+        /**
+         * @brief Gets the current X and Y offsets for the OSD clock
+         * @param[out] offsetX current offset in the x direction in pixels
+         * @param[out] offsetY current offset in the Y direction in pixels
+         */
+        void GetClockOffsets(uint* offsetX, uint* offsetY);
+        
+        /**
+         * @brief Sets the current X and Y offsets for the OSD clock
+         * @param[in] offsetX new offset in the Y direction in pixels
+         * @param[in] offsetY new offset in the Y direction in pixels
+         * @return true on successful update, false otherwise
+         */
+        bool SetClockOffsets(uint offsetX, uint offsetY);
+        
+        /**
+         * @brief Gets the current font name and size for the OSD clock
+         * @param[out] name name of the current font in use
+         * @param[out] size soze of the current font in use
+         */
+        void GetClockFont(const char** name, uint* size);
+
+        /**
+         * @brief Sets the font name and size to use by the OSD clock
+         * @param[in] name name of the new font to use
+         * @param[in] size size of the new font to use
+         * @return true on successful update, false otherwise
+         */
+        bool SetClockFont(const char* name, uint size);
+
+        /**
+         * @brief Gets the current RGB colors for the OSD clock
+         * @param[out] red red value currently in use
+         * @param[out] green green value curretly in use
+         * @param[out] blue blue value currently in use
+         */
+        void GetClockColor(uint* red, uint* green, uint* blue);
+
+        /**
+         * @brief Sets the current RGB colors for OSD clock
+         * @param[in] red new red value to use
+         * @param[in] green new green value to
+         * @param[in] blue new blue value to use
+         * @return true on successful update, false otherwise
+         */
+        bool SetClockColor(uint red, uint green, uint blue);
         
     private:
 
-        gboolean m_isClockEnabled;
+        boolean m_isClockEnabled;
         
-        std::string m_sClockFont;
-        guint m_sClockFontSize;
-        guint m_sClockOffsetX;
-        guint m_sClockOffsetY;
-        guint m_sClockColor;
+        std::string m_clockFont;
+        guint m_clockFontSize;
+        guint m_clockOffsetX;
+        guint m_clockOffsetY;
+        guint m_clockColorRed;
+        guint m_clockColorGreen;
+        guint m_clockColorBlue;
         
         /**
          @brief

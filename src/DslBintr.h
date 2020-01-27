@@ -216,7 +216,6 @@ namespace DSL
             
             if ((currentState == GST_STATE_PLAYING) or (currentState == GST_STATE_PAUSED))
             {
-                SendEos();
                 gst_element_set_state(GetGstElement(), GST_STATE_READY);
 
                 // Wait until state change or failure, no timeout.
