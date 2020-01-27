@@ -591,7 +591,7 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint
  * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_osd_clock_offset_set(const wchar_t* name, uint offsetX, uint offsetY);
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clocks

@@ -312,7 +312,7 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint
     return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offsetX, offsetY);
 }
 
-DslReturnType dsl_osd_clock_offset_set(const wchar_t* name, uint offsetX, uint offsetY)
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
