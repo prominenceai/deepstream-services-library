@@ -1,5 +1,9 @@
 # On-Screen Display (OSD)
+On-Screen Display components provide visualization of object catagorization and tracking. OSDs add bounding boxes, labels, and clocks to objects detected in the video stream. As with all components, OSDs must be uniquely named from all other components created. 
 
+OSDs are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+
+The relationship between Pipelines and OSD is one-to-one. Once added to a Pipeline, an OSD must be removed before it can used with another. OSDs are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 ---
 ## On-Screen API
@@ -59,6 +63,7 @@ retval = dsl_osd_new('my-on-screen-display', True)
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 ```
 This service returns the current clock enabled setting for the named On-Screen Display
+
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
 * `enabled` - [out] true if the On-Screen clock is currently enabled, false otherwise
@@ -243,8 +248,7 @@ This function adds a batch meta handler callback function of type [dsl_batch_met
 ```c++
 DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
 ```
-```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the On-Screen Display with [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add). A Tiled Display can have more than one Sink and Source batch meta handler, and each handler can be added to more than one On-Screen.
+This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the On-Screen Display with [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add). A On-Screen Display can have more than one Sink and Source batch meta handler, and each handler can be added to more than one On-Screen.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
