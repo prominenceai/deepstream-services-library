@@ -1,6 +1,7 @@
 # DSL API Reference
 
 ### Source API:
+* [Overview](/docs/api-source.md)
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
 * [dsl_source_usb_new](/docs/api-source.md#dsl_source_usb_new)
 * [dsl_source_uri_new](/docs/api-source.md#dsl_source_uri_new)
@@ -20,9 +21,11 @@
 * Other TBD
 
 ### Dewarpper:
+* [Overview](/docs/api-dewarper.md)
 * Other TBD
 
 ### Primary and Secondary GIE API:
+* [Overview](/docs/api-ige.md)
 * [dsl_gie_primary_new](/docs/api-gie.md#dsl_gie_primary_new)
 * [dsl_gie_secondary_new](/docs/api-gie.md#dsl_gie_secondary_new)
 * [dsl_gie_infer_config_file_get](/docs/api-gie.md#dsl_gie_infer_config_file_get)
@@ -38,6 +41,7 @@
 * Other TBD
 
 ### Tracker:
+* [Overview](/docs/api-tracker.md)
 * [dsl_tracker_ktl_new](/docs/api-tracker.md#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](/docs/api-tracker.md#dsl_tracker_iou_new)
 * [dsl_tracker_max_dimensions_get](/docs/api-tracker.md#dsl_tracker_dimensions_get)
@@ -46,26 +50,31 @@
 * [dsl_tracker_iou_config_file_set](/docs/api-tracker.md#dsl_tracker_iou_config_file_set)
 * [dsl_tracker_meta_batch_handler_add](/docs/api-tracker.md#dsl_tracker_meta_batch_handler_add)
 * [dsl_tracker_meta_batch_handler_remove](/docs/api-tracker.md#dsl_tracker_meta_batch_handler_remove)
-* Other TBD
 
 ### Tiled Display (Tiler):
-* [dsl_display_new](/docs/api-display.md#dsl_display_new)
-* [dsl_tiler_new](/docs/api-display.md#dsl_tiler_new)
-* [dsl_tiler_dimensions_get](/docs/api-display.md#dsl_tiler_dimensions_get)
-* [dsl_tiler_dimensions_set](/docs/api-display.md#dsl_tiler_dimensions_set)
-* [dsl_tiler_tiles_get](/docs/api-display.md#dsl_display_tiles_get)
-* [dsl_tiler_tiles_set](/docs/api-display.md#dsl_display_tiles_set)
-* [dsl_tiler_batch_meta_handler_add](/docs/api-display.md#dsl_tiler_batch_meta_handler_add).
-* [dsl_tiler_batch_meta_handler_remove](/docs/api-display.md#dsl_tiler_batch_meta_handler_remove).
+* [Overview](/docs/api-tiler.md)
+* [dsl_tiler_new](/docs/api-tiler.md#dsl_tiler_new)
+* [dsl_tiler_dimensions_get](/docs/api-tiler.md#dsl_tiler_dimensions_get)
+* [dsl_tiler_dimensions_set](/docs/api-tiler.md#dsl_tiler_dimensions_set)
+* [dsl_tiler_tiles_get](/docs/api-tiler.md#dsl_display_tiles_get)
+* [dsl_tiler_tiles_set](/docs/api-tiler.md#dsl_display_tiles_set)
+* [dsl_tiler_batch_meta_handler_add](/docs/api-tiler.md#dsl_tiler_batch_meta_handler_add).
+* [dsl_tiler_batch_meta_handler_remove](/docs/api-tiler.md#dsl_tiler_batch_meta_handler_remove).
 
 ### On-Screen Display (OSD);
-* dsl_osd_new
-* dsl_osd_clock_enable
-* dsl_osd_clock_disable
-* dsl_osd_clock_state_is
-* Other TBD
+* [Overview](/docs/api-osd.md)
+* [dsl_osd_new](/docs/api-osd.md#dsl_osd_new)
+* [dsl_osd_clock_enabled_get](/docs/api-osd.md#dsl_osd_clock_enabled_get)
+* [dsl_osd_clock_enabled_set](/docs/api-osd.md#dsl_osd_clock_enabled_set)
+* [dsl_osd_clock_offsets_get](/docs/api-osd.md#dsl_osd_clock_offsets_get)
+* [dsl_osd_clock_offsets_set](/docs/api-osd.md#dsl_osd_clock_offsets_set)
+* [dsl_osd_clock_font_get](/docs/api-osd.md#dsl_osd_clock_font_get)
+* [dsl_osd_clock_font_set](/docs/api-osd.md#dsl_osd_clock_font_set)
+* [dsl_osd_clock_color_get](/docs/api-osd.md#dsl_osd_clock_color_get)
+* [dsl_osd_clock_color_set](/docs/api-osd.md#dsl_osd_clock_color_set)
 
 ### Sink:
+* [Overview](/docs/api-sink.md)
 * [dsl_sink_overlay_new](/docs/api-sink.md#dsl_sink_overlay_new)
 * [dsl_sink_window_new](/docs/api-sink.md#dsl_sink_window_new)
 * [dsl_sink_file_new](/docs/api-sink.md#dsl_sink_file_new)
@@ -88,10 +97,9 @@
 * [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
 * [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
-* other TBD
 
 ### Component API:
-* dsl_component_copy
+* [Overview](/docs/api-component.md)
 * [dsl_component_delete](/docs/api-component.md#dsl_component_delete)
 * [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many)
 * [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
@@ -101,9 +109,9 @@
 * [dsl_component_gpuid_set](/docs/api-component.md#dsl_component_gpuid_set)
 * [dsl_component_gpuid_set_many](/docs/api-component.md#dsl_component_gpuid_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
-* Other TBD
 
 ### Pipeline API:
+* [Overview](/docs/api-pipeline.md)
 * [dsl_pipeline_new](/docs/api-pipeline.md#dsl_pipeline_new)
 * [dsl_pipeline_new_many](/docs/api-pipeline.md#dsl_pipeline_new_many)
 * [dsl_pipeline_delete](/docs/api-pipeline.md#dsl_pipeline_delete)
@@ -140,5 +148,4 @@
 * [dsl_pipeline_qos_listener_remove](/docs/api-pipeline.md#dsl_pipeline_qos_listener_remove)
 * [dsl_pipeline_dump_to_dot](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
-* Other TBD
 
