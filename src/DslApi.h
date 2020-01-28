@@ -48,7 +48,8 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
 #define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
-#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010006 
+#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010006
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010007
 
 /**
  * Source API Return Values
@@ -816,9 +817,9 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
 
 /**
  * @brief gets the current bit-rate and interval settings for the named RTSP Sink
- * @param name unique name of the RTSP Sink to query
- * @param bitrate current Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param interval current Encoder iframe interval value
+ * @param[in] name unique name of the RTSP Sink to query
+ * @param[out] bitrate current Encoder bit-rate in bits/sec for the named RTSP Sink
+ * @param[out] interval current Encoder iframe interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
@@ -826,9 +827,9 @@ DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
 
 /**
  * @brief sets new bit_rate and interval settings for the named RTSP Sink
- * @param name unique name of the RTSP Sink to update
- * @param bitrate new Encoder bit-rate in bits/sec for the named RTSP Sink
- * @param interval new Encoder iframe interval value to use
+ * @param[in] name unique name of the RTSP Sink to update
+ * @param[in] bitrate new Encoder bit-rate in bits/sec for the named RTSP Sink
+ * @param[in] interval new Encoder iframe interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
@@ -886,6 +887,30 @@ DslReturnType dsl_component_delete_all();
  * @return size of the list of components
  */
 uint dsl_component_list_size();
+
+/**
+ * @brief Gets the named component's current GPU ID
+ * @param[in] component name of the component to query
+ * @param[out] gpuid current GPU ID setting
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_gpuid_get(const wchar_t* component, uint* gpuid);
+
+/**
+ * @brief Sets the GPU ID for the named component
+ * @param[in] component name of the component to update
+ * @param[in] gpuid GPU ID value to use
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid);
+
+/**
+ * @brief Sets the GPU ID for a list of components
+ * @param[in] a null terminated list of component names to update
+ * @param[in] gpuid GPU ID value to use
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_gpuid_set_many(const wchar_t** components, uint gpuid);
 
 /**
  * @brief creates a new, uniquely named Pipeline

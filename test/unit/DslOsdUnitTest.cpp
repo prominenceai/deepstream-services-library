@@ -189,5 +189,30 @@ SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
     }
 }
             
+SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
+{
+    GIVEN( "A new OsdBintr in memory" ) 
+    {
+        std::string osdName = "osd";
+        boolean enableClock(true);
+
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+
+        REQUIRE( pOsdBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The OsdBintr's  GPU ID is set" )
+        {
+            REQUIRE( pOsdBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pOsdBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
             
             

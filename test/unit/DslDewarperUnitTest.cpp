@@ -27,12 +27,13 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A Dewarper is created correctly",  "[DewarperBintr]" )
+SCENARIO( "A DewarperBintr is created correctly",  "[DewarperBintr]" )
 {
     GIVEN( "Attributes for a new Dewarper" ) 
     {
         std::string dewarperName("dewarper");
         std::string defConfigFile("./test/configs/config_dewarper.txt");
+        uint GPUID0(0);
 
         WHEN( "The Dewarper is created" )
         {
@@ -41,6 +42,7 @@ SCENARIO( "A Dewarper is created correctly",  "[DewarperBintr]" )
 
             THEN( "The Dewarper's config file is found, loaded, and returned correctly")
             {
+                REQUIRE( pDewarperBintr->GetGpuId() == GPUID0 );
                 std::string retConfigFile(pDewarperBintr->GetConfigFile());
                 
                 REQUIRE( retConfigFile == defConfigFile );
@@ -49,7 +51,7 @@ SCENARIO( "A Dewarper is created correctly",  "[DewarperBintr]" )
     }
 }
 
-SCENARIO( "A Dewarper can LinkAll child Elementrs correctly",  "[DewarperBintr]" )
+SCENARIO( "A DewarperBintr can LinkAll child Elementrs correctly",  "[DewarperBintr]" )
 {
     GIVEN( "A new DewarperBintr in memory" ) 
     {
@@ -71,7 +73,7 @@ SCENARIO( "A Dewarper can LinkAll child Elementrs correctly",  "[DewarperBintr]"
     }
 }
 
-SCENARIO( "A Dewarper can UnlinkAll child Elementrs correctly",  "[DewarperBintr]" )
+SCENARIO( "A DewarperBintr can UnlinkAll child Elementrs correctly",  "[DewarperBintr]" )
 {
     GIVEN( "A new DewarperBintr in memory" ) 
     {
@@ -90,6 +92,33 @@ SCENARIO( "A Dewarper can UnlinkAll child Elementrs correctly",  "[DewarperBintr
             THEN( "The DewarperBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pDewarperBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DewarperBintr can Get and Set it's GPU ID",  "[DewarperBintr]" )
+{
+    GIVEN( "A new DewarperBintr in memory" ) 
+    {
+        std::string dewarperName("dewarper");
+        std::string defConfigFile("./test/configs/config_dewarper.txt");
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_DEWARPER_PTR pDewarperBintr = 
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+
+        REQUIRE( pDewarperBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The DewarperBintr's  GPU ID is set" )
+        {
+            REQUIRE( pDewarperBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pDewarperBintr->GetGpuId() == GPUID1 );
             }
         }
     }

@@ -112,6 +112,12 @@ namespace DSL
          * @return false if the Tracker is currently in Use. True otherwise
          */ 
         bool SetMaxDimensions(uint width, uint hieght);
+
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
         
     protected:
 

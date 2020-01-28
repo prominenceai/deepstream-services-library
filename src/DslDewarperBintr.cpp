@@ -146,4 +146,24 @@ namespace DSL
         
         return m_configFile.c_str();
     }
+    
+    bool  DewarperBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for DewarperBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for DewarperBintr '" << m_name << "'");
+
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pDewarper->SetAttribute("gpu-id", m_gpuId);
+        return true;
+    }
+
 }

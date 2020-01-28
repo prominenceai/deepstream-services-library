@@ -144,6 +144,25 @@ namespace DSL
         return true;
     }
 
+    bool TrackerBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+
+        m_pTracker->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+
     KtlTrackerBintr::KtlTrackerBintr(const char* name, guint width, guint height)
         : TrackerBintr(name, NVDS_KLT_LIB, width, height)
     {

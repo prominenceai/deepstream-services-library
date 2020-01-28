@@ -205,6 +205,26 @@ namespace DSL
             AddPrimaryGieBintr(shared_from_this());
     }
 
+    bool PrimaryGieBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for Primary GIE '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for PrimaryBintr '" << m_name << "'");
+
+        m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+
     // ***********************************************************************
     // ***********************************************************************
 
@@ -373,4 +393,23 @@ namespace DSL
         
         return true;
     }
+
+    bool SecondaryGieBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for Secondary GIE '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for DewarperBintr '" << m_name << "'");
+
+        m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+        return true;
+    }
+
 }    

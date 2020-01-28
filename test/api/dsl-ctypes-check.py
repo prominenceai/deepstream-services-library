@@ -342,6 +342,21 @@ print("dsl_component_list_size")
 print(dsl_component_list_size())
 
 ##
+## dsl_component_gpuid_get()
+## dsl_component_gpuid_set()
+## dsl_component_gpuid_set_many()
+##
+print("dsl_component_gpuid_get")
+print("dsl_component_gpuid_set")
+print("dsl_component_gpuid_set_many")
+print(dsl_sink_window_new("window-sink", 0, 0, 1280, 720))
+print(dsl_sink_overlay_new("overlay-sink", 0, 0, 1280, 720))
+print(dsl_component_gpuid_set_many(["window-sink", "overlay-sink", None], 1))
+print(dsl_component_gpuid_get("window-sink"))
+print(dsl_component_gpuid_get("overlay-sink"))
+print(dsl_component_delete_all())
+
+##
 ## dsl_pipeline_new()
 ## dsl_pipeline_delete()
 ##

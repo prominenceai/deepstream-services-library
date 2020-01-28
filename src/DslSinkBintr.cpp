@@ -648,6 +648,28 @@ namespace DSL
         }
         return true;
     }
+    
+    bool FileSinkBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+
+        m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+    
+    //******************************************************************************************
+    
     RtspSinkBintr::RtspSinkBintr(const char* sink, const char* host, uint udpPort, uint rtspPort,
          uint codec, uint bitRate, uint interval)
         : SinkBintr(sink)

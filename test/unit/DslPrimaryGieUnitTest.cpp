@@ -169,3 +169,33 @@ SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]
         }
     }
 }
+
+SCENARIO( "A PrimaryGieBintr can Get and Set its GPU ID",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The PrimaryGieBintr's  GPU ID is set" )
+        {
+            REQUIRE( pPrimaryGieBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pPrimaryGieBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
