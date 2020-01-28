@@ -237,4 +237,25 @@ namespace DSL
         
         return true;
     }
+
+    bool OsdBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for OsdBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for OsdBintr '" << m_name << "'");
+
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pOsd->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+    
 }    

@@ -162,4 +162,23 @@ namespace DSL
         
         return true;
     }
+
+    bool TilerBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+
+        m_pTiler->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
 }

@@ -276,6 +276,37 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[OverlaySinkBintr]
     }
 }
 
+SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[OverlaySinkBintr]" )
+{
+    GIVEN( "A new OverlaySinkBintr in memory" ) 
+    {
+        std::string sinkName("overlay-sink");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+
+        DSL_WINDOW_SINK_PTR pOverlaySinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The OverlaySinkBintr's  GPU ID is set" )
+        {
+            REQUIRE( pOverlaySinkBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
 {
     GIVEN( "Attributes for a new Window Sink" ) 
@@ -422,6 +453,36 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[WindowSinkBintr]" 
                 pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
                 REQUIRE( currSinkW == newSinkW );
                 REQUIRE( currSinkH == newSinkH );
+            }
+        }
+    }
+}
+
+SCENARIO( "A WindowSinkBintr can Get and Set its GPU ID",  "[WindowSinkBintr]" )
+{
+    GIVEN( "A new WindowSinkBintr in memory" ) 
+    {
+        std::string sinkName("overlay-sink");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+
+        DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pWindowSinkBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The WindowSinkBintr's  GPU ID is set" )
+        {
+            REQUIRE( pWindowSinkBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pWindowSinkBintr->GetGpuId() == GPUID1 );
             }
         }
     }
@@ -720,6 +781,37 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
     }
 }
 
+SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
+{
+    GIVEN( "A new FileSinkBintr in memory" ) 
+    {
+        std::string sinkName("file-sink");
+        std::string filePath("./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint container(DSL_CONTAINER_MPEG4);
+        uint initBitrate(2000000);
+        uint initInterval(0);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_FILE_SINK_PTR pFileSinkBintr = 
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), codec, container, initBitrate, initInterval);
+
+        REQUIRE( pFileSinkBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The FileSinkBintr's  GPU ID is set" )
+        {
+            REQUIRE( pFileSinkBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pFileSinkBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
@@ -893,6 +985,38 @@ SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs",
             THEN( "The DSL_CODEC_H265 RtspSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[RtspSinkBintr]" )
+{
+    GIVEN( "A new RtspSinkBintr in memory" ) 
+    {
+        std::string sinkName("rtsp-sink");
+        std::string host("224.224.255.255");
+        uint udpPort(5400);
+        uint rtspPort(8554);
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(4000000);
+        uint interval(0);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_RTSP_SINK_PTR pRtspSinkBintr = 
+            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+
+        REQUIRE( pRtspSinkBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The RtspSinkBintr's  GPU ID is set" )
+        {
+            REQUIRE( pRtspSinkBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pRtspSinkBintr->GetGpuId() == GPUID1 );
             }
         }
     }

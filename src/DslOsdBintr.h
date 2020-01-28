@@ -136,6 +136,12 @@ namespace DSL
          */
         bool SetClockColor(uint red, uint green, uint blue);
         
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
     private:
 
         boolean m_isClockEnabled;

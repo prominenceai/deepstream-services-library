@@ -167,3 +167,34 @@ SCENARIO( "A Linked SecondaryGieBintr can not be linked again",  "[SecondaryGieB
         }
     }
 }
+
+SCENARIO( "A SecondaryGieBintr can Get and Set its GPU ID",  "[SecondaryGieBintr]" )
+{
+    GIVEN( "A new SecondaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string secondaryGieName = "secondary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        uint interval(1);
+        
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), primaryGieName.c_str());
+
+        REQUIRE( pSecondaryGieBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The SecondaryGieBintr's  GPU ID is set" )
+        {
+            REQUIRE( pSecondaryGieBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pSecondaryGieBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}

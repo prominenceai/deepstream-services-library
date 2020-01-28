@@ -95,6 +95,12 @@ namespace DSL
          * @return false if the TilerBintr is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
+
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
         
     private:
     

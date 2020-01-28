@@ -588,6 +588,37 @@ uint dsl_component_list_size()
     return DSL::Services::GetServices()->ComponentListSize();
 }
 
+DslReturnType dsl_component_gpuid_get(const wchar_t* component, uint* gpuid)
+{
+    std::wstring wstrComponent(component);
+    std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+
+    return DSL::Services::GetServices()->ComponentGpuIdGet(cstrComponent.c_str(), gpuid);
+}
+
+DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid)
+{
+    std::wstring wstrComponent(component);
+    std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+
+    return DSL::Services::GetServices()->ComponentGpuIdSet(cstrComponent.c_str(), gpuid);
+}
+
+DslReturnType dsl_component_gpuid_set_many(const wchar_t** components, uint gpuid)
+{
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(cstrComponent.c_str(), gpuid);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
 {
     std::wstring wstrPipeline(pipeline);
@@ -2828,6 +2859,47 @@ namespace DSL
         
         return m_components.size();
     }
+
+    DslReturnType Services::ComponentGpuIdGet(const char* component, uint* gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_INFO("Component '" << component << "' is in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
+        }
+        *gpuid = m_components[component]->GetGpuId();
+
+        LOG_INFO("Current GPU ID = " << *gpuid << " for component '" << component << "'");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::ComponentGpuIdSet(const char* component, uint gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        if (m_components[component]->IsInUse())
+        {
+            LOG_INFO("Component '" << component << "' is in use");
+            return DSL_RESULT_COMPONENT_IN_USE;
+        }
+        if (!m_components[component]->SetGpuId(gpuid))
+        {
+            LOG_INFO("Component '" << component << "' faild to set GPU ID = " << gpuid);
+            return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+        }
+
+        LOG_INFO("New GPU ID = " << gpuid << " for component '" << component << "'");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     
     DslReturnType Services::PipelineNew(const char* name)
     {

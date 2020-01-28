@@ -572,6 +572,39 @@ def dsl_component_list_size():
     return int(result)
 
 ##
+## dsl_component_gpuid_get()
+##
+_dsl.dsl_component_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_component_gpuid_get.restype = c_uint
+def dsl_component_gpuid_get(name):
+    global _dsl
+    gpuid = c_uint(0)
+    result = _dsl.dsl_component_gpuid_get(name, DSL_UINT_P(gpuid))
+    return int(result), gpuid.value
+
+##
+## dsl_component_gpuid_set()
+##
+_dsl.dsl_component_gpuid_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_gpuid_set.restype = c_uint
+def dsl_component_gpuid_set(name):
+    global _dsl
+    result =_dsl.dsl_component_gpuid_set(gpuid)
+    return int(result)
+
+##
+## dsl_component_gpuid_set_many()
+##
+#_dsl.dsl_component_gpuid_set_many.argtypes = [Array]
+_dsl.dsl_component_gpuid_set_many.restype = c_uint
+def dsl_component_gpuid_set_many(components, gpuid):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_component_gpuid_set_many(arr, gpuid)
+    return int(result)
+
+##
 ## dsl_pipeline_new()
 ##
 _dsl.dsl_pipeline_new.argtypes = [c_wchar_p]

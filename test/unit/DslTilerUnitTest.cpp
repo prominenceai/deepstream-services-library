@@ -96,3 +96,31 @@ SCENARIO( "A Tiled Tiler's tiles can be updated",  "[TilerBintr]" )
         }
     }
 }
+
+SCENARIO( "A TilerBintr can Get and Set its GPU ID",  "[TilerBintr]" )
+{
+    GIVEN( "A new TilerBintr in memory" ) 
+    {
+        std::string tilerName = "tiled-display";
+        uint width(1280);
+        uint height(720);
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), width, height);
+
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pTilerBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The TilerBintr's  GPU ID is set" )
+        {
+            REQUIRE( pTilerBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pTilerBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}

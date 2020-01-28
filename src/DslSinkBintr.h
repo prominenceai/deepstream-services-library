@@ -327,6 +327,12 @@ namespace DSL
          */ 
         bool SetEncoderSettings(uint bitRate, uint interval);
 
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
     private:
 
         uint m_codec;

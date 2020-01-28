@@ -235,6 +235,36 @@ SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[Usb
     }
 }
 
+SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[UsbSourceBintr]" )
+{
+    GIVEN( "A new UsbSourceBintr in memory" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(30);
+        uint fps_d(1);
+        std::string sourceName("usb-source");
+
+        DSL_USB_SOURCE_PTR pUsbSourceBintr = DSL_USB_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pUsbSourceBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The UsbSourceBintr's  GPU ID is set" )
+        {
+            REQUIRE( pUsbSourceBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pUsbSourceBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
 {
     GIVEN( "A name for a new UriSourceBintr" ) 
@@ -649,6 +679,35 @@ SCENARIO( "A Linked UriSourceBintr with a child DewarperBintr can UnlinkAll chil
     }
 }
 
+SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+        
+        DSL_URI_SOURCE_PTR pUriSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pUriSourceBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The UriSourceBintr's  GPU ID is set" )
+        {
+            REQUIRE( pUriSourceBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pUriSourceBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
 {
@@ -691,3 +750,32 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
     }
 }
 
+SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
+{
+    GIVEN( "A new RtspSourceBintr in memory" ) 
+    {
+        std::string sourceName("test-rtps-source");
+        std::string uri("https://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+        
+        DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval);
+
+        uint GPUID0(0);
+        uint GPUID1(1);
+
+        REQUIRE( pRtspSourceBintr->GetGpuId() == GPUID0 );
+        
+        WHEN( "The RtspSourceBintr's  GPU ID is set" )
+        {
+            REQUIRE( pRtspSourceBintr->SetGpuId(GPUID1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pRtspSourceBintr->GetGpuId() == GPUID1 );
+            }
+        }
+    }
+}

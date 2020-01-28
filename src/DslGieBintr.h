@@ -202,6 +202,12 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
     private:
 
         /**
@@ -322,6 +328,12 @@ namespace DSL
             return m_pFakeSink;
         }
 
+        /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+        
     private:
         
         /**

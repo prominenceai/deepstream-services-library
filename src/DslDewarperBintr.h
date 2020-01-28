@@ -78,6 +78,12 @@ namespace DSL
          */
         const char* GetConfigFile();
         
+        /**
+         * @brief Set the GPU ID for all Elementrs
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
     protected:
 
         /**

@@ -305,13 +305,42 @@ namespace DSL
             LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
             return NULL;
         }
+        
+        /**
+         * @brief Gets the current GPU ID used by this Bintr
+         * @return the ID for the current GPU in use.
+         */
+        uint GetGpuId()
+        {
+            LOG_FUNC();
+
+            LOG_DEBUG("Returning a GPU ID of " << m_gpuId <<"' for Bintr '" << GetName() << "'");
+            return m_gpuId;
+        }
+
+        /**
+         * @brief Bintr type specific implementation to set the GPU ID.
+         * @return true if successfully set, false otherwise.
+         */
+        virtual bool SetGpuId(uint gpuId)
+        {
+            LOG_FUNC();
+            
+            if (IsInUse())
+            {
+                LOG_ERROR("Unable to set GPU ID for Bintr '" << GetName() 
+                    << "' as it's currently in use");
+                return false;
+            }
+            m_gpuId = gpuId;
+            return true;
+        }
 
     public:
     
         /**
          * @brief current is-linked state for this Bintr
          */
-
         bool m_isLinked;
 
         /**

@@ -383,6 +383,24 @@ namespace DSL
         m_isLinked = false;
     }
     
+    bool UsbSourceBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for UsbSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for UsbSourceBintr '" << m_name << "'");
+
+        m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
 
     //*********************************************************************************
 

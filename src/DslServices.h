@@ -183,6 +183,10 @@ namespace DSL {
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
+
+        DslReturnType ComponentGpuIdGet(const char* component, uint* gpuid);
+        
+        DslReturnType ComponentGpuIdSet(const char* component, uint gpuid);
         
         DslReturnType PipelineNew(const char* pipeline);
         
