@@ -1223,6 +1223,13 @@ void dsl_main_loop_run();
  */
 void dsl_main_loop_quit();
 
+/**
+ * @brief converts a numerical Result Code to a String
+ * @param result result code to convert
+ * @return String value of result.
+ */
+const wchar_t* dsl_result_to_string(uint result);
+
 EXTERN_C_END
 
 #endif /* _DSL_API_H */

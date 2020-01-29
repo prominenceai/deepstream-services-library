@@ -73,7 +73,7 @@ while True:
         break
 
     ## 
-    ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+    ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
     ## 
     retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
