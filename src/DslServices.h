@@ -271,6 +271,8 @@ namespace DSL {
             
             return m_pMainLoop;
         }
+        
+        const wchar_t* ResultToString(uint result);
                         
         /** 
          * @brief Handles all pending events
@@ -321,7 +323,11 @@ namespace DSL {
         /**
          * @brief called during construction to intialize all const-to-string maps
          */
-        void _initMaps();
+        void InitToStringMaps();
+        
+        std::map <uint, std::wstring> m_resultToString;
+        
+        std::map <uint, std::string> m_mapParserTypes;
         
         /**
          * @brief instance pointer for this singleton class
@@ -367,8 +373,6 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
-        
-        std::map <uint, std::string> m_mapParserTypes;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

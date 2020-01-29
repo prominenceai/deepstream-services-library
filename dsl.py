@@ -943,3 +943,12 @@ def dsl_main_loop_run():
 def dsl_main_loop_quit():
     global _dsl
     _dsl.dsl_main_loop_quit()
+
+##
+## dsl_result_to_string()
+##
+_dsl.dsl_result_to_string.argtypes = [c_uint]
+_dsl.dsl_result_to_string.restype = c_wchar_p
+def dsl_result_to_string(result):
+    global _dsl
+    return _dsl.dsl_result_to_string(result)
