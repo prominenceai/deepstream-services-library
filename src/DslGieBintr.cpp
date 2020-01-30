@@ -36,6 +36,8 @@ namespace DSL
         , m_interval(0)
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
+        , m_rawOutputEnabled(false)
+        , m_rawOutputFrameNumber(0)
     {
         LOG_FUNC();
         
@@ -60,6 +62,11 @@ namespace DSL
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
+        
+        g_object_set (m_pInferEngine->GetGstObject(),
+            "raw-output-generated-callback", OnRawOutputGeneratedCB,
+            "raw-output-generated-userdata", this,
+            NULL);
     }    
     
     GieBintr::~GieBintr()
@@ -116,6 +123,81 @@ namespace DSL
         LOG_FUNC();
         
         return m_uniqueId;
+    }
+
+    bool GieBintr::SetRawOutputEnabled(bool enabled, const char* path)
+    {
+        LOG_FUNC();
+        
+        if (enabled)
+        {
+            struct stat info;
+
+            if( stat(path, &info) != 0 )
+            {
+                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << GetName() << "'");
+                return false;
+            }
+            else if(info.st_mode & S_IFDIR)
+            {
+                LOG_INFO("Enabling raw layer-info output to path '" << path << "' for GieBintr '" << GetName() << "'");
+                m_rawOutputPath.assign(path);
+            }
+            else
+            {
+                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << GetName() << "'");
+                return false;
+            }
+        }
+        else
+        {
+            LOG_INFO("Disabling raw layer-info output to path '" << m_rawOutputPath << "' for GieBintr '" << GetName() << "'");
+            m_rawOutputPath.clear();
+        }
+        m_rawOutputEnabled = enabled;
+        return true;
+    }
+
+    void GieBintr::HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
+        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize)
+    {
+        if (!m_rawOutputEnabled)
+        {
+            return;
+        }
+        for (int i=0; i<layersCount; i++)
+        {
+            NvDsInferLayerInfo *pLayerInfo = &pLayersInfo[i];
+            
+            std::string layerName(pLayerInfo->layerName);
+            std::replace(layerName.begin(), layerName.end(), '/', '_');
+            std::string oFilePath = m_rawOutputPath + "/" + layerName + 
+                "_batch" + std::to_string(m_rawOutputFrameNumber) + "_bsize" + std::to_string(batchSize) + ".bin";
+                
+            std::ofstream streamOutputFile(oFilePath, std::ofstream::out | std::ofstream::binary);
+            if (!streamOutputFile.good())
+            {
+                LOG_ERROR("Failed to open '" << oFilePath << "' - check path");
+                return;
+            }        
+            uint typeSize;
+            switch (pLayerInfo->dataType) {
+                case FLOAT: typeSize = 4; break;
+                case HALF: typeSize = 2; break;
+                case INT32: typeSize = 4; break;
+                case INT8: typeSize = 1; break;
+            }
+            streamOutputFile.write((char*)pLayerInfo->buffer, typeSize * pLayerInfo->dims.numElements * batchSize);
+            streamOutputFile.close();
+        }
+        m_rawOutputFrameNumber++;
+    }
+
+    static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
+        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize, gpointer pGie)
+    {
+        static_cast<GieBintr*>(pGie)->HandleOnRawOutputGeneratedCB(pBuffer, pNetworkInfo, 
+            pLayersInfo, layersCount, batchSize);
     }
 
     // ***********************************************************************
@@ -411,5 +493,4 @@ namespace DSL
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         return true;
     }
-
 }    

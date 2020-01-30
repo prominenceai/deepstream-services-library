@@ -145,6 +145,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_HANDLER_REMOVE_FAILED                        0x0006000A
 #define DSL_RESULT_GIE_PAD_TYPE_INVALID                             0x0006000B
 #define DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE                         0x0006000C
+#define DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST                    0x0006000D
 
 /**
  * Display API Return Values
@@ -478,6 +479,15 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
 //
 //DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
 //DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
+ * @param name name of the Primary or Secondary GIE to update
+ * @param enabled set to true to enable frame-to-file output for each GIE layer
+ * @param path absolute or relative direcory path to write to. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
+DslReturnType dsl_gie_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path);
 
 /**
  * @brief creates a new, uniquely named KTL Tracker object
@@ -1228,7 +1238,7 @@ void dsl_main_loop_quit();
  * @param result result code to convert
  * @return String value of result.
  */
-const wchar_t* dsl_result_to_string(uint result);
+const wchar_t* dsl_return_value_to_string(uint result);
 
 EXTERN_C_END
 

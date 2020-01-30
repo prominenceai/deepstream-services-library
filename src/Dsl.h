@@ -43,6 +43,9 @@ THE SOFTWARE.
 #include <chrono>
 #include <unordered_map>
 #include <typeinfo>
+#include <algorithm>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <deepstream_common.h>
 #include <deepstream_config.h>

@@ -17,6 +17,12 @@ DSL_CODEC_MPEG4 = 2
 DSL_CONTAINER_MPEG4 = 0
 DSL_CONTAINER_MK4 = 1
 
+DSL_STATE_NULL = 1
+DSL_STATE_READY = 2
+DSL_STATE_PAUSED = 3
+DSL_STATE_PLAYING = 4
+DSL_STATE_IN_TRANSITION = 5
+
 ##
 ## Pointer Typedefs
 ##
@@ -206,6 +212,16 @@ def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_g
     return int(result)
 
 ##
+## dsl_gie_raw_output_enabled_set()
+##
+_dsl.dsl_gie_raw_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_gie_raw_output_enabled_set.restype = c_uint
+def dsl_gie_raw_output_enabled_set(name, enabled, path):
+    global _dsl
+    result = _dsl.dsl_gie_raw_output_enabled_set(name, enabled, path)
+    return int(result)
+
+##
 ## dsl_tracker_ktl_new()
 ##
 _dsl.dsl_tracker_ktl_new.argtypes = [c_wchar_p, c_uint, c_uint]
@@ -279,18 +295,6 @@ def dsl_osd_new(name, is_clock_enabled):
     return int(result)
 
 ##
-## dsl_osd_clock_offsets_get()
-##
-_dsl.dsl_osd_clock_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_osd_clock_offsets_get.restype = c_uint
-def dsl_osd_clock_offsets_get(name):
-    global _dsl
-    x_offset = c_uint(0)
-    y_offset = c_uint(0)
-    result = _dsl.dsl_osd_clock_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
-    return int(result), x_offset.value, y_offset.value 
-
-##
 ## dsl_osd_clock_enabled_set()
 ##
 _dsl.dsl_osd_clock_enabled_set.argtypes = [c_wchar_p, c_bool]
@@ -310,6 +314,18 @@ def dsl_osd_clock_enabled_get(name):
     enabled = c_bool(False)
     result = _dsl.dsl_osd_clock_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value 
+
+##
+## dsl_osd_clock_offsets_get()
+##
+_dsl.dsl_osd_clock_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_offsets_get.restype = c_uint
+def dsl_osd_clock_offsets_get(name):
+    global _dsl
+    x_offset = c_uint(0)
+    y_offset = c_uint(0)
+    result = _dsl.dsl_osd_clock_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
+    return int(result), x_offset.value, y_offset.value 
 
 ##
 ## dsl_osd_clock_offsets_set()
@@ -945,10 +961,10 @@ def dsl_main_loop_quit():
     _dsl.dsl_main_loop_quit()
 
 ##
-## dsl_result_to_string()
+## dsl_return_value_to_string()
 ##
-_dsl.dsl_result_to_string.argtypes = [c_uint]
-_dsl.dsl_result_to_string.restype = c_wchar_p
-def dsl_result_to_string(result):
+_dsl.dsl_return_value_to_string.argtypes = [c_uint]
+_dsl.dsl_return_value_to_string.restype = c_wchar_p
+def dsl_return_value_to_string(result):
     global _dsl
-    return _dsl.dsl_result_to_string(result)
+    return _dsl.dsl_return_value_to_string(result)

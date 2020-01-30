@@ -123,6 +123,18 @@ print(dsl_component_delete("primary-gie"))
 print("dsl_gie_secondary_new")
 
 ##
+## dsl_gie_raw_output_enabled_set()
+##
+print("dsl_gie_raw_output_enabled_set")
+print(dsl_gie_primary_new("primary-gie", "./test/configs/config_infer_primary_nano.txt", 
+    "./test/models/Primary_Detector_Nano/resnet10.caffemodel", 0))
+print(dsl_gie_raw_output_enabled_set("primary-gie", True, "./"))
+print(dsl_gie_raw_output_enabled_set("primary-gie", False, ""))
+print(dsl_component_delete("primary-gie"))
+
+
+
+##
 ## dsl_tracker_ktl_new()
 ##
 print("dsl_tracker_ktl_new")

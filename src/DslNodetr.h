@@ -60,7 +60,7 @@ namespace DSL
         {
             LOG_FUNC();
 
-            LOG_INFO("New Nodetr '" << m_name << "' created");
+            LOG_DEBUG("New Nodetr '" << m_name << "' created");
         }
 
         /**
@@ -70,7 +70,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_INFO("Nodetr '" << m_name << "' deleted");
+            LOG_DEBUG("Nodetr '" << m_name << "' deleted");
         }
         
         /**
@@ -111,7 +111,7 @@ namespace DSL
             m_pChildren[pChild->m_name] = pChild;
             pChild->m_pParentGstObj = m_pGstObj;   
                             
-            LOG_INFO("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
+            LOG_DEBUG("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
             
             return true;
         }
@@ -126,14 +126,14 @@ namespace DSL
             
             if (!IsChild(pChild))
             {
-                LOG_INFO("'" << pChild->m_name <<"' is not a child of Parent '" << m_name <<"'");
+                LOG_WARN("'" << pChild->m_name <<"' is not a child of Parent '" << m_name <<"'");
                 return false;
             }
             pChild->m_pParentGstObj = NULL;
             m_pChildren[pChild->m_name] = nullptr;
             m_pChildren.erase(pChild->m_name);
                             
-            LOG_INFO("Child '" << pChild->m_name <<"' removed from Parent '" << m_name <<"'");
+            LOG_DEBUG("Child '" << pChild->m_name <<"' removed from Parent '" << m_name <<"'");
             
             return true;
         }
@@ -147,7 +147,7 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_INFO("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
+                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
                 imap.second->m_pParentGstObj = NULL;
             }
             m_pChildren.clear();
@@ -192,7 +192,7 @@ namespace DSL
             }
             m_pSink = pSink;
 //            pSink->m_pSource = shared_from_this();   
-            LOG_INFO("Source '" << GetName() << "' linked to Sink '" << pSink->GetName() << "'");
+            LOG_DEBUG("Source '" << GetName() << "' linked to Sink '" << pSink->GetName() << "'");
             
             return true;
         }
@@ -209,7 +209,7 @@ namespace DSL
                 LOG_ERROR("Nodetr '" << GetName() << "' is not currently linked to Sink");
                 return false;
             }
-            LOG_INFO("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() << "'");
+            LOG_DEBUG("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() << "'");
 //            m_pSink->m_pSource = nullptr;
             m_pSink = nullptr; 
 
@@ -231,7 +231,7 @@ namespace DSL
             }
             m_pSource = pSource;
 //            pSink->m_pSource = shared_from_this();   
-            LOG_INFO("Source '" << pSource->GetName() << "' linked to Sink '" << GetName() << "'");
+            LOG_DEBUG("Source '" << pSource->GetName() << "' linked to Sink '" << GetName() << "'");
             
             return true;
         }
@@ -248,7 +248,7 @@ namespace DSL
                 LOG_ERROR("Nodetr '" << GetName() << "' is not currently linked to Source");
                 return false;
             }
-            LOG_INFO("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
+            LOG_DEBUG("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
 //            m_pSource->m_pSink = nullptr;
             m_pSource = nullptr;
             
@@ -412,7 +412,7 @@ namespace DSL
         {
             LOG_FUNC();
 
-            LOG_INFO("New GstNodetr '" << GetName() << "' created");
+            LOG_DEBUG("New GstNodetr '" << GetName() << "' created");
         }
 
         /**
@@ -431,16 +431,16 @@ namespace DSL
             // Remove all child references 
                 RemoveAllChildren();
 
-                LOG_INFO("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
+                LOG_DEBUG("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
                 
                 if (!m_pParentGstObj)
                 {
-                    LOG_INFO("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
+                    LOG_DEBUG("Unreferencing GST Object contained by this Bintr '" << GetName() << "'");
                     gst_object_unref(m_pGstObj);
                 }
             }
-            LOG_INFO("Nodetr '" << GetName() << "' deleted");
+            LOG_DEBUG("Nodetr '" << GetName() << "' deleted");
         }
 
         /**
@@ -453,7 +453,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            LOG_INFO("Adding Child element to Bin");
+            LOG_DEBUG("Adding Child element to Bin");
             if (!gst_bin_add(GST_BIN(m_pGstObj), pChild->GetGstElement()))
             {
                 LOG_ERROR("Failed to add " << pChild->GetName() << " to " << GetName() <<"'");
@@ -498,7 +498,7 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_INFO("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
+                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
                 
                 // Increase the reference count so the child is not destroyed.
                 gst_object_ref(imap.second->GetGstElement());
@@ -630,7 +630,7 @@ namespace DSL
                 return DSL_STATE_IN_TRANSITION;
             }
             
-            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState)
+            LOG_DEBUG("Returning a state of '" << gst_element_state_get_name(currentState)
                 << "' for Nodetr '" << GetName());
             
             return currentState;
@@ -656,7 +656,7 @@ namespace DSL
                 return DSL_STATE_IN_TRANSITION;
             }
             
-            LOG_INFO("Returning a state of '" << gst_element_state_get_name(currentState) 
+            LOG_DEBUG("Returning a state of '" << gst_element_state_get_name(currentState) 
                 << "' for Nodetr '" << GetName());
             
             return currentState;
