@@ -36,6 +36,8 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
+    #define DSL_GIE_PTR std::shared_ptr<GieBintr>
+
     #define DSL_PRIMARY_GIE_PTR std::shared_ptr<PrimaryGieBintr>
     #define DSL_PRIMARY_GIE_NEW(name, inferConfigFile, modelEngineFile, interval) \
         std::shared_ptr<PrimaryGieBintr>(new PrimaryGieBintr( \
@@ -110,6 +112,26 @@ namespace DSL
          * @return the current unique Id
          */
         uint GetUniqueId();
+        
+        /**
+         * @brief Enables/disables raw NvDsInferLayerInfo to .bin file.
+         * @param enabled true if info should be written to file, false to disable
+         * @param file relative or absolute file path specification
+         * @return true if success, false otherwise.
+         */
+        bool SetRawOutputEnabled(bool enabled, const char* file);
+        
+        /**
+         * @brief Writes raw layer info to bin file
+         * @param buffer - currently not used
+         * @param networkInfo - not used
+         * @param layersInfo layer information to write out
+         * @param layersCount number of layer info structures
+         * @param batchSize batch-size set to number of sources
+         */
+        void HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
+        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize);
+        
 
     protected:
 
@@ -144,6 +166,21 @@ namespace DSL
         uint m_processMode;
 
         /**
+         * true if raw output is currently enabled.
+         */
+        bool m_rawOutputEnabled;
+        
+        /**
+         * @brief pathspec to the raw output file directory used by this GIE
+         */
+        std::string m_rawOutputPath;
+        
+        /**
+         * @brief maintains the current frame number between callbacks
+         */
+        ulong m_rawOutputFrameNumber;
+
+        /**
          * @brief Queue Elementr as Sink for this GieBintr
          */
         DSL_ELEMENT_PTR  m_pQueue;
@@ -159,6 +196,9 @@ namespace DSL
         DSL_ELEMENT_PTR  m_pFakeSink;
 
     };
+
+    static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
+        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize, gpointer pGie);
 
     /**
      * @class PrimaryGieBintr

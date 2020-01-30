@@ -94,6 +94,9 @@ namespace DSL {
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName);
+
+        DslReturnType GieRawOutputEnabledSet(const char* name, boolean enabled,
+            const char* path);
             
         DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
         
@@ -272,7 +275,7 @@ namespace DSL {
             return m_pMainLoop;
         }
         
-        const wchar_t* ResultToString(uint result);
+        const wchar_t* ReturnValueToString(uint result);
                         
         /** 
          * @brief Handles all pending events
@@ -325,7 +328,7 @@ namespace DSL {
          */
         void InitToStringMaps();
         
-        std::map <uint, std::wstring> m_resultToString;
+        std::map <uint, std::wstring> m_returnValueToString;
         
         std::map <uint, std::string> m_mapParserTypes;
         

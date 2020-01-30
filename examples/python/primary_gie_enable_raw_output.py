@@ -11,33 +11,12 @@ DSL_RETURN_SUCCESS = 0
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
 
-def primary_gie_batch_meta_handler_cb(buffer, user_data):
-
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break    
-
-#        '''
-        print("Frame Number is ", frame_meta.frame_num)
-        print("Source id is ", frame_meta.source_id)
-        print("Batch id is ", frame_meta.batch_id)
-        print("Source Frame Width ", frame_meta.source_frame_width)
-        print("Source Frame Height ", frame_meta.source_frame_height)
-        print("Num object meta ", frame_meta.num_obj_meta)
- #       '''
-
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
 
 ## 
 # Function to be called on XWindow KeyRelease event
+# The 'E' key is used to 'enable raw output to the specified directory
+# with the 'D' key disabling the raw output. A file is created for each
+# raw layer info data batch generated.
 ## 
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
@@ -47,6 +26,10 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
+    elif key_string.upper() == 'E':
+        dsl_gie_raw_output_enabled_set('primary-gie', True, './output')
+    elif key_string.upper() == 'D':
+        dsl_gie_raw_output_enabled_set('primary-gie', False, '')
 
 ## 
 # Function to be called on XWindow Delete event
@@ -82,13 +65,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
-        # Add the above defined batch meta handler to the Source Pad of the primary-gie
-        ## 
-        retval = dsl_gie_primary_batch_meta_handler_add('primary-gie', DSL_PAD_SRC, primary_gie_batch_meta_handler_cb, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
         ## 
         # New KTL Tracker, setting max width and height of input frame
         ## 

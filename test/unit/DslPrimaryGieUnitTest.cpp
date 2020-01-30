@@ -199,3 +199,53 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its GPU ID",  "[PrimaryGieBintr]" )
         }
     }
 }
+
+SCENARIO( "A PrimaryGieBintr can Enable and Disable raw layer info output",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        
+        WHEN( "The PrimaryGieBintr's raw output is enabled" )
+        {
+            REQUIRE( pPrimaryGieBintr->SetRawOutputEnabled(true, "./") == true );
+
+            THEN( "The raw output can then be disabled" )
+            {
+                REQUIRE( pPrimaryGieBintr->SetRawOutputEnabled(false, "") == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PrimaryGieBintr fails to Enable raw layer info output given a bad path",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        
+        WHEN( "A bad path is constructed" )
+        {
+            std::string badPath("this/is/an/invalid/path");
+            
+            THEN( "The raw output will fail to enale" )
+            {
+                REQUIRE( pPrimaryGieBintr->SetRawOutputEnabled(true, badPath.c_str()) == false );
+            }
+        }
+    }
+}

@@ -18,11 +18,14 @@ source_uri = "../../test/streams/sample_1080p_h264.mp4"
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline-1')
+        dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline-1')
-    elif key_string.upper() == 'Q':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
+    elif key_string.upper() == 'A': 
+        print(dsl_source_dimensions_get("uri-source"))
+        print(dsl_source_frame_rate_get("uri-source"))
 
 ## 
 # Function to be called on XWindow Delete event
@@ -34,10 +37,8 @@ def xwindow_delete_event_handler(client_data):
 ## 
 # Function to be called on every change of Pipeline state
 ## 
-def state_change_listener(prev_state, new_state, client_data):
-    print('previous state = ', prev_state, ', new state = ', new_state)
-
-## 
+def state_change_listener(old_state, new_state, client_data):
+    print('previous state = ', old_state, ', new state = ', new_state)
 
 ## 
 def main(args):
@@ -83,35 +84,36 @@ def main(args):
         ## 
         ## New Pipeline to use with the above components
         ## 
-        retval = dsl_pipeline_new('pipeline-1')
+        retval = dsl_pipeline_new('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline-1', 
+        retval = dsl_pipeline_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+
         ## 
         ## Add the XWindow event handler functions defined above
         ##
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline-1", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline-1", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## 
         ## Add the listener callback function defined above
         ## 
-        retval = dsl_pipeline_state_change_listener_add('pipeline-1', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
 
         ## 
         # Play the pipeline
         ## 
-        retval = dsl_pipeline_play('pipeline-1')
+        retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -129,7 +131,7 @@ def main(args):
         break
 
     # Print out the final result
-    print(dsl_result_to_string(retval))
+    print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()

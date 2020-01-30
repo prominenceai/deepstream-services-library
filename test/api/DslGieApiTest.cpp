@@ -297,7 +297,7 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Primary GI
 
 SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary GIE", "[gie-api]" )
 {
-    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    GIVEN( "A new Pipeline with a new Primary GIE" ) 
     {
         std::wstring pipelineName(L"test-pipeline");
         std::wstring primaryGieName(L"primary-gie");
@@ -330,3 +330,55 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary 
     }
 }
 
+SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",  "[gie-api]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The PrimaryGieBintr's raw output is enabled" )
+        {
+            REQUIRE( dsl_gie_raw_output_enabled_set(primaryGieName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
+
+            THEN( "The raw output can then be disabled" )
+            {
+                REQUIRE( dsl_gie_raw_output_enabled_set(primaryGieName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Primary GIE fails to Enable raw layer info output given a bad path",  "[gie-api]" )
+{
+    GIVEN( "A new Primary GIE in memory" ) 
+    {
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "A bad path is constructed" )
+        {
+            std::wstring badPath(L"this/is/an/invalid/path");
+            
+            THEN( "The raw output will fail to enale" )
+            {
+                REQUIRE( dsl_gie_raw_output_enabled_set(primaryGieName.c_str(), true, badPath.c_str()) == DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
