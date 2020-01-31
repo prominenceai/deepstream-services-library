@@ -633,7 +633,7 @@ namespace DSL
             LOG_DEBUG("Returning a state of '" << gst_element_state_get_name(currentState)
                 << "' for Nodetr '" << GetName());
             
-            return currentState;
+            return (uint)currentState;
         }
         
         /**

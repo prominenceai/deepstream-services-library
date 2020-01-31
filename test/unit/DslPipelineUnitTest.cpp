@@ -523,34 +523,6 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
     }
 }
 
-SCENARIO( "A Pipeline can have at most one DewarperBintr", "[PipelineBintr]" )
-{
-    GIVEN( "Two new DewarperBintrs and PipelineBintr" ) 
-    {
-        std::string pipelineName = "pipeline";
-        std::string dewarperName1 = "dewarper-1";
-        std::string dewarperName2 = "dewarper-2";
-        std::string defConfigFile("./test/configs/config_dewarper.txt");
-
-        DSL_DEWARPER_PTR pDewarperBintr1 = 
-            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
-
-        DSL_DEWARPER_PTR pDewarperBintr2 = 
-            DSL_DEWARPER_NEW(dewarperName1.c_str(), defConfigFile.c_str());
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        WHEN( "A DewarperBintr is added to the PipelineBintr" )
-        {
-            REQUIRE( pDewarperBintr1->AddToParent(pPipelineBintr) == true );
-
-            THEN( "A second DewarperBintr can not be added" )
-            {
-                REQUIRE( pDewarperBintr2->AddToParent(pPipelineBintr) == false );
-            }
-        }
-    }
-}
 
 SCENARIO( "A Pipeline can have at most one TilerBintr", "[PipelineBintr]" )
 {

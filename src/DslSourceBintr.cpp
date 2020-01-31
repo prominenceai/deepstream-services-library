@@ -577,7 +577,7 @@ namespace DSL
     
     gboolean DecodeSourceBintr::HandleStreamBufferSeek()
     {
-        Pause();
+        SetState(GST_STATE_PAUSED);
         
         gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
             (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
@@ -588,7 +588,7 @@ namespace DSL
             LOG_WARN("Failure to seek");
         }
 
-        Play();
+        SetState(GST_STATE_PLAYING);
         return false;
     }
     

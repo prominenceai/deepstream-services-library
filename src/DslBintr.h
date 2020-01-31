@@ -163,74 +163,43 @@ namespace DSL
         }
 
         /**
-         * @brief Attempts to set the state of this Bintr's GST Element to Playing
+         * @brief Attempts to set the state of this Bintr's GST Element
          * @return true if successful transition, false on failure
          */
-        bool Play()
+        bool SetState(GstState state)
         {
             LOG_FUNC();
             
-            LOG_INFO("Changing state to GST_STATE_PLAY for Bintr '" << GetName() << "'");
+            LOG_INFO("Changing state to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
 
-            gst_element_set_state(GetGstElement(), GST_STATE_PLAYING);
-            
-            // Wait until state change or failure, no timeout.
-            if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
+            GstStateChangeReturn returnVal = gst_element_set_state(GetGstElement(), state);
+            switch (returnVal) 
             {
-                LOG_ERROR("FAILURE occured when trying to play Bintr '" << GetName() << "'");
-                return false;
-            }
-            return true;
-        }
-
-        /**
-         * @brief Attempts to set the state of this Bintr's GST Element to Paused
-         * @return true if successful transition, false on failure
-         */
-        bool Pause()
-        {
-            LOG_FUNC();
-            
-            LOG_INFO("Changing state to GST_STATE_PAUSED for Bintr '" << GetName() << "'");
-            
-            gst_element_set_state(GetGstElement(), GST_STATE_PAUSED);
-
-            // Wait until state change or failure, no timeout.
-            if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
-            {
-                LOG_ERROR("FAILURE occured when trying to pause Bintr '" << GetName() << "'");
-                return false;
-            }
-            return true;
-        }
-
-        /**
-         * @brief Attempts to set the state of this Bintr's GST Element back to ready
-         * @return true if successful transition, false on failure
-         */
-        bool Stop()
-        {
-            LOG_FUNC();
-            
-            uint currentState = GetState();
-            
-            if ((currentState == GST_STATE_PLAYING) or (currentState == GST_STATE_PAUSED))
-            {
-                gst_element_set_state(GetGstElement(), GST_STATE_READY);
-
-                // Wait until state change or failure, no timeout.
-                if (gst_element_get_state(GetGstElement(), NULL, NULL, -1) == GST_STATE_CHANGE_FAILURE)
-                {
-                    LOG_ERROR("FAILURE occured when trying to Stop Bintr '" << GetName() << "'");
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
+                    return true;
+                case GST_STATE_CHANGE_FAILURE:
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_ERROR("FAILURE occured when trying to change state to '" << 
+                        gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                     return false;
-                }
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for Bintr'" << GetName() << "'");
+                    break;
+                default:
+                    break;
             }
-            else
+            
+            // Wait until state change or failure, no timeout.
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND) == GST_STATE_CHANGE_FAILURE)
             {
-                LOG_INFO("Bintr '" << GetName() << "' is not in a state of PLAYING or PAUSED");                
+                LOG_ERROR("FAILURE occured waiting for state to change to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+                return false;
             }
+            LOG_INFO("State change completed asynchronously for Bintr'" << GetName() << "'");
             return true;
         }
+
         
         bool SendEos()
         {

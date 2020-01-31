@@ -97,9 +97,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' display to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
-            AddDewarperBintr(shared_from_this());
+        // Dewarper should not be added to Pipeline 
+        // Must add to source directy
+        LOG_ERROR("DewarperBintr '" << m_name << "' can not be added directly Pipeline");
+        return false;
     }
     
     bool DewarperBintr::LinkAll()
