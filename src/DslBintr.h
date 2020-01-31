@@ -269,41 +269,33 @@ namespace DSL
          * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
          * @return false if the Bintr does not have a Meta Batch Handler to remove for the give pad.
          */
-        bool RemoveBatchMetaHandler(uint pad)
+        bool RemoveBatchMetaHandler(uint pad, dsl_batch_meta_handler_cb pClientBatchMetaHandler)
         {
             LOG_FUNC();
             
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->RemoveBatchMetaHandler();
+                return m_pSinkPadProbe->RemoveBatchMetaHandler(pClientBatchMetaHandler);
             }
             if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->RemoveBatchMetaHandler();
+                return m_pSrcPadProbe->RemoveBatchMetaHandler(pClientBatchMetaHandler);
             }
             LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
             return false;
         }
         
         /**
-         * @brief Returns the current Batch Meta Handler, 
-         * @param[in] pad pad to get the handler from; DSL_PAD_SINK | DSL_PAD SRC
-         * @return Function pointer if the Bintr has a Handler, NULL otherwise.
+         * @brief Enables/disables kitti ouput to file on every batch
+         * @param enabled set to true to enable output to file, false to disable
+         * @param file absolute or relative file path to write to
+         * @return true if successful, false otherwise.
          */
-        dsl_batch_meta_handler_cb GetBatchMetaHandler(uint pad)
+        bool SetKittiOutputEnabled(bool enabled, const char* file)
         {
             LOG_FUNC();
             
-            if (pad == DSL_PAD_SINK)
-            {
-                return m_pSinkPadProbe->GetBatchMetaHandler();
-            }
-            if (pad == DSL_PAD_SRC)
-            {
-                return m_pSrcPadProbe->GetBatchMetaHandler();
-            }
-            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
-            return NULL;
+            return m_pSrcPadProbe->SetKittiOutputEnabled(enabled, file);
         }
         
         /**

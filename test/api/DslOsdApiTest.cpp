@@ -264,13 +264,13 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a OSD", "
         WHEN( "A Sink Pad Batch Meta Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -296,13 +296,13 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a OSD"
         WHEN( "A Source Pad Batch Meta Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -310,7 +310,7 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a OSD"
     }
 }
 
-SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a OSD", "[osd-api]" )
+SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to the OSD twice", "[osd-api]" )
 {
     GIVEN( "A new pPipeline with a new OSD" ) 
     {
@@ -329,12 +329,12 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a OSD", "[os
         {
             REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
             {
                 REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -342,7 +342,7 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a OSD", "[os
     }
 }
 
-SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a OSD", "[osd-api]" )
+SCENARIO( "The same Source Pad Meta Batch Handler can not be added to the OSD twice", "[osd-api]" )
 {
     GIVEN( "A new pPipeline with a new OSD" ) 
     {
@@ -366,7 +366,7 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a OSD", "[
                 REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -394,7 +394,7 @@ SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls",
             THEN( "The On-Screen Display APIs fail correctly")
             {
                 REQUIRE ( dsl_osd_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                REQUIRE ( dsl_osd_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -402,3 +402,26 @@ SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls",
         }
     }
 }
+
+SCENARIO( "A OSD can Enable and Disable Kitti output",  "[gie-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The OSD's Kitti output is enabled" )
+        {
+            REQUIRE( dsl_osd_kitti_output_enabled_set(osdName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
+
+            THEN( "The Kitti output can then be disabled" )
+            {
+                REQUIRE( dsl_osd_kitti_output_enabled_set(osdName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

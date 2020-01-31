@@ -458,7 +458,17 @@ DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint t
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad);
+DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, 
+    uint pad, dsl_batch_meta_handler_cb handler);
+
+/**
+ * @brief Enbles/disables the bbox output to kitti file for the named the GIE
+ * @param name name of the Primary GIE to update
+ * @param enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param path absolute or relative direcory path to write to. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
+DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief creates a new, uniquely named Secondary GIE object
@@ -552,7 +562,8 @@ DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad,
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad);
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, 
+    uint pad, dsl_batch_meta_handler_cb handler);
 
 /**
  * @brief sets the config file to use by named IOU Tracker object
@@ -561,6 +572,15 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pa
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
+
+/**
+ * @brief Enbles/disables the bbox output to kitti file for the named the Tracker
+ * @param name name of the Tracker to update
+ * @param enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param path absolute or relative direcory path to write to. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
+ */
+DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -660,7 +680,17 @@ DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type,
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
+DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, 
+    uint pad, dsl_batch_meta_handler_cb handler);
+
+/**
+ * @brief Enbles/disables the bbox output to kitti file for the named the OSD
+ * @param name name of the OSD to update
+ * @param enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param path absolute or relative direcory path to write to. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief creates a new, uniquely named Display obj
@@ -725,7 +755,8 @@ DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type,
  * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad);
+DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, 
+    uint pad, dsl_batch_meta_handler_cb handler);
 
 /**
  * @brief creates a new, uniquely named Fake Sink component

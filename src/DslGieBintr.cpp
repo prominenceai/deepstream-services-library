@@ -201,7 +201,6 @@ namespace DSL
     }
 
     // ***********************************************************************
-    // ***********************************************************************
     
     PrimaryGieBintr::PrimaryGieBintr(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
@@ -307,7 +306,6 @@ namespace DSL
         return true;
     }
 
-    // ***********************************************************************
     // ***********************************************************************
 
     SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,

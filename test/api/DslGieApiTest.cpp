@@ -211,13 +211,13 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Primary
         WHEN( "A Sink Pad Batch Meta Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -246,13 +246,13 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Prim
         WHEN( "A Source Pad Batch Meta Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -260,7 +260,7 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Prim
     }
 }
 
-SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Primary GIE", "[gie-api]" )
+SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to a Primary GIE twice", "[gie-api]" )
 {
     GIVEN( "A new pPipeline with a new Primary GIE" ) 
     {
@@ -282,12 +282,12 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Primary GI
         {
             REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
             {
                 REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -295,7 +295,7 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Primary GI
     }
 }
 
-SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary GIE", "[gie-api]" )
+SCENARIO( "A same Source Pad Meta Batch Handler can not be added to a Primary GIE twice", "[gie-api]" )
 {
     GIVEN( "A new Pipeline with a new Primary GIE" ) 
     {
@@ -317,12 +317,12 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary 
         {
             REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
             {
                 REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -332,7 +332,7 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Primary 
 
 SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",  "[gie-api]" )
 {
-    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    GIVEN( "A new Primary GIE in memory" ) 
     {
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
@@ -342,7 +342,7 @@ SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",  "[gie-a
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
         
-        WHEN( "The PrimaryGieBintr's raw output is enabled" )
+        WHEN( "The Primary GIE's raw output is enabled" )
         {
             REQUIRE( dsl_gie_raw_output_enabled_set(primaryGieName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
 
@@ -382,3 +382,30 @@ SCENARIO( "A Primary GIE fails to Enable raw layer info output given a bad path"
         }
     }
 }
+
+SCENARIO( "A Primary GIE can Enable and Disable Kitti output",  "[gie-api]" )
+{
+    GIVEN( "A new Primary GIE in memory" ) 
+    {
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The Primary GIE's Kitti output is enabled" )
+        {
+            REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
+
+            THEN( "The Kitti output can then be disabled" )
+            {
+                REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

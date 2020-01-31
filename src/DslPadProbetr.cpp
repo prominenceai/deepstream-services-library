@@ -29,8 +29,7 @@ namespace DSL
 {
     PadProbetr::PadProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement)
         : m_name(name)
-        , m_pClientBatchMetaHandler(NULL)
-        , m_pClientUserData(NULL)
+        , m_kittiOutputEnabled(false)
     {
         GstPad* pStaticPad = gst_element_get_static_pad(parentElement->GetGstElement(), factoryName);
         if (!pStaticPad)
@@ -60,38 +59,67 @@ namespace DSL
     {
         LOG_FUNC();
         
-        LOG_INFO("m_pClientBatchMetaHandler = " << pClientBatchMetaHandler);
-        if (m_pClientBatchMetaHandler)
+        if (IsChild(pClientBatchMetaHandler))
         {
-            LOG_ERROR("PadProbetr '" << m_name << "' already has a Client Meta Batch Handler");
+            LOG_ERROR("Client Meta Batch Handler is already a child of PadProbetr '" << m_name << "'");
             return false;
         }
-        m_pClientBatchMetaHandler = pClientBatchMetaHandler;
-        m_pClientUserData = pClientUserData;
-        
+        m_pClientBatchMetaHandlers[pClientBatchMetaHandler] = pClientUserData;
+
         return true;
     }
     
-    bool PadProbetr::RemoveBatchMetaHandler()
+    bool PadProbetr::RemoveBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler)
     {
         LOG_FUNC();
         
-        if (!m_pClientBatchMetaHandler)
+        if (!IsChild(pClientBatchMetaHandler))
         {
-            LOG_ERROR("PadProbetr '" << m_name << "' has no Client Meta Batch Handler");
+            LOG_ERROR("Client Meta Batch Handler is not owned by PadProbetr '" << m_name << "'");
             return false;
         }
-        m_pClientBatchMetaHandler = NULL;
-        m_pClientUserData = NULL;
+        m_pClientBatchMetaHandlers.erase(pClientBatchMetaHandler);
         
         return true;
     }
 
-    dsl_batch_meta_handler_cb PadProbetr::GetBatchMetaHandler()
+    bool PadProbetr::IsChild(dsl_batch_meta_handler_cb pClientBatchMetaHandler)
     {
         LOG_FUNC();
         
-        return m_pClientBatchMetaHandler;
+        return (m_pClientBatchMetaHandlers.find(pClientBatchMetaHandler) != m_pClientBatchMetaHandlers.end());
+    }
+
+    bool PadProbetr::SetKittiOutputEnabled(bool enabled, const char* path)
+    {
+        LOG_FUNC();
+        
+        if (enabled)
+        {
+            struct stat info;
+            if( stat(path, &info) != 0 )
+            {
+                LOG_ERROR("Unable to access path '" << path << "' for PadProbetr '" << m_name << "'");
+                return false;
+            }
+            else if(info.st_mode & S_IFDIR)
+            {
+                LOG_INFO("Enabling Kitti output to path '" << path << "' for PadProbet '" << m_name << "'");
+                m_kittiOutputPath.assign(path);
+            }
+            else
+            {
+                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << m_name << "'");
+                return false;
+            }
+        }
+        else
+        {
+            LOG_INFO("Disabling Kitti output for PadProbetr '" << m_name << "'");
+            m_kittiOutputPath.clear();
+        }
+        m_kittiOutputEnabled = enabled;
+        return true;
     }
 
     GstPadProbeReturn PadProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
@@ -100,7 +128,7 @@ namespace DSL
 
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
         {
-            if (m_pClientBatchMetaHandler) // TODO or write ouput enabled
+            if (m_pClientBatchMetaHandlers.size() or m_kittiOutputEnabled)
             {
                 GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
                 if (!pBuffer)
@@ -108,15 +136,18 @@ namespace DSL
                     LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
                     return GST_PAD_PROBE_OK;
                 }
-                if (m_pClientBatchMetaHandler)
+                for (auto const& imap: m_pClientBatchMetaHandlers)
                 {
                     // Remove the client on false return
-                    if (!m_pClientBatchMetaHandler(pBuffer, m_pClientUserData))
+                    if (!imap.first(pBuffer, imap.second))
                     {
                         LOG_INFO("Removing client batch meta handler for PadProbetr '" << m_name << "'");
-                        m_pClientBatchMetaHandler = NULL;
-                        m_pClientUserData = NULL;
+                        RemoveBatchMetaHandler(imap.first);
                     }
+                }
+                if (m_kittiOutputEnabled)
+                {
+                    
                 }
                 // TODO if write output
             }

@@ -196,6 +196,16 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
         cstrEngine.c_str(), interval);
 }
 
+DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFile(file);
+    std::string cstrFile(wstrFile.begin(), wstrFile.end());
+
+    return DSL::Services::GetServices()->GiePrimaryKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
+}
+
 DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
@@ -205,12 +215,13 @@ DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint p
     return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad)
+DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad,
+    dsl_batch_meta_handler_cb handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerRemove(cstrName.c_str(), pad);
+    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
 }
 
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -282,12 +293,23 @@ DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad,
     return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad)
+DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad,
+    dsl_batch_meta_handler_cb handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad);
+    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
+}
+
+DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFile(file);
+    std::string cstrFile(wstrFile.begin(), wstrFile.end());
+
+    return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
     
 DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled)
@@ -373,14 +395,25 @@ DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad,
     return DSL::Services::GetServices()->OsdBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad)
+DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad,
+    dsl_batch_meta_handler_cb handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->OsdBatchMetaHandlerRemove(cstrName.c_str(), pad);
+    return DSL::Services::GetServices()->OsdBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
 }
-    
+
+DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFile(file);
+    std::string cstrFile(wstrFile.begin(), wstrFile.end());
+
+    return DSL::Services::GetServices()->OsdKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
+}
+        
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
@@ -430,12 +463,13 @@ DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad,
     return DSL::Services::GetServices()->TilerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
 }
 
-DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad)
+DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad,
+    dsl_batch_meta_handler_cb handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->TilerBatchMetaHandlerRemove(cstrName.c_str(), pad);
+    return DSL::Services::GetServices()->TilerBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
 }
 
 DslReturnType dsl_sink_fake_new(const wchar_t* name)
@@ -1707,7 +1741,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad)
+    DslReturnType Services::PrimaryGieBatchMetaHandlerRemove(const char* name, 
+        uint pad, dsl_batch_meta_handler_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1725,7 +1760,7 @@ namespace DSL
             DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
                 std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
 
-            if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad))
+            if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad, handler))
             {
                 LOG_ERROR("Primary GIE '" << name << "' has no Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
@@ -1733,12 +1768,40 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
-    
+
+    DslReturnType  Services::GiePrimaryKittiOutputEnabledSet(const char* name, boolean enabled,
+        const char* file)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
+            
+            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+
+            if (!pPrimaryGieBintr->SetKittiOutputEnabled(enabled, file))
+            {
+                LOG_ERROR("Invalid Kitti file path " << file << "for Primary GIE '" << name << "'");
+                return DSL_RESULT_GIE_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception setting Kitti output enabled");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
     DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, const char* inferOnGieName)
     {
@@ -1965,7 +2028,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name, uint pad)
+    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name, 
+        uint pad, dsl_batch_meta_handler_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1983,7 +2047,7 @@ namespace DSL
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!pTrackerBintr->RemoveBatchMetaHandler(pad))
+            if (!pTrackerBintr->RemoveBatchMetaHandler(pad, handler))
             {
                 LOG_ERROR("Tracker '" << name << "' has no Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
@@ -1997,6 +2061,34 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType  Services::TrackerKittiOutputEnabledSet(const char* name, boolean enabled,
+        const char* file)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            
+            DSL_TRACKER_PTR pTrackerBintr = 
+                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+
+            if (!pTrackerBintr->SetKittiOutputEnabled(enabled, file))
+            {
+                LOG_ERROR("Invalid Kitti file path " << file << "for Tracker '" << name << "'");
+                return DSL_RESULT_TRACKER_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name << "' threw an exception setting Kitti output enabled");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
     DslReturnType Services::TilerNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -2173,7 +2265,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerRemove(const char* name, uint pad)
+    DslReturnType Services::TilerBatchMetaHandlerRemove(const char* name, 
+        uint pad, dsl_batch_meta_handler_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2192,7 +2285,7 @@ namespace DSL
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            if (!pTilerBintr->RemoveBatchMetaHandler(pad))
+            if (!pTilerBintr->RemoveBatchMetaHandler(pad, handler))
             {
                 LOG_ERROR("Tiler '" << name << "' has no Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
@@ -2206,7 +2299,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
-   DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
+    DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2464,7 +2557,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2496,7 +2590,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OsdBatchMetaHandlerRemove(const char* name, uint pad)
+    DslReturnType Services::OsdBatchMetaHandlerRemove(const char* name, 
+        uint pad, dsl_batch_meta_handler_cb handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2514,7 +2609,7 @@ namespace DSL
             DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            if (!pOsdBintr->RemoveBatchMetaHandler(pad))
+            if (!pOsdBintr->RemoveBatchMetaHandler(pad, handler))
             {
                 LOG_ERROR("OSD '" << name << "' has no Batch Meta Handler");
                 return DSL_RESULT_OSD_HANDLER_REMOVE_FAILED;
@@ -2523,7 +2618,35 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType  Services::OsdKittiOutputEnabledSet(const char* name, boolean enabled,
+        const char* file)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!pOsdBintr->SetKittiOutputEnabled(enabled, file))
+            {
+                LOG_ERROR("Invalid Kitti file path " << file << "for Tracker '" << name << "'");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name << "' threw an exception setting Kitti output enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }

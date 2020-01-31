@@ -87,10 +87,12 @@ namespace DSL {
 
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
+
+        DslReturnType GiePrimaryKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
         
         DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
-        DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad);
+        DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName);
@@ -108,8 +110,10 @@ namespace DSL {
         
         DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
-        DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad);
+        DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
+        DslReturnType TrackerKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
+
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
         DslReturnType TilerDimensionsGet(const char* name, uint* width, uint* height);
@@ -122,7 +126,7 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
-        DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad);
+        DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
         DslReturnType OsdNew(const char* name, boolean clockEnabled);
         
@@ -144,8 +148,10 @@ namespace DSL {
 
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
-        DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad);
+        DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
+        DslReturnType OsdKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
+        
         DslReturnType SinkFakeNew(const char* name);
 
         DslReturnType SinkOverlayNew(const char* name, 
