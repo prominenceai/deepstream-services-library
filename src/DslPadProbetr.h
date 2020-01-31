@@ -68,15 +68,17 @@ namespace DSL
             
         /**
          * @brief Removes the current Batch Meta Handler callback function from the PadProbetr
+         * @param pClientBatchMetaHandler callback function pointer to remove
          * @return false if the PadProbetr does not have a Meta Batch Handler to remove.
          */
-        bool RemoveBatchMetaHandler();
+        bool RemoveBatchMetaHandler(dsl_batch_meta_handler_cb pClientBatchMetaHandler);
         
         /**
-         * @brief Returns the current Batch Meta Handler, 
-         * @return Function pointer if the Pad Probe has a Handler, NULL otherwise.
+         * @brief Queries the PadProbetr for a child Batch Meta Handler relationship
+         * @param pClientBatchMetaHandler
+         * @return true if the Batch Meta Handler is currently a child of PadProbetr
          */
-        dsl_batch_meta_handler_cb GetBatchMetaHandler();
+        bool IsChild(dsl_batch_meta_handler_cb pClientBatchMetaHandler);
         
         /**
          * @brief 
@@ -86,6 +88,14 @@ namespace DSL
          */
         GstPadProbeReturn HandlePadProbe(
             GstPad* pPad, GstPadProbeInfo* pInfo);
+
+        /**
+         * @brief Enables/disables bounding-box date output in Kitti format
+         * @param enabled true if date should be written to file, false to disable
+         * @param path relative or absolute dir path specification
+         * @return true if success, false otherwise.
+         */
+        bool SetKittiOutputEnabled(bool enabled, const char* path);
 
     private:
     
@@ -104,10 +114,20 @@ namespace DSL
          */
         uint m_padProbeId;
 
-        dsl_batch_meta_handler_cb m_pClientBatchMetaHandler;
+        /**
+         * @brief map of Client Pad Batch Meta handlers
+         */
+        std::map<dsl_batch_meta_handler_cb, void*> m_pClientBatchMetaHandlers;
+
+        /**
+         * true if kitti file output is currently enabled.
+         */
+        bool m_kittiOutputEnabled;
         
-        void* m_pClientUserData;
-        
+        /**
+         * @brief absolute or relative pathspec to the Kitti output dir used by this PadProbetr
+         */
+        std::string m_kittiOutputPath;
     };
     
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 

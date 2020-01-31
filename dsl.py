@@ -188,6 +188,7 @@ _dsl.dsl_gie_primary_batch_meta_handler_add.restype = c_uint
 def dsl_gie_primary_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
     result = _dsl.dsl_gie_primary_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
@@ -199,6 +200,16 @@ _dsl.dsl_gie_primary_batch_meta_handler_remove.restype = c_uint
 def dsl_gie_primary_batch_meta_handler_remove(name, pad):
     global _dsl
     result = _dsl.dsl_gie_primary_batch_meta_handler_remove(name, pad)
+    return int(result)
+
+##
+## dsl_gie_primary_kitti_output_enabled_set()
+##
+_dsl.dsl_gie_primary_kitti_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_gie_primary_kitti_output_enabled_set.restype = c_uint
+def dsl_gie_primary_kitti_output_enabled_set(name, enabled, path):
+    global _dsl
+    result = _dsl.dsl_gie_primary_kitti_output_enabled_set(name, enabled, path)
     return int(result)
 
 ##
@@ -271,6 +282,7 @@ _dsl.dsl_tracker_batch_meta_handler_add.restype = c_uint
 def dsl_tracker_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
     result = _dsl.dsl_tracker_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 
@@ -282,6 +294,16 @@ _dsl.dsl_tracker_batch_meta_handler_remove.restype = c_uint
 def dsl_tracker_batch_meta_handler_remove(name, pad):
     global _dsl
     result = _dsl.dsl_tracker_batch_meta_handler_remove(name, pad)
+    return int(result)
+
+##
+## dsl_tracker_kitti_output_enabled_set()
+##
+_dsl.dsl_tracker_kitti_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_tracker_kitti_output_enabled_set.restype = c_uint
+def dsl_tracker_kitti_output_enabled_set(name, enabled, path):
+    global _dsl
+    result = _dsl.dsl_tracker_kitti_output_enabled_set(name, enabled, path)
     return int(result)
 
 ##
@@ -368,6 +390,7 @@ _dsl.dsl_osd_batch_meta_handler_add.restype = c_uint
 def dsl_osd_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
     result = _dsl.dsl_osd_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 ##
@@ -378,6 +401,16 @@ _dsl.dsl_osd_batch_meta_handler_remove.restype = c_uint
 def dsl_osd_batch_meta_handler_remove(name, pad):
     global _dsl
     result = _dsl.dsl_osd_batch_meta_handler_remove(name, pad)
+    return int(result)
+
+##
+## dsl_osd_kitti_output_enabled_set()
+##
+_dsl.dsl_osd_kitti_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_osd_kitti_output_enabled_set.restype = c_uint
+def dsl_osd_kitti_output_enabled_set(name, enabled, path):
+    global _dsl
+    result = _dsl.dsl_osd_kitti_output_enabled_set(name, enabled, path)
     return int(result)
 
 ##
@@ -398,6 +431,7 @@ _dsl.dsl_tiler_batch_meta_handler_add.restype = c_uint
 def dsl_tiler_batch_meta_handler_add(name, pad, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
     result = _dsl.dsl_tiler_batch_meta_handler_add(name, pad, meta_handler, user_data)
     return int(result)
 

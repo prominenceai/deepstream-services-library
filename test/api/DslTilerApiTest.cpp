@@ -197,13 +197,13 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Tiled D
         WHEN( "A Sink Pad Batch Meta Handler is added to the Tiled Display" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -231,13 +231,13 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Tile
         WHEN( "A Source Pad Batch Meta Handler is added to the Tiled Display" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
             REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -245,7 +245,7 @@ SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Tile
     }
 }
 
-SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Tiled Display", "[tiler-api]" )
+SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to a Tiled Display twice", "[tiler-api]" )
 {
     GIVEN( "A new pPipeline with a new Tiled Display" ) 
     {
@@ -266,12 +266,12 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Tiled Disp
         {
             REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
             {
                 REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -279,7 +279,7 @@ SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Tiled Disp
     }
 }
 
-SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Tiled Display", "[tiler-api]" )
+SCENARIO( "The same Source Pad Meta Batch Handler can not be added to a Tiled Display twice", "[tiler-api]" )
 {
     GIVEN( "A new pPipeline with a new Tiled Display" ) 
     {
@@ -300,12 +300,12 @@ SCENARIO( "A second Source Pad Meta Batch Handler can not be added to a Tiled Di
         {
             REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
+            THEN( "The Sink Pad Meta Batch Handler can not be added again" ) 
             {
                 REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
                     == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
                 
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -341,7 +341,7 @@ SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api
                 REQUIRE( dsl_tiler_tiles_set(fakeSinkName.c_str(), 1, 1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
                 REQUIRE ( dsl_tiler_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                REQUIRE ( dsl_tiler_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                REQUIRE ( dsl_tiler_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
                 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

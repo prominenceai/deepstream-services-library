@@ -118,6 +118,16 @@ print(dsl_gie_primary_batch_meta_handler_remove("primary-gie", DSL_PAD_SRC))
 print(dsl_component_delete("primary-gie"))
 
 ##
+## dsl_gie_primary_kitti_output_enabled_set()
+##
+print("dsl_gie_primary_kitti_output_enabled_set")
+print(dsl_gie_primary_new("primary-gie", "./test/configs/config_infer_primary_nano.txt", 
+    "./test/models/Primary_Detector_Nano/resnet10.caffemodel", 0))
+print(dsl_gie_primary_kitti_output_enabled_set("primary-gie", True, "./"))
+print(dsl_gie_primary_kitti_output_enabled_set("primary-gie", False, ""))
+print(dsl_component_delete("primary-gie"))
+
+##
 ## dsl_gie_secondary_new()
 ##
 print("dsl_gie_secondary_new")
@@ -171,6 +181,15 @@ def mb_handler(buffer, user_data):
 print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
 print(dsl_tracker_batch_meta_handler_add("ktl-tracker", DSL_PAD_SRC, mb_handler, None))
 print(dsl_tracker_batch_meta_handler_remove("ktl-tracker", DSL_PAD_SRC))
+print(dsl_component_delete("ktl-tracker"))
+
+##
+## dsl_tracker_kitti_output_enabled_set()
+##
+print("dsl_tracker_kitti_output_enabled_set")
+print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
+print(dsl_tracker_kitti_output_enabled_set("ktl-tracker", True, "./"))
+print(dsl_tracker_kitti_output_enabled_set("ktl-tracker", False, ""))
 print(dsl_component_delete("ktl-tracker"))
 
 ##

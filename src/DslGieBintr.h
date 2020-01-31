@@ -116,10 +116,10 @@ namespace DSL
         /**
          * @brief Enables/disables raw NvDsInferLayerInfo to .bin file.
          * @param enabled true if info should be written to file, false to disable
-         * @param file relative or absolute file path specification
+         * @param path relative or absolute dir path specification
          * @return true if success, false otherwise.
          */
-        bool SetRawOutputEnabled(bool enabled, const char* file);
+        bool SetRawOutputEnabled(bool enabled, const char* path);
         
         /**
          * @brief Writes raw layer info to bin file
@@ -259,8 +259,6 @@ namespace DSL
          * @brief Tee Elementr for this PrimaryGieBintr
          */
         DSL_ELEMENT_PTR  m_pTee;
-
-
     };
 
     /**
