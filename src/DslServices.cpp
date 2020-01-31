@@ -1519,7 +1519,7 @@ namespace DSL
                 LOG_ERROR("Source '" << name << "' can not be paused - is not in play");
                 return DSL_RESULT_SOURCE_NOT_IN_PLAY;
             }
-            if (!pSourceBintr->Pause())
+            if (!pSourceBintr->SetState(GST_STATE_PAUSED))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to paused");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -1557,7 +1557,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
             }
 
-            if (!pSourceBintr->Play())
+            if (!pSourceBintr->SetState(GST_STATE_PLAYING))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to play");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;

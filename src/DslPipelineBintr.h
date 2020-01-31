@@ -62,6 +62,8 @@ namespace DSL
 
         bool Play();
         
+        bool Pause();
+        
         bool Stop();
 
         /**
@@ -90,12 +92,6 @@ namespace DSL
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
         bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
-
-        /**
-         * @brief adds a single DewarperBintr to this Pipeline 
-         * @param[in] pDewarperBintr shared pointer to DewarperBintr to add
-         */
-        bool AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr);
 
         /**
          * @brief adds a single GIE Bintr to this Pipeline 
@@ -365,11 +361,6 @@ namespace DSL
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
-        
-        /**
-         * @brief optional, one at most Dewarper for this Pipeline
-         */
-        DSL_DEWARPER_PTR m_pDewarperBintr;
         
         /**
          * @brief optional, one at most Primary GIE for this Pipeline

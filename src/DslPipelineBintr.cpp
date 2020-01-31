@@ -148,20 +148,6 @@ namespace DSL
         return AddChild(pOsdBintr);
     }
 
-    bool PipelineBintr::AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr)
-    {
-        LOG_FUNC();
-
-        if (m_pDewarperBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Dewarper");
-            return false;
-        }
-        m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
-        
-        return AddChild(pDewarperBintr);
-    }
-
     bool PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
@@ -401,17 +387,6 @@ namespace DSL
         }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
 
-        if (m_pDewarperBintr)
-        {
-            // LinkAll Dewarper Elementrs and add as the next component in the Pipeline
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pDewarperBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pDewarperBintr);
-        }
-        
         if (m_pPrimaryGieBintr)
         {
             // Set the GIE's batch size to the number of active sources, 
@@ -515,36 +490,69 @@ namespace DSL
         
         if (GetState() == GST_STATE_NULL)
         {
-            if (!LinkAll() or !Pause())
-//            if (!LinkAll())
+            if (!LinkAll())
             {
                 LOG_ERROR("Unable to prepare Pipeline '" << GetName() << "' for Play");
                 return false;
             }
+            // For non-live sources we Pause to preroll before we play
+            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive())
+            {
+                if (!SetState(GST_STATE_PAUSED))
+                {
+                    LOG_ERROR("Failed to Pause non-live soures before playing Pipeline '" << GetName() << "'");
+                    return false;
+                }
+            }
         }
                 
         // Call the base class to complete the Play process
-        return Bintr::Play();
+        return SetState(GST_STATE_PLAYING);
     }
-    
+
+    bool PipelineBintr::Pause()
+    {
+        LOG_FUNC();
+        
+        if (GetState() != GST_STATE_PLAYING)
+        {
+            LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
+            return false;
+        }
+        // Call the base class to Pause
+        if (!SetState(GST_STATE_PAUSED))
+        {
+            LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
+        return true;
+    }
+
     bool PipelineBintr::Stop()
     {
         LOG_FUNC();
         
+        uint state = GetState();
+        if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
+        {
+            LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
+            return true;
+        }
+        // Call the base class to stop
+        if (!SetState(GST_STATE_READY))
+        {
+            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+            return false;
+        }
         if (IsLinked())
         {
-        /*    if (!m_linkedComponents.back()->SendEos())
-            {
-                LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
-                return false;
-            }
-	*/
-            Bintr::Stop();
             UnlinkAll();
         }
-        
         return true;
-        
     }
 
     void PipelineBintr::DumpToDot(char* filename)

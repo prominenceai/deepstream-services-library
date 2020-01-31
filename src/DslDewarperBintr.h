@@ -55,8 +55,8 @@ namespace DSL
         ~DewarperBintr();
 
         /**
-         * @brief Adds the DewarperBintr to a Parent Pipeline Bintr
-         * @param[in] pParentBintr Parent Pipeline to add this Bintr to
+         * @brief Required by all Bintrs. but not used by Dewarper
+         * @param[in] pParentBintr Parent Pipeline 
          */
         bool AddToParent(DSL_NODETR_PTR pParentBintr);
 

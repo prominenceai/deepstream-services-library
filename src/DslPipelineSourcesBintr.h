@@ -89,6 +89,8 @@ namespace DSL
 
         void SetStreamMuxPlayType(bool areSourcesLive);        
         
+        bool StreamMuxPlayTypeIsLive();        
+        
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
          * @param[out] batchSize current batchSize, default == the number of source
@@ -134,9 +136,6 @@ namespace DSL
          * @return true if the Padding enable setting could be set, false otherwise.
          */
         void SetStreamMuxPadding(bool enabled);
-        
-        
-        
 
     private:
         /**

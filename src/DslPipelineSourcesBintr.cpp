@@ -30,6 +30,7 @@ namespace DSL
 {
     PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
         : Bintr(name)
+        , m_areSourcesLive(false)
     {
         LOG_FUNC();
 
@@ -213,7 +214,13 @@ namespace DSL
         m_areSourcesLive = areSourcesLive;
         
         m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
+    }
+
+    bool PipelineSourcesBintr::StreamMuxPlayTypeIsLive()
+    {
+        LOG_FUNC();
         
+        return m_areSourcesLive;
     }
     
     void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, guint* batchTimeout)

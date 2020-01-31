@@ -602,7 +602,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -660,7 +660,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -730,7 +730,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_M
     }
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[test]" )
+SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, DSL_CODEC_H264 RTSP Sink, and Tiled Display" ) 
     {
@@ -779,7 +779,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -791,7 +791,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
     }
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H265 RTSP Sink, and Tiled Display can play", "[test]" )
+SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H265 RTSP Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, DSL_CODEC_H265 RTSP Sink, and Tiled Display" ) 
     {
@@ -840,7 +840,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H265 RTSP Sink, and 
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
