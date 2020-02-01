@@ -1271,6 +1271,13 @@ void dsl_main_loop_quit();
  */
 const wchar_t* dsl_return_value_to_string(uint result);
 
+/**
+ * @brief Returns the current version of DSL
+ * @return string representation of the current release
+ */
+const wchar_t* dsl_version_get();
+
+
 EXTERN_C_END
 
 #endif /* _DSL_API_H */

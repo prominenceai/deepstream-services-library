@@ -1002,3 +1002,11 @@ _dsl.dsl_return_value_to_string.restype = c_wchar_p
 def dsl_return_value_to_string(result):
     global _dsl
     return _dsl.dsl_return_value_to_string(result)
+
+##
+## dsl_version_get()
+##
+_dsl.dsl_version_get.restype = c_wchar_p
+def dsl_version_get():
+    global _dsl
+    return _dsl.dsl_version_get()

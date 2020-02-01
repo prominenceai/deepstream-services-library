@@ -282,6 +282,8 @@ namespace DSL {
         }
         
         const wchar_t* ReturnValueToString(uint result);
+
+        const wchar_t* VersionGet();
                         
         /** 
          * @brief Handles all pending events

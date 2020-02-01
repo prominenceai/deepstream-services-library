@@ -24,12 +24,14 @@
 #
 ################################################################################
 
+
 APP:= dsl-test-app
 
-CC = g++
+CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
+DSL_VERSION:='L"v0.01.alpha"'
 NVDS_VERSION:=4.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -47,6 +49,10 @@ SRCS+= $(wildcard ./test/unit/*.cpp)
 
 INCS:= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./test/*.hpp)
+
+
+TEST_OBJS+= $(wildcard ./test/api/*.o)
+TEST_OBJS+= $(wildcard ./test/unit/*.o)
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
@@ -72,6 +78,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./src \
 	-I./test \
 	-I./test/api \
+	-DDSL_VERSION=$(DSL_VERSION) \
     -DDS_VERSION_MINOR=0 \
     -DDS_VERSION_MAJOR=4 \
     -DDSL_LOGGER_IMP='"DslLogGst.h"'\
@@ -100,21 +107,26 @@ LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 
-%.o: %.cpp $(INCS) Makefile
-	$(CC) -c -o $@ $(CFLAGS) $<
+PCH_INC=./src/Dsl.h
+PCH_OUT=./src/Dsl.h.gch
+$(PCH_OUT): $(PCH_INC) Makefile
+	$(CXX) -c -o $@ $(CFLAGS) $<
+
+%.o: %.cpp $(PCH_OUT) $(INCS) Makefile
+	$(CXX) -c -o $@ $(CFLAGS) $<
 
 $(APP): $(OBJS) Makefile
 	@echo $(SRCS)
-	$(CC) -o $(APP) $(OBJS) $(LIBS)
+	$(CXX) -o $(APP) $(OBJS) $(LIBS)
 
 lib:
 	ar rcs dsl-lib.a $(OBJS)
-	ar dv dsl-lib.a DslCatch.o
-	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS)
+	ar dv dsl-lib.a DslCatch.o $(TEST_OBJS)
+	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS)
 	cp dsl-lib.so examples/python/
 	
 so_lib:
-	$(CC) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
+	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
 
 clean:
-	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so
+	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so 
