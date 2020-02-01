@@ -1141,6 +1141,11 @@ const wchar_t* dsl_return_value_to_string(uint result)
     return DSL::Services::GetServices()->ReturnValueToString(result);
 }
 
+const wchar_t* dsl_version_get()
+{
+    return DSL_VERSION;
+}
+
 namespace DSL
 {
     // Initialize the Services's single instance pointer

@@ -574,3 +574,6 @@ print(dsl_pipeline_xwindow_delete_event_handler_remove("pipeline", delete_handle
 ##
 print("dsl_main_loop_run")
 print("dsl_main_loop_quit")
+
+print("dsl_version_get")
+print(dsl_version_get())
