@@ -129,4 +129,4 @@ so_lib:
 	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
 
 clean:
-	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so 
+	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so $(PCH_OUT)

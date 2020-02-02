@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef _DSL_SGIES_BINTR_H
 #define _DSL_SGIES_BINTR_H
 
+#include "Dsl.h"
+#include "DslApi.h"
 #include "DslBintr.h"
 #include "DslGieBintr.h"
     

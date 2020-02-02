@@ -180,9 +180,10 @@ SCENARIO( "An OSD's Clock Enabled Setting can be updated", "[osd-api]" )
             {
                 dsl_osd_clock_enabled_get(osdName.c_str(), &retEnabled);
                 REQUIRE( preEnabled == retEnabled);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }
 
@@ -206,9 +207,42 @@ SCENARIO( "An OSD's Clock Offsets can be updated", "[osd-api]" )
                 dsl_osd_clock_offsets_get(osdName.c_str(), &retOffsetX, &retOffsetY);
                 REQUIRE( preOffsetX == retOffsetX);
                 REQUIRE( preOffsetY == retOffsetY);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}
+
+SCENARIO( "An OSD's Clock Font can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean enabled(true);
+        uint preOffsetX(100), preOffsetY(100);
+        uint retOffsetX(0), retOffsetY(0);
+        std::wstring newFont(L"arial");
+        uint newSize(16);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The OSD's Clock Font is Set" ) 
+        {
+            REQUIRE( dsl_osd_clock_font_set(osdName.c_str(), newFont.c_str(), newSize) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                const wchar_t *retFontPtr;
+                uint retSize;
+                dsl_osd_clock_font_get(osdName.c_str(), &retFontPtr, &retSize);
+                std::wstring retFont(retFontPtr);
+                REQUIRE( retFont == newFont );
+                REQUIRE( retSize == newSize );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
     }
 }
 

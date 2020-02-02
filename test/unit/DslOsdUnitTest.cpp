@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
+SCENARIO( "A new OsdBintr is created correctly", "[test]" )
 {
     GIVEN( "Attributes for a new OsdBintr" ) 
     {
@@ -145,18 +145,21 @@ SCENARIO( "An OsdBintr can get and set the clock's font", "[OsdBintr]" )
     {
         std::string osdName = "osd";
         boolean enableClock(true);
+        std::string newName("ariel");
 
         DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
 
         WHEN( "The clock font name and size is " )
         {
-            REQUIRE( pOsdBintr->SetClockFont("arial", 8) == true);
+            REQUIRE( pOsdBintr->SetClockFont(newName.c_str(), 8) == true);
             
             THEN( "The new name and size are returned on get" )
             {
-                const char* name(NULL); 
                 uint size(0);
+                const char* name;
                 pOsdBintr->GetClockFont(&name, &size);
+                std::string retOsdName(name);
+                REQUIRE( retOsdName == newName );
                 REQUIRE( size == 8 );
             }
         }

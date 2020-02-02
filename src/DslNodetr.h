@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_NODETR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 
 namespace DSL
 {

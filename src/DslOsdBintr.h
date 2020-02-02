@@ -27,6 +27,7 @@ THE SOFTWARE.
 #define _DSL_OSD_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
 
@@ -109,7 +110,7 @@ namespace DSL
          * @param[out] name name of the current font in use
          * @param[out] size soze of the current font in use
          */
-        void GetClockFont(const char** name, uint* size);
+        void GetClockFont(const char** name, uint *size);
 
         /**
          * @brief Sets the font name and size to use by the OSD clock

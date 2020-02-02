@@ -27,6 +27,7 @@ THE SOFTWARE.
 #define _DSL_PIPELINE_SOURCES_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslSourceBintr.h"
 
 namespace DSL

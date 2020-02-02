@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef _DSL_DRIVER_H
 #define _DSL_DRIVER_H
 
+#include "Dsl.h"
+#include "DslApi.h"
 #include "DslPipelineBintr.h"
 
 namespace DSL {
@@ -97,6 +99,14 @@ namespace DSL {
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName);
 
+        DslReturnType GieInferConfigFileGet(const char* name, const char** inferConfigFile);
+
+        DslReturnType GieInferConfigFileSet(const char* name, const char* inferConfigFile);
+            
+        DslReturnType GieModelEngineFileGet(const char* name, const char** modelEngineFile);
+
+        DslReturnType GieModelEngineFileSet(const char* name, const char* modelEngineFile);
+            
         DslReturnType GieRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             

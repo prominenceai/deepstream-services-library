@@ -240,6 +240,64 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
         cstrEngine.c_str(), cstrGie.c_str());
 }
 
+DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->GieInferConfigFileGet(cstrName.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *infer_config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(infer_config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->GieInferConfigFileSet(cstrName.c_str(), cstrConfig.c_str());
+}
+
+DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cEngine;
+    static std::string cstrEngine;
+    static std::wstring wcstrEngine;
+    
+    uint retval = DSL::Services::GetServices()->GieModelEngineFileGet(cstrName.c_str(), &cEngine);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrEngine.assign(cEngine);
+        wcstrEngine.assign(cstrEngine.begin(), cstrEngine.end());
+        *model_engine_file = wcstrEngine.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrEngine(model_engine_file);
+    std::string cstrEngine(wstrEngine.begin(), wstrEngine.end());
+
+    return DSL::Services::GetServices()->GieModelEngineFileSet(cstrName.c_str(), cstrEngine.c_str());
+}
+
 DslReturnType dsl_gie_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path)
 {
     std::wstring wstrName(name);
@@ -352,13 +410,24 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint 
     return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offsetX, offsetY);
 }
 
-//DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint size);
-//{
-//    std::wstring wstrName(name);
-//    std::string cstrName(wstrName.begin(), wstrName.end());
-//
-//    return DSL::Services::GetServices()->OsdClockFontsGet(cstrFont.c_str(), font, size);
-//}
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cfont;
+    static std::string cstrFont;
+    static std::wstring wcstrFont;
+    
+    uint retval = DSL::Services::GetServices()->OsdClockFontGet(cstrName.c_str(), &cfont, size);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFont.assign(cfont);
+        wcstrFont.assign(cstrFont.begin(), cstrFont.end());
+        *font = wcstrFont.c_str();
+    }
+    return retval;
+}
 
 DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size)
 {
@@ -367,7 +436,7 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->OsdClockFontSet(cstrFont.c_str(), cstrFont.c_str(), size);
+    return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), cstrFont.c_str(), size);
 }
 
 DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue)
@@ -1875,6 +1944,110 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on raw output enabled set");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieInferConfigFileGet(const char* name, const char** inferConfigFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            *inferConfigFile = pGieBintr->GetInferConfigFile();
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieInferConfigFileSet(const char* name, const char* inferConfigFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            if (!pGieBintr->SetInferConfigFile(inferConfigFile))
+            {
+                LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
+                return DSL_RESULT_GIE_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieModelEngineFileGet(const char* name, const char** inferConfigFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            *inferConfigFile = pGieBintr->GetModelEngineFile();
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieModelEngineFileSet(const char* name, const char* inferConfigFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            if (!pGieBintr->SetModelEngineFile(inferConfigFile))
+            {
+                LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
+                return DSL_RESULT_GIE_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
 

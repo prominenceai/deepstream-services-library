@@ -35,8 +35,8 @@ namespace DSL
         , m_processMode(0)
         , m_clockFont("Serif")
         , m_clockFontSize(12)
-        , m_clockOffsetX(800)
-        , m_clockOffsetY(820)
+        , m_clockOffsetX(0)
+        , m_clockOffsetY(0)
         , m_clockColorRed(0)
         , m_clockColorGreen(0)
         , m_clockColorBlue(0)
@@ -180,8 +180,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        *name = m_clockFont.c_str();
         *size = m_clockFontSize;
+        *name = m_clockFont.c_str();
     }
 
     bool OsdBintr::SetClockFont(const char* name, uint size)
