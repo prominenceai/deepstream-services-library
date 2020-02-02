@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_PAD_PROBETR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslElementr.h"
 
 namespace DSL

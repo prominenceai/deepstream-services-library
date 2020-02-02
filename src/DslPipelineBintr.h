@@ -25,6 +25,7 @@ THE SOFTWARE.
 #ifndef _DSL_PIPELINE_H
 #define _DSL_PIPELINE_H
 
+#include "Dsl.h"
 #include "DslApi.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"

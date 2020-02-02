@@ -480,15 +480,18 @@ DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, bool
  */
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
     const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name);
-//
-//DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
-//DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
-//
-//DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
-//DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
-//
-//DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
-//DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
+
+DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
+
+DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
+
+DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
+
+DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
+
+DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
+
+DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
@@ -631,7 +634,7 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint 
  * @param[out] size current font size for the OSD clocks
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint size);
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
 
 /**
  * @brief sets the font name and size for the On-Screen-Display clocks

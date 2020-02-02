@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_TRACKER_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
 #include "DslPadProbetr.h"

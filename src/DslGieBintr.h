@@ -28,6 +28,7 @@ THE SOFTWARE.
 #define _DSL_GIE_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
 
@@ -76,12 +77,24 @@ namespace DSL
          * @return fully qualified patspec used to create this Bintr
          */
         const char* GetInferConfigFile();
+
+        /**
+         * @brief sets the name of the Infer Config File to use by this GieBintr
+         * @return fully qualified patspec to the new Config File to use
+         */
+        bool SetInferConfigFile(const char* inferConfigFile);
         
         /**
          * @brief gets the name of the Model Engine File in use by this PrimaryGieBintr
          * @return fully qualified patspec used to create this Bintr
          */
         const char* GetModelEngineFile();
+
+        /**
+         * @brief sets the name of the Model Engine File to use by this GieBintr
+         * @return fully qualified patspec to the new Model Engine File to use
+         */
+        bool SetModelEngineFile(const char* modelEngineFile);
         
         /**
          * @brief sets the batch size for this Bintr

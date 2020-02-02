@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define _DSL_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslNodetr.h"
 #include "DslPadProbetr.h"
 

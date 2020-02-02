@@ -28,6 +28,7 @@ DSL_STATE_IN_TRANSITION = 5
 ##
 DSL_UINT_P = POINTER(c_uint)
 DSL_BOOL_P = POINTER(c_bool)
+DSL_WCHAR_PP = POINTER(c_wchar_p)
 
 ##
 ## Callback Typedefs
@@ -223,6 +224,48 @@ def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_g
     return int(result)
 
 ##
+## dsl_gie_infer_config_file_get()
+##
+_dsl.dsl_gie_infer_config_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_gie_infer_config_file_get.restype = c_uint
+def dsl_gie_infer_config_file_get(name):
+    global _dsl
+    file = c_wchar_p(0)
+    result = _dsl.dsl_gie_infer_config_file_get(name, DSL_WCHAR_PP(file))
+    return int(result), file.value 
+
+##
+## dsl_gie_infer_config_file_set()
+##
+_dsl.dsl_gie_infer_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gie_infer_config_file_set.restype = c_uint
+def dsl_gie_infer_config_file_set(name, infer_config_file):
+    global _dsl
+    result = _dsl.dsl_gie_infer_config_file_set(name, infer_config_file)
+    return int(result)
+
+##
+## dsl_gie_model_engine_file_get()
+##
+_dsl.dsl_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_gie_model_engine_file_get.restype = c_uint
+def dsl_gie_model_engine_file_get(name):
+    global _dsl
+    file = c_wchar_p(0)
+    result = _dsl.dsl_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
+    return int(result), file.value 
+
+##
+## dsl_gie_model_engine_file_set()
+##
+_dsl.dsl_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gie_model_engine_file_set.restype = c_uint
+def dsl_gie_model_engine_file_set(name, model_engine_file):
+    global _dsl
+    result = _dsl.dsl_gie_model_engine_file_set(name, model_engine_file)
+    return int(result)
+
+##
 ## dsl_gie_raw_output_enabled_set()
 ##
 _dsl.dsl_gie_raw_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
@@ -357,6 +400,28 @@ _dsl.dsl_osd_clock_offsets_set.restype = c_uint
 def dsl_osd_clock_offsets_set(name, x_offset, y_offset):
     global _dsl
     result = _dsl.dsl_osd_clock_offsets_set(name, x_offset, y_offset)
+    return int(result)
+
+##
+## dsl_osd_clock_font_get()
+##
+_dsl.dsl_osd_clock_font_get.argtypes = [c_wchar_p, POINTER(c_wchar_p), POINTER(c_uint)]
+_dsl.dsl_osd_clock_font_get.restype = c_uint
+def dsl_osd_clock_font_get(name):
+    global _dsl
+    font = c_wchar_p(0)
+    size = c_uint(0)
+    result = _dsl.dsl_osd_clock_font_get(name, DSL_WCHAR_PP(font), DSL_UINT_P(size))
+    return int(result), font.value, size.value 
+
+##
+## dsl_osd_clock_font_set()
+##
+_dsl.dsl_osd_clock_font_set.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_osd_clock_font_set.restype = c_uint
+def dsl_osd_clock_font_set(name, font, size):
+    global _dsl
+    result = _dsl.dsl_osd_clock_font_set(name, font, size)
     return int(result)
 
 ##

@@ -222,6 +222,17 @@ print(dsl_osd_clock_offsets_get("on-screen-display",))
 print(dsl_component_delete("on-screen-display"))
 
 ##
+## dsl_osd_clock_font_get()
+## dsl_osd_clock_font_set()
+##
+print("dsl_osd_clock_font_get")
+print("dsl_osd_clock_font_set")
+print(dsl_osd_new("on-screen-display", False))
+print(dsl_osd_clock_font_set("on-screen-display", 'ariel', 16))
+print(dsl_osd_clock_font_get("on-screen-display",))
+print(dsl_component_delete("on-screen-display"))
+
+##
 ## dsl_osd_clock_color_get()
 ## dsl_osd_clock_color_set()
 ##

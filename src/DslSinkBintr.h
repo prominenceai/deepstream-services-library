@@ -27,6 +27,7 @@ THE SOFTWARE.
 #define _DSL_SINK_BINTR_H
 
 #include "Dsl.h"
+#include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
 

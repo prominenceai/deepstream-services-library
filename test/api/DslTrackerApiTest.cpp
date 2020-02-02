@@ -430,7 +430,7 @@ SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker
     }
 }
 
-SCENARIO( "A Tracker can Enable and Disable Kitti output", "[gie-api]" )
+SCENARIO( "A Tracker can Enable and Disable Kitti output", "[tracker-api]" )
 {
     GIVEN( "A new Tracker in memory" ) 
     {

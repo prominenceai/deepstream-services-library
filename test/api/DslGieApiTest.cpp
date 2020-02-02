@@ -409,3 +409,51 @@ SCENARIO( "A Primary GIE can Enable and Disable Kitti output",  "[gie-api]" )
     }
 }
 
+SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Files",  "[gie-api]" )
+{
+    GIVEN( "A new Secondary GIE in memory" ) 
+    {
+        std::wstring primaryGieName = L"primary-gie";
+        std::wstring secondaryGieName = L"secondary-gie";
+        std::wstring inferConfigFile = L"./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Secondary_CarColor/resnet18.caffemodel";
+        uint interval(1);
+        
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* pRetInferConfigFile;
+        REQUIRE( dsl_gie_infer_config_file_get(secondaryGieName.c_str(), &pRetInferConfigFile) == DSL_RESULT_SUCCESS );
+        std::wstring retInferConfigFile(pRetInferConfigFile);
+        REQUIRE( retInferConfigFile == inferConfigFile );
+        
+        const wchar_t* pRetModelEngineFile;
+        REQUIRE( dsl_gie_model_engine_file_get(secondaryGieName.c_str(), &pRetModelEngineFile) == DSL_RESULT_SUCCESS );
+        std::wstring retModelEngineFile(pRetModelEngineFile);
+        REQUIRE( retModelEngineFile == modelEngineFile );
+        
+        WHEN( "The SecondaryGieBintr's Infer Config File is set" )
+        {
+            std::wstring newInferConfigFile = L"./test/configs/config_infer_secondary_carmake_nano.txt";
+            REQUIRE( dsl_gie_infer_config_file_set(secondaryGieName.c_str(), newInferConfigFile.c_str()) == DSL_RESULT_SUCCESS );
+
+            std::wstring newModelEngineFile = L"./test/models/Secondary_CarMake/resnet18.caffemodel";
+            REQUIRE( dsl_gie_model_engine_file_set(secondaryGieName.c_str(), newModelEngineFile.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct Infer Config File is returned on get" )
+            {
+                REQUIRE( dsl_gie_infer_config_file_get(secondaryGieName.c_str(), 
+                    &pRetInferConfigFile) == DSL_RESULT_SUCCESS);
+                retInferConfigFile.assign(pRetInferConfigFile);
+                REQUIRE( retInferConfigFile == newInferConfigFile );
+                REQUIRE( dsl_gie_model_engine_file_get(secondaryGieName.c_str(), 
+                    &pRetModelEngineFile) == DSL_RESULT_SUCCESS);
+                retModelEngineFile.assign(pRetModelEngineFile);
+                REQUIRE( retModelEngineFile == newModelEngineFile );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

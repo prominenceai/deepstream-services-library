@@ -80,12 +80,58 @@ namespace DSL
         
         return m_inferConfigFile.c_str();
     }
+
+    bool GieBintr::SetInferConfigFile(const char* inferConfigFile)
+    {
+        LOG_FUNC();
+        
+        std::ifstream streamInferConfigFile(inferConfigFile);
+        if (!streamInferConfigFile.good())
+        {
+            LOG_ERROR("Infer Config File '" << inferConfigFile << "' Not found");
+            return false;
+        }        
+                
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Infer Config File for GIE '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        m_inferConfigFile.assign(inferConfigFile);
+        m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
+        
+        return true;
+    }
     
     const char* GieBintr::GetModelEngineFile()
     {
         LOG_FUNC();
         
         return m_modelEngineFile.c_str();
+    }
+    
+    bool GieBintr::SetModelEngineFile(const char* modelEngineFile)
+    {
+        LOG_FUNC();
+        
+        std::ifstream streamModelEngineFile(modelEngineFile);
+        if (!streamModelEngineFile.good())
+        {
+            LOG_ERROR("Model Engine File '" << modelEngineFile << "' Not found");
+            return false;
+        }        
+                
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Model Engine File for GIE '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        m_modelEngineFile.assign(modelEngineFile);
+        m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
+        
+        return true;
     }
     
     void GieBintr::SetBatchSize(uint batchSize)

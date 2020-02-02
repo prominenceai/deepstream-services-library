@@ -53,7 +53,6 @@ THE SOFTWARE.
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
 
-#include "DslApi.h"
 #include "DslMutex.h"
 #include "DslLog.h"
 
