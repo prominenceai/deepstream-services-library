@@ -317,6 +317,8 @@ namespace DSL
             
             return m_uri.c_str();
         }
+
+        virtual bool SetUri(const char* uri) = 0;
         
         /**
          * @brief 
@@ -463,8 +465,10 @@ namespace DSL
          */
         void UnlinkAll();
 
-        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
+        bool SetUri(const char* uri);
 
+        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
+        
     private:
 
 
@@ -493,6 +497,8 @@ namespace DSL
          * @brief Unlinks all Child Elementrs owned by this Source Bintr
          */
         void UnlinkAll();
+
+        bool SetUri(const char* uri);
 
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 

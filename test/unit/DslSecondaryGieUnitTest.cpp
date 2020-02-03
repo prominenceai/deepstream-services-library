@@ -35,12 +35,13 @@ SCENARIO( "A new SecondaryGieBintr is created correctly",  "[SecondaryGieBintr]"
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        uint interval(1);
         
         WHEN( "A new SecondaryGieBintr is created" )
         {
             DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
                 DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-                modelEngineFile.c_str(), primaryGieName.c_str());
+                modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
             THEN( "The SecondaryGieBintr's memebers are setup and returned correctly" )
             {
@@ -51,7 +52,7 @@ SCENARIO( "A new SecondaryGieBintr is created correctly",  "[SecondaryGieBintr]"
                 REQUIRE( returnedModelEngineFile == modelEngineFile );
                 
                 REQUIRE( pSecondaryGieBintr->GetBatchSize() == 0 );
-                REQUIRE( pSecondaryGieBintr->GetInterval() == 0 );
+                REQUIRE( pSecondaryGieBintr->GetInterval() == interval );
                 REQUIRE( pSecondaryGieBintr->IsLinked() == false );
             }
         }
@@ -66,10 +67,11 @@ SCENARIO( "A SecondaryGieBintr can not LinkAll before setting batch size",  "[Se
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        uint interval(1);
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A new SecondaryGieBintr is called to LinkAll" )
         {
@@ -92,10 +94,11 @@ SCENARIO( "After setting batch size, a new SecondaryGieBintr can LinkAll Child E
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        uint interval(1);
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A new SecondaryGieBintr is Linked" )
         {
@@ -119,11 +122,11 @@ SCENARIO( "A Linked SecondaryGieBintr can UnlinkAll Child Elementrs",  "[Seconda
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        
+        uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         pSecondaryGieBintr->SetBatchSize(1);
         REQUIRE( pSecondaryGieBintr->LinkAll() == true );
@@ -134,7 +137,6 @@ SCENARIO( "A Linked SecondaryGieBintr can UnlinkAll Child Elementrs",  "[Seconda
             
             THEN( "The SecondaryGieBintr IsLinked state is updated correctly" )
             {
-                
                 REQUIRE( pSecondaryGieBintr->IsLinked() == false );
             }
         }
@@ -148,12 +150,11 @@ SCENARIO( "A Linked SecondaryGieBintr can not be linked again",  "[SecondaryGieB
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
         std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        
         uint interval(1);
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         WHEN( "A SecondaryGieBintr is Linked" )
         {
@@ -183,7 +184,7 @@ SCENARIO( "A SecondaryGieBintr can Get and Set its GPU ID",  "[SecondaryGieBintr
 
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         REQUIRE( pSecondaryGieBintr->GetGpuId() == GPUID0 );
         
@@ -211,7 +212,7 @@ SCENARIO( "A SecondaryGieBintr can Set and Get its Infer Config and Model Engine
         
         DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
             DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str());
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         std::string retInferConfigFile = pSecondaryGieBintr->GetInferConfigFile();
         REQUIRE( retInferConfigFile == inferConfigFile );

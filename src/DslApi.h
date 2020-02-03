@@ -349,30 +349,46 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
+DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink);
 
 /**
  * @brief removes a named Sink object from a named Source object
- * @param source name of the Source object update
+ * @param name name of the Source object update
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
+DslReturnType dsl_source_sink_remove(const wchar_t* name, const wchar_t* sink);
+
+/**
+ * @brief Gets the current URI in use by the named Decode Source
+ * @param[in] name name of the Source to query
+ * @param[out] uri in use by the Decode Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
+
+/**
+ * @brief Sets the current URI for the named Decode Source to use
+ * @param[in] name name of the Source to update
+ * @param[out] uri in use by the Decode Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param source name of the source object to update
+ * @param name name of the source object to update
  * @param dewarper name of the dewarper to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* source, const wchar_t* dewarper);
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param source name of the source object to update
+ * @param name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* source);
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 
 /**
  * @brief pauses a single Source object if the Source is 
@@ -434,7 +450,7 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
- * @param[in] interval
+ * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -460,7 +476,7 @@ DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint t
  */
 DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, 
     uint pad, dsl_batch_meta_handler_cb handler);
-
+    
 /**
  * @brief Enbles/disables the bbox output to kitti file for the named the GIE
  * @param name name of the Primary GIE to update
@@ -475,22 +491,60 @@ DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, bool
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
- * @param[in] infer_on_gie_name name of the Primary or Secondary GIE to infer on
+ * @param[in] infer_on_gie name of the Primary of Secondary GIE to infer on
+ * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name);
+    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 
+/**
+ * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] infer_config_file Infer Config file currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
 
+/**
+ * @brief Sets the Infer Config File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] infer_config_file new Infer Config file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* infer_config_file);
 
+/**
+ * @brief Gets the current Model Engine File in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] model_engi_file Model Engine file currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t** model_engine_file);
 
+/**
+ * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] model_engine_file new Model Engine file to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* model_engine_file);
 
+/**
+ * @brief Gets the current Infer Interval in use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to query
+ * @param[out] interval Infer interval value currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
 
+/**
+ * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
+ * @param[in] name of Primary or Secondary GIE to update
+ * @param[in] interval new Infer Interval value to use
+ * @param 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
+ */
 DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 
 /**

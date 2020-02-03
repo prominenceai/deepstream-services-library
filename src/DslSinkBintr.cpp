@@ -488,7 +488,7 @@ namespace DSL
     FileSinkBintr::FileSinkBintr(const char* sink, const char* filepath, 
         uint codec, uint container, uint bitRate, uint interval)
         : SinkBintr(sink)
-        , m_sync(FALSE)
+        , m_sync(TRUE)
         , m_async(FALSE)
         , m_codec(codec)
         , m_bitRate(bitRate)

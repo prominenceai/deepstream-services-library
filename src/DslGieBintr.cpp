@@ -34,6 +34,7 @@ namespace DSL
         , m_processMode(processMode)
         , m_batchSize(0)
         , m_interval(0)
+        , m_uniqueId(CreateUniqueIdFromName(name))
         , m_inferConfigFile(inferConfigFile)
         , m_modelEngineFile(modelEngineFile)
         , m_rawOutputEnabled(false)
@@ -48,7 +49,7 @@ namespace DSL
             throw;
         }        
         // generate a unique Id for the GIE based on its unique name
-        m_uniqueId = std::hash<std::string>{}(name);
+        
         
         // unique element name 
         std::string gieName = "gie-" + GetName();
@@ -134,12 +135,19 @@ namespace DSL
         return true;
     }
     
-    void GieBintr::SetBatchSize(uint batchSize)
+    bool GieBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Batch size for GIE '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
         m_batchSize = batchSize;
         m_pInferEngine->SetAttribute("batch-size", m_batchSize);
+        return true;
     }
     
     uint GieBintr::GetBatchSize()
@@ -149,12 +157,20 @@ namespace DSL
         return m_batchSize;
     }
 
-    void GieBintr::SetInterval(uint interval)
+    bool GieBintr::SetInterval(uint interval)
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Interval for GIE '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
         m_interval = interval;
         m_pInferEngine->SetAttribute("interval", m_interval);
+        
+        return true;
     }
     
     uint GieBintr::GetInterval()
@@ -164,11 +180,26 @@ namespace DSL
         return m_interval;
     }
 
-    uint GieBintr::GetUniqueId()
+    int GieBintr::GetUniqueId()
     {
         LOG_FUNC();
         
         return m_uniqueId;
+    }
+    
+    int GieBintr::CreateUniqueIdFromName(const char* name)
+    {
+        LOG_FUNC();
+        
+        // TODO this is a temporary work-around for the fact that the
+        // Infer Engine "unique-id" is unsigned (guit), but the "infer-on-gie-id"
+        // is a signed (gint), and fails on negative values. Need to use a static 
+        // hash table, or try and get the parameter type changed ?? or some means 
+        // of eliminating the possible collision that can come from below
+        
+        // generate a unique Id based on name, and ensure positive signed integer
+        int id = std::hash<std::string>{}(name);
+        return (id < 0) ? id*-1 : id;
     }
 
     bool GieBintr::SetRawOutputEnabled(bool enabled, const char* path)
@@ -355,19 +386,20 @@ namespace DSL
     // ***********************************************************************
 
     SecondaryGieBintr::SecondaryGieBintr(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, const char* inferOnGieName)
+            const char* modelEngineFile, const char* inferOnGieName, uint interval)
         : GieBintr(name, NVDS_ELEM_SGIE, 2, inferConfigFile, modelEngineFile)
-        , m_inferOnGieName(inferOnGieName)
     {
         LOG_FUNC();
-        
-        m_inferOnGieUniqueId = std::hash<std::string>{}(inferOnGieName);
-        m_pInferEngine->SetAttribute("infer-on-gie-id", m_inferOnGieUniqueId);
         
         // create the unique queue-name from the SGIE name
         std::string queueName = "sgie-queue-" + GetName();
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, queueName.c_str());
+
+        
+        // update the InferEngine interval setting
+        SetInferOnGieName(inferOnGieName);
+        SetInterval(interval);
         
         // create the unique sink-name from the SGIE name
         std::string fakeSinkName = "sgie-fake-sink-" + GetName();
@@ -456,11 +488,26 @@ namespace DSL
         return m_inferOnGieName.c_str();
     }
     
-    void SecondaryGieBintr::SetInferOnGieName(const char* name)
+    bool SecondaryGieBintr::SetInferOnGieName(const char* name)
     {
         LOG_FUNC();
-        
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to update SecondaryGieBintr '" << GetName() << 
+                "' as its in a linked state");
+            return false;
+            
+        }
+        LOG_WARN(name);
         m_inferOnGieName.assign(name);
+        m_inferOnGieUniqueId = CreateUniqueIdFromName(name);
+        
+        LOG_INFO("Setting infer-on-gie-id for SecondaryGieBintr '" << GetName() << "' to " << m_inferOnGieUniqueId);
+        
+        m_pInferEngine->SetAttribute("infer-on-gie-id", m_inferOnGieUniqueId);
+        
+        return true;
     }
 
     bool SecondaryGieBintr::LinkToSource(DSL_NODETR_PTR pTee)

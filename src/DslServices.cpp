@@ -95,42 +95,71 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
     return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
 }
 
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink)
+DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink)
 {
-    std::wstring wstrSource(source);
-    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrSink(sink);
     std::string cstrSink(wstrSink.begin(), wstrSink.end());
 
-    return DSL::Services::GetServices()->SourceSinkAdd(cstrSource.c_str(), cstrSink.c_str());
+    return DSL::Services::GetServices()->SourceSinkAdd(cstrName.c_str(), cstrSink.c_str());
 }
 
-DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink)
+DslReturnType dsl_source_sink_remove(const wchar_t* name, const wchar_t* sink)
 {
-    std::wstring wstrSource(source);
-    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrSink(sink);
     std::string cstrSink(wstrSink.begin(), wstrSink.end());
 
-    return DSL::Services::GetServices()->SourceSinkRemove(cstrSource.c_str(), cstrSink.c_str());
+    return DSL::Services::GetServices()->SourceSinkRemove(cstrName.c_str(), cstrSink.c_str());
 }
 
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* source, const wchar_t* dewarper)
+DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri)
 {
-    std::wstring wstrSource(source);
-    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cUri;
+    static std::string cstrUri;
+    static std::wstring wcstrUri;
+    
+    uint retval = DSL::Services::GetServices()->SourceDecodeUriGet(cstrName.c_str(), &cUri);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrUri.assign(cUri);
+        wcstrUri.assign(cstrUri.begin(), cstrUri.end());
+        *uri = wcstrUri.c_str();
+    }
+    return retval;
+    
+}
+DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SourceDecodeUriSet(cstrName.c_str(), cstrUri.c_str());
+}
+
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrDewarper(dewarper);
     std::string cstrDewarper(wstrDewarper.begin(), wstrDewarper.end());
 
-    return DSL::Services::GetServices()->SourceDecodeDewarperAdd(cstrSource.c_str(), cstrDewarper.c_str());
+    return DSL::Services::GetServices()->SourceDecodeDewarperAdd(cstrName.c_str(), cstrDewarper.c_str());
 }
 
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* source)
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
 {
-    std::wstring wstrSource(source);
-    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrSource.c_str());
+    return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
 }
 
 DslReturnType dsl_source_pause(const wchar_t* name)
@@ -203,7 +232,7 @@ DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, bool
     std::wstring wstrFile(file);
     std::string cstrFile(wstrFile.begin(), wstrFile.end());
 
-    return DSL::Services::GetServices()->GiePrimaryKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
+    return DSL::Services::GetServices()->PrimaryGieKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
 
 DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -225,7 +254,7 @@ DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uin
 }
 
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name)
+    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -233,11 +262,11 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
     std::wstring wstrEngine(model_engine_file);
     std::string cstrEngine(wstrEngine.begin(), wstrEngine.end());
-    std::wstring wstrGie(infer_on_gie_name);
-    std::string cstrGie(wstrGie.begin(), wstrGie.end());
+    std::wstring wstrInferOnGie(infer_on_gie);
+    std::string cstrInferOnGie(wstrInferOnGie.begin(), wstrInferOnGie.end());
     
     return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
-        cstrEngine.c_str(), cstrGie.c_str());
+        cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
 }
 
 DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file)
@@ -297,6 +326,23 @@ DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* 
 
     return DSL::Services::GetServices()->GieModelEngineFileSet(cstrName.c_str(), cstrEngine.c_str());
 }
+
+DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->GieIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->GieIntervalSet(cstrName.c_str(), interval);
+}
+
 
 DslReturnType dsl_gie_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path)
 {
@@ -1449,122 +1495,174 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceSinkAdd(const char* source, const char* sink)
+    DslReturnType Services::SourceSinkAdd(const char* name, const char* sink)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
          
             if (!pSourceBintr->AddSinkBintr(pSinkBintr))
             {
-                LOG_ERROR("Failed to add Sink '" << sink << "' to Source '" << source << "'");
+                LOG_ERROR("Failed to add Sink '" << sink << "' to Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SINK_ADD_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << source << "' threw exception adding Sink");
+            LOG_ERROR("Source '" << name << "' threw exception adding Sink");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceSinkRemove(const char* source, const char* sink)
+    DslReturnType Services::SourceSinkRemove(const char* name, const char* sink)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
          
             if (!pSourceBintr->RemoveSinkBintr(pSinkBintr))
             {
-                LOG_ERROR("Failed to remove Sink '" << sink << "' from Source '" << source << "'");
+                LOG_ERROR("Failed to remove Sink '" << sink << "' from Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SINK_REMOVE_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << source << "' threw exception removing Sink");
+            LOG_ERROR("Source '" << name << "' threw exception removing Sink");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SourceDecodeDewarperAdd(const char* source, const char* dewarper)
+    DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+
+            *uri = pSourceBintr->GetUri();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+            
+
+    DslReturnType Services::SourceDecodeUriSet(const char* name, const char* uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUri(uri));
+            {
+                LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
+                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+            }
+            
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SourceDecodeDewarperAdd(const char* name, const char* dewarper)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
 
             DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[source]);
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
          
             DSL_DEWARPER_PTR pDewarperBintr = 
                 std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
          
             if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
             {
-                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << source << "'");
+                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << source << "' threw exception adding Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceDecodeDewarperRemove(const char* source)
+    DslReturnType Services::SourceDecodeDewarperRemove(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
 
             DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[source]);
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->RemoveDewarperBintr())
             {
-                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << source << "'");
+                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << source << "' threw exception removing Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception removing Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -1783,6 +1881,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+
     DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
@@ -1848,7 +1947,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType  Services::GiePrimaryKittiOutputEnabledSet(const char* name, boolean enabled,
+    DslReturnType  Services::PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled,
         const char* file)    
     {
         LOG_FUNC();
@@ -1877,7 +1976,7 @@ namespace DSL
     }
         
     DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
-        const char* modelEngineFile, const char* inferOnGieName)
+        const char* modelEngineFile, const char* inferOnGieName, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1909,7 +2008,7 @@ namespace DSL
         try
         {
             m_components[name] = DSL_SECONDARY_GIE_NEW(name, 
-                inferConfigFile, modelEngineFile, inferOnGieName);
+                inferConfigFile, modelEngineFile, inferOnGieName, interval);
         }
         catch(...)
         {
@@ -2051,6 +2150,56 @@ namespace DSL
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
 
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            *interval = pGieBintr->GetInterval();
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::GieIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            
+            DSL_GIE_PTR pGieBintr = 
+                std::dynamic_pointer_cast<GieBintr>(m_components[name]);
+
+            if (!pGieBintr->SetInterval(interval))
+            {
+                LOG_ERROR("GIE '" << name << "' failed to set new Interval");
+                return DSL_RESULT_GIE_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("GIE '" << name << "' threw an exception setting Interval");
+            return DSL_RESULT_GIE_THREW_EXCEPTION;
+        }
         return DSL_RESULT_SUCCESS;
     }
 

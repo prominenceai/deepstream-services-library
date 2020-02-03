@@ -97,9 +97,9 @@ namespace DSL
         /**
          * @brief sets the current value of the Primary GIE Name for
          * which the first Secondary GIE will Infer-on
-         * @param name name of the Primary GIE in use by the Parent Pipeline
+         * @param id unique id of the Primary GIE in use by the Parent Pipeline
          */
-        void SetPrimaryGieName(const char* name);
+        void SetInferOnGieId(int id);
 
         /**
          * @brief Gets the Batch Size for all child Secondary GIE's
@@ -194,9 +194,7 @@ namespace DSL
          */
         uint m_srcPadProbeId;
         
-        std::string m_primaryGieName;
-        
-        uint m_primaryGieUniqueId;
+        int m_primaryGieUniqueId;
         
         uint m_batchSize;
         

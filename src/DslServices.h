@@ -65,13 +65,17 @@ namespace DSL {
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
         
-        DslReturnType SourceSinkAdd(const char* source, const char* sink);
+        DslReturnType SourceSinkAdd(const char* name, const char* sink);
     
-        DslReturnType SourceSinkRemove(const char* source, const char* sink);
+        DslReturnType SourceSinkRemove(const char* name, const char* sink);
+
+        DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
+
+        DslReturnType SourceDecodeUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceDecodeDewarperAdd(const char* source, const char* dewarper);
+        DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
     
-        DslReturnType SourceDecodeDewarperRemove(const char* source);
+        DslReturnType SourceDecodeDewarperRemove(const char* name);
     
         DslReturnType SourcePause(const char* name);
 
@@ -90,14 +94,14 @@ namespace DSL {
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType GiePrimaryKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
+        DslReturnType PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
         
         DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, const char* inferOnGieName);
+            const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
         DslReturnType GieInferConfigFileGet(const char* name, const char** inferConfigFile);
 
@@ -110,6 +114,10 @@ namespace DSL {
         DslReturnType GieRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
             
+        DslReturnType GieIntervalGet(const char* name, uint* interval);
+
+        DslReturnType GieIntervalSet(const char* name, uint interval);
+
         DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
         
         DslReturnType TrackerIouNew(const char* name, const char* configFile, uint width, uint height);

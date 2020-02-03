@@ -249,3 +249,65 @@ SCENARIO( "A PrimaryGieBintr fails to Enable raw layer info output given a bad p
         }
     }
 }
+
+SCENARIO( "A PrimaryGieBintr can Get and Set its Interval",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
+        
+        WHEN( "The PrimaryGieBintr's Interval is set" )
+        {
+            uint newInterval = 5;
+            REQUIRE( pPrimaryGieBintr->SetInterval(newInterval) == true );
+
+            THEN( "The correct Interval is returned on get" )
+            {
+                REQUIRE( pPrimaryGieBintr->GetInterval() == newInterval );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its Interval",  "[PrimaryGieBintr]" )
+{
+    GIVEN( "A new PrimaryGieBintr in memory" ) 
+    {
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
+        
+        WHEN( "The PrimaryGieBintr is Linked" )
+        {
+            pPrimaryGieBintr->SetBatchSize(1);
+            REQUIRE( pPrimaryGieBintr->LinkAll() == true );
+
+            uint newInterval = 5;
+
+            THEN( "The PrimaryGieBintr fails on SetInterval" )
+            {
+                REQUIRE( pPrimaryGieBintr->SetInterval(newInterval) == false );
+
+                pPrimaryGieBintr->UnlinkAll();
+                REQUIRE( pPrimaryGieBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+

@@ -779,3 +779,36 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
         }
     }
 }
+
+SCENARIO( "A UriSourceBintr can Set and Get its URI",  "[UriSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr in memory" ) 
+    {
+        std::string sourceName = "test-uri-source";
+        std::string uri = "./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(true);
+        uint dropFrameInterval(2);
+        
+        char absolutePath[PATH_MAX+1];
+        std::string fullUriPath = realpath(uri.c_str(), absolutePath);
+        fullUriPath.insert(0, "file:");
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        std::string returnedUri = pSourceBintr->GetUri();
+        REQUIRE( returnedUri == fullUriPath );
+
+        WHEN( "The UriSourceBintr's URI is updated " )
+        {
+            // TODO: should use a new UIR here
+            REQUIRE( pSourceBintr->SetUri(uri.c_str()) == true );
+            THEN( "The correct URI is returned on get" )
+            {
+                std::string returnedUri = pSourceBintr->GetUri();
+                REQUIRE( returnedUri == fullUriPath );
+            }
+        }
+    }
+}

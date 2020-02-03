@@ -228,9 +228,11 @@ namespace DSL
         {
             if (imap.second->GetInferOnGieUniqueId() == m_primaryGieUniqueId)
             {
-                // batch size and interval are set to that of the Primary GIE
-                imap.second->SetBatchSize(m_batchSize);
-                imap.second->SetInterval(m_interval);
+                // batch size and infer-on-gie are set to that of the Primary GIE
+                if (!imap.second->SetBatchSize(m_batchSize))
+                {
+                    return false;
+                }
                 
                 LOG_INFO("Linking " << m_pTee->GetName() << " from " << imap.second->GetName());
                 
@@ -272,12 +274,11 @@ namespace DSL
         m_isLinked = false;
     }
 
-    void PipelineSecondaryGiesBintr::SetPrimaryGieName(const char* name)
+    void PipelineSecondaryGiesBintr::SetInferOnGieId(int id)
     {
         LOG_FUNC();
         
-        m_primaryGieName = name;
-        m_primaryGieUniqueId = std::hash<std::string>{}(name);
+        m_primaryGieUniqueId = id;
     }
     
     uint PipelineSecondaryGiesBintr::GetBatchSize()

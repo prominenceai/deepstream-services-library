@@ -591,6 +591,7 @@ namespace DSL
         SetState(GST_STATE_PLAYING);
         return false;
     }
+
     
     bool DecodeSourceBintr::AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr)
     {
@@ -808,6 +809,40 @@ namespace DSL
         }
     }
 
+    bool UriSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Uri for UriSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        std::string newUri(uri);
+        if (newUri.find("http") == std::string::npos)
+        {
+            if (m_isLive)
+            {
+                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << GetName() << "'");
+                return false;
+            }
+            std::ifstream streamUriFile(uri);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("URI Source'" << uri << "' Not found");
+                return false;
+            }
+            // File source, not live - setup full path
+            char absolutePath[PATH_MAX+1];
+            m_uri.assign(realpath(uri, absolutePath));
+            m_uri.insert(0, "file:");
+        }        
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        
+        return true;
+    }
+    
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
@@ -892,6 +927,40 @@ namespace DSL
         m_pDecodeQueue->UnlinkFromSink();
         m_pDecodeBin->UnlinkFromSink();
         m_isLinked = false;
+    }
+
+    bool RtspSourceBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Uri for RtspSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        std::string newUri(uri);
+        if (newUri.find("rtsp") == std::string::npos)
+        {
+            if (m_isLive)
+            {
+                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << GetName() << "'");
+                return false;
+            }
+            std::ifstream streamUriFile(uri);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("URI Source'" << uri << "' Not found");
+                return false;
+            }
+            // File source, not live - setup full path
+            char absolutePath[PATH_MAX+1];
+            m_uri.assign(realpath(uri, absolutePath));
+            m_uri.insert(0, "file:");
+        }        
+        m_pSourceElement->SetAttribute("location", m_uri.c_str());
+        
+        return true;
     }
     
     void RtspSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
