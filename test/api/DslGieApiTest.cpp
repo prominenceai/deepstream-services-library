@@ -420,7 +420,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
         uint interval(1);
         
         REQUIRE( dsl_gie_secondary_new(secondaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+            modelEngineFile.c_str(), primaryGieName.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         const wchar_t* pRetInferConfigFile;
         REQUIRE( dsl_gie_infer_config_file_get(secondaryGieName.c_str(), &pRetInferConfigFile) == DSL_RESULT_SUCCESS );
@@ -432,7 +432,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
         std::wstring retModelEngineFile(pRetModelEngineFile);
         REQUIRE( retModelEngineFile == modelEngineFile );
         
-        WHEN( "The SecondaryGieBintr's Infer Config File is set" )
+        WHEN( "The SecondaryGieBintr's Infer Config File and Model Engine are set" )
         {
             std::wstring newInferConfigFile = L"./test/configs/config_infer_secondary_carmake_nano.txt";
             REQUIRE( dsl_gie_infer_config_file_set(secondaryGieName.c_str(), newInferConfigFile.c_str()) == DSL_RESULT_SUCCESS );
@@ -440,7 +440,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
             std::wstring newModelEngineFile = L"./test/models/Secondary_CarMake/resnet18.caffemodel";
             REQUIRE( dsl_gie_model_engine_file_set(secondaryGieName.c_str(), newModelEngineFile.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "The correct Infer Config File is returned on get" )
+            THEN( "The correct Files are returned on get" )
             {
                 REQUIRE( dsl_gie_infer_config_file_get(secondaryGieName.c_str(), 
                     &pRetInferConfigFile) == DSL_RESULT_SUCCESS);
@@ -456,4 +456,37 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
         }
     }
 }
+
+SCENARIO( "A Primary GIE can Get and Set its Interval",  "[gie-api]" )
+{
+    GIVEN( "A new Primary GIE in memory" ) 
+    {
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
+        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        uint interval(1);
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        uint retInterval(0);
+        REQUIRE( dsl_gie_interval_get(primaryGieName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( retInterval == interval );
+        
+        WHEN( "The Primary GIE's Interval is set" )
+        {
+            uint newInterval(5);
+            REQUIRE( dsl_gie_interval_set(primaryGieName.c_str(), newInterval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct Interval is returned on get" )
+            {
+                REQUIRE( dsl_gie_interval_get(primaryGieName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retInterval == newInterval );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 

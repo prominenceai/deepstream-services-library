@@ -62,6 +62,17 @@ print(dsl_component_delete("csi-source"))
 print(dsl_component_delete("overlay-source"))
 
 ##
+## dsl_source_decode_uri_get()
+## dsl_source_decode_uri_set()
+##
+print("dsl_source_decode_uri_get")
+print("dsl_source_decode_uri_set")
+print(dsl_source_uri_new("uri-source", "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0))
+print(dsl_source_decode_uri_set("uri-source", "../../test/streams/sample_1080p_h264.mp4"))
+print(dsl_source_decode_uri_get("uri-source"))
+print(dsl_component_delete("uri-source"))
+
+##
 ## dsl_source_is_live()
 ##
 print("dsl_source_is_live")
@@ -131,6 +142,9 @@ print(dsl_component_delete("primary-gie"))
 ## dsl_gie_secondary_new()
 ##
 print("dsl_gie_secondary_new")
+print(dsl_gie_secondary_new("secondary-gie", "./test/configs/config_infer_secondary_carcolor_nano.txt", 
+    "./test/models/Secondary_CarColor/resnet18.caffemodel_b16_fp16.engine", "primary-gie", 0))
+print(dsl_component_delete("secondary-gie"))
 
 ##
 ## dsl_gie_raw_output_enabled_set()
@@ -141,8 +155,6 @@ print(dsl_gie_primary_new("primary-gie", "./test/configs/config_infer_primary_na
 print(dsl_gie_raw_output_enabled_set("primary-gie", True, "./"))
 print(dsl_gie_raw_output_enabled_set("primary-gie", False, ""))
 print(dsl_component_delete("primary-gie"))
-
-
 
 ##
 ## dsl_tracker_ktl_new()

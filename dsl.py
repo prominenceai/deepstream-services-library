@@ -126,6 +126,27 @@ def dsl_source_sink_remove(source, sink):
     return int(result)
 
 ##
+## dsl_source_decode_uri_get()
+##
+_dsl.dsl_source_decode_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_decode_uri_get.restype = c_uint
+def dsl_source_decode_uri_get(name):
+    global _dsl
+    uri = c_wchar_p(0)
+    result = _dsl.dsl_source_decode_uri_get(name, DSL_WCHAR_PP(uri))
+    return int(result), uri.value 
+
+##
+## dsl_source_decode_uri_set()
+##
+_dsl.dsl_source_decode_uri_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_decode_uri_set.restype = c_uint
+def dsl_source_decode_uri_set(name, uir):
+    global _dsl
+    result = _dsl.dsl_source_decode_uri_set(name, uir)
+    return int(result)
+
+##
 ## dsl_source_is_live()
 ##
 _dsl.dsl_source_is_live.argtypes = [c_wchar_p]
@@ -218,9 +239,9 @@ def dsl_gie_primary_kitti_output_enabled_set(name, enabled, path):
 ##
 _dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
 _dsl.dsl_gie_secondary_new.restype = c_uint
-def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name):
+def dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval):
     global _dsl
-    result = _dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name)
+    result = _dsl.dsl_gie_secondary_new(name, infer_config_file, model_engine_file, infer_on_gie_name, interval)
     return int(result)
 
 ##

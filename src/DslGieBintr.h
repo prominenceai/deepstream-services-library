@@ -45,9 +45,9 @@ namespace DSL
         name, inferConfigFile, modelEngineFile, interval))
 
     #define DSL_SECONDARY_GIE_PTR std::shared_ptr<SecondaryGieBintr>
-    #define DSL_SECONDARY_GIE_NEW(name, inferConfigFile, modelEngineFile, inferOnGieName) \
+    #define DSL_SECONDARY_GIE_NEW(name, inferConfigFile, modelEngineFile, inferOnGieName, interval) \
         std::shared_ptr<SecondaryGieBintr>(new SecondaryGieBintr( \
-        name, inferConfigFile, modelEngineFile, inferOnGieName))
+        name, inferConfigFile, modelEngineFile, inferOnGieName, interval))
 
     /**
      * @class GieBintr
@@ -100,7 +100,7 @@ namespace DSL
          * @brief sets the batch size for this Bintr
          * @param the new batchSize to use
          */
-        void SetBatchSize(uint batchSize);
+        bool SetBatchSize(uint batchSize);
         
         /**
          * @brief gets the current batchSize in use by this PrimaryGieBintr
@@ -112,7 +112,7 @@ namespace DSL
          * @brief sets the interval for this Bintr
          * @param the new interval to use
          */
-        void SetInterval(uint interval);
+        bool SetInterval(uint interval);
         
         /**
          * @brief gets the current interval in use by this PrimaryGieBintr
@@ -124,7 +124,7 @@ namespace DSL
          * @brief gets the current unique Id in use by this PrimaryGieBintr
          * @return the current unique Id
          */
-        uint GetUniqueId();
+        int GetUniqueId();
         
         /**
          * @brief Enables/disables raw NvDsInferLayerInfo to .bin file.
@@ -149,6 +149,13 @@ namespace DSL
     protected:
 
         /**
+         * @brief helper function to generate a consistant Unique ID from string name
+         * @param name string to generate the Unique ID from
+         * @return numerical Unique ID
+         */
+        int CreateUniqueIdFromName(const char* name);
+        
+        /**
          * @brief pathspec to the infer config file used by this GIE
          */
         std::string m_inferConfigFile;
@@ -171,7 +178,7 @@ namespace DSL
         /**
          * @brief Unique GIE ID derived from unique name
          */
-        uint m_uniqueId;
+        int m_uniqueId;
 
         /**
          @brief Current process mode in use by the Primary
@@ -287,10 +294,10 @@ namespace DSL
          * @param[in] name name to give the new Bintr
          * @param[in] inferConfigFile fully qualified pathspec for the infer config file to use
          * @param[in] modelEnginFile fully qualified pathspec for the model engine file to use
-         * @param[in] inferOnGieName
+         * @param[in] frame interval to infer on
          */
         SecondaryGieBintr(const char* name, const char* inferConfigFile,
-            const char* modelEngineFile, const char* inferOnGieName);
+            const char* modelEngineFile, const char* inferOnGieName, uint interval);
 
         /**
          * @brief dtor for the SecondaryGieBintr
@@ -324,7 +331,7 @@ namespace DSL
 
         /**
          * @brief Unlinks this SGIE's Queue Elementr from the previously linked-to source pTee
-         * @return trueif this SGIE was able to unlink from the source Tee, false otherwise
+         * @return true if this SGIE was able to unlink from the source Tee, false otherwise
          */
         bool UnlinkFromSource();
         
@@ -337,8 +344,9 @@ namespace DSL
         /**
          * @brief sets the Infer-on-GIE name for this Bintr
          * @param[in] the new name of the GIE to infer on 
+         * @return true if this SGIE was able to set its Infer On GIE name, false otherwise
          */
-        void SetInferOnGieName(const char* name);
+        bool SetInferOnGieName(const char* name);
         
         /**
          * @brief gets the current Infer-on-GIE name in use by this SecondaryGieBintr
@@ -395,7 +403,7 @@ namespace DSL
         /**
          @brief Unique Id of the Gie to infer on, primary or secondary
          */
-        uint m_inferOnGieUniqueId;
+        int m_inferOnGieUniqueId;
         
     };
 }
