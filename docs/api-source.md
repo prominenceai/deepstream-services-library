@@ -1,5 +1,5 @@
 # Sources
-Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources:
+Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources, two Camera and two Decode:
 
 **Camera Sources:**
 * Camera Serial Interface ( CSI )
@@ -37,6 +37,10 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_play](#dsl_source_play)
 * [dsl_source_sink_add](#dsl_source_sink_add)
 * [dsl_source_sink_remove](#dsl_source_sink_remove)
+* [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
+* [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
+* [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
+* [dsl_source_decode_drop_farme_interval_set](#dsl_source_decode_drop_farme_interval_set)
 * [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](#dsl_source_decode_dewarper_remove)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
@@ -273,7 +277,7 @@ This service adds a previously constructed [Sink](api-sink.md) component to a na
 
 **Python Example**
 ```Python
-retval, dsl_source_sink_add('my-uri-source', 'my-window-sink')
+retval = dsl_source_sink_add('my-uri-source', 'my-window-sink')
 ```
 
 <br>
@@ -293,7 +297,85 @@ This service removes a named[Sink](api-sink.md) component from a named source co
 
 **Python Example**
 ```Python
-retval, dsl_source_sink_remove('my-uri-source', 'my-window-sink')
+retval = dsl_source_sink_remove('my-uri-source', 'my-window-sink')
+```
+
+<br>
+
+### *dsl_source_decode_uri_get*
+```C++
+DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
+```
+This service gets the current URI in use for the named URI or RTSP source
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+* `uri` - [out] unique resouce identifier in use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, uri = dsl_source_decode_uri_get('my-uri-source')
+```
+<br>
+
+### *dsl_source_decode_uri_set*
+```C++
+DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
+```
+This service sets the URI to use by the named URI or RTSP source. 
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+* `uri` - [out] unique resouce identifier in use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_decode_uri_set('my-uri-source', '../../test/streams/sample_1080p_h264.mp4')
+```
+
+<br>
+
+### *dsl_source_decode_drop_farme_interval_get*
+```C++
+DslReturnType dsl_source_decode_drop_farme_interval_get(const wchar_t* name, uint* interval)
+```
+This service gets the current drop frame interval in use by the named URI or RTSP source
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+* `interval` - [out] current drop frame interval currently in use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, interval = dsl_source_decode_drop_frame_interval_get('my-uri-source')
+```
+<br>
+
+### *dsl_source_decode_drop_farme_interval_set*
+```C++
+DslReturnType dsl_source_decode_drop_farme_interval_set(const wchar_t* name, uint interval);
+```
+This service sets the drop frame interval to use by the named URI or RTSP source. 
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+* `interval` - [in] new drop frame interval to use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_decode_drop_farme_interval_set('my-uri-source', 2)
 ```
 
 <br>
@@ -313,7 +395,7 @@ This service adds a previously constructed [Dewarper](api-dewarper.md) component
 
 **Python Example**
 ```Python
-retval, dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
+retval = dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
 ```
 
 <br>
@@ -332,7 +414,7 @@ This service remove a [Dewarper](api-dewarper.md) component, previously added wi
 
 **Python Example**
 ```Python
-retval, dsl_source_uri_dewarper_remove('my-uri-source')
+retval = dsl_source_uri_dewarper_remove('my-uri-source')
 ```
 
 <br>
