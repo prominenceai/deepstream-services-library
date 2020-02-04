@@ -27,6 +27,9 @@ Primary and Secondary GIEs are deleted by calling [dsl_component_delete](#dsl_co
 * [dsl_gie_primary_interval_set](#dsl_gie_prmary_interval_set)
 * [dsl_gie_secondary_infer_on_get](#dsl_gie_secondary_infer_on_get)
 * [dsl_gie_secondary_infer_on_set](#dsl_gie_secondary_infer_on_set)
+* [dsl_gie_num_in_use_get](#dsl_gie_num_in_use_get)
+* [dsl_gie_num_in_use_max_get](#dsl_gie_num_in_use_max_get)
+* [dsl_gie_num_in_use_max_set](#dsl_gie_num_in_use_max_set)
 
 <br>
 
@@ -178,8 +181,56 @@ DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 * `interval` - frame interval in use by the named GIE
 
 **Returns**
-`DSL_RESULT_SUCCESS` if the GIE exists, and the interval was within range. one of the 
-[Return Values](#return-values) defined above on failure
+`DSL_RESULT_SUCCESS` if the GIE exists one of the [Return Values](#return-values) defined above on failure
+
+<br>
+
+### *dsl_gie_num_in_use_get*
+```C++
+uint dsl_gie_num_in_use_get();
+```
+This service returns the total number of all Primary and Secondary GIEs currently `in-use` by all Pipelines.
+
+**Returns**
+* The current number of GIEs `in-use`
+
+**Python Example**
+```Python
+gies_in_use = dsl_gie_num_in_use_get()
+```
+
+<br>
+
+### *dsl_gie_num_in_use_max_get*
+```C++
+uint dsl_gie_num_in_use_max_get();
+```
+This service returns the "maximum number of Prmary and Secondary GIEs" that can be `in-use` at any one time, defined as `DSL_DEFAULT_GIE_NUM_IN_USE_MAX` on service initilization, and can be updated by calling [dsl_gie_num_in_use_max_set](#dsl_gie_num_in_use_max_set). The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+
+**Returns**
+* The current max number of Primary and Secondary GIEs that can be `in-use` by all Pipelines at any one time. 
+
+**Python Example**
+```Python
+max_gie_in_use = dsl_gie_num_in_use_max_get()
+```
+
+<br>
+
+### *dsl_gie_num_in_use_max_set*
+```C++
+boolean dsl_gie_num_in_use_max_set(uint max);
+```
+This service sets the "maximum number of Primary and Secondary GIEs" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_GIE_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
+
+**Returns**
+* `false` if the new value is less than the actual current number of GIEs in use, `true` otherwise
+
+**Python Example**
+```Python
+retval = dsl_gie_num_in_use_max_set(36)
+```
+<br>
 
 ---
 
