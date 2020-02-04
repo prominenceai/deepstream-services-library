@@ -10,8 +10,8 @@ Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) co
 ## Tracker API
 * [dsl_tracker_ktl_new](#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](#dsl_tracker_iou_new)
-* [dsl_tracker_max_dimensions_get](#dsl_tracker_dimensions_get)
-* [dsl_tracker_max_dimensions_set](#dsl_tracker_dimensions_set)
+* [dsl_tracker_max_dimensions_get](#dsl_tracker_max_dimensions_get)
+* [dsl_tracker_max_dimensions_set](#dsl_tracker_max_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
 * [dsl_tracker_iou_config_file_set](#dsl_tracker_iou_config_file_set)
 * [dsl_tracker_meta_batch_handler_add](#dsl_tracker_meta_batch_handler_add)
