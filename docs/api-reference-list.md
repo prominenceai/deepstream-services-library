@@ -29,8 +29,8 @@
 * [dsl_source_sink_remove](/docs/api-source.md#dsl_source_sink_remove)
 * [dsl_source_decode_uri_get](/docs/api-source.md#dsl_source_decode_uri_get)
 * [dsl_source_decode_uri_set](/docs/api-source.md#dsl_source_decode_uri_set)
-* [dsl_source_decode_interval_get](/docs/api-source.md#dsl_source_decode_interval_get)
-* [dsl_source_decode_interval_set](/docs/api-source.md#dsl_source_decode_interval_set)
+* [dsl_source_decode_drop_frame_interval_get](/docs/api-source.md#dsl_source_decode_drop_frame_interval_get)
+* [dsl_source_decode_drop_frame_interval_set](/docs/api-source.md#dsl_source_decode_drop_frame_interval_set)
 * [dsl_source_decode_dewarper_add](/docs/api-source.md#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](/docs/api-source.md#dsl_source_decode_dewarper_remove)
 * [dsl_source_num_in_use_get](/docs/api-source.md#dsl_source_num_in_use_get)
@@ -59,6 +59,9 @@
 * [dsl_gie_primary_kitti_output_enabled_set](/docs/api-gie.md#dsl_gie_primary_kitti_output_enabled_set)
 * [dsl_gie_secondary_infer_on_get](/docs/api-gie.md#dsl_gie_secondary_infer_on_get)
 * [dsl_gie_secondary_infer_on_set](/docs/api-gie.md#dsl_gie_secondary_infer_on_set)
+* [dsl_gie_num_in_use_get](/docs/api-gie.md#dsl_gie_num_in_use_get)
+* [dsl_gie_num_in_use_max_get](/docs/api-gie.md#dsl_gie_num_in_use_max_get)
+* [dsl_gie_num_in_use_max_set](/docs/api-gie.md#dsl_gie_num_in_use_max_set)
 
 ### Tracker:
 * [Overview](/docs/api-tracker.md)
