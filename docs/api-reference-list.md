@@ -1,5 +1,19 @@
 # DSL API Reference
 
+### Services API:
+* [dsl_version_get](/docs/overview.md#dsl_version_get)
+* [dsl_main_loop_run](/docs/overview.md#dsl_main_loop_run)
+* [dsl_main_loop_quit](/docs/overview.md#dsl_main_loop_quit)
+* [dsl_return_value_to_string](dsl_return_value_to_string)
+
+### Callback Tyedefs:
+* [dsl_batch_meta_handler_cb](/docs/api-pipeline.md#dsl_batch_meta_handler_cb)
+* [dsl_state_change_listener_cb](/docs/api-pipeline.md#dsl_state_change_listener_cb)
+* [dsl_eos_listener_cb](/docs/api-pipeline.md#/docs/api-pipeline.md#dsl_eos_listener_cb)
+* [dsl_xwindow_key_event_handler_cb](dsl_xwindow_key_event_handler_cb)
+* [dsl_xwindow_button_event_handler_cb](dsl_xwindow_button_event_handler_cb)
+* [dsl_xwindow_delete_event_handler_cb](dsl_xwindow_delete_event_handler_cb)
+
 ### Source API:
 * [Overview](/docs/api-source.md)
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
@@ -13,16 +27,21 @@
 * [dsl_source_play](/docs/api-source.md#dsl_source_play)
 * [dsl_source_sink_add](/docs/api-source.md#dsl_source_sink_add)
 * [dsl_source_sink_remove](/docs/api-source.md#dsl_source_sink_remove)
+* [dsl_source_decode_uri_get](/docs/api-source.md#dsl_source_decode_uri_get)
+* [dsl_source_decode_uri_set](/docs/api-source.md#dsl_source_decode_uri_set)
+* [dsl_source_decode_drop_frame_interval_get](/docs/api-source.md#dsl_source_decode_drop_frame_interval_get)
+* [dsl_source_decode_drop_frame_interval_set](/docs/api-source.md#dsl_source_decode_drop_frame_interval_set)
 * [dsl_source_decode_dewarper_add](/docs/api-source.md#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](/docs/api-source.md#dsl_source_decode_dewarper_remove)
 * [dsl_source_num_in_use_get](/docs/api-source.md#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
-* Other TBD
 
 ### Dewarpper:
 * [Overview](/docs/api-dewarper.md)
-* Other TBD
+* [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
+* [dsl_dwarper_config_file_get](/docs/api-dewarper.md#dsl_dwarper_config_file_get)
+* [dsl_dwarper_config_file_set](/docs/api-dewarper.md#dsl_dwarper_config_file_set)
 
 ### Primary and Secondary GIE API:
 * [Overview](/docs/api-ige.md)
@@ -34,11 +53,15 @@
 * [dsl_gie_model_engine_file_set](/docs/api-gie.md#dsl_gie_model_engine_file_set)
 * [dsl_gie_interval_get](/docs/api-gie.md#dsl_gie_interval_get)
 * [dsl_gie_interval_set](/docs/api-gie.md#dsl_gie_interval_set)
-* [dsl_gie_secondary_infer_on_get](/docs/api-gie.md#dsl_gie_secondary_infer_on_get)
-* [dsl_gie_secondary_infer_on_set](/docs/api-gie.md#dsl_gie_secondary_infer_on_set)
+* [dsl_gie_raw_output_enabled_set](/docs/api-gie.md#dsl_gie_raw_output_enabled_set)
 * [dsl_gie_primary_meta_batch_handler_add](/docs/api-gie.md#dsl_gie_primary_meta_batch_handler_add)
 * [dsl_gie_primary_meta_batch_handler_remove](/docs/api-gie.md#dsl_gie_primary_meta_batch_handler_remove)
-* Other TBD
+* [dsl_gie_primary_kitti_output_enabled_set](/docs/api-gie.md#dsl_gie_primary_kitti_output_enabled_set)
+* [dsl_gie_secondary_infer_on_get](/docs/api-gie.md#dsl_gie_secondary_infer_on_get)
+* [dsl_gie_secondary_infer_on_set](/docs/api-gie.md#dsl_gie_secondary_infer_on_set)
+* [dsl_gie_num_in_use_get](/docs/api-gie.md#dsl_gie_num_in_use_get)
+* [dsl_gie_num_in_use_max_get](/docs/api-gie.md#dsl_gie_num_in_use_max_get)
+* [dsl_gie_num_in_use_max_set](/docs/api-gie.md#dsl_gie_num_in_use_max_set)
 
 ### Tracker:
 * [Overview](/docs/api-tracker.md)
@@ -72,6 +95,8 @@
 * [dsl_osd_clock_font_set](/docs/api-osd.md#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](/docs/api-osd.md#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](/docs/api-osd.md#dsl_osd_clock_color_set)
+* [dsl_osd_batch_meta_handler_add](/docs/api-osd.md#dsl_osd_batch_meta_handler_add)
+* [dsl_osd_batch_meta_handler_remove](/docs/api-osd.md#dsl_osd_batch_meta_handler_remove)
 
 ### Sink:
 * [Overview](/docs/api-sink.md)
@@ -136,6 +161,8 @@
 * [dsl_pipeline_xwindow_key_event_handler_remove](/docs/api-pipeline.md#dsl_pipeline_xwindow_key_event_handler_remove)
 * [dsl_pipeline_xwindow_button_event_handler_add](/docs/api-pipeline.md#dsl_pipeline_xwindow_button_event_handler_add)
 * [dsl_pipeline_xwindow_button_event_handler_remove](/docs/api-pipeline.md#dsl_pipeline_xwindow_button_event_handler_remove)
+* [dsl_pipeline_xwindow_delete_event_handler_add](/docs/api-pipeline.md#dsl_pipeline_xwindow_delete_event_handler_add)
+* [dsl_pipeline_xwindow_delete_event_handler_remove](/docs/api-pipeline.md#dsl_pipeline_xwindow_delete_event_handler_remove)
 * [dsl_pipeline_play](/docs/api-pipeline.md#dsl_pipeline_play)
 * [dsl_pipeline_pause](/docs/api-pipeline.md#dsl_pipeline_pause)
 * [dsl_pipeline_stop](/docs/api-pipeline.md#dsl_pipeline_stop)
