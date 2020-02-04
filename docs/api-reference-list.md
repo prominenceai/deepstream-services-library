@@ -95,6 +95,8 @@
 * [dsl_osd_clock_font_set](/docs/api-osd.md#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](/docs/api-osd.md#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](/docs/api-osd.md#dsl_osd_clock_color_set)
+* [dsl_osd_batch_meta_handler_add](/docs/api-osd.md#dsl_osd_batch_meta_handler_add)
+* [dsl_osd_batch_meta_handler_remove](/docs/api-osd.md#dsl_osd_batch_meta_handler_remove)
 
 ### Sink:
 * [Overview](/docs/api-sink.md)
