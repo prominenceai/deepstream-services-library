@@ -5,7 +5,7 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Camera Serial Interface ( CSI )
 * Universal Serial Bus ( USB )
 
-**Decocde Sources:**
+**Decode Sources:**
 * Uniform Resource Identifier ( URI )
 * Real-time Streaming Protocol ( RTSP )
 
@@ -15,9 +15,9 @@ Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipe
 
 When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on first exception. 
 
-The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. Sinks are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source (or any Pipeline component) `in-use` by a Pipeline will fail.
+The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
 
-There is no (practical) limit to the number of Sources that can be created, just to the number of Sources that can be `in use`(a child of a Pipeline) at one time. The in-use limit is imposed by the Jetson Model in use. 
+There is no practical limit to the number of Sources that can be created, just to the number of Sources that can be `in use` - a child of a Pipeline - at one time. The `in-use` limit is imposed by the Jetson Model in use. 
 
 The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get) and updated with [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use). 
 
