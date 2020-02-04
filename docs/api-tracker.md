@@ -187,7 +187,7 @@ This service adds a batch meta handler callback function of type [dsl_batch_meta
 ##
 # Callback function to handle batch-meta data
 ##
-def osd_batch_meta_handler_cb(buffer, user_data):
+def tracker_batch_meta_handler_cb(buffer, user_data):
 
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
     l_frame = batch_meta.frame_meta_list
@@ -218,6 +218,7 @@ def osd_batch_meta_handler_cb(buffer, user_data):
 retval = dsl_tracker_ktl_new('my-ktl-tracker', 480, 270)
 retval += dsl_tracker_batch_meta_handler_add('my-ktl-tracker', 
     DSL_PAD_SRC, tracker_batch_meta_handler_cb, None)
+
 if retval != DSL_RESULT_SUCCESS:
     # Tracker setup failed
 ```
@@ -240,7 +241,7 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 
 **Python Example**
 ```Python
-retval += dsl_tracker_batch_meta_handler_remove('my-ktl-tracker', 
+retval = dsl_tracker_batch_meta_handler_remove('my-ktl-tracker', 
     DSL_PAD_SRC, tracker_batch_meta_handler_cb)
 ```
 
