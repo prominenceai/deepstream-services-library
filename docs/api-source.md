@@ -336,6 +336,7 @@ retval, dsl_source_uri_dewarper_remove('my-uri-source')
 ```
 
 <br>
+
 ### *dsl_source_num_in_use_get*
 ```C++
 uint dsl_source_num_in_use_get();
