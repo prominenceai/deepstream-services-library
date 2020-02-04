@@ -1,5 +1,5 @@
 # Multi-Object Tracker API Reference
-KTL and IOU Tracker components are created by calling their type specific constructor, [dsl_tracker_ktl_new](#dsl_tracker_ktl_new) and [dsl_tracker_iou_new](dsl_tracker_iou_new)
+KTL and IOU Tracker components are created by calling their type specific constructor, [dsl_tracker_ktl_new](#dsl_tracker_ktl_new) and [dsl_tracker_iou_new](#dsl_tracker_iou_new)
 
 A Tracker is added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other compnents) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
