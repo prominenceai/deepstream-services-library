@@ -19,6 +19,8 @@ The relationship between Pipelines and OSD is one-to-one. Once added to a Pipeli
 * [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
+* [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add)
+* [dsl_osd_batch_meta_handler_remove](#dsl_osd_batch_meta_handler_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
@@ -241,9 +243,51 @@ This function adds a batch meta handler callback function of type [dsl_batch_met
 * `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
-    
+**Python Example**
+* Example using Nvidia's pyds lib to handle batch-meta data
+
+```Python
+##
+# Callback function to handle batch-meta data
+##
+def osd_batch_meta_handler_cb(buffer, user_data):
+
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    l_frame = batch_meta.frame_meta_list
+    while l_frame is not None:
+        try:
+            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
+        except StopIteration:
+            break    
+
+        # Handle the frame_meta data, typically more than just printing to console
+        
+        print("Frame Number is ", frame_meta.frame_num)
+        print("Source id is ", frame_meta.source_id)
+        print("Batch id is ", frame_meta.batch_id)
+        print("Source Frame Width ", frame_meta.source_frame_width)
+        print("Source Frame Height ", frame_meta.source_frame_height)
+        print("Num object meta ", frame_meta.num_obj_meta)
+
+        try:
+            l_frame=l_frame.next
+        except StopIteration:
+            break
+    return True
+
+##
+# Create a new OSD component and add the batch-meta handler function above to the Sink (input) Pad.
+##
+retval = dsl_osd_new('my-osd', False)
+retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
+
+if retval != DSL_RESULT_SUCCESS:
+    # OSD setup failed
+```    
+<br>
+
 ### *dsl_osd_batch_meta_handler_remove*
 ```c++
 DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
@@ -256,10 +300,14 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * `handler` - [in] callback function to remove
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+    retval = dsl_osd_batch_meta_handler_remove('my-osd',  DSL_PAD_SINK, osd_batch_meta_handler_cb)
+```
 
 <br>
-
 ---
 
 ## API Reference
