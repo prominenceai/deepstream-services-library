@@ -64,6 +64,9 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
 #define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
 ```
 
 ## Cuda Decode Memory Types
