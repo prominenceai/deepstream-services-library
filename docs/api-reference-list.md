@@ -36,7 +36,6 @@
 * [dsl_source_num_in_use_get](/docs/api-source.md#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
-* Other TBD
 
 ### Dewarpper:
 * [Overview](/docs/api-dewarper.md)
