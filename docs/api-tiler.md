@@ -1,4 +1,12 @@
-# Tiled Display (Tiler) API
+# Multi-Stream Tiler API
+
+Multi-Stream Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and number-of-tiles expressed in `rows` and `cols`. Dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, as long as the Tiler is not currently `in-use` by a Pipeline.
+
+A Multi-Stream Tiler is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+
+The relationship between Pipelines and Tilers is one-to-one. Once added to a Pipeline, a Tiler must be removed before it can used with another. Tiled-Displays are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+
+
 
 ## Tiled Display API
 * [dsl_tiler_new](#dsl_tiler_new)
@@ -36,38 +44,55 @@ The constructor creates a uniquely named Tiled Display with given dimensions. Co
 * `width` - [in] height of the Tilded Display in pixels
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tiler_new('my-tiler', 1280, 720)
+```
 
 <br>
 
 ## Methods
 ### *dsl_tiler_dimensions_get*
-This function returns the current width and height of the named Tiled Display.
 ```C++
 DslReturnType dsl_tiler_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
+This function returns the current width and height of the named Tiled Display.
+
 **Parameters**
 * `name` - [in] unique name for the Tiled Display to query.
 * `width` - [out] width of the Tiled Display in pixels.
 * `height` - [out] height of the Tiled Display in pixels.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_tiler_dimensions_get('my-tiler')
+```
 
 <br>
 
 ### *dsl_tiler_dimensions_set*
-This function sets the width and height of the named Tiled Display. The call will fail if the Tiler is currently `in-use`.
 ```C++
 DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint height);
 ```
+This function sets the width and height of the named Tiled Display. The call will fail if the Tiler is currently `in-use`.
+
 **Parameters**
 * `name` - [in] unique name for the Tiled Display to update.
 * `width` - [in] current width of the Tiled Display in pixels.
 * `height` - [in] current height of the Tiled Display in pixels.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tiler_dimensions_get('my-tiler', 1280, 720)
+```
 
 <br>
 
@@ -75,28 +100,41 @@ DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint hei
 ```C++
 DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
 ```
+This function returns the current cols and rows settings in use by the named Tiled Display. Values of 0 - the default - allow the Tiler to determine a best-fit based on the number of Sources upstream in the Pipeline
+
 **Parameters**
-* `name` - unique name for the Tiled Display to query.
+* `name` - [in] unique name for the Tiled Display to query.
 * `cols` - [out] current columns setting for the Tiled Display.
 * `rows` - [out] current rows setting for the Tiled Display.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, cols, rows = dsl_tiler_tiles_get('my-tiler')
+```
 
 <br>
 
 ### *dsl_tiler_tiles_set*
-This function sets the number of columns and rows for the named Tiled Display. Setting both values to 0 - the fault - allows the Tiler to determine a bit-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `in-use`.
 ```C++
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 ```
+This function sets the number of columns and rows for the named Tiled Display. Setting both values to 0 - the default - allows the Tiler to determine a bit-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `in-use`.
+
 **Parameters**
-* `name` - unique name for the Tiled Display to update.
-* `cols` - new columns setting for the Tiled Display.
-* `rows` - new rows setting for the Tiled Display.
+* `name` - [in] unique name for the Tiled Display to update.
+* `cols` - [in] new columns setting for the Tiled Display.
+* `rows` - [in] new rows setting for the Tiled Display.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tiler_tiles_set('my-tiler', 3, 2)
+```
 
 <br>
 
@@ -114,7 +152,42 @@ This function adds a batch meta handler callback function of type [dsl_batch_met
 * `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+* Example using Nvidia's pyds lib to handle batch-meta data
+
+```Python
+##
+# Callback function to handle batch-meta data
+##
+def tiler_batch_meta_handler_cb(buffer, user_data):
+
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    l_frame = batch_meta.frame_meta_list
+    while l_frame is not None:
+        try:
+            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
+        except StopIteration:
+            break    
+
+        # Handle the frame_meta data
+
+        try:
+            l_frame=l_frame.next
+        except StopIteration:
+            break
+    return True
+
+##
+# Create a new OSD component and add the batch-meta handler function above to the Sink (input) Pad.
+##
+retval = dsl_tiler_new('my-tiler', 1280, 720)
+retval += dsl_tiler_batch_meta_handler_add('my-tiler', DSL_PAD_SINK, tiler_batch_meta_handler_cb, None)
+
+if retval != DSL_RESULT_SUCCESS:
+    # Tiler setup failed
+```    
 
 <br>
 
@@ -123,8 +196,7 @@ This function adds a batch meta handler callback function of type [dsl_batch_met
 DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 ```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tiled Display with [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add). A Tiled Display can have more than one Sink and Source batch meta handler, and each handler can be 
-added to more than one Tiled Display.
+This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tiled Display with [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add). A Tiled Display can have more than one Sink and Source batch meta handler, and each handler can be added to more than one Tiled Display. Each callback added to a single pad must be unique.
 
 **Parameters**
 * `name` - [in] unique name of the Tiled Display to update.
@@ -132,7 +204,12 @@ added to more than one Tiled Display.
 * `handler` - [in] callback function to remove
 
 **Returns**
-`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+*`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+    retval = dsl_tiler_batch_meta_handler_remove('my-tiler',  DSL_PAD_SINK, tiler_batch_meta_handler_cb)
+```
 
 <br>
 
