@@ -8,7 +8,7 @@ The relationship between Pipelines and Tilers is one-to-one. Once added to a Pip
 
 
 
-## Tiled Display API
+## Multi-Stream Tiler API
 * [dsl_tiler_new](#dsl_tiler_new)
 * [dsl_tiler_dimensions_get](#dsl_tiler_dimensions_get)
 * [dsl_tiler_dimensions_set](#dsl_tiler_dimensions_set)
@@ -36,10 +36,10 @@ The following return codes are used by the Tiler API
 ```C++
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height);
 ```
-The constructor creates a uniquely named Tiled Display with given dimensions. Construction will fail if the name is currently in use. The Tiler is created using the default `rows` and `cols` settings of 0 allowing the Tiler to select a best-fit for the number of [Sources] upstream in the Pipeline. The default values can be updated be calling [dsl_tiler_tiles_set](#dsl_display_tiles_set).
+The constructor creates a uniquely named Tiler with given dimensions. Construction will fail if the name is currently in use. The Tiler is created using the default `rows` and `cols` settings of 0 allowing the Tiler to select a best-fit for the number of [Sources] upstream in the Pipeline. The default values can be updated be calling [dsl_tiler_tiles_set](#dsl_display_tiles_set).
 
 **Parameters**
-* `name` - [in] unique name for the Tiled Display to create.
+* `name` - [in] unique name for the Tiler to create.
 * `width` - [in] width of the Tilded Display in pixels
 * `width` - [in] height of the Tilded Display in pixels
 
@@ -58,12 +58,12 @@ retval = dsl_tiler_new('my-tiler', 1280, 720)
 ```C++
 DslReturnType dsl_tiler_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
-This function returns the current width and height of the named Tiled Display.
+This function returns the current width and height of the named Tiler.
 
 **Parameters**
-* `name` - [in] unique name for the Tiled Display to query.
-* `width` - [out] width of the Tiled Display in pixels.
-* `height` - [out] height of the Tiled Display in pixels.
+* `name` - [in] unique name for the Tiler to query.
+* `width` - [out] width of the Tiler in pixels.
+* `height` - [out] height of the Tiler in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -79,12 +79,12 @@ retval, width, height = dsl_tiler_dimensions_get('my-tiler')
 ```C++
 DslReturnType dsl_tiler_dimensions_set(const wchar_t* name, uint width, uint height);
 ```
-This function sets the width and height of the named Tiled Display. The call will fail if the Tiler is currently `in-use`.
+This function sets the width and height of the named Tiler. The call will fail if the Tiler is currently `in-use`.
 
 **Parameters**
-* `name` - [in] unique name for the Tiled Display to update.
-* `width` - [in] current width of the Tiled Display in pixels.
-* `height` - [in] current height of the Tiled Display in pixels.
+* `name` - [in] unique name for the Tiler to update.
+* `width` - [in] current width of the Tiler in pixels.
+* `height` - [in] current height of the Tiler in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -100,12 +100,12 @@ retval = dsl_tiler_dimensions_get('my-tiler', 1280, 720)
 ```C++
 DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
 ```
-This function returns the current cols and rows settings in use by the named Tiled Display. Values of 0 - the default - allow the Tiler to determine a best-fit based on the number of Sources upstream in the Pipeline
+This function returns the current cols and rows settings in use by the named Tiler. Values of 0 - the default - allow the Tiler to determine a best-fit based on the number of Sources upstream in the Pipeline
 
 **Parameters**
-* `name` - [in] unique name for the Tiled Display to query.
-* `cols` - [out] current columns setting for the Tiled Display.
-* `rows` - [out] current rows setting for the Tiled Display.
+* `name` - [in] unique name for the Tiler to query.
+* `cols` - [out] current columns setting for the Tiler.
+* `rows` - [out] current rows setting for the Tiler.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -121,12 +121,12 @@ retval, cols, rows = dsl_tiler_tiles_get('my-tiler')
 ```C++
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 ```
-This function sets the number of columns and rows for the named Tiled Display. Setting both values to 0 - the default - allows the Tiler to determine a bit-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `in-use`.
+This function sets the number of columns and rows for the named Tiler. Setting both values to 0 - the default - allows the Tiler to determine a best-fit based on the number of Sources upstream. The number of rows must be at least one half that of columns or the call will fail (e.g. 4x1). The call will also fail if the Tiler is currently `in-use`.
 
 **Parameters**
-* `name` - [in] unique name for the Tiled Display to update.
-* `cols` - [in] new columns setting for the Tiled Display.
-* `rows` - [in] new rows setting for the Tiled Display.
+* `name` - [in] unique name for the Tiler to update.
+* `cols` - [in] new columns setting for the Tiler.
+* `rows` - [in] new rows setting for the Tiler.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -143,10 +143,10 @@ retval = dsl_tiler_tiles_set('my-tiler', 3, 2)
 DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 ```
-This function adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to either the `sink-pad`(on input to the Tiled Display) or `src-pad` (on ouput from the Tiled Display). Once added, the handler will be called to handle batch-meta data for each frame buffer. A Tiled Display can have more than one `sink-pad` and `src-pad` batch meta handler, and each handler can be added to more than one Tiled Display.
+This function adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to either the `sink-pad`(on input to the Tiler) or `src-pad` (on ouput from the Tiler). Once added, the handler will be called to handle batch-meta data for each frame buffer. A Tiler can have more than one `sink-pad` and `src-pad` batch meta handler, and each handler can be added to more than one Tiler.
 
 **Parameters**
-* `name` - [in] unique name of the Tiled Display to update.
+* `name` - [in] unique name of the Tiler to update.
 * `pad` - [in] to which of the two pads to add the handler; `DSL_PAD_SIK` | `DSL_PAD SRC`
 * `handler` - [in] callback function to process batch meta data
 * `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
@@ -196,10 +196,10 @@ if retval != DSL_RESULT_SUCCESS:
 DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 ```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tiled Display with [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add). A Tiled Display can have more than one Sink and Source batch meta handler, and each handler can be added to more than one Tiled Display. Each callback added to a single pad must be unique.
+This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tiler with [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add). A Tiler can have more than one Sink and Source batch meta handler, and each handler can be added to more than one Tiler. Each callback added to a single pad must be unique.
 
 **Parameters**
-* `name` - [in] unique name of the Tiled Display to update.
+* `name` - [in] unique name of the Tiler to update.
 * `pad` - [in] which of the two pads to remove the handler to; DSL_PAD_SINK | DSL_PAD SRC
 * `handler` - [in] callback function to remove
 
