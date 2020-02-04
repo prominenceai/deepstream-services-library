@@ -77,30 +77,54 @@ The constructor creates a uniquely named Primary GIE. Construction will fail
 if the name is currently in use. 
 
 **Parameters**
-* `name` - unique name for the Primary GIE to create.
-* `infer_config_file` - relative or absolute file path/name for the infer config file to load
-* `model_engine_file` - relative or absolute file path/name for the model engine file to load
-* `interval` - frame interval to infer on
+* `name` - [in] unique name for the Primary GIE to create.
+* `infer_config_file` - [in] relative or absolute file path/name for the infer config file to load
+* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
+* `interval` - [in] frame interval to infer on
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+# Filespecs for the Primary GIE
+pgie_config_file = './configs/config_infer_primary_nano.txt'
+pgie_model_file = './models/Primary_Detector_Nano/resnet10.caffemodel.engine'
+
+# New Primary GIE using the filespecs above, with interval set to  0
+retval = dsl_gie_primary_new('my-pgie', pgie_config_file, pgie_model_file, 0)
+```
 
 <br>
 
 ### *dsl_gie_secondary_new*
 ```C++
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, uint interval, const wchar_t* infer_on_gie_name);
+    const wchar_t* model_engine_file, const wchar_t* infer_on_gie_name, uint interval);
 ```
 
+This constructor creates a uniquely named Secondary GIE. Construction will fail
+if the name is currently in use. 
+
 **Parameters**
-* `name` - unique name for the Primary GIE to create.
-* `infer_config_file` - relative or absolute file path/name for the infer config file to load
-* `model_engine_file` - relative or absolute file path/name for the model engine file to load
-* `interval` - frame interval to infer on
+* `name` - [in] unique name for the Secondary GIE to create.
+* `infer_config_file` - [in] relative or absolute file path/name for the infer config file to load
+* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
+* `infer_on_gie_name` - [in] unique name of the Primary or Secondary GIE to infer on
+* `interval` - [in] frame interval to infer on
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+# Filespecs for the Secondary GIE
+sgie_config_file = './test/configs/config_infer_secondary_carcolor_nano.txt'
+sgie_model_file = './test/models/Secondary_CarColor/resnet18.caffemodel_b16_fp16.engine'
+
+# New Secondary GIE set to Infer on the Primary GIE defined above
+retval = dsl_gie_seondary_new('my-sgie', sgie_config_file, sgie_model_file, 0, 'my-pgie')
+```
 
 <br>
 
@@ -109,12 +133,20 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
 ```C++
 DslReturnType dsl_gie_infer_config_file_get(const wchar_t* name, const wchar_t** infer_config_file);
 ```
+
+This service return the current Infer Engine Config file in use by the named Primary or Secondary GIE.
+
 **Parameters**
-* `name` - unique name of the Primary or Secondary GIE to query.
-* `infer_config_file` - returns the absolute file path/name for the infer config file in use
+* `name` - [in] unique name of the Primary or Secondary GIE to query.
+* `infer_config_file` - [out] returns the absolute file path/name for the infer config file in use
 
 **Returns**
 `DSL_RESULT_SUCCESS` if the GIE exists. `DSL_RESULT_GIE_NAME_NOT_FOUND` otherwise
+
+**Python Example**
+```Python
+retval, infer_config_file = dsl_gie_infer_config_file_get('my-sgie)
+```
 
 <br>
 
@@ -130,6 +162,11 @@ DslReturnType dsl_gie_infer_config_file_set(const wchar_t* name, const wchar_t* 
 `DSL_RESULT_SUCCESS` if the GIE exists, and the infer_config_file was found, one of the 
 [Return Values](#return-values) defined above on failure
 
+**Python Example**
+```Python
+retval, dsl_gie_infer_config_file_get('my-sgie',  './configs/config_infer_primary_nano.txt')
+```
+
 <br>
 
 ### *dsl_gie_model_engine_file_get*
@@ -142,6 +179,11 @@ DslReturnType dsl_gie_model_engine_file_get(const wchar_t* name, const wchar_t**
 
 **Returns**
 `DSL_RESULT_SUCCESS` if the GIE exists. `DSL_RESULT_GIE_NAME_NOT_FOUND` otherwise
+
+**Python Example**
+```Python
+retval,  model_engine_file = dsl_gie_model_engine_file_get('my-sgie')
+```
 
 <br>
 
@@ -157,6 +199,12 @@ DslReturnType dsl_gie_model_engine_file_set(const wchar_t* name, const wchar_t* 
 `DSL_RESULT_SUCCESS` if the GIE exists, and the model_engine_file was found, one of the 
 [Return Values](#return-values) defined above on failure
 
+**Python Example**
+```Python
+retval = dsl_gie_infer_config_file_get('my-sgie',  
+    './test/models/Secondary_CarColor/resnet18.caffemodel_b16_fp16.engine"')
+```
+
 <br>
 
 ### *dsl_gie_interval_get*
@@ -165,10 +213,15 @@ DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
 ```
 **Parameters**
 * `name` - unique name of the Primary or Secondary GIE to query.
-* `interval` - returns the current frame interval in use by the named GIE
+* `interval[out]` - returns the current frame interval in use by the named GIE
 
 **Returns**
 `DSL_RESULT_SUCCESS` if the GIE exists. `DSL_RESULT_GIE_NAME_NOT_FOUND` otherwise
+
+**Python Example**
+```Python
+retval, interval = dsl_gie_interval_get('my-pgie')
+```
 
 <br>
 
@@ -177,11 +230,16 @@ DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
 DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 ```
 **Parameters**
-* `name` - unique name of the Primary or Secondary GIE to update.
-* `interval` - frame interval in use by the named GIE
+* `name` - [in] unique name of the Primary or Secondary GIE to update.
+* `interval` - [in] frame interval in use by the named GIE
 
 **Returns**
 `DSL_RESULT_SUCCESS` if the GIE exists one of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_gie_interval_set('my-pgie', 2)
+```
 
 <br>
 
