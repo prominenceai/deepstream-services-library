@@ -1,6 +1,10 @@
 # DSL Overview
-The core function of the DeepStream Services Library (DSL) is to provide a simple and intuitive API for building, playing, and dynamically modifying Nvidia DeepStream Pipeiles; modifications made (1) based on the results of the realtime video analysis (2) by the application user through external input. An example of each:
-1. Programatically adding a [File Sink](/docs/api-sinks.md) based on the occurence of specific objects detected.
+Nvidia's DeepStream SDK, using the open source [GStreamer](https://gstreamer.freedesktop.org/), enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. However, for those new to DeepStream, Streamer - *"an extremely powerful and versatile framework"* - comes with a learning curve that can be a little step or lengthy for some. 
+
+The DeepStream Services Library (DSL) was built to enable users to develop DeepStream applications, in both Python3 and C/C++, at a much higher level of abstraction - to encapsulate the complexity that comes with GStreamer's power and flexibility.
+
+The core function of the DeepStream Services Library (DSL) is to provide a simple and intuitive API for building, playing, and dynamically modifying Nvidia DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
+1. Programmatically adding a [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
 2. Interactively resizing stream and window dimensions for viewing control
 
 The general approach to using DSL is to
@@ -8,9 +12,9 @@ The general approach to using DSL is to
 2. Create a number of uniquely named Pipeline [Components](/docs/api-reference-list.md) with desired attributes
 3. Define and add one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) (optional)
 4. Add the Components to the Pipeline(s)
-5. Play the Pipeline(s) and start/joint the main execution loop.
+5. Play the Pipeline(s) and start/join the main execution loop.
 
-Using Python for example, the above can be written as
+Using Python3 for example, the above can be written as
 
 ```Python
 # New uniquely named Pipeline. The name will be used to identify
@@ -25,7 +29,7 @@ retval += dsl_source_csi_new('my-source', 1280, 720, 30, 1)
 # new Primary Inference Engine - path to model engine and config file, infer-on every frame with interval = 0
 retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, 0)
 
-# new On-Screen Display for inference visulization - bounding boxes and labels - clocks disabled (False)
+# new On-Screen Display for inference visualization - bounding boxes and labels - clocks disabled (False)
 retval += dsl_osd_new('my-osd', False)
 
 # new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
@@ -59,7 +63,7 @@ Transition the Pipeline to a state of Playing and start/join the main loop
  ```
 
 ## Pipeline Components
-There are seven catagories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the catagories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipelne. 
+There are seven categories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the categories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipeline. 
 
 ![DSL Components](/Images/dsl-components.png)
 
@@ -74,9 +78,9 @@ And two decode Sources that support both live and non-live streams.
 * Universal Resource Identifier (URI) Source
 * Real-time Streaming Protocol (RTSP) Source
 
-All Sources have dimensions - width and height in pixels - and frame-rates expressed as a fractional numerator and denominator.  A [Dewarper Componet](/docs/api-dewarper.md) (not show in the image above) capabile of dewarping 360 degree camera streams can be added to the URI and RTSP decode sources. The decode sources support multiple codec formats, including H.264, H.265, png, and jpeg.
+All Sources have dimensions - width and height in pixels - and frame-rates expressed as a fractional numerator and denominator.  A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to the URI and RTSP decode sources. The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG.
 
-A Pipeline's Stream-Muxer has settable output dimensions with a decoded output stream that is ready to infer on.
+A Pipeline's Stream-Muxer has settable output dimensions with a decoded and `batched` output stream that is ready to infer on.
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
@@ -84,12 +88,12 @@ See the [Source API](/docs/api-source.md) reference section for more information
 Nvidia's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
 
 After creation, GIEs can be updated to:
-* Use a new model-engine, config file,  inference interval, and for Secondary GIEs, the GIE to infer on 
-* To enable/disable output of bounding-box frame and label data to text file in KITTI format for [evaluating object detection](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark)
+* Use a new model-engine, config file and/or inference interval, and for Secondary GIEs the GIE to infer on.
+* To enable/disable output of bounding-box frame and label data to text file in KITTI format for [evaluating object detection](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark).
 * To enable/disable output of raw layer information to binary file.
 
 With Primary GIEs, applications can:
-* add/remove `batch-meta-handler` callback functions [see below](#batch-meta-hanler callback services)
+* add/remove `batch-meta-handler` callback functions [see below](#batch-meta-handler-callback-functions)
 * enable/disable raw layer-info output to binary file, one file per layer, per frame.
 
 See the [Primary and Secondary GIE API](/docs/api-gie.md) reference section for more information.
@@ -99,24 +103,24 @@ There are two types of streaming Multi-Object Tracker Components.
 1. [Kanade–Lucas–Tomasi](https://en.wikipedia.org/wiki/Kanade%E2%80%93Lucas%E2%80%93Tomasi_feature_tracker) (KTL) Feature Tracker
 2. [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) (IOU) High-Frame-Rate Tracker. 
 
-Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-hanler callback services)
+Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-handler callback services)
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
 ## On-Screen Display
-On-Scrren Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Possitional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display.
+On-Scrren Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
 
-OSDs are optional and a Pipeline can have at most one.See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
+OSDs are optional and a Pipeline can have at most one. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
 ## Multi-Source Tiler
-Tiler components transform the multiplexed streams into a 2D array of tiles, one per Source component. Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated after creation.
+Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated after creation.
 
-Clients of Tiler components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-hanler callback services)
+Clients of Tiler components can add/remove `batch-meta-handler` callback functions, [see below](#batch-meta-handler-callback-functions)
 
 Tiler components are optional and a Pipeline can have at most one. See the [Multi-Source Tiler API](/docs/api-tiler.md) reference section for more information.
 
 ## Pipeline Sinks
-Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to file. All Pipelines require at least one Sink Component inorder to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
+Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
 
 1. Overlay Render Sink
 2. X11/EGL Window Sink
@@ -127,7 +131,7 @@ Sinks, as the end components in the Pipeline, are used to either render the Stre
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
 ## Batch Meta Handler Callback Functions
-All of the `one-at-most` Pipeline Components - Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers - support the dynamic addition and removal of batch-meta-hanler callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) streams. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
+All of the `one-at-most` Pipeline Components - Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers - support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) streams. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
 
 Each batch-meta-handler function is called with a buffer of meta-data for each batch processed. A Pipeline's batch-size is set to the current number of Source Components upstream.
 
@@ -181,7 +185,7 @@ if retval != DSL_RESULT_SUCCESS:
 ```
 
 ## X11 Window Support
-DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows- using GTK+ for example - and share share them with Pipelines prior to playinging, or let the Pipeline create a sinple Display and Window to use. 
+DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
 
 ``` Python
 # Function to be called on XWindow ButtonPress event
@@ -197,7 +201,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == ' ':
         dsl_main_loop_quit()
  
 ## 
@@ -252,6 +256,16 @@ dsl_pipeline_delete_all()
 dsl_component_delete_all()
 
 ```
+<br>
+---
 
-
-
+## API Reference
+* [Source](/docs/api-source.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Secondary GIE](/docs/api-gie)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](docs/api-sink.md)
+* [Component](/docs/api-component.md)
+* [Pipeline](/docs/api-pipeline.md)
