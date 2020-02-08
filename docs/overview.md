@@ -59,7 +59,9 @@ Transition the Pipeline to a state of Playing and start/join the main loop
 
 ```Python
  retval = dsl_pipeline_play('my-pipeline')
- dsl_main_loop_run()
+ if retval != DSL_RESULT_SUCCESS:
+    # Pipeline failed to play, handle error
+  dsl_main_loop_run()
  ```
 
 ## Pipeline Components
@@ -192,9 +194,7 @@ DSL provides X11 Window support for Pipelines that have one or more Window Sinks
 def xwindow_button_event_handler(xpos, ypos, client_data):
     print('button pressed: xpos = ', xpos, ', ypos = ', ypos)
     
-## 
 # Function to be called on XWindow KeyRelease event - non-live streams
-## 
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'P':
@@ -204,28 +204,24 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == ' ':
         dsl_main_loop_quit()
  
-## 
 # Function to be called on XWindow Delete event
-## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
     dsl_main_loop_quit()
 
 while True:
 
-    ## 
-    ## New Pipeline and Window Sink
-    ## 
+    # New Pipeline
+    retval = dsl_pipeline_new('my-pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    # New Window Sink
     retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    retval = dsl_pipeline_new('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    ## 
-    ## Add the XWindow event handler functions defined above
-    ##
+    # Add the XWindow event handler functions defined above
     retval = dsl_pipeline_xwindow_key_event_handler_add(1'my-pipeline', xwindow_key_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
