@@ -1,5 +1,5 @@
 # DSL Overview
-Nvidia's DeepStream SDK, using the open source [GStreamer](https://gstreamer.freedesktop.org/), enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. However, for those new to DeepStream, Streamer - *"an extremely powerful and versatile framework"* - comes with a learning curve that can be a little step or lengthy for some. 
+Nvidia's DeepStream SDK, using the open source [GStreamer](https://gstreamer.freedesktop.org/), enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. However, for those new to DeepStream, GStreamer - *"an extremely powerful and versatile framework"* - comes with a learning curve that can be a little step or lengthy for some. 
 
 The DeepStream Services Library (DSL) was built to enable users to develop DeepStream applications, in both Python3 and C/C++, at a much higher level of abstraction - to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
