@@ -2,9 +2,9 @@
 
 ![](/Images/under-construction.png)
 
-DSL is best described as _"the NVIDIA DeepStream Reference Application — [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) — reimagined as a shared library of on-demand DeepStream pipeline services"._
+DSL is best described as _"the NVIDIA DeepStream Reference Application — [deepstream-app](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html#page/DeepStream_Development_Guide%2Fdeepstream_app_architecture.html) — reimagined as a shared library of DeepStream pipeline services"._
 
-Written in C++ 11, the DSL API can be  called from both C/C++ and Python applications.
+Written in C++ 11 with an `extern "C"` API, DSL can be called from both C/C++ and Python applications.
 
 **C/C++**
 ```C++
@@ -25,12 +25,8 @@ DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepst
 
 The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
-The goals of DSL:
-* To provide a high-level, multi-language Services API for building, and dynamically updating DeepStream pipelines.
-* To abstract and encapsulate the complexity of the broad and flexible GStreamer framework with a simple DeepStream specific API. That said, DSL is designed to check-for a previously initialized instance of the GST Lib supporting integration with existing GStreamer Applications.
-
 ## Contributing
-DSL is released under the MIT license. Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
+DSL is released under the [BSD 2-Clause License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
 ## DSL Users Guide
 
