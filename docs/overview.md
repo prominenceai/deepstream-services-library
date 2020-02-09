@@ -9,6 +9,7 @@
 * [Multi-Source Tiler](#multi-source-tiler)
 * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
 * [Main Loop Context](#main-loop-context)
+* [Service Return Codes](#service-return-codes)
 * [Batch Meta Handler Callback Functions](#batch-meta-handler-callback-functions)
 * [X11 Window Support](#x11-window-support)
 * [API Reference](#api-reference)
@@ -16,7 +17,7 @@
 ## Introduction
 NVIDIA’s DeepStream SDK -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbiest to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
 1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
@@ -32,6 +33,9 @@ The general approach to using DSL is to
 Using Python3 for example, the above can be written as
 
 ```Python
+# Import the DSL APIs
+from dsl import *
+
 # New uniquely named Pipeline. The name will be used to identify
 # the Pipline for subsequent Pipeline service requests.
 retval = dsl_pipeline_new('my-pipeline')
@@ -125,7 +129,7 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
 ## On-Screen Display
-On-Scrren Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
+On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
 
 OSDs are optional and a Pipeline can have at most one. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
@@ -145,11 +149,11 @@ Sinks, as the end components in the Pipeline, are used to either render the Stre
 4. RTSP Server Sink
 5. Fake Sink
 
-Overlay and Window Sinks have settable dimensions, width and height in pixels, and X and Y directional offests that can be updated after creation. 
+Overlay and Window Sinks have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
 File Sinks support three codec formats, H.264, H.265 and MPEG-4, with two media container formats, MP4 and MKV.
 
-RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and setings provided on creation. Using the below for example,
+RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. Using the below for example,
 
 ```Python
 retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
@@ -167,6 +171,33 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 
 ## Main Loop Context
 After creating a Pipeline(s), creating and adding Components, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a client Callback function called from the Pipeline's context -- calls `dsl_main_loop_quit()`
+
+<br>
+
+---
+
+## Service Return Codes
+Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service -- as there are no "C" equivalent symbolic constants or enum types in Python.  
+
+**Note:** This is the preferred method as the return code values are subject to change
+
+`DSL_RESULT_SUCCESS` is defined in both `DslApi.h` and `dsl.py`. The non-zero Return Codes are defined in `DslApi.h` only.
+
+**DslApi.h**
+```C
+#define DSL_RESULT_SUCCESS 0
+
+typedef uint DslReturnType
+```
+**Python Script**
+```Python
+from dsl import *
+
+retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
+
+if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
+    # handle error
+```
 
 <br>
 
@@ -325,10 +356,13 @@ print(dsl_return_value_to_string(retval))
 # clean up all resources
 dsl_pipeline_delete_all()
 dsl_component_delete_all()
-
 ```
+
 <br>
 
+## Next Steps
+* [Installing Dependencies](/docs/installing-dependencies.md)
+* [Building and Importing DSL](/docs/building-dsl.md)
 
 ---
 
