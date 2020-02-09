@@ -1,28 +1,35 @@
 # Building and Importing DSL
 
 The DSL shared library is built using GCC and GNU Make. The MakeFile is located in the DSL root folder.
-There are a few simple steps to creating a verified shared lib, `dsl-lib.so`.
+There are a few simple steps to creating the shared library, `dsl-lib.so`.
 
 1. Clone this repository to pull down all source
 2. Use the make (all) default to build the `dsl-test-app` executable
-3. Run the `dsl-test-app` to verify the build
+3. (Optionally) Run the `dsl-test-app` to verify the build
 4. Use the `make lib` command to build the object files into `dsl-lib.so`
 
-### Clone Repository
+### Cloning Repository
 Clone the repository to pull all source and test scenarios to build the dsl test application
 ```
 $ git clone https://github.com/canammex-tech/deepstream-services-library
 ```
 
 ### Make (all)
-Invoke the standard make (all) to  compile all source code and test scenarios into objects files, and link them into a [Catch2](https://github.com/catchorg/Catch2) test application. On succesfull build, the `dsl-test-app` will be found under the same root folder.
+The current default `make`, prior to releasing v1.0, builds DSL into a command line test-executable for running all API and Unit level test cases. The DSL source-only object files, built for the test application, can then be re-linked into the `dsl.so` shared library, see below.
+
+Invoke the standard make (all) to  compile all source code and test scenarios into objects files, and link them into a [Catch2](https://github.com/catchorg/Catch2) test application. On successful build, the `dsl-test-app` will be found under the same root folder.
 
 ```
 $ make
 ```
 
-### Run the Test Application
-Run the generated Catch2 test application `dsl-test-app` to verify the build.
+### Running the Test Application
+This step is optional unless contributing changes. 
+
+Note: The test application uses Nano versions of GIE Models and Config files, which will fail to load on other platforms. The tests require an internet connection for URI and RTSP Source testing as well. 
+
+Once the test executable has been built, it can be run with the command below.
+
 ```
 $ ./dsl-test-app
 ```
@@ -35,8 +42,15 @@ All tests passed (1734 assertions in 279 test cases)
 
 Note: the total passed assertions and test cases are subject to change.
 
+### Making the Shared Library
+Once the object files have been created by calling `make` , the source-only objects are re-linked into a shared library by calling Make with the lib option
+
+```
+# make lib
+```
+
 ### Importing the Shared Lib using Python3
-The shared lib `dsl-lib.so` is wrapped using native CTypes in the python module `dsl.py`, also located in the DSL root folder.
+The shared lib `dsl-lib.so` is mapped to Python3 using [CTypes](https://docs.python.org/3/library/ctypes.html) in the python module `dsl.py`, also located in the DSL root folder.
 
 ```python
 import sys
