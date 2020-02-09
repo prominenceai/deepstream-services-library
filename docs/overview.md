@@ -1,10 +1,10 @@
 # DSL Overview
-Nvidia's DeepStream SDK, using the open source [GStreamer](https://gstreamer.freedesktop.org/), enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. However, for those new to DeepStream, GStreamer - *"an extremely powerful and versatile framework"* - comes with a learning curve that can be a little step or lengthy for some. 
+NVIDIA’s DeepStream SDK -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable users to develop DeepStream applications, in both Python3 and C/C++, at a much higher level of abstraction - to encapsulate the complexity that comes with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbiest to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
-The core function of the DeepStream Services Library (DSL) is to provide a simple and intuitive API for building, playing, and dynamically modifying Nvidia DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
-1. Programmatically adding a [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
+The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
+1. Programmatically adding a [File Sink](/docs/api-sinks.md), to stream encoded video to file, based on the occurrence of specific objects detected.
 2. Interactively resizing stream and window dimensions for viewing control
 
 The general approach to using DSL is to
@@ -70,7 +70,7 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ![DSL Components](/Images/dsl-components.png)
 
 ## Streaming Sources
-Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source, among others components, before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams - using their own Stream-Muxer - as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
+Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source, among others components, before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
 There are currently four types of Source components, two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source
@@ -80,14 +80,14 @@ And two decode Sources that support both live and non-live streams.
 * Universal Resource Identifier (URI) Source
 * Real-time Streaming Protocol (RTSP) Source
 
-All Sources have dimensions - width and height in pixels - and frame-rates expressed as a fractional numerator and denominator.  A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to the URI and RTSP decode sources. The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG.
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
 
 A Pipeline's Stream-Muxer has settable output dimensions with a decoded and `batched` output stream that is ready to infer on.
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Primary and Secondary Inference Engines
-Nvidia's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
+NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
 
 After creation, GIEs can be updated to:
 * Use a new model-engine, config file and/or inference interval, and for Secondary GIEs the GIE to infer on.
@@ -130,21 +130,34 @@ Sinks, as the end components in the Pipeline, are used to either render the Stre
 4. RTSP Server Sink
 5. Fake Sink
 
+Overlay and Window Sinks have settable dimensions, width and height in pixels, and X and Y directional offests that can be updated after creation. 
+
+File Sinks support three codec formats, H.264, H.265 and MPEG-4, with two media container formats, MP4 and MKV.
+
+RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and setings provided on creation. Using the below for example,
+
+```Python
+retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
+```
+would use
+```
+http://localhost::8050/my-rtsp-sink
+```
+
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
+
 ## Batch Meta Handler Callback Functions
-All of the `one-at-most` Pipeline Components - Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers - support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) streams. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
+All of the `one-at-most` Pipeline Components - Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers - support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad). Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
 
 Each batch-meta-handler function is called with a buffer of meta-data for each batch processed. A Pipeline's batch-size is set to the current number of Source Components upstream.
 
-Adding a batch-meta-handler to the sink-pad of an On-Screen Display component, for example, is an ideal point in the stream to monitor, process, and make decisions based on all inference and tracker results based on its location in the stream.
+Adding a batch-meta-handler to the sink-pad of an On-Screen Display component, for example, is an ideal point in the stream to monitor, process, and make decisions based on all inference and tracker results from  upstream.
 
 When using Python3, Nvidia's [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) are used to process the buffered batch-meta in the handler callback function. The bindings can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings)
 
 ```Python
-##
 # Callback function to handle batch-meta data
-##
 def osd_batch_meta_handler_cb(buffer, user_data):
 
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
@@ -167,22 +180,40 @@ def osd_batch_meta_handler_cb(buffer, user_data):
         except StopIteration:
             break
     return True
-  
-##
-# Create a new OSD component and add the batch-meta handler function above to the Sink Pad.
-##
-retval = dsl_osd_new('my-osd', False)
-retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
 
-##
-# Create a new H.264 File Sink component to be added to the Pipeline by the osd_batch_meta_handler_cb
-##
-retval += dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+while True:
 
-if retval != DSL_RESULT_SUCCESS:
-    # Component setup failed
+    # Create a new OSD component and add the batch-meta handler function above to the Sink Pad.
+    retval = dsl_osd_new('my-osd', False)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
 
-# add the components to the Pipeline and transition to Playing
+    # Create a new H.264 File Sink component to be added to the Pipeline by the osd_batch_meta_handler_cb
+    retval += dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+    if retval != DSL_RESULT_SUCCESS:
+        break
+
+    # Create all other required components and add them to the Pipeline (see some examples above)
+    # ...
+    
+    retval = dsl_pipeline_play('my-pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+ 
+    # Start/Join with main loop until released - blocking call
+    dsl_main_loop_run()
+    retval = DSL_RETURN_SUCCESS
+    break
+
+#print out the final result
+print(dsl_return_value_to_string(retval))
+
+# clean up all resource
+dsl_pipeline_delete_all()
+dsl_component_delete_all()
 
 ```
 
@@ -216,7 +247,6 @@ while True:
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    # New Window Sink
     retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
     if retval != DSL_RETURN_SUCCESS:
         break
@@ -225,11 +255,9 @@ while True:
     retval = dsl_pipeline_xwindow_key_event_handler_add(1'my-pipeline', xwindow_key_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-
     retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', xwindow_button_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-
     retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
@@ -238,8 +266,10 @@ while True:
     # ...
  
     retval = dsl_pipeline_play('my-pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
  
-   # Start/Join with main loop until released - blocking call
+    # Start/Join with main loop until released - blocking call
     dsl_main_loop_run()
     retval = DSL_RETURN_SUCCESS
     break
@@ -253,9 +283,11 @@ dsl_component_delete_all()
 
 ```
 <br>
+
 ---
 
 ## API Reference
+* [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie)
@@ -264,4 +296,3 @@ dsl_component_delete_all()
 * [Tiler](/docs/api-tiler.md)
 * [Sink](docs/api-sink.md)
 * [Component](/docs/api-component.md)
-* [Pipeline](/docs/api-pipeline.md)
