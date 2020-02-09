@@ -1,10 +1,10 @@
 # DSL Overview
-NVIDIA’s DeepStream SDK, using the open source [GStreamer](https://gstreamer.freedesktop.org/), enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer - *"an extremely powerful and versatile framework"* - comes with a learning curve that can be a little step or lengthy for some. 
+NVIDIA’s DeepStream SDK -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbiest to develop DeepStream applications, in either Python3 or C/C++, at a much higher level of abstraction - to encapsulate the complexity that comes with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbiest to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
-1. Programmatically adding a [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
+1. Programmatically adding a [File Sink](/docs/api-sinks.md), to stream encoded video to file, based on the occurrence of specific objects detected.
 2. Interactively resizing stream and window dimensions for viewing control
 
 The general approach to using DSL is to
@@ -70,7 +70,7 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ![DSL Components](/Images/dsl-components.png)
 
 ## Streaming Sources
-Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source, among others components, before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams - using their own Stream-Muxer - as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
+Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source, among others components, before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
 There are currently four types of Source components, two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source
@@ -80,14 +80,14 @@ And two decode Sources that support both live and non-live streams.
 * Universal Resource Identifier (URI) Source
 * Real-time Streaming Protocol (RTSP) Source
 
-All Sources have dimensions - width and height in pixels - and frame-rates expressed as a fractional numerator and denominator.  A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to the URI and RTSP decode sources. The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG.
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
 
 A Pipeline's Stream-Muxer has settable output dimensions with a decoded and `batched` output stream that is ready to infer on.
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Primary and Secondary Inference Engines
-Nvidia's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
+NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
 
 After creation, GIEs can be updated to:
 * Use a new model-engine, config file and/or inference interval, and for Secondary GIEs the GIE to infer on.
