@@ -29,7 +29,7 @@ DSL is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepst
 The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
 ## Contributing
-DSL is released under the [BSD 2-Clause License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
+DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Contributor guidelines and code of conduct are still TBW. 
 
 ## DSL Users Guide
 
