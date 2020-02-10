@@ -1,15 +1,31 @@
 # DSL Overview
+### Over Contents
+* [Introduction](#introduction)
+* [Pipeline Components](#pipeline-components)
+* [Streaming Sources](#streaming-sources)
+* [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
+* [Multi-Object Trackers](#multi-object-trackers)
+* [On-Screen Display](#on-screen-display)
+* [Multi-Source Tiler](#multi-source-tiler)
+* [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
+* [Main Loop Context](#main-loop-context)
+* [Service Return Codes](#service-return-codes)
+* [Batch Meta Handler Callback Functions](#batch-meta-handler-callback-functions)
+* [X11 Window Support](#x11-window-support)
+* [API Reference](#api-reference)
+
+## Introduction
 NVIDIA’s DeepStream SDK -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbiest to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
-1. Programmatically adding a [File Sink](/docs/api-sinks.md), to stream encoded video to file, based on the occurrence of specific objects detected.
+1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
 2. Interactively resizing stream and window dimensions for viewing control
 
 The general approach to using DSL is to
 1. Create one or more uniquely named DeepStream [Pipelines](/docs/api-pipeline.md)
-2. Create a number of uniquely named Pipeline [Components](/docs/api-reference-list.md) with desired attributes
+2. Create a number of uniquely named [Components](/docs/api-reference-list.md) with desired attributes
 3. Define and add one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) (optional)
 4. Add the Components to the Pipeline(s)
 5. Play the Pipeline(s) and start/join the main execution loop.
@@ -17,6 +33,9 @@ The general approach to using DSL is to
 Using Python3 for example, the above can be written as
 
 ```Python
+# Import the DSL APIs
+from dsl import *
+
 # New uniquely named Pipeline. The name will be used to identify
 # the Pipline for subsequent Pipeline service requests.
 retval = dsl_pipeline_new('my-pipeline')
@@ -87,7 +106,7 @@ A Pipeline's Stream-Muxer has settable output dimensions with a decoded and `bat
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Primary and Secondary Inference Engines
-NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) - with a specified set of classification labels to infer-with - and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
+NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result; person, dog, car?. A Pipeline may have at most one Primary Inference Engine (PGIE) -- with a specified set of classification labels to infer-with -- and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
 
 After creation, GIEs can be updated to:
 * Use a new model-engine, config file and/or inference interval, and for Secondary GIEs the GIE to infer on.
@@ -105,12 +124,12 @@ There are two types of streaming Multi-Object Tracker Components.
 1. [Kanade–Lucas–Tomasi](https://en.wikipedia.org/wiki/Kanade%E2%80%93Lucas%E2%80%93Tomasi_feature_tracker) (KTL) Feature Tracker
 2. [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) (IOU) High-Frame-Rate Tracker. 
 
-Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-handler callback services)
+Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-handler-callback-functions)
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
 ## On-Screen Display
-On-Scrren Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
+On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
 
 OSDs are optional and a Pipeline can have at most one. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
@@ -121,7 +140,7 @@ Clients of Tiler components can add/remove `batch-meta-handler` callback functio
 
 Tiler components are optional and a Pipeline can have at most one. See the [Multi-Source Tiler API](/docs/api-tiler.md) reference section for more information.
 
-## Pipeline Sinks
+## Rendering and Streaming Sinks
 Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
 
 1. Overlay Render Sink
@@ -130,11 +149,11 @@ Sinks, as the end components in the Pipeline, are used to either render the Stre
 4. RTSP Server Sink
 5. Fake Sink
 
-Overlay and Window Sinks have settable dimensions, width and height in pixels, and X and Y directional offests that can be updated after creation. 
+Overlay and Window Sinks have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
 File Sinks support three codec formats, H.264, H.265 and MPEG-4, with two media container formats, MP4 and MKV.
 
-RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and setings provided on creation. Using the below for example,
+RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. Using the below for example,
 
 ```Python
 retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
@@ -146,20 +165,52 @@ http://localhost::8050/my-rtsp-sink
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
+<br>
+
+## Main Loop Context
+After creating a Pipeline(s), creating and adding Components, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a client Callback function called from the Pipeline's context -- calls `dsl_main_loop_quit()`
+
+<br>
+
+## Service Return Codes
+Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service -- as there are no "C" equivalent symbolic constants or enum types in Python.  
+
+**Note:** This is the preferred method as the return code values are subject to change
+
+`DSL_RESULT_SUCCESS` is defined in both `DslApi.h` and `dsl.py`. The non-zero Return Codes are defined in `DslApi.h` only.
+
+**DslApi.h**
+```C
+#define DSL_RESULT_SUCCESS 0
+
+typedef uint DslReturnType
+```
+**Python Script**
+```Python
+from dsl import *
+
+retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
+
+if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
+    # handle error
+```
+
+<br>
 
 ## Batch Meta Handler Callback Functions
-All of the `one-at-most` Pipeline Components - Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers - support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad). Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
+All of the `one-at-most` Pipeline Components -- Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers -- support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) in any Pipeline state. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
 
 Each batch-meta-handler function is called with a buffer of meta-data for each batch processed. A Pipeline's batch-size is set to the current number of Source Components upstream.
 
 Adding a batch-meta-handler to the sink-pad of an On-Screen Display component, for example, is an ideal point in the stream to monitor, process, and make decisions based on all inference and tracker results from  upstream.
 
-When using Python3, Nvidia's [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) are used to process the buffered batch-meta in the handler callback function. The bindings can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings)
+When using Python3, NVIDIA's [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) (see pypd in the example below) are used to process the buffered batch-meta in the handler callback function. The bindings can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings)
 
 ```Python
 # Callback function to handle batch-meta data
 def osd_batch_meta_handler_cb(buffer, user_data):
 
+    # Using NVIDIA's pypd.so bindings to process the batch-meta-data
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
     l_frame = batch_meta.frame_meta_list
     while l_frame is not None:
@@ -170,9 +221,14 @@ def osd_batch_meta_handler_cb(buffer, user_data):
 
         # On first occurence of some object of interest, start streaming to file.
         if frame_meta.source_id = some_id_of_interest:
+        
+            # add the new file sink to immediately start streaming to file.
             dsl_pipeline_component_add('my-pipeline', 'my-file-sink')
             
-            # return False to self remove.
+            # optionally install a new Callback function to remove the sink
+            # on some condition observed in the batch-meta data
+            
+            # return False to self remove this handler function.
             return False 
 
         try:
@@ -187,12 +243,12 @@ while True:
     retval = dsl_osd_new('my-osd', False)
     if retval != DSL_RETURN_SUCCESS:
         break
-    retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
+    retval = dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
     if retval != DSL_RETURN_SUCCESS:
         break
 
     # Create a new H.264 File Sink component to be added to the Pipeline by the osd_batch_meta_handler_cb
-    retval += dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+    retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
     if retval != DSL_RESULT_SUCCESS:
         break
 
@@ -216,6 +272,18 @@ dsl_pipeline_delete_all()
 dsl_component_delete_all()
 
 ```
+
+### *dsl_batch_meta_handler_cb*
+```C++
+typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
+```
+callback typedef for a client batch meta handler function. Once added to a Component, the function will be called when the component receives a batch meta buffer from its sink or src pad. Functions of this type are added to a component by calling the `dsl_<component-type>_batch_meta_handler_add` service, and removed with the corresponding `dsl_<component-type>_batch_meta_handler_removed` service.
+
+**Parameters**
+* `batch_meta` - [in] pointer to a buffer of batc-meta-data to process
+* `user_data` - [in] opaque pointer to client's user data, passed into the component on callback add
+
+<br>
 
 ## X11 Window Support
 DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
@@ -277,14 +345,18 @@ while True:
 #print out the final result
 print(dsl_return_value_to_string(retval))
 
-# clean up all resource
+# clean up all resources
 dsl_pipeline_delete_all()
 dsl_component_delete_all()
-
 ```
+
 <br>
 
 ---
+
+## Getting Started
+* [Installing Dependencies](/docs/installing-dependencies.md)
+* [Building and Importing DSL](/docs/building-dsl.md)
 
 ## API Reference
 * [Pipeline](/docs/api-pipeline.md)
