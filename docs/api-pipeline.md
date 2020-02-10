@@ -1,8 +1,8 @@
 # Pipeline API Reference
-Pipelines are the top level component in DSL. They manage and synchronize Child components when transitioning to states of `ready`, `paused`, `playing`, and `stopped`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources, Secondary GIE's and Sinks in-use by one or more Pipelines at any one time; counts constrained by the Jetson Hardware in use.
+Pipelines are the top level component in DSL. They manage and synchronize Child components when transitioning to states of `ready`, `paused`, and `playing`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources, Secondary GIE's and Sinks in-use by one or more Pipelines at any one time; counts constrained by the Jetson Hardware in use.
 
 #### Pipeline Construction and Destruction
- Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). The current number of Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size).
+Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). The current number of Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size).
 
 Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will not delete its child component, but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
 
@@ -64,9 +64,8 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove)
 * [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
 * [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove)
-* [dsl_pipeline_play](#dsl_pipeline_play)
-* [dsl_pipeline_pause](#dsl_pipeline_pause)
-* [dsl_pipeline_stop](#dsl_pipeline_stop)
+* [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
+* [dsl_pipeline_xwindow_delete_event_handler_remove](#dsl_pipeline_xwindow_delete_event_handler_remove)
 * [dsl_pipeline_state_get](#dsl_pipeline_state_get)
 * [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
@@ -74,6 +73,9 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove)
 * [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add)
 * [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove)
+* [dsl_pipeline_play](#dsl_pipeline_play)
+* [dsl_pipeline_pause](#dsl_pipeline_pause)
+* [dsl_pipeline_stop](#dsl_pipeline_stop)
 * [dsl_pipeline_list_size](#dsl_pipeline_list_size)
 * [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](#dsl_pipeline_dump_to_dot_with_ts)
@@ -652,69 +654,51 @@ retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_
 
 <br>
 
-### *dsl_pipeline_play*
+### *dsl_pipeline_xwindow_delete_event_handler_add*
 ```C++
-DslReturnType dsl_pipeline_play(wchar_t* pipeline);
+DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_button_handler_cb handler, void* user_data);
 ```
-This service is used to play a named Pipeline. The service will fail if the Pipeline's list of components are insufficient for the Pipeline to play. The service will also fail if one of the Pipeline's components fails to transition to a state of `playing`.  
+This service adds a callback function of type [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb) to a
+pipeline identified by it's unique name. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+
+**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a minimum of one Window-Sink component.
 
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to play.
-
-**Returns** 
-* `DSL_RESULT_SUCCESS` if the named Pipeline is able to successfully transition to a state of `playing`, one of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_play('my-pipeline')
-```
-
-<br>
-
-### *dsl_pipeline_pause*
-```C++
-DslReturnType dsl_pipeline_pause(wchar_t* pipeline);
-```
-This service is used to pause a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to pause.
-
-**Returns** 
-* `DSL_RESULT_SUCCESS` if the named Pipeline is able to successfully transition to a state of `paused`, one of the [Return Values](#return-values) defined above on failure.
-
-<br>
-
-### *dsl_pipeline_stop*
-```C++
-DslReturnType  dsl_pipeline_stop(wchar_t* pipeline);
-```
-This service is used to stop a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `stopped`.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to stop.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` if the named Pipeline is able to succesfully transition to a state of `stopped`, one of the [Return Values](#return-values) defined above on failure.
-
-<br>
-
-### *dsl_pipeline_state_get*
-```C++
-DslReturnType dsl_pipeline_state_get(wchar_t* pipeline, uint* state);
-```
-This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `state` - [out] the current state of the named Pipeline
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `handler` - [in] XWindow event handler callback function to add.
+* `user_data` - [in] opaque pointer to user data returned to the handler when called back
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval, state = dsl_pipeline_state_get('my-pipeline')
+def xwindow_delete_event_handler(client_data):
+    dsl_main_loop_quit()    
+
+retval = dsl_pipeline_xwindow_delete_event_handler_add('my-pipeline', xwindow_delete_event_handler, None)
+```
+
+<br>
+
+### *dsl_pipeline_xwindow_button_event_handler_remove*
+```C++
+DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipeline, 
+    dsl_xwindow_button_event_handler_cb handler);
+```
+This service removes a Client XWindow delete event handler callback that was added previously with [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update
+* `handler` - [in] XWindow event handler callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow_delete_event_handler)
 ```
 
 <br>
@@ -725,8 +709,7 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
     state_change_listener_cb listener, void* user_data);
 ```
 This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `user_data`. Multiple callback functions can be 
-registered with one Pipeline, and one callback function can be registered with multiple Pipelines. 
+pipeline identified by it's unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `user_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines. 
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -860,6 +843,74 @@ retval = dsl_pipeline_qos_listener_remove('my-pipeline', qos_listener)
 
 <br>
 
+### *dsl_pipeline_play*
+```C++
+DslReturnType dsl_pipeline_play(wchar_t* pipeline);
+```
+This service is used to play a named Pipeline. The service will fail if the Pipeline's list of components are insufficient for the Pipeline to play. The service will also fail if one of the Pipeline's components fails to transition to a state of `playing`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to play.
+
+**Returns** 
+* `DSL_RESULT_SUCCESS` if the named Pipeline is able to successfully transition to a state of `playing`, one of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_play('my-pipeline')
+```
+
+<br>
+
+### *dsl_pipeline_pause*
+```C++
+DslReturnType dsl_pipeline_pause(wchar_t* pipeline);
+```
+This service is used to pause a named Pipeline. The service will fail if the Pipeline is not currently in a `playing` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `paused`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to pause.
+
+**Returns** 
+* `DSL_RESULT_SUCCESS` if the named Pipeline is able to successfully transition to a state of `paused`, one of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_stop*
+```C++
+DslReturnType  dsl_pipeline_stop(wchar_t* pipeline);
+```
+This service is used to stop a named Pipeline and return it to a state of `read`. The service will fail if the Pipeline is not currently in a `playing` or `paused` state. The service will also fail if one of the Pipeline's components fails to transition to a state of `ready`.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to stop.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` if the named Pipeline is able to succesfully transition to a state of `stopped`, one of the [Return Values](#return-values) defined above on failure.
+
+<br>
+
+### *dsl_pipeline_state_get*
+```C++
+DslReturnType dsl_pipeline_state_get(wchar_t* pipeline, uint* state);
+```
+This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `state` - [out] the current [Pipeline State](#pipeline-states) of the named Pipeline
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, state = dsl_pipeline_state_get('my-pipeline')
+```
+
+<br>
+
+
 ### *dsl_pipeline_list_size*
 ```C++
 uint dsl_pipeline_list_size();
@@ -923,7 +974,7 @@ Except for the prefix, this method performs the identical service as
 ---
 
 ## API Reference
-* [Source](/docs/source-api.md)
+* [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-git.md)
 * [Tracker](/docs/api-tracker.md)
