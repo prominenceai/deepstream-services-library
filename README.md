@@ -1,3 +1,6 @@
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/canammex-tech/deepstream-services-library/blob/master/LICENSE)
+[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/canammex-tech/deepstream-services-library/blob/master/docs/overview.md)
+
 # deepstream-services-library (DSL)
 
 ![](/Images/under-construction.png)
