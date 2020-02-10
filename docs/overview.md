@@ -167,14 +167,10 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 
 <br>
 
----
-
 ## Main Loop Context
 After creating a Pipeline(s), creating and adding Components, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a client Callback function called from the Pipeline's context -- calls `dsl_main_loop_quit()`
 
 <br>
-
----
 
 ## Service Return Codes
 Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service -- as there are no "C" equivalent symbolic constants or enum types in Python.  
@@ -200,8 +196,6 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 ```
 
 <br>
-
----
 
 ## Batch Meta Handler Callback Functions
 All of the `one-at-most` Pipeline Components -- Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers -- support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) in any Pipeline state. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
@@ -291,8 +285,6 @@ callback typedef for a client batch meta handler function. Once added to a Compo
 
 <br>
 
----
-
 ## X11 Window Support
 DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
 
@@ -360,11 +352,11 @@ dsl_component_delete_all()
 
 <br>
 
-## Next Steps
+---
+
+## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)
 * [Building and Importing DSL](/docs/building-dsl.md)
-
----
 
 ## API Reference
 * [Pipeline](/docs/api-pipeline.md)
