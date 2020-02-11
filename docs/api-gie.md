@@ -293,12 +293,13 @@ retval = dsl_gie_num_in_use_max_set(36)
 ---
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
-* [Dewarper](api-dewarper.md)
+* [Dewarper](/docs/api-dewarper.md)
 * **Primary and Seconday GIE**
-* [Tracker](api-tracker.md)
-* [On-Screen Display](api-osd.md)
-* [Tiler](api-tiler.md)
-* [Sink](api-sink.md)
-* [Component](api-component.md)
-* [Pipeline](api-pipeline.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](/docs/api-sink.md)
+* [Component](/docs/api-component.md)
