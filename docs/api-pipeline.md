@@ -974,6 +974,16 @@ Except for the prefix, this method performs the identical service as
 ---
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* **Pipeline**
+* [Source](/docs/api-source.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Tiler](/docs/api-tiler.md)
+* [Sink](/docs/api-sink.md)
+* [Component](/docs/api-component.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-git.md)
@@ -982,4 +992,3 @@ Except for the prefix, this method performs the identical service as
 * [Tiler](/docs/api-tiler.md)
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
-* **Pipeline**
