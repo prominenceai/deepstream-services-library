@@ -155,13 +155,14 @@ retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-os
 ---
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Seconday GIE](/docs/api-gie.md)
+* [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Sink](/docs/api-sink.md)
 * **Component**
-* [Pipeline](/docs/api-pipeline.md)
 

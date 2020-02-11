@@ -501,14 +501,16 @@ retval = dsl_source_num_in_use_max_set(24)
 ---
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
 * **Source**
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Seconday GIE](/docs/api-gie.md)
+* [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
-* [Sink](docs/api-sink.md)
+* [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
-* [Pipeline](/docs/api-pipeline.md)
+
 
 
