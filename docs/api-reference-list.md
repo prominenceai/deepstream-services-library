@@ -1,7 +1,7 @@
 # DSL API Reference
 
 ### Services API:
-* [dsl_version_get](/docs/overview.md#dsl_version_get
+* [dsl_version_get](/docs/overview.md#dsl_version)
 * [dsl_main_loop_run](/docs/overview.md#main_loop_context)
 * [dsl_main_loop_quit](/docs/overview.md#main_loop_context)
 * [dsl_return_value_to_string](/docs/overview.md#service_return_codes)
