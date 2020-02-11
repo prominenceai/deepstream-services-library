@@ -656,8 +656,8 @@ retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_
 
 ### *dsl_pipeline_xwindow_delete_event_handler_add*
 ```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_button_handler_cb handler, void* user_data);
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_delete_handler_cb handler, void* user_data);
 ```
 This service adds a callback function of type [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb) to a
 pipeline identified by it's unique name. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
@@ -682,10 +682,10 @@ retval = dsl_pipeline_xwindow_delete_event_handler_add('my-pipeline', xwindow_de
 
 <br>
 
-### *dsl_pipeline_xwindow_button_event_handler_remove*
+### *dsl_pipeline_xwindow_delete_event_handler_remove*
 ```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipeline, 
-    dsl_xwindow_button_event_handler_cb handler);
+DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const char* pipeline, 
+    dsl_xwindow_delete_handler_cb handler);
 ```
 This service removes a Client XWindow delete event handler callback that was added previously with [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
 
