@@ -216,12 +216,13 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 ---
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Seconday GIE](/docs/api-git.md)
+* [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * **Tiler**
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
-* [Pipeline](/docs/api-pipeline.md)
