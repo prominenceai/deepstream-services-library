@@ -367,6 +367,7 @@ dsl_component_delete_all()
 * [Building and Importing DSL](/docs/building-dsl.md)
 
 ## API Reference
+* [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
