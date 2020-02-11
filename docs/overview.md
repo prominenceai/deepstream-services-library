@@ -172,8 +172,16 @@ After creating a Pipeline(s), creating and adding Components, and setting the Pi
 
 <br>
 
+## DSL Version
+The version label of the DSL shared library `dsl.so` can be determined by calling `dsl_version_get()`. Version information and release notes can be found on this Respo's Wiki.
+
+**Python Script**
+```Python
+current_version = dsl_version_get()
+```
+
 ## Service Return Codes
-Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service -- as there are no "C" equivalent symbolic constants or enum types in Python.  
+Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service `dsl_return_value_to_string()` to use there are no "C" equivalent symbolic constants or enum types in Python.  
 
 **Note:** This is the preferred method as the return code values are subject to change
 
