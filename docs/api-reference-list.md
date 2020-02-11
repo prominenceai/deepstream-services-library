@@ -1,13 +1,13 @@
 # DSL API Reference
 
 ### Services API:
-* [dsl_version_get](/docs/overview.md#dsl_version)
-* [dsl_main_loop_run](/docs/overview.md#main_loop_context)
-* [dsl_main_loop_quit](/docs/overview.md#main_loop_context)
-* [dsl_return_value_to_string](/docs/overview.md#service_return_codes)
+* [dsl_version_get](/docs/overview.md#dsl-version)
+* [dsl_main_loop_run](/docs/overview.md#main-loop-context)
+* [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
+* [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
 
 ### Callback Tyedefs:
-* [dsl_batch_meta_handler_cb](/docs/overview.md#batch_meta_handler_callback_functions)
+* [dsl_batch_meta_handler_cb](/docs/overview.mdbatch-meta-handler-callback-functions)
 * [dsl_state_change_listener_cb](/docs/api-pipeline.md#dsl_state_change_listener_cb)
 * [dsl_eos_listener_cb](/docs/api-pipeline.md#dsl_eos_listener_cb)
 * [dsl_xwindow_key_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_key_event_handler_cb)
