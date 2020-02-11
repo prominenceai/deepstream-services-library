@@ -1,4 +1,4 @@
-# Sources
+# Source API Reference
 Sources are the head components for all DSL Pipelines. Pipelines must have at least one source in use, among other components, to reach a state of Ready. DSL supports four types of Streaming Sources, two Camera and two Decode:
 
 **Camera Sources:**
@@ -71,9 +71,15 @@ Streaming Source Methods use the following return codes, in addition to the gene
 
 ## Cuda Decode Memory Types
 ```C++
-#define DSL_CUDADEC_MEMTYPE_DEVICE   0
-#define DSL_CUDADEC_MEMTYPE_PINNED   1
-#define DSL_CUDADEC_MEMTYPE_UNIFIED  2
+#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
+#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
+#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+```
+
+## RTP Protocols
+```C++
+#define DSL_RTP_TCP                                                 0x04
+#define DSL_RTP_ALL                                                 0x07
 ```
 
 <br>
@@ -112,7 +118,7 @@ TBI
 ### *dsl_source_uri_new*
 ```C++
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+    uint cudadec_mem_type, boolean intra_decode, uint drop_frame_interval);
 ```
 This service creates a new, uniquely named URI Source component
 
@@ -121,7 +127,7 @@ This service creates a new, uniquely named URI Source component
 * `uri` - [in] fully qualified URI prefixed with `http://`, `https://`,  or `file://` 
 * `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will used a fixed value of `false`
 * `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined below
-* `intra_decode` - [in] 
+* `intra_decode` - [in] set to true for M-JPEG codec format
 * `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
 
 **Returns**
@@ -135,8 +141,33 @@ retval = dsl_source_uri_new('dsl_source_uri_new', '../../test/streams/sample_108
 
 <br>
 
-### *dsl_source_rtmp_new*
-TBI
+### *dsl_source_rtsp_new*
+```C++
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+```
+
+This service creates a new, uniquely named URI Source component
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `uri` - [in] fully qualified URI prefixed with `http://`, `https://`
+* `is_live` [in] `true` if the URI is a live source, `false` otherwise.
+* `protocol` - [in] one of the [RTP Protocols](#rtp-protocols) define above
+* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined above
+* `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_uri_new('dsl_source_uri_new', 'http://localhost::8050/rtsp-camera-1',
+    True, DSL_CUDADEC_MEMTYPE_DEVICE, 0)
+```
+
+<br>
+
 
 ## Destructors
 As with all Pipeline components, Sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
