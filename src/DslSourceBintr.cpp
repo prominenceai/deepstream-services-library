@@ -100,6 +100,10 @@ namespace DSL
             LOG_ERROR("Source Element for SourceBintr '" << GetName() << "' has not been instantiated");
             throw;
         }
+        if (m_pMultiSinksBintr)
+        {
+            m_pMultiSinksBintr->SetSourceId(id);
+        }
         m_sourceId = id;
     }
 
@@ -170,6 +174,53 @@ namespace DSL
         return Nodetr::UnlinkFromSink();
     }
     
+    bool SourceBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pOsdBintr)
+        {
+            LOG_ERROR("SourceBintr '" << GetName() << "' has an existing child OsdBintr");
+            return false;
+        }
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
+        return true;
+    }
+    
+    const DSL_NODETR_PTR SourceBintr::GetOsdBintr()
+    {
+        LOG_FUNC();
+        
+        return m_pOsdBintr;
+    }
+    
+    bool SourceBintr::HasOsdBintr()
+    {
+        LOG_FUNC();
+        
+        return (bool)m_pOsdBintr;
+    }
+    
+    bool SourceBintr::RemoveOsdBintr()
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to remove child OsdBintr from SourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        
+        if (!m_pOsdBintr)
+        {
+            LOG_ERROR("SourceBintr '" << GetName() << "' does not have a child OsdBintr");
+            return false;
+        }
+        m_pOsdBintr = nullptr;
+    }
+
+    
     bool SourceBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();
@@ -189,7 +240,7 @@ namespace DSL
 
         if (!m_pMultiSinksBintr)
         {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            LOG_INFO("SourceBintr '" << GetName() << "' has no Sinks");
             return false;
         }
         return (m_pMultiSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
@@ -201,13 +252,40 @@ namespace DSL
 
         if (!m_pMultiSinksBintr)
         {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            LOG_INFO("SourceBintr '" << GetName() << "' has no Sinks");
             return false;
         }
 
         // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
         return m_pMultiSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
+    
+    bool SourceBintr::LinkToDemuxer(DSL_NODETR_PTR pDemuxer)
+    {
+        LOG_FUNC();
+        
+        if (!m_pMultiSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            return false;
+        }
+            
+        return m_pMultiSinksBintr->LinkToSource(pDemuxer);
+    }
+    
+    bool SourceBintr::UnlinkFromDemuxer()
+    {
+        LOG_FUNC();
+        
+        if (!m_pMultiSinksBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
+            return false;
+        }
+            
+        return m_pMultiSinksBintr->UnlinkFromSource();
+    }
+    
     
     //*********************************************************************************
 

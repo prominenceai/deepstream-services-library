@@ -101,10 +101,37 @@ namespace DSL
          */
         void UnlinkAll();
         
+        void SetSourceId(uint sourceId)
+        {
+            LOG_FUNC();
+            
+            m_sourceId = sourceId;
+        }
+        
+        /**
+         * @brief Links this MultiSinksBintr back to a source Demuxer element
+         * @param[in] pDemuxer to link back to
+         * @return true on successful Link false other
+         */
+        bool LinkToSource(DSL_NODETR_PTR pDemuxer);
+        
+        /**
+         * @brief Unlinks this MultiSinksBintr from a source Demuxer element
+         * @return 
+         */
+        bool UnlinkFromSource();
+        
         
     private:
+    
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pTee;
+        
+        /**
+         * @brief Id of Parent SourceBintr if added to Source vs. Pipeline
+         * The id is used when getting a request Pad for Src Demuxer
+         */
+        int m_sourceId;
     
         std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
 

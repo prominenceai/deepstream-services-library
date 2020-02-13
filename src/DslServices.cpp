@@ -2586,7 +2586,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;

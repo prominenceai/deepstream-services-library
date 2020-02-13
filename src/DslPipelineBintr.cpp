@@ -143,6 +143,11 @@ namespace DSL
                 << m_pOsdBintr->GetName());
             return false;
         }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add OSD");
+            return false;
+        }
         m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
         
         return AddChild(pOsdBintr);
@@ -169,7 +174,7 @@ namespace DSL
 
         if (m_pTrackerBintr)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tracker");
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tracker");
             return false;
         }
         m_pTrackerBintr = std::dynamic_pointer_cast<TrackerBintr>(pTrackerBintr);
@@ -194,6 +199,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add Sink to Pipeline directly");
+            return false;
+        }
         // Create the shared Sinks bintr if it doesn't exist
         if (!m_pPipelineSinksBintr)
         {
@@ -229,13 +239,37 @@ namespace DSL
         return m_pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
     }
 
+    bool PipelineBintr::AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer");
+            return false;
+        }
+        if (m_pTilerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tiler - can't add Demuxer");
+            return false;
+        }
+        m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
+        
+        return AddChild(pDemuxerBintr);
+    }
+
     bool PipelineBintr::AddTilerBintr(DSL_NODETR_PTR pTilerBintr)
     {
         LOG_FUNC();
 
         if (m_pTilerBintr)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' allready has a Tiler");
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tiler");
+            return false;
+        }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add Tiler");
             return false;
         }
         m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
@@ -357,27 +391,39 @@ namespace DSL
         }
         if (!m_pPipelineSourcesBintr)
         {
-            LOG_ERROR("Pipline has no required Source component - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;
         }
-        if (!m_pPipelineSinksBintr)
+        if (!m_pDemuxerBintr and !m_pTilerBintr)
         {
-            LOG_ERROR("Pipline has no required Sink component - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer or Tiler  - and is unable to link");
+            return false;
+        }
+        if (m_pTilerBintr and !m_pPipelineSinksBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() << "'has a Tiler and no required Sink component - and is unable to link");
             return false;
         }
         if (m_pTrackerBintr and !m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipline has a Tracker and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() << "' has a Tracker and no Primary GIE - and is unable to link");
             return false;
         }
         if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
         {
-            LOG_ERROR("Pipline has a Seconday GIE and no Primary GIE - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
             return false;
         }
-        
         // Start with an empty list of linked components
         m_linkedComponents.clear();
+        
+        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
+        if (m_pDemuxerBintr)
+        {
+            // Add the Demuxer to the MultiSourceBintr to be linked with each individual
+            // SourceBintr's OSD and/or MultiSinksBintr
+            m_pPipelineSourcesBintr->AddDemuxer(m_pDemuxerBintr);
+        }
 
         // Link all Source Elementrs, and all Sources to the StreamMux
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
@@ -426,6 +472,19 @@ namespace DSL
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);
         }
         
+        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
+        if (m_pDemuxerBintr)
+        {
+            // Link All Tiled Tiler Elementrs and add as the next component in the Pipeline
+            if (!m_pDemuxerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pDemuxerBintr);
+        }
+
+        // mutually exclusive with Demuxer
         if (m_pTilerBintr)
         {
             // Link All Tiled Tiler Elementrs and add as the next component in the Pipeline
@@ -437,6 +496,7 @@ namespace DSL
             m_linkedComponents.push_back(m_pTilerBintr);
         }
 
+        // mutually exclusive with Demuxer
         if (m_pOsdBintr)
         {
             // LinkAll Osd Elementrs and add as next component in the Pipeline
@@ -448,13 +508,17 @@ namespace DSL
             m_linkedComponents.push_back(m_pOsdBintr);
         }
 
-        // Link all Sinks and their elementrs and add as finale (tail) components in the Pipeline
-        if (!m_pPipelineSinksBintr->LinkAll() or
-            !m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr))
+        // mutually exclusive with Demuxer
+        if (m_pPipelineSinksBintr)
         {
-            return false;
+            // Link all Sinks and their elementrs and add as finale (tail) components in the Pipeline
+            if (!m_pPipelineSinksBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pPipelineSinksBintr);
         }
-        m_linkedComponents.push_back(m_pPipelineSinksBintr);
         
         m_isLinked = true;
         return true;

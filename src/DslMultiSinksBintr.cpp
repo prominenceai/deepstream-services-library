@@ -31,6 +31,7 @@ namespace DSL
 
     MultiSinksBintr::MultiSinksBintr(const char* name)
         : Bintr(name)
+        , m_sourceId(-1)
     {
         LOG_FUNC();
 
@@ -171,6 +172,58 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
+    }
+
+    bool MultiSinksBintr::LinkToSource(DSL_NODETR_PTR pDemuxer)
+    {
+        LOG_FUNC();
+        
+        std::string srcPadName = "src_" + std::to_string(m_sourceId);
+        
+        LOG_INFO("Linking the MultiSinkBintr '" << GetName() << "' to Pad '" << srcPadName 
+            << "' for Demuxer '" << pDemuxer->GetName() << "'");
+       
+        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
+        if (!m_pGstStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get Static Sink Pad for MuliSinksBintr '" << GetName() << "'");
+            return false;
+        }
+
+        GstPad* pGstRequestedSrcPad = gst_element_get_request_pad(pDemuxer->GetGstElement(), srcPadName.c_str());
+            
+        if (!pGstRequestedSrcPad)
+        {
+            LOG_ERROR("Failed to get Requested Src Pad for StreamMux '" << pDemuxer->GetName() << "'");
+            return false;
+        }
+        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSrcPad;
+
+        // Call the base class to complete the link relationship
+        return Bintr::LinkToSource(pDemuxer);
+    }
+    
+    bool MultiSinksBintr::UnlinkFromSource()
+    {
+        LOG_FUNC();
+        
+        // If we're not currently linked to the Demuxer
+        if (!IsLinkedToSource())
+        {
+            LOG_ERROR("MultiSinkBintr '" << GetName() << "' is not in a Linked state");
+            return false;
+        }
+
+        std::string srcPadName = "src_" + std::to_string(m_sourceId);
+
+        LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
+        
+        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
+        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
+                
+        m_pGstRequestedSourcePads.erase(srcPadName);
+        
+        return Nodetr::UnlinkFromSource();
     }
     
 }

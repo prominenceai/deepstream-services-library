@@ -150,6 +150,34 @@ namespace DSL
         return Bintr::RemoveChild(pChildSource);
     }
 
+    bool PipelineSourcesBintr::AddDemuxer(DSL_DEMUXER_PTR pDemuxerBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' has an existing Demuxer");
+            return false;
+        }
+        m_pDemuxerBintr = pDemuxerBintr;
+        
+        return true;
+    }
+    
+    bool PipelineSourcesBintr::RemoveDemuxer()
+    {
+        LOG_FUNC();
+        
+        if (!m_pDemuxerBintr)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' does not have a Demuxer");
+            return false;
+        }
+        m_pDemuxerBintr = nullptr;
+
+        return true;
+    }
+    
     bool PipelineSourcesBintr::LinkAll()
     {
         LOG_FUNC();
@@ -171,12 +199,18 @@ namespace DSL
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
                 return false;
             }
+            if (m_pDemuxerBintr and !imap.second->LinkToDemuxer(m_pDemuxerBintr->GetDemuxerElementr()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to link Source'" << imap.second->GetName() << "' back to Demuxer");
+                return false;
+            }
         }
-        m_isLinked = true;
-
         // Set the Batch size to the nuber of sources owned
         // TODO add support for managing batch timeout
         SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+
+        m_isLinked = true;
         
         return true;
     }
@@ -200,13 +234,20 @@ namespace DSL
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
                 return;
             }
+            if (m_pDemuxerBintr and !imap.second->UnlinkFromDemuxer())
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink Source'" << imap.second->GetName() << "' back to Demuxer");
+                return;
+            }
             // unink all of the ChildSource's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
             imap.second->SetSourceId(-1);
+
         }
         m_isLinked = false;
     }
-
+    
     void PipelineSourcesBintr::SetStreamMuxPlayType(bool areSourcesLive)
     {
         LOG_FUNC();
