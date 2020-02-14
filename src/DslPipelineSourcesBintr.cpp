@@ -150,7 +150,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildSource);
     }
 
-    bool PipelineSourcesBintr::AddDemuxer(DSL_DEMUXER_PTR pDemuxerBintr)
+    bool PipelineSourcesBintr::AddDemuxer(DSL_NODETR_PTR pParentPipeline, DSL_DEMUXER_PTR pDemuxerBintr)
     {
         LOG_FUNC();
         
@@ -160,7 +160,11 @@ namespace DSL
             return false;
         }
         m_pDemuxerBintr = pDemuxerBintr;
-        
+
+        for (auto const& imap: m_pChildSources)
+        {
+            imap.second->AddChildComponentsToPipeline(pParentPipeline);
+        }
         return true;
     }
     
@@ -291,7 +295,7 @@ namespace DSL
         LOG_FUNC();
         
         *width = m_streamMuxWidth;
-        *width = m_streamMuxHeight;
+        *height = m_streamMuxHeight;
     }
 
     void PipelineSourcesBintr::SetStreamMuxDimensions(uint width, uint height)

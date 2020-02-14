@@ -422,16 +422,18 @@ namespace DSL
         {
             // Add the Demuxer to the MultiSourceBintr to be linked with each individual
             // SourceBintr's OSD and/or MultiSinksBintr
-            m_pPipelineSourcesBintr->AddDemuxer(m_pDemuxerBintr);
+            m_pPipelineSourcesBintr->AddDemuxer(shared_from_this(), m_pDemuxerBintr);
         }
 
-        // Link all Source Elementrs, and all Sources to the StreamMux
+        // Link all Source Elementrs (required component), and all Sources to the StreamMuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
         if (!m_pPipelineSourcesBintr->LinkAll())
         {
             return false;
         }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
+        LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
+            m_pPipelineSourcesBintr->GetName() << "' successfully");
 
         if (m_pPrimaryGieBintr)
         {
@@ -444,6 +446,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pPrimaryGieBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up Primary GIE '" << 
+                m_pPrimaryGieBintr->GetName() << "' successfully");
         }
         
         if (m_pTrackerBintr)
@@ -455,6 +459,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pTrackerBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tracker '" << 
+                m_pTrackerBintr->GetName() << "' successfully");
         }
         
         if (m_pSecondaryGiesBintr)
@@ -470,30 +476,36 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up all Secondary GIEs '" << 
+                m_pSecondaryGiesBintr->GetName() << "' successfully");
         }
         
         // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
         if (m_pDemuxerBintr)
         {
-            // Link All Tiled Tiler Elementrs and add as the next component in the Pipeline
+            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
             if (!m_pDemuxerBintr->LinkAll() or
                 !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr))
             {
                 return false;
             }
             m_linkedComponents.push_back(m_pDemuxerBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up Demuxer '" << 
+                m_pDemuxerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
         if (m_pTilerBintr)
         {
-            // Link All Tiled Tiler Elementrs and add as the next component in the Pipeline
+            // Link All Tiler Elementrs and add as the next component in the Pipeline
             if (!m_pTilerBintr->LinkAll() or
                 !m_linkedComponents.back()->LinkToSink(m_pTilerBintr))
             {
                 return false;
             }
             m_linkedComponents.push_back(m_pTilerBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
+                m_pTilerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
@@ -506,6 +518,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pOsdBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up OSD '" << 
+                m_pOsdBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
@@ -518,6 +532,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pPipelineSinksBintr);
+            LOG_INFO("Pipeline '" << GetName() << "' Linked up all Sinks '" << 
+                m_pPipelineSinksBintr->GetName() << "' successfully");
         }
         
         m_isLinked = true;
@@ -542,7 +558,14 @@ namespace DSL
             }
             ivector->UnlinkAll();
         }
+        if (m_pDemuxerBintr)
+        {
+            // Remove the Demuxer from the MultiSourceBintr, which was linked with each individual
+            // SourceBintr's OSD and/or MultiSinksBintr
+            m_pPipelineSourcesBintr->RemoveDemuxer();
+        }
 
+        m_linkedComponents.clear();
         m_isLinked = false;
     }
 
@@ -601,7 +624,7 @@ namespace DSL
         uint state = GetState();
         if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
         {
-            LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
+            LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
             return true;
         }
         // Call the base class to stop
@@ -935,16 +958,25 @@ namespace DSL
 
     bool PipelineBintr::CreateXWindow()
     {
-        if (!m_pTilerBintr)
+        LOG_FUNC();
+        
+        if (!m_pDemuxerBintr and !m_pTilerBintr)
         {
-            LOG_ERROR("Create XWindow error: Miissing Tiler Bintr for Pipeline '" << GetName() << '"');
+            LOG_ERROR("Create XWindow error: Missing Demuxer or Tiler Bintr for Pipeline '" << GetName() << '"');
             return false;
         }
 
         // calculate the minimum width and heigh for XWindow creation
         uint displayWidth(0), displayHeight(0);
-        m_pTilerBintr->GetDimensions(&displayWidth, &displayHeight);
-        
+        if (m_pTilerBintr)
+        {
+            m_pTilerBintr->GetDimensions(&displayWidth, &displayHeight);
+        }
+        else
+        {
+            GetStreamMuxDimensions(&displayWidth, &displayHeight);
+        }
+
         m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
         m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
         

@@ -31,7 +31,7 @@ namespace DSL
 
     MultiSinksBintr::MultiSinksBintr(const char* name)
         : Bintr(name)
-        , m_sourceId(-1)
+        , m_streamId(-1)
     {
         LOG_FUNC();
 
@@ -178,7 +178,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        std::string srcPadName = "src_" + std::to_string(m_sourceId);
+        std::string srcPadName = "src_" + std::to_string(m_streamId);
         
         LOG_INFO("Linking the MultiSinkBintr '" << GetName() << "' to Pad '" << srcPadName 
             << "' for Demuxer '" << pDemuxer->GetName() << "'");
@@ -194,7 +194,7 @@ namespace DSL
             
         if (!pGstRequestedSrcPad)
         {
-            LOG_ERROR("Failed to get Requested Src Pad for StreamMux '" << pDemuxer->GetName() << "'");
+            LOG_ERROR("Failed to get Requested Src Pad for Demuxer '" << pDemuxer->GetName() << "'");
             return false;
         }
         m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSrcPad;
@@ -214,7 +214,7 @@ namespace DSL
             return false;
         }
 
-        std::string srcPadName = "src_" + std::to_string(m_sourceId);
+        std::string srcPadName = "src_" + std::to_string(m_streamId);
 
         LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
         

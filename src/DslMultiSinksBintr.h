@@ -100,12 +100,16 @@ namespace DSL
          * @brief unlinks all child Sink Bintrs and their Elementrs
          */
         void UnlinkAll();
-        
-        void SetSourceId(uint sourceId)
+
+        /**
+         * @brief Set the Stream Id - for when a child of a Source
+         * @param streamId unique Id of the Parent Stream
+         */
+        void SetStreamId(uint streamId)
         {
             LOG_FUNC();
             
-            m_sourceId = sourceId;
+            m_streamId = streamId;
         }
         
         /**
@@ -117,7 +121,7 @@ namespace DSL
         
         /**
          * @brief Unlinks this MultiSinksBintr from a source Demuxer element
-         * @return 
+         * @return true on successful Unlink false other
          */
         bool UnlinkFromSource();
         
@@ -128,10 +132,10 @@ namespace DSL
         DSL_ELEMENT_PTR m_pTee;
         
         /**
-         * @brief Id of Parent SourceBintr if added to Source vs. Pipeline
+         * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline
          * The id is used when getting a request Pad for Src Demuxer
          */
-        int m_sourceId;
+        int m_streamId;
     
         std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
 

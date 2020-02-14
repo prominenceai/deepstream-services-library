@@ -67,9 +67,11 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
 #define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
+#define DSL_RESULT_SOURCE_OSD_ADD_FAILED                            0x0002000D
+#define DSL_RESULT_SOURCE_OSD_REMOVE_FAILED                         0x0002000E
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000F
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x00020010
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020011
 
 /**
  * Dewarper API Return Values
@@ -148,7 +150,16 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST                    0x0006000D
 
 /**
- * Display API Return Values
+ * Demuxer API Return Values
+ */
+#define DSL_RESULT_DEMUXER_RESULT                                   0x000A0000
+#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
+#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
+#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
+#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
+
+/**
+ * Tile API Return Values
  */
 #define DSL_RESULT_TILER_RESULT                                     0x00070000
 #define DSL_RESULT_TILER_NAME_NOT_UNIQUE                            0x00070001
@@ -344,8 +355,23 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
 
 /**
+ * @brief adds a named On-Screen Display object to a named Source object - one at most
+ * @param source name of the Source object to update
+ * @param osd name of the OSD object to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd);
+
+/**
+ * @brief removes a one-at-most On-Screen Display object from a named Source object
+ * @param name name of the Source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_osd_remove(const wchar_t* name);
+
+/**
  * @brief adds a named Sink object to a named Source object
- * @param source name of the Source object update
+ * @param source name of the Source object to update
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -353,7 +379,7 @@ DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink);
 
 /**
  * @brief removes a named Sink object from a named Source object
- * @param name name of the Source object update
+ * @param name name of the Source object to update
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -750,7 +776,14 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name,
 DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
- * @brief creates a new, uniquely named Display obj
+ * @brief Creates a new, uniquely named Demuxer component
+ * @param name unique name for the new Demuxer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ */
+DslReturnType dsl_demuxer_new(const wchar_t* name);
+
+/**
+ * @brief creates a new, uniquely named Display component
  * @param[in] name unique name for the new Display
  * @param[in] width width of the Display in pixels
  * @param[in] height height of the Display in pixels
@@ -825,14 +858,16 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
  * @param[in] name unique component name for the new Overlay Sink
+ * @param[in] display_id unique display ID for this Overlay Sink
+ * @param[in] depth overlay depth for this Overlay Sink
  * @param[in] offsetX upper left corner offset in the X direction in pixels
  * @param[in] offsetY upper left corner offset in the Y direction in pixels
  * @param[in] width width of the Ovelay Sink in pixels
  * @param[in] heigth height of the Overlay Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, uint width, uint height);
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+    uint depth, uint offsetX, uint offsetY, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named Window Sink component

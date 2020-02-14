@@ -95,6 +95,24 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
     return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
 }
 
+DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOsd(osd);
+    std::string cstrOsd(wstrOsd.begin(), wstrOsd.end());
+
+    return DSL::Services::GetServices()->SourceOsdAdd(cstrName.c_str(), cstrOsd.c_str());
+}
+
+DslReturnType dsl_source_osd_remove(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceOsdRemove(cstrName.c_str());
+}
+
 DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink)
 {
     std::wstring wstrName(name);
@@ -529,6 +547,14 @@ DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enab
     return DSL::Services::GetServices()->OsdKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
         
+DslReturnType dsl_demuxer_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DemuxerNew(cstrName.c_str());
+}
+
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
@@ -595,14 +621,14 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
 }
 
-DslReturnType dsl_sink_overlay_new(const wchar_t* name,
-    uint offsetX, uint offsetY, uint width, uint height)
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+    uint depth, uint offsetX, uint offsetY, uint width, uint height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
-        offsetX, offsetY, width, height);
+    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), overlay_id, 
+        display_id, depth, offsetX, offsetY, width, height);
 }
 
 DslReturnType dsl_sink_window_new(const wchar_t* name,
@@ -1495,6 +1521,67 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::SourceOsdAdd(const char* name, const char* osd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, osd);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, osd, OsdBintr);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[osd]);
+         
+            if (!pSourceBintr->AddOsdBintr(pOsdBintr))
+            {
+                LOG_ERROR("Failed to add OSD '" << osd << "' to Source '" << name << "'");
+                return DSL_RESULT_SOURCE_OSD_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding OSD");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("OSD '" << osd << "' added to Source '" << name << "' successfully");
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SourceOsdRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->RemoveOsdBintr())
+            {
+                LOG_ERROR("Failed to remove OSD from Source '" << name << "'");
+                return DSL_RESULT_SOURCE_OSD_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception removing OSD");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("OSD removed from Source '" << name << "' successfully");
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::SourceSinkAdd(const char* name, const char* sink)
     {
         LOG_FUNC();
@@ -1505,6 +1592,7 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
             RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
 
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
@@ -2416,6 +2504,31 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
         
+    DslReturnType Services::DemuxerNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Demuxer name '" << name << "' is not unique");
+            return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Demuxer '" << name << "' threw exception on create");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Demuxer '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::TilerNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -2434,10 +2547,10 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler New'" << name << "' threw exception on create");
+            LOG_ERROR("New Tiler'" << name << "' threw exception on create");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        LOG_INFO("new Tiler '" << name << "' created successfully");
+        LOG_INFO("New Tiler '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -3003,8 +3116,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkOverlayNew(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height)
+    DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+        uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3017,7 +3130,8 @@ namespace DSL
         }
         try
         {
-            m_components[name] = DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height);
+            m_components[name] = DSL_OVERLAY_SINK_NEW(
+                name, overlay_id, display_id, depth, offsetX, offsetY, width, height);
         }
         catch(...)
         {
@@ -4209,6 +4323,11 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_GIE_PAD_TYPE_INVALID] = L"DSL_RESULT_GIE_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE] = L"DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE";
         m_returnValueToString[DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST";
+        m_returnValueToString[DSL_RESULT_DEMUXER_RESULT] = L"DSL_RESULT_DEMUXER_RESULT";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_NOT_FOUND] = L"DSL_RESULT_DEMUXER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEMUXER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_DEMUXER_THREW_EXCEPTION] = L"DSL_RESULT_DEMUXER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_TILER_RESULT] = L"DSL_RESULT_TILER_RESULT";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_TILER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_FOUND] = L"DSL_RESULT_TILER_NAME_NOT_FOUND";

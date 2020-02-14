@@ -77,7 +77,7 @@ namespace DSL
             return m_pChildSources.size();
         }
 
-        bool AddDemuxer(DSL_DEMUXER_PTR pDemuxerBintr);
+        bool AddDemuxer(DSL_NODETR_PTR pParentPipeline, DSL_DEMUXER_PTR pDemuxerBintr);
         
         bool RemoveDemuxer();
         

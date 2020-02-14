@@ -172,6 +172,13 @@ namespace DSL
         bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
         /**
+         * @brief Add this SourceBintr's optional OsdBintr and MultiSinksBintr to a Parent Pipeline
+         * @param[in] pPipeline shared pointer to a parent Pipeline
+         * @return true if successful, false otherwise
+         */
+        bool AddChildComponentsToPipeline(DSL_NODETR_PTR pPipeline);
+
+        /**
          * @brief Links all Child OSD and Sinks for this SourceBintr to the Demuxer
          * @param pDemuxerBintr DemuxerBintr
          * @return true if successful, false otherwise
