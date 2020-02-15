@@ -133,12 +133,33 @@ On-Screen Display (OSD) components highlight detected objects with colored bound
 
 OSDs are optional and a Pipeline can have at most one. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
-## Multi-Source Tiler
-Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated after creation.
+## Multi-Source Tiler and Demuxer
+To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal stream-muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before linking to one or more components downstream.
+
+### Multi-Source Tiler
+Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline to operate on the Tiler's single output stream.
+```Python
+# assumes all components have been created first
+retval = dsl_pipeline_component_add_many('my-pipeline', 
+    ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink`, `window-sink` None])
+```
+Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated after creation.
 
 Clients of Tiler components can add/remove `batch-meta-handler` callback functions, [see below](#batch-meta-handler-callback-functions)
 
 Tiler components are optional and a Pipeline can have at most one. See the [Multi-Source Tiler API](/docs/api-tiler.md) reference section for more information.
+
+### Multi-Source Demuxer
+Demuxers demultiplex the multiplexed source streams back into individual output streams. When using a Demuxer, each output stream -- one for each input Source -- can connect to a unique On-Screen-Display (OSD) and requires one or more Sinks. To identify the unique Source to OSD and Sink relationships, each of the optional OSD and Sink components are added to their Source components directly, and with the Sources added to the Pipeline along with the Demuer.
+```Python
+# assumes all components have been created first
+# return values whould normally be checked for each...
+retval = dsl_source_osd_add('src-1', 'osd')
+retval = dsl_source_sink_add('src-1', 'overlay-sink1')
+retval = dsl_source_sink_add_many('src-2', ['overlay-sink2, 'rtsp-sink', None])
+retval = dsl_pipeline_component_add_many('my-pipeline',
+    ['src-1', 'src-2', 'pgie', 'demuxer', None])
+```
 
 ## Rendering and Streaming Sinks
 Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
