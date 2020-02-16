@@ -19,7 +19,7 @@
 
 For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction by encapsulating the complexity that comes with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction. Built to encapsulatie the complexity that comes with GStreamer's power and flexibility.
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
 1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
