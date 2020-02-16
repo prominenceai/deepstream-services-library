@@ -15,9 +15,11 @@
 * [API Reference](#api-reference)
 
 ## Introduction
-[NVIDIA’s DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) "*an extremely powerful and versatile framework*<sup id="a1">[1](#f1)</sup>" -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
+[NVIDIA’s DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) "*an extremely powerful and versatile framework*<sup id="a1">[1](#f1)</sup>" -- enables experienced software developers to "*Seamlessly Develop Complex Stream Processing Pipelines*<sup id="a1">[2](#f2)</sup>". 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
+For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
+
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction by encapsulating the complexity that comes with GStreamer's power and flexibility.
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines; modifications made (1) based on the results of the real-time video analysis (2) by the application User through external input. An example of each:
 1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific objects detected.
@@ -42,11 +44,15 @@ retval = dsl_pipeline_new('my-pipeline')
 ```
 Create a set of Components, each with a specific function and purpose. 
 ```Python
-# new Camera Source - setting dimensions and frames-per-second
-retval += dsl_source_csi_new('my-source', 1280, 720, 30, 1)
+# new Camera Sources - setting dimensions and frames-per-second
+retval += dsl_source_csi_new('my-source1', 1280, 720, 30, 1)
+retval += dsl_source_csi_new('my-source2', 1280, 720, 30, 1)
 
-# new Primary Inference Engine - path to model engine and config file, infer-on every frame with interval = 0
+# new Primary Inference Engine - path to model engine and config file, interval 0 = infer on every frame
 retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, 0)
+
+# new Multi-Source Tiler with dimensions of width and height 
+retval += dsl_tiler_new('my-tiler', 1280, 720)
 
 # new On-Screen Display for inference visualization - bounding boxes and labels - clocks disabled (False)
 retval += dsl_osd_new('my-osd', False)
@@ -70,8 +76,9 @@ retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_de
 ```
 Add the components to the Pipeline.
 ```Python
-# Using a Null terminated list
-retval = dsl_pipeline_component_add_many('my-pipeline', ['my-source', 'my-pgie', 'my-osd', 'my-sink', None])
+# Using a Null terminated list - in any order
+retval = dsl_pipeline_component_add_many('my-pipeline', 
+    ['my-source1', 'my-source2, 'my-pgie', 'my-tiler', 'my-osd', 'my-sink', None])
 ```
 
 Transition the Pipeline to a state of Playing and start/join the main loop
@@ -128,13 +135,10 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
-## On-Screen Display
-On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
-
-OSDs are optional and a Pipeline can have at most one. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
-
 ## Multi-Source Tiler and Demuxer
 To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal stream-muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before linking to one or more components downstream.
+
+See the [Multi-Source Tiler and Demuxer API](/docs/api-tiler.md) reference section for additional information.
 
 ### Multi-Source Tiler
 Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline to operate on the Tiler's single output stream.
@@ -147,19 +151,28 @@ Tilers have dimensions, width and height in pixels, and rows and columns setting
 
 Clients of Tiler components can add/remove `batch-meta-handler` callback functions, [see below](#batch-meta-handler-callback-functions)
 
-Tiler components are optional and a Pipeline can have at most one. See the [Multi-Source Tiler API](/docs/api-tiler.md) reference section for more information.
-
 ### Multi-Source Demuxer
 Demuxers demultiplex the multiplexed source streams back into individual output streams. When using a Demuxer, each output stream -- one for each input Source -- can connect to a unique On-Screen-Display (OSD) and requires one or more Sinks. To identify the unique Source to OSD and Sink relationships, each of the optional OSD and Sink components are added to their Source components directly, and with the Sources added to the Pipeline along with the Demuer.
 ```Python
 # assumes all components have been created first
 # return values whould normally be checked for each...
+
+# setup src-1 with its own OSD and Overlay Sink
 retval = dsl_source_osd_add('src-1', 'osd')
 retval = dsl_source_sink_add('src-1', 'overlay-sink1')
+
+# setup src-2 with two Sinks - Overlay and RTSP, no OSD
 retval = dsl_source_sink_add_many('src-2', ['overlay-sink2, 'rtsp-sink', None])
+
+# add Sources, Primary GIE, and Demuxer components to the Pipeline
 retval = dsl_pipeline_component_add_many('my-pipeline',
     ['src-1', 'src-2', 'pgie', 'demuxer', None])
 ```
+
+## On-Screen Display
+On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
+
+OSDs are optional and a Pipeline can have at most one when using a Tiler or one-per-source when using a Demuxer. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
 ## Rendering and Streaming Sinks
 Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
@@ -200,6 +213,8 @@ The version label of the DSL shared library `dsl.so` can be determined by callin
 ```Python
 current_version = dsl_version_get()
 ```
+
+<br>
 
 ## Service Return Codes
 Most DSL services return values of type `DslReturnType`, return codes with `0` indicating success and `non-0` values indicating failure. All possible return codes are defined as symbolic constants in `DslApi.h` When using Python3, DSL provides a convenience service `dsl_return_value_to_string()` to use there are no "C" equivalent symbolic constants or enum types in Python.  
@@ -395,9 +410,10 @@ dsl_component_delete_all()
 * [Primary and Secondary GIE](/docs/api-gie)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler](/docs/api-tiler.md)
+* [Tiler and Demuxer](/docs/api-tiler.md)
 * [Sink](docs/api-sink.md)
 * [Component](/docs/api-component.md)
 
 --- 
-<b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)
+* <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)
+* <b id="f2">2</b> Quote from NVIDIA's Developer Site [here](https://developer.nvidia.com/deepstream-sdk). [↩](#a2)
