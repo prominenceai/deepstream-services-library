@@ -575,7 +575,7 @@ retval = dsl_source_num_in_use_max_set(24)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler](/docs/api-tiler.md)
+* [Tiler and Demuxer](/docs/api-tiler.md)
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
 
