@@ -15,7 +15,7 @@
 * [API Reference](#api-reference)
 
 ## Introduction
-NVIDIA’s DeepStream SDK -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
+[NVIDIA’s DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) *"an extremely powerful and versatile framework"* [<sup>1</sup>](#1) -- enables experienced software developers to *"Seamlessly Develop Complex Stream Processing Pipelines"*. For those new to DeepStream, however, GStreamer comes with a learning curve that can be a little step or lengthy for some. 
 
 The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyist to develop custom DeepStream applications in Python3 or C/C++ at a much higher level of abstraction - built to encapsulate the complexity that comes with GStreamer's power and flexibility.
 
@@ -398,3 +398,7 @@ dsl_component_delete_all()
 * [Tiler](/docs/api-tiler.md)
 * [Sink](docs/api-sink.md)
 * [Component](/docs/api-component.md)
+
+--- 
+
+<a id="note1" href="#note1ref"><sup>1</sup></a>RE: GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c).
