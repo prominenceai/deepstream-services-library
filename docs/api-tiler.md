@@ -1,34 +1,56 @@
-# Multi-Stream Tiler API
+# Multi-Stream Tiler and Demuxer API
+Every Pipeline must have either a Tiler or Demuxer Component to transition to a state of Playing, even with only one Source component `in-use`. This requirement allows new sources to be dynamically added without stoping and unlinking the Pipeline first.
 
-Multi-Stream Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and number-of-tiles expressed in `rows` and `cols`. Dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, as long as the Tiler is not currently `in-use` by a Pipeline.
+#### Multi-Source Tiler 
+Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and number-of-tiles expressed in `rows` and `cols`. Dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, as long as the Tiler is not currently `in-use` by a Pipeline. When using a Tiler, all downstream components -- [On-Screen Displays](/docs/api-osd) and [Sinks](/docs/api-sink) -- are added to the Pipeline directly.
 
-A Multi-Stream Tiler is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+#### Multi-Source Demuxer
+Demuxer components demultiplex the batched stream from the stream-muxer back into a single stream per source. When using a Demuxer, all downstream components  -- [On-Screen Displays](/docs/api-osd) and [Sinks](/docs/api-sink) -- are added to their respective upstream Source, and not to the Pipeline directly. This simplifies the process of dynamically adding/removing multiple sources when using a Demuxer.
 
-The relationship between Pipelines and Tilers is one-to-one. Once added to a Pipeline, a Tiler must be removed before it can used with another. Tiled-Displays are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+#### Adding to a Pipeline
+A Multi-Stream Tiler or Demuxer is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+
+The relationship between Pipelines and Tilers/Demuxers is one-to-one. Once added to a Pipeline, a Tiler/Demuxer must be removed before it can used with another. Tilers and Demuxers are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 
-
-## Multi-Stream Tiler API
+## Tiler and Demuxer API
+**Constructors**
 * [dsl_tiler_new](#dsl_tiler_new)
+* [dsl_demuxer_new](#dsl_tiler_new)
+
+**Methods**
 * [dsl_tiler_dimensions_get](#dsl_tiler_dimensions_get)
 * [dsl_tiler_dimensions_set](#dsl_tiler_dimensions_set)
-* [dsl_tiler_tiles_get](#dsl_display_tiles_get)
-* [dsl_tiler_tiles_set](#dsl_display_tiles_set)
+* [dsl_tiler_tiles_get](#dsl_tiler_tiles_get)
+* [dsl_tiler_tiles_set](#dsl_tiler_tiles_set)
 * [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add).
 * [dsl_tiler_batch_meta_handler_remove](#dsl_tiler_batch_meta_handler_remove).
+* [dsl_demuxer_batch_meta_handler_add](#dsl_demuxer_batch_meta_handler_add).
+* [dsl_demuxer_batch_meta_handler_remove](#dsl_demuxer_batch_meta_handler_remove).
 
 ## Return Values
 The following return codes are used by the Tiler API
 ```C++
-#define DSL_RESULT_TILER_NAME_NOT_UNIQUE                          0x00070001
-#define DSL_RESULT_TILER_NAME_NOT_FOUND                           0x00070002
-#define DSL_RESULT_TILER_NAME_BAD_FORMAT                          0x00070003
-#define DSL_RESULT_TILER_THREW_EXCEPTION                          0x00070004
-#define DSL_RESULT_TILER_IS_IN_USE                                0x00070005
-#define DSL_RESULT_TILER_SET_FAILED                               0x00070006
-#define DSL_RESULT_TILER_HANDLER_ADD_FAILED                       0x00070007
-#define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                    0x00070008
-#define DSL_RESULT_TILER_PAD_TYPE_INVALID                         0x00070009
+#define DSL_RESULT_TILER_NAME_NOT_UNIQUE                            0x00070001
+#define DSL_RESULT_TILER_NAME_NOT_FOUND                             0x00070002
+#define DSL_RESULT_TILER_NAME_BAD_FORMAT                            0x00070003
+#define DSL_RESULT_TILER_THREW_EXCEPTION                            0x00070004
+#define DSL_RESULT_TILER_IS_IN_USE                                  0x00070005
+#define DSL_RESULT_TILER_SET_FAILED                                 0x00070006
+#define DSL_RESULT_TILER_HANDLER_ADD_FAILED                         0x00070007
+#define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
+#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
+#define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
+```
+The following return codes are used by the Demuxer API
+```C++
+#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
+#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
+#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
+#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
+#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0007
+#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0008
+#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A000A
 ```
 
 ## Constructors
@@ -49,6 +71,25 @@ The constructor creates a uniquely named Tiler with given dimensions. Constructi
 **Python Example**
 ```Python
 retval = dsl_tiler_new('my-tiler', 1280, 720)
+```
+
+<br>
+
+### *dsl_demuxer_new*
+```C++
+DslReturnType dsl_demuxer_new(const wchar_t* name);
+```
+The constructor creates a uniquely named Demuxer. Construction will fail if the name is currently in use. 
+
+**Parameters**
+* `name` - [in] unique name for the Demuxer to create.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_demuxer_new('my-demuxer')
 ```
 
 <br>
@@ -138,7 +179,7 @@ retval = dsl_tiler_tiles_set('my-tiler', 3, 2)
 
 <br>
 
-# *dsl_tiler_batch_meta_handler_add*
+### *dsl_tiler_batch_meta_handler_add*
 ```C++
 DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
@@ -158,32 +199,12 @@ This function adds a batch meta handler callback function of type [dsl_batch_met
 * Example using Nvidia's pyds lib to handle batch-meta data
 
 ```Python
-##
-# Callback function to handle batch-meta data
-##
-def tiler_batch_meta_handler_cb(buffer, user_data):
-
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break    
-
-        # Handle the frame_meta data
-
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
 
 ##
-# Create a new OSD component and add the batch-meta handler function above to the Sink (input) Pad.
+# Create a new Tiler component and add the batch-meta handler function to the Sink (input) Pad.
 ##
 retval = dsl_tiler_new('my-tiler', 1280, 720)
-retval += dsl_tiler_batch_meta_handler_add('my-tiler', DSL_PAD_SINK, tiler_batch_meta_handler_cb, None)
+retval += dsl_tiler_batch_meta_handler_add('my-tiler', DSL_PAD_SINK, my_tiler_batch_meta_handler_cb, None)
 
 if retval != DSL_RESULT_SUCCESS:
     # Tiler setup failed
@@ -191,7 +212,7 @@ if retval != DSL_RESULT_SUCCESS:
 
 <br>
 
-# *dsl_tiler_batch_meta_handler_remove*
+### *dsl_tiler_batch_meta_handler_remove*
 ```C++
 DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint type, 
     dsl_batch_meta_handler_cb handler, void* user_data);
@@ -208,7 +229,57 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 
 **Python Example**
 ```Python
-    retval = dsl_tiler_batch_meta_handler_remove('my-tiler',  DSL_PAD_SINK, tiler_batch_meta_handler_cb)
+    retval = dsl_tiler_batch_meta_handler_remove('my-tiler',  DSL_PAD_SINK, my_tiler_batch_meta_handler_cb)
+```
+
+<br>
+
+### *dsl_demuxer_batch_meta_handler_add*
+```C++
+DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler, void* user_data);
+```
+This function adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to the `sink-pad`, on the single stream input to the Demuxer. Once added, the handler will be called to handle batch-meta data for each frame buffer. A Demuxer can have more than one `sink-pad` (only) batch meta handler, and each handler can be added to more than one Tiler.
+
+**Parameters**
+* `name` - [in] unique name of the Tiler to update.
+* `handler` - [in] callback function to process batch meta data
+* `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+##
+# Create a new Tiler component and add the batch-meta handler function.
+##
+retval = dsl_demuxer_new('my-demuxer')
+retval += dsl_demuxer_batch_meta_handler_add('my-demuxer', my_demuxer_batch_meta_handler_cb, None)
+
+if retval != DSL_RESULT_SUCCESS:
+    # Demuxer setup failed
+```    
+
+<br>
+
+### *dsl_demuxer_batch_meta_handler_remove*
+```C++
+DslReturnType dsl_demuxer_batch_meta_handler_remove(const wchar_t* name, 
+    dsl_batch_meta_handler_cb handler, void* user_data);
+```
+This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Demuer with [dsl_demuxer_batch_meta_handler_add](#dsl_demuxer_batch_meta_handler_add). A Tiler can have more than one Sink (only) batch meta handler, and each handler can be added to more than one Tiler. Each callback added to a single pad must be unique.
+
+**Parameters**
+* `name` - [in] unique name of the Tiler to update.
+* `handler` - [in] callback function to remove
+
+**Returns**
+*`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+    retval = dsl_demuxer_batch_meta_handler_remove('my-demuxer', my_demuxer_batch_meta_handler_cb)
 ```
 
 <br>
@@ -223,6 +294,6 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* **Tiler**
+* **Tiler and Demuxer**
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
