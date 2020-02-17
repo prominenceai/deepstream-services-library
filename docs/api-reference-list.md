@@ -66,6 +66,8 @@
 * [dsl_source_is_live](/docs/api-source.md#dsl_source_is_live)
 * [dsl_source_pause](/docs/api-source.md#dsl_source_pause)
 * [dsl_source_play](/docs/api-source.md#dsl_source_play)
+* [dsl_source_osd_add](/docs/api-source.md#dsl_source_osd_add)
+* [dsl_source_osd_remove](/docs/api-source.md#dsl_source_osd_remove)
 * [dsl_source_sink_add](/docs/api-source.md#dsl_source_sink_add)
 * [dsl_source_sink_remove](/docs/api-source.md#dsl_source_sink_remove)
 * [dsl_source_decode_uri_get](/docs/api-source.md#dsl_source_decode_uri_get)
@@ -115,15 +117,18 @@
 * [dsl_tracker_meta_batch_handler_add](/docs/api-tracker.md#dsl_tracker_meta_batch_handler_add)
 * [dsl_tracker_meta_batch_handler_remove](/docs/api-tracker.md#dsl_tracker_meta_batch_handler_remove)
 
-### Tiled Display (Tiler):
+### Multi-Source Tiler and Demuxer:
 * [Overview](/docs/api-tiler.md)
 * [dsl_tiler_new](/docs/api-tiler.md#dsl_tiler_new)
+* [dsl_demuxer_new](/docs/api-tiler.md#dsl_demuxer_new)
 * [dsl_tiler_dimensions_get](/docs/api-tiler.md#dsl_tiler_dimensions_get)
 * [dsl_tiler_dimensions_set](/docs/api-tiler.md#dsl_tiler_dimensions_set)
 * [dsl_tiler_tiles_get](/docs/api-tiler.md#dsl_display_tiles_get)
 * [dsl_tiler_tiles_set](/docs/api-tiler.md#dsl_display_tiles_set)
 * [dsl_tiler_batch_meta_handler_add](/docs/api-tiler.md#dsl_tiler_batch_meta_handler_add).
 * [dsl_tiler_batch_meta_handler_remove](/docs/api-tiler.md#dsl_tiler_batch_meta_handler_remove).
+* [dsl_demuxer_batch_meta_handler_add](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_add).
+* [dsl_demuxer_batch_meta_handler_remove](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_remove).
 
 ### On-Screen Display (OSD);
 * [Overview](/docs/api-osd.md)

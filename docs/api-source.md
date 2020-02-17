@@ -9,6 +9,7 @@ Sources are the head components for all DSL Pipelines. Pipelines must have at le
 * Uniform Resource Identifier ( URI )
 * Real-time Streaming Protocol ( RTSP )
 
+#### Source Construction and Destruction
 Sources are created using one of four type-specific constructors. As with all components, Streaming Sources must be uniquely named from all other Pipeline components created. 
 
 Sources are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all]((api-pipeline.md#dsl_pipeline_component_remove_all).
@@ -17,6 +18,10 @@ When adding multiple sources to a Pipeline, all must have the same `is_live` set
 
 The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
 
+#### Sources and Demuxers
+When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream. To identify this relationship, each sink is added to its upstream Source component vs. the Pipeline directly. See [dsl_source_sink_add](#dsl_source_sink_add) and [dsl_source_sink_remove](#dsl_source_sink_remove). An optional [On-Screen Display (OSD)](/docs/api-osd.md) component can be add to each source when using a Demuxer as well. See [dsl_source_osd_add](#dsl_source_osd_add) and [dsl_source_osd_remove](#dsl_source_osd_remove).
+
+#### Maximum Source Control
 There is no practical limit to the number of Sources that can be created, just to the number of Sources that can be `in use` - a child of a Pipeline - at one time. The `in-use` limit is imposed by the Jetson Model in use. 
 
 The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get) and updated with [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The number of Sources in use by all Pipelines can obtained by calling [dsl_source_get_num_in_use](#dsl_source_get_num_in_use). 
@@ -35,6 +40,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_is_live](#dsl_source_is_live)
 * [dsl_source_pause](#dsl_source_pause)
 * [dsl_source_play](#dsl_source_play)
+* [dsl_source_osd_add](#dsl_source_osd_add)
+* [dsl_source_osd_remove](#dsl_source_osd_remove)
 * [dsl_source_sink_add](#dsl_source_sink_add)
 * [dsl_source_sink_remove](#dsl_source_sink_remove)
 * [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
@@ -111,7 +118,28 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 <br>
 
 ### *dsl_source_usb_new*
-TBI
+```C++
+DslReturnType dsl_source_usb_new(const wchar_t* source,
+    uint width, uint height, uint fps_n, uint fps_d);
+```
+Creates a new, uniquely named USB Camera Source object. 
+
+**Parameters**
+* `source` - [in] unique name for the new Source
+* `width` - [in] width of the source in pixels
+* `height` - [in] height of the source in pixels
+* `fps-n` - [in] frames per second fraction numerator
+* `fps-d` - [in] frames per second fraction denominator
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
+```
+
+
 
 <br>
 
@@ -296,11 +324,50 @@ retval, state = dsl_source_state_is('my-source')
 
 <br>
 
+### *dsl_source_osd_add*
+```C++
+DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* osd);
+```
+This service adds a previously constructed [On-Screen Display (OSD)](/docs/osd-sink.md) component to a named source. The relationshie of Source to child OSD is one to one. The add service will fail if either of the Source or OSD objects is currently `in-use`. When using a Demuxer, each source can have at most one OSD. Adding Sources with an OSD to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+* `osd` - [in] unique name of the OSD to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_osd_add('my-uri-source', 'my-osd')
+```
+
+<br>
+
+### *dsl_source_osd_remove*
+```C++
+DslReturnType dsl_source_osd_remove(const wchar_t* source);
+```
+This service removes a one and only [OSD](/docs/api-osd.md) component from a named source component. The remove service will fail if the Source (and therefore the OSD) component is currently `in-use`.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_osd_remove('my-uri-source')
+```
+
+<br>
+
 ### *dsl_source_sink_add*
 ```C++
 DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
 ```
-This service adds a previously constructed [Sink](api-sink.md) component to a named source. The relationshie of Source to child Sink is one to many. The add service will fail if either of the Source or Sink objects is currently `in-use`.
+This service adds a previously constructed [Sink](/docs/api-sink.md) component to a named source. The relationshie of Source to child Sink is one to many. The add service will fail if either of the Source or Sink objects is currently `in-use`. When using a Demuxer, each source must have at least one Sink. Adding Sources with Sinks to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
 
 **Parameters**
 * `source` - [in] unique name of the Source to update
@@ -320,7 +387,7 @@ retval = dsl_source_sink_add('my-uri-source', 'my-window-sink')
 ```C++
 DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
 ```
-This service removes a named[Sink](api-sink.md) component from a named source component. The remove service will fail if the Source (and therefore the Sink) object is currently `in-use`.
+This service removes a named [Sink](/docs/api-sink.md) component from a named source component. The remove service will fail if the Source (and therefore the Sink) object is currently `in-use`.
 
 **Parameters**
 * `source` - [in] unique name of the Source to update
@@ -508,7 +575,7 @@ retval = dsl_source_num_in_use_max_set(24)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler](/docs/api-tiler.md)
+* [Tiler and Demuxer](/docs/api-tiler.md)
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)
 

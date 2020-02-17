@@ -1,9 +1,10 @@
 # On-Screen Display (OSD)
-On-Screen Display components provide visualization of object catagorization and tracking. OSDs add bounding boxes, labels, and clocks to objects detected in the video stream. As with all components, OSDs must be uniquely named from all other components created. 
+On-Screen Display components provide visualization of object categorization and tracking. OSDs add bounding boxes, labels, and clocks to objects detected in the video stream. As with all components, OSDs must be uniquely named from all other components created. 
 
-OSDs are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+When using a [Demuxer](/docs/api-tiler.md), OSDs are added to their respective upstream Source by calling [dsl_source_osd_add](/docs/api-source.md#dsl_source_osd_add) and removed with [dsl_source_osd_remove](/docs/api-source.md#dsl_source_osd_remove). When using a [Tiler](/docs/api-tiler.md), OSDs (one at most) are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 
 
-The relationship between Pipelines and OSD is one-to-one. Once added to a Pipeline, an OSD must be removed before it can used with another. OSDs are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+Once added to a Pipeline or a Source, an OSD must be removed before it can be used with another. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+
 
 ---
 ## On-Screen API
@@ -317,7 +318,7 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
+* [Tiler and Demuxer](/docs/api-tiler.md)
 * **On-Screen Display**
-* [Tiler](/docs/api-tiler.md)
 * [Sink](/docs/api-sink.md)
 * [Component](/docs/api-component.md)

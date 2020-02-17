@@ -43,7 +43,7 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
   * [Video Dewarper](/docs/api-dewarper.md)
   * [Inference Engine](/docs/api-gie.md)
   * [Multi-Object Tracker](/docs/api-tracker.md)
-  * [Tiled Display](/docs/api-display.md)
+  * [Tiler and Demuxer](/docs/api-tiler.md)
   * [On-Screen Display](/docs/api-osd.md)
   * [Sink](/docs/api-sink.md)
 * [Examples](/docs/examples.md)
