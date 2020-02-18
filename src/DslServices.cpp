@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
+#include "DslDemuxerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
@@ -553,6 +554,24 @@ DslReturnType dsl_demuxer_new(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->DemuxerNew(cstrName.c_str());
+}
+
+DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DemuxerBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
+}
+
+DslReturnType dsl_demuxer_batch_meta_handler_remove(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DemuxerBatchMetaHandlerRemove(cstrName.c_str(), handler);
 }
 
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
@@ -1990,7 +2009,7 @@ namespace DSL
 
             if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Primary GIE '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Primary GIE '" << name << "' failed to add a Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
             }
         }
@@ -2023,7 +2042,7 @@ namespace DSL
 
             if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Primary GIE '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Primary GIE '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
             }
         }
@@ -2411,7 +2430,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2431,7 +2451,7 @@ namespace DSL
 
             if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Tracker '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Tracker '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
             }
         }
@@ -2464,7 +2484,7 @@ namespace DSL
 
             if (!pTrackerBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Tracker '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Tracker '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
             }
         }
@@ -2529,6 +2549,63 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::DemuxerBatchMetaHandlerAdd(const char* name, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+
+            DSL_DEMUXER_PTR pDemuxerBintr = 
+                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+
+            if (!pDemuxerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, user_data))
+            {
+                LOG_ERROR("Demuxer '" << name << "' failed to add Batch Meta Handler");
+                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBatchMetaHandlerRemove(const char* name, 
+        dsl_batch_meta_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+
+            DSL_DEMUXER_PTR pDemuxerBintr = 
+                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+
+            if (!pDemuxerBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
+            {
+                LOG_ERROR("Demuxer '" << name << "' has no matching Batch Meta Handler");
+                return DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::TilerNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -2673,7 +2750,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2693,7 +2771,7 @@ namespace DSL
 
             if (!pTilerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Tiler '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Tiler '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
             }
         }
@@ -2727,7 +2805,7 @@ namespace DSL
 
             if (!pTilerBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Tiler '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Tiler '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
             }
         }

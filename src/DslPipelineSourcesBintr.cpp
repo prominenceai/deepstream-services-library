@@ -203,10 +203,13 @@ namespace DSL
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
                 return false;
             }
+            
+            // If using a demuxer, each child source must have at least one Sink and an optional OSD
+            // The OSD is linked with the Source's MulitSinksBintr, and then linked back with the Demuxer
             if (m_pDemuxerBintr and !imap.second->LinkToDemuxer(m_pDemuxerBintr->GetDemuxerElementr()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to link Source'" << imap.second->GetName() << "' back to Demuxer");
+                    << "' failed to link Sink for Source'" << imap.second->GetName() << "' back to Demuxer");
                 return false;
             }
         }
@@ -230,18 +233,18 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
+            if (m_pDemuxerBintr and !imap.second->UnlinkFromDemuxer())
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink Source'" << imap.second->GetName() << "' back to Demuxer");
+                return;
+            }
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSink())
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
-                return;
-            }
-            if (m_pDemuxerBintr and !imap.second->UnlinkFromDemuxer())
-            {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to unlink Source'" << imap.second->GetName() << "' back to Demuxer");
                 return;
             }
             // unink all of the ChildSource's Elementrs and reset the unique Id

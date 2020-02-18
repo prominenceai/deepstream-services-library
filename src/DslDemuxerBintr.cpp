@@ -34,12 +34,15 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pDemuxer = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_DEMUX, "stream-demuxer");
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "demuxer-queue");
+        m_pDemuxer = DSL_ELEMENT_NEW(NVDS_ELEM_STREAM_DEMUX, "demuxer-demuxer");
 
+        AddChild(m_pQueue);
         AddChild(m_pDemuxer);
 
-        m_pDemuxer->AddGhostPadToParent("sink");
-    }
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("demuxer-sink-pad-probe", "sink", m_pQueue);
+}
 
     DemuxerBintr::~DemuxerBintr()
     {
@@ -69,8 +72,7 @@ namespace DSL
             LOG_ERROR("DemuxerBintr '" << m_name << "' is already linked");
             return false;
         }
-
-        // Nothing to link with single elementr, but maintain the state
+        m_pQueue->LinkToSink(m_pDemuxer);
         m_isLinked = true;
         
         return true;
@@ -86,7 +88,7 @@ namespace DSL
             return;
         }
         
-        // Nothing to ulink with single elementr
+        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 

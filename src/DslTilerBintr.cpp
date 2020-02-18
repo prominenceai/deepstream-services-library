@@ -38,8 +38,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiled-display-queue");
-        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiled-display-tiler");
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "tiler-queue");
+        m_pTiler = DSL_ELEMENT_NEW(NVDS_ELEM_TILER, "tiler-tiler");
 
         // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);
@@ -53,8 +53,8 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         m_pTiler->AddGhostPadToParent("src");
     
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("display-sink-pad-probe", "sink", m_pQueue);
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("display-src-pad-probe", "src", m_pTiler);
+        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
+        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
     }
 
     TilerBintr::~TilerBintr()

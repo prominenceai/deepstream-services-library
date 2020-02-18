@@ -138,6 +138,10 @@ namespace DSL {
 
         DslReturnType DemuxerNew(const char* name);
         
+        DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
+        
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
         DslReturnType TilerDimensionsGet(const char* name, uint* width, uint* height);

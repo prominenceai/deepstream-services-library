@@ -49,6 +49,19 @@ print(dsl_source_frame_rate_get("csi-source"))
 print(dsl_component_delete("csi-source"))
 
 ##
+## dsl_source_osd_add()
+## dsl_source_osd_remove()
+##
+print("dsl_source_osd_add")
+print("dsl_source_osd_remove")
+print(dsl_source_csi_new("csi-source", 1280, 720, 30, 1))
+print(dsl_osd_new("osd", 0, 0, 1280, 720))
+print(dsl_source_osd_add("csi-source", "osd"))
+print(dsl_source_osd_remove("csi-source"))
+print(dsl_component_delete("csi-source"))
+print(dsl_component_delete("osd"))
+
+##
 ## dsl_source_sink_add()
 ## dsl_source_sink_remove()
 ##
@@ -59,7 +72,7 @@ print(dsl_sink_window_new("overlay-sink", 0, 0, 1280, 720))
 print(dsl_source_sink_add("csi-source", "overlay-sink"))
 print(dsl_source_sink_remove("csi-source", "overlay-sink"))
 print(dsl_component_delete("csi-source"))
-print(dsl_component_delete("overlay-source"))
+print(dsl_component_delete("overlay-sink"))
 
 ##
 ## dsl_source_decode_uri_get()
@@ -125,7 +138,7 @@ def mb_handler(buffer, user_data):
 print(dsl_gie_primary_new("primary-gie", "./test/configs/config_infer_primary_nano.txt", 
     "./test/models/Primary_Detector_Nano/resnet10.caffemodel", 0))
 print(dsl_gie_primary_batch_meta_handler_add("primary-gie", DSL_PAD_SRC, mb_handler, None))
-print(dsl_gie_primary_batch_meta_handler_remove("primary-gie", DSL_PAD_SRC))
+print(dsl_gie_primary_batch_meta_handler_remove("primary-gie", DSL_PAD_SRC, mb_handler))
 print(dsl_component_delete("primary-gie"))
 
 ##
@@ -192,7 +205,7 @@ def mb_handler(buffer, user_data):
     print(user_data)
 print(dsl_tracker_ktl_new("ktl-tracker", 300, 150))
 print(dsl_tracker_batch_meta_handler_add("ktl-tracker", DSL_PAD_SRC, mb_handler, None))
-print(dsl_tracker_batch_meta_handler_remove("ktl-tracker", DSL_PAD_SRC))
+print(dsl_tracker_batch_meta_handler_remove("ktl-tracker", DSL_PAD_SRC, mb_handler))
 print(dsl_component_delete("ktl-tracker"))
 
 ##
@@ -266,8 +279,29 @@ def mb_handler(buffer, user_data):
     print(user_data)
 print(dsl_osd_new("on-screen-display", True))
 print(dsl_osd_batch_meta_handler_add("on-screen-display", DSL_PAD_SRC, mb_handler, None))
-print(dsl_osd_batch_meta_handler_remove("on-screen-display", DSL_PAD_SRC))
+print(dsl_osd_batch_meta_handler_remove("on-screen-display", DSL_PAD_SRC, mb_handler))
 print(dsl_component_delete("on-screen-display"))
+
+##
+## dsl_demuxer_new()
+##
+print("dsl_demuxer_new")
+print(dsl_demuxer_new("demuxer"))
+print(dsl_component_delete("demuxer"))
+
+##
+## dsl_demuxer_batch_meta_handler_add()
+## dsl_demuxer_batch_meta_handler_remove()
+##
+print("dsl_demuxer_batch_meta_handler_add")
+print("dsl_demuxer_batch_meta_handler_remove")
+def mb_handler(buffer, user_data):
+    print(buffer)
+    print(user_data)
+print(dsl_demuxer_new("demuxer")
+print(dsl_demuxer_batch_meta_handler_add("demuxer", mb_handler, None))
+print(dsl_demuxer_batch_meta_handler_remove("demuxer", mb_handler))
+print(dsl_component_delete("demuxer"))
 
 ##
 ## dsl_tiler_new()
@@ -287,7 +321,7 @@ def mb_handler(buffer, user_data):
     print(user_data)
 print(dsl_tiler_new("tiler", 1280, 720))
 print(dsl_tiler_batch_meta_handler_add("tiler", DSL_PAD_SRC, mb_handler, None))
-print(dsl_tiler_batch_meta_handler_remove("tiler", DSL_PAD_SRC))
+print(dsl_tiler_batch_meta_handler_remove("tiler", DSL_PAD_SRC, mb_handler))
 print(dsl_component_delete("tiler"))
 
 ##

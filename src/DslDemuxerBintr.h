@@ -86,6 +86,11 @@ namespace DSL
     private:
 
         /**
+         * @brief Input queue for the DemuxerBintr
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+
+        /**
          * @brief Demuxer element for all muxed input streams
          */
         DSL_ELEMENT_PTR m_pDemuxer;

@@ -129,7 +129,7 @@ namespace DSL
         *fps_d = m_fps_d;
     }
 
-    bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux)
+    bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux) 
     {
         LOG_FUNC();
 
@@ -161,7 +161,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // If we're currently linked to the 
+        // If we're currently linked to the StreamMuxer
         if (!IsLinkedToSink())
         {
             LOG_ERROR("SourceBintr '" << GetName() << "' is not in a Linked state");
@@ -172,11 +172,16 @@ namespace DSL
 
         LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
 
-        gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]);
+        gst_pad_send_event(m_pGstRequestedSinkPads[sinkPadName], gst_event_new_flush_stop(FALSE));
+        if (!gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]))
+        {
+            LOG_ERROR("SourceBintr '" << GetName() << "' failed to unlink from StreamMuxer");
+            return false;
+        }
         gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
+        gst_object_unref(m_pGstRequestedSinkPads[sinkPadName]);
 
         m_pGstRequestedSinkPads.erase(sinkPadName);
-        
         return Nodetr::UnlinkFromSink();
     }
     
@@ -224,6 +229,7 @@ namespace DSL
             return false;
         }
         m_pOsdBintr = nullptr;
+        return true;
     }
 
     
@@ -305,7 +311,7 @@ namespace DSL
         }
         // Else, Link the OSD back to the Demuxer and then to the MultiSinksBintr
         LOG_INFO("Linking OsdBintr back to Demuxer and to MultiSinksBintr for SourceBintr '" << GetName() << "'");
-        if (!m_pOsdBintr->LinkToSource(pDemuxer) or !m_pOsdBintr->LinkToSink(m_pMultiSinksBintr))
+        if (!m_pOsdBintr->LinkAll() or !m_pOsdBintr->LinkToSource(pDemuxer) or !m_pOsdBintr->LinkToSink(m_pMultiSinksBintr))
         {
             return false;
         }
@@ -322,7 +328,17 @@ namespace DSL
             return false;
         }
             
-        return m_pMultiSinksBintr->UnlinkFromSource();
+        m_pMultiSinksBintr->UnlinkAll();
+        if (!m_pOsdBintr)
+        {
+            return m_pMultiSinksBintr->UnlinkFromSource();
+        }
+        m_pOsdBintr->UnlinkAll();
+        if (!m_pOsdBintr->UnlinkFromSink() or !m_pOsdBintr->UnlinkFromSource())
+        {
+            return false;
+        }
+        return true;
     }
     
     

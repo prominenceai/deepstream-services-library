@@ -106,6 +106,26 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
+## dsl_source_osd_add()
+##
+_dsl.dsl_source_osd_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_osd_add.restype = c_uint
+def dsl_source_osd_add(source, osd):
+    global _dsl
+    result = _dsl.dsl_source_osd_add(source, osd)
+    return int(result)
+    
+##
+## dsl_source_osd_remove()
+##
+_dsl.dsl_source_osd_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_osd_remove.restype = c_uint
+def dsl_source_osd_remove(source):
+    global _dsl
+    result = _dsl.dsl_source_osd_remove(source)
+    return int(result)
+
+##
 ## dsl_source_sink_add()
 ##
 _dsl.dsl_source_sink_add.argtypes = [c_wchar_p, c_wchar_p]
@@ -500,6 +520,39 @@ def dsl_osd_kitti_output_enabled_set(name, enabled, path):
     return int(result)
 
 ##
+## dsl_demuxer_new()
+##
+_dsl.dsl_demuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_demuxer_new.restype = c_uint
+def dsl_demuxer_new(name):
+    global _dsl
+    result =_dsl.dsl_demuxer_new(name)
+    return int(result)
+
+##
+## dsl_demuxer_batch_meta_handler_add()
+##
+_dsl.dsl_demuxer_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_demuxer_batch_meta_handler_add.restype = c_uint
+def dsl_demuxer_batch_meta_handler_add(name, handler, user_data):
+    global _dsl
+    meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
+    result = _dsl.dsl_demuxer_batch_meta_handler_add(name, meta_handler, user_data)
+    return int(result)
+
+##
+## dsl_demuxer_batch_meta_handler_remove()
+##
+_dsl.dsl_demuxer_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_demuxer_batch_meta_handler_remove.restype = c_uint
+def dsl_demuxer_batch_meta_handler_remove(name, handler):
+    global _dsl
+    meta_handler = DSL_META_BATCH_HANDLER(handler)
+    result = _dsl.dsl_demuxer_batch_meta_handler_remove(name, meta_handler)
+    return int(result)
+
+##
 ## dsl_tiler_new()
 ##
 _dsl.dsl_tiler_new.argtypes = [c_wchar_p, c_uint, c_uint]
@@ -534,11 +587,11 @@ def dsl_tiler_batch_meta_handler_remove(name, pad):
 ##
 ## dsl_sink_overlay_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
+def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, offsetX, offsetY, width, height)
+    result =_dsl.dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height)
     return int(result)
 
 ##
