@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOsdBintr.h"
+#include "DslDemuxerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslPipelineSGiesBintr.h"
@@ -107,25 +108,31 @@ namespace DSL
         bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
 
         /**
-         * @brief adds a single Tracker Bintr to this Pipeline 
+         * @brief adds a single TrackerBintr to this Pipeline 
          * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
          */
         bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
         
         /**
-         * @brief adds a single Tiler Bintr to this Pipeline 
+         * @brief adds a single DemuxerBintr to this Pipeline 
+         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         */
+        bool AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr);
+        
+        /**
+         * @brief adds a single TilerBintr to this Pipeline 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
         bool AddTilerBintr(DSL_NODETR_PTR pTilerBintr);
         
         /**
-         * @brief adds a single OSD Bintr to this Pipeline 
+         * @brief adds a single OsdBintr to this Pipeline 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
         bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
         
         /**
-         * @brief adds a single Sink Bintr to this Pipeline 
+         * @brief adds a single SinkBintr to this Pipeline 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
         bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
@@ -138,7 +145,7 @@ namespace DSL
         bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
 
         /**
-         * @brief removes a single Sink Bintr from this Pipeline 
+         * @brief removes a single SinkBintr from this Pipeline 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
         bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
@@ -162,7 +169,7 @@ namespace DSL
          * @param[out] batchTimeout current batch timeout
          * @return true if the batch properties could be read, false otherwise
          */
-        bool GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
+        void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
 
         /**
          * @brief Sets the current batch settings for the Pipeline's Stream Muxer
@@ -355,6 +362,10 @@ namespace DSL
         void HandleEosMessage(GstMessage* pMessage);
         
         void HandleErrorMessage(GstMessage* pMessage);
+        
+        uint m_batchSize;
+        
+        uint m_batchTimeout;
 
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
@@ -384,7 +395,14 @@ namespace DSL
         DSL_OSD_PTR m_pOsdBintr;
         
         /**
-         * @brief optional one and only optional Tiled Display for this Pipeline
+         * @brief optional/required, one at most DemuxerBintr mutually exclusive 
+         * with the TilerBintr, however, a Pipeline must have one or the other.
+         */
+        DSL_DEMUXER_PTR m_pDemuxerBintr;
+                        
+        /**
+         * @brief optional/required, one at most Tiled Display mutually exclusive 
+         * with the DemuxerBintr, however, a Pipeline must have one or the other
          */
         DSL_TILER_PTR m_pTilerBintr;
                         

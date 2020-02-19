@@ -65,6 +65,10 @@ namespace DSL {
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
         
+        DslReturnType SourceOsdAdd(const char* name, const char* osd);
+    
+        DslReturnType SourceOsdRemove(const char* name);
+
         DslReturnType SourceSinkAdd(const char* name, const char* sink);
     
         DslReturnType SourceSinkRemove(const char* name, const char* sink);
@@ -132,6 +136,12 @@ namespace DSL {
         
         DslReturnType TrackerKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
 
+        DslReturnType DemuxerNew(const char* name);
+        
+        DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
+        
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
         DslReturnType TilerDimensionsGet(const char* name, uint* width, uint* height);
@@ -172,8 +182,8 @@ namespace DSL {
         
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType SinkOverlayNew(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height);
+        DslReturnType SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+            uint depth, uint offsetX, uint offsetY, uint width, uint height);
                 
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);

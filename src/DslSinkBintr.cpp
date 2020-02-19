@@ -29,8 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    SinkBintr::SinkBintr(const char* sink)
-        : Bintr(sink)
+    SinkBintr::SinkBintr(const char* name)
+        : Bintr(name)
         , m_isWindowCapable(false)
         , m_sinkId(-1)
     {
@@ -153,8 +153,8 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
-    FakeSinkBintr::FakeSinkBintr(const char* sink)
-        : SinkBintr(sink)
+    FakeSinkBintr::FakeSinkBintr(const char* name)
+        : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
         , m_qos(TRUE)
@@ -210,14 +210,15 @@ namespace DSL
     
     //-------------------------------------------------------------------------
 
-    OverlaySinkBintr::OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, 
-        guint width, guint height)
-        : SinkBintr(sink)
+    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint overlayId, uint displayId, 
+        uint depth, uint offsetX, uint offsetY, uint width, uint height)
+        : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
         , m_qos(TRUE)
-        , m_displayId(0)
-        , m_overlayId(0)
+        , m_overlayId(overlayId)
+        , m_displayId(displayId)
+        , m_depth(depth)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -228,7 +229,8 @@ namespace DSL
         m_isWindowCapable = false;
 
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
-//        m_pOverlay->SetAttribute("overlay", m_overlayId);
+        m_pOverlay->SetAttribute("overlay", m_overlayId);
+        m_pOverlay->SetAttribute("display-id", m_displayId);
         m_pOverlay->SetAttribute("overlay-x", m_offsetX);
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         m_pOverlay->SetAttribute("overlay-w", m_width);
@@ -288,12 +290,21 @@ namespace DSL
         return m_displayId;
     }
     
-    void OverlaySinkBintr::SetDisplayId(int id)
+    bool OverlaySinkBintr::SetDisplayId(int id)
     {
         LOG_FUNC();
         
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
         m_displayId = id;
         m_pOverlay->SetAttribute("display-id", m_displayId);
+        
+        return true;
     }
     
     void  OverlaySinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
@@ -354,9 +365,9 @@ namespace DSL
     
     //-------------------------------------------------------------------------
 
-    WindowSinkBintr::WindowSinkBintr(const char* sink, guint offsetX, guint offsetY, 
+    WindowSinkBintr::WindowSinkBintr(const char* name, guint offsetX, guint offsetY, 
         guint width, guint height)
-        : SinkBintr(sink)
+        : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
         , m_qos(TRUE)
@@ -485,9 +496,9 @@ namespace DSL
     
     //-------------------------------------------------------------------------
     
-    FileSinkBintr::FileSinkBintr(const char* sink, const char* filepath, 
+    FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
         uint codec, uint container, uint bitRate, uint interval)
-        : SinkBintr(sink)
+        : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
         , m_codec(codec)
@@ -534,7 +545,7 @@ namespace DSL
             caps = gst_caps_from_string("video/x-raw, format=I420");
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << sink << "'");
+            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
         }
 
@@ -549,7 +560,7 @@ namespace DSL
             m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-container");        
             break;
         default:
-            LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << sink << "'");
+            LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << name << "'");
             throw;
         }
 
@@ -670,9 +681,9 @@ namespace DSL
     
     //******************************************************************************************
     
-    RtspSinkBintr::RtspSinkBintr(const char* sink, const char* host, uint udpPort, uint rtspPort,
+    RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
          uint codec, uint bitRate, uint interval)
-        : SinkBintr(sink)
+        : SinkBintr(name)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
@@ -716,7 +727,7 @@ namespace DSL
             codecString.assign("H265");
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << sink << "'");
+            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
         }
 

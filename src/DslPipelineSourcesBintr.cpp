@@ -30,6 +30,11 @@ namespace DSL
 {
     PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
         : Bintr(name)
+        , m_batchSize(0)
+        , m_batchTimeout(0)
+        , m_streamMuxWidth(0)
+        , m_streamMuxHeight(0)
+        , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
     {
         LOG_FUNC();
@@ -150,6 +155,38 @@ namespace DSL
         return Bintr::RemoveChild(pChildSource);
     }
 
+    bool PipelineSourcesBintr::AddDemuxer(DSL_NODETR_PTR pParentPipeline, DSL_DEMUXER_PTR pDemuxerBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' has an existing Demuxer");
+            return false;
+        }
+        m_pDemuxerBintr = pDemuxerBintr;
+
+        for (auto const& imap: m_pChildSources)
+        {
+            imap.second->AddChildComponentsToPipeline(pParentPipeline);
+        }
+        return true;
+    }
+    
+    bool PipelineSourcesBintr::RemoveDemuxer()
+    {
+        LOG_FUNC();
+        
+        if (!m_pDemuxerBintr)
+        {
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' does not have a Demuxer");
+            return false;
+        }
+        m_pDemuxerBintr = nullptr;
+
+        return true;
+    }
+    
     bool PipelineSourcesBintr::LinkAll()
     {
         LOG_FUNC();
@@ -171,12 +208,24 @@ namespace DSL
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
                 return false;
             }
+            
+            // If using a demuxer, each child source must have at least one Sink and an optional OSD
+            // The OSD is linked with the Source's MulitSinksBintr, and then linked back with the Demuxer
+            if (m_pDemuxerBintr and !imap.second->LinkToDemuxer(m_pDemuxerBintr->GetDemuxerElementr()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to link Sink for Source'" << imap.second->GetName() << "' back to Demuxer");
+                return false;
+            }
         }
-        m_isLinked = true;
+        if (!m_batchSize)
+        {
+            // Set the Batch size to the nuber of sources owned if not already set
+            // TODO add support for managing batch timeout
+            SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+        }
 
-        // Set the Batch size to the nuber of sources owned
-        // TODO add support for managing batch timeout
-        SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+        m_isLinked = true;
         
         return true;
     }
@@ -192,6 +241,12 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
+            if (m_pDemuxerBintr and !imap.second->UnlinkFromDemuxer())
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink Source'" << imap.second->GetName() << "' back to Demuxer");
+                return;
+            }
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSink())
@@ -203,10 +258,11 @@ namespace DSL
             // unink all of the ChildSource's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
             imap.second->SetSourceId(-1);
+
         }
         m_isLinked = false;
     }
-
+    
     void PipelineSourcesBintr::SetStreamMuxPlayType(bool areSourcesLive)
     {
         LOG_FUNC();
@@ -250,7 +306,7 @@ namespace DSL
         LOG_FUNC();
         
         *width = m_streamMuxWidth;
-        *width = m_streamMuxHeight;
+        *height = m_streamMuxHeight;
     }
 
     void PipelineSourcesBintr::SetStreamMuxDimensions(uint width, uint height)

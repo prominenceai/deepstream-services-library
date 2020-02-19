@@ -125,7 +125,7 @@ def main(args):
         # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
         dsl_pipeline_dump_to_dot('simple-pipeline', "state-playing")
 
-        # Wait for the User to Interrupt the script with Ctrl-C
+        # Start/join the main-loop until dsl_main_loop_exit()
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

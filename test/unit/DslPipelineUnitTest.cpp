@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
+#include "DslDemuxerBintr.h"
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
@@ -643,6 +644,129 @@ SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
             THEN( "A second OsdBintr can not be added" )
             {
                 REQUIRE( pOsdBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline can have at most one DemuxerBintr", "[PipelineBintr]" )
+{
+    GIVEN( "Two new DemuxerBintrs and PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+        std::string demuxerName1 = "demuxer-1";
+        std::string demuxerName2 = "demuxer-2";
+
+        DSL_DEMUXER_PTR pDemuxerBintr1 = 
+            DSL_DEMUXER_NEW(demuxerName1.c_str());
+
+        DSL_DEMUXER_PTR pDemuxerBintr2 = 
+            DSL_DEMUXER_NEW(demuxerName2.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "A DemuxerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pDemuxerBintr1->AddToParent(pPipelineBintr) == true );
+
+            THEN( "A second DemuxerBintr can not be added" )
+            {
+                REQUIRE( pDemuxerBintr2->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Adding a DemuxerBintr to a PipelineBintr with a TilerBintr fails", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
+    {
+        std::string demuxerName = "demuxer";
+        std::string tilerName = "tiler";
+        std::string pipelineName = "pipeline";
+
+        uint tilerW(1280);
+        uint tilerH(720);
+
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+
+        WHEN( "A TilerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
+            
+            THEN( "Adding a DemuxerBintr to the PipelineBintr after fails" )
+            {
+                REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Adding a TilerBintr to a PipelineBintr with a DemuxerBintr fails", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
+    {
+        std::string demuxerName = "demuxer";
+        std::string tilerName = "tiler";
+        std::string pipelineName = "pipeline";
+
+        uint tilerW(1280);
+        uint tilerH(720);
+
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+
+        WHEN( "A DemuxerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+            
+            THEN( "Adding a TilerBintr to the PipelineBintr after fails" )
+            {
+                REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr, TilerBinter and Demuxer" ) 
+    {
+        std::string demuxerName = "demuxer";
+        std::string osdName = "on-screen-display";
+        std::string pipelineName = "pipeline";
+
+        bool clockEnabled(false);
+
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        DSL_OSD_PTR pOsdBintr = 
+            DSL_OSD_NEW(osdName.c_str(), clockEnabled);
+
+        WHEN( "A DemuxerBintr is added to the PipelineBintr" )
+        {
+            REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+            
+            THEN( "Adding an OsdBintr to the PipelineBintr after fails" )
+            {
+                REQUIRE( pOsdBintr->AddToParent(pPipelineBintr) == false );
             }
         }
     }

@@ -67,9 +67,11 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
 #define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
+#define DSL_RESULT_SOURCE_OSD_ADD_FAILED                            0x0002000D
+#define DSL_RESULT_SOURCE_OSD_REMOVE_FAILED                         0x0002000E
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000F
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x00020010
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020011
 
 /**
  * Dewarper API Return Values
@@ -148,7 +150,19 @@ THE SOFTWARE.
 #define DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST                    0x0006000D
 
 /**
- * Display API Return Values
+ * Demuxer API Return Values
+ */
+#define DSL_RESULT_DEMUXER_RESULT                                   0x000A0000
+#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
+#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
+#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
+#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
+#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0005
+#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0006
+#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A0007
+
+/**
+ * Tile API Return Values
  */
 #define DSL_RESULT_TILER_RESULT                                     0x00070000
 #define DSL_RESULT_TILER_NAME_NOT_UNIQUE                            0x00070001
@@ -218,6 +232,7 @@ THE SOFTWARE.
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 32
+#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
@@ -344,8 +359,23 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
 
 /**
+ * @brief adds a named On-Screen Display object to a named Source object - one at most
+ * @param source name of the Source object to update
+ * @param osd name of the OSD object to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd);
+
+/**
+ * @brief removes a one-at-most On-Screen Display object from a named Source object
+ * @param name name of the Source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_osd_remove(const wchar_t* name);
+
+/**
  * @brief adds a named Sink object to a named Source object
- * @param source name of the Source object update
+ * @param source name of the Source object to update
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -353,7 +383,7 @@ DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink);
 
 /**
  * @brief removes a named Sink object from a named Source object
- * @param name name of the Source object update
+ * @param name name of the Source object to update
  * @param sink name of the Sink object to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -458,14 +488,14 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each buffer.
- * A Primary GIE can have at most one Sink and Source batch meta handler each
+ * A Primary GIE can multiple Sink and Source batch meta handlers
  * @param name unique name of the Primary GIE to update
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint type, 
+DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
@@ -603,7 +633,7 @@ DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t
 
 /**
  * @brief Add a batch meta handler callback function to be called to process each frame buffer.
- * A Tracker can have at most one Sink and Source batch meta handler each
+ * A Tracker can have multiple Sink and Source batch meta handlers
  * @param name unique name of the Tracker to update
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
@@ -721,14 +751,14 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green,
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * An On-Screen-Display can have at most one Sink and Source batch meta handler each
+ * An On-Screen-Display can have multiple Sink and Source batch-meta-handlers
  * @param name unique name of the OSD to update
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type, 
+DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
@@ -750,7 +780,34 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name,
 DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
- * @brief creates a new, uniquely named Display obj
+ * @brief Creates a new, uniquely named Demuxer component
+ * @param name unique name for the new Demuxer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ */
+DslReturnType dsl_demuxer_new(const wchar_t* name);
+
+/**
+ * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
+ * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
+ * @param name unique name of the Demuxer to update
+ * @param handler callback function to process batch meta data
+ * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ */
+DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler, void* user_data);
+
+/**
+ * @brief Removes a batch meta handler callback function from a named Demuxer
+ * @param name unique name of the Demuxer to update
+ * @param handler callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ */
+DslReturnType dsl_demuxer_batch_meta_handler_remove(const wchar_t* name, 
+    dsl_batch_meta_handler_cb handler);
+
+/**
+ * @brief creates a new, uniquely named Display component
  * @param[in] name unique name for the new Display
  * @param[in] width width of the Display in pixels
  * @param[in] height height of the Display in pixels
@@ -796,14 +853,14 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * A Tiled Display can have at most one Sink and Source batch meta handler each
+ * A Tiled Display can have multiple Sink and Source batch meta handlers
  * @param name unique name of the Tiled Display to update
  * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @param handler callback function to process batch meta data
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint type, 
+DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
@@ -825,14 +882,16 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
  * @param[in] name unique component name for the new Overlay Sink
+ * @param[in] display_id unique display ID for this Overlay Sink
+ * @param[in] depth overlay depth for this Overlay Sink
  * @param[in] offsetX upper left corner offset in the X direction in pixels
  * @param[in] offsetY upper left corner offset in the Y direction in pixels
  * @param[in] width width of the Ovelay Sink in pixels
  * @param[in] heigth height of the Overlay Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, uint width, uint height);
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+    uint depth, uint offsetX, uint offsetY, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named Window Sink component

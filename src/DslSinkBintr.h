@@ -36,36 +36,36 @@ namespace DSL
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
 
     #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
-    #define DSL_FAKE_SINK_NEW(sink) \
+    #define DSL_FAKE_SINK_NEW(name) \
         std::shared_ptr<FakeSinkBintr>( \
-        new FakeSinkBintr(sink))
+        new FakeSinkBintr(name))
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(sink, offsetX, offsetY, width, height) \
+    #define DSL_OVERLAY_SINK_NEW(name, overlayId, displayId, depth, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(sink, offsetX, offsetY, width, height))
+        new OverlaySinkBintr(name, overlayId, displayId, depth, offsetX, offsetY, width, height))
 
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
-    #define DSL_WINDOW_SINK_NEW(sink, offsetX, offsetY, width, height) \
+    #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
         std::shared_ptr<WindowSinkBintr>( \
-        new WindowSinkBintr(sink, offsetX, offsetY, width, height))
+        new WindowSinkBintr(name, offsetX, offsetY, width, height))
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
-    #define DSL_FILE_SINK_NEW(sink, filepath, codec, container, bitRate, interval) \
+    #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitRate, interval) \
         std::shared_ptr<FileSinkBintr>( \
-        new FileSinkBintr(sink, filepath, codec, container, bitRate, interval))
+        new FileSinkBintr(name, filepath, codec, container, bitRate, interval))
         
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
-    #define DSL_RTSP_SINK_NEW(sink, host, udpPort, rtspPort, codec, bitRate, interval) \
+    #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
-        new RtspSinkBintr(sink, host, udpPort, rtspPort, codec, bitRate, interval))
+        new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitRate, interval))
         
 
     class SinkBintr : public Bintr
     {
     public: 
     
-        SinkBintr(const char* sink);
+        SinkBintr(const char* name);
 
         ~SinkBintr();
   
@@ -118,7 +118,7 @@ namespace DSL
     {
     public: 
     
-        FakeSinkBintr(const char* sink);
+        FakeSinkBintr(const char* name);
 
         ~FakeSinkBintr();
   
@@ -150,7 +150,8 @@ namespace DSL
     {
     public: 
     
-        OverlaySinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
+        OverlaySinkBintr(const char* name, uint overlayId, uint displayId, uint depth, 
+            uint offsetX, uint offsetY, uint width, uint height);
 
         ~OverlaySinkBintr();
   
@@ -168,7 +169,7 @@ namespace DSL
 
         int GetDisplayId();
 
-        void SetDisplayId(int id);
+        bool SetDisplayId(int id);
 
         /**
          * @brief Gets the current X and Y offset settings for this OverlaySinkBintr
@@ -223,7 +224,7 @@ namespace DSL
     {
     public: 
     
-        WindowSinkBintr(const char* sink, guint offsetX, guint offsetY, guint width, guint height);
+        WindowSinkBintr(const char* name, guint offsetX, guint offsetY, guint width, guint height);
 
         ~WindowSinkBintr();
   
@@ -289,7 +290,7 @@ namespace DSL
     {
     public: 
     
-        FileSinkBintr(const char* sink, const char* filepath, 
+        FileSinkBintr(const char* name, const char* filepath, 
             uint codec, uint container, uint bitRate, uint interval);
 
         ~FileSinkBintr();
@@ -355,7 +356,7 @@ namespace DSL
     {
     public: 
     
-        RtspSinkBintr(const char* sink, const char* host, uint udpPort, uint rtspPort,
+        RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
          uint codec, uint bitRate, uint interval);
 
         ~RtspSinkBintr();

@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
+#include "DslOsdBintr.h"
 #include "DslMultiSinksBintr.h"
 #include "DslDewarperBintr.h"
 
@@ -129,6 +130,29 @@ namespace DSL
         bool UnlinkFromSink();
         
         /**
+         * @brief adds an OSD Bintr to this SourceBintr, one at most 
+         * The Osd binter is used by Pipelines with a Demuxer vs. Tiler
+         * @param[in] pOsdBintr shared pointer to the OsdBintr to add
+         */
+        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
+
+        /**
+         * @brief get the current OsdBintr from this SourceBintr
+         * @return a shared pointer to an OsdBintr owned by this SourceBintr
+         */
+        const DSL_NODETR_PTR GetOsdBintr();
+        /**
+         * @brief checks if the SourceBintr has a child OsdBintr 
+         * @return true if SourceBintr has a child OsdBintr, false otherwise
+         */
+        bool HasOsdBintr();
+
+        /**
+         * @brief removes the one and only  OsdBintr from this SourceBintr
+         */
+        bool RemoveOsdBintr();
+
+        /**
          * @brief adds a single Sink Bintr to this SourceBintr 
          * @param[in] pSinkBintr shared pointer to SinkBintr to add
          */
@@ -142,11 +166,30 @@ namespace DSL
         bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
 
         /**
-         * @brief removes a single Sink Bintr from this Pipeline 
+         * @brief removes a single Sink Bintr from this SourceBintr 
          * @param[in] pSinkBintr shared pointer to SinkBintr to remove
          */
         bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
 
+        /**
+         * @brief Add this SourceBintr's optional OsdBintr and MultiSinksBintr to a Parent Pipeline
+         * @param[in] pPipeline shared pointer to a parent Pipeline
+         * @return true if successful, false otherwise
+         */
+        bool AddChildComponentsToPipeline(DSL_NODETR_PTR pPipeline);
+
+        /**
+         * @brief Links all Child OSD and Sinks for this SourceBintr to the Demuxer
+         * @param pDemuxerBintr DemuxerBintr
+         * @return true if successful, false otherwise
+         */
+        bool LinkToDemuxer(const DSL_NODETR_PTR pDemuxerElementr);
+        
+        /**
+         * @brief Unlinks all Child OSD and Sinks for this SourceBintr from the Demuxer
+         * @return true if successful, false otherwise
+         */
+        bool UnlinkFromDemuxer();
 
     public:
             
@@ -202,7 +245,12 @@ namespace DSL
         DSL_ELEMENT_PTR m_pSourceElement;
         
         /**
-         * @brief Optional collection of SinkBintrs for each SourceBintr
+         * @brief Optional demuxed OSD for this SourceBintr
+         */
+        DSL_OSD_PTR m_pOsdBintr;
+
+        /**
+         * @brief Optional demuxed collection of SinkBintrs for each SourceBintr
          */
         DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
 

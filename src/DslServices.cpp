@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
+#include "DslDemuxerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
@@ -93,6 +94,24 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOsd(osd);
+    std::string cstrOsd(wstrOsd.begin(), wstrOsd.end());
+
+    return DSL::Services::GetServices()->SourceOsdAdd(cstrName.c_str(), cstrOsd.c_str());
+}
+
+DslReturnType dsl_source_osd_remove(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceOsdRemove(cstrName.c_str());
 }
 
 DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink)
@@ -529,6 +548,32 @@ DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enab
     return DSL::Services::GetServices()->OsdKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
         
+DslReturnType dsl_demuxer_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DemuxerNew(cstrName.c_str());
+}
+
+DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler, void* user_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DemuxerBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
+}
+
+DslReturnType dsl_demuxer_batch_meta_handler_remove(const wchar_t* name,
+    dsl_batch_meta_handler_cb handler)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->DemuxerBatchMetaHandlerRemove(cstrName.c_str(), handler);
+}
+
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
 {
     std::wstring wstrName(name);
@@ -595,14 +640,14 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
 }
 
-DslReturnType dsl_sink_overlay_new(const wchar_t* name,
-    uint offsetX, uint offsetY, uint width, uint height)
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+    uint depth, uint offsetX, uint offsetY, uint width, uint height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
-        offsetX, offsetY, width, height);
+    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), overlay_id, 
+        display_id, depth, offsetX, offsetY, width, height);
 }
 
 DslReturnType dsl_sink_window_new(const wchar_t* name,
@@ -1495,6 +1540,67 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::SourceOsdAdd(const char* name, const char* osd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, osd);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, osd, OsdBintr);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[osd]);
+         
+            if (!pSourceBintr->AddOsdBintr(pOsdBintr))
+            {
+                LOG_ERROR("Failed to add OSD '" << osd << "' to Source '" << name << "'");
+                return DSL_RESULT_SOURCE_OSD_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding OSD");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("OSD '" << osd << "' added to Source '" << name << "' successfully");
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SourceOsdRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->RemoveOsdBintr())
+            {
+                LOG_ERROR("Failed to remove OSD from Source '" << name << "'");
+                return DSL_RESULT_SOURCE_OSD_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception removing OSD");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        LOG_INFO("OSD removed from Source '" << name << "' successfully");
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::SourceSinkAdd(const char* name, const char* sink)
     {
         LOG_FUNC();
@@ -1505,6 +1611,7 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
             RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
 
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
@@ -1902,7 +2009,7 @@ namespace DSL
 
             if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Primary GIE '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Primary GIE '" << name << "' failed to add a Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
             }
         }
@@ -1935,7 +2042,7 @@ namespace DSL
 
             if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Primary GIE '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Primary GIE '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
             }
         }
@@ -2323,7 +2430,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2343,7 +2451,7 @@ namespace DSL
 
             if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Tracker '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Tracker '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
             }
         }
@@ -2376,7 +2484,7 @@ namespace DSL
 
             if (!pTrackerBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Tracker '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Tracker '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
             }
         }
@@ -2416,6 +2524,88 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
         
+    DslReturnType Services::DemuxerNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Demuxer name '" << name << "' is not unique");
+            return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Demuxer '" << name << "' threw exception on create");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Demuxer '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBatchMetaHandlerAdd(const char* name, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+
+            DSL_DEMUXER_PTR pDemuxerBintr = 
+                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+
+            if (!pDemuxerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, user_data))
+            {
+                LOG_ERROR("Demuxer '" << name << "' failed to add Batch Meta Handler");
+                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBatchMetaHandlerRemove(const char* name, 
+        dsl_batch_meta_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+
+            DSL_DEMUXER_PTR pDemuxerBintr = 
+                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+
+            if (!pDemuxerBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
+            {
+                LOG_ERROR("Demuxer '" << name << "' has no matching Batch Meta Handler");
+                return DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" << name << "' threw an exception removing Batch Meta Handle");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::TilerNew(const char* name, uint width, uint height)
     {
         LOG_FUNC();
@@ -2434,10 +2624,10 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler New'" << name << "' threw exception on create");
+            LOG_ERROR("New Tiler'" << name << "' threw exception on create");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        LOG_INFO("new Tiler '" << name << "' created successfully");
+        LOG_INFO("New Tiler '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2560,7 +2750,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, 
+        dsl_batch_meta_handler_cb handler, void* user_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2580,13 +2771,13 @@ namespace DSL
 
             if (!pTilerBintr->AddBatchMetaHandler(pad, handler, user_data))
             {
-                LOG_ERROR("Tiler '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Tiler '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -2614,7 +2805,7 @@ namespace DSL
 
             if (!pTilerBintr->RemoveBatchMetaHandler(pad, handler))
             {
-                LOG_ERROR("Tiler '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Tiler '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
             }
         }
@@ -3003,8 +3194,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkOverlayNew(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height)
+    DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+        uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3017,7 +3208,8 @@ namespace DSL
         }
         try
         {
-            m_components[name] = DSL_OVERLAY_SINK_NEW(name, offsetX, offsetY, width, height);
+            m_components[name] = DSL_OVERLAY_SINK_NEW(
+                name, overlay_id, display_id, depth, offsetX, offsetY, width, height);
         }
         catch(...)
         {
@@ -3547,12 +3739,7 @@ namespace DSL
 
         try
         {
-            if (!m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout))
-            {
-                LOG_ERROR("Pipeline '" << pipeline
-                    << "' failed to get the Stream Muxer Batch Properties");
-                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
-            }
+            m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout);
         }
         catch(...)
         {
@@ -4209,6 +4396,11 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_GIE_PAD_TYPE_INVALID] = L"DSL_RESULT_GIE_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE] = L"DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE";
         m_returnValueToString[DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST";
+        m_returnValueToString[DSL_RESULT_DEMUXER_RESULT] = L"DSL_RESULT_DEMUXER_RESULT";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_NOT_FOUND] = L"DSL_RESULT_DEMUXER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_DEMUXER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEMUXER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_DEMUXER_THREW_EXCEPTION] = L"DSL_RESULT_DEMUXER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_TILER_RESULT] = L"DSL_RESULT_TILER_RESULT";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_TILER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_FOUND] = L"DSL_RESULT_TILER_NAME_NOT_FOUND";

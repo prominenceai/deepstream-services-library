@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslSourceBintr.h"
+#include "DslDemuxerBintr.h"
 
 namespace DSL
 {
@@ -75,6 +76,10 @@ namespace DSL
             
             return m_pChildSources.size();
         }
+
+        bool AddDemuxer(DSL_NODETR_PTR pParentPipeline, DSL_DEMUXER_PTR pDemuxerBintr);
+        
+        bool RemoveDemuxer();
         
         /**
          * @brief interates through the list of child source bintrs setting 
@@ -88,6 +93,12 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief Links the Child OSD and MultiSinks for each Source back to the Demuxer
+         * @param pDemuxerBintr Demuxer elementr to link to
+         * @return true if successful, false otherwise
+         */
+         
         void SetStreamMuxPlayType(bool areSourcesLive);        
         
         bool StreamMuxPlayTypeIsLive();        
@@ -155,6 +166,8 @@ namespace DSL
     public:
 
         DSL_ELEMENT_PTR m_pStreamMux;
+        
+        DSL_DEMUXER_PTR m_pDemuxerBintr;
         
         std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         

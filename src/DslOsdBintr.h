@@ -79,6 +79,30 @@ namespace DSL
         void UnlinkAll();
 
         /**
+         * @brief Set the Stream Id - for when a child of a Source
+         * @param streamId unique Id of the Parent Stream
+         */
+        void SetStreamId(uint streamId)
+        {
+            LOG_FUNC();
+            
+            m_streamId = streamId;
+        }
+        
+        /**
+         * @brief Links this OsdBintr back to a source Demuxer element
+         * @param[in] pDemuxer to link back to
+         * @return true on successful Link false other
+         */
+        bool LinkToSource(DSL_NODETR_PTR pDemuxer);
+
+        /**
+         * @brief Unlinks this OsdBintr from a source Demuxer element
+         * @return true on successful Unlink false other
+         */
+        bool UnlinkFromSource();
+
+        /**
          * @brief Gets the current state of the On-screen clock
          * @param[out] enabled true if the OSD clock is current enabled, false otherwise
          */
@@ -159,6 +183,12 @@ namespace DSL
          @brief
          */
         guint m_processMode;
+
+        /**
+         * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline
+         * The id is used when getting a request Pad for Src Demuxer
+         */
+        int m_streamId;
         
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pVidConv;

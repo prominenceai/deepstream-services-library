@@ -8,11 +8,7 @@ DSL_RETURN_SUCCESS = 0
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
-
-# Filespecs for the Single Secondary GIE
-secondary_infer_config_file = '../../test/configs/config_infer_secondary_carcolor.txt';
-secondary_model_engine_file = '../../test/models/Secondary_CarColor/resnet18.caffemodel';
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
 
 source_uri1 = "http://wzmedia.dot.ca.gov/D4/E580_at_Grand_Lakeshore.stream/playlist.m3u8"
 source_uri2 = "http://wzmedia.dot.ca.gov/D4/E92_JWO_Foster_City_Bl.stream/playlist.m3u8"

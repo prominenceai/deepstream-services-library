@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new OsdBintr is created correctly", "[test]" )
+SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
 {
     GIVEN( "Attributes for a new OsdBintr" ) 
     {

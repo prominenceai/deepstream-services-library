@@ -505,6 +505,42 @@ SCENARIO( "A UriSourceBintr with a child SinkBintr can UnlinkAll correctly",  "[
     }
 }
 
+SCENARIO( "A UriSourceBintr can Add and Remove a Child OsdBintr",  "[UriSourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr and OsdBintr in memory" ) 
+    {
+        std::string sourceName("test-file-source");
+        std::string uri("./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::string osdName("on-screen-display");
+        boolean clockEnabled(false);
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
+
+        DSL_OSD_PTR pOsdBintr = 
+            DSL_OSD_NEW(osdName.c_str(), clockEnabled);
+            
+        REQUIRE( pSourceBintr->HasOsdBintr() == false );
+        REQUIRE( pSourceBintr->RemoveOsdBintr() == false );
+
+        WHEN( "The OsdBintr is added to UriSourceBintr" )
+        {
+            REQUIRE( pSourceBintr->AddOsdBintr(pOsdBintr) == true );
+
+            THEN( "The UriSourceBintr can return, and then remove the Child OsdBintr" )
+            {
+                REQUIRE( pSourceBintr->HasOsdBintr() == true );
+                REQUIRE( pSourceBintr->GetOsdBintr() == pOsdBintr );
+                REQUIRE( pSourceBintr->RemoveOsdBintr() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A UriSourceBintr can Add a Child DewarperBintr",  "[DecodeSourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr and DewarperBintr in memory" ) 

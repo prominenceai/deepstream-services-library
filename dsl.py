@@ -40,7 +40,13 @@ DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 
+##
+## TODO: CTYPES callback management needs to be completed before any of
+## the callback remove wrapper functions will work correctly.
+## The below is a simple solution for supporting add functions only.
+##
 callbacks = []
+
 ##
 ## dsl_source_csi_new()
 ##
@@ -104,6 +110,26 @@ def dsl_source_frame_rate_get(name):
     fps_d = c_uint(0)
     result = _dsl.dsl_source_frame_rate_get(name, DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
     return int(result), fps_n.value, fps_d.value 
+
+##
+## dsl_source_osd_add()
+##
+_dsl.dsl_source_osd_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_osd_add.restype = c_uint
+def dsl_source_osd_add(source, osd):
+    global _dsl
+    result = _dsl.dsl_source_osd_add(source, osd)
+    return int(result)
+    
+##
+## dsl_source_osd_remove()
+##
+_dsl.dsl_source_osd_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_osd_remove.restype = c_uint
+def dsl_source_osd_remove(source):
+    global _dsl
+    result = _dsl.dsl_source_osd_remove(source)
+    return int(result)
 
 ##
 ## dsl_source_sink_add()
@@ -500,6 +526,39 @@ def dsl_osd_kitti_output_enabled_set(name, enabled, path):
     return int(result)
 
 ##
+## dsl_demuxer_new()
+##
+_dsl.dsl_demuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_demuxer_new.restype = c_uint
+def dsl_demuxer_new(name):
+    global _dsl
+    result =_dsl.dsl_demuxer_new(name)
+    return int(result)
+
+##
+## dsl_demuxer_batch_meta_handler_add()
+##
+_dsl.dsl_demuxer_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_demuxer_batch_meta_handler_add.restype = c_uint
+def dsl_demuxer_batch_meta_handler_add(name, handler, user_data):
+    global _dsl
+    meta_handler = DSL_META_BATCH_HANDLER(handler)
+    callbacks.append(meta_handler)
+    result = _dsl.dsl_demuxer_batch_meta_handler_add(name, meta_handler, user_data)
+    return int(result)
+
+##
+## dsl_demuxer_batch_meta_handler_remove()
+##
+_dsl.dsl_demuxer_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_demuxer_batch_meta_handler_remove.restype = c_uint
+def dsl_demuxer_batch_meta_handler_remove(name, handler):
+    global _dsl
+    meta_handler = DSL_META_BATCH_HANDLER(handler)
+    result = _dsl.dsl_demuxer_batch_meta_handler_remove(name, meta_handler)
+    return int(result)
+
+##
 ## dsl_tiler_new()
 ##
 _dsl.dsl_tiler_new.argtypes = [c_wchar_p, c_uint, c_uint]
@@ -534,11 +593,11 @@ def dsl_tiler_batch_meta_handler_remove(name, pad):
 ##
 ## dsl_sink_overlay_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, offsetX, offsetY, width, height):
+def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, offsetX, offsetY, width, height)
+    result =_dsl.dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height)
     return int(result)
 
 ##
@@ -835,6 +894,16 @@ def dsl_pipeline_streammux_batch_properties_get(name):
     batch_timeout = c_uint(0)
     result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), DSL_UINT_P(batch_timeout))
     return int(result), batch_size.value, batch_timeout.value 
+
+##
+## dsl_pipeline_streammux_batch_properties_set()
+##
+_dsl.dsl_pipeline_streammux_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_pipeline_streammux_batch_properties_set.restype = c_uint
+def dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout)
+    return int(result)
 
 ##
 ## dsl_pipeline_streammux_dimensions_get()
