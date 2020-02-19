@@ -56,15 +56,15 @@ SCENARIO( "Adding a single Sink to a Multi Sinks Bintr is managed correctly", "[
         uint offsetY(0);
         uint sinkW(0);
         uint sinkH(0);
-        std::string sinkName = "overlay-sink";
+        std::string sinkName = "window-sink";
         std::string MultiSinksBintrName = "multi-sinks";
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
 
         REQUIRE( pMultiSinksBintr->GetNumChildren() == 0 );
             
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
             
         REQUIRE( pSinkBintr->GetSinkId() == -1 );
 
@@ -86,7 +86,7 @@ SCENARIO( "Removing a single Sink from a Multi Sinks Bintr is managed correctly"
 {
     GIVEN( "A new Multi Sinks Bintr with a new Sink Bintr" ) 
     {
-        std::string sinkName = "overlay-sink";
+        std::string sinkName = "window-sink";
         std::string MultiSinksBintrName = "multi-sinks";
         uint offsetX(0);
         uint offsetY(0);
@@ -95,8 +95,8 @@ SCENARIO( "Removing a single Sink from a Multi Sinks Bintr is managed correctly"
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
             
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)) == true );
         REQUIRE( pSinkBintr->GetSinkId() == -1 );
@@ -121,9 +121,9 @@ SCENARIO( "Linking multiple sinks to a Multi Sinks Bintr Tee is managed correctl
     {
         std::string MultiSinksBintrName = "multi-sinks";
 
-        std::string sinkName0 = "overlay-sink-0";
-        std::string sinkName1 = "overlay-sink-1";
-        std::string sinkName2 = "overlay-sink-2";
+        std::string sinkName0 = "window-sink-0";
+        std::string sinkName1 = "window-sink-1";
+        std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
@@ -131,16 +131,16 @@ SCENARIO( "Linking multiple sinks to a Multi Sinks Bintr Tee is managed correctl
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
             
-        DSL_OVERLAY_SINK_PTR pSinkBintr0 = 
-            DSL_OVERLAY_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr0 = 
+            DSL_WINDOW_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
         REQUIRE( pSinkBintr0->GetSinkId() == -1 );
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
-            DSL_OVERLAY_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = 
+            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
         REQUIRE( pSinkBintr1->GetSinkId() == -1 );
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
-            DSL_OVERLAY_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = 
+            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
         REQUIRE( pSinkBintr2->GetSinkId() == -1 );
 
         REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr0)) == true );
@@ -175,9 +175,9 @@ SCENARIO( "Multiple sinks linked to a Multi Sinks Bintr Tee can be unlinked corr
     {
         std::string MultiSinksBintrName = "multi-sinks";
 
-        std::string sinkName0 = "overlay-sink-0";
-        std::string sinkName1 = "overlay-sink-1";
-        std::string sinkName2 = "overlay-sink-2";
+        std::string sinkName0 = "window-sink-0";
+        std::string sinkName1 = "window-sink-1";
+        std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
@@ -185,14 +185,14 @@ SCENARIO( "Multiple sinks linked to a Multi Sinks Bintr Tee can be unlinked corr
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
             
-        DSL_OVERLAY_SINK_PTR pSinkBintr0 = 
-            DSL_OVERLAY_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr0 = 
+            DSL_WINDOW_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
-            DSL_OVERLAY_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = 
+            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
-            DSL_OVERLAY_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = 
+            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr0)) == true );
         REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1)) == true );
@@ -230,9 +230,9 @@ SCENARIO( "All GST Resources are released on MultiSinksBintr destruction", "[Mul
     {
         std::string MultiSinksBintrName = "multi-sinks";
 
-        std::string sinkName0 = "overlay-sink-0";
-        std::string sinkName1 = "overlay-sink-1";
-        std::string sinkName2 = "overlay-sink-2";
+        std::string sinkName0 = "window-sink-0";
+        std::string sinkName1 = "window-sink-1";
+        std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
@@ -242,14 +242,14 @@ SCENARIO( "All GST Resources are released on MultiSinksBintr destruction", "[Mul
         {
             DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
                 
-            DSL_OVERLAY_SINK_PTR pSinkBintr0 = 
-                DSL_OVERLAY_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr0 = 
+                DSL_WINDOW_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
-                DSL_OVERLAY_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr1 = 
+                DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
-                DSL_OVERLAY_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr2 = 
+                DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr0)) == true );
             REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1)) == true );
@@ -272,14 +272,14 @@ SCENARIO( "All GST Resources are released on MultiSinksBintr destruction", "[Mul
         {
             DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(MultiSinksBintrName.c_str());
                 
-            DSL_OVERLAY_SINK_PTR pSinkBintr0 = 
-                DSL_OVERLAY_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr0 = 
+                DSL_WINDOW_SINK_NEW(sinkName0.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr1 = 
-                DSL_OVERLAY_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr1 = 
+                DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr2 = 
-                DSL_OVERLAY_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_WINDOW_SINK_PTR pSinkBintr2 = 
+                DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr0)) == true );
             REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr1)) == true );

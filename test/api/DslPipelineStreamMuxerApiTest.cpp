@@ -26,11 +26,11 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(300)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(500)
 
-SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDisplay]" )
+SCENARIO( "The Batch Size for a Pipeline with multiple-sources can be updated", "[pipeline-streammux]" )
 {
-    GIVEN( "A Pipeline with four sources and minimal components" ) 
+    GIVEN( "A Pipeline with three sources and minimal components" ) 
     {
         std::wstring sourceName1 = L"test-uri-source-1";
         std::wstring sourceName2 = L"test-uri-source-2";
@@ -41,13 +41,16 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
         uint dropFrameInterval(0);
 
         std::wstring tilerName = L"tiler";
-        uint width(1280);
+        uint width(1920);
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(1280);
+        uint sinkW(1920);
         uint sinkH(720);
 
         std::wstring pipelineName  = L"test-pipeline";
@@ -62,44 +65,41 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        // new tiler for this scenario
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-    
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
             L"tiler", L"overlay-sink", NULL};
-        
-        WHEN( "When the Display Tiles are set, and the Pipeline is Assembled and Played" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), 2, 4) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        uint batch_size(0), batch_timeout(0);
+        
+        dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+        REQUIRE( batch_size == 0 );
+        REQUIRE( batch_timeout == DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT );
+        
+        WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
+        {
+            uint new_batch_size(6), new_batch_timeout(50000);
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
+            dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+            REQUIRE( batch_size == new_batch_size );
+            REQUIRE( batch_timeout == new_batch_timeout );
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            THEN( "The Display settings are correct and can't be updated" )
+            THEN( "The updated Stream Muxer Batch Size is used" )
             {
-                uint currRows(0), currCols(0), currWidth(0), currHeight(0);
+                dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+                REQUIRE( batch_size == new_batch_size );
+                REQUIRE( batch_timeout == new_batch_timeout );
                 
-                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), &currRows, &currCols) == DSL_RESULT_SUCCESS );
-                REQUIRE( currRows == 2 );
-                REQUIRE( currCols == 4 );
-
-                REQUIRE( dsl_tiler_dimensions_get(tilerName.c_str(), &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
-                REQUIRE( currWidth == width );
-                REQUIRE( currHeight == height );
-
-                REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), 4, 4) == DSL_RESULT_TILER_IS_IN_USE );
-                REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), 200, 200) == DSL_RESULT_TILER_IS_IN_USE );
-        
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -108,36 +108,5 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-
-        WHEN( "When the Display Tiles are set to a single Row multiple Source are tilered correctly" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-            REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), 1, 3) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), 1280, 240) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-
-            REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-
-            THEN( "The Display settings are correct and can't be updated" )
-            {
-                uint rows(0), cols(0);
-                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), &rows, &cols) == DSL_RESULT_SUCCESS );
-                
-                REQUIRE( rows == 1 );
-                REQUIRE( cols == 3 );
-
-
-                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-
     }
 }
