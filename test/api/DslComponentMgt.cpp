@@ -31,7 +31,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring sourceName  = L"csi-source";
-        std::wstring overlaySinkName = L"overlay-sink";
+        std::wstring windowSinkName = L"window-sink";
         std::wstring tilerName = L"tiler";
 
         REQUIRE( dsl_component_list_size() == 0 );
@@ -40,7 +40,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
         {
 
             REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -60,19 +60,19 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
     GIVEN( "Three new components" ) 
     {
         std::wstring sourceName  = L"csi-source";
-        std::wstring overlaySinkName = L"overlay-sink";
+        std::wstring windowSinkName = L"window-sink";
         std::wstring tilerName = L"tiler";
         uint GPUID0(0);
         uint GPUID1(1);
         uint retGpuId(0);
 
         REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_component_gpuid_get(sourceName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == GPUID0);
-        REQUIRE( dsl_component_gpuid_get(overlaySinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_gpuid_get(windowSinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == GPUID0);
         REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == GPUID0);
@@ -80,14 +80,14 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         WHEN( "Several new components are called to Set their GPU ID" ) 
         {
 
-            const wchar_t* components[] = {L"csi-source", L"tiler", L"overlay-sink", NULL};
+            const wchar_t* components[] = {L"csi-source", L"tiler", L"window-sink", NULL};
             REQUIRE( dsl_component_gpuid_set_many(components, GPUID1) == DSL_RESULT_SUCCESS );
 
             THEN( "All components return the correct GPU ID of get" ) 
             {
                 REQUIRE( dsl_component_gpuid_get(sourceName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == GPUID1 );
-                REQUIRE( dsl_component_gpuid_get(overlaySinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_gpuid_get(windowSinkName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == GPUID1 );
                 REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == GPUID1 );

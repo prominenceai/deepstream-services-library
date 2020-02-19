@@ -97,6 +97,9 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -110,7 +113,7 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
@@ -155,6 +158,9 @@ SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Displa
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -169,7 +175,7 @@ SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Displa
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
@@ -280,6 +286,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -295,7 +304,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -349,6 +358,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         uint height(720);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -366,7 +378,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -422,6 +434,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         bool isClockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -439,7 +454,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
@@ -883,6 +898,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         bool isClockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -905,7 +923,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -973,6 +991,9 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         bool isClockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -1001,7 +1022,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -1029,3 +1050,400 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         }
     }
 }
+
+SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
+    {
+        std::wstring sourceName1(L"uri-source1");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring demuxerName(L"demuxer");
+
+        std::wstring fakeSinkName(L"fake-sink");
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source1", L"demuxer", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                bool currIsClockEnabled(false);
+                
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+
+                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a URI File Source, FakeSink, OverlaySink and Demuxer can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
+    {
+        std::wstring sourceName1(L"uri-source1");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring demuxerName(L"demuxer");
+
+        std::wstring fakeSinkName(L"fake-sink");
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source1", L"demuxer", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                bool currIsClockEnabled(false);
+                
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+
+                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with three URI File Sources, three overlaySinks and Demuxer can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
+    {
+        std::wstring sourceName1(L"uri-source1");
+        std::wstring sourceName2(L"uri-source2");
+        std::wstring sourceName3(L"uri-source3");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring demuxerName(L"demuxer");
+
+        std::wstring overlaySinkName1(L"overlay-sink1");
+        std::wstring overlaySinkName2(L"overlay-sink2");
+        std::wstring overlaySinkName3(L"overlay-sink3");
+        uint overlayId1(1);
+        uint displayId1(0);
+        uint depth1(0);
+        uint overlayId2(2);
+        uint displayId2(0);
+        uint depth2(0);
+        uint overlayId3(3);
+        uint displayId3(0);
+        uint depth3(0);
+        uint offsetX1(100);
+        uint offsetY1(140);
+        uint offsetX2(400);
+        uint offsetY2(440);
+        uint offsetX3(700);
+        uint offsetY3(740);
+        uint sinkW1(720);
+        uint sinkH1(360);
+        uint sinkW2(720);
+        uint sinkH2(360);
+        uint sinkW3(720);
+        uint sinkH3(360);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
+            offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), overlayId2, displayId2, depth2,
+            offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName3.c_str(), overlayId3, displayId3, depth3,
+            offsetX3, offsetY3, sinkW3, sinkH3) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source1", L"uri-source2", L"uri-source3", L"demuxer", NULL};
+        
+        WHEN( "When the Sinks are added to Sources the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), overlaySinkName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_sink_add(sourceName2.c_str(), overlaySinkName2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_sink_add(sourceName3.c_str(), overlaySinkName3.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+
+                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), overlaySinkName1.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_sink_remove(sourceName2.c_str(), overlaySinkName2.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_sink_remove(sourceName3.c_str(), overlaySinkName3.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with two URI File Sources, two Overlay Sinks, one OSD, and Demuxer can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
+    {
+        std::wstring sourceName1(L"uri-source1");
+        std::wstring sourceName2(L"uri-source2");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine");
+
+        std::wstring demuxerName(L"demuxer");
+
+        std::wstring overlaySinkName1(L"overlay-sink1");
+        std::wstring overlaySinkName2(L"overlay-sink2");
+        uint overlayId1(1);
+        uint displayId1(0);
+        uint depth1(0);
+        uint overlayId2(2);
+        uint displayId2(0);
+        uint depth2(0);
+        uint offsetX1(160);
+        uint offsetY1(240);
+        uint offsetX2(750);
+        uint offsetY2(340);
+        uint sinkW1(720);
+        uint sinkH1(360);
+        uint sinkW2(1080);
+        uint sinkH2(540);
+        
+        std::wstring osdName(L"on-screen-display");
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
+            offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName2.c_str(), overlayId2, displayId2, depth2,
+            offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
+            pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source1", L"uri-source2", L"primary-gie", L"demuxer", NULL};
+        
+        WHEN( "When the Sinks are added to Sources the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), overlaySinkName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_sink_add(sourceName2.c_str(), overlaySinkName2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_osd_add(sourceName2.c_str(), osdName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+
+                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), overlaySinkName1.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_sink_remove(sourceName2.c_str(), overlaySinkName2.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_osd_remove(sourceName2.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+//SCENARIO( "A new Pipeline with three URI File Sources, three WindowSinks and Demuxer can play", "[test]" )
+//{
+//    GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
+//    {
+//        std::wstring sourceName1(L"uri-source1");
+//        std::wstring sourceName2(L"uri-source2");
+//        std::wstring sourceName3(L"uri-source3");
+//        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+//        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+//        uint intrDecode(false);
+//        uint dropFrameInterval(0);
+//
+//        std::wstring demuxerName(L"demuxer");
+//
+//        std::wstring windowSinkName1(L"window-sink1");
+//        std::wstring windowSinkName2(L"window-sink2");
+//        std::wstring windowSinkName3(L"window-sink3");
+//        uint offsetX1(100);
+//        uint offsetY1(140);
+//        uint offsetX2(400);
+//        uint offsetY2(440);
+//        uint offsetX3(300);
+//        uint offsetY3(340);
+//        uint sinkW1(360);
+//        uint sinkH1(180);
+//        uint sinkW2(360);
+//        uint sinkH2(180);
+//        uint sinkW3(360);
+//        uint sinkH3(180);
+//
+//        std::wstring pipelineName(L"test-pipeline");
+//        
+//        REQUIRE( dsl_component_list_size() == 0 );
+//
+//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), cudadecMemType, 
+//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_sink_window_new(windowSinkName1.c_str(), 
+//            offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_sink_window_new(windowSinkName2.c_str(), 
+//            offsetX2, offsetY2, sinkW2, sinkH2) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_sink_window_new(windowSinkName3.c_str(), 
+//            offsetX3, offsetY3, sinkW3, sinkH3) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        const wchar_t* components[] = {L"uri-source1", L"uri-source2", L"uri-source3", L"demuxer", NULL};
+//        
+//        WHEN( "When the Sinks are added to Sources the Pipeline is Assembled" ) 
+//        {
+//            REQUIRE( dsl_source_sink_add(sourceName1.c_str(), windowSinkName1.c_str()) == DSL_RESULT_SUCCESS );
+//            REQUIRE( dsl_source_sink_add(sourceName2.c_str(), windowSinkName2.c_str()) == DSL_RESULT_SUCCESS );
+//            REQUIRE( dsl_source_sink_add(sourceName3.c_str(), windowSinkName3.c_str()) == DSL_RESULT_SUCCESS );
+//            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+//            
+//            REQUIRE( dsl_pipeline_xwindow_dimensions_set(pipelineName.c_str(), 1280, 720) == DSL_RESULT_SUCCESS );
+//
+//            THEN( "Pipeline is Able to LinkAll and Play" )
+//            {
+//                bool currIsClockEnabled(false);
+//                
+//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+//                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_pipeline_list_size() == 0 );
+//
+//                REQUIRE( dsl_source_sink_remove(sourceName1.c_str(), windowSinkName1.c_str()) == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_source_sink_remove(sourceName2.c_str(), windowSinkName2.c_str()) == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_source_sink_remove(sourceName3.c_str(), windowSinkName3.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_component_list_size() == 0 );
+//            }
+//        }
+//    }
+//}

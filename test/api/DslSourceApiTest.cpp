@@ -383,6 +383,9 @@ SCENARIO( "Adding greater than max Sources to all Pipelines fails", "[source-api
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                
+                // Set back to default for other tests
+                REQUIRE( dsl_source_num_in_use_max_set(DSL_DEFAULT_SOURCE_IN_USE_MAX) == true );
                 REQUIRE( dsl_source_num_in_use_get() == 0 );
             }
         }
@@ -477,7 +480,7 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
     }
 }    
     
-SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[source-api]" )
+SCENARIO( "A Sink Component can be added to and removed from a Source Component", "[source-api]" )
 {
     GIVEN( "A new Source and new Sink" )
     {
@@ -488,6 +491,9 @@ SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[so
         uint dropFrameInterval(0);
 
         std::wstring overlaySinkName = L"overlay-sink";
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -496,7 +502,7 @@ SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[so
         REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Sink is added to the Source" ) 
@@ -514,6 +520,43 @@ SCENARIO( "A Sink Object can be added to and removed from a Source Object", "[so
                     
                 REQUIRE( dsl_source_sink_remove(sourceName.c_str(), 
                     overlaySinkName.c_str()) == DSL_RESULT_SOURCE_SINK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OSD  Component can be added to and removed from a Source Component", "[source-api]" )
+{
+    GIVEN( "A new Source and new Sink" )
+    {
+        std::wstring sourceName = L"uri-source";
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring osdName = L" on-screen-display";
+
+        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Sink is added to the Source" ) 
+        {
+            REQUIRE( dsl_source_osd_add(sourceName.c_str(), 
+                osdName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The same OSD can't be added again, but can be removed" )
+            {
+                REQUIRE( dsl_source_osd_add(sourceName.c_str(), osdName.c_str()) == DSL_RESULT_SOURCE_OSD_ADD_FAILED );
+
+                REQUIRE( dsl_source_osd_remove(sourceName.c_str()) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( dsl_source_osd_remove(sourceName.c_str()) == DSL_RESULT_SOURCE_OSD_REMOVE_FAILED );
                     
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -556,7 +599,7 @@ SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-a
     }
 }
 
-SCENARIO( "A Dewarper can be added to and removed from a Decode Source Object", "[source-api]" )
+SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component", "[source-api]" )
 {
     GIVEN( "A new Source and new Dewarper" )
     {
@@ -597,7 +640,7 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Object", 
     }
 }
 
-SCENARIO( "Adding an invalid Dewarper to a Decode Source Object fails", "[source-api]" )
+SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[source-api]" )
 {
     GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
     {

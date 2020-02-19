@@ -101,6 +101,9 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
     GIVEN( "Attributes for a new Overlay Sink" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -109,7 +112,7 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
         WHEN( "The OverlaySinkBintr is created " )
         {
             DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
             
             THEN( "The correct attribute values are returned" )
             {
@@ -125,13 +128,16 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[OverlaySinkBin
     GIVEN( "A new OverlaySinkBintr in an Unlinked state" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -152,13 +158,16 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[OverlaySi
     GIVEN( "A OsdBintr in a linked state" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pSinkBintr->LinkAll() == true );
 
@@ -179,24 +188,27 @@ SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[OverlaySinkBintr
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
-        uint displayId(123);
+        uint newDisplayId(123);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
             
         // ensure display id reflects not is use
         REQUIRE( pSinkBintr->GetDisplayId() == 0 );
 
         WHEN( "The OverlaySinkBintr's display Id is set " )
         {
-            pSinkBintr->SetDisplayId(displayId);
+            pSinkBintr->SetDisplayId(newDisplayId);
             THEN( "The OverlaySinkBintr's new display Id is returned on Get" )
             {
-                REQUIRE( pSinkBintr->GetDisplayId() == displayId );
+                REQUIRE( pSinkBintr->GetDisplayId() == newDisplayId );
             }
         }
     }
@@ -207,13 +219,16 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[OverlaySinkBintr]" )
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint initOffsetX(0);
         uint initOffsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, initOffsetX, initOffsetY, sinkW, sinkH);
             
         uint currOffsetX(0);
         uint currOffsetY(0);
@@ -244,13 +259,16 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[OverlaySinkBintr]
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, initSinkW, initSinkH);
             
         uint currSinkW(0);
         uint currSinkH(0);
@@ -281,13 +299,16 @@ SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[OverlaySinkBintr]"
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
         std::string sinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
         uint offsetX(0);
         uint offsetY(0);
-        uint initSinkW(300);
-        uint initSinkH(200);
+        uint sinkW(300);
+        uint sinkH(200);
 
-        DSL_WINDOW_SINK_PTR pOverlaySinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
         
         uint GPUID0(0);
         uint GPUID1(1);
