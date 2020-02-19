@@ -40,7 +40,13 @@ DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 
+##
+## TODO: CTYPES callback management needs to be completed before any of
+## the callback remove wrapper functions will work correctly.
+## The below is a simple solution for supporting add functions only.
+##
 callbacks = []
+
 ##
 ## dsl_source_csi_new()
 ##
@@ -888,6 +894,16 @@ def dsl_pipeline_streammux_batch_properties_get(name):
     batch_timeout = c_uint(0)
     result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), DSL_UINT_P(batch_timeout))
     return int(result), batch_size.value, batch_timeout.value 
+
+##
+## dsl_pipeline_streammux_batch_properties_set()
+##
+_dsl.dsl_pipeline_streammux_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_pipeline_streammux_batch_properties_set.restype = c_uint
+def dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout)
+    return int(result)
 
 ##
 ## dsl_pipeline_streammux_dimensions_get()

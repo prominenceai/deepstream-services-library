@@ -32,7 +32,8 @@ namespace DSL
 {
     PipelineBintr::PipelineBintr(const char* name)
         : Bintr(name)
-        , m_pPipelineSourcesBintr(nullptr)
+        , m_batchSize(0)
+        , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
         , m_pXWindowEventThread(NULL)
@@ -103,6 +104,7 @@ namespace DSL
         if (!m_pPipelineSourcesBintr)
         {
             m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
+            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
             AddChild(m_pPipelineSourcesBintr);
         }
 
@@ -277,30 +279,31 @@ namespace DSL
         return AddChild(pTilerBintr);
     }
 
-    bool PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
+    void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
-        m_pPipelineSourcesBintr->GetStreamMuxBatchProperties(batchSize, batchTimeout);
-        
-        return true;
+        *batchSize = m_batchSize;
+        *batchTimeout = m_batchTimeout;
     }
 
     bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+
+        if (IsLinked())
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            LOG_ERROR("Pipeline '" << GetName() << "' is currently Linked - batch properties can not be updated");
             return false;
+            
         }
-        m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(batchSize, batchTimeout);
+        if (m_pPipelineSourcesBintr)
+        {
+            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
+        }
         
         return true;
     }
@@ -414,6 +417,13 @@ namespace DSL
             LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
             return false;
         }
+
+        // If the batch size has not been explicitely set, use the number of sources.
+        if (m_batchSize < m_pPipelineSourcesBintr->GetNumChildren())
+        {
+            SetStreamMuxBatchProperties(m_pPipelineSourcesBintr->GetNumChildren(), m_batchTimeout);
+        }
+        
         // Start with an empty list of linked components
         m_linkedComponents.clear();
         
@@ -437,9 +447,9 @@ namespace DSL
 
         if (m_pPrimaryGieBintr)
         {
-            // Set the GIE's batch size to the number of active sources, 
+            // Set the GIE's batch size to the current stream muxer batch size, 
             // then LinkAll PrimaryGie Elementrs and add as the next component in the Pipeline
-            m_pPrimaryGieBintr->SetBatchSize(m_pPipelineSourcesBintr->GetNumChildren());
+            m_pPrimaryGieBintr->SetBatchSize(m_batchSize);
             if (!m_pPrimaryGieBintr->LinkAll() or
                 !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr))
             {
@@ -465,7 +475,7 @@ namespace DSL
         
         if (m_pSecondaryGiesBintr)
         {
-            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes to the number of Sources
+            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes
             m_pSecondaryGiesBintr->SetInferOnGieId(m_pPrimaryGieBintr->GetUniqueId());
             m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
             
@@ -943,7 +953,6 @@ namespace DSL
                             {
                                 imap.first(imap.second);
                             }
-//                            g_main_loop_quit(Services::GetServices()->GetMainLoopHandle());
                         }
                         break;
                         
@@ -966,20 +975,21 @@ namespace DSL
             return false;
         }
 
-        // calculate the minimum width and heigh for XWindow creation
-        uint displayWidth(0), displayHeight(0);
-        if (m_pTilerBintr)
+        // If dimensions have not been provided
+        if (!m_xWindowWidth or !m_xWindowHeight)
         {
-            m_pTilerBintr->GetDimensions(&displayWidth, &displayHeight);
-        }
-        else
-        {
-            GetStreamMuxDimensions(&displayWidth, &displayHeight);
-        }
+            if (m_pTilerBintr)
+            {
+                m_pTilerBintr->GetDimensions(&m_xWindowWidth, &m_xWindowHeight);
+            }
+            else
+            {
+                GetStreamMuxDimensions(&m_xWindowWidth, &m_xWindowHeight);
+            }
 
-        m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
-        m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
-        
+//            m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
+//            m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
+        }
         LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
 
         // create new XDisplay first

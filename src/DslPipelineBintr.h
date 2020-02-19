@@ -169,7 +169,7 @@ namespace DSL
          * @param[out] batchTimeout current batch timeout
          * @return true if the batch properties could be read, false otherwise
          */
-        bool GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
+        void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
 
         /**
          * @brief Sets the current batch settings for the Pipeline's Stream Muxer
@@ -362,6 +362,10 @@ namespace DSL
         void HandleEosMessage(GstMessage* pMessage);
         
         void HandleErrorMessage(GstMessage* pMessage);
+        
+        uint m_batchSize;
+        
+        uint m_batchTimeout;
 
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         

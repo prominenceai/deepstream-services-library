@@ -30,6 +30,11 @@ namespace DSL
 {
     PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
         : Bintr(name)
+        , m_batchSize(0)
+        , m_batchTimeout(0)
+        , m_streamMuxWidth(0)
+        , m_streamMuxHeight(0)
+        , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
     {
         LOG_FUNC();
@@ -213,9 +218,12 @@ namespace DSL
                 return false;
             }
         }
-        // Set the Batch size to the nuber of sources owned
-        // TODO add support for managing batch timeout
-        SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+        if (!m_batchSize)
+        {
+            // Set the Batch size to the nuber of sources owned if not already set
+            // TODO add support for managing batch timeout
+            SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+        }
 
         m_isLinked = true;
         

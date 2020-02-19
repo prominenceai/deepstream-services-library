@@ -3739,12 +3739,7 @@ namespace DSL
 
         try
         {
-            if (!m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout))
-            {
-                LOG_ERROR("Pipeline '" << pipeline
-                    << "' failed to get the Stream Muxer Batch Properties");
-                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
-            }
+            m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout);
         }
         catch(...)
         {

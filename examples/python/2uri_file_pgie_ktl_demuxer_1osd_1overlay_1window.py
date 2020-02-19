@@ -18,25 +18,30 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI File Source
+        # Two URI File Sources - using the same file.
         retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
-
-        # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
-
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Demuxer - OSDs and Sinks are added to Sources
+        # New Primary GIE using the filespecs above, with infer interval
+        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Demuxer - therefore, OSDs and Sinks are added to Sources, not to the Pipeline.
         retval = dsl_demuxer_new('demuxer')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and Dimensions
-        retval = dsl_sink_overlay_new('overlay-sink', -1, 0, 0, 0, 0, 720, 360)
+        ## 
+        # Setup the first Source with its downstream overlay-sink
+        ###
+
+        # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
+        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 360, 180)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -44,7 +49,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... using default values.
+        ## 
+        # Setup the Source with its downstream OSD and window-sink
+        ###
+
         retval = dsl_osd_new('on-screen-display', False)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -54,7 +62,7 @@ def main(args):
             break
 
         # New Window Sink, with x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 720, 360, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, 720, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -67,12 +75,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
+        # Add the EOS listener callback to the Pipeline
         retval = dsl_pipeline_eos_listener_add('simple-pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add the sources the components to our pipeline
         retval = dsl_pipeline_component_add_many('simple-pipeline', 
             ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:

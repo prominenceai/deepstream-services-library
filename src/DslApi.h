@@ -232,6 +232,7 @@ THE SOFTWARE.
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 32
+#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
