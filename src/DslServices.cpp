@@ -3264,7 +3264,7 @@ namespace DSL
             LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
             return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
         }
-        if (container > DSL_CONTAINER_MK4)
+        if (container > DSL_CONTAINER_MKV)
         {   
             LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
             return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
@@ -3694,6 +3694,7 @@ namespace DSL
             m_components[component]->AddToParent(m_pipelines[pipeline]);
             LOG_INFO("Component '" << component 
                 << "' was added to Pipeline '" << pipeline << "' successfully");
+
         }
         catch(...)
         {

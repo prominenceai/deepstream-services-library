@@ -410,7 +410,7 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[fi
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -441,7 +441,7 @@ SCENARIO( "The Components container is updated correctly on File Sink delete", "
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -469,7 +469,7 @@ SCENARIO( "Creating a new File Sink with an invalid Codec will fail", "[file-sin
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_MPEG4 + 1);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -495,7 +495,7 @@ SCENARIO( "Creating a new File Sink with an invalid Container will fail", "[file
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint container(DSL_CONTAINER_MK4 + 1);
+        uint container(DSL_CONTAINER_MKV + 1);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -521,7 +521,7 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint initBitrate(2000000);
         uint initInterval(0);
 

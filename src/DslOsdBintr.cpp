@@ -61,7 +61,7 @@ namespace DSL
         m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
         
-        SetClockColor(m_clockColorRed, m_clockColorGreen, m_clockColorBlue);
+//        SetClockColor(m_clockColorRed, m_clockColorGreen, m_clockColorBlue);
         
         AddChild(m_pQueue);
         AddChild(m_pVidConv);
