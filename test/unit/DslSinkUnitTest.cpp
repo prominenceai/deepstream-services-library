@@ -516,7 +516,7 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[FileSin
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -544,7 +544,7 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "[F
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -572,7 +572,7 @@ SCENARIO( "A Linked DSL_CODEC_MPEG4 FileSinkBintr can UnlinkAll Child Elementrs"
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -601,7 +601,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSink
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -629,7 +629,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[Fi
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -657,7 +657,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -686,7 +686,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSink
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -714,7 +714,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[Fi
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -742,7 +742,7 @@ SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -771,7 +771,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[FileSinkBintr]"
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint initBitrate(2000000);
         uint initInterval(0);
 
@@ -809,7 +809,7 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint container(DSL_CONTAINER_MPEG4);
+        uint container(DSL_CONTAINER_MP4);
         uint initBitrate(2000000);
         uint initInterval(0);
         

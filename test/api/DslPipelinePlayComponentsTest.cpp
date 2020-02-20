@@ -589,7 +589,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H264);
-        uint muxer(DSL_CONTAINER_MPEG4);
+        uint muxer(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -647,7 +647,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_H265);
-        uint muxer(DSL_CONTAINER_MPEG4);
+        uint muxer(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -705,7 +705,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_M
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
         uint codec(DSL_CODEC_MPEG4);
-        uint muxer(DSL_CONTAINER_MPEG4);
+        uint muxer(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
 

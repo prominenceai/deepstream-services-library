@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2020, ROBERT HOWELL
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -211,8 +211,8 @@ THE SOFTWARE.
 #define DSL_CODEC_H265                                              1
 #define DSL_CODEC_MPEG4                                             2
 
-#define DSL_CONTAINER_MPEG4                                         0
-#define DSL_CONTAINER_MK4                                           1
+#define DSL_CONTAINER_MP4                                           0
+#define DSL_CONTAINER_MKV                                           1
 
 #define DSL_STATE_NULL                                              1
 #define DSL_STATE_READY                                             2
@@ -232,7 +232,7 @@ THE SOFTWARE.
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 32
-#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
+#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         4000000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10

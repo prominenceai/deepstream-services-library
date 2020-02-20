@@ -14,8 +14,8 @@ DSL_CODEC_H264 = 0
 DSL_CODEC_H265 = 1
 DSL_CODEC_MPEG4 = 2
 
-DSL_CONTAINER_MPEG4 = 0
-DSL_CONTAINER_MK4 = 1
+DSL_CONTAINER_MP4 = 0
+DSL_CONTAINER_MKV = 1
 
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
@@ -881,6 +881,16 @@ def dsl_pipeline_component_add_many(pipeline, components):
     arr = (c_wchar_p * len(components))()
     arr[:] = components
     result =_dsl.dsl_pipeline_component_add_many(pipeline, arr)
+    return int(result)
+
+##
+## dsl_pipeline_component_remove()
+##
+_dsl.dsl_pipeline_component_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_component_remove.restype = c_uint
+def dsl_pipeline_component_remove(pipeline, component):
+    global _dsl
+    result =_dsl.dsl_pipeline_component_remove(pipeline, component)
     return int(result)
 
 ##

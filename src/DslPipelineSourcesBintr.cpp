@@ -96,7 +96,7 @@ namespace DSL
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set childs source Id to the next available,
+        // If the Pipeline is currently in a linked state, Set child source Id to the next available,
         // linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
@@ -105,10 +105,6 @@ namespace DSL
             {
                 return false;
             }
-//            if (GetState() == GST_STATE_PLAYING)
-//            {
-//                Pause();
-//            }
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -146,6 +142,7 @@ namespace DSL
         {
             // unlink the source from the Streammuxer
             pChildSource->UnlinkFromSink();
+            pChildSource->UnlinkAll();
         }
         
         // unreference and remove from the collection of source

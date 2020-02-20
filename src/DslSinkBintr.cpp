@@ -145,8 +145,14 @@ namespace DSL
 
         LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
         
-        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
+        gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
+        if (!gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad))
+        {
+            LOG_ERROR("SinkBintr '" << GetName() << "' failed to unlink from MultiSinks Tee");
+            return false;
+        }
         gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
+        gst_object_unref(m_pGstRequestedSourcePads[srcPadName]);
                 
         m_pGstRequestedSourcePads.erase(srcPadName);
         
@@ -553,10 +559,10 @@ namespace DSL
         
         switch (container)
         {
-        case DSL_CONTAINER_MPEG4 :
+        case DSL_CONTAINER_MP4 :
             m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "file-sink-bin-container");        
             break;
-        case DSL_CONTAINER_MK4 :
+        case DSL_CONTAINER_MKV :
             m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-container");        
             break;
         default:

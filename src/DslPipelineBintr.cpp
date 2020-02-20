@@ -620,10 +620,10 @@ namespace DSL
             LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
             return false;
         }
-        if (IsLinked())
-        {
-            UnlinkAll();
-        }
+//        if (IsLinked())
+//        {
+//            UnlinkAll();
+//        }
         return true;
     }
 
@@ -808,7 +808,6 @@ namespace DSL
     bool PipelineBintr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
-//        UNREF_MESSAGE_ON_RETURN(pMessage);
         
         switch (GST_MESSAGE_TYPE(pMessage))
         {
