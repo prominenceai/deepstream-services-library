@@ -38,10 +38,6 @@ import os
 import pyds
 from dsl import *
 
-DSL_RESULT_SUCCESS = 0
-DSL_CODEC_H264 = 0
-DSL_CODEC_MPEG4 = 2
-DSL_CONTAINER_MPEG = 0
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
@@ -155,27 +151,27 @@ def test1():
     retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 1)
 
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
         
     # New KTL Tracker, setting max width and height of input frame
     retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
 
     # New Secondary GIE set to Infer on the Primary GIE defined above
     retval = dsl_gie_secondary_new('sgie', sgie_config_file, sgie_model_file, 'primary-gie',0)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
 
     # New Secondary GIE set to Infer on the Primary GIE defined above
     retval = dsl_gie_secondary_new('sgie2', sgie2_config_file, sgie2_model_file, 'primary-gie',0)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
     
     # New Secondary GIE set to Infer on the Primary GIE defined above
     retval = dsl_gie_secondary_new('sgie3', sgie3_config_file, sgie3_model_file, 'primary-gie',0)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
 
     #########################################
     #   Create Display 
@@ -189,12 +185,12 @@ def test1():
     # New OSD with clock enabled... using default values.
     retval = dsl_osd_new('on-screen-display', False)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
     
     # Add the above defined batch meta handler to the Source Pad of the KTL Tracker
     retval = dsl_osd_batch_meta_handler_add('on-screen-display', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
 
     #########################################
     #   Create Display Overlay 
@@ -217,7 +213,7 @@ def test1():
     #   Create file sink
     #########################################
 
-    retVal = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_MPEG4, DSL_CONTAINER_MPEG, 200000,0)
+    retVal = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_MPEG4, DSL_CONTAINER_MP4, 200000,0)
     if retVal != DSL_RETURN_SUCCESS:
         print(dsl_return_value_to_string(retVal)) 
 
