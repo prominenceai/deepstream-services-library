@@ -36,10 +36,6 @@ sys.path.insert(0,"../../")
 import os
 from dsl import *
 
-DSL_RESULT_SUCCESS = 0
-DSL_CODEC_H264 = 0
-DSL_CODEC_MPEG4 = 2
-DSL_CONTAINER_MPEG = 0
 
 ####################################################
 #   This callback handles EOS messages
@@ -111,7 +107,7 @@ def test1():
     retVal = dsl_source_rtsp_new('rtsp1', rtsp_source_uri, DSL_RTP_ALL, 0, 0, 0)
 
     if retVal != DSL_RETURN_SUCCESS:
-        print(val)
+        print(dsl_return_value_to_string(retVal))
 
     #########################################
     #   Create Display 
@@ -125,7 +121,7 @@ def test1():
     # New OSD with clock enabled... using default values.
     retval = dsl_osd_new('on-screen-display', False)
     if retval != DSL_RETURN_SUCCESS:
-        print(retval)
+        print(dsl_return_value_to_string(retVal))
     
     #########################################
     #   Create Display Overlay 
