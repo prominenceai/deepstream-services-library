@@ -32,7 +32,7 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
 
 MAX_SOURCE_COUNT = 4
 cur_source_count = 0
@@ -67,7 +67,7 @@ def xwindow_key_event_handler(key_string, client_data):
             cur_source_count += 1
             source_name = 'uri-source-' + str(cur_source_count)
             print('adding source ', source_name)
-            dsl_source_uri_new(source_name, "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+            dsl_source_uri_new(source_name, "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
             dsl_pipeline_component_add('pipeline', source_name)
 
     # Remove the last source added
@@ -87,68 +87,51 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        ## 
         # First new URI File Source
-        ## 
-        retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Primary GIE using the filespecs above, with infer interval
-        ## 
         retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        ## 
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New OSD for single tiled stream - will be added to Pipeline since using Tiler
-        ## 
         retval = dsl_osd_new('on-screen-display', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        ## 
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Pipeline to use with the above components
-        ## 
         retval = dsl_pipeline_new('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Add all the components to our pipeline
-        ## 
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['uri-source-1' , 'primary-gie', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         cur_source_count = 1
 
-        ##
-        ## IMPORTANT: we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
-        ## will use the current number of Sources when set to Playing, which would be 1 and too small
-        ##
+        ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
+
+        # will use the current number of Sources when set to Playing, which would be 1 and too small
         retval = dsl_pipeline_streammux_batch_properties_set('pipeline', MAX_SOURCE_COUNT, 4000000)
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        ## 
-        ## Add the XWindow event handlers and EOS listener functions defined above
-        ##
+        # Add the XWindow event handlers and EOS listener functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -161,16 +144,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Play the pipeline
-        ## 
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Start/join the main-loop until dsl_main_loop_exit()
-        ## 
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

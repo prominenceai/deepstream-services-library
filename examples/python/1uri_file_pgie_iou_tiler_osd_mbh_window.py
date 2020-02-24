@@ -34,7 +34,7 @@ from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
             
 ## 
@@ -56,7 +56,9 @@ def xwindow_delete_event_handler(client_data):
     print('delete window event')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_main_loop_quit()
@@ -66,81 +68,61 @@ def eos_event_listener(client_data):
 ## 
 def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
 
-    ## 
     # Since we're not using args, we can Let DSL initialize GST on first call
-    ## 
     while True:
 
-        ## 
         # New URI File Source using the filespec defined above
-        ## 
         retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Primary GIE using the filespecs above with interval = 0
-        ## 
         retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New KTL Tracker, setting max width and height of input frame
-        ## 
         retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        ## 
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
  
-        ## 
         # New OSD with clock enabled... .
-        ## 
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Add Nvidia's example batch meta handler to the Source Pad of the KTL Tracker
-        ## 
         retval = dsl_osd_batch_meta_handler_add('on-screen-display', DSL_PAD_SINK, osd_sink_pad_buffer_probe, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        ## 
-        ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        ## 
+        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # New Pipeline to use with the above components
-        ## 
         retval = dsl_pipeline_new('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Add all the components to our pipeline
-        ## 
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
-        ## Add the XWindow event handler functions defined above
-        ##
+        # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -148,9 +130,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         ## Add the listener callback functions defined above
-        ## 
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -158,15 +138,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## 
         # Play the pipeline
-        ## 
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
