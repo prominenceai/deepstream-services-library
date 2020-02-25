@@ -1,1 +1,204 @@
 # DSL Python Examples
+Note: Many of the examples use the NVIDIA® DeepStream [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) (pyds.so),  which can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings).
+
+### 1csi_live_pgie_demuxer_osd_overlay_rtsp_h265.py
+* 1 Live CSI Camera Source
+* Primary GIE using labels in config file
+* Demuxer - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+  * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
+* Overlay Sink - render over main display (0)
+* RTSP Sink - H.256 RTSP Server
+
+### 1csi_live_pgie_tiler_osd_window.py
+* 1 Live CSI Camera Source
+* Primary GIE using labels in config file
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+
+### 1rtsp_1csi_live_pgie_tiler_osd_window.py
+* 1 Live RTSP Camera Source
+* 1 Live CSI Camera Source
+* Primary GIE using labels in config file
+* Tiler
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+
+### 1uri_file_dewarper_pgie_ktl_3sgie_tiler_osd_bmh_window.py
+* 1 URI File Source - playback of 360 degree camera source
+* Dewarper using provided config file
+* Primary GIE using labels in config file
+* KTL Tracker
+* 3 Secondary GIEs - all set to infer on the Primary GIE
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+  * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 1uri_file_pgie_iou_tiler_osd_bmh_window.py
+* 1 H.264 URI File Source
+* Primary GIE using labels in config file
+* IOU Tracker using provided config file
+* 3 Secondary GIEs - all set to infer on the Primary GIE
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+  * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 1uri_file_pgie_ktl_tiler_osd_bmh_window.py
+* 1 H.264 URI File Source
+* Primary GIE using labels in config file
+* KTL Tracker
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+  * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+  
+### 1uri_file_pgie_ktl_tiler_osd_window_h264_mkv.py  
+* 1 H.264 URI File Source
+* Primary GIE using labels in config file
+* KTL Tracker
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* File Sink
+  * H.264 encoder
+  * MKV media container
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 1uri_file_pgie_ktl_tiler_osd_window_h265_mp4.py
+* 1 H.265 URI File Source
+* Primary GIE using labels in config file
+* KTL Tracker
+* Tiler - demuxer or tiler is required, even with one source
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* File Sink
+  * H.265 encoder
+  * MP4 media container
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 1uri_https_tiler_window_dyn_overlay.py
+* 1 https URI source ('https://www.radiantmediaplayer.com/media/bbb-360p.mp4')
+* Tiler - demuxer or tiler is required, even with one source
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* Dynamic Add/Remove Overlay Sinks
+  * Using `xwindow_key_event_handler`
+  * Press `'+'` to add a new Overlay Sink - main display
+  * Press `'-'` to remove last added
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py
+* 1 H.264 URI File Source
+* 1 H.265 URI File Source
+* Primary GIE using labels in config file
+* KTL Tracker
+* 3 Secondary GIEs - all set to infer on the Primary GIE
+* Tiler
+* On-Screen-Display
+  * Clock enabled
+  * Default colors
+  * `nvidia_osd_sink_pad_buffer_probe` batch-meta-handler (bmh) callback added
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+  * `state_change_listener` added to Pipeline
+
+### 2uri_file_pgie_ktl_demuxer_1osd_1overlay_1window.py
+* 1st H.264 URI File Source
+  * Overlay Sink - downstream of demuxer
+* 2nd H.264 URI File Source
+  * On-Screen-Display - downstream of demuxer
+  * Default X11 Window Sink - downstream of demuxer
+    * `xwindow_delete_event_handler` added to Pipeline
+* Primary GIE using labels in config file
+* KTL Tracker
+* Demuxer
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+
+### 4uri_file_pgie_ktl_tiler_osd_overlay.py
+* 4 H.264 URI File Sources
+* Primary GIE using labels in config file
+* KTL Tracker
+* Tiler
+* On-Screen-Display
+  * Clock disabled
+  * Default colors
+* Overlay sink - main window
+* Other Callbacks
+  * `eos_event_listener` added to Pipeline
+
+### 4uri_live_pgie_tiler_osd_window.py
+* 4 http URI Live Sources - CalTrans traffic cammeras - low resolution
+* Primary GIE using labels in config file
+* Tiler
+* On-Screen-Display
+  * Clock disabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+
+### dyn_uri_file_pgie_tiler_osd_window.py
+* Dynamic Add/Remove URI File Sources - initially 1
+  * Using `xwindow_key_event_handler`
+  * Press `'+'` to add a new URI FIle Source
+  * Press `'-'` to remove last added
+* Primary GIE using labels in config file
+* Tiler
+* On-Screen-Display
+  * Clock disabled
+  * Default colors
+* Default X11 Window Sink
+  * `xwindow_delete_event_handler` added to Pipeline
+  * `xwindow_key_event_handler` added to Pipeline
+
+
