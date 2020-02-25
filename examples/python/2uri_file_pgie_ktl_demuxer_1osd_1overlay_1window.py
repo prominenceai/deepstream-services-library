@@ -32,9 +32,18 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
 
+## 
+# Function to be called on XWindow Delete event
+## 
+def xwindow_delete_event_handler(client_data):
+    print('delete window event')
+    dsl_main_loop_quit()
+
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_main_loop_quit()
@@ -67,7 +76,7 @@ def main(args):
         ###
 
         # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 360, 180)
+        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 360, 180)  
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -97,32 +106,32 @@ def main(args):
             break
 
         # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('simple-pipeline')
+        retval = dsl_pipeline_new('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the EOS listener callback to the Pipeline
-        retval = dsl_pipeline_eos_listener_add('simple-pipeline', eos_event_listener, None)
+        # Add the window delete handler and EOS listener callbacks to the Pipeline
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the sources the components to our pipeline
-        retval = dsl_pipeline_component_add_many('simple-pipeline', 
+        retval = dsl_pipeline_component_add_many('pipeline', 
             ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_pipeline_xwindow_dimensions_set('simple-pipeline', 1280, 720)
+        retval = dsl_pipeline_xwindow_dimensions_set('pipeline', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # Play the pipeline
-        retval = dsl_pipeline_play('simple-pipeline')
+        retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-        dsl_pipeline_dump_to_dot('simple-pipeline', 'state-playing')
 
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
@@ -135,7 +144,7 @@ def main(args):
 
     dsl_source_sink_remove('uri-source-1', 'overlay-sink')
     dsl_source_sink_remove('uri-source-2', 'window-sink')
-    dsl_source_osd_remove('uri-source-2'    )
+    dsl_source_osd_remove('uri-source-2')
     dsl_component_delete_all()
 
 if __name__ == '__main__':

@@ -78,7 +78,24 @@ namespace DSL
         m_pChildSinks[pChildSink->GetName()] = pChildSink;
         
         // call the base function to complete the add
-        return Bintr::AddChild(pChildSink);
+        if (!Bintr::AddChild(pChildSink))
+        {
+            LOG_ERROR("Faild to add Sink '" << pChildSink->GetName() << "' as a child to '" << GetName() << "'");
+            return false;
+        }
+        
+        // If the Pipeline is currently in a linked state, Set child source Id to the next available,
+        // linkAll Elementrs now and Link to with the Stream
+        if (IsLinked())
+        {
+            if (!pChildSink->LinkAll() or !pChildSink->LinkToSource(m_pTee))
+            {
+                return false;
+            }
+            // Sink up with the parent state
+            return gst_element_sync_state_with_parent(pChildSink->GetGstElement());
+        }
+        return true;
     }
     
     bool MultiSinksBintr::IsChild(DSL_SINK_PTR pChildSink)
@@ -109,6 +126,7 @@ namespace DSL
         {
             // unlink the sink from the Tee
             pChildSink->UnlinkFromSource();
+            pChildSink->UnlinkAll();
         }
         
         // unreference and remove from the collection of sinks

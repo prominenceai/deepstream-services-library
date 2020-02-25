@@ -46,7 +46,6 @@ def main(args):
 
         # New URI File Source
         retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
-
         if retval != DSL_RETURN_SUCCESS:
             break
         dsl_source_uri_new('uri-source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
@@ -54,7 +53,7 @@ def main(args):
         dsl_source_uri_new('uri-source-4', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
+        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
