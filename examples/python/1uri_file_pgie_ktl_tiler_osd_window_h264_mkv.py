@@ -34,7 +34,7 @@ from dsl import *
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
 
-source_uri = '../../test/streams/sample_1080p_h264.mp4'
+source_uri = '../../test/streams/sample_1080p_h265.mp4'
 
 ## 
 # Function to be called on XWindow KeyRelease event

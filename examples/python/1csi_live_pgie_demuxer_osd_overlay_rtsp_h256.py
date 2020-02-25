@@ -25,9 +25,11 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, "../../")
+sys.path.insert(0, '../../')
 import time
 from dsl import *
+
+host_uri = 'define-host-uri-here'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -66,7 +68,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retVal = dsl_sink_rtsp_new("rtsp-sink", "rjhowell44-desktop.local", 5400, 8554, DSL_CODEC_H264, 4000000,0)
+        retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H265, 4000000,0)
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
             

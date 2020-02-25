@@ -48,25 +48,21 @@ def main(args):
         # New CSI Live Camera Source
         retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New OSD with clock enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
@@ -82,7 +78,6 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['csi-source', 'primary-gie', 'tiler', 'on-screen-display', 'window-sink', None])
-
         if retval != DSL_RETURN_SUCCESS:
             break
 

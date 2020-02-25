@@ -10,6 +10,13 @@ DSL_PAD_SRC = 1
 DSL_RTP_TCP = 4
 DSL_RTP_ALL = 7
 
+DSL_CUDADEC_MEMTYPE_DEVICE = 0
+DSL_CUDADEC_MEMTYPE_PINNED = 1
+DSL_CUDADEC_MEMTYPE_UNIFIED = 2
+
+DSL_SOURCE_CODEC_PARSER_H264 = 0
+DSL_SOURCE_CODEC_PARSER_H265 = 1
+
 DSL_CODEC_H264 = 0
 DSL_CODEC_H265 = 1
 DSL_CODEC_MPEG4 = 2
@@ -170,6 +177,26 @@ _dsl.dsl_source_decode_uri_set.restype = c_uint
 def dsl_source_decode_uri_set(name, uir):
     global _dsl
     result = _dsl.dsl_source_decode_uri_set(name, uir)
+    return int(result)
+
+##
+## dsl_source_decode_dewarper_add()
+##
+_dsl.dsl_source_decode_dewarper_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_decode_dewarper_add.restype = c_uint
+def dsl_source_decode_dewarper_add(name, dewarper):
+    global _dsl
+    result = _dsl.dsl_source_decode_dewarper_add(name, dewarper)
+    return int(result)
+
+##
+## dsl_source_decode_dewarper_remove()
+##
+_dsl.dsl_source_decode_dewarper_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_decode_dewarper_remove.restype = c_uint
+def dsl_source_decode_dewarper_remove(name):
+    global _dsl
+    result = _dsl.dsl_source_decode_dewarper_remove(name)
     return int(result)
 
 ##
