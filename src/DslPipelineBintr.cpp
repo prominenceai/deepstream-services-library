@@ -633,6 +633,14 @@ namespace DSL
             LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
             return true;
         }
+        if (m_pTilerBintr)
+        {
+            m_pTilerBintr->SendEos();
+        }
+        else
+        {
+            m_pDemuxerBintr->SendEos();
+        }
         // Call the base class to stop
         if (!SetState(GST_STATE_READY))
         {

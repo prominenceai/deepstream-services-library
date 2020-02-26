@@ -277,16 +277,9 @@ namespace DSL
             return false;
         }
 
-        m_clockColorRed = red;
-        m_clockColorGreen = green;
-        m_clockColorBlue = blue;
-        
-        uint clockColor =
-          ((m_clockColorRed & 0xFF) << 24) |
-          ((m_clockColorGreen & 0xFF) << 16) |
-          ((m_clockColorBlue & 0xFF) << 8) | 0xFF;
-              
-        m_pOsd->SetAttribute("clock-color", clockColor);
+        // TODO how best to handle colors... follow NVIDIA and use floats or
+        // stick with all ints for params and scale ?????
+        // m_pOsd->SetAttribute("clock-color", clockColor);
         
         return true;
     }

@@ -182,7 +182,7 @@ namespace DSL
         gst_object_unref(m_pGstRequestedSinkPads[sinkPadName]);
 
         m_pGstRequestedSinkPads.erase(sinkPadName);
-        return Nodetr::UnlinkFromSink();
+        return Bintr::UnlinkFromSink();
     }
     
     bool SourceBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
@@ -578,8 +578,7 @@ namespace DSL
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
     }
-
-
+    
     void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name)
     {
@@ -730,7 +729,7 @@ namespace DSL
             LOG_ERROR("Source '" << GetName() << "' allready has a Dewarper");
             return false;
         }
-        m_pDewarperBintr = pDewarperBintr;
+        m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
         AddChild(pDewarperBintr);
         return true;
     }

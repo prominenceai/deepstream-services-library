@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-    #ifndef _DSL_SOURCE_BINTR_H
+#ifndef _DSL_SOURCE_BINTR_H
 #define _DSL_SOURCE_BINTR_H
 
 #include "Dsl.h"
@@ -254,6 +254,10 @@ namespace DSL
          */
         DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
 
+        /**
+         * @brief Single, optional dewarper for the DecodeSourceBintr
+         */ 
+        DSL_DEWARPER_PTR m_pDewarperBintr;
     };
 
     //*********************************************************************************
@@ -367,6 +371,12 @@ namespace DSL
         }
 
         virtual bool SetUri(const char* uri) = 0;
+
+        /**
+         * @brief Sets the unique source id for this Source bintr
+         * @param id value to assign [0...MAX]
+         */
+        void SetSourceId(int id);
         
         /**
          * @brief 
@@ -480,11 +490,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pFakeSinkQueue;
         
-        /**
-         * @brief Single, optional dewarper for the DecodeSourceBintr
-         */ 
-        DSL_NODETR_PTR m_pDewarperBintr;
-
     };
     
     //*********************************************************************************

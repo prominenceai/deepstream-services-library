@@ -32,4 +32,4 @@
 *.app
 
 # Directories
-./test/models/
+test/models/
