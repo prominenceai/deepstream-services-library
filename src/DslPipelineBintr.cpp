@@ -620,10 +620,6 @@ namespace DSL
             LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
             return false;
         }
-//        if (IsLinked())
-//        {
-//            UnlinkAll();
-//        }
         return true;
     }
 
@@ -846,12 +842,19 @@ namespace DSL
         switch (GST_MESSAGE_TYPE(pMessage))
         {
         case GST_MESSAGE_ELEMENT:
+        
             if (gst_is_video_overlay_prepare_window_handle_message(pMessage))
             {
                 // Window Sink component is signaling to prepare window handle
                 // perform single creation of XWindow if not provided by the client
+
+                LOG_INFO("Prepare window handle received from source " << GST_MESSAGE_SRC_NAME(pMessage));
+
                 if (!m_pXWindow)
                 {
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-width", &m_xWindowWidth, NULL);
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-height", &m_xWindowHeight, NULL);
+                    
                     CreateXWindow();
                 }
                 
@@ -979,15 +982,14 @@ namespace DSL
         {
             if (m_pTilerBintr)
             {
+                LOG_WARN("Dimensions for XWindow have not been set, using Tiler dimensions");
                 m_pTilerBintr->GetDimensions(&m_xWindowWidth, &m_xWindowHeight);
             }
             else
             {
+                LOG_WARN("Dimensions for XWindow have not been set, using Stream Muxer dimensions");
                 GetStreamMuxDimensions(&m_xWindowWidth, &m_xWindowHeight);
             }
-
-//            m_xWindowWidth = (m_xWindowWidth < displayWidth) ? displayWidth : m_xWindowWidth;
-//            m_xWindowHeight = (m_xWindowHeight < displayHeight) ? displayHeight : m_xWindowHeight;
         }
         LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
 

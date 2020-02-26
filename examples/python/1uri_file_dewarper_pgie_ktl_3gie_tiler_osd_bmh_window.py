@@ -27,8 +27,12 @@
 import sys
 sys.path.insert(0, '../../')
 from dsl import *
+
+# Using NVIDIA's example python code an OSD Sink Pad callback function
+# that addes current object metrics on the on-screen-display.
 from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
+# Sample 360-deg video and dewarper config setting to use.
 uri_file = '../../test/streams/sample_cam6.mp4'
 dewarper_config_file = '../../test/configs/config_dewarper.txt'
 
