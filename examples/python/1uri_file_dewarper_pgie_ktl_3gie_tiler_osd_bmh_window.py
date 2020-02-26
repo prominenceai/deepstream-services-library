@@ -183,7 +183,7 @@ def main(args):
         print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
-    dsl_source_dewarper_remove('csi-source', 'rtsp-sink')
+    dsl_source_decode_dewarper_remove('uri-source')
     dsl_component_delete_all()
 
 if __name__ == '__main__':

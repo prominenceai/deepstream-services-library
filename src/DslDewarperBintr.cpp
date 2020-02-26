@@ -31,6 +31,7 @@ namespace DSL
 
     DewarperBintr::DewarperBintr(const char* name, const char* configFile)
         : Bintr(name)
+        , m_sourceId(0)
         , m_configFile(configFile)
     {
         LOG_FUNC();
@@ -147,6 +148,24 @@ namespace DSL
         
         return m_configFile.c_str();
     }
+
+    bool DewarperBintr::SetSourceId(uint sourceId)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Source ID for DewarperBintr '" << GetName() 
+                << "' as it's currently in a linked state");
+            return false;
+        }
+
+        m_sourceId = sourceId;
+        LOG_INFO("Setting Source ID to '" << m_sourceId << "' for DewarperBintr '" << m_name << "'");
+
+        m_pDewarper->SetAttribute("source-id", m_sourceId);
+        return true;
+    }
     
     bool  DewarperBintr::SetGpuId(uint gpuId)
     {
@@ -160,7 +179,7 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for DewarperBintr '" << m_name << "'");
+        LOG_DEBUG("Setting GPU ID to '" << m_gpuId << "' for DewarperBintr '" << m_name << "'");
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pDewarper->SetAttribute("gpu-id", m_gpuId);

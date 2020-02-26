@@ -78,6 +78,13 @@ namespace DSL
          * @return fully qualified patspec used to create this Bintr
          */
         const char* GetConfigFile();
+
+        /**
+         * @brief Sets the Source Id for this Dewarper
+         * @param sourceId new Source Id value to use
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetSourceId(uint sourceId);
         
         /**
          * @brief Set the GPU ID for all Elementrs
@@ -85,8 +92,12 @@ namespace DSL
          */
         bool SetGpuId(uint gpuId);
 
-    protected:
+    private:
 
+        /** 
+         * @brief Unique Source Id for the stream to dewarp
+         */
+        uint m_sourceId;
         /**
          * @brief pathspec to the config file used by this DewarperBintr
          */

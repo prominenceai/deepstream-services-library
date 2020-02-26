@@ -42,7 +42,7 @@ namespace DSL
 
         m_pQueue->AddGhostPadToParent("sink");
         m_pSinkPadProbe = DSL_PAD_PROBE_NEW("demuxer-sink-pad-probe", "sink", m_pQueue);
-}
+    }
 
     DemuxerBintr::~DemuxerBintr()
     {
