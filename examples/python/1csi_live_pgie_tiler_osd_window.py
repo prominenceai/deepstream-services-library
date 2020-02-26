@@ -29,6 +29,9 @@ sys.path.insert(0, "../../")
 import time
 from dsl import *
 
+source_width = 1920
+source_height = 1080
+
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
@@ -46,7 +49,7 @@ def main(args):
     while True:
 
         # New CSI Live Camera Source
-        retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
+        retval = dsl_source_csi_new('csi-source', source_width, source_height, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -56,7 +59,7 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', source_width, source_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -66,7 +69,7 @@ def main(args):
             break
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, source_width, source_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 

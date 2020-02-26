@@ -29,7 +29,8 @@ sys.path.insert(0, "../../")
 import time
 from dsl import *
 
-rtsp_uri = 'set-uri-here'
+# RTSP Source URI
+rtsp_uri = 'rtsp://raspberrypi.local:8554/'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'

@@ -29,7 +29,8 @@ sys.path.insert(0, '../../')
 import time
 from dsl import *
 
-host_uri = 'define-host-uri-here'
+# update host URL to 
+host_uri = 'username-desktop.local'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -43,37 +44,37 @@ def main(args):
         # New CSI Live Camera Source
         retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
         retval = dsl_demuxer_new('demuxer')
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         # New OSD with clock enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
-            print(retval)
             break
 
         retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H265, 4000000,0)
+        retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
             
         ### Important
         ### using a demuxer for this example, so add the OSD and sinks directly to the Source
+        ### This sets up the relationship of Source to its components downstream of the demuxer
+        ### even though there is only one source (initially). 
+        ### If using a Tiler, instaed of demuxer, you would add the OSD and Sinks to the Pipeline
+        
         retval = dsl_source_osd_add('csi-source', 'on-screen-display')
         if retval != DSL_RETURN_SUCCESS:
             break

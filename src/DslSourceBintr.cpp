@@ -628,13 +628,8 @@ namespace DSL
             {
                 g_object_set(pObject, "skip-frames", 2, NULL);
             }
-#ifdef __aarch64__
             g_object_set(pObject, "enable-max-performance", TRUE, NULL);
             g_object_set(pObject, "bufapi-version", TRUE, NULL);
-#else
-            g_object_set(pObject, "gpu-id", pDecodeSourceBintr->gpuId, NULL);
-            g_object_set(G_OBJECT(pObject), "cudadec-memtype", m_cudadecMemtype, NULL);
-#endif
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
             g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
 
