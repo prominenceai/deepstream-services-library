@@ -37,8 +37,8 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_file_encoder_settings_get](#dsl_sink_file_encoder_settings_get)
 * [dsl_sink_file_encoder_settings_set](#dsl_sink_file_encoder_settings_set)
 * [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
-* [dsl_sink_rtsp_encoder_settings_get](#dsl_sink_rtsp_code_settings_get)
-* [dsl_sink_rtsp_encoder_settings_set](#dsl_sink_rtsp_code_settings_set)
+* [dsl_sink_rtsp_encoder_settings_get](#dsl_sink_rtsp_encoder_settings_get)
+* [dsl_sink_rtsp_encoder_settings_set](#dsl_sink_rtsp_encoder_settings_set)
 * [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
 * [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)
@@ -53,6 +53,10 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
+#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
+
 ```
 ## Codec Types
 The following codec types are used by the Sink API
@@ -72,13 +76,16 @@ The following video container types are used by the File Sink API
 ## Constructors
 ### *dsl_sink_overlay_new*
 ```C++
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, uint width, uint height);
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+    uint depth, uint offsetX, uint offsetY, uint width, uint height);
 ```
 The constructor creates a uniquely named Overlay Sink with given offsets and dimensions. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Overlay Sink to create.
+* `overlay_id` - [in] unique non-zero Overlay Sink ID, must be unique from all others
+* `display_id` - [in] display Id to overlay, 0 = main display
+* `depth` - [in] depth of the overlay for the given display Id.  
 * `x_offset` - [in] offset in the X direction from the upper left corner of the display in pixels
 * `y_offset` - [in] offset in the Y direction from the upper left corner of the display in pixels
 * `width` - [in] width of the Overlay Sink in pixels
@@ -89,7 +96,7 @@ The constructor creates a uniquely named Overlay Sink with given offsets and dim
 
 **Python Example**
 ```Python
-retval = dsl_sink_overlay_new('my-overlay-sink', 0, 0, 1280, 720)
+retval = dsl_sink_overlay_new('my-overlay-sink', 1, 0, 0 0, 0, 1280, 720)
 ```
 
 <br>
@@ -145,18 +152,21 @@ retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL
 
 ### *dsl_sink_rtsp_new*
 ```C++
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, uint port, uint codec, uint bit_rate, uint interval);
+DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+     uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
 The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are three Codec formats - `H.264`, `H.265`, and `MPEG` supported. The RTSP server is configured when the Pipeline owning Sink as called to Play. The server is then started and attached to the Main Loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connects.
 
 Note: the server Mount point will be derived from the unique RTSP Sink name, for example: 
 ```
-http://localhost::8080/my-sink-name
+rtsp://my-jetson.local:8554/rtsp-sink-name
 ```
 
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
-* `port` - [in] UDP port setting for the RTSP server.
+* `host` - [in] host name 
+* `udp_port` - [in] UDP port setting for the RTSP server.
+* `rtsp_port` - [in] RTSP port setting for the server.
 * `codec` - [in] on of the [Codec Types](#Codec Types) defined above
 * `bitrate` - [in] bitrate at which to code the video
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame
@@ -166,8 +176,26 @@ http://localhost::8080/my-sink-name
 
 **Python Example**
 ```Python
-retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, DSL_CODEC_H265, 200000, 0)
+ retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
 ```
+
+### *dsl_sink_fake_new*
+```C++
+DslReturnType dsl_sink_fake_new(const wchar_t* name);
+```
+The constructor creates a uniquely named Fake Sink. Construction will fail if the name is currently in use.
+
+**Parameters**
+* `name` - [in] unique name for the File Sink to create.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+ retVal = dsl_sink_fake_new('my-fake-sink')
+```
+
 
 <br>
 
