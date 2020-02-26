@@ -8,6 +8,7 @@
 * [On-Screen Display](#on-screen-display)
 * [Multi-Source Tiler](#multi-source-tiler)
 * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
+* [DSL Initialization](#dsl-initialization)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
 * [Batch Meta Handler Callback Functions](#batch-meta-handler-callback-functions)
@@ -19,9 +20,9 @@
 
 For those new to DeepStream, however, GStreamer comes with a learning curve that can be steep or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyists to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction. DSL encapsulates the complexity that comes along with GStreamer's power and flexibility.
+The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyists to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction. 
 
-The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines including modifications made: (1) based on the results of the real-time video analysis, and: (2) by the application user through external input. An example of each:
+The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines. Modifications made: (1) based on the results of the real-time video analysis, and: (2) by the application user through external input. An example of each:
 1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific detected objects.
 2. Interactively resizing stream and window dimensions for viewing control.
 
@@ -45,8 +46,7 @@ retval = dsl_pipeline_new('my-pipeline')
 Create a set of Components, each with a specific function and purpose. 
 ```Python
 # new Camera Sources - setting dimensions and frames-per-second
-retval += dsl_source_csi_new('my-source1', 1280, 720, 30, 1)
-retval += dsl_source_csi_new('my-source2', 1280, 720, 30, 1)
+retval += dsl_source_csi_new('my-source', 1280, 720, 30, 1)
 
 # new Primary Inference Engine - path to model engine and config file, interval 0 = infer on every frame
 retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, 0)
@@ -78,7 +78,7 @@ Add the components to the Pipeline.
 ```Python
 # Using a Null terminated list - in any order
 retval = dsl_pipeline_component_add_many('my-pipeline', 
-    ['my-source1', 'my-source2, 'my-pgie', 'my-tiler', 'my-osd', 'my-sink', None])
+    ['my-source', 'my-pgie', 'my-tiler', 'my-osd', 'my-sink', None])
 ```
 
 Transition the Pipeline to a state of Playing and start/join the main loop
@@ -162,7 +162,8 @@ retval = dsl_source_osd_add('src-1', 'osd')
 retval = dsl_source_sink_add('src-1', 'overlay-sink1')
 
 # setup src-2 with two Sinks - Overlay and RTSP, no OSD
-retval = dsl_source_sink_add_many('src-2', ['overlay-sink2, 'rtsp-sink', None])
+retval = dsl_source_sink_add('src-2', 'overlay-sink2)
+retval = dsl_source_sink_add('src-2', 'rtsp-sink')
 
 # add Sources, Primary GIE, and Demuxer components to the Pipeline
 retval = dsl_pipeline_component_add_many('my-pipeline',
@@ -190,14 +191,19 @@ File Sinks support three codec formats: H.264, H.265 and MPEG-4, with two media 
 RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
 
 ```Python
-retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
+retval = dsl_sink_rtsp_new('my-rtsp-sink', 5400, 8554, DSL_CODEC_H265, 200000, 0)
 ```
 would use
 ```
-http://localhost::8050/my-rtsp-sink
+rtsp://my-jetson.local:8554/my-rtsp-sink
 ```
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
+
+<br>
+
+## DSL Initialization
+The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time, unless the calling application has already done so. 
 
 <br>
 
@@ -233,7 +239,7 @@ typedef uint DslReturnType
 ```Python
 from dsl import *
 
-retval = dsl_sink_rtsp_new('my-rtsp-sink', 8050, 554, DSL_CODEC_H265, 200000, 0)
+retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
 
 if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
     # handle error
@@ -263,8 +269,8 @@ def osd_batch_meta_handler_cb(buffer, user_data):
         except StopIteration:
             break    
 
+        # parse frame_meta .....  
         # On first occurence of some object of interest, start streaming to file.
-        if frame_meta.source_id = some_id_of_interest:
         
             # add the new file sink to immediately start streaming to file.
             dsl_pipeline_component_add('my-pipeline', 'my-file-sink')
