@@ -31,5 +31,11 @@
 *.out
 *.app
 
+# Media files.
+*.mkv
+*.mp4
+*.dot
+*.jpeg
+
 # Directories
 test/models/
