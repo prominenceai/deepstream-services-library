@@ -54,7 +54,7 @@ namespace DSL
          * @param[in] name name to give the new OsdBintr
          * @param[in] isClockEnabled true if clock is to be displayed
          */
-        OsdBintr(const char* osd, gboolean isClockEnabled);
+        OsdBintr(const char* name, gboolean isClockEnabled);
 
         /**
          * @brief dtor for the OsdBintr class
@@ -160,6 +160,15 @@ namespace DSL
          * @return true on successful update, false otherwise
          */
         bool SetClockColor(uint red, uint green, uint blue);
+
+        /**
+         * @brief Gets the current crop settings
+         * @param[out] left pixels to crop from the left
+         * @param[out] top pixels to crop from the top
+         * @param[out] width width of the cropped stream in pixels
+         * @param[out] height height of the cropped stream in pixels
+         */
+        void GetCropSettings(uint* left, uint* top, uint* width, uint* height);
         
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -167,17 +176,39 @@ namespace DSL
          */
         bool SetGpuId(uint gpuId);
 
+        /**
+         * @brief Sets the current crop settings
+         * @param[in] left pixels to crop from the left
+         * @param[in] top pixels to crop from the top
+         * @param[in] width width of the cropped stream in pixels
+         * @param[in] height height of the cropped stream in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetCropSettings(uint left, uint top, uint width, uint height);
+        
+        /**
+         * @brief Updates the Video Converter's crop seetings based on this
+         * OsdBintrs current seetings.
+         */
+        void UpdateCropSetting();
+        
+
     private:
 
         boolean m_isClockEnabled;
         
         std::string m_clockFont;
-        guint m_clockFontSize;
-        guint m_clockOffsetX;
-        guint m_clockOffsetY;
-        guint m_clockColorRed;
-        guint m_clockColorGreen;
-        guint m_clockColorBlue;
+        uint m_clockFontSize;
+        uint m_clockOffsetX;
+        uint m_clockOffsetY;
+        uint m_clockColorRed;
+        uint m_clockColorGreen;
+        uint m_clockColorBlue;
+
+        uint m_cropLeft;
+        uint m_cropTop;
+        uint m_cropWidth;
+        uint m_cropHeight;
         
         /**
          @brief
@@ -191,8 +222,8 @@ namespace DSL
         int m_streamId;
         
         DSL_ELEMENT_PTR m_pQueue;
-        DSL_ELEMENT_PTR m_pVidConv;
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        DSL_ELEMENT_PTR m_pVidPreConv;
+        DSL_ELEMENT_PTR m_pVidPostConv;
         DSL_ELEMENT_PTR m_pConvQueue;
         DSL_ELEMENT_PTR m_pOsd;
     

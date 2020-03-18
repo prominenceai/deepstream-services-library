@@ -1039,6 +1039,19 @@ namespace DSL
         return true;
     }
     
+    bool PipelineBintr::ClearXWindow()
+    {
+        LOG_FUNC();
+        
+        if (!m_pXWindow)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has now XWindow to clear");
+            return false;
+        }
+        XClearWindow(m_pXDisplay, m_pXWindow);
+        return true;
+    }
+    
     void PipelineBintr::HandleErrorMessage(GstMessage* pMessage)
     {
         LOG_FUNC();

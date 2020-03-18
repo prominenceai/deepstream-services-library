@@ -38,11 +38,19 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
         {
             DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
 
-            THEN( "The PrimaryGieBintr's memebers are setup and returned correctly" )
+            THEN( "The OsdBintr's memebers are setup and returned correctly" )
             {
                 REQUIRE( pOsdBintr->GetGstObject() != NULL );
                 pOsdBintr->GetClockEnabled(&enableClock);
                 REQUIRE( enableClock == false );
+                
+                uint left(123), top(123), width(123), height(123);
+                
+                pOsdBintr->GetCropSettings(&left, &top, &width, &height);
+                REQUIRE( left == 0 );
+                REQUIRE( top == 0 );
+                REQUIRE( width == 0 );
+                REQUIRE( height == 0 );
             }
         }
     }
@@ -166,31 +174,60 @@ SCENARIO( "An OsdBintr can get and set the clock's font", "[OsdBintr]" )
     }
 }
             
-SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
+//SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
+//{
+//    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+//    {
+//        std::string osdName = "osd";
+//        boolean enableClock(true);
+//
+//        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+//
+//        WHEN( "The clock's RGB colors are set  " )
+//        {
+//            uint newRed(255), newGreen(255), newBlue(255);
+//            REQUIRE( pOsdBintr->SetClockColor(newRed, newGreen, newBlue) == true);
+//            
+//            THEN( "The new name and size are returned on get" )
+//            {
+//                uint retRed(0), retGreen(0), retBlue(0);
+//                pOsdBintr->GetClockColor(&retRed, &retGreen, &retBlue);
+//                REQUIRE( retRed == newRed );
+//                REQUIRE( retGreen == newGreen );
+//                REQUIRE( retBlue == newBlue );
+//            }
+//        }
+//    }
+//}
+
+SCENARIO( "An OsdBintr can get and set its crop settings", "[OsdBintr]" )
 {
-    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+    GIVEN( "A new OsdBintr" ) 
     {
         std::string osdName = "osd";
-        boolean enableClock(true);
+        boolean enableClock(false);
 
         DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
 
-        WHEN( "The clock's RGB colors are set  " )
+        WHEN( "The OsdBintr's crop settings are updated" )
         {
-            uint newRed(255), newGreen(255), newBlue(255);
-            REQUIRE( pOsdBintr->SetClockColor(newRed, newGreen, newBlue) == true);
+            uint left(100), top(100), width(320), height(320);
+            pOsdBintr->SetCropSettings(left, top, width, height);
             
-            THEN( "The new name and size are returned on get" )
+            THEN( "The correct values are returnd when queried" )
             {
-                uint retRed(0), retGreen(0), retBlue(0);
-                pOsdBintr->GetClockColor(&retRed, &retGreen, &retBlue);
-                REQUIRE( retRed == newRed );
-                REQUIRE( retGreen == newGreen );
-                REQUIRE( retBlue == newBlue );
+                uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
+                
+                pOsdBintr->GetCropSettings(&retLeft, &retTop, &retWidth, &retHeight);
+                REQUIRE( left == retLeft );
+                REQUIRE( top == retTop );
+                REQUIRE( width == retWidth );
+                REQUIRE( height == retHeight );
             }
         }
     }
 }
+           
             
 SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
 {

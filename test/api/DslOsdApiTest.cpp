@@ -246,32 +246,62 @@ SCENARIO( "An OSD's Clock Font can be updated", "[osd-api]" )
     }
 }
 
-SCENARIO( "An OSD's Clock Color can be updated", "[osd-api]" )
+//SCENARIO( "An OSD's Clock Color can be updated", "[osd-api]" )
+//{
+//    GIVEN( "A new OSD in memory" ) 
+//    {
+//        std::wstring osdName(L"on-screen-display");
+//        boolean enabled(true);
+//        uint preRed(0xFF), preGreen(0xFF), preBlue(0xFF);
+//        uint retRed(0x00), retGreen(0x00), retBlue(0x00);
+//
+//        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+//        
+//        WHEN( "The OSD's Clock Color are Set" ) 
+//        {
+//            REQUIRE( dsl_osd_clock_color_set(osdName.c_str(), preRed, preGreen, preBlue) == DSL_RESULT_SUCCESS );
+//            
+//            THEN( "The correct values are returned on Get" ) 
+//            {
+//                dsl_osd_clock_color_get(osdName.c_str(), &retRed, &retGreen, &retBlue);
+//                REQUIRE( preRed == retRed);
+//                REQUIRE( preGreen == retGreen);
+//                REQUIRE( preBlue == retBlue);
+//            }
+//        }
+//        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+//    }
+//}
+
+SCENARIO( "An OSD's crop settings can be updated", "[osd-api]" )
 {
     GIVEN( "A new OSD in memory" ) 
     {
         std::wstring osdName(L"on-screen-display");
         boolean enabled(true);
-        uint preRed(0xFF), preGreen(0xFF), preBlue(0xFF);
-        uint retRed(0x00), retGreen(0x00), retBlue(0x00);
+        uint preLeft(123), preTop(123), preWidth(123), preHeight(123);
+        uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
 
         REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
         
-        WHEN( "The OSD's Clock Color are Set" ) 
+        WHEN( "The OSD's crop settings are Set" ) 
         {
-            REQUIRE( dsl_osd_clock_color_set(osdName.c_str(), preRed, preGreen, preBlue) == DSL_RESULT_SUCCESS);
+            REQUIRE( dsl_osd_crop_settings_set(osdName.c_str(), preLeft, preTop, preWidth, preHeight) == DSL_RESULT_SUCCESS );
             
-            THEN( "The correct values are returned on Get" ) 
+            THEN( "The correct values are returned on Get" )
             {
-                dsl_osd_clock_color_get(osdName.c_str(), &retRed, &retGreen, &retBlue);
-                REQUIRE( preRed == retRed);
-                REQUIRE( preGreen == retGreen);
-                REQUIRE( preBlue == retBlue);
+                REQUIRE( dsl_osd_crop_settings_get(osdName.c_str(), &retLeft, &retTop, &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( preLeft == retLeft);
+                REQUIRE( preTop == retTop);
+                REQUIRE( preWidth == retWidth);
+                REQUIRE( preHeight == retHeight);
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }
+
+
 
 static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
 {

@@ -174,6 +174,10 @@ namespace DSL {
 
         DslReturnType OsdClockColorSet(const char* name, uint red, uint green, uint blue);
 
+        DslReturnType OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height);
+
+        DslReturnType OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height);
+
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
@@ -253,6 +257,8 @@ namespace DSL {
 
         DslReturnType PipelineStreamMuxPaddingSet(const char* pipeline, boolean enabled);
 
+        DslReturnType PipelineXWindowClear(const char* pipeline);
+        
         DslReturnType PipelineXWindowDimensionsGet(const char* pipeline,
             uint* width, uint* height);
 

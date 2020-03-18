@@ -38,8 +38,10 @@ namespace DSL
             throw;
         }
         
+        GstPadProbeType probeType = (GstPadProbeType)(GST_PAD_PROBE_TYPE_BLOCK | GST_PAD_PROBE_TYPE_BUFFER);
+        
         // Src Pad Probe notified on Buffer ready
-        m_padProbeId = gst_pad_add_probe(pStaticPad, GST_PAD_PROBE_TYPE_BUFFER,
+        m_padProbeId = gst_pad_add_probe(pStaticPad, probeType,
             PadProbeCB, this, NULL);
 
         gst_object_unref(pStaticPad);
@@ -125,7 +127,7 @@ namespace DSL
     GstPadProbeReturn PadProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
-
+        
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
         {
             if (m_pClientBatchMetaHandlers.size() or m_kittiOutputEnabled)
@@ -152,7 +154,7 @@ namespace DSL
                 // TODO if write output
             }
         }
-        return GST_PAD_PROBE_OK;
+        return GST_PAD_PROBE_PASS;
     }
 
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 

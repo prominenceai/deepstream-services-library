@@ -750,6 +750,28 @@ DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* gree
 DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
 
 /**
+ * @brief gets the current crop settings for the named On-Screen-Display
+ * @param[in] name name of the OSD to query
+ * @param[out] left number of pixels to crop from the left
+ * @param[out] top number of pixels to crop from the top
+ * @param[out] width width of the cropped image in pixels
+ * @param[out] height height of the cropped image in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* top, uint* width, uint* height);
+
+/**
+ * @brief gets the current crop settings for the named On-Screen-Display
+ * @param[in] name name of the OSD to query
+ * @param[in] left number of pixels to crop from the left
+ * @param[in] top number of pixels to crop from the top
+ * @param[in] width width of the cropped image in pixels
+ * @param[in] height height of the cropped image in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
+
+/**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
  * An On-Screen-Display can have multiple Sink and Source batch-meta-handlers
  * @param name unique name of the OSD to update
@@ -1170,7 +1192,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipelin
 /**
  * @brief 
  * @param[in] pipeline name of the pipeline to query
- * @return DSL_RESULT_SUCCESS on success, 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
     uint* width, uint* height);
@@ -1178,10 +1200,17 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
 /**
  * @brief 
  * @param[in] pipeline name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
+
+/**
+ * @brief clears the Pipelines XWindow
+ * @param pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
 
 /**
  * @brief gets the current Pipeline XWindow dimensions

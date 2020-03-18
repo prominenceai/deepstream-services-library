@@ -354,6 +354,8 @@ namespace DSL
             
             return m_pXWindow;
         }
+        
+        bool ClearXWindow();
 
     private:
 
