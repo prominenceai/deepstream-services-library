@@ -520,6 +520,24 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green,
     return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue);
 }
 
+DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdCropSettingsGet(cstrName.c_str(), left, top, width, height);
+}
+
+DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdCropSettingsSet(cstrName.c_str(), left, top, width, height);
+}
+
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
@@ -993,6 +1011,14 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolea
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(cstrPipeline.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowClear(cstrPipeline.c_str());
 }
  
 DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
@@ -3075,6 +3101,57 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            osdBintr->GetCropSettings(left, top, width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting crop settings");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!osdBintr->SetCropSettings(left, top, width, height))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set crop settings");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting crop settings");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
         dsl_batch_meta_handler_cb handler, void* user_data)
     {
@@ -3871,6 +3948,28 @@ namespace DSL
         {
             LOG_ERROR("Pipeline '" << pipeline 
                 << "' threw an exception setting the Stream Muxer padding");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineXWindowClear(const char* pipeline)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            if (!m_pipelines[pipeline]->ClearXWindow())
+            {
+                LOG_ERROR("Pipeline '" << pipeline << "' failed to Clear XWindow");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing XWindow");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;

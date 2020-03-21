@@ -526,7 +526,7 @@ namespace DSL
         
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
-        GstCaps* caps(NULL);
+        GstCaps* pCaps(NULL);
         switch (codec)
         {
         case DSL_CODEC_H264 :
@@ -535,7 +535,7 @@ namespace DSL
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
             m_pParser = DSL_ELEMENT_NEW("h264parse", "file-sink-bin-parser");
-            caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+            pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "file-sink-bin-encoder");
@@ -543,19 +543,20 @@ namespace DSL
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
             m_pParser = DSL_ELEMENT_NEW("h265parse", "file-sink-bin-parser");
-            caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+            pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_MPEG4 :
             m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "file-sink-bin-encoder");
             m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "file-sink-bin-parser");
-            caps = gst_caps_from_string("video/x-raw, format=I420");
+            pCaps = gst_caps_from_string("video/x-raw, format=I420");
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
         }
 
-        m_pCapsFilter->SetAttribute("caps", caps);
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
         
         switch (container)
         {
@@ -714,8 +715,9 @@ namespace DSL
         m_pUdpSink->SetAttribute("sync", m_sync);
         m_pUdpSink->SetAttribute("async", m_async);
 
-        GstCaps* caps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
-        m_pCapsFilter->SetAttribute("caps", caps);
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
         
         std::string codecString;
         switch (codec)

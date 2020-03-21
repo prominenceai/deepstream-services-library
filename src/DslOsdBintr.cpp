@@ -29,10 +29,15 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    OsdBintr::OsdBintr(const char* osd, gboolean isClockEnabled)
-        : Bintr(osd)
+
+    OsdBintr::OsdBintr(const char* name, gboolean isClockEnabled)
+        : Bintr(name)
         , m_isClockEnabled(isClockEnabled)
         , m_processMode(0)
+        , m_cropLeft(0)
+        , m_cropTop(0)
+        , m_cropWidth(0)
+        , m_cropHeight(0)
         , m_clockFont("Serif")
         , m_clockFontSize(12)
         , m_clockOffsetX(0)
@@ -45,15 +50,14 @@ namespace DSL
         LOG_FUNC();
         
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue");
-        m_pVidConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_conv");
-        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
+        m_pVidPreConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_vid_pre_conv");
+//        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
         m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
+        m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
-        
         m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
         m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
         m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
@@ -64,8 +68,8 @@ namespace DSL
 //        SetClockColor(m_clockColorRed, m_clockColorGreen, m_clockColorBlue);
         
         AddChild(m_pQueue);
-        AddChild(m_pVidConv);
-        AddChild(m_pConvQueue);
+        AddChild(m_pVidPreConv);
+//        AddChild(m_pConvQueue);
         AddChild(m_pOsd);
 
         m_pQueue->AddGhostPadToParent("sink");
@@ -94,11 +98,14 @@ namespace DSL
             LOG_ERROR("OsdBintr '" << m_name << "' is already linked");
             return false;
         }
-        m_pQueue->LinkToSink(m_pVidConv);
-        m_pVidConv->LinkToSink(m_pConvQueue);
-        m_pConvQueue->LinkToSink(m_pOsd);
+        if (!m_pQueue->LinkToSink(m_pVidPreConv) or
+//            !m_pVidPreConv->LinkToSink(m_pConvQueue) or
+//            !m_pConvQueue->LinkToSink(m_pOsd))
+            !m_pVidPreConv->LinkToSink(m_pOsd))
+        {
+            return false;
+        }
         m_isLinked = true;
-        
         return true;
     }
     
@@ -112,8 +119,8 @@ namespace DSL
             return;
         }
         m_pQueue->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
-        m_pConvQueue->UnlinkFromSink();
+        m_pVidPreConv->UnlinkFromSink();
+//        m_pConvQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -298,10 +305,91 @@ namespace DSL
         m_gpuId = gpuId;
         LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for OsdBintr '" << m_name << "'");
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
         
         return true;
     }
+
+    void OsdBintr::GetCropSettings(uint *left, uint *top, uint *width, uint *height)
+    {
+        LOG_FUNC();
+        
+        *left = m_cropLeft;
+        *top = m_cropTop;
+        *width = m_cropWidth;
+        *height = m_cropHeight;
+    }
+
+    static GstPadProbeReturn IdlePadProbeCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pOsdBintr)
+    {
+        static_cast<OsdBintr*>(pOsdBintr)->UpdateCropSetting();
+        return GST_PAD_PROBE_REMOVE;
+    }
     
+    bool OsdBintr::SetCropSettings(uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_cropLeft = left;
+        m_cropTop = top;
+        m_cropWidth = width;
+        m_cropHeight = height;
+        
+        if (IsLinked())
+        {
+            GstPad* pStaticPad = gst_element_get_static_pad(m_pVidPreConv->GetGstElement(), "src");
+            if (!pStaticPad)
+            {
+                LOG_ERROR("Failed to get Static Pad for OsdBintr '" << GetName() << "'");
+                return false;
+            }
+            gst_pad_add_probe(pStaticPad, GST_PAD_PROBE_TYPE_IDLE, IdlePadProbeCB, this, NULL);
+            gst_object_unref(pStaticPad);
+            
+            return true;
+        }
+
+        std::string pixelSet = std::to_string(m_cropLeft) + ":" + std::to_string(m_cropTop) + 
+            ":" + std::to_string(m_cropWidth)  + ":" + std::to_string(m_cropHeight);
+            
+        m_pVidPreConv->SetAttribute("src-crop", pixelSet.c_str());
+        m_pVidPreConv->SetAttribute("dest-crop", pixelSet.c_str());
+
+        return true;
+    }
+
+    static GstPadProbeReturn ConsumeEosCB(GstPad* pPad, 
+        GstPadProbeInfo* pInfo, gpointer pOsdBintr)
+    {
+        if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(pInfo)) != GST_EVENT_EOS)
+        {
+            return GST_PAD_PROBE_PASS;
+        }
+        // remove the probe first
+        gst_pad_remove_probe(pPad, GST_PAD_PROBE_INFO_ID(pInfo));
+        return GST_PAD_PROBE_DROP;
+    }
+
+    void OsdBintr::UpdateCropSetting()
+    {
+        GstPad* pConvStaticSrcPad = gst_element_get_static_pad(m_pVidPreConv->GetGstElement(), "src");
+        GstPad* pOsdStaticSinkPad = gst_element_get_static_pad(m_pOsd->GetGstElement(), "sink");
+        
+        gst_pad_unlink(pConvStaticSrcPad, pOsdStaticSinkPad);
+            
+        std::string pixelSet = std::to_string(m_cropLeft) + ":" + std::to_string(m_cropTop) + 
+            ":" + std::to_string(m_cropWidth)  + ":" + std::to_string(m_cropHeight);
+            
+        m_pVidPreConv->SetAttribute("src-crop", pixelSet.c_str());
+        m_pVidPreConv->SetAttribute("dest-crop", pixelSet.c_str());
+
+        gst_pad_add_probe(pOsdStaticSinkPad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, ConsumeEosCB, this, NULL);
+
+        gst_pad_link(pConvStaticSrcPad, pOsdStaticSinkPad);
+
+        gst_object_unref(pConvStaticSrcPad);
+        gst_object_unref(pOsdStaticSinkPad);
+    }    
 }    

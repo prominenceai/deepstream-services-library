@@ -501,7 +501,7 @@ def dsl_osd_clock_font_set(name, font, size):
 ##
 ## dsl_osd_clock_color_get()
 ##
-_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_osd_clock_color_get.restype = c_uint
 def dsl_osd_clock_color_get(name):
     global _dsl
@@ -519,6 +519,30 @@ _dsl.dsl_osd_clock_color_set.restype = c_uint
 def dsl_osd_clock_color_set(name, red, green, blue):
     global _dsl
     result = _dsl.dsl_osd_clock_color_set(name, red, green, blue)
+    return int(result)
+
+##
+## dsl_osd_crop_settings_get()
+##
+_dsl.dsl_osd_crop_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_crop_settings_get.restype = c_uint
+def dsl_osd_crop_settings_get(name):
+    global _dsl
+    left = c_uint(0)
+    top = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_osd_crop_settings_get(name, DSL_UINT_P(left), DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), left.value, top.value, width.value, height.value 
+
+##
+## dsl_osd_crop_settings_set()
+##
+_dsl.dsl_osd_crop_settings_set.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_osd_crop_settings_set.restype = c_uint
+def dsl_osd_crop_settings_set(name, left, top, width, height):
+    global _dsl
+    result = _dsl.dsl_osd_crop_settings_set(name, left, top, width, height)
     return int(result)
 
 ##
@@ -983,6 +1007,16 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_xwindow_clear()
+##
+_dsl.dsl_pipeline_xwindow_clear.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_xwindow_clear.restype = c_uint
+def dsl_pipeline_xwindow_clear(name):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_clear(name)
     return int(result)
 
 ##
