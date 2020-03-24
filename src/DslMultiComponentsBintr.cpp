@@ -23,30 +23,31 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslSinkBintr.h"
-#include "DslMultiSinksBintr.h"
+#include "DslMultiComponentsBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
 
-    MultiSinksBintr::MultiSinksBintr(const char* name)
+    MultiComponentsBintr::MultiComponentsBintr(const char* name, const char* teeType)
         : Bintr(name)
-        , m_streamId(-1)
     {
         LOG_FUNC();
-
-        // Single Queue and Tee element for all Sinks
+        
+        // Single Queue and Tee element for all Components
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "sink_bin_queue");
-        m_pTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "sink_bin_tee");
+        m_pTee = DSL_ELEMENT_NEW(teeType, "sink_bin_tee");
         
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
-        // Float the Queue sink pad as a Ghost Pad for this MultiSinksBintr
+        // Float the Queue sink pad as a Ghost Pad for this MultiComponentsBintr
         m_pQueue->AddGhostPadToParent("sink");
+        
+        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("multi-comp-sink-pad-probe", "sink", m_pQueue);
     }
     
-    MultiSinksBintr::~MultiSinksBintr()
+    MultiComponentsBintr::~MultiComponentsBintr()
     {
         LOG_FUNC();
 
@@ -55,32 +56,33 @@ namespace DSL
             UnlinkAll();
         }
     }
-     
-    bool MultiSinksBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    
+
+    bool MultiComponentsBintr::AddChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
 
-    bool MultiSinksBintr::AddChild(DSL_SINK_PTR pChildSink)
+    bool MultiComponentsBintr::AddChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
         
-        // Ensure Sink uniqueness
-        if (IsChild(pChildSink))
+        // Ensure Component uniqueness
+        if (IsChild(pChildComponent))
         {
-            LOG_ERROR("'" << pChildSink->GetName() << "' is already a child of '" << GetName() << "'");
+            LOG_ERROR("'" << pChildComponent->GetName() << "' is already a child of '" << GetName() << "'");
             return false;
         }
 
-        // Add the Sink to the Sinks collection and as a child of this Bintr
-        m_pChildSinks[pChildSink->GetName()] = pChildSink;
+        // Add the Component to the Components collection and as a child of this Bintr
+        m_pChildComponents[pChildComponent->GetName()] = pChildComponent;
         
         // call the base function to complete the add
-        if (!Bintr::AddChild(pChildSink))
+        if (!Bintr::AddChild(pChildComponent))
         {
-            LOG_ERROR("Faild to add Sink '" << pChildSink->GetName() << "' as a child to '" << GetName() << "'");
+            LOG_ERROR("Faild to add Component '" << pChildComponent->GetName() << "' as a child to '" << GetName() << "'");
             return false;
         }
         
@@ -88,24 +90,24 @@ namespace DSL
         // linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
-            if (!pChildSink->LinkAll() or !pChildSink->LinkToSource(m_pTee))
+            if (!pChildComponent->LinkAll() or !pChildComponent->LinkToSource(m_pTee))
             {
                 return false;
             }
-            // Sink up with the parent state
-            return gst_element_sync_state_with_parent(pChildSink->GetGstElement());
+            // Component up with the parent state
+            return gst_element_sync_state_with_parent(pChildComponent->GetGstElement());
         }
         return true;
     }
     
-    bool MultiSinksBintr::IsChild(DSL_SINK_PTR pChildSink)
+    bool MultiComponentsBintr::IsChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
         
-        return (m_pChildSinks.find(pChildSink->GetName()) != m_pChildSinks.end());
+        return (m_pChildComponents.find(pChildComponent->GetName()) != m_pChildComponents.end());
     }
 
-    bool MultiSinksBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool MultiComponentsBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -113,51 +115,51 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool MultiSinksBintr::RemoveChild(DSL_SINK_PTR pChildSink)
+    bool MultiComponentsBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
 
-        if (!IsChild(pChildSink))
+        if (!IsChild(pChildComponent))
         {
-            LOG_ERROR("' " << pChildSink->GetName() << "' is NOT a child of '" << GetName() << "'");
+            LOG_ERROR("' " << pChildComponent->GetName() << "' is NOT a child of '" << GetName() << "'");
             return false;
         }
-        if (pChildSink->IsLinkedToSource())
+        if (pChildComponent->IsLinkedToSource())
         {
             // unlink the sink from the Tee
-            pChildSink->UnlinkFromSource();
-            pChildSink->UnlinkAll();
+            pChildComponent->UnlinkFromSource();
+            pChildComponent->UnlinkAll();
         }
         
         // unreference and remove from the collection of sinks
-        m_pChildSinks.erase(pChildSink->GetName());
+        m_pChildComponents.erase(pChildComponent->GetName());
         
         // call the base function to complete the remove
-        return Bintr::RemoveChild(pChildSink);
+        return Bintr::RemoveChild(pChildComponent);
     }
 
 
-    bool MultiSinksBintr::LinkAll()
+    bool MultiComponentsBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("MultiSinksBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("MultiComponentsBintr '" << GetName() << "' is already linked");
             return false;
         }
         m_pQueue->LinkToSink(m_pTee);
         
         uint id(0);
-        for (auto const& imap: m_pChildSinks)
+        for (auto const& imap: m_pChildComponents)
         {
-            // Must set the Unique Id first, then Link all of the ChildSink's Elementrs, then 
-            // link back upstream to the Tee, the src for this Child Sink 
-            imap.second->SetSinkId(id++);
+            // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
+            // link back upstream to the Tee, the src for this Child Component 
+            imap.second->SetId(id++);
             if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
             {
-                LOG_ERROR("MultiSinksBintr '" << GetName() 
-                    << "' failed to Link Child Sink '" << imap.second->GetName() << "'");
+                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                    << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;
             }
         }
@@ -165,46 +167,46 @@ namespace DSL
         return true;
     }
 
-    void MultiSinksBintr::UnlinkAll()
+    void MultiComponentsBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("MultiSinksBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("MultiComponentsBintr '" << GetName() << "' is not linked");
             return;
         }
-        for (auto const& imap: m_pChildSinks)
+        for (auto const& imap: m_pChildComponents)
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pTee->GetName() << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSource())
             {
-                LOG_ERROR("MultiSinksBintr '" << GetName() 
-                    << "' failed to Unlink Child Sink '" << imap.second->GetName() << "'");
+                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                    << "' failed to Unlink Child Component '" << imap.second->GetName() << "'");
                 return;
             }
-            // unink all of the ChildSink's Elementrs and reset the unique Id
+            // unink all of the ChildComponent's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
-            imap.second->SetSinkId(-1);
+            imap.second->SetId(-1);
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
-    bool MultiSinksBintr::LinkToSource(DSL_NODETR_PTR pDemuxer)
+    bool MultiComponentsBintr::LinkToSource(DSL_NODETR_PTR pDemuxer)
     {
         LOG_FUNC();
         
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
+        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
         
-        LOG_INFO("Linking the MultiSinkBintr '" << GetName() << "' to Pad '" << srcPadName 
+        LOG_INFO("Linking the MultiComponentsBintr '" << GetName() << "' to Pad '" << srcPadName 
             << "' for Demuxer '" << pDemuxer->GetName() << "'");
        
         m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
         if (!m_pGstStaticSinkPad)
         {
-            LOG_ERROR("Failed to get Static Sink Pad for MuliSinksBintr '" << GetName() << "'");
+            LOG_ERROR("Failed to get Static Sink Pad for MuliComponentsBintr '" << GetName() << "'");
             return false;
         }
 
@@ -221,18 +223,18 @@ namespace DSL
         return Bintr::LinkToSource(pDemuxer);
     }
     
-    bool MultiSinksBintr::UnlinkFromSource()
+    bool MultiComponentsBintr::UnlinkFromSource()
     {
         LOG_FUNC();
         
         // If we're not currently linked to the Demuxer
         if (!IsLinkedToSource())
         {
-            LOG_ERROR("MultiSinkBintr '" << GetName() << "' is not in a Linked state");
+            LOG_ERROR("MultiComponentsBintr '" << GetName() << "' is not in a Linked state");
             return false;
         }
 
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
+        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
 
         LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
         
@@ -243,5 +245,42 @@ namespace DSL
         
         return Nodetr::UnlinkFromSource();
     }
+ 
+    MultiSinksBintr::MultiSinksBintr(const char* name)
+        : MultiComponentsBintr(name, "tee")
+    {
+        LOG_FUNC();
+    }
+
+    TeeBintr::TeeBintr(const char* name)
+        : MultiComponentsBintr(name, "tee")
+    {
+        LOG_FUNC();
+    }
+
+    bool TeeBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' tiler to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            AddTeeBintr(shared_from_this());
+    }
     
+    DemuxerBintr::DemuxerBintr(const char* name)
+        : MultiComponentsBintr(name, "nvstreamdemux")
+    {
+        LOG_FUNC();
+    }
+
+    bool DemuxerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' tiler to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            AddDemuxerBintr(shared_from_this());
+    }
+   
+   
 }

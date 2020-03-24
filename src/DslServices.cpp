@@ -28,7 +28,6 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
-#include "DslDemuxerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
@@ -94,44 +93,6 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceFrameRateGet(cstrName.c_str(), fps_n, fps_d);
-}
-
-DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOsd(osd);
-    std::string cstrOsd(wstrOsd.begin(), wstrOsd.end());
-
-    return DSL::Services::GetServices()->SourceOsdAdd(cstrName.c_str(), cstrOsd.c_str());
-}
-
-DslReturnType dsl_source_osd_remove(const wchar_t* name)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceOsdRemove(cstrName.c_str());
-}
-
-DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrSink(sink);
-    std::string cstrSink(wstrSink.begin(), wstrSink.end());
-
-    return DSL::Services::GetServices()->SourceSinkAdd(cstrName.c_str(), cstrSink.c_str());
-}
-
-DslReturnType dsl_source_sink_remove(const wchar_t* name, const wchar_t* sink)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrSink(sink);
-    std::string cstrSink(wstrSink.begin(), wstrSink.end());
-
-    return DSL::Services::GetServices()->SourceSinkRemove(cstrName.c_str(), cstrSink.c_str());
 }
 
 DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri)
@@ -574,6 +535,70 @@ DslReturnType dsl_demuxer_new(const wchar_t* name)
     return DSL::Services::GetServices()->DemuxerNew(cstrName.c_str());
 }
 
+DslReturnType dsl_demuxer_branch_add(const wchar_t* demuxer, const wchar_t* branch)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->DemuxerBranchAdd(cstrDemuxer.c_str(), cstrBranch.c_str());
+}
+
+DslReturnType dsl_demuxer_branch_add_many(const wchar_t* demuxer, const wchar_t** branches)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        DslReturnType retval = DSL::Services::GetServices()->DemuxerBranchAdd(cstrDemuxer.c_str(), cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_demuxer_branch_remove(const wchar_t* demuxer, const wchar_t* branch)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->DemuxerBranchRemove(cstrDemuxer.c_str(), cstrBranch.c_str());
+}
+
+DslReturnType dsl_demuxer_branch_remove_many(const wchar_t* demuxer, const wchar_t** branches)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        DslReturnType retval = DSL::Services::GetServices()->DemuxerBranchRemove(cstrDemuxer.c_str(), cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_demuxer_branch_remove_all(const wchar_t* demuxer)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+
+    return DSL::Services::GetServices()->DemuxerBranchRemoveAll(cstrDemuxer.c_str());
+}
+
 DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
@@ -833,6 +858,122 @@ DslReturnType dsl_component_gpuid_set_many(const wchar_t** components, uint gpui
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
         DslReturnType retval = DSL::Services::GetServices()->ComponentGpuIdSet(cstrComponent.c_str(), gpuid);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_branch_new(const wchar_t* branch)
+{
+    std::wstring wstrName(branch);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->BranchNew(cstrName.c_str());
+}
+
+DslReturnType dsl_branch_new_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->BranchNew(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_branch_delete(const wchar_t* branch)
+{
+    std::wstring wstrName(branch);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->BranchDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_branch_delete_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->BranchDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_branch_delete_all()
+{
+    return DSL::Services::GetServices()->BranchDeleteAll();
+}
+
+uint dsl_branch_list_size()
+{
+    return DSL::Services::GetServices()->BranchListSize();
+}
+
+DslReturnType dsl_branch_component_add(const wchar_t* branch, 
+    const wchar_t* component)
+{
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    std::wstring wstrComponent(component);
+    std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+
+    return DSL::Services::GetServices()->BranchComponentAdd(cstrBranch.c_str(), cstrComponent.c_str());
+}
+
+DslReturnType dsl_branch_component_add_many(const wchar_t* branch, 
+    const wchar_t** components)
+{
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->BranchComponentAdd(cstrBranch.c_str(), cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_branch_component_remove(const wchar_t* branch, 
+    const wchar_t* component)
+{
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    std::wstring wstrComponent(component);
+    std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+
+    return DSL::Services::GetServices()->BranchComponentRemove(cstrBranch.c_str(), cstrComponent.c_str());
+}
+
+DslReturnType dsl_branch_component_remove_many(const wchar_t* branch, 
+    const wchar_t** components)
+{
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->BranchComponentRemove(cstrBranch.c_str(), cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -1195,6 +1336,15 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+#define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
+{ \
+    if (branches.find(name) == branches.end()) \
+    { \
+        LOG_ERROR("Branch name '" << name << "' was not found"); \
+        return DSL_RESULT_BRANCH_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
 #define RETURN_IF_PIPELINE_NAME_NOT_FOUND(pipelines, name) do \
 { \
     if (pipelines.find(name) == pipelines.end()) \
@@ -1566,130 +1716,6 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SourceOsdAdd(const char* name, const char* osd)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, osd);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, osd, OsdBintr);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            DSL_OSD_PTR pOsdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[osd]);
-         
-            if (!pSourceBintr->AddOsdBintr(pOsdBintr))
-            {
-                LOG_ERROR("Failed to add OSD '" << osd << "' to Source '" << name << "'");
-                return DSL_RESULT_SOURCE_OSD_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception adding OSD");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        LOG_INFO("OSD '" << osd << "' added to Source '" << name << "' successfully");
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::SourceOsdRemove(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->RemoveOsdBintr())
-            {
-                LOG_ERROR("Failed to remove OSD from Source '" << name << "'");
-                return DSL_RESULT_SOURCE_OSD_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception removing OSD");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        LOG_INFO("OSD removed from Source '" << name << "' successfully");
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SourceSinkAdd(const char* name, const char* sink)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            DSL_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
-         
-            if (!pSourceBintr->AddSinkBintr(pSinkBintr))
-            {
-                LOG_ERROR("Failed to add Sink '" << sink << "' to Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SINK_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception adding Sink");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::SourceSinkRemove(const char* name, const char* sink)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
-            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            DSL_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
-         
-            if (!pSourceBintr->RemoveSinkBintr(pSinkBintr))
-            {
-                LOG_ERROR("Failed to remove Sink '" << sink << "' from Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SINK_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception removing Sink");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
     {
         LOG_FUNC();
@@ -2572,6 +2598,100 @@ namespace DSL
         }
         LOG_INFO("New Demuxer '" << name << "' created successfully");
 
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBranchAdd(const char* demuxer, 
+        const char* branch)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
+            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+            
+            // Can't add components if they're In use by another Branch
+            if (m_branches[branch]->IsInUse())
+            {
+                LOG_ERROR("Unable to add branch '" << branch 
+                    << "' as it's currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+
+            if (!m_components[demuxer]->AddChild(m_branches[branch]))
+            {
+                LOG_ERROR("Demuxer '" << demuxer << 
+                    "' failed to add branch '" << branch << "'");
+                return DSL_RESULT_DEMUXER_BRANCH_ADD_FAILED;
+            }
+
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" << demuxer 
+                << "' threw an exception removing branch '" << branch << "'");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        LOG_INFO("Branch '" << branch 
+            << "' was added to Demuxer '" << demuxer << "' successfully");
+        return DSL_RESULT_SUCCESS;
+    }    
+    
+    DslReturnType Services::DemuxerBranchRemove(const char* demuxer, 
+        const char* branch)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
+            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+
+            if (!m_components[demuxer]->IsChild(m_branches[branch]))
+            {
+                LOG_ERROR("Branch '" << branch << 
+                    "' is not in use by Demuxer '" << demuxer << "'");
+                return DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD;
+            }
+            if (!m_components[demuxer]->RemoveChild(m_branches[branch]))
+            {
+                LOG_ERROR("Demuxer '" << demuxer << 
+                    "' failed to remove branch '" << branch << "'");
+                return DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" << demuxer 
+                << "' threw an exception removing branch '" << branch << "'");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBranchRemoveAll(const char* demuxer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
+
+//            m_components[demuxer]->RemoveAll();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" <<  demuxer
+                << "' threw an exception removing all branches");
+            return DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED;
+        }
         return DSL_RESULT_SUCCESS;
     }
 
@@ -3672,6 +3792,140 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::BranchNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_branches[name])
+        {   
+            LOG_ERROR("Branch name '" << name << "' is not unique");
+            return DSL_RESULT_BRANCH_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_branches[name] = std::shared_ptr<BranchBintr>(new BranchBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Branch '" << name << "' threw exception on create");
+            return DSL_RESULT_BRANCH_THREW_EXCEPTION;
+        }
+        LOG_INFO("new BRANCH '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::BranchDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, name);
+
+        m_branches[name]->RemoveAllChildren();
+        m_branches.erase(name);
+
+        LOG_INFO("Branch '" << name << "' deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::BranchDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto &imap: m_branches)
+        {
+            imap.second->RemoveAllChildren();
+            imap.second = nullptr;
+        }
+        m_branches.clear();
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::BranchListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_branches.size();
+    }
+    
+    DslReturnType Services::BranchComponentAdd(const char* branch, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
+        try
+        {
+            // Can't add components if they're In use by another Branch
+            if (m_components[component]->IsInUse())
+            {
+                LOG_ERROR("Unable to add component '" << component 
+                    << "' as it's currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+
+            // Check for MAX Sources in Use - Do not exceed!
+            if (IsSourceComponent(component)) 
+            {
+                LOG_ERROR("Branch '" << branch << 
+                    "' component add failure, only Pipleines can have Source components");
+                return DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED;
+            }
+
+            if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
+            {
+                LOG_ERROR("Adding Sink '" << component << "' to Branch '" << branch << 
+                    "' would exceed the maximum num-in-use limit");
+                return DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED;
+            }
+
+            m_components[component]->AddToParent(m_branches[branch]);
+            LOG_INFO("Component '" << component 
+                << "' was added to Branch '" << branch << "' successfully");
+
+        }
+        catch(...)
+        {
+            LOG_ERROR("Branch '" << branch
+                << "' threw exception adding component '" << component << "'");
+            return DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED;
+        }
+    }    
+    
+    DslReturnType Services::BranchComponentRemove(const char* branch, 
+        const char* component)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+
+        if (!m_components[component]->IsParent(m_branches[branch]))
+        {
+            LOG_ERROR("Component '" << component << 
+                "' is not in use by Branch '" << branch << "'");
+            return DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH;
+        }
+        try
+        {
+            m_components[component]->RemoveFromParent(m_branches[branch]);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Branch '" << branch 
+                << "' threw an exception removing component");
+            return DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
     
     
     DslReturnType Services::PipelineNew(const char* name)
@@ -3758,14 +4012,14 @@ namespace DSL
             {
                 LOG_ERROR("Adding Source '" << component << "' to Pipeline '" << pipeline << 
                     "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED;
+                return DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED;
             }
 
             if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
             {
                 LOG_ERROR("Adding Sink '" << component << "' to Pipeline '" << pipeline << 
                     "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED;
+                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED;
             }
 
             m_components[component]->AddToParent(m_pipelines[pipeline]);
@@ -4422,6 +4676,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_COMPONENT_IN_USE] = L"DSL_RESULT_COMPONENT_IN_USE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE";
+        m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_COMPONENT_SET_GPUID_FAILED] = L"DSL_RESULT_COMPONENT_SET_GPUID_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_RESULT] = L"DSL_RESULT_SOURCE_RESULT";
@@ -4435,8 +4690,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_NOT_IN_PAUSE] = L"DSL_RESULT_SOURCE_NOT_IN_PAUSE";
         m_returnValueToString[DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE] = L"DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE";
         m_returnValueToString[DSL_RESULT_SOURCE_CODEC_PARSER_INVALID] = L"DSL_RESULT_SOURCE_CODEC_PARSER_INVALID";
-        m_returnValueToString[DSL_RESULT_SOURCE_SINK_ADD_FAILED] = L"DSL_RESULT_SOURCE_SINK_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_SOURCE_SINK_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_SINK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
@@ -4501,6 +4754,12 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DEMUXER_NAME_NOT_FOUND] = L"DSL_RESULT_DEMUXER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DEMUXER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEMUXER_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_DEMUXER_THREW_EXCEPTION] = L"DSL_RESULT_DEMUXER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD] = L"DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD";
+        m_returnValueToString[DSL_RESULT_DEMUXER_BRANCH_ADD_FAILED] = L"DSL_RESULT_DEMUXER_BRANCH_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED] = L"DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED] = L"DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER] = L"DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER";
         m_returnValueToString[DSL_RESULT_TILER_RESULT] = L"DSL_RESULT_TILER_RESULT";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_TILER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_FOUND] = L"DSL_RESULT_TILER_NAME_NOT_FOUND";
@@ -4512,6 +4771,15 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TILER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TILER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TILER_PAD_TYPE_INVALID] = L"DSL_RESULT_TILER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER] = L"DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER";
+        m_returnValueToString[DSL_RESULT_BRANCH_RESULT] = L"DSL_RESULT_BRANCH_RESULT";
+        m_returnValueToString[DSL_RESULT_BRANCH_NAME_NOT_UNIQUE] = L"DSL_RESULT_BRANCH_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_BRANCH_NAME_NOT_FOUND] = L"DSL_RESULT_BRANCH_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_BRANCH_NAME_BAD_FORMAT] = L"DSL_RESULT_BRANCH_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_BRANCH_THREW_EXCEPTION] = L"DSL_RESULT_BRANCH_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED] = L"DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED] = L"DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED] = L"DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED";
+        m_returnValueToString[DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_RESULT] = L"DSL_RESULT_PIPELINE_RESULT";
         m_returnValueToString[DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PIPELINE_NAME_NOT_FOUND] = L"DSL_RESULT_PIPELINE_NAME_NOT_FOUND";
@@ -4530,9 +4798,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_PLAY] = L"DSL_RESULT_PIPELINE_FAILED_TO_PLAY";
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_PAUSE] = L"DSL_RESULT_PIPELINE_FAILED_TO_PAUSE";
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_STOP] = L"DSL_RESULT_PIPELINE_FAILED_TO_STOP";
-        m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED";
-        m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED";
-        m_returnValueToString[0xFFFF] = L"Invalid DSL Reslult CODE";
+        m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
+        m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
+        m_returnValueToString[0xFFFFFFFF] = L"Invalid DSL Reslult CODE";
     }
 
 } // namespace 

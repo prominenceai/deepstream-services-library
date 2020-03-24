@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslApi.h"
+#include "DslSinkBintr.h"
 #include "DslSourceBintr.h"
 
 
@@ -50,7 +51,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[CsiSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -82,11 +83,11 @@ SCENARIO( "Set Sensor Id updates SourceBintr correctly",  "[CsiSourceBintr]" )
 
         WHEN( "The Sensor Id is set " )
         {
-            pSourceBintr->SetSourceId(sensorId);
+            pSourceBintr->SetId(sensorId);
 
             THEN( "The returned Sensor Id is correct" )
             {
-                REQUIRE( pSourceBintr->GetSourceId() == sensorId );
+                REQUIRE( pSourceBintr->GetId() == sensorId );
             }
         }
     }
@@ -166,7 +167,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[UsbSourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -289,7 +290,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -358,184 +359,6 @@ SCENARIO( "A UriSourceBintr can UnlinkAll all child Elementrs correctly",  "[Uri
             THEN( "The UriSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr can Add a Child SinkBintr",  "[UriSourceBintr]" )
-{
-    GIVEN( "A new UriSourceBintr and WindowSinkBintr in memory" ) 
-    {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string sinkName("window-sink");
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
-
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        WHEN( "The OverlaySinkBintr is added to UriSourceBintr" )
-        {
-            REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-
-            THEN( "The OverlaySinkBintr is found to be a child of the UriSourceBintr" )
-            {
-                REQUIRE( pSourceBintr->IsSinkBintrChild(pSinkBintr) == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr can Remove a Child SinkBintr",  "[UriSourceBintr]" )
-{
-    GIVEN( "A a UriSourceBintr with a child WindowSinkBintr" ) 
-    {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string sinkName("window-sink");
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
-
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pSourceBintr->IsSinkBintrChild(pSinkBintr) == true );
-
-        WHEN( "The OverlaySinkBintr is removed from the UriSourceBintr" )
-        {
-            REQUIRE( pSourceBintr->RemoveSinkBintr(pSinkBintr) == true );
-            THEN( "The OverlaySinkBintr is found to be a child of the UriSourceBintr" )
-            {
-                REQUIRE( pSourceBintr->IsSinkBintrChild(pSinkBintr) == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr with a child SinkBintr can LinkAll correctly",  "[UriSourceBintr]" )
-{
-    GIVEN( "A new UriSourceBintr in memory" ) 
-    {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string sinkName("window-sink");
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-
-        WHEN( "The UriSourceBintr is called to LinkAll" )
-        {
-            REQUIRE( pSourceBintr->LinkAll() == true );
-
-            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
-            {
-                REQUIRE( pSourceBintr->IsLinked() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr with a child SinkBintr can UnlinkAll correctly",  "[UriSourceBintr]" )
-{
-    GIVEN( "A new, linked UriSourceBintr with a child SinkBintr" ) 
-    {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
-
-        std::string sinkName("window-sink");
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pSourceBintr->LinkAll() == true );
-        REQUIRE( pSourceBintr->IsLinked() == true );
-
-        WHEN( "The UriSourceBintr is called to UnlinkAll" )
-        {
-            pSourceBintr->UnlinkAll();
-
-            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
-            {
-                REQUIRE( pSourceBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UriSourceBintr can Add and Remove a Child OsdBintr",  "[UriSourceBintr]" )
-{
-    GIVEN( "A new UriSourceBintr and OsdBintr in memory" ) 
-    {
-        std::string sourceName("test-file-source");
-        std::string uri("./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::string osdName("on-screen-display");
-        boolean clockEnabled(false);
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), false, cudadecMemType, intrDecode, dropFrameInterval);
-
-        DSL_OSD_PTR pOsdBintr = 
-            DSL_OSD_NEW(osdName.c_str(), clockEnabled);
-            
-        REQUIRE( pSourceBintr->HasOsdBintr() == false );
-        REQUIRE( pSourceBintr->RemoveOsdBintr() == false );
-
-        WHEN( "The OsdBintr is added to UriSourceBintr" )
-        {
-            REQUIRE( pSourceBintr->AddOsdBintr(pOsdBintr) == true );
-
-            THEN( "The UriSourceBintr can return, and then remove the Child OsdBintr" )
-            {
-                REQUIRE( pSourceBintr->HasOsdBintr() == true );
-                REQUIRE( pSourceBintr->GetOsdBintr() == pOsdBintr );
-                REQUIRE( pSourceBintr->RemoveOsdBintr() == true );
             }
         }
     }
@@ -765,7 +588,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
                 REQUIRE( pSourceBintr->m_gpuId == 0 );
                 REQUIRE( pSourceBintr->m_nvbufMemoryType == 0 );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetSourceId() == -1 );
+                REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream

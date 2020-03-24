@@ -33,7 +33,6 @@ namespace DSL
 {
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
-        , m_sourceId(-1)
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
@@ -84,35 +83,6 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    int SourceBintr::GetSourceId()
-    {
-        LOG_FUNC();
-        
-        return m_sourceId;
-    }
-
-    void SourceBintr::SetSourceId(int id)
-    {
-        LOG_FUNC();
-
-        if (!m_pSourceElement)
-        {
-            LOG_ERROR("Source Element for SourceBintr '" << GetName() << "' has not been instantiated");
-            throw;
-        }
-        // If this SourceBintr is setup to work with A demuxer, it may have an optional
-        // child OsdBintr, and one a least SinkBintr - set the Unique StreamId for both
-        if (m_pOsdBintr)
-        {
-            m_pOsdBintr->SetStreamId(id);
-        }
-        if (m_pMultiSinksBintr)
-        {
-            m_pMultiSinksBintr->SetStreamId(id);
-        }
-        m_sourceId = id;
-    }
-
     void SourceBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -133,7 +103,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::string sinkPadName = "sink_" + std::to_string(m_sourceId);
+        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
         
         LOG_INFO("Linking Source '" << GetName() << "' to Pad '" << sinkPadName 
             << "' for StreamMux '" << pStreamMux->GetName() << "'");
@@ -168,7 +138,7 @@ namespace DSL
             return false;
         }
 
-        std::string sinkPadName = "sink_" + std::to_string(m_sourceId);
+        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
 
         LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
 
@@ -184,163 +154,6 @@ namespace DSL
         m_pGstRequestedSinkPads.erase(sinkPadName);
         return Bintr::UnlinkFromSink();
     }
-    
-    bool SourceBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pOsdBintr)
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' has an existing child OsdBintr");
-            return false;
-        }
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
-        return true;
-    }
-    
-    const DSL_NODETR_PTR SourceBintr::GetOsdBintr()
-    {
-        LOG_FUNC();
-        
-        return m_pOsdBintr;
-    }
-    
-    bool SourceBintr::HasOsdBintr()
-    {
-        LOG_FUNC();
-        
-        return (bool)m_pOsdBintr;
-    }
-    
-    bool SourceBintr::RemoveOsdBintr()
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to remove child OsdBintr from SourceBintr '" 
-                << GetName() << "' as it's currently in use");
-            return false;
-        }
-        
-        if (!m_pOsdBintr)
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' does not have a child OsdBintr");
-            return false;
-        }
-        m_pOsdBintr = nullptr;
-        return true;
-    }
-
-    
-    bool SourceBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-        
-        // Create the shared Sinks bintr if it doesn't exist
-        if (!m_pMultiSinksBintr)
-        {
-            std::string binName = m_name + std::string("-sinks-bin");
-            m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW(binName.c_str());
-        }
-        return m_pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
-    }
-
-    bool SourceBintr::IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-
-        if (!m_pMultiSinksBintr)
-        {
-            LOG_INFO("SourceBintr '" << GetName() << "' has no Sinks");
-            return false;
-        }
-        return (m_pMultiSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
-    }
-
-    bool SourceBintr::RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-
-        if (!m_pMultiSinksBintr)
-        {
-            LOG_INFO("SourceBintr '" << GetName() << "' has no Sinks");
-            return false;
-        }
-
-        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
-        return m_pMultiSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
-    }
-
-    bool SourceBintr::AddChildComponentsToPipeline(DSL_NODETR_PTR pPipeline)
-    {
-        LOG_FUNC();
-
-        if (!m_pMultiSinksBintr)
-        {
-            LOG_INFO("SourceBintr '" << GetName() << "' has no Sinks");
-            return false;
-        }
-        pPipeline->AddChild(m_pMultiSinksBintr);
-        if (m_pOsdBintr)
-        {
-            pPipeline->AddChild(m_pOsdBintr);
-        }
-        return true;
-    }
-    
-    bool SourceBintr::LinkToDemuxer(DSL_NODETR_PTR pDemuxer)
-    {
-        LOG_FUNC();
-        
-        if (!m_pMultiSinksBintr)
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' has no Sinks");
-            return false;
-        }
-        if (!m_pMultiSinksBintr->LinkAll())
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' failed to link all Sinks");
-            return false;
-        }
-        // If there is no OSD, we can link the MultiSinksBintr back to the demuxer and we're done
-        if (!m_pOsdBintr)
-        {
-            LOG_INFO("Linking MultiSinksBintr to Demuxer for SourceBintr '" << GetName() << "'");
-            return m_pMultiSinksBintr->LinkToSource(pDemuxer);
-        }
-        // Else, Link the OSD back to the Demuxer and then to the MultiSinksBintr
-        LOG_INFO("Linking OsdBintr back to Demuxer and to MultiSinksBintr for SourceBintr '" << GetName() << "'");
-        if (!m_pOsdBintr->LinkAll() or !m_pOsdBintr->LinkToSource(pDemuxer) or !m_pOsdBintr->LinkToSink(m_pMultiSinksBintr))
-        {
-            return false;
-        }
-        return true;
-    }
-    
-    bool SourceBintr::UnlinkFromDemuxer()
-    {
-        LOG_FUNC();
-        
-        if (!m_pMultiSinksBintr)
-        {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
-            return false;
-        }
-            
-        m_pMultiSinksBintr->UnlinkAll();
-        if (!m_pOsdBintr)
-        {
-            return m_pMultiSinksBintr->UnlinkFromSource();
-        }
-        m_pOsdBintr->UnlinkAll();
-        if (!m_pOsdBintr->UnlinkFromSink() or !m_pOsdBintr->UnlinkFromSource())
-        {
-            return false;
-        }
-        return true;
-    }
-    
     
     //*********************************************************************************
 
@@ -598,7 +411,7 @@ namespace DSL
         {
             g_object_set(pObject, "gpu-id", m_gpuId, NULL);
             g_object_set(pObject, "cuda-memory-type", m_cudadecMemtype, NULL);
-            g_object_set(pObject, "source-id", m_sourceId, NULL);
+            g_object_set(pObject, "source-id", m_uniqueId, NULL);
             g_object_set(pObject, "num-decode-surfaces", m_numDecodeSurfaces, NULL);
             
             if (m_intraDecode)
@@ -831,7 +644,7 @@ namespace DSL
             LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
             return false;
         }
-        std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_sourceId);
+        std::string padForSourceQueueName = "padForSourceQueue_" + std::to_string(m_uniqueId);
 
         m_pGstRequestedSourcePads[padForSourceQueueName] = pGstRequestedSourcePad;
         
@@ -856,7 +669,7 @@ namespace DSL
             LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
             return false;
         }
-        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_sourceId);
+        std::string padForFakeSinkQueueName = "padForFakeSinkQueue_" + std::to_string(m_uniqueId);
 
         m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
 

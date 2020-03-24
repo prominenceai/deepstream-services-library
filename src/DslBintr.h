@@ -52,6 +52,7 @@ namespace DSL
          */
         Bintr(const char* name)
             : GstNodetr(name)
+            , m_uniqueId(-1)
             , m_isLinked(false)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
@@ -74,6 +75,28 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
+        }
+
+        /**
+         * @brief returns the current Id - managed by the Parent container
+         * @return -1 when id is not assigned, i.e. bintr is not currently in use
+         */
+        int GetId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        /**
+         * @brief Sets the unique id for this bintr
+         * @param id value to assign [0...MAX]
+         */
+        void SetId(int id)
+        {
+            LOG_FUNC();
+
+            m_uniqueId = id;
         }
         
         /**
@@ -185,7 +208,7 @@ namespace DSL
                         gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                     return false;
                 case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for Bintr'" << GetName() << "'");
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
                     break;
                 default:
                     break;
@@ -299,6 +322,12 @@ namespace DSL
         }
 
     public:
+
+        /**
+         * @brief unique identifier managed by the 
+         * parent from the point of add until removed
+         */
+        int m_uniqueId;
     
         /**
          * @brief current is-linked state for this Bintr

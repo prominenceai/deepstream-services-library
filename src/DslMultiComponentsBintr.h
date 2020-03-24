@@ -28,7 +28,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBintr.h"
-#include "DslSinkBintr.h"
     
    
 namespace DSL 
@@ -40,87 +39,84 @@ namespace DSL
     #define DSL_MULTI_SINKS_NEW(name) \
         std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
+    #define DSL_TEE_PTR std::shared_ptr<TeeBintr>
+    #define DSL_TEE_NEW(name) \
+        std::shared_ptr<TeeBintr>(new TeeBintr(name))
+
+    #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
+    #define DSL_DEMUXER_NEW(name) \
+        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name))
+
     /**
      * @class ProcessBintr
      * @brief 
      */
-    class MultiSinksBintr : public Bintr
+    class MultiComponentsBintr : public Bintr
     {
     public: 
     
         /**
-         * @brief ctor for the MultiSinksBintr
+         * @brief ctor for the MultiComponentsBintr
          * @param[in] name name to give the new Bintr
          */
-        MultiSinksBintr(const char* name);
+        MultiComponentsBintr(const char* name, const char* teeType);
 
         /**
-         * @brief dtor for the MultiSinksBintr
+         * @brief dtor for the MultiComponentsBintr
          */
-        ~MultiSinksBintr();
-        
-        /**
-         * @brief adds a child SinkBintr to this MultiSinksBintr
-         * @param[in] pChildSink shared pointer to SinkBintr to add
-         * @return true if the SinkBintr was added correctly, false otherwise
-         */
-        bool AddChild(DSL_SINK_PTR pChildSink);
-        
-        /**
-         * @brief removes a child SinkBintr from this MultiSinksBintr
-         * @param[in] pChildSink a shared pointer to SinkBintr to remove
-         * @return true if the SinkBintr was removed correctly, false otherwise
-         */
-        bool RemoveChild(DSL_SINK_PTR pChildSink);
+        ~MultiComponentsBintr();
 
         /**
-         * @brief overrides the base method and checks in m_pChildSinks only.
+         * @brief adds a child ComponentBintr to this MultiComponentsBintr
+         * @param[in] pChildComponent shared pointer to ComponentBintr to add
+         * @return true if the ComponentBintr was added correctly, false otherwise
          */
-        bool IsChild(DSL_SINK_PTR pChildSink);
+        bool AddChild(DSL_BINTR_PTR pChildComponent);
+        
+        /**
+         * @brief removes a child ComponentBintr from this MultiComponentsBintr
+         * @param[in] pChildComponent a shared pointer to ComponentBintr to remove
+         * @return true if the ComponentBintr was removed correctly, false otherwise
+         */
+        bool RemoveChild(DSL_BINTR_PTR pChildComponent);
+
+        /**
+         * @brief overrides the base method and checks in m_pChildComponents only.
+         */
+        bool IsChild(DSL_BINTR_PTR pChildComponent);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
-         * child SinkBintrs and not the total number of children... 
+         * child ComponentBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child SinkBintrs held by this MultiSinksBintr
+         * @return the number of Child ComponentBintrs held by this MultiComponentsBintr
          */
         uint GetNumChildren()
         {
             LOG_FUNC();
             
-            return m_pChildSinks.size();
+            return m_pChildComponents.size();
         }
 
         /** 
-         * @brief links all child Sink Bintrs and their elements
+         * @brief links all child Component Bintrs and their elements
          */ 
         bool LinkAll();
         
         /**
-         * @brief unlinks all child Sink Bintrs and their Elementrs
+         * @brief unlinks all child Component Bintrs and their Elementrs
          */
         void UnlinkAll();
-
-        /**
-         * @brief Set the Stream Id - for when a child of a Source
-         * @param streamId unique Id of the Parent Stream
-         */
-        void SetStreamId(uint streamId)
-        {
-            LOG_FUNC();
-            
-            m_streamId = streamId;
-        }
         
         /**
-         * @brief Links this MultiSinksBintr back to a source Demuxer element
+         * @brief Links this MultiComponentsBintr back to a source Demuxer element
          * @param[in] pDemuxer to link back to
          * @return true on successful Link false other
          */
         bool LinkToSource(DSL_NODETR_PTR pDemuxer);
         
         /**
-         * @brief Unlinks this MultiSinksBintr from a source Demuxer element
+         * @brief Unlinks this MultiComponentsBintr from a source Demuxer element
          * @return true on successful Unlink false other
          */
         bool UnlinkFromSource();
@@ -137,7 +133,7 @@ namespace DSL
          */
         int m_streamId;
     
-        std::map<std::string, DSL_SINK_PTR> m_pChildSinks;
+        std::map<std::string, DSL_BINTR_PTR> m_pChildComponents;
 
         /**
          * @brief A dynamic collection of requested Source Pads for this Bintr
@@ -152,12 +148,60 @@ namespace DSL
         bool AddChild(DSL_NODETR_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this MultiSinksBintr
+         * @brief removes a child Elementr from this MultiComponentsBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_NODETR_PTR pChildElement);
 
     };
+
+    class MultiSinksBintr : public MultiComponentsBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the MultiSinksBintr
+         * @param[in] name name to give the new Bintr
+         */
+        MultiSinksBintr(const char* name);
+
+    };
+
+    class TeeBintr : public MultiComponentsBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the MultiSinksBintr
+         * @param[in] name name to give the new Bintr
+         */
+        TeeBintr(const char* name);
+
+        /**
+         * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
+         * @param[in] pParentBintr Parent Pipeline to add this Bintr to
+         */
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+
+    };
+
+    class DemuxerBintr : public MultiComponentsBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the DemuxerBintr
+         * @param[in] name name to give the new Bintr
+         */
+        DemuxerBintr(const char* name);
+
+        /**
+         * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
+         * @param[in] pParentBintr Parent Pipeline to add this Bintr to
+         */
+        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+    };
+
 }
 
 #endif // _DSL_PROCESS_BINTR_H

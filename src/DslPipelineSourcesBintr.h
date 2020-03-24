@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslSourceBintr.h"
-#include "DslDemuxerBintr.h"
 
 namespace DSL
 {
@@ -77,10 +76,6 @@ namespace DSL
             return m_pChildSources.size();
         }
 
-        bool AddDemuxer(DSL_NODETR_PTR pParentPipeline, DSL_DEMUXER_PTR pDemuxerBintr);
-        
-        bool RemoveDemuxer();
-        
         /**
          * @brief interates through the list of child source bintrs setting 
          * their Sensor Id's and linking to the StreamMux
@@ -166,8 +161,6 @@ namespace DSL
     public:
 
         DSL_ELEMENT_PTR m_pStreamMux;
-        
-        DSL_DEMUXER_PTR m_pDemuxerBintr;
         
         std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         

@@ -379,7 +379,7 @@ SCENARIO( "Adding greater than max Sources to all Pipelines fails", "[source-api
             THEN( "Adding an additional Source to a Pipeline will fail" )
             {
                 REQUIRE( dsl_pipeline_component_add(pipelineName3.c_str(), 
-                    sourceName3.c_str()) == DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED );
+                    sourceName3.c_str()) == DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -480,91 +480,6 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
     }
 }    
     
-SCENARIO( "A Sink Component can be added to and removed from a Source Component", "[source-api]" )
-{
-    GIVEN( "A new Source and new Sink" )
-    {
-        std::wstring sourceName = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        WHEN( "The Sink is added to the Source" ) 
-        {
-            REQUIRE( dsl_source_sink_add(sourceName.c_str(), 
-                overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
-
-            THEN( "The same Sink can't be added again, but can be removed" )
-            {
-                REQUIRE( dsl_source_sink_add(sourceName.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SOURCE_SINK_ADD_FAILED );
-
-                REQUIRE( dsl_source_sink_remove(sourceName.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
-                    
-                REQUIRE( dsl_source_sink_remove(sourceName.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SOURCE_SINK_REMOVE_FAILED );
-                    
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An OSD  Component can be added to and removed from a Source Component", "[source-api]" )
-{
-    GIVEN( "A new Source and new Sink" )
-    {
-        std::wstring sourceName = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring osdName = L" on-screen-display";
-
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
-
-        WHEN( "The Sink is added to the Source" ) 
-        {
-            REQUIRE( dsl_source_osd_add(sourceName.c_str(), 
-                osdName.c_str()) == DSL_RESULT_SUCCESS );
-
-            THEN( "The same OSD can't be added again, but can be removed" )
-            {
-                REQUIRE( dsl_source_osd_add(sourceName.c_str(), osdName.c_str()) == DSL_RESULT_SOURCE_OSD_ADD_FAILED );
-
-                REQUIRE( dsl_source_osd_remove(sourceName.c_str()) == DSL_RESULT_SUCCESS );
-                    
-                REQUIRE( dsl_source_osd_remove(sourceName.c_str()) == DSL_RESULT_SOURCE_OSD_REMOVE_FAILED );
-                    
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
 SCENARIO( "An invalid Source is caught by all Set and Get API calls", "[source-api]" )
 {
     GIVEN( "A new Fake Sink as incorrect Source Type" ) 

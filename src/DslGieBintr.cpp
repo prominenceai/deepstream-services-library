@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslGieBintr.h"
-#include "DslPipelineBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
@@ -359,7 +359,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddPrimaryGieBintr(shared_from_this());
     }
 
@@ -470,7 +470,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSecondaryGieBintr(shared_from_this());
     }
     

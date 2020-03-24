@@ -119,46 +119,6 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
-## dsl_source_osd_add()
-##
-_dsl.dsl_source_osd_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_osd_add.restype = c_uint
-def dsl_source_osd_add(source, osd):
-    global _dsl
-    result = _dsl.dsl_source_osd_add(source, osd)
-    return int(result)
-    
-##
-## dsl_source_osd_remove()
-##
-_dsl.dsl_source_osd_remove.argtypes = [c_wchar_p]
-_dsl.dsl_source_osd_remove.restype = c_uint
-def dsl_source_osd_remove(source):
-    global _dsl
-    result = _dsl.dsl_source_osd_remove(source)
-    return int(result)
-
-##
-## dsl_source_sink_add()
-##
-_dsl.dsl_source_sink_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_sink_add.restype = c_uint
-def dsl_source_sink_add(source, sink):
-    global _dsl
-    result = _dsl.dsl_source_sink_add(source, sink)
-    return int(result)
-    
-##
-## dsl_source_sink_remove()
-##
-_dsl.dsl_source_sink_remove.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_sink_remove.restype = c_uint
-def dsl_source_sink_remove(source, sink):
-    global _dsl
-    result = _dsl.dsl_source_sink_remove(source, sink)
-    return int(result)
-
-##
 ## dsl_source_decode_uri_get()
 ##
 _dsl.dsl_source_decode_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]

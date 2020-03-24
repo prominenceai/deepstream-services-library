@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSinkBintr.h"
-#include "DslPipelineBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
@@ -32,7 +32,6 @@ namespace DSL
     SinkBintr::SinkBintr(const char* name)
         : Bintr(name)
         , m_isWindowCapable(false)
-        , m_sinkId(-1)
     {
         LOG_FUNC();
 
@@ -51,7 +50,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' Sink to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSinkBintr(shared_from_this());
     }
 
@@ -61,7 +60,7 @@ namespace DSL
         LOG_FUNC();
         
         // check if 'this' Sink is child of Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             IsSinkBintrChild(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
@@ -75,24 +74,10 @@ namespace DSL
             return false;
         }
         // remove 'this' Sink from the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    int SinkBintr::GetSinkId()
-    {
-        LOG_FUNC();
-        
-        return m_sinkId;
-    }
-
-    void SinkBintr::SetSinkId(int id)
-    {
-        LOG_FUNC();
-
-        m_sinkId = id;
-    }
-    
     bool SinkBintr::IsWindowCapable()
     {
         LOG_FUNC();
@@ -104,7 +89,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::string srcPadName = "src_" + std::to_string(m_sinkId);
+        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
 
         LOG_INFO("Linking Sink '" << GetName() << "' to Pad '" << srcPadName
             << "' for Tee '" << pTee->GetName() << "'");
@@ -141,7 +126,7 @@ namespace DSL
             return false;
         }
 
-        std::string srcPadName = "src_" + std::to_string(m_sinkId);
+        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
 
         LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
         

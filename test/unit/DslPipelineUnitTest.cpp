@@ -27,7 +27,6 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
-#include "DslDemuxerBintr.h"
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
@@ -793,377 +792,377 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
-{
-    GIVEN( "A new DemuxerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint overlayId(1);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-            
-        WHEN( "All components are added to the PipelineBintr" )
-        {
-            REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-
-            THEN( "The Pipeline components are Linked correctly" )
-            {
-                REQUIRE( pPipelineBintr->LinkAll() == true );
-                REQUIRE( pPipelineBintr->IsLinked() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
-{
-    GIVEN( "A PipelineBintr with DemuxerBintr, CsiSourceBintr, OverlaySinkBintr in a Linked State" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "overlay-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint overlayId(1);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth,  offsetX, offsetY, sinkW, sinkH);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-
-        WHEN( "The Pipeline is in a Linked State" )
-        {
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
-
-            THEN( "The Pipeline can be unlinked correctly" )
-            {
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple Sources with Sinks", "[PipelineBintr]" )
-{
-    GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs with WindowSinkBintrs in a Linked State" ) 
-    {
-        std::string sourceName1 = "csi-source1";
-        std::string sourceName2 = "csi-source2";
-        std::string sourceName3 = "csi-source3";
-        std::string sourceName4 = "csi-source4";
-        std::string sinkName1 = "window-sink1";
-        std::string sinkName2 = "window-sink2";
-        std::string sinkName3 = "window-sink3";
-        std::string sinkName4 = "window-sink4";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr1 = 
-            DSL_CSI_SOURCE_NEW(sourceName1.c_str(), sourceW, sourceH, fps_n, fps_d);
-        DSL_WINDOW_SINK_PTR pSinkBintr1 = 
-            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr2 = 
-            DSL_CSI_SOURCE_NEW(sourceName2.c_str(), sourceW, sourceH, fps_n, fps_d);
-        DSL_WINDOW_SINK_PTR pSinkBintr2 = 
-            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr3 = 
-            DSL_CSI_SOURCE_NEW(sourceName3.c_str(), sourceW, sourceH, fps_n, fps_d);
-        DSL_WINDOW_SINK_PTR pSinkBintr3 = 
-            DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr4 = 
-            DSL_CSI_SOURCE_NEW(sourceName4.c_str(), sourceW, sourceH, fps_n, fps_d);
-        DSL_WINDOW_SINK_PTR pSinkBintr4 = 
-            DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pSourceBintr1->AddSinkBintr(pSinkBintr1) == true );
-        REQUIRE( pSourceBintr2->AddSinkBintr(pSinkBintr2) == true );
-        REQUIRE( pSourceBintr3->AddSinkBintr(pSinkBintr3) == true );
-        REQUIRE( pSourceBintr4->AddSinkBintr(pSinkBintr4) == true );
-        REQUIRE( pSourceBintr1->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSourceBintr2->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSourceBintr3->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSourceBintr4->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-
-        WHEN( "The Pipeline is in a Linked State" )
-        {
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
-
-            THEN( "The Pipeline can be unlinked correctly" )
-            {
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GIE", "[PipelineBintr]" )
-{
-    GIVEN( "A PipelineBintr,  DemuxerBintr, CsiSourceBintr, WindowSinkBintr, Primary GIE" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-
-        WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
-        {
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
-
-            THEN( "The Pipeline can be unlinked correctly" )
-            {
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, and Tracker", "[PipelineBintr]" )
-{
-    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-        uint trackerW(300);
-        uint trackerH(150);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval);
-
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-
-        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
-        {
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
-
-            THEN( "The Pipeline can be unlinked correctly" )
-            {
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, Tracker and Secondary GIE", "[PipelineBintr]" )
-{
-    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr, SecondaryGieBintr" ) 
-    {
-        std::string sourceName = "csi-source";
-        std::string sinkName = "window-sink";
-        std::string demuxerName = "demuxer";
-        std::string pipelineName = "pipeline";
-        std::string trackerName = "ktl-tracker";
-        std::string primaryGieName = "primary-gie";
-        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        std::string secondaryGieName = "secondary-gie";
-        std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
-        
-        uint interval(1);
-
-        uint sourceW(1280);
-        uint sourceH(720);
-        uint fps_n(1);
-        uint fps_d(30);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-        uint trackerW(300);
-        uint trackerH(150);
-
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
-
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
-
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
-
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
-
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
-            secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
-
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
-        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
-
-        REQUIRE( pPipelineBintr->IsLinked() == false );
-
-        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
-        {
-            REQUIRE( pPipelineBintr->LinkAll() == true );
-            REQUIRE( pPipelineBintr->IsLinked() == true );
-
-            THEN( "The Pipeline can be unlinked correctly" )
-            {
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
-            }
-        }
-    }
-}
+//SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
+//{
+//    GIVEN( "A new DemuxerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string sinkName = "overlay-sink";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint overlayId(1);
+//        uint displayId(0);
+//        uint depth(0);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr = 
+//            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+//            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//            
+//        WHEN( "All components are added to the PipelineBintr" )
+//        {
+//            REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+//            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+//            REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//
+//            THEN( "The Pipeline components are Linked correctly" )
+//            {
+//                REQUIRE( pPipelineBintr->LinkAll() == true );
+//                REQUIRE( pPipelineBintr->IsLinked() == true );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
+//{
+//    GIVEN( "A PipelineBintr with DemuxerBintr, CsiSourceBintr, OverlaySinkBintr in a Linked State" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string sinkName = "overlay-sink";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint overlayId(1);
+//        uint displayId(0);
+//        uint depth(0);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr = 
+//            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+//            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth,  offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//            
+//        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+//        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//
+//        WHEN( "The Pipeline is in a Linked State" )
+//        {
+//            REQUIRE( pPipelineBintr->LinkAll() == true );
+//            REQUIRE( pPipelineBintr->IsLinked() == true );
+//
+//            THEN( "The Pipeline can be unlinked correctly" )
+//            {
+//                pPipelineBintr->UnlinkAll();
+//                REQUIRE( pPipelineBintr->IsLinked() == false );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple Sources with Sinks", "[PipelineBintr]" )
+//{
+//    GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs with WindowSinkBintrs in a Linked State" ) 
+//    {
+//        std::string sourceName1 = "csi-source1";
+//        std::string sourceName2 = "csi-source2";
+//        std::string sourceName3 = "csi-source3";
+//        std::string sourceName4 = "csi-source4";
+//        std::string sinkName1 = "window-sink1";
+//        std::string sinkName2 = "window-sink2";
+//        std::string sinkName3 = "window-sink3";
+//        std::string sinkName4 = "window-sink4";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr1 = 
+//            DSL_CSI_SOURCE_NEW(sourceName1.c_str(), sourceW, sourceH, fps_n, fps_d);
+//        DSL_WINDOW_SINK_PTR pSinkBintr1 = 
+//            DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr2 = 
+//            DSL_CSI_SOURCE_NEW(sourceName2.c_str(), sourceW, sourceH, fps_n, fps_d);
+//        DSL_WINDOW_SINK_PTR pSinkBintr2 = 
+//            DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr3 = 
+//            DSL_CSI_SOURCE_NEW(sourceName3.c_str(), sourceW, sourceH, fps_n, fps_d);
+//        DSL_WINDOW_SINK_PTR pSinkBintr3 = 
+//            DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr4 = 
+//            DSL_CSI_SOURCE_NEW(sourceName4.c_str(), sourceW, sourceH, fps_n, fps_d);
+//        DSL_WINDOW_SINK_PTR pSinkBintr4 = 
+//            DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//            
+//        REQUIRE( pSourceBintr1->AddSinkBintr(pSinkBintr1) == true );
+//        REQUIRE( pSourceBintr2->AddSinkBintr(pSinkBintr2) == true );
+//        REQUIRE( pSourceBintr3->AddSinkBintr(pSinkBintr3) == true );
+//        REQUIRE( pSourceBintr4->AddSinkBintr(pSinkBintr4) == true );
+//        REQUIRE( pSourceBintr1->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSourceBintr2->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSourceBintr3->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSourceBintr4->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//
+//        WHEN( "The Pipeline is in a Linked State" )
+//        {
+//            REQUIRE( pPipelineBintr->LinkAll() == true );
+//            REQUIRE( pPipelineBintr->IsLinked() == true );
+//
+//            THEN( "The Pipeline can be unlinked correctly" )
+//            {
+//                pPipelineBintr->UnlinkAll();
+//                REQUIRE( pPipelineBintr->IsLinked() == false );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GIE", "[PipelineBintr]" )
+//{
+//    GIVEN( "A PipelineBintr,  DemuxerBintr, CsiSourceBintr, WindowSinkBintr, Primary GIE" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string sinkName = "window-sink";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//        std::string primaryGieName = "primary-gie";
+//        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+//        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+//        
+//        uint interval(1);
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr = 
+//            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_WINDOW_SINK_PTR pSinkBintr = 
+//            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+//            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+//            modelEngineFile.c_str(), interval);
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//            
+//        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+//        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//
+//        WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
+//        {
+//            REQUIRE( pPipelineBintr->LinkAll() == true );
+//            REQUIRE( pPipelineBintr->IsLinked() == true );
+//
+//            THEN( "The Pipeline can be unlinked correctly" )
+//            {
+//                pPipelineBintr->UnlinkAll();
+//                REQUIRE( pPipelineBintr->IsLinked() == false );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, and Tracker", "[PipelineBintr]" )
+//{
+//    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string sinkName = "window-sink";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//        std::string trackerName = "ktl-tracker";
+//        std::string primaryGieName = "primary-gie";
+//        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+//        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+//        
+//        uint interval(1);
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//        uint trackerW(300);
+//        uint trackerH(150);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr = 
+//            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_WINDOW_SINK_PTR pSinkBintr = 
+//            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+//            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+//            modelEngineFile.c_str(), interval);
+//
+//        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+//            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//            
+//        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+//        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//
+//        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
+//        {
+//            REQUIRE( pPipelineBintr->LinkAll() == true );
+//            REQUIRE( pPipelineBintr->IsLinked() == true );
+//
+//            THEN( "The Pipeline can be unlinked correctly" )
+//            {
+//                pPipelineBintr->UnlinkAll();
+//                REQUIRE( pPipelineBintr->IsLinked() == false );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, Tracker and Secondary GIE", "[PipelineBintr]" )
+//{
+//    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr, SecondaryGieBintr" ) 
+//    {
+//        std::string sourceName = "csi-source";
+//        std::string sinkName = "window-sink";
+//        std::string demuxerName = "demuxer";
+//        std::string pipelineName = "pipeline";
+//        std::string trackerName = "ktl-tracker";
+//        std::string primaryGieName = "primary-gie";
+//        std::string primaryInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+//        std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+//        std::string secondaryGieName = "secondary-gie";
+//        std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
+//        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+//        
+//        uint interval(1);
+//
+//        uint sourceW(1280);
+//        uint sourceH(720);
+//        uint fps_n(1);
+//        uint fps_d(30);
+//        uint offsetX(0);
+//        uint offsetY(0);
+//        uint sinkW(0);
+//        uint sinkH(0);
+//        uint trackerW(300);
+//        uint trackerH(150);
+//
+//        DSL_CSI_SOURCE_PTR pSourceBintr = 
+//            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+//
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
+//
+//        DSL_WINDOW_SINK_PTR pSinkBintr = 
+//            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+//
+//        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+//            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
+//            primaryModelEngineFile.c_str(), interval);
+//
+//        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+//            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
+//            secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
+//
+//        DSL_KTL_TRACKER_PTR pTrackerBintr = 
+//            DSL_KTL_TRACKER_NEW(trackerName.c_str(), trackerW, trackerH);
+//
+//        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+//            
+//        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+//        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+//        REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
+//
+//        REQUIRE( pPipelineBintr->IsLinked() == false );
+//
+//        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
+//        {
+//            REQUIRE( pPipelineBintr->LinkAll() == true );
+//            REQUIRE( pPipelineBintr->IsLinked() == true );
+//
+//            THEN( "The Pipeline can be unlinked correctly" )
+//            {
+//                pPipelineBintr->UnlinkAll();
+//                REQUIRE( pPipelineBintr->IsLinked() == false );
+//            }
+//        }
+//    }
+//}

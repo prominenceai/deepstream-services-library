@@ -27,17 +27,10 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslBranchBintr.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"
-#include "DslGieBintr.h"
-#include "DslTrackerBintr.h"
-#include "DslOsdBintr.h"
-#include "DslDemuxerBintr.h"
-#include "DslTilerBintr.h"
 #include "DslPipelineSourcesBintr.h"
-#include "DslPipelineSGiesBintr.h"
-#include "DslMultiSinksBintr.h"
-#include "DslSinkBintr.h"
     
 namespace DSL 
 {
@@ -52,7 +45,7 @@ namespace DSL
      * @class PipelineBintr
      * @brief 
      */
-    class PipelineBintr : public Bintr
+    class PipelineBintr : public BranchBintr
     {
     public:
     
@@ -95,73 +88,6 @@ namespace DSL
          */
         bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
 
-        /**
-         * @brief adds a single GIE Bintr to this Pipeline 
-         * @param[in] pGieBintr shared pointer to GIE Bintr to add
-         */
-        bool AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
-
-        /**
-         * @brief adds a single Secondary GIE Nodetr to this Pipeline 
-         * @param[in] pSecondaryGieNodetr shared pointer to SGIE Nodetr to add
-         */
-        bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
-
-        /**
-         * @brief adds a single TrackerBintr to this Pipeline 
-         * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
-         */
-        bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
-        
-        /**
-         * @brief adds a single DemuxerBintr to this Pipeline 
-         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
-         */
-        bool AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr);
-        
-        /**
-         * @brief adds a single TilerBintr to this Pipeline 
-         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
-         */
-        bool AddTilerBintr(DSL_NODETR_PTR pTilerBintr);
-        
-        /**
-         * @brief adds a single OsdBintr to this Pipeline 
-         * @param[in] pOsdBintr shared pointer to OSD Bintr to add
-         */
-        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
-        
-        /**
-         * @brief adds a single SinkBintr to this Pipeline 
-         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
-         */
-        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief check if a SinkBintr is a child of the PipelineBintr
-         * @param pSinkBintr
-         * @return true if SinkBintr is a child, false otherwise
-         */
-        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief removes a single SinkBintr from this Pipeline 
-         * @param[in] pSinkBintr shared pointer to Sink Bintr to add
-         */
-        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief returns the number of Sinks currently in use by
-         * this Pipeline
-         */
-        uint GetNumSinksInUse()
-        {
-            if (!m_pPipelineSinksBintr)
-            {
-                return 0;
-            }
-            return m_pPipelineSinksBintr->GetNumChildren();
-        } 
 
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream Muxer
@@ -342,8 +268,6 @@ namespace DSL
         
         bool LinkAll();
         
-        void UnlinkAll();
-        
         /**
          * @brief returns a handle to this PipelineBintr's XWindow
          * @return XWindow handle, NULL untill created
@@ -365,53 +289,10 @@ namespace DSL
         
         void HandleErrorMessage(GstMessage* pMessage);
         
-        uint m_batchSize;
-        
-        uint m_batchTimeout;
-
-        std::vector<DSL_BINTR_PTR> m_linkedComponents;
-        
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
-        
-        /**
-         * @brief optional, one at most Primary GIE for this Pipeline
-         */
-        DSL_PRIMARY_GIE_PTR m_pPrimaryGieBintr;
-        
-        /**
-         * @brief optional, one or more Secondary GIEs for this Pipeline
-         */
-        DSL_PIPELINE_SGIES_PTR m_pSecondaryGiesBintr;
-        
-        /**
-         * @brief optional, one at most Tracker for this Pipeline
-         */
-        DSL_TRACKER_PTR m_pTrackerBintr;
-
-        /**
-         * @brief optional, one at most OSD for this Pipeline
-         */
-        DSL_OSD_PTR m_pOsdBintr;
-        
-        /**
-         * @brief optional/required, one at most DemuxerBintr mutually exclusive 
-         * with the TilerBintr, however, a Pipeline must have one or the other.
-         */
-        DSL_DEMUXER_PTR m_pDemuxerBintr;
-                        
-        /**
-         * @brief optional/required, one at most Tiled Display mutually exclusive 
-         * with the DemuxerBintr, however, a Pipeline must have one or the other
-         */
-        DSL_TILER_PTR m_pTilerBintr;
-                        
-        /**
-         * @brief parent bin for all Sink bins in this Pipeline
-         */
-        DSL_MULTI_SINKS_PTR m_pPipelineSinksBintr;
         
         /**
          * @brief width setting to use on XWindow creation in pixels

@@ -48,8 +48,9 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NAME_BAD_FORMAT                        0x00010003
 #define DSL_RESULT_COMPONENT_IN_USE                                 0x00010004
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010005
-#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010006
-#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010007
+#define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010006
+#define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010007
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010008
 
 /**
  * Source API Return Values
@@ -65,13 +66,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
-#define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
-#define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_OSD_ADD_FAILED                            0x0002000D
-#define DSL_RESULT_SOURCE_OSD_REMOVE_FAILED                         0x0002000E
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000F
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x00020010
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020011
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000B
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000C
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000D
 
 /**
  * Dewarper API Return Values
@@ -157,9 +154,12 @@ THE SOFTWARE.
 #define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
 #define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
 #define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
-#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0005
-#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0006
-#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A0007
+#define DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD                      0x000A0005
+#define DSL_RESULT_DEMUXER_BRANCH_ADD_FAILED                        0x000A0006
+#define DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED                     0x000A0007
+#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0008
+#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0009
+#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A000A
 
 /**
  * Tile API Return Values
@@ -197,8 +197,18 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED                0x00080012
-#define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED                  0x00080013
+#define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED               0x00080012
+#define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED                 0x00080013
+
+#define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
+#define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
+#define DSL_RESULT_BRANCH_NAME_NOT_FOUND                            0x000B0002
+#define DSL_RESULT_BRANCH_NAME_BAD_FORMAT                           0x000B0003
+#define DSL_RESULT_BRANCH_THREW_EXCEPTION                           0x000B0004
+#define DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED                      0x000B0005
+#define DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED                   0x000B0006
+#define DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED                        0x000B0007
+#define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -357,37 +367,6 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
-
-/**
- * @brief adds a named On-Screen Display object to a named Source object - one at most
- * @param source name of the Source object to update
- * @param osd name of the OSD object to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_osd_add(const wchar_t* name, const wchar_t* osd);
-
-/**
- * @brief removes a one-at-most On-Screen Display object from a named Source object
- * @param name name of the Source object to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_osd_remove(const wchar_t* name);
-
-/**
- * @brief adds a named Sink object to a named Source object
- * @param source name of the Source object to update
- * @param sink name of the Sink object to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_sink_add(const wchar_t* name, const wchar_t* sink);
-
-/**
- * @brief removes a named Sink object from a named Source object
- * @param name name of the Source object to update
- * @param sink name of the Sink object to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_sink_remove(const wchar_t* name, const wchar_t* sink);
 
 /**
  * @brief Gets the current URI in use by the named Decode Source
@@ -809,6 +788,45 @@ DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enab
 DslReturnType dsl_demuxer_new(const wchar_t* name);
 
 /**
+ * @brief adds a single Branch to a Demuxer
+ * @param[in] demuxer name of the Demuxer to update
+ * @param[in] branch name of Branch to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_add(const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief adds a list of Branches to a Demuxer
+ * @param[in] demuxer name of the Demuxer to update
+ * @param[in] branches NULL terminated array of Branch names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
+
+/**
+ * @brief removes a single Branch from a Demuxer
+ * @param[in] demuxer name of the Demuxer to update
+ * @param[in] branch name of Branch to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_remove(const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief removes a list of Branches from a Demuxer
+ * @param[in] demuxer name of the Demuxer to update
+ * @param[in] branches NULL terminated array of Branch names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_remove_many(const wchar_t* demuxer, const wchar_t** branches);
+
+/**
+ * @brief removes a Branches from a Demuxer
+ * @param[in] demuxer name of the Demuxer to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_remove_all(const wchar_t* demuxer);
+
+/**
  * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
  * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
  * @param name unique name of the Demuxer to update
@@ -1092,6 +1110,88 @@ DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid);
 DslReturnType dsl_component_gpuid_set_many(const wchar_t** components, uint gpuid);
 
 /**
+ * @brief creates a new, uniquely named Branch
+ * @param[in] name unique name for the new Branch
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_new(const wchar_t* name);
+
+/**
+ * @brief creates a new Branch for each name in the names array
+ * @param names a NULL terminated array of unique Branch names
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_new_many(const wchar_t** names);
+
+/**
+ * @brief deletes a Branch object by name.
+ * @param[in] name unique name of the Branch to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ * @info any/all components owned by the Branch move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_branch_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of branches
+ * @param names NULL terminated list of names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ * @info any/all components owned by the branches move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_branch_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all branches in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ * @info any/all components owned by the branches move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_branch_delete_all();
+
+/**
+ * @brief returns the current number of branches
+ * @return size of the list of branches
+ */
+uint dsl_branch_list_size();
+
+/**
+ * @brief adds a single components to a Branch 
+ * @param[in] branch name of the branch to update
+ * @param[in] component component names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_component_add(const wchar_t* branch, 
+    const wchar_t* component);
+
+/**
+ * @brief adds a list of components to a Branch
+ * @param[in] name name of the Branch to update
+ * @param[in] components NULL terminated array of component names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_component_add_many(const wchar_t* branch, 
+    const wchar_t** components);
+
+/**
+ * @brief removes a Component from a Pipeline
+ * @param[in] branch name of the Branch to update
+ * @param[in] component name of the Component to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_component_remove(const wchar_t* branch, 
+    const wchar_t* component);
+
+/**
+ * @brief removes a list of Components from a Branch
+ * @param[in] branch name of the Branch to update
+ * @param[in] components NULL terminated array of component names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_component_remove_many(const wchar_t* branch, 
+    const wchar_t** components);
+
+/**
  * @brief creates a new, uniquely named Pipeline
  * @param[in] pipeline unique name for the new Pipeline
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
@@ -1140,7 +1240,7 @@ uint dsl_pipeline_list_size();
 /**
  * @brief adds a single components to a Pipeline 
  * @param[in] pipeline name of the pipeline to update
- * @param[in] components NULL terminated array of component names to add
+ * @param[in] component component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 

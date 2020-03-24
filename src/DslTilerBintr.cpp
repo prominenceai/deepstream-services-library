@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslTilerBintr.h"
-#include "DslPipelineBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
@@ -72,7 +72,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' tiler to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddTilerBintr(shared_from_this());
     }
     

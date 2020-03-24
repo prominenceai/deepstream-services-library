@@ -64,14 +64,6 @@ namespace DSL {
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
-        
-        DslReturnType SourceOsdAdd(const char* name, const char* osd);
-    
-        DslReturnType SourceOsdRemove(const char* name);
-
-        DslReturnType SourceSinkAdd(const char* name, const char* sink);
-    
-        DslReturnType SourceSinkRemove(const char* name, const char* sink);
 
         DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
 
@@ -138,6 +130,12 @@ namespace DSL {
 
         DslReturnType DemuxerNew(const char* name);
         
+        DslReturnType DemuxerBranchAdd(const char* demuer, const char* branch);
+
+        DslReturnType DemuxerBranchRemove(const char* demuxer, const char* branch);
+        
+        DslReturnType DemuxerBranchRemoveAll(const char* demuxer);
+
         DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
@@ -229,6 +227,18 @@ namespace DSL {
         
         DslReturnType ComponentGpuIdSet(const char* component, uint gpuid);
         
+        DslReturnType BranchNew(const char* name);
+        
+        DslReturnType BranchDelete(const char* name);
+        
+        DslReturnType BranchDeleteAll();
+
+        uint BranchListSize();
+        
+        DslReturnType BranchComponentAdd(const char* branch, const char* component);
+
+        DslReturnType BranchComponentRemove(const char* branch, const char* component);
+
         DslReturnType PipelineNew(const char* pipeline);
         
         DslReturnType PipelineDelete(const char* pipeline);
@@ -408,6 +418,11 @@ namespace DSL {
          * and updated as the first call to DSL.
          */
         uint m_sinkNumInUseMax;
+        
+        /**
+         * @brief map of all pipelines creaated by the client, key=name
+         */
+        std::map <std::string, std::shared_ptr<BranchBintr>> m_branches;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name
