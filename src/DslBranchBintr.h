@@ -94,10 +94,10 @@ namespace DSL
         bool AddTeeBintr(DSL_NODETR_PTR pTeeBintr);
         
         /**
-         * @brief adds a single DemuxerBintr to this Branch 
+         * @brief adds a single StreamDemuxerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr);
+        bool AddStreamDemuxerBintr(DSL_NODETR_PTR pStreamDemuxerBintr);
 
         /**
          * @brief adds a single SinkBintr to this Branch 
@@ -137,7 +137,8 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Links this BranchBintr, becoming a sink, to a Tee Nodetr
+         * @brief Links this BranchBintr, becoming a sink, to a Tee Elementr
+         * The Tee can be either a demuxer of tee 
          * @param[in] pTee Nodre to link this Sink Nodre back to
          */
         bool LinkToSource(DSL_NODETR_PTR pTee);
@@ -177,19 +178,19 @@ namespace DSL
                         
         /**
          * @brief optional/required, one at most Tiled Display mutually exclusive 
-         * with the DemuxerBintr, however, a Branch must have one or the other
+         * with the StreamDemuxerBintr, however, a Branch must have one or the other
          */
         DSL_TILER_PTR m_pTilerBintr;
                         
         /**
-         * @brief optional/required, one at most DemuxerBintr mutually exclusive 
+         * @brief optional/required, one at most StreamStreamDemuxerBintr mutually exclusive 
          * with the TilerBintr, however, a Pipeline must have one or the other.
          */
-        DSL_DEMUXER_PTR m_pDemuxerBintr;
+        DSL_STREAM_DEMUXER_PTR m_pStreamDemuxerBintr;
         
         /**
          * @brief optional, one at most m_pMultiBranchesBintr mutually exclusive 
-         * with the DemuxerBintr and MultiSinksBinter, however, a Pipeline must have one of the three
+         * with the StreamDemuxerBintr and MultiSinksBinter, however, a Pipeline must have one of the three
          */
         DSL_TEE_PTR m_pTeeBintr;
         

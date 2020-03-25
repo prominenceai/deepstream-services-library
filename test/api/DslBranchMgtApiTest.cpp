@@ -31,7 +31,7 @@ SCENARIO( "A single Branch is created and deleted correctly", "[branch-mgt-api]"
     {
         std::wstring actualName  = L"test-branch";
         
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Branch is created" ) 
         {
@@ -40,11 +40,11 @@ SCENARIO( "A single Branch is created and deleted correctly", "[branch-mgt-api]"
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_branch_list_size() == 1 );
+                REQUIRE( dsl_component_list_size() == 1 );
             }
         }
-        REQUIRE( dsl_branch_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -58,21 +58,21 @@ SCENARIO( "Multiple Branches are created and deleted correctly", "[branch-mgt-ap
         {
             REQUIRE( dsl_branch_new(std::to_wstring(i).c_str()) == DSL_RESULT_SUCCESS );
         }
-        REQUIRE( dsl_branch_list_size() == sampleSize );
+        REQUIRE( dsl_component_list_size() == sampleSize );
 
         WHEN( "Multiple Branches are deleted" ) 
         {
             const wchar_t* branchList[] = {L"1",L"3", NULL};
             
-            REQUIRE( dsl_branch_delete_many(branchList) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_delete_many(branchList) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_branch_list_size() == sampleSize - 2 );
+                REQUIRE( dsl_component_list_size() == sampleSize - 2 );
             }
         }
-        REQUIRE( dsl_branch_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -82,7 +82,7 @@ SCENARIO( "Many Branches are created correctly", "[branch-mgt-api]" )
     
     GIVEN( "An empty container of Branches" ) 
     {
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "Many Branches are created at once" ) 
         {
@@ -91,11 +91,11 @@ SCENARIO( "Many Branches are created correctly", "[branch-mgt-api]" )
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_branch_list_size() == 3 );
+                REQUIRE( dsl_component_list_size() == 3 );
             }
         }
-        REQUIRE( dsl_branch_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -109,11 +109,11 @@ SCENARIO( "Many Branches are deleted correctly", "[branch-mgt-api]" )
 
         WHEN( "Many Branches are deleted with the same array of names" ) 
         {
-            REQUIRE( dsl_branch_delete_many(branchNames) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_delete_many(branchNames) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_branch_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -125,7 +125,7 @@ SCENARIO( "A non-unique Branch name fails when creating Many Branches", "[branch
     
     GIVEN( "An empty container of Branches" ) 
     {
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A non-unique Branch Name is used when creating many Branches" ) 
         {
@@ -137,10 +137,10 @@ SCENARIO( "A non-unique Branch name fails when creating Many Branches", "[branch
             {
                 // Only the first two were added?
                 // TODO - check for uniqueness first
-                REQUIRE( dsl_branch_list_size() == 2 );
+                REQUIRE( dsl_component_list_size() == 2 );
             }
         }
-        REQUIRE( dsl_branch_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_list_size() == 0 );
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 0 );
     }
 }

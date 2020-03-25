@@ -136,6 +136,8 @@ namespace DSL {
         
         DslReturnType DemuxerBranchRemoveAll(const char* demuxer);
 
+        DslReturnType DemuxerBranchCountGet(const char* demuxer, uint* count);
+
         DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
@@ -418,11 +420,6 @@ namespace DSL {
          * and updated as the first call to DSL.
          */
         uint m_sinkNumInUseMax;
-        
-        /**
-         * @brief map of all pipelines creaated by the client, key=name
-         */
-        std::map <std::string, std::shared_ptr<BranchBintr>> m_branches;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

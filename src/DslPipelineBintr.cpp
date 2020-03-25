@@ -344,7 +344,7 @@ namespace DSL
         }
         else
         {
-            m_pDemuxerBintr->SendEos();
+            m_pStreamDemuxerBintr->SendEos();
         }
         // Call the base class to stop
         if (!SetState(GST_STATE_READY))
@@ -684,26 +684,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_pDemuxerBintr and !m_pTilerBintr)
-        {
-            LOG_ERROR("Create XWindow error: Missing Demuxer or Tiler Bintr for Pipeline '" << GetName() << '"');
-            return false;
-        }
-
-        // If dimensions have not been provided
-        if (!m_xWindowWidth or !m_xWindowHeight)
-        {
-            if (m_pTilerBintr)
-            {
-                LOG_WARN("Dimensions for XWindow have not been set, using Tiler dimensions");
-                m_pTilerBintr->GetDimensions(&m_xWindowWidth, &m_xWindowHeight);
-            }
-            else
-            {
-                LOG_WARN("Dimensions for XWindow have not been set, using Stream Muxer dimensions");
-                GetStreamMuxDimensions(&m_xWindowWidth, &m_xWindowHeight);
-            }
-        }
         LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
 
         // create new XDisplay first

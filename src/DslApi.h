@@ -827,6 +827,14 @@ DslReturnType dsl_demuxer_branch_remove_many(const wchar_t* demuxer, const wchar
 DslReturnType dsl_demuxer_branch_remove_all(const wchar_t* demuxer);
 
 /**
+ * @brief gets the current number of branches owned by demuxer
+ * @param[in] demuxer name of the demuxer to query
+ * @param[out] count current number of branches 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_demuxer_branch_count_get(const wchar_t* demuxer, uint* count);
+
+/**
  * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
  * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
  * @param name unique name of the Demuxer to update

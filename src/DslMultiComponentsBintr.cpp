@@ -149,7 +149,7 @@ namespace DSL
             return false;
         }
         m_pQueue->LinkToSink(m_pTee);
-        
+
         uint id(0);
         for (auto const& imap: m_pChildComponents)
         {
@@ -267,19 +267,19 @@ namespace DSL
             AddTeeBintr(shared_from_this());
     }
     
-    DemuxerBintr::DemuxerBintr(const char* name)
+    StreamDemuxerBintr::StreamDemuxerBintr(const char* name)
         : MultiComponentsBintr(name, "nvstreamdemux")
     {
         LOG_FUNC();
     }
 
-    bool DemuxerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool StreamDemuxerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' tiler to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddDemuxerBintr(shared_from_this());
+            AddStreamDemuxerBintr(shared_from_this());
     }
    
    

@@ -599,6 +599,15 @@ DslReturnType dsl_demuxer_branch_remove_all(const wchar_t* demuxer)
     return DSL::Services::GetServices()->DemuxerBranchRemoveAll(cstrDemuxer.c_str());
 }
 
+DslReturnType dsl_demuxer_branch_count_get(const wchar_t* demuxer, uint* count)
+{
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+
+    return DSL::Services::GetServices()->DemuxerBranchCountGet(cstrDemuxer.c_str(), count);
+}
+
+
 DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
@@ -889,38 +898,6 @@ DslReturnType dsl_branch_new_many(const wchar_t** names)
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_branch_delete(const wchar_t* branch)
-{
-    std::wstring wstrName(branch);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->BranchDelete(cstrName.c_str());
-}
-
-DslReturnType dsl_branch_delete_many(const wchar_t** names)
-{
-    for (const wchar_t** name = names; *name; name++)
-    {
-        std::wstring wstrName(*name);
-        std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->BranchDelete(cstrName.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_branch_delete_all()
-{
-    return DSL::Services::GetServices()->BranchDeleteAll();
-}
-
-uint dsl_branch_list_size()
-{
-    return DSL::Services::GetServices()->BranchListSize();
-}
 
 DslReturnType dsl_branch_component_add(const wchar_t* branch, 
     const wchar_t* component)
@@ -2589,7 +2566,7 @@ namespace DSL
         }
         try
         {
-            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
+            m_components[name] = std::shared_ptr<Bintr>(new StreamDemuxerBintr(name));
         }
         catch(...)
         {
@@ -2610,18 +2587,29 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
-            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
-            
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, StreamDemuxerBintr);
+
+            // Ensure branch is SinkBintr or BranchBintr
+            if (!IsSinkComponent(branch))
+            {
+                RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, branch, BranchBintr);
+            }
             // Can't add components if they're In use by another Branch
-            if (m_branches[branch]->IsInUse())
+            if (m_components[branch]->IsInUse())
             {
                 LOG_ERROR("Unable to add branch '" << branch 
                     << "' as it's currently in use");
                 return DSL_RESULT_COMPONENT_IN_USE;
             }
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[demuxer]);
 
-            if (!m_components[demuxer]->AddChild(m_branches[branch]))
+            // Cast the Branch to a Bintr to call the correct AddChile method.
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            if (!pStreamDemuxerBintr->AddChild(pBranchBintr))
             {
                 LOG_ERROR("Demuxer '" << demuxer << 
                     "' failed to add branch '" << branch << "'");
@@ -2649,16 +2637,24 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
-            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, StreamDemuxerBintr);
+            RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
 
-            if (!m_components[demuxer]->IsChild(m_branches[branch]))
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[demuxer]);
+
+            if (!pStreamDemuxerBintr->IsChild(m_components[branch]))
             {
                 LOG_ERROR("Branch '" << branch << 
                     "' is not in use by Demuxer '" << demuxer << "'");
                 return DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD;
             }
-            if (!m_components[demuxer]->RemoveChild(m_branches[branch]))
+
+            // Cast the Branch to a Bintr to call the correct AddChile method.
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            if (!pStreamDemuxerBintr->RemoveChild(pBranchBintr))
             {
                 LOG_ERROR("Demuxer '" << demuxer << 
                     "' failed to remove branch '" << branch << "'");
@@ -2682,15 +2678,41 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, DemuxerBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, StreamDemuxerBintr);
 
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[demuxer]);
 //            m_components[demuxer]->RemoveAll();
         }
         catch(...)
         {
             LOG_ERROR("Demuxer '" <<  demuxer
                 << "' threw an exception removing all branches");
-            return DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED;
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::DemuxerBranchCountGet(const char* demuxer, uint* count)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, demuxer);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, demuxer, StreamDemuxerBintr);
+
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[demuxer]);
+
+            *count = pStreamDemuxerBintr->GetNumChildren();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer '" <<  demuxer
+                << "' threw an exception getting branch count");
+            return DSL_RESULT_DEMUXER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }
@@ -2704,12 +2726,12 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, StreamDemuxerBintr);
 
-            DSL_DEMUXER_PTR pDemuxerBintr = 
-                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[name]);
 
-            if (!pDemuxerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, user_data))
+            if (!pStreamDemuxerBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, user_data))
             {
                 LOG_ERROR("Demuxer '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
@@ -2733,12 +2755,12 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, DemuxerBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, StreamDemuxerBintr);
 
-            DSL_DEMUXER_PTR pDemuxerBintr = 
-                std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
+            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = 
+                std::dynamic_pointer_cast<StreamDemuxerBintr>(m_components[name]);
 
-            if (!pDemuxerBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
+            if (!pStreamDemuxerBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
             {
                 LOG_ERROR("Demuxer '" << name << "' has no matching Batch Meta Handler");
                 return DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED;
@@ -3798,14 +3820,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_branches[name])
+        if (m_components[name])
         {   
             LOG_ERROR("Branch name '" << name << "' is not unique");
             return DSL_RESULT_BRANCH_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_branches[name] = std::shared_ptr<BranchBintr>(new BranchBintr(name));
+            m_components[name] = std::shared_ptr<Bintr>(new BranchBintr(name));
         }
         catch(...)
         {
@@ -3817,54 +3839,17 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::BranchDelete(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, name);
-
-        m_branches[name]->RemoveAllChildren();
-        m_branches.erase(name);
-
-        LOG_INFO("Branch '" << name << "' deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::BranchDeleteAll()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        for (auto &imap: m_branches)
-        {
-            imap.second->RemoveAllChildren();
-            imap.second = nullptr;
-        }
-        m_branches.clear();
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    uint Services::BranchListSize()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        return m_branches.size();
-    }
-    
     DslReturnType Services::BranchComponentAdd(const char* branch, 
         const char* component)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
-        
+
         try
         {
-            // Can't add components if they're In use by another Branch
+            // Can't add components if they're In use by another Pipeline
             if (m_components[component]->IsInUse())
             {
                 LOG_ERROR("Unable to add component '" << component 
@@ -3873,42 +3858,47 @@ namespace DSL
             }
 
             // Check for MAX Sources in Use - Do not exceed!
-            if (IsSourceComponent(component)) 
+            if (IsSourceComponent(component) )
             {
-                LOG_ERROR("Branch '" << branch << 
-                    "' component add failure, only Pipleines can have Source components");
-                return DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED;
+                LOG_ERROR("Can't add source '" << component << "' to branch '" << branch << 
+                    "' sources can only be added to Pipelines");
+                return DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED;
             }
 
             if (IsSinkComponent(component) and (GetNumSinksInUse() == m_sinkNumInUseMax))
             {
                 LOG_ERROR("Adding Sink '" << component << "' to Branch '" << branch << 
                     "' would exceed the maximum num-in-use limit");
-                return DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED;
+                return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED;
             }
-
-            m_components[component]->AddToParent(m_branches[branch]);
-            LOG_INFO("Component '" << component 
-                << "' was added to Branch '" << branch << "' successfully");
-
+            if (!m_components[component]->AddToParent(m_components[branch]))
+            {
+                LOG_ERROR("Branch '" << branch
+                    << "' failed to add component '" << component << "'");
+                return DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED;
+            }
         }
         catch(...)
         {
             LOG_ERROR("Branch '" << branch
                 << "' threw exception adding component '" << component << "'");
-            return DSL_RESULT_BRANCH_COMPONENT_ADD_FAILED;
+            return DSL_RESULT_BRANCH_THREW_EXCEPTION;
         }
-    }    
+        LOG_INFO("Component '" << component 
+            << "' was added to Branch '" << branch << "' successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
     
     DslReturnType Services::BranchComponentRemove(const char* branch, 
         const char* component)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_BRANCH_NAME_NOT_FOUND(m_branches, branch);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
-        if (!m_components[component]->IsParent(m_branches[branch]))
+        if (!m_components[component]->IsParent(m_components[branch]))
         {
             LOG_ERROR("Component '" << component << 
                 "' is not in use by Branch '" << branch << "'");
@@ -3916,7 +3906,12 @@ namespace DSL
         }
         try
         {
-            m_components[component]->RemoveFromParent(m_branches[branch]);
+            if (!m_components[component]->RemoveFromParent(m_components[branch]))
+            {
+                LOG_ERROR("Branch '" << branch
+                    << "' failed to remove component '" << component << "'");
+                return DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED;
+            }
         }
         catch(...)
         {
@@ -3924,9 +3919,11 @@ namespace DSL
                 << "' threw an exception removing component");
             return DSL_RESULT_BRANCH_COMPONENT_REMOVE_FAILED;
         }
+        LOG_INFO("Component '" << component 
+            << "' was removed from Branch '" << branch << "' successfully");
+
         return DSL_RESULT_SUCCESS;
     }
-    
     
     DslReturnType Services::PipelineNew(const char* name)
     {
@@ -4022,17 +4019,23 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED;
             }
 
-            m_components[component]->AddToParent(m_pipelines[pipeline]);
-            LOG_INFO("Component '" << component 
-                << "' was added to Pipeline '" << pipeline << "' successfully");
-
+            if (!m_components[component]->AddToParent(m_pipelines[pipeline]))
+            {
+                LOG_ERROR("Pipeline '" << pipeline
+                    << "' failed component '" << component << "'");
+                return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+            }
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline
                 << "' threw exception adding component '" << component << "'");
-            return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
+        LOG_INFO("Component '" << component 
+            << "' was added to Pipeline '" << pipeline << "' successfully");
+
+        return DSL_RESULT_SUCCESS;
     }    
     
     DslReturnType Services::PipelineComponentRemove(const char* pipeline, 

@@ -101,15 +101,29 @@ namespace DSL
             return false;
         }
 
-        GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
-            
-        if (!pGstRequestedSourcePad)
+        GstPad* pRequestedSourcePad(NULL);
+
+        // NOTE: important to use the correct request pad name based on the element type
+        // Cast the base DSL_NODETR_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+        DSL_ELEMENT_PTR pTeeElementr = 
+            std::dynamic_pointer_cast<Elementr>(pTee);
+
+        if (pTeeElementr->IsFactoryName("nvstreamdemux"))
         {
-            LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<" '");
+            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), srcPadName.c_str());
+        }
+        else // standard "Tee"
+        {
+            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
+        }
+            
+        if (!pRequestedSourcePad)
+        {
+            LOG_ERROR("Failed to get Tee source Pad for SinkBintr '" << GetName() <<"'");
             return false;
         }
 
-        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSourcePad;
+        m_pGstRequestedSourcePads[srcPadName] = pRequestedSourcePad;
 
         return Bintr::LinkToSource(pTee);
         

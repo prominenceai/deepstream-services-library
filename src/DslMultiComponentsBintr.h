@@ -43,9 +43,9 @@ namespace DSL
     #define DSL_TEE_NEW(name) \
         std::shared_ptr<TeeBintr>(new TeeBintr(name))
 
-    #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
-    #define DSL_DEMUXER_NEW(name) \
-        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name))
+    #define DSL_STREAM_DEMUXER_PTR std::shared_ptr<StreamDemuxerBintr>
+    #define DSL_STREAM_DEMUXER_NEW(name) \
+        std::shared_ptr<StreamDemuxerBintr>(new StreamDemuxerBintr(name))
 
     /**
      * @class ProcessBintr
@@ -185,15 +185,15 @@ namespace DSL
 
     };
 
-    class DemuxerBintr : public MultiComponentsBintr
+    class StreamDemuxerBintr : public MultiComponentsBintr
     {
     public: 
     
         /**
-         * @brief ctor for the DemuxerBintr
+         * @brief ctor for the StreamDemuxerBintr
          * @param[in] name name to give the new Bintr
          */
-        DemuxerBintr(const char* name);
+        StreamDemuxerBintr(const char* name);
 
         /**
          * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
