@@ -100,18 +100,6 @@ namespace DSL
          * @param id unique id of the Primary GIE in use by the Parent Pipeline
          */
         void SetInferOnGieId(int id);
-
-        /**
-         * @brief Gets the Batch Size for all child Secondary GIE's
-         * @return the current Batch Size setting 
-         */
-        uint GetBatchSize();
-        
-        /**
-         * @brief Sets the Batch Size for all child Secondary GIE's
-         * @param batchSize value to set the Batch Size
-         */
-        void SetBatchSize(uint batchSize);
         
         /**
          * @brief Gets the Interval for all child Secondary GIE's
@@ -195,8 +183,6 @@ namespace DSL
         uint m_srcPadProbeId;
         
         int m_primaryGieUniqueId;
-        
-        uint m_batchSize;
         
         uint m_interval;
 

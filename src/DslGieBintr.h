@@ -103,12 +103,6 @@ namespace DSL
         bool SetBatchSize(uint batchSize);
         
         /**
-         * @brief gets the current batchSize in use by this PrimaryGieBintr
-         * @return the current batchSize
-         */
-        uint GetBatchSize();
-
-        /**
          * @brief sets the interval for this Bintr
          * @param the new interval to use
          */
@@ -164,11 +158,6 @@ namespace DSL
          * @brief pathspec to the model engine file used by this GIE
          */
         std::string m_modelEngineFile;
-        
-        /**
-         * @brief current batch-size setting for the GieBintr
-         */
-        uint m_batchSize;
         
         /**
          * @brief current infer interval for the GieBintr

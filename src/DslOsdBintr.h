@@ -223,7 +223,6 @@ namespace DSL
         
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pVidPreConv;
-        DSL_ELEMENT_PTR m_pVidPostConv;
         DSL_ELEMENT_PTR m_pConvQueue;
         DSL_ELEMENT_PTR m_pOsd;
     

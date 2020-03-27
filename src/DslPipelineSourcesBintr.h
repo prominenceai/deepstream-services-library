@@ -172,11 +172,6 @@ namespace DSL
         /**
          @brief
          */
-        gint m_batchSize;
-
-        /**
-         @brief
-         */
         gint m_batchTimeout;
         /**
          @brief

@@ -677,11 +677,11 @@ SCENARIO( "A Pipeline can have at most one DemuxerBintr", "[PipelineBintr]" )
         std::string demuxerName1 = "demuxer-1";
         std::string demuxerName2 = "demuxer-2";
 
-        DSL_STREAM_DEMUXER_PTR pDemuxerBintr1 = 
-            DSL_STREAM_DEMUXER_NEW(demuxerName1.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr1 = 
+            DSL_DEMUXER_NEW(demuxerName1.c_str());
 
-        DSL_STREAM_DEMUXER_PTR pDemuxerBintr2 = 
-            DSL_STREAM_DEMUXER_NEW(demuxerName2.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr2 = 
+            DSL_DEMUXER_NEW(demuxerName2.c_str());
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -708,8 +708,8 @@ SCENARIO( "Adding a DemuxerBintr to a PipelineBintr with a TilerBintr fails", "[
         uint tilerW(1280);
         uint tilerH(720);
 
-        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
 
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -740,8 +740,8 @@ SCENARIO( "Adding a TilerBintr to a PipelineBintr with a DemuxerBintr fails", "[
         uint tilerW(1280);
         uint tilerH(720);
 
-        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
 
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -771,8 +771,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 
         bool clockEnabled(false);
 
-        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerName.c_str());
 
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
@@ -816,8 +816,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_CSI_SOURCE_PTR pSourceBintr = 
 //            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_OVERLAY_SINK_PTR pSinkBintr = 
 //            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
@@ -865,8 +865,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_CSI_SOURCE_PTR pSourceBintr = 
 //            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_OVERLAY_SINK_PTR pSinkBintr = 
 //            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth,  offsetX, offsetY, sinkW, sinkH);
@@ -937,8 +937,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_WINDOW_SINK_PTR pSinkBintr4 = 
 //            DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, sinkW, sinkH);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 //            
@@ -994,8 +994,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_CSI_SOURCE_PTR pSourceBintr = 
 //            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_WINDOW_SINK_PTR pSinkBintr = 
 //            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -1056,8 +1056,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_CSI_SOURCE_PTR pSourceBintr = 
 //            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_WINDOW_SINK_PTR pSinkBintr = 
 //            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -1125,8 +1125,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 //        DSL_CSI_SOURCE_PTR pSourceBintr = 
 //            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 //
-//        DSL_STREAM_DEMUXER_PTR pDemuxerBintr = 
-//            DSL_STREAM_DEMUXER_NEW(demuxerName.c_str());
+//        DSL_DEMUXER_PTR pDemuxerBintr = 
+//            DSL_DEMUXER_NEW(demuxerName.c_str());
 //
 //        DSL_WINDOW_SINK_PTR pSinkBintr = 
 //            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);

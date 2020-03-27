@@ -94,10 +94,16 @@ namespace DSL
         bool AddTeeBintr(DSL_NODETR_PTR pTeeBintr);
         
         /**
-         * @brief adds a single StreamDemuxerBintr to this Branch 
+         * @brief adds a single DemuxerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddStreamDemuxerBintr(DSL_NODETR_PTR pStreamDemuxerBintr);
+        bool AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr);
+
+        /**
+         * @brief adds a single SplitterBintr to this Branch 
+         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         */
+        bool AddSplitterBintr(DSL_NODETR_PTR pSplitterBintr);
 
         /**
          * @brief adds a single SinkBintr to this Branch 
@@ -150,8 +156,6 @@ namespace DSL
 
     protected:
         
-        uint m_batchSize;
-        
         uint m_batchTimeout;
 
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
@@ -177,22 +181,22 @@ namespace DSL
         DSL_OSD_PTR m_pOsdBintr;
                         
         /**
-         * @brief optional/required, one at most Tiled Display mutually exclusive 
-         * with the StreamDemuxerBintr, however, a Branch must have one or the other
+         * @brief optional, one at most Tiled Display mutually exclusive 
+         * with the DemuxerBintr, however, a Branch must have one or the other
          */
         DSL_TILER_PTR m_pTilerBintr;
                         
         /**
-         * @brief optional/required, one at most StreamStreamDemuxerBintr mutually exclusive 
+         * @brief optional, one at most StreamStreamDemuxerBintr mutually exclusive 
          * with the TilerBintr, however, a Pipeline must have one or the other.
          */
-        DSL_STREAM_DEMUXER_PTR m_pStreamDemuxerBintr;
+        DSL_DEMUXER_PTR m_pDemuxerBintr;
         
         /**
-         * @brief optional, one at most m_pMultiBranchesBintr mutually exclusive 
-         * with the StreamDemuxerBintr and MultiSinksBinter, however, a Pipeline must have one of the three
+         * @brief optional, one at most SplitterDemuxerBintr mutually exclusive 
+         * with the TilerBintr and MultiSinkBintr.
          */
-        DSL_TEE_PTR m_pTeeBintr;
+        DSL_SPLITTER_PTR m_pSplitterBintr;
         
         /**
          * @brief parent bin for all Sink bins in this Branch

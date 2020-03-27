@@ -35,17 +35,19 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
+    #define DSL_MULTI_COMPONENTS_PTR std::shared_ptr<MultiComponentsBintr>
+
     #define DSL_MULTI_SINKS_PTR std::shared_ptr<MultiSinksBintr>
     #define DSL_MULTI_SINKS_NEW(name) \
         std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
-    #define DSL_TEE_PTR std::shared_ptr<TeeBintr>
-    #define DSL_TEE_NEW(name) \
-        std::shared_ptr<TeeBintr>(new TeeBintr(name))
+    #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
+    #define DSL_DEMUXER_NEW(name) \
+        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name))
 
-    #define DSL_STREAM_DEMUXER_PTR std::shared_ptr<StreamDemuxerBintr>
-    #define DSL_STREAM_DEMUXER_NEW(name) \
-        std::shared_ptr<StreamDemuxerBintr>(new StreamDemuxerBintr(name))
+    #define DSL_SPLITTER_PTR std::shared_ptr<SplitterBintr>
+    #define DSL_SPLITTER_NEW(name) \
+        std::shared_ptr<SplitterBintr>(new SplitterBintr(name))
 
     /**
      * @class ProcessBintr
@@ -121,6 +123,11 @@ namespace DSL
          */
         bool UnlinkFromSource();
         
+        /**
+         * @brief sets the batch size for this Bintr
+         * @param the new batchSize to use
+         */
+        bool SetBatchSize(uint batchSize);
         
     private:
     
@@ -167,7 +174,7 @@ namespace DSL
 
     };
 
-    class TeeBintr : public MultiComponentsBintr
+    class SplitterBintr : public MultiComponentsBintr
     {
     public: 
     
@@ -175,7 +182,7 @@ namespace DSL
          * @brief ctor for the MultiSinksBintr
          * @param[in] name name to give the new Bintr
          */
-        TeeBintr(const char* name);
+        SplitterBintr(const char* name);
 
         /**
          * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
@@ -185,15 +192,15 @@ namespace DSL
 
     };
 
-    class StreamDemuxerBintr : public MultiComponentsBintr
+    class DemuxerBintr : public MultiComponentsBintr
     {
     public: 
     
         /**
-         * @brief ctor for the StreamDemuxerBintr
+         * @brief ctor for the DemuxerBintr
          * @param[in] name name to give the new Bintr
          */
-        StreamDemuxerBintr(const char* name);
+        DemuxerBintr(const char* name);
 
         /**
          * @brief Adds the MultiComponentBintr to a Parent Branch Bintr

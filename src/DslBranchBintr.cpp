@@ -32,7 +32,6 @@ namespace DSL
 {
     BranchBintr::BranchBintr(const char* name)
         : Bintr(name)
-        , m_batchSize(0)
         , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
     {
         LOG_FUNC();
@@ -48,7 +47,7 @@ namespace DSL
                 << m_pOsdBintr->GetName());
             return false;
         }
-        if (m_pStreamDemuxerBintr)
+        if (m_pDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
             return false;
@@ -100,13 +99,18 @@ namespace DSL
         return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
     }
 
-    bool BranchBintr::AddStreamDemuxerBintr(DSL_NODETR_PTR pStreamDemuxerBintr)
+    bool BranchBintr::AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr)
     {
         LOG_FUNC();
 
-        if (m_pStreamDemuxerBintr)
+        if (m_pDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer");
+            return false;
+        }
+        if (m_pSplitterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has a Splitter - can't add Demuxer");
             return false;
         }
         if (m_pTilerBintr)
@@ -114,9 +118,28 @@ namespace DSL
             LOG_ERROR("Branch '" << GetName() << "' already has a Tiler - can't add Demuxer");
             return false;
         }
-        m_pStreamDemuxerBintr = std::dynamic_pointer_cast<StreamDemuxerBintr>(pStreamDemuxerBintr);
+        m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
         
-        return AddChild(pStreamDemuxerBintr);
+        return AddChild(pDemuxerBintr);
+    }
+
+    bool BranchBintr::AddSplitterBintr(DSL_NODETR_PTR pSplitterBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pSplitterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has a Splitter");
+            return false;
+        }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has a Dumxer- can't add Splitter");
+            return false;
+        }
+        m_pSplitterBintr = std::dynamic_pointer_cast<SplitterBintr>(pSplitterBintr);
+        
+        return AddChild(pSplitterBintr);
     }
 
     bool BranchBintr::AddTilerBintr(DSL_NODETR_PTR pTilerBintr)
@@ -128,7 +151,7 @@ namespace DSL
             LOG_ERROR("Branch '" << GetName() << "' already has a Tiler");
             return false;
         }
-        if (m_pStreamDemuxerBintr)
+        if (m_pDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Tiler");
             return false;
@@ -138,35 +161,16 @@ namespace DSL
         return AddChild(pTilerBintr);
     }
 
-    bool BranchBintr::AddTeeBintr(DSL_NODETR_PTR pTeeBintr)
-    {
-        LOG_FUNC();
-
-        if (m_pTeeBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Tee");
-            return false;
-        }
-        if (m_pStreamDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Tee");
-            return false;
-        }
-        m_pTeeBintr = std::dynamic_pointer_cast<TeeBintr>(pTeeBintr);
-        
-        return AddChild(pTeeBintr);
-    }
-
     bool BranchBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
     {
         LOG_FUNC();
         
-        if (m_pStreamDemuxerBintr)
+        if (m_pDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Sink after a Demuxer");
             return false;
         }
-        if (m_pTeeBintr)
+        if (m_pSplitterBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Tee - can't add Sink after a Tee");
             return false;
@@ -210,22 +214,15 @@ namespace DSL
     {
         LOG_FUNC();
         
-        LOG_WARN("*********** Entering LinkAll of branch " << GetName());
-
         if (m_isLinked)
         {
             LOG_INFO("Components for Branch '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pStreamDemuxerBintr and !m_pMultiSinksBintr)
-//        if (!m_pStreamDemuxerBintr and !m_pTilerBintr)
+        if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+//        if (!m_pDemuxerBintr and !m_pTilerBintr)
         {
-            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer or Sinks - and is unable to link");
-            return false;
-        }
-        if (m_pTilerBintr and !m_pMultiSinksBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() << "'has a Tiler and no required Sink component - and is unable to link");
+            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
         
@@ -247,6 +244,7 @@ namespace DSL
         if (m_pTrackerBintr)
         {
             // LinkAll Tracker Elementrs and add as the next component in the Branch
+            m_pTrackerBintr->SetBatchSize(m_batchSize);
             if (!m_pTrackerBintr->LinkAll() or
                 (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
             {
@@ -261,7 +259,7 @@ namespace DSL
         {
             // Set the Secondary GIEs' Primary GIE Name, and set batch sizes
             m_pSecondaryGiesBintr->SetInferOnGieId(m_pPrimaryGieBintr->GetUniqueId());
-            m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
+            m_pSecondaryGiesBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
             if (!m_pSecondaryGiesBintr->LinkAll() or
@@ -278,6 +276,7 @@ namespace DSL
         if (m_pTilerBintr)
         {
             // Link All Tiler Elementrs and add as the next component in the Branch
+            m_pTilerBintr->SetBatchSize(m_batchSize);
             if (!m_pTilerBintr->LinkAll() or
                 (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
             {
@@ -292,6 +291,7 @@ namespace DSL
         if (m_pOsdBintr)
         {
             // LinkAll Osd Elementrs and add as next component in the Branch
+            m_pOsdBintr->SetBatchSize(m_batchSize);
             if (!m_pOsdBintr->LinkAll() or
                 (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
             {
@@ -303,37 +303,40 @@ namespace DSL
         }
 
         // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
-        if (m_pStreamDemuxerBintr)
+        if (m_pDemuxerBintr)
         {
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
-            if (!m_pStreamDemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pStreamDemuxerBintr)))
+            m_pDemuxerBintr->SetBatchSize(m_batchSize);
+            if (!m_pDemuxerBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pStreamDemuxerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Demuxer '" << 
-                m_pStreamDemuxerBintr->GetName() << "' successfully");
+            m_linkedComponents.push_back(m_pDemuxerBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Demuxer '" << 
+                m_pDemuxerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
-        if (m_pTeeBintr)
+        if (m_pSplitterBintr)
         {
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
-            if (!m_pTeeBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pTeeBintr)))
+            m_pSplitterBintr->SetBatchSize(m_batchSize);
+            if (!m_pSplitterBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pTeeBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Tee '" << 
-                m_pStreamDemuxerBintr->GetName() << "' successfully");
+            m_linkedComponents.push_back(m_pSplitterBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Splitter'" << 
+                m_pSplitterBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
         if (m_pMultiSinksBintr)
         {
             // Link all Sinks and their elementrs and add as finale (tail) components in the Branch
+            m_pMultiSinksBintr->SetBatchSize(m_batchSize);
             if (!m_pMultiSinksBintr->LinkAll() or
                 (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
             {

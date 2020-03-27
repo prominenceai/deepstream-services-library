@@ -28,46 +28,50 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A StreamDemuxerBintr is created correctly", "[StreamDemuxerBintr]" )
+// Note: other than the constructor, Demuxers and Tees are of the
+// same MultiComponentsBintr and share the same methods. 
+
+SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
 {
-    GIVEN( "A name for a StreamDemuxerBintr" ) 
+    GIVEN( "A name for a DemuxerBintr" ) 
     {
         std::string demuxerBintrName = "demuxer";
 
-        WHEN( "The StreamDemuxerBintr is created" )
+        WHEN( "The DemuxerBintr is created" )
         {
-            DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = DSL_STREAM_DEMUXER_NEW(demuxerBintrName.c_str());
+            DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
             
             THEN( "All members have been setup correctly" )
             {
-                REQUIRE( pStreamDemuxerBintr->GetName() == demuxerBintrName );
-                REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 0 );
+                REQUIRE( pDemuxerBintr->GetName() == demuxerBintrName );
+                REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
             }
         }
     }
 }
-SCENARIO( "Adding a single Branch to a StreamDemuxerBintr is managed correctly", "[StreamDemuxerBintr]" )
+
+SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
 {
-    GIVEN( "A new StreamDemuxerBintr and new BranchBintr in memory" ) 
+    GIVEN( "A new DemuxerBintr and new BranchBintr in memory" ) 
     {
         std::string branchBintrName = "branch";
         std::string demuxerBintrName = "demuxer";
 
-        DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = DSL_STREAM_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
 
-        REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 0 );
+        REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
             
         DSL_BRANCH_PTR pBranchBintr = DSL_BRANCH_NEW(branchBintrName.c_str());
             
         REQUIRE( pBranchBintr->GetId() == -1 );
 
-        WHEN( "The BranchBintr is added to the StreamDemuxerBintr" )
+        WHEN( "The BranchBintr is added to the DemuxerBintr" )
         {
-            REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );
+            REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );
             
-            THEN( "The StreamDemuxerBintr and BranchBintr updated correctly" )
+            THEN( "The DemuxerBintr and BranchBintr updated correctly" )
             {
-                REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 1 );
+                REQUIRE( pDemuxerBintr->GetNumChildren() == 1 );
                 REQUIRE( pBranchBintr->IsInUse() == true );
                 REQUIRE( pBranchBintr->GetId() == -1 );
             }
@@ -75,25 +79,25 @@ SCENARIO( "Adding a single Branch to a StreamDemuxerBintr is managed correctly",
     }
 }
 
-SCENARIO( "Removing a single BranchBintr from a StreamDemuxerBintr is managed correctly", "[StreamDemuxerBintr]" )
+SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
 {
-    GIVEN( "A new StreamDemuxerBintr with a new Sink Bintr" ) 
+    GIVEN( "A new DemuxerBintr with a new Sink Bintr" ) 
     {
         std::string branchBintrName = "branch";
         std::string demuxerBintrName = "demuxer";
 
-        DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = DSL_STREAM_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
         DSL_BRANCH_PTR pBranchBintr = DSL_BRANCH_NEW(branchBintrName.c_str());
 
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );
             
-        WHEN( "The BranchBintr is removed from the StreamDemuxerBintr" )
+        WHEN( "The BranchBintr is removed from the DemuxerBintr" )
         {
-            REQUIRE( pStreamDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );  
+            REQUIRE( pDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );  
             
-            THEN( "The StreamDemuxerBintr is updated correctly" )
+            THEN( "The DemuxerBintr is updated correctly" )
             {
-                REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 0 );
+                REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
                 REQUIRE( pBranchBintr->IsInUse() == false );
                 REQUIRE( pBranchBintr->GetId() == -1 );
             }
@@ -101,9 +105,9 @@ SCENARIO( "Removing a single BranchBintr from a StreamDemuxerBintr is managed co
     }
 }
 
-SCENARIO( "Linking multiple BranchBintrs to a StreamDemuxerBintr is managed correctly", "[StreamDemuxerBintr]" )
+SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
 {
-    GIVEN( "A new StreamDemuxerBintr with several new BranchBintrs" ) 
+    GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
         std::string demuxerBintrName("demuxer");
         std::string branchBintrName0("branch0");
@@ -114,7 +118,7 @@ SCENARIO( "Linking multiple BranchBintrs to a StreamDemuxerBintr is managed corr
         std::string sinkName2("fake-sink2");
 
 
-        DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = DSL_STREAM_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
         
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
@@ -128,15 +132,15 @@ SCENARIO( "Linking multiple BranchBintrs to a StreamDemuxerBintr is managed corr
         REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
         REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
 
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
 
-        REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 3 );
+        REQUIRE( pDemuxerBintr->GetNumChildren() == 3 );
             
-        WHEN( "The BranchBintrs are linked to the StreamDemuxerBintr" )
+        WHEN( "The BranchBintrs are linked to the DemuxerBintr" )
         {
-            REQUIRE( pStreamDemuxerBintr->LinkAll()  == true );
+            REQUIRE( pDemuxerBintr->LinkAll()  == true );
             
             THEN( "The BranchBintrs are updated correctly" )
             {
@@ -154,9 +158,9 @@ SCENARIO( "Linking multiple BranchBintrs to a StreamDemuxerBintr is managed corr
     }
 }
 
-SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[StreamDemuxerBintr]" )
+SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[DemuxerBintr]" )
 {
-    GIVEN( "A new StreamDemuxerBintr with several new BranchBintrs" ) 
+    GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
         std::string demuxerBintrName("demuxer");
         std::string branchBintrName0("branch0");
@@ -167,7 +171,7 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[S
         std::string sinkName2("fake-sink2");
 
 
-        DSL_STREAM_DEMUXER_PTR pStreamDemuxerBintr = DSL_STREAM_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
         
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
@@ -181,12 +185,12 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[S
         REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
         REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
 
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-        REQUIRE( pStreamDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+        REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
 
-        REQUIRE( pStreamDemuxerBintr->GetNumChildren() == 3 );
-        REQUIRE( pStreamDemuxerBintr->LinkAll()  == true );
+        REQUIRE( pDemuxerBintr->GetNumChildren() == 3 );
+        REQUIRE( pDemuxerBintr->LinkAll()  == true );
 
         REQUIRE( pBranchBintr0->IsInUse() == true );
         REQUIRE( pBranchBintr0->IsLinkedToSource() == true );
@@ -198,12 +202,12 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[S
         REQUIRE( pBranchBintr2->IsLinkedToSource() == true );
         REQUIRE( pBranchBintr2->GetId() == 2 );
             
-        WHEN( "The BranchBintrs are unlinked and removed from the StreamDemuxerBintr" )
+        WHEN( "The BranchBintrs are unlinked and removed from the DemuxerBintr" )
         {
-            pStreamDemuxerBintr->UnlinkAll();
-            REQUIRE( pStreamDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-            REQUIRE( pStreamDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-            REQUIRE( pStreamDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+            pDemuxerBintr->UnlinkAll();
+            REQUIRE( pDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+            REQUIRE( pDemuxerBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
 
             THEN( "The BranchBintrs are updated correctly" )
             {
@@ -221,11 +225,11 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[S
     }
 }
 
-SCENARIO( "Multiple Branches linked to a Tee component can be unlinked correctly", "[TeeBintr]" )
+SCENARIO( "Multiple Branches linked to a Splitter component can be unlinked correctly", "[SplitterBintr]" )
 {
-    GIVEN( "A new StreamDemuxerBintr with several new BranchBintrs" ) 
+    GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
-        std::string teeBintrName("tee");
+        std::string splitterBintrName("splitter");
         std::string branchBintrName0("branch0");
         std::string branchBintrName1("branch1");
         std::string branchBintrName2("branch2");
@@ -234,7 +238,7 @@ SCENARIO( "Multiple Branches linked to a Tee component can be unlinked correctly
         std::string sinkName2("fake-sink2");
 
 
-        DSL_TEE_PTR pTeeBintr = DSL_TEE_NEW(teeBintrName.c_str());
+        DSL_SPLITTER_PTR pSplitterBinter = DSL_SPLITTER_NEW(splitterBintrName.c_str());
         
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
@@ -248,12 +252,12 @@ SCENARIO( "Multiple Branches linked to a Tee component can be unlinked correctly
         REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
         REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
 
-        REQUIRE( pTeeBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-        REQUIRE( pTeeBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-        REQUIRE( pTeeBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+        REQUIRE( pSplitterBinter->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+        REQUIRE( pSplitterBinter->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+        REQUIRE( pSplitterBinter->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
 
-        REQUIRE( pTeeBintr->GetNumChildren() == 3 );
-        REQUIRE( pTeeBintr->LinkAll()  == true );
+        REQUIRE( pSplitterBinter->GetNumChildren() == 3 );
+        REQUIRE( pSplitterBinter->LinkAll()  == true );
 
         REQUIRE( pBranchBintr0->IsInUse() == true );
         REQUIRE( pBranchBintr0->IsLinkedToSource() == true );
@@ -265,12 +269,12 @@ SCENARIO( "Multiple Branches linked to a Tee component can be unlinked correctly
         REQUIRE( pBranchBintr2->IsLinkedToSource() == true );
         REQUIRE( pBranchBintr2->GetId() == 2 );
             
-        WHEN( "The BranchBintrs are unlinked and removed from the StreamDemuxerBintr" )
+        WHEN( "The BranchBintrs are unlinked and removed from the DemuxerBintr" )
         {
-            pTeeBintr->UnlinkAll();
-            REQUIRE( pTeeBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-            REQUIRE( pTeeBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-            REQUIRE( pTeeBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+            pSplitterBinter->UnlinkAll();
+            REQUIRE( pSplitterBinter->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pSplitterBinter->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+            REQUIRE( pSplitterBinter->RemoveChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
 
             THEN( "The BranchBintrs are updated correctly" )
             {

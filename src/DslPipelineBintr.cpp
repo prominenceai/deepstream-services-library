@@ -261,14 +261,6 @@ namespace DSL
         
         // Start with an empty list of linked components
         m_linkedComponents.clear();
-        
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
-//        if (m_pDemuxerBintr)
-//        {
-//            // Add the Demuxer to the MultiSourceBintr to be linked with each individual
-//            // SourceBintr's OSD and/or MultiSinksBintr
-//            m_pPipelineSourcesBintr->AddDemuxer(shared_from_this(), m_pDemuxerBintr);
-//        }
 
         // Link all Source Elementrs (required component), and all Sources to the StreamMuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
@@ -281,6 +273,7 @@ namespace DSL
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
+        // call the base class to Link all remaining components.
         return BranchBintr::LinkAll();
     }
 
@@ -344,7 +337,7 @@ namespace DSL
         }
         else
         {
-            m_pStreamDemuxerBintr->SendEos();
+            m_pDemuxerBintr->SendEos();
         }
         // Call the base class to stop
         if (!SetState(GST_STATE_READY))

@@ -149,17 +149,17 @@ THE SOFTWARE.
 /**
  * Demuxer API Return Values
  */
-#define DSL_RESULT_DEMUXER_RESULT                                   0x000A0000
-#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
-#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
-#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
-#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
-#define DSL_RESULT_DEMUXER_BRANCH_IS_NOT_CHILD                      0x000A0005
-#define DSL_RESULT_DEMUXER_BRANCH_ADD_FAILED                        0x000A0006
-#define DSL_RESULT_DEMUXER_BRANCH_REMOVE_FAILED                     0x000A0007
-#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0008
-#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0009
-#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A000A
+#define DSL_RESULT_TEE_RESULT                                       0x000A0000
+#define DSL_RESULT_TEE_NAME_NOT_UNIQUE                              0x000A0001
+#define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
+#define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
+#define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0005
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0006
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0007
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0008
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
 
 /**
  * Tile API Return Values
@@ -781,58 +781,65 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name,
 DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
- * @brief Creates a new, uniquely named Demuxer component
- * @param name unique name for the new Demuxer
+ * @brief Creates a new, uniquely named Stream Demuxer Tee component
+ * @param name unique name for the new Stream Demuxer Tee
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
-DslReturnType dsl_demuxer_new(const wchar_t* name);
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
 
 /**
- * @brief adds a single Branch to a Demuxer
- * @param[in] demuxer name of the Demuxer to update
+ * @brief Creates a new, uniquely named Stream Splitter Tee component
+ * @param name unique name for the new Stream Splitter Tee
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ */
+DslReturnType dsl_tee_splitter_new(const wchar_t* name);
+
+/**
+ * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
+ * @param[in] tee name of the Tee to update
  * @param[in] branch name of Branch to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_add(const wchar_t* demuxer, const wchar_t* branch);
+DslReturnType dsl_tee_branch_add(const wchar_t* tee, const wchar_t* branch);
 
 /**
- * @brief adds a list of Branches to a Demuxer
- * @param[in] demuxer name of the Demuxer to update
+ * @brief adds a list of Branches to a Stream Demuxer or Splitter Tee
+ * @param[in] tee name of the Tede to update
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
+DslReturnType dsl_tee_branch_add_many(const wchar_t* tee, const wchar_t** branches);
 
 /**
- * @brief removes a single Branch from a Demuxer
- * @param[in] demuxer name of the Demuxer to update
+ * @brief removes a single Branch from a Stream Demuxer or Splitter Tee
+ * @param[in] tee name of the Tee to update
  * @param[in] branch name of Branch to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_remove(const wchar_t* demuxer, const wchar_t* branch);
+DslReturnType dsl_tee_branch_remove(const wchar_t* tee, const wchar_t* branch);
 
 /**
- * @brief removes a list of Branches from a Demuxer
- * @param[in] demuxer name of the Demuxer to update
+ * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee
+ * @param[in] tee name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_remove_many(const wchar_t* demuxer, const wchar_t** branches);
+DslReturnType dsl_tee_branch_remove_many(const wchar_t* tee, const wchar_t** branches);
 
 /**
- * @brief removes a Branches from a Demuxer
- * @param[in] demuxer name of the Demuxer to update
+ * @brief removes a Branches from a Stream Demuxer or Splitter Tee
+ * @param[in] tee name of the Tee to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_remove_all(const wchar_t* demuxer);
+DslReturnType dsl_tee_branch_remove_all(const wchar_t* tee);
 
 /**
- * @brief gets the current number of branches owned by demuxer
- * @param[in] demuxer name of the demuxer to query
+ * @brief gets the current number of branches owned by Tee
+ * @param[in] tee name of the tee to query
  * @param[out] count current number of branches 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_demuxer_branch_count_get(const wchar_t* demuxer, uint* count);
+DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
@@ -842,7 +849,7 @@ DslReturnType dsl_demuxer_branch_count_get(const wchar_t* demuxer, uint* count);
  * @param user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
+DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
     dsl_batch_meta_handler_cb handler, void* user_data);
 
 /**
@@ -851,7 +858,7 @@ DslReturnType dsl_demuxer_batch_meta_handler_add(const wchar_t* name,
  * @param handler callback function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_demuxer_batch_meta_handler_remove(const wchar_t* name, 
+DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name, 
     dsl_batch_meta_handler_cb handler);
 
 /**

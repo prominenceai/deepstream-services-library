@@ -497,7 +497,7 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
+                LOG_WARN("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
                 
                 // Increase the reference count so the child is not destroyed.
                 gst_object_ref(imap.second->GetGstElement());

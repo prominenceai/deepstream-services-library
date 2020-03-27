@@ -128,19 +128,21 @@ namespace DSL {
         
         DslReturnType TrackerKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
 
-        DslReturnType DemuxerNew(const char* name);
+        DslReturnType TeeDemuxerNew(const char* name);
         
-        DslReturnType DemuxerBranchAdd(const char* demuer, const char* branch);
-
-        DslReturnType DemuxerBranchRemove(const char* demuxer, const char* branch);
+        DslReturnType TeeSplitterNew(const char* name);
         
-        DslReturnType DemuxerBranchRemoveAll(const char* demuxer);
+        DslReturnType TeeBranchAdd(const char* demuer, const char* branch);
 
-        DslReturnType DemuxerBranchCountGet(const char* demuxer, uint* count);
+        DslReturnType TeeBranchRemove(const char* demuxer, const char* branch);
+        
+        DslReturnType TeeBranchRemoveAll(const char* demuxer);
 
-        DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
 
-        DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
+        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType TeeBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
         
         DslReturnType TilerNew(const char* name, uint width, uint height);
         

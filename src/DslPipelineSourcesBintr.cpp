@@ -30,7 +30,6 @@ namespace DSL
 {
     PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
         : Bintr(name)
-        , m_batchSize(0)
         , m_batchTimeout(0)
         , m_streamMuxWidth(0)
         , m_streamMuxHeight(0)
