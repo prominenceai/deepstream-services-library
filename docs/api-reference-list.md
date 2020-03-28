@@ -55,6 +55,19 @@
 * [dsl_pipeline_dump_to_dot](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
 
+## Branch API
+* [dsl_branch_new](/docs/api-branch.md#dsl_branch_new)
+* [dsl_branch_new_many](/docs/api-branch.md#dsl_branch_new_many)
+* [dsl_branch_delete](/docs/api-branch.md#dsl_branch_delete)
+* [dsl_branch_delete_many](/docs/api-branch.md#dsl_branch_delete_many)
+* [dsl_branch_delete_all](/docs/api-branch.md#dsl_branch_delete_all)
+* [dsl_branch_component_add](/docs/api-branch.md#dsl_branch_component_add)
+* [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many)
+* [dsl_branch_component_list_size](/docs/api-branch.md#dsl_branch_component_list_size)
+* [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove)
+* [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many)
+* [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all)
+
 ### Source API:
 * [Overview](/docs/api-source.md)
 * [dsl_source_csi_new](/docs/api-source.md#dsl_source_csi_new)
