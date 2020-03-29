@@ -184,11 +184,11 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 <br>
 
 ## Tees and Branches
-There are two type of Tee components that can used in a Pipeline, Demuxers and Splitters.
+There are two types of Tees that can be added to a Pipeline; Demuxers and Splitters.
 1. **Demuxer Tees** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
 2. **Splitter Tees** split the stream, batched or otherwise, into multiple duplicate streams. 
 
-Branches connect to the downstream/output pads of the Tee, either as a single end component as in the case of a Sink or another Tee, or as multiple linked components as in the case of **Branch 1** shown below. Single component Branches can be added to a Tee directly, while multi component Branches must be added to a new Branch component first.
+Branches connect to the downstream/output pads of the Tee, either as a single end component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
 
 Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
 
@@ -198,12 +198,12 @@ The following example illustrates how a **Pipeline** is assembled with a **Split
 
 #### Building the Pipeline Example above, 
 
-The first step is to create the two RTMP Sources and the two File Sinks that will be used to stream the raw video feeds to file.
+The first step is to create the two RTMP Sources - and the two File Sinks that will be used to stream the original video to file.
 
 ![Sources and File Sinks](/Images/sources-and-file-sinks.png)
 
 ```Python
-# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before for proceeding
+# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
 
 # Create two live RTSP Sources
 
