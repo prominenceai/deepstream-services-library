@@ -1,5 +1,5 @@
 # Branch API Reference
-Branch components are similar to Piplines in that way they are used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Branches, unlike Branchs, do not contain Source components and must be added as a Child to a Tee component, either a Demuxer or Splitter. 
+Branch components are similar to Piplines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added as a Child to a Tee, either a Demuxer or Splitter. 
 
 #### Branch Construction and Destruction
 Branches are constructed by calling [dsl_branch_new](#dsl_branch_new) or [dsl_branch_new_many](#dsl_branch_new_many), and destructed by calling [dsl_branch_delete](#dsl_branch_delete), [dsl_branch_delete_many](#dsl_branch_delete_many), or [dsl_branch_delete_all](#dsl_branch_delete_all). Deleting a Branch will not delete its child components but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
@@ -20,15 +20,10 @@ Branches can be removed from their Parent Tee by calling [dsl_tee_branch_remove]
 * [dsl_branch_new](#dsl_branch_new)
 * [dsl_branch_new_many](#dsl_branch_new_many)
 
-**Destructors**
-* [dsl_branch_delete](#dsl_branch_delete)
-* [dsl_branch_delete_many](#dsl_branch_delete_many)
-* [dsl_branch_delete_all](#dsl_branch_delete_all)
-
 **Methods**
 * [dsl_branch_component_add](#dsl_branch_component_add)
 * [dsl_branch_component_add_many](#dsl_branch_component_add_many)
-* [dsl_branch_component_list_size](#dsl_branch_component_list_size)
+* [dsl_branch_component_count_get](#dsl_branch_component_count_get)
 * [dsl_branch_component_remove](#dsl_branch_component_remove)
 * [dsl_branch_component_remove_many](#dsl_branch_component_remove_many)
 * [dsl_branch_component_remove_all](#dsl_branch_component_remove_all)
@@ -197,7 +192,7 @@ retval = dsl_branch_component_add_many('my-branch', ['my-pgie', 'my-tiler', 'my-
 
 <br>
 
-### *dsl_branch_component_list_size*
+### *dsl_branch_componen_count_get*
 ```C++
 uint dsl_branch_list_size(wchar_t* branch);
 ```
@@ -270,3 +265,21 @@ Removes all child components from a named Branch. The add service will fail if a
 ```Python
 retval = dsl_branch_component_remove_all('my-branch')
 ```
+
+<br>
+
+---
+
+## API Reference
+* [List of all Services](/docs/api-reference-list.md)
+* [Pipeline](/docs/api-pipeline.md)
+* [Source](/docs/api-source.md)
+* [Dewarper](/docs/api-dewarper.md)
+* [Primary and Secondary GIE](/docs/api-gie.md)
+* [Tracker](/docs/api-tracker.md)
+* [On-Screen Display](/docs/api-osd.md)
+* [Sink](/docs/api-sink.md)
+* [Demuxer and Splitter](/docs/api-tee.md)
+* **Branch**
+* [Component](/docs/api-component.md)
+
