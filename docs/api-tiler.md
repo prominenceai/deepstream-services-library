@@ -36,16 +36,6 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
 ```
-The following return codes are used by the Demuxer API
-```C++
-#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
-#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
-#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
-#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
-#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0007
-#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0008
-#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A000A
-```
 
 ## Constructors
 ### *dsl_tiler_new*
