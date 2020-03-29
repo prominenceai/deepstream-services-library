@@ -56,11 +56,9 @@
 * [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
 
 ## Branch API
+* [Overview](/docs/api-branch.md)
 * [dsl_branch_new](/docs/api-branch.md#dsl_branch_new)
 * [dsl_branch_new_many](/docs/api-branch.md#dsl_branch_new_many)
-* [dsl_branch_delete](/docs/api-branch.md#dsl_branch_delete)
-* [dsl_branch_delete_many](/docs/api-branch.md#dsl_branch_delete_many)
-* [dsl_branch_delete_all](/docs/api-branch.md#dsl_branch_delete_all)
 * [dsl_branch_component_add](/docs/api-branch.md#dsl_branch_component_add)
 * [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many)
 * [dsl_branch_component_list_size](/docs/api-branch.md#dsl_branch_component_list_size)
@@ -181,6 +179,19 @@
 * [dsl_sink_num_in_use_get](/docs/api-sink.md#dsl_sink_num_in_use_get)
 * [dsl_sink_num_in_use_max_get](/docs/api-sink.md#dsl_sink_num_in_use_max_get)
 * [dsl_sink_num_in_use_max_set](/docs/api-sink.md#dsl_sink_num_in_use_max_set)
+
+### Demuxer and Splitter - Tees
+* [Overview](/docs/api-tee.md)
+* [dsl_tee_demuxer_new](/docs/api-tee.md#dsl_tee_demuxer_new)
+* [dsl_tee_splitter_new](/docs/api-tee.md#dsl_tee_splitter_new) 
+* [dsl_tee_branch_add](/docs/api-tee.md#dsl_tee_branch_add)
+* [dsl_tee_branch_add_many](/docs/api-tee.md#dsl_tee_branch_add_many)
+* [dsl_tee_branch_remove](/docs/api-tee.md#dsl_tee_branch_remove)
+* [dsl_tee_branch_remove_many](/docs/api-tee.md#dsl_tee_branch_remove_many)
+* [dsl_tee_branch_remove_all](/docs/api-tee.md#dsl_tee_branch_remove_all).
+* [dsl_tee_branch_count_get](/docs/api-tee.md#dsl_tee_branch_count_get).
+* [dsl_tee_batch_meta_handler_add](/docs/api-tee.md#dsl_tee_batch_meta_handler_add).
+* [dsl_tee_batch_meta_handler_remove](/docs/api-tee.md#dsl_tee_batch_meta_handler_remove).
 
 ### Component API:
 * [Overview](/docs/api-component.md)
