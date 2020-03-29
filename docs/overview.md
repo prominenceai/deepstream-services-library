@@ -8,6 +8,7 @@
 * [On-Screen Display](#on-screen-display)
 * [Multi-Source Tiler](#multi-source-tiler)
 * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
+* [Pipeline Tees and Branches](#tees-and-branches)
 * [DSL Initialization](#dsl-initialization)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
@@ -194,10 +195,7 @@ The following example illustrates how a **Pipeline** is assembled with a **Split
 
 ![Tees and Branches](/Images/tees-and-branches.png)
 
-To build the Pipeline above, create the two RTMP Sources and the two File Sinks that will be used to stream the raw video feeds to file.
-
-![Sources and File Sinks](/Images/sources-and-file-sinks.png)
-
+The code below is used to build the example Pipeline above.
 ```Python
 # Create two live RTSP Sources
 
@@ -210,11 +208,15 @@ retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONT
 retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
 ```
 
+To build the Pipeline above, create the two RTMP Sources and the two File Sinks that will be used to stream the raw video feeds to file.
+
+![Sources and File Sinks](/Images/sources-and-file-sinks.png)
+
 Next, create all components for **Branch  1**
 
 ```Python
 
-# Create a Primary GIE, Tracker, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL File Sink
+# Create a Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL File Sink
 
 retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
 retval = dsl_tracker_ktl_new('tracker', 480, 270)
@@ -252,7 +254,7 @@ retval = dsl_tee_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
 
 The **Splitter Tee** is used to split/duplicate the batched stream into multiple branches for separate processing.
 
-![Splitter with Branches 1 and 2](Images/splitter-branch-1-branch-2.png)
+![Splitter with Branches 1 and 2](/Images/splitter-branch-1-branch-2.png)
 
 ```Python
 # Create a new splitter and add 'branch-1` and the 'demexer' as Branch 2
@@ -271,8 +273,39 @@ retval = dsl_pipeline_component_add_many('pipeline', ['src-1', 'src-2', 'splitte
 
 # ready to play ...
 ```
+All combined, the example is written as.
 
-A complete example, with dynamic inference driven start/stop control over the streaming to file can found under the [Python Examples](/docs/examples-python.md)
+```Python
+# Create two live RTSP Sources
+retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+retval = dsl_source_rtsp_new('src-2', rtsp_uri_2, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+
+# Create two File Sinks, one for each source
+retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+
+# Create the Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL File Sink
+retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
+retval = dsl_tracker_ktl_new('tracker', 480, 270)
+retval = dsl_tiler_new('tiler', 1280, 720)
+retval = dsl_osd_new('osd', True)
+retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+
+# Create a branch component for 'branch-1' and add all child components. 
+retval = dsl_branch_new('branch-1')
+retval = dsl_branch_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+
+# create a new Demuxer to de-multiplex the batched source streams and add the 
+# two File Sinks as Branches for the Tee.
+retval = dsl_tee_demuxer_new('demuxer')
+retval = dsl_tee_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+
+# finally, add the sources and splitter-tee to the pipeline
+retval = dsl_pipeline_new('pipeline')
+retval = dsl_pipeline_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+```
+
+A complete example with dynamic, inference driven start/stop control over the streaming to file can found under the [Python Examples](/docs/examples-python.md)
 
 
 ## DSL Initialization
