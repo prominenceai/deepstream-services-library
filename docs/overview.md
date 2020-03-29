@@ -203,7 +203,7 @@ The first step is to create the two RTMP Sources and the two File Sinks that wil
 ![Sources and File Sinks](/Images/sources-and-file-sinks.png)
 
 ```Python
-# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS for proceeding
+# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before for proceeding
 
 # Create two live RTSP Sources
 
@@ -281,7 +281,7 @@ retval = dsl_pipeline_component_add_many('pipeline', ['src-1', 'src-2', 'splitte
 ### All combined, the example is written as.
 
 ```Python
-# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS for proceeding
+# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
 
 # Create two live RTSP Sources
 retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
