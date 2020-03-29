@@ -184,13 +184,11 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 <br>
 
 ## Tees and Branches
-Pipelines use Tees to create Branches, and Branches can use Tees to create more Branches. Pipelines add Tees, Tees add Branches, Branches add Tees, and so on. 
-
-There are two type of Tee components, Demuxers and Splitters. 
+There are two type of Tee components that can used in a Pipeline, Demuxers and Splitters.
 1. **Demuxer Tees** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
 2. **Splitter Tees** split the stream, batched or otherwise, into multiple duplicate streams. 
 
-Branches connect to the downstream/output pads of the Tee, either as a single end component -- as in the case of a Sink or another Tee -- or as multiple linked components as in the case of **Branch 1** shown below. Single component Branches can be added to a Tee directly, while multi component Branches must be added to a new Branch component first.
+Branches connect to the downstream/output pads of the Tee, either as a single end component as in the case of a Sink or another Tee, or as multiple linked components as in the case of **Branch 1** shown below. Single component Branches can be added to a Tee directly, while multi component Branches must be added to a new Branch component first.
 
 Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
 
@@ -529,11 +527,13 @@ dsl_component_delete_all()
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie)
+* [Primary and Secondary GIEs](/docs/api-gie)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler and Demuxer](/docs/api-tiler.md)
+* [Tiler](/docs/api-tiler.md)
+* [Demuxer and Splitter Tees](/docs/api-tee)
 * [Sink](docs/api-sink.md)
+* [Branch](docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
 --- 
