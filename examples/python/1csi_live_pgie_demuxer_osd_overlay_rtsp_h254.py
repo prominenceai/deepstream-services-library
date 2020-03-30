@@ -51,11 +51,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_demuxer_new('demuxer')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with clock enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
@@ -68,20 +63,23 @@ def main(args):
         retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
-            
-        ### Important
-        ### using a demuxer for this example, so add the OSD and sinks directly to the Source
-        ### This sets up the relationship of Source to its components downstream of the demuxer
-        ### even though there is only one source (initially). 
-        ### If using a Tiler, instaed of demuxer, you would add the OSD and Sinks to the Pipeline
+
+        # New demuxer to demultiplex the batched stream from the Pipeline's streammuxer
+        retval = dsl_tee_demuxer_new('demuxer')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New branch - will be added to the demuxer
+        retval = dsl_branch_new('branch1')
+        if retval != DSL_RETURN_SUCCESS:
+            break
         
-        retval = dsl_source_osd_add('csi-source', 'on-screen-display')
+        retval = dsl_branch_component_add_many('branch1', ['on-screen-display', 'overlay-sink', 'rtsp-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_sink_add('csi-source', 'overlay-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_source_sink_add('csi-source', 'rtsp-sink')
+            
+        # Add the branch to the demuxer
+        retval = dsl_tee_branch_add('demuxer', 'branch1')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -92,7 +90,6 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_component_add_many('pipeline', ['csi-source', 'primary-gie', 'demuxer', None])
-
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -105,13 +102,10 @@ def main(args):
         retval = DSL_RETURN_SUCCESS
         break
 
-        # Print out the final result
-        print(dsl_return_value_to_string(retval))
+    # Print out the final result
+    print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
-    dsl_source_sink_remove('csi-source', 'rtsp-sink')
-    dsl_source_sink_remove('csi-source', 'overlay-sink')
-    dsl_source_osd_remove('csi-source')
     dsl_component_delete_all()
 
 if __name__ == '__main__':

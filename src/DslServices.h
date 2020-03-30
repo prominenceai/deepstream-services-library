@@ -233,12 +233,6 @@ namespace DSL {
         
         DslReturnType BranchNew(const char* name);
         
-        DslReturnType BranchDelete(const char* name);
-        
-        DslReturnType BranchDeleteAll();
-
-        uint BranchListSize();
-        
         DslReturnType BranchComponentAdd(const char* branch, const char* component);
 
         DslReturnType BranchComponentRemove(const char* branch, const char* component);

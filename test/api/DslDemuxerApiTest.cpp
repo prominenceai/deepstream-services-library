@@ -87,8 +87,8 @@ SCENARIO( "An invalid Demuxer is caught by the Add/Remove Hanlder API calls", "[
 
             THEN( "The Demuxer Get-Set APIs fail correctly")
             {
-                REQUIRE ( dsl_tee_batch_meta_handler_add(fakeSinkName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                REQUIRE ( dsl_tee_batch_meta_handler_remove(fakeSinkName.c_str(), batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                REQUIRE ( dsl_tee_batch_meta_handler_add(fakeSinkName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE );
+                REQUIRE ( dsl_tee_batch_meta_handler_remove(fakeSinkName.c_str(), batch_meta_handler_cb1) == DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE );
                 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

@@ -225,6 +225,16 @@ namespace DSL
             LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
+        if (m_pTrackerBintr and !m_pPrimaryGieBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() << "' has a Tracker and no Primary GIE - and is unable to link");
+            return false;
+        }
+        if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
+        {
+            LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
+            return false;
+        }
         
         if (m_pPrimaryGieBintr)
         {

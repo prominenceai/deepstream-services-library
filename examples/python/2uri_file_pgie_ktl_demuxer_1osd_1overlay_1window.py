@@ -66,33 +66,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Demuxer - therefore, OSDs and Sinks are added to Sources, not to the Pipeline.
-        retval = dsl_demuxer_new('demuxer')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## 
-        # Setup the first Source with its downstream overlay-sink
-        ###
-
         # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
         retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 360, 180)  
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_source_sink_add('uri-source-1', 'overlay-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## 
-        # Setup the Source with its downstream OSD and window-sink
-        ###
-
+        # New OSD for Branch1
         retval = dsl_osd_new('on-screen-display', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_source_osd_add('uri-source-2', 'on-screen-display')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -100,8 +80,23 @@ def main(args):
         retval = dsl_sink_window_new('window-sink', 0, 0, 720, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        retval = dsl_source_sink_add('uri-source-2', 'window-sink')
+
+        # New Branch for the PGIE, OSD and Window Sink
+        retval = dsl_branch_new('branch1')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_branch_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Demuxer Tee- 
+        retval = dsl_tee_demuxer_new('demuxer')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add Branch1 and the overlay-sink as Branch2
+        retVal = dsl_tee_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -114,6 +109,7 @@ def main(args):
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
         retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -121,10 +117,6 @@ def main(args):
         # Add the sources the components to our pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_pipeline_xwindow_dimensions_set('pipeline', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -141,10 +133,6 @@ def main(args):
     print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
-
-    dsl_source_sink_remove('uri-source-1', 'overlay-sink')
-    dsl_source_sink_remove('uri-source-2', 'window-sink')
-    dsl_source_osd_remove('uri-source-2')
     dsl_component_delete_all()
 
 if __name__ == '__main__':

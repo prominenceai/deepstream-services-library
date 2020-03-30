@@ -1139,38 +1139,6 @@ DslReturnType dsl_branch_new(const wchar_t* name);
 DslReturnType dsl_branch_new_many(const wchar_t** names);
 
 /**
- * @brief deletes a Branch object by name.
- * @param[in] name unique name of the Branch to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
- * @info any/all components owned by the Branch move
- * to a state of not-in-use.
- */
-DslReturnType dsl_branch_delete(const wchar_t* name);
-
-/**
- * @brief deletes a NULL terminated list of branches
- * @param names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
- * @info any/all components owned by the branches move
- * to a state of not-in-use.
- */
-DslReturnType dsl_branch_delete_many(const wchar_t** names);
-
-/**
- * @brief deletes all branches in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
- * @info any/all components owned by the branches move
- * to a state of not-in-use.
- */
-DslReturnType dsl_branch_delete_all();
-
-/**
- * @brief returns the current number of branches
- * @return size of the list of branches
- */
-uint dsl_branch_list_size();
-
-/**
  * @brief adds a single components to a Branch 
  * @param[in] branch name of the branch to update
  * @param[in] component component names to add

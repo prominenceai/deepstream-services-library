@@ -487,7 +487,6 @@ namespace DSL
             return false;
             
         }
-        LOG_WARN(name);
         m_inferOnGieName.assign(name);
         m_inferOnGieUniqueId = CreateUniqueIdFromName(name);
         

@@ -3790,16 +3790,20 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        for (auto const& imap: m_components)
+
+        // Only if there are Pipelines do we check if the component is in use.
+        if (m_pipelines.size())
         {
-            if (imap.second->IsInUse())
+            for (auto const& imap: m_components)
             {
-                LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_COMPONENT_IN_USE;
+                // In the case of Delete all
+                if (imap.second->IsInUse())
+                {
+                    LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_COMPONENT_IN_USE;
+                }
             }
         }
-        LOG_DEBUG("All components are un-owned and will be deleted");
 
         for (auto const& imap: m_components)
         {

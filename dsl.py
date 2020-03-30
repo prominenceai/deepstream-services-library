@@ -547,13 +547,13 @@ def dsl_tee_demuxer_new(name):
     return int(result)
 
 ##
-## dsl_tee_demuxer_new()
+## dsl_tee_splitter_new()
 ##
-_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p]
-_dsl.dsl_tee_demuxer_new.restype = c_uint
-def dsl_tee_demuxer_new(name):
+_dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_splitter_new.restype = c_uint
+def dsl_tee_splitter_new(name):
     global _dsl
-    result =_dsl.dsl_tee_demuxer_new(name)
+    result =_dsl.dsl_tee_splitter_new(name)
     return int(result)
     
 ##
@@ -894,37 +894,6 @@ def dsl_branch_new_many(branches):
     arr = (c_wchar_p * len(branches))()
     arr[:] = branches
     result =_dsl.dsl_branch_new_many(arr)
-    return int(result)
-
-##
-## dsl_branch_delete()
-##
-_dsl.dsl_branch_delete.argtypes = [c_wchar_p]
-_dsl.dsl_branch_delete.restype = c_uint
-def dsl_branch_delete(name):
-    global _dsl
-    result =_dsl.dsl_branch_delete(name)
-    return int(result)
-
-##
-## dsl_branch_delete_many()
-##
-#_dsl.dsl_component_delete_many.argtypes = [Array]
-_dsl.dsl_branch_delete_many.restype = c_uint
-def dsl_branch_delete_many(branches):
-    global _dsl
-    arr = (c_wchar_p * len(branches))()
-    arr[:] = branches
-    result =_dsl.dsl_branch_delete_many(arr)
-    return int(result)
-
-##
-## dsl_branch_delete_all()
-##
-_dsl.dsl_branch_delete_all.restype = c_uint
-def dsl_branch_delete_all():
-    global _dsl
-    result =_dsl.dsl_branch_delete_all()
     return int(result)
 
 ##

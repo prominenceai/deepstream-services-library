@@ -331,15 +331,7 @@ namespace DSL
             LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
             return true;
         }
-        if (m_pTilerBintr)
-        {
-            m_pTilerBintr->SendEos();
-        }
-        else
-        {
-            m_pDemuxerBintr->SendEos();
-        }
-        // Call the base class to stop
+
         if (!SetState(GST_STATE_READY))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
@@ -678,6 +670,12 @@ namespace DSL
         LOG_FUNC();
         
         LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
+        
+        if (!m_xWindowWidth or !m_xWindowHeight)
+        {
+            LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' with invalid width or height");
+            return false;
+        }
 
         // create new XDisplay first
         m_pXDisplay = XOpenDisplay(NULL);
