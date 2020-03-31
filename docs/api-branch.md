@@ -19,6 +19,7 @@ Branches can be removed from their Parent Tee by calling [dsl_tee_branch_remove]
 **Constructors**
 * [dsl_branch_new](#dsl_branch_new)
 * [dsl_branch_new_many](#dsl_branch_new_many)
+* [dsl_branch_new_component_add_many](#dsl_branch_new_component_add_many)
 
 **Methods**
 * [dsl_branch_component_add](#dsl_branch_component_add)
@@ -84,6 +85,27 @@ retval = dsl_branch_new_many(['my-branch-a', 'my-branch-b', 'my-branch-c', None]
 
 <br>
 
+### *dsl_branch_new_component_add_many*
+```C++
+DslReturnType dsl_branch_new_component_add_many(const wchar_t* branch, const wchar_t** components);
+```
+Creates a new Pipeline with a given list of named Components. . The add service will fail if any of components are currently `in-use` by any Pipeline or Branch. All the component's `in-use` states will be set to true on successful add. 
+
+
+
+**Parameters**
+* `branch` - [in] unique name for the Branch to create.
+* `components` - [in] a NULL terminated array of uniquely named Components to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_branch_new_component_add_many('my-branch', ['my-pgie', 'my-tiler', 'my-window-sink', None])
+```
+
+<br
 ---
 ## Destructors
 ### *dsl_branch_delete*
@@ -192,17 +214,23 @@ retval = dsl_branch_component_add_many('my-branch', ['my-pgie', 'my-tiler', 'my-
 
 <br>
 
-### *dsl_branch_componen_count_get*
+### *dsl_branch_component_count_get*
 ```C++
-uint dsl_branch_list_size(wchar_t* branch);
+DslReturnType dsl_branch_component_count_get(wchar_t* branch, uint* count);
 ```
 This method returns the size of the current list of Components `in-use` by the named Branch
 
 **Parameters**
 * `branch` - [in] unique name for the Branch to query.
+* `count` - [out] the current number of components owned by this Branch.
 
 **Returns** 
-* The size of the list of Components currently in use
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, count = dsl_branch_component_count_get('my-branch')
+```
 
 <br>
 
@@ -278,8 +306,8 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Sink](/docs/api-sink.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [Sink](/docs/api-sink.md)
 * **Branch**
 * [Component](/docs/api-component.md)
 
