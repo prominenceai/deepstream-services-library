@@ -242,9 +242,9 @@ retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
 retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
 ```
 
-**Branch 2**, with its single multi-source **Demuxer Tee** *does not* require an explicit Branch, nor do **Branches 3 and 4** each with a single File Sink. 
+**Branch 2**, with its single multi-source **Demuxer Tee** *does not* require an explicit Branch, nor do **Branches 3 and 4** consisting of a single File Sink each. 
 
-Note: adding multiple sinks to asingle branch *would* require the creation of a Branch component to contain them.
+Note: adding multiple sinks to a single branch requires a Branch component to contain them.
 
 The relationship of Demuxer-output-Branch to the upstream Source component is set by the order of addition. The first Branch added to the Demuxer is linked from the first upstream Source added to the Pipeline - a one-to-one relationship. 
 
