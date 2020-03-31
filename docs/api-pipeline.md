@@ -38,6 +38,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 **Constructors**
 * [dsl_pipeline_new](#dsl_pipeline_new)
 * [dsl_pipeline_new_many](#dsl_pipeline_new_many)
+* [dsl_pipeline_new_component_add_many](#dsl_pipeline_new_component_add_many)
 
 **Destructors**
 * [dsl_pipeline_delete](#dsl_pipeline_delete)
@@ -216,6 +217,27 @@ The constructor creates multiple uniquely named Pipelines at once. All names are
 **Python Example**
 ```Python
 retval = dsl_pipeline_new_many(['my-pipeline-a', 'my-pipeline-b', 'my-pipeline-c', None])
+```
+
+<br>
+
+### *dsl_pipeline_new_component_add_many*
+```C++
+DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, const wchar_t** components);
+```
+Creates a new Pipeline with a given list of named Components. The service will fail if any of components are currently `in-use` by any Pipeline. All of the component's `in-use` states will be set to true on successful add. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to create.
+* `components` - [in] a NULL terminated array of uniquely named Components to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation and addion. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_new_component_add_many('my-pipeline', 
+    ['my-camera-source', 'my-pgie`, 'my-osd' 'my-tiled-display', 'my-sink', None])
 ```
 
 <br>
@@ -982,5 +1004,7 @@ Except for the prefix, this method performs the identical service as
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
+* [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

@@ -34,7 +34,6 @@ namespace DSL
         , m_flush(false)
         , m_primaryGieUniqueId(0)
         , m_interval(0)
-        , m_batchSize(0)
     {
         LOG_FUNC();
 
@@ -279,20 +278,6 @@ namespace DSL
         LOG_FUNC();
         
         m_primaryGieUniqueId = id;
-    }
-    
-    uint PipelineSecondaryGiesBintr::GetBatchSize()
-    {
-        LOG_FUNC();
-        
-        return m_batchSize;
-    }
-    
-    void PipelineSecondaryGiesBintr::SetBatchSize(uint batchSize)
-    {
-        LOG_FUNC();
-        
-        m_batchSize = batchSize;
     }
     
     uint PipelineSecondaryGiesBintr::GetInterval()

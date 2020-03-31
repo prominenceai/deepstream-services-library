@@ -52,7 +52,9 @@ namespace DSL
          */
         Bintr(const char* name)
             : GstNodetr(name)
+            , m_uniqueId(-1)
             , m_isLinked(false)
+            , m_batchSize(0)
             , m_gpuId(0)
             , m_nvbufMemoryType(0)
             , m_pGstStaticSinkPad(NULL)
@@ -74,6 +76,28 @@ namespace DSL
         ~Bintr()
         {
             LOG_FUNC();
+        }
+
+        /**
+         * @brief returns the current Id - managed by the Parent container
+         * @return -1 when id is not assigned, i.e. bintr is not currently in use
+         */
+        int GetId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        /**
+         * @brief Sets the unique id for this bintr
+         * @param id value to assign [0...MAX]
+         */
+        void SetId(int id)
+        {
+            LOG_FUNC();
+
+            m_uniqueId = id;
         }
         
         /**
@@ -162,6 +186,36 @@ namespace DSL
             
             return (bool)GetParentGstElement();
         }
+        
+        /**
+         * @brief gets the current batchSize in use by this Bintr
+         * @return the current batchSize
+         */
+        virtual uint GetBatchSize()
+        {
+            LOG_FUNC();
+            
+            return m_batchSize;
+        };
+        
+        /**
+         * @brief sets the batch size for this Bintr
+         * @param the new batchSize to use
+         */
+        virtual bool SetBatchSize(uint batchSize)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting batch size to '" << batchSize << "' for Bintr '" << GetName() << "'");
+            
+            m_batchSize = batchSize;
+            return true;
+        };
+
+        /**
+         * @brief sets the interval for this Bintr
+         * @param the new interval to use
+         */
+        bool SetInterval(uint interval);
 
         /**
          * @brief Attempts to set the state of this Bintr's GST Element
@@ -170,7 +224,6 @@ namespace DSL
         bool SetState(GstState state)
         {
             LOG_FUNC();
-            
             LOG_INFO("Changing state to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
 
             GstStateChangeReturn returnVal = gst_element_set_state(GetGstElement(), state);
@@ -185,7 +238,7 @@ namespace DSL
                         gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                     return false;
                 case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for Bintr'" << GetName() << "'");
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
                     break;
                 default:
                     break;
@@ -299,11 +352,22 @@ namespace DSL
         }
 
     public:
+
+        /**
+         * @brief unique identifier managed by the 
+         * parent from the point of add until removed
+         */
+        int m_uniqueId;
     
         /**
          * @brief current is-linked state for this Bintr
          */
         bool m_isLinked;
+        
+        /**
+         * @brief current batch size for this Bintr
+         */
+        uint m_batchSize;
 
         /**
          * @brief current GPU Id in used by this Bintr

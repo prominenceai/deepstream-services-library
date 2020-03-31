@@ -107,13 +107,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -143,8 +138,8 @@ def main(args):
         retval = DSL_RETURN_SUCCESS
         break
 
-        # Print out the final result
-        print(dsl_return_value_to_string(retval))
+    # Print out the final result
+    print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()

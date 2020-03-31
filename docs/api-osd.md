@@ -320,5 +320,7 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * [Tracker](/docs/api-tracker.md)
 * [Tiler and Demuxer](/docs/api-tiler.md)
 * **On-Screen Display**
+* [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

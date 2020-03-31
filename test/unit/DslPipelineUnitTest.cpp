@@ -27,7 +27,6 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
 #include "DslPipelineBintr.h"
-#include "DslDemuxerBintr.h"
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
@@ -98,23 +97,41 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
     }
 }
 
-SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
+SCENARIO( "A PipelineBintr will fail to create an XWindow without setting dimensions first", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr with a Tiler" ) 
+    GIVEN( "A PipelineBintr with default XWindow dimensions of 0" ) 
     {
-        std::string tilerName = "tiler";
         std::string pipelineName = "pipeline";
-
-        uint tilerW(1280);
-        uint tilerH(720);
 
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
-        DSL_TILER_PTR pTilerBintr = 
-            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+        WHEN( "The PipelineBintr is called to create its XWindow" )
+        {
+            REQUIRE( pPipelineBintr->CreateXWindow() == false );
+                
+            THEN( "The XWindow handle  is unavailable" )
+            {
+                REQUIRE( pPipelineBintr->GetXWindow() == 0 );
+            }
+        }
+    }
+}
 
-        pTilerBintr->AddToParent(pPipelineBintr);
+SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
+    {
+        std::string pipelineName = "pipeline";
+
+        uint windowW(1280);
+        uint windowH(720);
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+
+        REQUIRE( pPipelineBintr->SetXWindowDimensions(windowW, windowH) == true );
 
         WHEN( "The new PipelineBintr's XWindow is created" )
         {
@@ -817,8 +834,8 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
@@ -829,7 +846,7 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
             
         WHEN( "All components are added to the PipelineBintr" )
         {
-            REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+            REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
@@ -866,15 +883,15 @@ SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth,  offsetX, offsetY, sinkW, sinkH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
@@ -896,7 +913,7 @@ SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components
 
 SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple Sources with Sinks", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs with WindowSinkBintrs in a Linked State" ) 
+    GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs and WindowSinkBintrs in a Linked State" ) 
     {
         std::string sourceName1 = "csi-source1";
         std::string sourceName2 = "csi-source2";
@@ -938,15 +955,15 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple S
         DSL_WINDOW_SINK_PTR pSinkBintr4 = 
             DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        REQUIRE( pSourceBintr1->AddSinkBintr(pSinkBintr1) == true );
-        REQUIRE( pSourceBintr2->AddSinkBintr(pSinkBintr2) == true );
-        REQUIRE( pSourceBintr3->AddSinkBintr(pSinkBintr3) == true );
-        REQUIRE( pSourceBintr4->AddSinkBintr(pSinkBintr4) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr1) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr2) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr3) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr4) == true );
         REQUIRE( pSourceBintr1->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSourceBintr2->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSourceBintr3->AddToParent(pPipelineBintr) == true );
@@ -995,8 +1012,8 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -1007,7 +1024,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
@@ -1057,8 +1074,8 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -1072,7 +1089,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
@@ -1126,8 +1143,8 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_CSI_SOURCE_PTR pSourceBintr = 
             DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
 
-        DSL_DEMUXER_PTR pDemuxerBintr = 
-            DSL_DEMUXER_NEW(demuxerName.c_str());
+        // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
+        DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
@@ -1145,7 +1162,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
-        REQUIRE( pSourceBintr->AddSinkBintr(pSinkBintr) == true );
+        REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );

@@ -258,5 +258,7 @@ retval = dsl_tracker_batch_meta_handler_remove('my-ktl-tracker',
 * **Tracker**
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
+* [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

@@ -31,9 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     PipelineBintr::PipelineBintr(const char* name)
-        : Bintr(name)
-        , m_batchSize(0)
-        , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
+        : BranchBintr(name)
         , m_pGstBus(NULL)
         , m_gstBusWatch(0)
         , m_pXWindowEventThread(NULL)
@@ -104,7 +102,6 @@ namespace DSL
         if (!m_pPipelineSourcesBintr)
         {
             m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
-            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
             AddChild(m_pPipelineSourcesBintr);
         }
 
@@ -135,149 +132,6 @@ namespace DSL
         return m_pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    bool PipelineBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pOsdBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has an exisiting OSD '" 
-                << m_pOsdBintr->GetName());
-            return false;
-        }
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add OSD");
-            return false;
-        }
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
-        
-        return AddChild(pOsdBintr);
-    }
-
-    bool PipelineBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pPrimaryGieBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has an exisiting Primary GIE '" 
-                << m_pPrimaryGieBintr->GetName());
-            return false;
-        }
-        m_pPrimaryGieBintr = std::dynamic_pointer_cast<PrimaryGieBintr>(pPrmaryGieBintr);
-        
-        return AddChild(pPrmaryGieBintr);
-    }
-
-    bool PipelineBintr::AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr)
-    {
-        LOG_FUNC();
-
-        if (m_pTrackerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tracker");
-            return false;
-        }
-        m_pTrackerBintr = std::dynamic_pointer_cast<TrackerBintr>(pTrackerBintr);
-        
-        return AddChild(pTrackerBintr);
-    }
-
-    bool PipelineBintr::AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr)
-    {
-        LOG_FUNC();
-        
-        // Create the optional Secondary GIEs bintr 
-        if (!m_pSecondaryGiesBintr)
-        {
-            m_pSecondaryGiesBintr = DSL_PIPELINE_SGIES_NEW("sgies-bin");
-            AddChild(m_pSecondaryGiesBintr);
-        }
-        return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
-    }
-
-    bool PipelineBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add Sink to Pipeline directly");
-            return false;
-        }
-        // Create the shared Sinks bintr if it doesn't exist
-        if (!m_pPipelineSinksBintr)
-        {
-            m_pPipelineSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
-            AddChild(m_pPipelineSinksBintr);
-        }
-        return m_pPipelineSinksBintr->AddChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
-    }
-
-    bool PipelineBintr::IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-
-        if (!m_pPipelineSinksBintr)
-        {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
-            return false;
-        }
-        return (m_pPipelineSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
-    }
-
-    bool PipelineBintr::RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr)
-    {
-        LOG_FUNC();
-
-        if (!m_pPipelineSinksBintr)
-        {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sinks");
-            return false;
-        }
-
-        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
-        return m_pPipelineSinksBintr->RemoveChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr));
-    }
-
-    bool PipelineBintr::AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr)
-    {
-        LOG_FUNC();
-
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer");
-            return false;
-        }
-        if (m_pTilerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tiler - can't add Demuxer");
-            return false;
-        }
-        m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
-        
-        return AddChild(pDemuxerBintr);
-    }
-
-    bool PipelineBintr::AddTilerBintr(DSL_NODETR_PTR pTilerBintr)
-    {
-        LOG_FUNC();
-
-        if (m_pTilerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Tiler");
-            return false;
-        }
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' already has a Demuxer - can't add Tiler");
-            return false;
-        }
-        m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
-        
-        return AddChild(pTilerBintr);
-    }
 
     void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, uint* batchTimeout)
     {
@@ -397,26 +251,6 @@ namespace DSL
             LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;
         }
-        if (!m_pDemuxerBintr and !m_pTilerBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() << "' has no Demuxer or Tiler  - and is unable to link");
-            return false;
-        }
-        if (m_pTilerBintr and !m_pPipelineSinksBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() << "'has a Tiler and no required Sink component - and is unable to link");
-            return false;
-        }
-        if (m_pTrackerBintr and !m_pPrimaryGieBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Tracker and no Primary GIE - and is unable to link");
-            return false;
-        }
-        if (m_pSecondaryGiesBintr and !m_pPrimaryGieBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() << "' has a Seconday GIE and no Primary GIE - and is unable to link");
-            return false;
-        }
 
         // If the batch size has not been explicitely set, use the number of sources.
         if (m_batchSize < m_pPipelineSourcesBintr->GetNumChildren())
@@ -426,14 +260,6 @@ namespace DSL
         
         // Start with an empty list of linked components
         m_linkedComponents.clear();
-        
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
-        if (m_pDemuxerBintr)
-        {
-            // Add the Demuxer to the MultiSourceBintr to be linked with each individual
-            // SourceBintr's OSD and/or MultiSinksBintr
-            m_pPipelineSourcesBintr->AddDemuxer(shared_from_this(), m_pDemuxerBintr);
-        }
 
         // Link all Source Elementrs (required component), and all Sources to the StreamMuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
@@ -442,141 +268,12 @@ namespace DSL
             return false;
         }
         m_linkedComponents.push_back(m_pPipelineSourcesBintr);
+        
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
-        if (m_pPrimaryGieBintr)
-        {
-            // Set the GIE's batch size to the current stream muxer batch size, 
-            // then LinkAll PrimaryGie Elementrs and add as the next component in the Pipeline
-            m_pPrimaryGieBintr->SetBatchSize(m_batchSize);
-            if (!m_pPrimaryGieBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pPrimaryGieBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pPrimaryGieBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Primary GIE '" << 
-                m_pPrimaryGieBintr->GetName() << "' successfully");
-        }
-        
-        if (m_pTrackerBintr)
-        {
-            // LinkAll Tracker Elementrs and add as the next component in the Pipeline
-            if (!m_pTrackerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pTrackerBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tracker '" << 
-                m_pTrackerBintr->GetName() << "' successfully");
-        }
-        
-        if (m_pSecondaryGiesBintr)
-        {
-            // Set the Secondary GIEs' Primary GIE Name, and set batch sizes
-            m_pSecondaryGiesBintr->SetInferOnGieId(m_pPrimaryGieBintr->GetUniqueId());
-            m_pSecondaryGiesBintr->SetBatchSize(m_pPrimaryGieBintr->GetBatchSize());
-            
-            // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Pipeline
-            if (!m_pSecondaryGiesBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pSecondaryGiesBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pSecondaryGiesBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up all Secondary GIEs '" << 
-                m_pSecondaryGiesBintr->GetName() << "' successfully");
-        }
-        
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
-        if (m_pDemuxerBintr)
-        {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** component in the Pipeline
-            if (!m_pDemuxerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pDemuxerBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Demuxer '" << 
-                m_pDemuxerBintr->GetName() << "' successfully");
-        }
-
-        // mutually exclusive with Demuxer
-        if (m_pTilerBintr)
-        {
-            // Link All Tiler Elementrs and add as the next component in the Pipeline
-            if (!m_pTilerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pTilerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pTilerBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
-                m_pTilerBintr->GetName() << "' successfully");
-        }
-
-        // mutually exclusive with Demuxer
-        if (m_pOsdBintr)
-        {
-            // LinkAll Osd Elementrs and add as next component in the Pipeline
-            if (!m_pOsdBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pOsdBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pOsdBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up OSD '" << 
-                m_pOsdBintr->GetName() << "' successfully");
-        }
-
-        // mutually exclusive with Demuxer
-        if (m_pPipelineSinksBintr)
-        {
-            // Link all Sinks and their elementrs and add as finale (tail) components in the Pipeline
-            if (!m_pPipelineSinksBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pPipelineSinksBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pPipelineSinksBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up all Sinks '" << 
-                m_pPipelineSinksBintr->GetName() << "' successfully");
-        }
-        
-        m_isLinked = true;
-        return true;
-    }
-    
-    void PipelineBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-        
-        if (!m_isLinked)
-        {
-            return;
-        }
-        // iterate through the list of Linked Components, unlinking each
-        for (auto const& ivector: m_linkedComponents)
-        {
-            // all but the tail m_pPipelineSinksBintr will be Linked to Sink
-            if (ivector->IsLinkedToSink())
-            {
-                ivector->UnlinkFromSink();
-            }
-            ivector->UnlinkAll();
-        }
-        if (m_pDemuxerBintr)
-        {
-            // Remove the Demuxer from the MultiSourceBintr, which was linked with each individual
-            // SourceBintr's OSD and/or MultiSinksBintr
-            m_pPipelineSourcesBintr->RemoveDemuxer();
-        }
-
-        m_linkedComponents.clear();
-        m_isLinked = false;
+        // call the base class to Link all remaining components.
+        return BranchBintr::LinkAll();
     }
 
     bool PipelineBintr::Play()
@@ -633,15 +330,7 @@ namespace DSL
             LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
             return true;
         }
-        if (m_pTilerBintr)
-        {
-            m_pTilerBintr->SendEos();
-        }
-        else
-        {
-            m_pDemuxerBintr->SendEos();
-        }
-        // Call the base class to stop
+
         if (!SetState(GST_STATE_READY))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
@@ -979,27 +668,13 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!m_pDemuxerBintr and !m_pTilerBintr)
-        {
-            LOG_ERROR("Create XWindow error: Missing Demuxer or Tiler Bintr for Pipeline '" << GetName() << '"');
-            return false;
-        }
-
-        // If dimensions have not been provided
+        LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
+        
         if (!m_xWindowWidth or !m_xWindowHeight)
         {
-            if (m_pTilerBintr)
-            {
-                LOG_WARN("Dimensions for XWindow have not been set, using Tiler dimensions");
-                m_pTilerBintr->GetDimensions(&m_xWindowWidth, &m_xWindowHeight);
-            }
-            else
-            {
-                LOG_WARN("Dimensions for XWindow have not been set, using Stream Muxer dimensions");
-                GetStreamMuxDimensions(&m_xWindowWidth, &m_xWindowHeight);
-            }
+            LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' with invalid width or height");
+            return false;
         }
-        LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
 
         // create new XDisplay first
         m_pXDisplay = XOpenDisplay(NULL);

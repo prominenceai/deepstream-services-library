@@ -947,7 +947,7 @@ SCENARIO( "Adding greater than max Sinks to all Pipelines fails", "[sink-api]" )
             THEN( "Adding an additional Source to a Pipeline will fail" )
             {
                 REQUIRE( dsl_pipeline_component_add(pipelineName3.c_str(), 
-                    sinkName3.c_str()) == DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED );
+                    sinkName3.c_str()) == DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );

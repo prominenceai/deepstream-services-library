@@ -30,8 +30,6 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
-#include "DslOsdBintr.h"
-#include "DslMultiSinksBintr.h"
 #include "DslDewarperBintr.h"
 
 namespace DSL
@@ -128,76 +126,8 @@ namespace DSL
          * @brief Unlinks this Streaming Source from a previously linked to Stream Muxer
          */
         bool UnlinkFromSink();
-        
-        /**
-         * @brief adds an OSD Bintr to this SourceBintr, one at most 
-         * The Osd binter is used by Pipelines with a Demuxer vs. Tiler
-         * @param[in] pOsdBintr shared pointer to the OsdBintr to add
-         */
-        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
-
-        /**
-         * @brief get the current OsdBintr from this SourceBintr
-         * @return a shared pointer to an OsdBintr owned by this SourceBintr
-         */
-        const DSL_NODETR_PTR GetOsdBintr();
-        /**
-         * @brief checks if the SourceBintr has a child OsdBintr 
-         * @return true if SourceBintr has a child OsdBintr, false otherwise
-         */
-        bool HasOsdBintr();
-
-        /**
-         * @brief removes the one and only  OsdBintr from this SourceBintr
-         */
-        bool RemoveOsdBintr();
-
-        /**
-         * @brief adds a single Sink Bintr to this SourceBintr 
-         * @param[in] pSinkBintr shared pointer to SinkBintr to add
-         */
-        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief checks if a SinkBintr is a child of the SourceBintr
-         * @param pSinkBintr
-         * @return true if SinkBintr is a child, false otherwise
-         */
-        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief removes a single Sink Bintr from this SourceBintr 
-         * @param[in] pSinkBintr shared pointer to SinkBintr to remove
-         */
-        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
-
-        /**
-         * @brief Add this SourceBintr's optional OsdBintr and MultiSinksBintr to a Parent Pipeline
-         * @param[in] pPipeline shared pointer to a parent Pipeline
-         * @return true if successful, false otherwise
-         */
-        bool AddChildComponentsToPipeline(DSL_NODETR_PTR pPipeline);
-
-        /**
-         * @brief Links all Child OSD and Sinks for this SourceBintr to the Demuxer
-         * @param pDemuxerBintr DemuxerBintr
-         * @return true if successful, false otherwise
-         */
-        bool LinkToDemuxer(const DSL_NODETR_PTR pDemuxerElementr);
-        
-        /**
-         * @brief Unlinks all Child OSD and Sinks for this SourceBintr from the Demuxer
-         * @return true if successful, false otherwise
-         */
-        bool UnlinkFromDemuxer();
 
     public:
-            
-        /**
-         * @brief unique stream source identifier managed by the 
-         * parent pipeline from Source add until removed
-         */
-        int m_sourceId;
         
         /**
          * @brief True if the source is live and cannot be paused without losing data, False otherwise.
@@ -243,16 +173,6 @@ namespace DSL
          * @brief Soure Element for this SourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceElement;
-        
-        /**
-         * @brief Optional demuxed OSD for this SourceBintr
-         */
-        DSL_OSD_PTR m_pOsdBintr;
-
-        /**
-         * @brief Optional demuxed collection of SinkBintrs for each SourceBintr
-         */
-        DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
 
         /**
          * @brief Single, optional dewarper for the DecodeSourceBintr

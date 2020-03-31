@@ -30,11 +30,11 @@ using namespace DSL;
 
 SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
 {
-    GIVEN( "Attributes for a new Overlay Sink" ) 
+    GIVEN( "Attributes for a new Fake Sink" ) 
     {
         std::string sinkName("fake-sink");
 
-        WHEN( "The OverlaySinkBintr is created " )
+        WHEN( "The FackeSinkBintr is created " )
         {
             DSL_FAKE_SINK_PTR pSinkBintr = 
                 DSL_FAKE_SINK_NEW(sinkName.c_str());

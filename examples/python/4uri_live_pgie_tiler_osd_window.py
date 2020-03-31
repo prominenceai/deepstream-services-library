@@ -54,21 +54,21 @@ def main(args):
     while True:
 
         # Create 4 new Live URI Sources
-        retval = dsl_source_uri_new('uri-source1', source_uri1, True, 0, 0, 2)
+        retval = dsl_source_uri_new('uri-source1', source_uri1, True, 0, 0, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source2', source_uri2, True, 0, 0, 2)
+        retval = dsl_source_uri_new('uri-source2', source_uri2, True, 0, 0, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source3', source_uri3, True, 0, 0, 2)
+        retval = dsl_source_uri_new('uri-source3', source_uri3, True, 0, 0, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source4', source_uri4, True, 0, 0, 2)
+        retval = dsl_source_uri_new('uri-source4', source_uri4, True, 0, 0, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -92,15 +92,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source1', 'uri-source2', 'uri-source3', 'uri-source4', 'primary-gie', 
-            'tiler', 'on-screen-display', 'window-sink', None])
+            'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

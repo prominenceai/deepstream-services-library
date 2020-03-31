@@ -52,12 +52,13 @@ namespace DSL
          * @brief[in] factoryname unique GST factory name to create from
          * @brief[in] name unique name for the Element
          */
-        Elementr(const char* factoryname, const char* name)
+        Elementr(const char* factoryName, const char* name)
             : GstNodetr(name)
+            , m_factoryName(factoryName)
         { 
             LOG_FUNC(); 
             
-            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryname, name));
+            m_pGstObj = GST_OBJECT(gst_element_factory_make(factoryName, name));
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");
@@ -158,6 +159,21 @@ namespace DSL
             
             g_object_set(GetGObject(), name, value, NULL);
         }
+        
+        bool IsFactoryName(const char* factoryName)
+        {
+            LOG_FUNC();
+            
+            LOG_INFO("commparing expected factory'" << factoryName << "' with actual '" 
+                << m_factoryName.c_str() << "' for element '" << GetName() << "'");
+            
+            std::string expectedName(factoryName);
+            return (expectedName == m_factoryName);
+        }
+        
+    private:
+    
+        std::string m_factoryName;
     };
 }
 

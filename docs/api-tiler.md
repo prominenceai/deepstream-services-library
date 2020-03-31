@@ -1,22 +1,18 @@
-# Multi-Stream Tiler and Demuxer API
-Every Pipeline must have either a Tiler or Demuxer Component to transition to a state of Playing, even with only one Source component `in-use`. This requirement allows new sources to be dynamically added without stoping and unlinking the Pipeline first.
+# Multi-Stream Tiler API
+Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and a number-of-tiles expressed in `rows` and `cols`. Dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, as long as the Tiler is not currently `in-use` by a Pipeline.
 
-#### Multi-Source Tiler 
-Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and number-of-tiles expressed in `rows` and `cols`. Dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, as long as the Tiler is not currently `in-use` by a Pipeline. When using a Tiler, all downstream components -- [On-Screen Displays](/docs/api-osd) and [Sinks](/docs/api-sink) -- are added to the Pipeline directly.
-
-#### Multi-Source Demuxer
-Demuxer components demultiplex the batched stream from the stream-muxer back into a single stream per source. When using a Demuxer, all downstream components  -- [On-Screen Displays](/docs/api-osd) and [Sinks](/docs/api-sink) -- are added to their respective upstream Source, and not to the Pipeline directly. This simplifies the process of dynamically adding/removing multiple sources when using a Demuxer.
+#### Tiler Construction and Destruction
+Tilers are constructued usThe relationship between Branches and Tilers is one-to-one. Once added to a Pipeline or Branch, a Tiler must be removed before it can used with another. Tilers are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
 #### Adding to a Pipeline
-A Multi-Stream Tiler or Demuxer is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all). 
+A Multi-Stream Tilers are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Tilers/Demuxers is one-to-one. Once added to a Pipeline, a Tiler/Demuxer must be removed before it can used with another. Tilers and Demuxers are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+#### Adding to a Branch
+Tilers are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
 
-
-## Tiler and Demuxer API
+## Tiler API
 **Constructors**
 * [dsl_tiler_new](#dsl_tiler_new)
-* [dsl_demuxer_new](#dsl_tiler_new)
 
 **Methods**
 * [dsl_tiler_dimensions_get](#dsl_tiler_dimensions_get)
@@ -25,8 +21,6 @@ The relationship between Pipelines and Tilers/Demuxers is one-to-one. Once added
 * [dsl_tiler_tiles_set](#dsl_tiler_tiles_set)
 * [dsl_tiler_batch_meta_handler_add](#dsl_tiler_batch_meta_handler_add).
 * [dsl_tiler_batch_meta_handler_remove](#dsl_tiler_batch_meta_handler_remove).
-* [dsl_demuxer_batch_meta_handler_add](#dsl_demuxer_batch_meta_handler_add).
-* [dsl_demuxer_batch_meta_handler_remove](#dsl_demuxer_batch_meta_handler_remove).
 
 ## Return Values
 The following return codes are used by the Tiler API
@@ -42,16 +36,6 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
 ```
-The following return codes are used by the Demuxer API
-```C++
-#define DSL_RESULT_DEMUXER_NAME_NOT_UNIQUE                          0x000A0001
-#define DSL_RESULT_DEMUXER_NAME_NOT_FOUND                           0x000A0002
-#define DSL_RESULT_DEMUXER_NAME_BAD_FORMAT                          0x000A0003
-#define DSL_RESULT_DEMUXER_THREW_EXCEPTION                          0x000A0004
-#define DSL_RESULT_DEMUXER_HANDLER_ADD_FAILED                       0x000A0007
-#define DSL_RESULT_DEMUXER_HANDLER_REMOVE_FAILED                    0x000A0008
-#define DSL_RESULT_DEMUXER_COMPONENT_IS_NOT_DEMUXER                 0x000A000A
-```
 
 ## Constructors
 ### *dsl_tiler_new*
@@ -63,7 +47,7 @@ The constructor creates a uniquely named Tiler with given dimensions. Constructi
 **Parameters**
 * `name` - [in] unique name for the Tiler to create.
 * `width` - [in] width of the Tilded Display in pixels
-* `width` - [in] height of the Tilded Display in pixels
+* `height` - [in] height of the Tilded Display in pixels
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -293,7 +277,9 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* **Tiler and Demuxer**
+* **Tiler**
 * [On-Screen Display](/docs/api-osd.md)
+* [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

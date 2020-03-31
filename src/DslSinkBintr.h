@@ -80,18 +80,6 @@ namespace DSL
         bool LinkToSource(DSL_NODETR_PTR pTee);
 
         bool UnlinkFromSource();
-
-        /**
-         * @brief returns the current, sink Id as managed by the Parent pipeline
-         * @return -1 when source Id is not assigned, i.e. source is not currently in use
-         */
-        int GetSinkId();
-        
-        /**
-         * @brief Sets the unique id for this Sink bintr
-         * @param id value to assign [0...MAX]
-         */
-        void SetSinkId(int id);
         
     protected:
 
@@ -104,14 +92,6 @@ namespace DSL
          * @brief true if the Sink is capable of Windowed Video rendering, false otherwise
          */
         bool m_isWindowCapable;
-        
-        /**
-         * @brief unique stream source identifier managed by the 
-         * parent pipeline from Source add until removed
-         */
-        int m_sinkId;
-        
-        
     };
 
     class FakeSinkBintr : public SinkBintr

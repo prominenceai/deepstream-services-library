@@ -119,46 +119,6 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
-## dsl_source_osd_add()
-##
-_dsl.dsl_source_osd_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_osd_add.restype = c_uint
-def dsl_source_osd_add(source, osd):
-    global _dsl
-    result = _dsl.dsl_source_osd_add(source, osd)
-    return int(result)
-    
-##
-## dsl_source_osd_remove()
-##
-_dsl.dsl_source_osd_remove.argtypes = [c_wchar_p]
-_dsl.dsl_source_osd_remove.restype = c_uint
-def dsl_source_osd_remove(source):
-    global _dsl
-    result = _dsl.dsl_source_osd_remove(source)
-    return int(result)
-
-##
-## dsl_source_sink_add()
-##
-_dsl.dsl_source_sink_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_sink_add.restype = c_uint
-def dsl_source_sink_add(source, sink):
-    global _dsl
-    result = _dsl.dsl_source_sink_add(source, sink)
-    return int(result)
-    
-##
-## dsl_source_sink_remove()
-##
-_dsl.dsl_source_sink_remove.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_sink_remove.restype = c_uint
-def dsl_source_sink_remove(source, sink):
-    global _dsl
-    result = _dsl.dsl_source_sink_remove(source, sink)
-    return int(result)
-
-##
 ## dsl_source_decode_uri_get()
 ##
 _dsl.dsl_source_decode_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
@@ -577,36 +537,115 @@ def dsl_osd_kitti_output_enabled_set(name, enabled, path):
     return int(result)
 
 ##
-## dsl_demuxer_new()
+## dsl_tee_demuxer_new()
 ##
-_dsl.dsl_demuxer_new.argtypes = [c_wchar_p]
-_dsl.dsl_demuxer_new.restype = c_uint
-def dsl_demuxer_new(name):
+_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_demuxer_new.restype = c_uint
+def dsl_tee_demuxer_new(name):
     global _dsl
-    result =_dsl.dsl_demuxer_new(name)
+    result =_dsl.dsl_tee_demuxer_new(name)
     return int(result)
 
 ##
-## dsl_demuxer_batch_meta_handler_add()
+## dsl_tee_demuxer_new_branch_add_many()
 ##
-_dsl.dsl_demuxer_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
-_dsl.dsl_demuxer_batch_meta_handler_add.restype = c_uint
-def dsl_demuxer_batch_meta_handler_add(name, handler, user_data):
+#_dsl.dsl_tee_demuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_demuxer_new_branch_add_many.restype = c_uint
+def dsl_tee_demuxer_new_branch_add_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_demuxer_new_branch_add_many(tee, arr)
+    return int(result)
+
+##
+## dsl_tee_splitter_new()
+##
+_dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_splitter_new.restype = c_uint
+def dsl_tee_splitter_new(name):
+    global _dsl
+    result =_dsl.dsl_tee_splitter_new(name)
+    return int(result)
+
+##
+## dsl_tee_splitter_new_branch_add_many()
+##
+#_dsl.dsl_tee_splitter_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_splitter_new_branch_add_many.restype = c_uint
+def dsl_tee_splitter_new_branch_add_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_splitter_new_branch_add_many(tee, arr)
+    return int(result)
+
+
+##
+## dsl_tee_branch_add()
+##
+_dsl.dsl_tee_branch_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_branch_add.restype = c_uint
+def dsl_tee_branch_add(tee, branch):
+    global _dsl
+    result =_dsl.dsl_tee_branch_add(tee, branch)
+    return int(result)
+
+##
+## dsl_tee_branch_add_many()
+##
+#_dsl.dsl_tee_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_branch_add_many.restype = c_uint
+def dsl_tee_branch_add_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_branch_add_many(tee, arr)
+    return int(result)
+
+##
+## dsl_tee_branch_remove()
+##
+_dsl.dsl_tee_branch_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_branch_remove.restype = c_uint
+def dsl_tee_branch_remove(tee, branch):
+    global _dsl
+    result =_dsl.dsl_tee_branch_remove(tee, branch)
+    return int(result)
+
+##
+## dsl_tee_branch_remove_many()
+##
+#_dsl.dsl_tee_branch_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_branch_remove_many.restype = c_uint
+def dsl_tee_branch_remove_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_branch_remove_many(tee, arr)
+    return int(result)
+    
+##
+## dsl_tee_batch_meta_handler_add()
+##
+_dsl.dsl_tee_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
+_dsl.dsl_tee_batch_meta_handler_add.restype = c_uint
+def dsl_tee_batch_meta_handler_add(name, handler, user_data):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
     callbacks.append(meta_handler)
-    result = _dsl.dsl_demuxer_batch_meta_handler_add(name, meta_handler, user_data)
+    result = _dsl.dsl_tee_batch_meta_handler_add(name, meta_handler, user_data)
     return int(result)
 
 ##
-## dsl_demuxer_batch_meta_handler_remove()
+## dsl_tee_batch_meta_handler_remove()
 ##
-_dsl.dsl_demuxer_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_demuxer_batch_meta_handler_remove.restype = c_uint
-def dsl_demuxer_batch_meta_handler_remove(name, handler):
+_dsl.dsl_tee_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_batch_meta_handler_remove.restype = c_uint
+def dsl_tee_batch_meta_handler_remove(name, handler):
     global _dsl
     meta_handler = DSL_META_BATCH_HANDLER(handler)
-    result = _dsl.dsl_demuxer_batch_meta_handler_remove(name, meta_handler)
+    result = _dsl.dsl_tee_batch_meta_handler_remove(name, meta_handler)
     return int(result)
 
 ##
@@ -639,6 +678,16 @@ _dsl.dsl_tiler_batch_meta_handler_remove.restype = c_uint
 def dsl_tiler_batch_meta_handler_remove(name, pad):
     global _dsl
     result = _dsl.dsl_tiler_batch_meta_handler_remove(name, pad)
+    return int(result)
+
+##
+## dsl_sink_fake_new()
+##
+_dsl.dsl_sink_fake_new.argtypes = [c_wchar_p]
+_dsl.dsl_sink_fake_new.restype = c_uint
+def dsl_sink_fake_new(name):
+    global _dsl
+    result =_dsl.dsl_sink_fake_new(name)
     return int(result)
 
 ##
@@ -851,6 +900,83 @@ def dsl_component_gpuid_set_many(components, gpuid):
     return int(result)
 
 ##
+## dsl_branch_new()
+##
+_dsl.dsl_branch_new.argtypes = [c_wchar_p]
+_dsl.dsl_branch_new.restype = c_uint
+def dsl_branch_new(name):
+    global _dsl
+    result =_dsl.dsl_branch_new(name)
+    return int(result)
+
+##
+## dsl_branch_new_many()
+##
+#_dsl.dsl_branch_new_many.argtypes = []
+_dsl.dsl_branch_new_many.restype = c_uint
+def dsl_branch_new_many(branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_branch_new_many(arr)
+    return int(result)
+
+##
+## dsl_branch_new_component_add_many()
+##
+_dsl.dsl_branch_new_component_add_many.restype = c_uint
+def dsl_branch_new_component_add_many(branch, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_branch_new_component_add_many(branch, arr)
+    return int(result)
+
+##
+## dsl_branch_component_add()
+##
+_dsl.dsl_branch_component_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_branch_component_add.restype = c_uint
+def dsl_branch_component_add(branch, component):
+    global _dsl
+    result =_dsl.dsl_branch_component_add(branch, component)
+    return int(result)
+
+##
+## dsl_branch_component_add_many()
+##
+#_dsl.dsl_branch_component_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_branch_component_add_many.restype = c_uint
+def dsl_branch_component_add_many(branch, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_branch_component_add_many(branch, arr)
+    return int(result)
+
+##
+## dsl_branch_component_remove()
+##
+_dsl.dsl_branch_component_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_branch_component_remove.restype = c_uint
+def dsl_branch_component_remove(branch, component):
+    global _dsl
+    result =_dsl.dsl_branch_component_remove(branch, component)
+    return int(result)
+
+##
+## dsl_branch_component_remove_many()
+##
+#_dsl.dsl_branch_component_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_branch_component_remove_many.restype = c_uint
+def dsl_branch_component_remove_many(branch, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_branch_component_remove_many(branch, arr)
+    return int(result)
+
+##
 ## dsl_pipeline_new()
 ##
 _dsl.dsl_pipeline_new.argtypes = [c_wchar_p]
@@ -870,6 +996,18 @@ def dsl_pipeline_new_many(pipelines):
     arr = (c_wchar_p * len(pipelines))()
     arr[:] = pipelines
     result =_dsl.dsl_pipeline_new_many(arr)
+    return int(result)
+
+##
+## dsl_pipeline_new_component_add_many()
+##
+#_dsl.dsl_pipeline_new_component_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_new_component_add_many.restype = c_uint
+def dsl_pipeline_new_component_add_many(pipeline, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_pipeline_new_component_add_many(pipeline, arr)
     return int(result)
 
 ##
@@ -942,6 +1080,18 @@ _dsl.dsl_pipeline_component_remove.restype = c_uint
 def dsl_pipeline_component_remove(pipeline, component):
     global _dsl
     result =_dsl.dsl_pipeline_component_remove(pipeline, component)
+    return int(result)
+
+##
+## dsl_pipeline_component_remove_many()
+##
+#_dsl.dsl_pipeline_component_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_component_remove_many.restype = c_uint
+def dsl_pipeline_component_remove_many(pipeline, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_pipeline_component_remove_many(pipeline, arr)
     return int(result)
 
 ##

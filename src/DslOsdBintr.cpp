@@ -176,12 +176,12 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
-    bool OsdBintr::AddToParent(DSL_NODETR_PTR pPipelineBintr)
+    bool OsdBintr::AddToParent(DSL_NODETR_PTR pBranchBintr)
     {
         LOG_FUNC();
         
         // add 'this' OSD to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pPipelineBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
             AddOsdBintr(shared_from_this());
     }
 

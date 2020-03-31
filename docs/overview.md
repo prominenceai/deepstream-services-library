@@ -2,12 +2,13 @@
 ### Overview Contents
 * [Introduction](#introduction)
 * [Pipeline Components](#pipeline-components)
-* [Streaming Sources](#streaming-sources)
-* [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
-* [Multi-Object Trackers](#multi-object-trackers)
-* [On-Screen Display](#on-screen-display)
-* [Multi-Source Tiler](#multi-source-tiler)
-* [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
+  * [Streaming Sources](#streaming-sources)
+  * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
+  * [Multi-Object Trackers](#multi-object-trackers)
+  * [On-Screen Display](#on-screen-display)
+  * [Multi-Source Tiler](#multi-source-tiler)
+  * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
+  * [Pipeline Tees and Branches](#tees-and-branches)
 * [DSL Initialization](#dsl-initialization)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
@@ -135,13 +136,10 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
-## Multi-Source Tiler and Demuxer
-To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal stream-muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before linking to one or more components downstream.
+## Multi-Source Tiler
+To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching any Sink component downstream.
 
-See the [Multi-Source Tiler and Demuxer API](/docs/api-tiler.md) reference section for additional information.
-
-### Multi-Source Tiler
-Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline to operate on the Tiler's single output stream.
+Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
 # assumes all components have been created first
 retval = dsl_pipeline_component_add_many('my-pipeline', 
@@ -151,24 +149,7 @@ Tilers have dimensions, width and height in pixels, and rows and columns setting
 
 Clients of Tiler components can add/remove `batch-meta-handler` callback functions, [see below](#batch-meta-handler-callback-functions)
 
-### Multi-Source Demuxer
-Demuxers demultiplex the multiplexed source streams back into individual output streams. When using a Demuxer, each output stream -- one for each input Source -- can connect to a unique On-Screen-Display (OSD) and requires one or more Sinks. To identify the unique Source to OSD and Sink relationships, each of the optional OSD and Sink components are added to their Source components directly, and with the Sources added to the Pipeline along with the Demuxer.
-```Python
-# assumes all components have been created first
-# return values would normally be checked for each...
-
-# setup src-1 with its own OSD and Overlay Sink
-retval = dsl_source_osd_add('src-1', 'osd')
-retval = dsl_source_sink_add('src-1', 'overlay-sink1')
-
-# setup src-2 with two Sinks - Overlay and RTSP, no OSD
-retval = dsl_source_sink_add('src-2', 'overlay-sink2)
-retval = dsl_source_sink_add('src-2', 'rtsp-sink')
-
-# add Sources, Primary GIE, and Demuxer components to the Pipeline
-retval = dsl_pipeline_component_add_many('my-pipeline',
-    ['src-1', 'src-2', 'pgie', 'demuxer', None])
-```
+See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
 On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
@@ -201,6 +182,136 @@ rtsp://my-jetson.local:8554/my-rtsp-sink
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
 <br>
+
+## Tees and Branches
+There are two types of Tees that can be added to a Pipeline; Demuxers and Splitters.
+1. **Demuxer** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
+2. **Splitter** split the stream, batched or otherwise, into multiple duplicate streams. 
+
+Branches connect to the downstream/output pads of the Tee, either as a single component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. 
+
+Important Notes: 
+* Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
+* Branches ***can*** be added and removed from a Tee while a Pipeline is in a state of `Playing`, but the Tee must always have one. A [Fake Sink](/docs/api-sink.md) can be used as a Fake Branch when required.
+* Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
+
+The following example illustrates how a **Pipeline** is assembled with a **Splitter**, **Demuxer**, **Tiler**, and **Branch** components. 
+
+![Tees and Branches](/Images/tees-and-branches.png)
+
+#### Building the Pipeline Example above, 
+
+The first step is to create the two RTMP Sources - and the two File Sinks that will be used to stream the original video to file.
+
+![Sources and File Sinks](/Images/sources-and-file-sinks.png)
+
+```Python
+# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
+
+# Create two live RTSP Sources
+
+retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+retval = dsl_source_rtsp_new('src-2', rtsp_uri_2, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+
+# Create two File Sinks for Branch 2, one for each source
+
+retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+```
+
+Next, create all components for **Branch 1**
+
+```Python
+
+# Create a Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL Window Sink
+
+retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
+retval = dsl_tracker_ktl_new('tracker', 480, 270)
+retval = dsl_tiler_new('tiler', 1280, 720)
+retval = dsl_osd_new('osd', True)
+retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+```
+
+**Branch 1**, with its multiple children, requires an explicit Branch component to manage and synchronize the child components when the Pipeline changes states. Create the branch and add the components as shown below.
+
+![branch-1 with PGIE, Tracker, Tiler, OSD, Window](/Images/branch-1-with-pgie-tracker-tiler-osd-window.png)
+
+```Python
+# create a branch component for 'branch-1' and add all child components. 
+
+retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+```
+
+**Branch 2**, with its single multi-source **Demuxer Tee** *does not* require an explicit Branch, nor do **Branches 3 and 4** consisting of a single File Sink each. 
+
+Note: adding multiple sinks to a single branch requires a Branch component to contain them.
+
+The relationship of Demuxer-output-Branch to the upstream Source component is set by the order of addition. The first Branch added to the Demuxer is linked from the first upstream Source added to the Pipeline - a one-to-one relationship. 
+
+![branch with demuxer and sinks](/Images/branch-2-3-4.png)
+
+```Python
+# create a new Demuxer to de-multiplex the batched source streams and add the 
+# two File Sinks as Branches for the Tee.
+
+retval = dsl_tee_demuxer_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+```
+
+The **Splitter Tee** is used to split/duplicate the batched stream into multiple branches for separate processing.
+
+![Splitter with Branches 1 and 2](/Images/splitter-branch-1-branch-2.png)
+
+```Python
+# Create a new splitter and add 'branch-1` and the 'demexer' as Branch 2
+
+retval = dsl_tee_splitter_new_branch_add_many('splitter', ['branch-1', 'demuxer', None])
+```
+
+Complete the assembly by creating the **Pipeline** and adding the two RTSP sources and Splitter
+
+```Python
+# finally, add the sources and splitter-tee to the pipeline
+
+retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+
+# ready to play ...
+
+```
+
+### All combined, the example is written as.
+
+```Python
+# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
+
+# Create two live RTSP Sources
+retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+retval = dsl_source_rtsp_new('src-2', rtsp_uri_2, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+
+# Create two File Sinks, one for each source
+retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+
+# Create the Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL File Sink
+retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
+retval = dsl_tracker_ktl_new('tracker', 480, 270)
+retval = dsl_tiler_new('tiler', 1280, 720)
+retval = dsl_osd_new('osd', True)
+retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+
+# Create a branch component for 'branch-1' and add all child components. 
+retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+
+# create a new Demuxer to de-multiplex the batched source streams and add the 
+# two File Sinks as Branches for the Tee.
+retval = dsl_tee_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+
+# finally, add the sources and splitter-tee to the pipeline
+retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+```
+
+See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for more information. 
+
+---
 
 ## DSL Initialization
 The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time, unless the calling application has already done so. 
@@ -413,11 +524,13 @@ dsl_component_delete_all()
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIE](/docs/api-gie)
+* [Primary and Secondary GIEs](/docs/api-gie)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Tiler and Demuxer](/docs/api-tiler.md)
+* [Tiler](/docs/api-tiler.md)
+* [Demuxer and Splitter Tees](/docs/api-tee)
 * [Sink](docs/api-sink.md)
+* [Branch](docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
 --- 

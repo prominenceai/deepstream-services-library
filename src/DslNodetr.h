@@ -181,6 +181,7 @@ namespace DSL
         /**
          * @brief Links this Noder, becoming a source, to a sink Nodre
          * @param[in] pSink Sink Nodre to link this Source Nodre to
+         * @return True if this source Nodetr is successfully linked to the provided sink Nodetr
          */
         virtual bool LinkToSink(DSL_NODETR_PTR pSink)
         {
@@ -192,7 +193,6 @@ namespace DSL
                 return false;
             }
             m_pSink = pSink;
-//            pSink->m_pSource = shared_from_this();   
             LOG_DEBUG("Source '" << GetName() << "' linked to Sink '" << pSink->GetName() << "'");
             
             return true;
@@ -200,6 +200,7 @@ namespace DSL
         
         /**
          * @brief Unlinks this Source Nodetr from its Sink Nodetr
+         * @return True if this source Nodetr is successfully unlinked the sink Nodetr
          */
         virtual bool UnlinkFromSink()
         {
@@ -211,7 +212,6 @@ namespace DSL
                 return false;
             }
             LOG_DEBUG("Unlinking Source '" << GetName() <<"' from Sink '" << m_pSink->GetName() << "'");
-//            m_pSink->m_pSource = nullptr;
             m_pSink = nullptr; 
 
             return true;
@@ -231,7 +231,6 @@ namespace DSL
                 return false;
             }
             m_pSource = pSource;
-//            pSink->m_pSource = shared_from_this();   
             LOG_DEBUG("Source '" << pSource->GetName() << "' linked to Sink '" << GetName() << "'");
             
             return true;
@@ -250,7 +249,6 @@ namespace DSL
                 return false;
             }
             LOG_DEBUG("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
-//            m_pSource->m_pSink = nullptr;
             m_pSource = nullptr;
             
             return true;
@@ -499,7 +497,7 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
+                LOG_DEBUG("Removing Child '" << imap.second->GetName() << "' from Parent '" << GetName() <<"'");
                 
                 // Increase the reference count so the child is not destroyed.
                 gst_object_ref(imap.second->GetGstElement());

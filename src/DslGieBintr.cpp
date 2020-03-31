@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslGieBintr.h"
-#include "DslPipelineBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
@@ -32,7 +32,6 @@ namespace DSL
         const char* inferConfigFile, const char* modelEngineFile)
         : Bintr(name)
         , m_processMode(processMode)
-        , m_batchSize(0)
         , m_interval(0)
         , m_uniqueId(CreateUniqueIdFromName(name))
         , m_inferConfigFile(inferConfigFile)
@@ -49,9 +48,6 @@ namespace DSL
             throw;
         }        
         // generate a unique Id for the GIE based on its unique name
-        
-        
-        // unique element name 
         std::string gieName = "gie-" + GetName();
         
         LOG_INFO("Creating GIE  '" << gieName << "' with unique Id = " << m_uniqueId);
@@ -145,16 +141,8 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
-        m_batchSize = batchSize;
-        m_pInferEngine->SetAttribute("batch-size", m_batchSize);
-        return true;
-    }
-    
-    uint GieBintr::GetBatchSize()
-    {
-        LOG_FUNC();
-        
-        return m_batchSize;
+        m_pInferEngine->SetAttribute("batch-size", batchSize);
+        return Bintr::SetBatchSize(batchSize);
     }
 
     bool GieBintr::SetInterval(uint interval)
@@ -359,7 +347,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddPrimaryGieBintr(shared_from_this());
     }
 
@@ -470,7 +458,7 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GIE to the Parent Pipeline 
-        return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSecondaryGieBintr(shared_from_this());
     }
     
@@ -499,7 +487,6 @@ namespace DSL
             return false;
             
         }
-        LOG_WARN(name);
         m_inferOnGieName.assign(name);
         m_inferOnGieUniqueId = CreateUniqueIdFromName(name);
         

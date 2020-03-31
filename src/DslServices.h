@@ -64,14 +64,6 @@ namespace DSL {
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
-        
-        DslReturnType SourceOsdAdd(const char* name, const char* osd);
-    
-        DslReturnType SourceOsdRemove(const char* name);
-
-        DslReturnType SourceSinkAdd(const char* name, const char* sink);
-    
-        DslReturnType SourceSinkRemove(const char* name, const char* sink);
 
         DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
 
@@ -136,11 +128,21 @@ namespace DSL {
         
         DslReturnType TrackerKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
 
-        DslReturnType DemuxerNew(const char* name);
+        DslReturnType TeeDemuxerNew(const char* name);
         
-        DslReturnType DemuxerBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TeeSplitterNew(const char* name);
+        
+        DslReturnType TeeBranchAdd(const char* demuer, const char* branch);
 
-        DslReturnType DemuxerBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
+        DslReturnType TeeBranchRemove(const char* demuxer, const char* branch);
+        
+        DslReturnType TeeBranchRemoveAll(const char* demuxer);
+
+        DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
+
+        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+
+        DslReturnType TeeBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
         
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
@@ -229,6 +231,12 @@ namespace DSL {
         
         DslReturnType ComponentGpuIdSet(const char* component, uint gpuid);
         
+        DslReturnType BranchNew(const char* name);
+        
+        DslReturnType BranchComponentAdd(const char* branch, const char* component);
+
+        DslReturnType BranchComponentRemove(const char* branch, const char* component);
+
         DslReturnType PipelineNew(const char* pipeline);
         
         DslReturnType PipelineDelete(const char* pipeline);
