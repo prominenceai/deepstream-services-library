@@ -137,7 +137,7 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
 ## Multi-Source Tiler
-To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching Sink any components downstream.
+To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching any Sink component downstream.
 
 Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
@@ -188,9 +188,12 @@ There are two types of Tees that can be added to a Pipeline; Demuxers and Splitt
 1. **Demuxer Tees** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
 2. **Splitter Tees** split the stream, batched or otherwise, into multiple duplicate streams. 
 
-Branches connect to the downstream/output pads of the Tee, either as a single end component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
+Branches connect to the downstream/output pads of the Tee, either as a single component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. 
 
-Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
+Important Notes: 
+* Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
+* Branches ***can*** be added and removed from a Tee while a Pipeline is in a state of `Playing`, but the Tee must always have one. A [Fake Sink](/docs/api-sink.md) can be used as a Fake Branch when required.
+* Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
 
 The following example illustrates how a **Pipeline** is assembled with a **Splitter**, **Demuxer**, **Tiler**, and **Branch** components. 
 
@@ -236,8 +239,7 @@ retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
 ```Python
 # create a branch component for 'branch-1' and add all child components. 
 
-retval = dsl_branch_new('branch-1')
-retval = dsl_branch_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
 ```
 
 **Branch 2**, with its single multi-source **Demuxer Tee** *does not* require an explicit Branch, nor do **Branches 3 and 4** each with a single File Sink. 
@@ -252,8 +254,7 @@ The relationship of Demuxer-output-Branch to the upstream Source component is se
 # create a new Demuxer to de-multiplex the batched source streams and add the 
 # two File Sinks as Branches for the Tee.
 
-retval = dsl_tee_demuxer_new('demuxer')
-retval = dsl_tee_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+retval = dsl_tee_demuxer_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
 ```
 
 The **Splitter Tee** is used to split/duplicate the batched stream into multiple branches for separate processing.
@@ -263,8 +264,7 @@ The **Splitter Tee** is used to split/duplicate the batched stream into multiple
 ```Python
 # Create a new splitter and add 'branch-1` and the 'demexer' as Branch 2
 
-retval = dsl_tee_splitter_new('splitter')
-retval = dsl_tee_branch_add_many('splitter', ['branch-1', 'demuxer', None])
+retval = dsl_tee_splitter_new_branch_add_many('splitter', ['branch-1', 'demuxer', None])
 ```
 
 Complete the assembly by creating the **Pipeline** and adding the two RTSP sources and Splitter
@@ -272,10 +272,10 @@ Complete the assembly by creating the **Pipeline** and adding the two RTSP sourc
 ```Python
 # finally, add the sources and splitter-tee to the pipeline
 
-retval = dsl_pipeline_new('pipeline')
-retval = dsl_pipeline_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
 
 # ready to play ...
+
 ```
 
 ### All combined, the example is written as.
@@ -299,20 +299,17 @@ retval = dsl_osd_new('osd', True)
 retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
 
 # Create a branch component for 'branch-1' and add all child components. 
-retval = dsl_branch_new('branch-1')
-retval = dsl_branch_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
 
 # create a new Demuxer to de-multiplex the batched source streams and add the 
 # two File Sinks as Branches for the Tee.
-retval = dsl_tee_demuxer_new('demuxer')
-retval = dsl_tee_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+retval = dsl_tee_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
 
 # finally, add the sources and splitter-tee to the pipeline
-retval = dsl_pipeline_new('pipeline')
-retval = dsl_pipeline_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
 ```
 
-A complete example with dynamic, inference driven start/stop control over the streaming to file can found under the [Python Examples](/docs/examples-python.md)
+See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for more information. 
 
 ---
 
