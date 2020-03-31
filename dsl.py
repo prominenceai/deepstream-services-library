@@ -547,6 +547,18 @@ def dsl_tee_demuxer_new(name):
     return int(result)
 
 ##
+## dsl_tee_demuxer_new_branch_add_many()
+##
+#_dsl.dsl_tee_demuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_demuxer_new_branch_add_many.restype = c_uint
+def dsl_tee_demuxer_new_branch_add_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_demuxer_new_branch_add_many(tee, arr)
+    return int(result)
+
+##
 ## dsl_tee_splitter_new()
 ##
 _dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]
@@ -555,7 +567,20 @@ def dsl_tee_splitter_new(name):
     global _dsl
     result =_dsl.dsl_tee_splitter_new(name)
     return int(result)
-    
+
+##
+## dsl_tee_splitter_new_branch_add_many()
+##
+#_dsl.dsl_tee_splitter_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_splitter_new_branch_add_many.restype = c_uint
+def dsl_tee_splitter_new_branch_add_many(tee, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_splitter_new_branch_add_many(tee, arr)
+    return int(result)
+
+
 ##
 ## dsl_tee_branch_add()
 ##
@@ -897,6 +922,17 @@ def dsl_branch_new_many(branches):
     return int(result)
 
 ##
+## dsl_branch_new_component_add_many()
+##
+_dsl.dsl_branch_new_component_add_many.restype = c_uint
+def dsl_branch_new_component_add_many(branch, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_branch_new_component_add_many(branch, arr)
+    return int(result)
+
+##
 ## dsl_branch_component_add()
 ##
 _dsl.dsl_branch_component_add.argtypes = [c_wchar_p, c_wchar_p]
@@ -960,6 +996,18 @@ def dsl_pipeline_new_many(pipelines):
     arr = (c_wchar_p * len(pipelines))()
     arr[:] = pipelines
     result =_dsl.dsl_pipeline_new_many(arr)
+    return int(result)
+
+##
+## dsl_pipeline_new_component_add_many()
+##
+#_dsl.dsl_pipeline_new_component_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_new_component_add_many.restype = c_uint
+def dsl_pipeline_new_component_add_many(pipeline, components):
+    global _dsl
+    arr = (c_wchar_p * len(components))()
+    arr[:] = components
+    result =_dsl.dsl_pipeline_new_component_add_many(pipeline, arr)
     return int(result)
 
 ##

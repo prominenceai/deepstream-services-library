@@ -102,7 +102,6 @@ namespace DSL
         if (!m_pPipelineSourcesBintr)
         {
             m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
-            m_pPipelineSourcesBintr->SetStreamMuxBatchProperties(m_batchSize, m_batchTimeout);
             AddChild(m_pPipelineSourcesBintr);
         }
 

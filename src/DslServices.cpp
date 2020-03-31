@@ -535,12 +535,60 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name)
     return DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str());
 }
 
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* tee, const wchar_t** branches)
+{
+    std::wstring wstrTee(tee);
+    std::string cstrTee(wstrTee.begin(), wstrTee.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->TeeDemuxerNew(cstrTee.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrTee.c_str(), cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_tee_splitter_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->TeeSplitterNew(cstrName.c_str());
+}
+
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* tee, const wchar_t** branches)
+{
+    std::wstring wstrTee(tee);
+    std::string cstrTee(wstrTee.begin(), wstrTee.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->TeeSplitterNew(cstrTee.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrTee.c_str(), cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_tee_branch_add(const wchar_t* tee, const wchar_t* branch)
@@ -891,6 +939,31 @@ DslReturnType dsl_branch_new(const wchar_t* branch)
     return DSL::Services::GetServices()->BranchNew(cstrName.c_str());
 }
 
+DslReturnType dsl_branch_new_component_add_many(const wchar_t* branch, 
+    const wchar_t** components)
+{
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->BranchNew(cstrBranch.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        retval = DSL::Services::GetServices()->BranchComponentAdd(cstrBranch.c_str(), cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_branch_new_many(const wchar_t** names)
 {
     for (const wchar_t** name = names; *name; name++)
@@ -973,6 +1046,30 @@ DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+}
+
+DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
+    const wchar_t** components)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    
+    DslReturnType retval = DSL::Services::GetServices()->PipelineNew(cstrPipeline.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+    for (const wchar_t** component = components; *component; component++)
+    {
+        std::wstring wstrComponent(*component);
+        std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
+        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentAdd(cstrPipeline.c_str(), cstrComponent.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
@@ -1406,6 +1503,22 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     { \
         LOG_ERROR("Component '" << name << "' is not a Tee"); \
         return DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(BranchBintr)) and \
+        !components[name]->IsType(typeid(DemuxerBintr)) and \
+        !components[name]->IsType(typeid(BranchBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Branch type"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
     } \
 }while(0); 
 
@@ -2632,12 +2745,8 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tee);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
             RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, tee);
-
-            // Ensure branch is SinkBintr or BranchBintr
-            if (!IsSinkComponent(branch))
-            {
-                RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, branch, BranchBintr);
-            }
+            RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+            
             // Can't add components if they're In use by another Branch
             if (m_components[branch]->IsInUse())
             {

@@ -93,12 +93,17 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 1)
+        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
         retval = dsl_tiler_new('tiler', 1280, 720)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New KTL Tracker, setting max width and height of input frame
+        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -112,20 +117,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
-            ['uri-source-1' , 'primary-gie', 'tiler', 'on-screen-display', 'window-sink', None])
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source-1' , 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         cur_source_count = 1
 
         ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
-
         # will use the current number of Sources when set to Playing, which would be 1 and too small
         retval = dsl_pipeline_streammux_batch_properties_set('pipeline', MAX_SOURCE_COUNT, 4000000)
         if retval != DSL_RETURN_SUCCESS:

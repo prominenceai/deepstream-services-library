@@ -143,13 +143,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', ['uri-source', 'pgie', 'ktl-tracker', 
+        retval = dsl_pipeline_new_component_add_many('pipeline', ['uri-source', 'pgie', 'ktl-tracker', 
             'carcolor-sgie', 'carmake-sgie', 'vehicletype-sgie', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -183,7 +178,6 @@ def main(args):
         print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
-    dsl_source_decode_dewarper_remove('uri-source')
     dsl_component_delete_all()
 
 if __name__ == '__main__':

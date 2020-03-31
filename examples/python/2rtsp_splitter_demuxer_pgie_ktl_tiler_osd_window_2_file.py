@@ -54,23 +54,20 @@ def main(args):
     while True:
 
         # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        retval = dsl_source_uri_new('source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        retval = dsl_source_uri_new('source-2', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink-1', "./source-1.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_sink_file_new('file-sink-2', "./source-2.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, and bit-rate and frame interval
+        retval = dsl_sink_file_new('file-sink', "./2-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 0)
+        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -80,7 +77,11 @@ def main(args):
             break
 
         # New Tiler with dimensions for two tiles - for the two sources
-        retval = dsl_tiler_new('tiler', 1440, 360)
+        retval = dsl_tiler_new('tiler2', 1440, 360)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_tiler_new('tiler2', 1440, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -99,7 +100,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_branch_component_add_many('branch1', ['primary-gie', 'tracker', 'on-screen-display', 'window-sink', None])
+        retval = dsl_branch_component_add_many('branch1', ['primary-gie', 'tracker', 'tiler1', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -119,7 +120,7 @@ def main(args):
             break
 
         # Add Branch1 and the demuxer (as branch2) to the splitter
-        retVal = dsl_tee_branch_add_many('splitter', ['file-sink-1', 'file-sink-2', None])
+        retVal = dsl_tee_branch_add_many('splitter', ['branch1', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -151,7 +152,7 @@ def main(args):
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
-
+        
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 

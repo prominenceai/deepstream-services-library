@@ -82,26 +82,18 @@ def main(args):
             break
 
         # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new('branch1')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_branch_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Demuxer Tee- 
-        retval = dsl_tee_demuxer_new('demuxer')
+        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add Branch1 and the overlay-sink as Branch2
-        retVal = dsl_tee_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
+        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
+        # Add the sources the components to our pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -114,12 +106,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the sources the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
-            ['uri-source-1', 'uri-source-2', 'primary-gie', 'demuxer', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:

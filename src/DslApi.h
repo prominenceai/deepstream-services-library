@@ -788,11 +788,28 @@ DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enab
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
 
 /**
+ * @brief Creates a new Demuxer Tee and adds a list of Branches
+ * @param[in] tee name of the Tee to create
+ * @param[in] branches NULL terminated array of Branch names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
+
+
+/**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
  * @param name unique name for the new Stream Splitter Tee
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
+
+/**
+ * @brief Creates a new Demuxer Tee and adds a list of Branches
+ * @param[in] tee name of the Tee to create
+ * @param[in] branches NULL terminated array of Branch names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
@@ -1139,6 +1156,15 @@ DslReturnType dsl_branch_new(const wchar_t* name);
 DslReturnType dsl_branch_new_many(const wchar_t** names);
 
 /**
+ * @brief creates a new branch and adds a list of components
+ * @param[in] name name of the Branch to create and populate
+ * @param[in] components NULL terminated array of component names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
+ */
+DslReturnType dsl_branch_new_component_add_many(const wchar_t* branch, 
+    const wchar_t** components);
+
+/**
  * @brief adds a single components to a Branch 
  * @param[in] branch name of the branch to update
  * @param[in] component component names to add
@@ -1187,6 +1213,16 @@ DslReturnType dsl_pipeline_new(const wchar_t* pipeline);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
+
+/**
+ * @brief creates a new Pipeline and adds a list of components
+ * @param[in] name name of the pipeline to update
+ * @param[in] components NULL terminated array of component names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
+    const wchar_t** components);
+
 
 /**
  * @brief deletes a Pipeline object by name.

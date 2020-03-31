@@ -64,32 +64,20 @@ def main(args):
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
 
-        # New demuxer to demultiplex the batched stream from the Pipeline's streammuxer
-        retval = dsl_tee_demuxer_new('demuxer')
+        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'overlay-sink', 'rtsp-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New branch - will be added to the demuxer
-        retval = dsl_branch_new('branch1')
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        # NOTE: there's only one Branch with one Source, 0ne-to-one relationship when using Demuxer Tees
+        # You can avoid the need to create a branch by using a Tiler instead of Demuxer, when only using one source.
         
-        retval = dsl_branch_component_add_many('branch1', ['on-screen-display', 'overlay-sink', 'rtsp-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Add the branch to the demuxer
-        retval = dsl_tee_branch_add('demuxer', 'branch1')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
+        # New demuxer to demultiplex the batched stream from the Pipeline's streammuxer
+        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', ['csi-source', 'primary-gie', 'demuxer', None])
+        retval = dsl_pipeline_new_component_add_many('pipeline', ['csi-source', 'primary-gie', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

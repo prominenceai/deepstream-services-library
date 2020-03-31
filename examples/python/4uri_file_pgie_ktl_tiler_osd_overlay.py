@@ -57,6 +57,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New KTL Tracker, setting max width and height of input frame
+        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 272)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Tiler, setting width and height, use default cols/rows set by source count
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
@@ -72,8 +77,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('simple-pipeline')
+        # Add all the components to our pipeline
+        retval = dsl_pipeline_new_component_add_many('simple-pipeline', 
+            ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
+            'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -82,13 +89,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('simple-pipeline', 
-            ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
-            'primary-gie', 'tiler', 'on-screen-display', 'overlay-sink', None])
-
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # Play the pipeline
         retval = dsl_pipeline_play('simple-pipeline')

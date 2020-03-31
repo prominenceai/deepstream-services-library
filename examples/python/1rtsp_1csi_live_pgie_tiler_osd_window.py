@@ -34,7 +34,7 @@ rtsp_uri = 'rtsp://raspberrypi.local:8554/'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
 
 ## 
 # Function to be called on XWindow Delete event
@@ -78,13 +78,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['rtsp-source', 'csi-source', 'primary-gie', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
