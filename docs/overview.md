@@ -185,8 +185,8 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 
 ## Tees and Branches
 There are two types of Tees that can be added to a Pipeline; Demuxers and Splitters.
-1. **Demuxer Tees** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
-2. **Splitter Tees** split the stream, batched or otherwise, into multiple duplicate streams. 
+1. **Demuxer** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
+2. **Splitter** split the stream, batched or otherwise, into multiple duplicate streams. 
 
 Branches connect to the downstream/output pads of the Tee, either as a single component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. 
 
