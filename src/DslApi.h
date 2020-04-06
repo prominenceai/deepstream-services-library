@@ -129,6 +129,22 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 
 /**
+ * OFV API Return Values
+ */
+#define DSL_RESULT_OFV_RESULT                                       0x000C0000
+#define DSL_RESULT_OFV_NAME_NOT_UNIQUE                              0x000C0001
+#define DSL_RESULT_OFV_NAME_NOT_FOUND                               0x000C0002
+#define DSL_RESULT_OFV_NAME_BAD_FORMAT                              0x000C0003
+#define DSL_RESULT_OFV_THREW_EXCEPTION                              0x000C0004
+#define DSL_RESULT_OFV_MAX_DIMENSIONS_INVALID                       0x000C0005
+#define DSL_RESULT_OFV_IS_IN_USE                                    0x000C0006
+#define DSL_RESULT_OFV_SET_FAILED                                   0x000C0007
+#define DSL_RESULT_OFV_HANDLER_ADD_FAILED                           0x000C0008
+#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C0009
+#define DSL_RESULT_OFV_PAD_TYPE_INVALID                             0x000C000A
+#define DSL_RESULT_OFV_COMPONENT_IS_NOT_OFV                         0x000C000B
+
+/**
  * GIE API Return Values
  */
 #define DSL_RESULT_GIE_RESULT                                       0x00060000
@@ -649,8 +665,15 @@ DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t
 DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
+ * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj
+ * @param[in] name unique name for the new OFV
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OFD_RESULT otherwise
+ */
+DslReturnType dsl_ofv_new(const wchar_t* name);
+
+/**
  * @brief creates a new, uniquely named OSD obj
- * @param[in] name unique name for the new Sink
+ * @param[in] name unique name for the new OSD
  * @param[in] is_clock_enabled true if clock is visible
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */

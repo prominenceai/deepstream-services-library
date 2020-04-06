@@ -99,6 +99,20 @@ namespace DSL
         return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
     }
 
+    bool BranchBintr::AddOfvBintr(DSL_NODETR_PTR pOfvBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pOfvBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has an Optical Flow Visualizer ");
+            return false;
+        }
+        m_pOfvBintr = std::dynamic_pointer_cast<OfvBintr>(pOfvBintr);
+        
+        return AddChild(m_pOfvBintr);
+    }
+
     bool BranchBintr::AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr)
     {
         LOG_FUNC();
@@ -280,6 +294,20 @@ namespace DSL
             m_linkedComponents.push_back(m_pSecondaryGiesBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up all Secondary GIEs '" << 
                 m_pSecondaryGiesBintr->GetName() << "' successfully");
+        }
+
+        if (m_pOfvBintr)
+        {
+            // LinkAll Optical Flow Elementrs and add as the next component in the Branch
+            m_pOfvBintr->SetBatchSize(m_batchSize);
+            if (!m_pOfvBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pOfvBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Optical Flow Detector '" << 
+                m_pOfvBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer

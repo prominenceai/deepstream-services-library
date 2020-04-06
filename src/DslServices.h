@@ -158,6 +158,8 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
+        DslReturnType OfvNew(const char* name);
+
         DslReturnType OsdNew(const char* name, boolean clockEnabled);
         
         DslReturnType OsdClockEnabledGet(const char* name, boolean* enabled);

@@ -396,6 +396,14 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
     return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
     
+DslReturnType dsl_ofv_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OfvNew(cstrName.c_str());
+}
+
 DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled)
 {
     std::wstring wstrName(name);
@@ -3137,6 +3145,31 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType Services::OfvNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("OFV name '" << name << "' is not unique");
+            return DSL_RESULT_OFV_NAME_NOT_UNIQUE;
+        }
+        try
+        {   
+            m_components[name] = std::shared_ptr<Bintr>(new OfvBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New OFV '" << name << "' threw exception on create");
+            return DSL_RESULT_OFV_THREW_EXCEPTION;
+        }
+        LOG_INFO("new OFV '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
     {
         LOG_FUNC();
@@ -3156,7 +3189,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New OSD '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
         LOG_INFO("new OSD '" << name << "' created successfully");
 
