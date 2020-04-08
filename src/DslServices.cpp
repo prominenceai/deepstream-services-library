@@ -507,6 +507,40 @@ DslReturnType dsl_osd_crop_settings_set(const wchar_t* name,
     return DSL::Services::GetServices()->OsdCropSettingsSet(cstrName.c_str(), left, top, width, height);
 }
 
+DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int classId, 
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionClassAdd(cstrName.c_str(), classId, 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int classId)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionClassRemove(cstrName.c_str(), classId);
+}
+
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data)
 {
@@ -3478,7 +3512,117 @@ namespace DSL
         }
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::OsdRedactionEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            *enabled = osdBintr->GetRedactionEnabled();
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting Redaction enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdRedactionEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->SetRedactionEnabled(enabled))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Redaction enabled");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Redaction enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
     
+    DslReturnType Services::OsdRedactionClassAdd(const char* name, int classId, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (red > 1.0 or green > 1.0 or blue > 1.0 or alpha > 1.0)
+            {
+                LOG_ERROR("Invalid Redaction color param passed to OSD '" << name << "'");
+                return DSL_RESULT_OSD_COLOR_PARAM_INVALID;
+            }
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->AddRedactionClass(classId, red, green, blue, alpha))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to add Redaction Class");
+                return DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Redaction Class");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OsdRedactionClassRemove(const char* name, int classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->RemoveRedactionClass(classId))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to remove Redaction Class");
+                return DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Redaction Class");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
         dsl_batch_meta_handler_cb handler, void* user_data)
     {
@@ -4927,6 +5071,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_OSD_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_OSD_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_PAD_TYPE_INVALID] = L"DSL_RESULT_OSD_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD] = L"DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD";
+        m_returnValueToString[DSL_RESULT_OSD_COLOR_PARAM_INVALID] = L"DSL_RESULT_OSD_COLOR_PARAM_INVALID";
+        m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED] = L"DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED] = L"DSL_RESULT_OSD_REDACTION_CALSS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_GIE_RESULT] = L"DSL_RESULT_GIE_RESULT";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_UNIQUE] = L"DSL_RESULT_GIE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_FOUND] = L"DSL_RESULT_GIE_NAME_NOT_FOUND";

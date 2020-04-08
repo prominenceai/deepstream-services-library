@@ -182,6 +182,14 @@ namespace DSL {
 
         DslReturnType OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height);
 
+        DslReturnType OsdRedactionEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdRedactionEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OsdRedactionClassAdd(const char* name, int classId, double red, double blue, double green, double alpha);
+
+        DslReturnType OsdRedactionClassRemove(const char* name, int classId);
+
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);

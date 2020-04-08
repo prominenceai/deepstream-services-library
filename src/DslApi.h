@@ -127,6 +127,9 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
+#define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
+#define DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED                   0x0005000D
+#define DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED                0x0005000E
 
 /**
  * OFV API Return Values
@@ -683,7 +686,7 @@ DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
  * @brief returns the current clock enabled setting for the named On-Screen Display
  * @param[in] name name of the Display to query
  * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 
@@ -691,7 +694,7 @@ DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
  * @brief sets the the clock enabled setting for On-Screen-Display
  * @param[in] name name of the OSD to update
  * @param[in] enabled new enabled setting for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 
@@ -700,7 +703,7 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
  * @param[in] name name of the OSD to query
  * @param[out] offsetX current offset in the X direction for the OSD clock in pixels
  * @param[out] offsetY current offset in the Y direction for the OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY);
 
@@ -709,7 +712,7 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint
  * @param[in] name name of the OSD to update
  * @param[in] offsetX new offset for the OSD clock in the X direction in pixels
  * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
 
@@ -718,7 +721,7 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint 
  * @param[in] name name of the OSD to query
  * @param[out] font current font string for the OSD clocks
  * @param[out] size current font size for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
 
@@ -727,7 +730,7 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
  * @param[in] name name of the OSD to update
  * @param[in] font new font string to use for the OSD clocks
  * @param[in] size new size string to use for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
 
@@ -737,7 +740,7 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
  * @param[in] red current red color value for the OSD clocks
  * @param[in] gren current green color value for the OSD clocks
  * @param[in] blue current blue color value for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue);
 
@@ -747,7 +750,7 @@ DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* gree
  * @param[in] red new red color value for the OSD clocks
  * @param[in] gren new green color value for the OSD clocks
  * @param[in] blue new blue color value for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
 
@@ -758,20 +761,57 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green,
  * @param[out] top number of pixels to crop from the top
  * @param[out] width width of the cropped image in pixels
  * @param[out] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* top, uint* width, uint* height);
 
 /**
- * @brief gets the current crop settings for the named On-Screen-Display
+ * @brief Sets the current crop settings for the named On-Screen-Display
  * @param[in] name name of the OSD to query
  * @param[in] left number of pixels to crop from the left
  * @param[in] top number of pixels to crop from the top
  * @param[in] width width of the cropped image in pixels
  * @param[in] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
+
+/**
+ * @brief Gets the current state of the Redaction enabled setting
+ * @param[in] name name of the OSD to query
+ * @param[out] enabled true if Redaction is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current state of the Redaction enabled setting
+ * @param[in] name name of the OSD to update
+ * @param[in] enabled set to true to enable Redaction, false to disable
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Adds a new Redaction Class to a named OSD
+ * @param name unique name of the OSD to update
+ * @param class_id id of the Redaction Class to add
+ * @param red red value for the RGBA redaction box [1..0]
+ * @param green green value for the RGBA redaction box [1..0]
+ * @param blue blue value for the RGBA redaction box [1..0]
+ * @param alpha alpha value for the RGBA redaction box [1..0]
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int class_id, 
+    double red, double green, double blue, double alpha);
+    
+/**
+ * @brief Remove a new Redaction Class to a named OSD
+ * @param name unique name of the OSD to update
+ * @param class_id id of the Redaction Class to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int class_id);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
