@@ -54,7 +54,7 @@ namespace DSL
          * @param[in] name name to give the new OsdBintr
          * @param[in] isClockEnabled true if clock is to be displayed
          */
-        OsdBintr(const char* name, gboolean isClockEnabled);
+        OsdBintr(const char* name, boolean isClockEnabled);
 
         /**
          * @brief dtor for the OsdBintr class
@@ -191,11 +191,52 @@ namespace DSL
          * OsdBintrs current seetings.
          */
         void UpdateCropSetting();
+
+        /**
+         * @brief Gets the current state of the Redaction enabled flag
+         * @return true if Redaction is current enabled, false otherwise
+         */
+        bool GetRedactionEnabled();
+
+        /**
+         * @brief Sets the current state of the Redaction enabled flag
+         * @param[in] enabled true if OSD Redaction is to be enabled, false otherwise
+         */
+        bool SetRedactionEnabled(bool enabled);
         
+        /**
+         * @brief Adds a Redaction Class to the OsdBintr
+         * @param[in] classId of the Redaction Class to add 
+         * @param[in] red red level for the redaction background color [0..1]
+         * @param[in] blue blue level for the redaction background color [0..1]
+         * @param[in] green green level for the redaction background color [0..1]
+         * @param[in] alpha alpha level for the redaction background color [0..1]
+         * @return[in] true if the Redaction class could be added successfully, false otherwise
+         */
+        bool AddRedactionClass(int classId, double red, double blue, double green, double alpha);
+        
+        /**
+         * @brief removes a Redaction Class from this OsdBintr
+         * @param classId of the Redaction Class to remove
+         * @return 
+         */
+        bool RemoveRedactionClass(int classId);
+        
+
+        /**
+         * @brief Handler for performing the redaction service
+         * @param pBuffer Batch Meta buffer to process
+         * @return true allways 
+         */
+        bool HandleRedaction(GstBuffer* pBuffer);
 
     private:
 
         boolean m_isClockEnabled;
+        
+        bool m_isRedactionEnabled;
+        
+        std::map <int, std::shared_ptr<NvOSD_ColorParams>> m_redactionClasses;
         
         std::string m_clockFont;
         uint m_clockFontSize;
@@ -227,6 +268,14 @@ namespace DSL
         DSL_ELEMENT_PTR m_pOsd;
     
     };
+    
+    /**
+     * @brief Callback function of type dsl_batch_meta_handler_cb ot invoke OsdBintr::HandleRedaction
+     * @param batch_meta buffer to process and redact
+     * @param user_data instance of OsdBintr (this*) to invoke
+     * @return the result return from OsdBintr::HandleRedaction
+     */
+    static boolean RedactionBatchMetaHandler(void* batch_meta, void* user_data);
 }
 
 #endif // _DSL_OSD_BINTR_H

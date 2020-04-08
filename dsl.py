@@ -506,6 +506,58 @@ def dsl_osd_crop_settings_set(name, left, top, width, height):
     return int(result)
 
 ##
+## dsl_osd_redaction_enabled_get()
+##
+_dsl.dsl_osd_redaction_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_redaction_enabled_get.restype = c_uint
+def dsl_osd_redaction_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_redaction_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_redaction_enabled_set()
+##
+_dsl.dsl_osd_redaction_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_redaction_enabled_set.restype = c_uint
+def dsl_osd_redaction_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_osd_redaction_enabled_get()
+##
+_dsl.dsl_osd_redaction_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_redaction_enabled_get.restype = c_uint
+def dsl_osd_redaction_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_redaction_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_redaction_class_add()
+##
+_dsl.dsl_osd_redaction_class_add.argtypes = [c_wchar_p, c_int, c_double, c_double, c_double, c_double]
+_dsl.dsl_osd_redaction_class_add.restype = c_uint
+def dsl_osd_redaction_class_add(name, class_id, red, green, blue, alpha):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_class_add(name, class_id, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_osd_redaction_class_remove()
+##
+_dsl.dsl_osd_redaction_class_remove.argtypes = [c_wchar_p, c_int]
+_dsl.dsl_osd_redaction_class_remove.restype = c_uint
+def dsl_osd_redaction_class_remove(name, class_id):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_class_remove(name, class_id)
+    return int(result)
+
+##
 ## dsl_osd_batch_meta_handler_add()
 ##
 _dsl.dsl_osd_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
