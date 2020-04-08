@@ -174,9 +174,9 @@ namespace DSL {
 
         DslReturnType OsdClockFontSet(const char* name, const char* font, uint size);
 
-        DslReturnType OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue);
+        DslReturnType OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha);
 
-        DslReturnType OsdClockColorSet(const char* name, uint red, uint green, uint blue);
+        DslReturnType OsdClockColorSet(const char* name, double red, double green, double blue, double alpha);
 
         DslReturnType OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height);
 

@@ -693,13 +693,13 @@ DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 /**
  * @brief sets the the clock enabled setting for On-Screen-Display
  * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clocks
+ * @param[in] enabled new enabled setting for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief returns the current X and Y offsets for On-Screen-Display clocks
+ * @brief returns the current X and Y offsets for On-Screen-Display clock
  * @param[in] name name of the OSD to query
  * @param[out] offsetX current offset in the X direction for the OSD clock in pixels
  * @param[out] offsetY current offset in the Y direction for the OSD clock in pixels
@@ -708,7 +708,7 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY);
 
 /**
- * @brief sets the X and Y offsets for the On-Screen-Display clocks
+ * @brief sets the X and Y offsets for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
  * @param[in] offsetX new offset for the OSD clock in the X direction in pixels
  * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
@@ -717,42 +717,44 @@ DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint
 DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
 
 /**
- * @brief returns the font name and size for On-Screen-Display clocks
+ * @brief returns the font name and size for On-Screen-Display clock
  * @param[in] name name of the OSD to query
- * @param[out] font current font string for the OSD clocks
- * @param[out] size current font size for the OSD clocks
+ * @param[out] font current font string for the OSD clock
+ * @param[out] size current font size for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
 
 /**
- * @brief sets the font name and size for the On-Screen-Display clocks
+ * @brief sets the font name and size for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
- * @param[in] font new font string to use for the OSD clocks
- * @param[in] size new size string to use for the OSD clocks
+ * @param[in] font new font string to use for the OSD clock
+ * @param[in] size new size string to use for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
 
 /**
- * @brief returns the font name and size for On-Screen-Display clocks
+ * @brief returns the font name and size for On-Screen-Display clock
  * @param[in] name name of the OSD to query
- * @param[in] red current red color value for the OSD clocks
- * @param[in] gren current green color value for the OSD clocks
- * @param[in] blue current blue color value for the OSD clocks
+ * @param[out] red current red color value for the OSD clock
+ * @param[out] gren current green color value for the OSD clock
+ * @param[out] blue current blue color value for the OSD clock
+ * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue);
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha);
 
 /**
- * @brief sets the font name and size for the On-Screen-Display clocks
+ * @brief sets the font name and size for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
- * @param[in] red new red color value for the OSD clocks
- * @param[in] gren new green color value for the OSD clocks
- * @param[in] blue new blue color value for the OSD clocks
+ * @param[in] red new red color value for the OSD clock
+ * @param[in] gren new green color value for the OSD clock
+ * @param[in] blue new blue color value for the OSD clock
+ * @param[out] alpha current alpha color value for the OSD clock
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha);
 
 /**
  * @brief gets the current crop settings for the named On-Screen-Display

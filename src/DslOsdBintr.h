@@ -150,16 +150,17 @@ namespace DSL
          * @param[out] green green value curretly in use
          * @param[out] blue blue value currently in use
          */
-        void GetClockColor(uint* red, uint* green, uint* blue);
+        void GetClockColor(double* red, double* green, double* blue, double* alpha);
 
         /**
          * @brief Sets the current RGB colors for OSD clock
          * @param[in] red new red value to use
          * @param[in] green new green value to
          * @param[in] blue new blue value to use
+         * @param[in] alpha new alpha value to use
          * @return true on successful update, false otherwise
          */
-        bool SetClockColor(uint red, uint green, uint blue);
+        bool SetClockColor(double red, double green, double blue, double alpha);
 
         /**
          * @brief Gets the current crop settings
@@ -242,9 +243,8 @@ namespace DSL
         uint m_clockFontSize;
         uint m_clockOffsetX;
         uint m_clockOffsetY;
-        uint m_clockColorRed;
-        uint m_clockColorGreen;
-        uint m_clockColorBlue;
+        
+        NvOSD_ColorParams m_clockColor;
 
         uint m_cropLeft;
         uint m_cropTop;

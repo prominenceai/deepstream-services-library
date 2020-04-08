@@ -473,20 +473,20 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
     return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), cstrFont.c_str(), size);
 }
 
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue)
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue);
+    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue, alpha);
 }
 
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue)
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue);
+    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
 }
 
 DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, 
@@ -3404,7 +3404,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue)
+    DslReturnType Services::OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3417,7 +3417,7 @@ namespace DSL
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockColor(red, green, blue);
+            osdBintr->GetClockColor(red, green, blue, alpha);
         }
         catch(...)
         {
@@ -3427,7 +3427,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OsdClockColorSet(const char* name, uint red, uint green, uint blue)
+    DslReturnType Services::OsdClockColorSet(const char* name, double red, double green, double blue, double alpha)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3448,7 +3448,7 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!osdBintr->SetClockColor(red, green, blue))
+            if (!osdBintr->SetClockColor(red, green, blue, alpha))
             {
                 LOG_ERROR("OSD '" << name << "' failed to set Clock RGB colors");
                 return DSL_RESULT_OSD_SET_FAILED;

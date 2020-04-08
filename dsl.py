@@ -36,6 +36,7 @@ DSL_STATE_IN_TRANSITION = 5
 DSL_UINT_P = POINTER(c_uint)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
+DSL_DOUBLE_P = POINTER(c_double)
 
 ##
 ## Callback Typedefs
@@ -461,24 +462,25 @@ def dsl_osd_clock_font_set(name, font, size):
 ##
 ## dsl_osd_clock_color_get()
 ##
-_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
 _dsl.dsl_osd_clock_color_get.restype = c_uint
 def dsl_osd_clock_color_get(name):
     global _dsl
-    red = c_uint(0)
-    green = c_uint(0)
-    blue = c_uint(0)
-    result = _dsl.dsl_osd_clock_color_get(name, DSL_UINT_P(red), DSL_UINT_P(green), DSL_UINT_P(blue))
-    return int(result), red.value, green.value, blue.value 
+    red = c_double(0)
+    green = c_double(0)
+    blue = c_double(0)
+    alpha = c_double(0)
+    result = _dsl.dsl_osd_clock_color_get(name, DSL_DOUBLE_P(red), DSL_DOUBLE_P(green), DSL_DOUBLE_P(blue), DSL_DOUBLE_P(alpha))
+    return int(result), red.value, green.value, blue.value, alpha.value
 
 ##
 ## dsl_osd_clock_color_set()
 ##
-_dsl.dsl_osd_clock_color_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_osd_clock_color_set.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
 _dsl.dsl_osd_clock_color_set.restype = c_uint
-def dsl_osd_clock_color_set(name, red, green, blue):
+def dsl_osd_clock_color_set(name, red, green, blue, alpha):
     global _dsl
-    result = _dsl.dsl_osd_clock_color_set(name, red, green, blue)
+    result = _dsl.dsl_osd_clock_color_set(name, red, green, blue, alpha)
     return int(result)
 
 ##

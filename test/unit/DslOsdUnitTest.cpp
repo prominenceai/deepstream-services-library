@@ -176,31 +176,32 @@ SCENARIO( "An OsdBintr can get and set the clock's font", "[OsdBintr]" )
     }
 }
             
-//SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
-//{
-//    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
-//    {
-//        std::string osdName = "osd";
-//        boolean enableClock(true);
-//
-//        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
-//
-//        WHEN( "The clock's RGB colors are set  " )
-//        {
-//            uint newRed(255), newGreen(255), newBlue(255);
-//            REQUIRE( pOsdBintr->SetClockColor(newRed, newGreen, newBlue) == true);
-//            
-//            THEN( "The new name and size are returned on get" )
-//            {
-//                uint retRed(0), retGreen(0), retBlue(0);
-//                pOsdBintr->GetClockColor(&retRed, &retGreen, &retBlue);
-//                REQUIRE( retRed == newRed );
-//                REQUIRE( retGreen == newGreen );
-//                REQUIRE( retBlue == newBlue );
-//            }
-//        }
-//    }
-//}
+SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
+{
+    GIVEN( "An OsdBintr in memory with its clock enabled" ) 
+    {
+        std::string osdName = "osd";
+        boolean enableClock(true);
+
+        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
+
+        WHEN( "The clock's RGB colors are set  " )
+        {
+            double newRed(0.5), newGreen(0.5), newBlue(0.5), newAlpha(1.0);
+            REQUIRE( pOsdBintr->SetClockColor(newRed, newGreen, newBlue, newAlpha) == true);
+            
+            THEN( "The new name and size are returned on get" )
+            {
+                double retRed(0.0), retGreen(0.0), retBlue(0.0), retAlpha(0.0);
+                pOsdBintr->GetClockColor(&retRed, &retGreen, &retBlue, &retAlpha);
+                REQUIRE( retRed == newRed );
+                REQUIRE( retGreen == newGreen );
+                REQUIRE( retBlue == newBlue );
+                REQUIRE( retAlpha == newAlpha );
+            }
+        }
+    }
+}
 
 SCENARIO( "An OsdBintr can get and set its crop settings", "[OsdBintr]" )
 {
