@@ -42,9 +42,7 @@ namespace DSL
         , m_clockFontSize(12)
         , m_clockOffsetX(0)
         , m_clockOffsetY(0)
-        , m_clockColorRed(0)
-        , m_clockColorGreen(0)
-        , m_clockColorBlue(0)
+        , m_clockColor({})
         , m_isRedactionEnabled(false)
         , m_streamId(-1)
     {
@@ -265,16 +263,17 @@ namespace DSL
         return true;
     }
 
-    void OsdBintr::GetClockColor(uint* red, uint* green, uint* blue)
+    void OsdBintr::GetClockColor(double* red, double* green, double* blue, double* alpha)
     {
         LOG_FUNC();
         
-        *red = m_clockColorRed;
-        *green = m_clockColorGreen;
-        *blue = m_clockColorBlue;
+        *red = m_clockColor.red;
+        *green = m_clockColor.green;
+        *blue = m_clockColor.blue;
+        *alpha = m_clockColor.alpha;
     }
 
-    bool OsdBintr::SetClockColor(uint red, uint green, uint blue)
+    bool OsdBintr::SetClockColor(double red, double green, double blue, double alpha)
     {
         LOG_FUNC();
         
@@ -285,10 +284,19 @@ namespace DSL
             return false;
         }
 
-        // TODO how best to handle colors... follow NVIDIA and use floats or
-        // stick with all ints for params and scale ?????
-        // m_pOsd->SetAttribute("clock-color", clockColor);
-        
+        m_clockColor.red = red;
+        m_clockColor.green = green;
+        m_clockColor.blue = blue;
+        m_clockColor.alpha = alpha;
+
+        uint clkRgbaColor =
+            ((((uint) (m_clockColor.red * 255)) & 0xFF) << 24) |
+            ((((uint) (m_clockColor.green * 255)) & 0xFF) << 16) |
+            ((((uint) (m_clockColor.blue * 255)) & 0xFF) << 8) | 
+            ((((uint) (m_clockColor.alpha * 255)) & 0xFF));
+
+        m_pOsd->SetAttribute("clock-color", clkRgbaColor);
+
         return true;
     }
 
