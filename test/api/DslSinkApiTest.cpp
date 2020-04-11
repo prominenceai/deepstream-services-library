@@ -960,3 +960,179 @@ SCENARIO( "Adding greater than max Sinks to all Pipelines fails", "[sink-api]" )
         }
     }
 }
+
+SCENARIO( "The Components container is updated correctly on new Image Sink", "[image-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Image Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on Image Sink delete", "[image-sink-api]" )
+{
+    GIVEN( "An Image Sink Component" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Image Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Image Sink's Frame Capture Interval can be updated", "[image-sink-api]" )
+{
+    GIVEN( "An Image Sink in memory with its Frame Capture interval as default" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+        uint interval(1234);
+
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_image_frame_capture_interval_get(sinkName.c_str(), &interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( interval == 0 );
+
+        WHEN( "The Image Sink's Frame Capture interval is updated" )
+        {
+            REQUIRE( dsl_sink_image_frame_capture_interval_set(sinkName.c_str(), 4321) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Image Sink's Frame Capture interval is returned on get" )
+            {
+                REQUIRE( dsl_sink_image_frame_capture_interval_get(sinkName.c_str(), &interval) == DSL_RESULT_SUCCESS );
+                REQUIRE( interval == 4321 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Image Sink's Frame Capture can be enabled and disabled", "[image-sink-api]" )
+{
+    GIVEN( "An Image Sink in memory with its Frame Capture disabled" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+        boolean enabled(1);
+
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( enabled == 0 );
+
+        // test negative scenario (set false when currently false)
+        REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
+
+        WHEN( "The Image Sink's Frame Capture is enabled" )
+        {
+            enabled = 1;
+            REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+            
+            // test negative scenario as well (set true when currently true)
+            REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
+            
+            THEN( "The Image Sink's Frame Capture can be disabled" )
+            {
+                REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == 1 );
+                enabled = 0;
+                REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == 0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Image Sink's Object Capture can be enabled and disabled", "[image-sink-api]" )
+{
+    GIVEN( "An Image Sink in memory with its Object Capture disabled" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+        boolean enabled(1);
+
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( enabled == 0 );
+
+        // test negative scenario (set false when currently false)
+        REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
+
+        WHEN( "The Image Sink's Object Capture is enabled" )
+        {
+            enabled = 1;
+            REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+            
+            // test negative scenario as well (set true when currently true)
+            REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
+            
+            THEN( "The Image Sink's Object Capture can be disabled" )
+            {
+                REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == 1 );
+                enabled = 0;
+                REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == 0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Object Capture Class can be added to and removed from an Image Sink ", "[image-sink-api]" )
+{
+    GIVEN( "An ImageSinkBintr in memory" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+        
+        int captureClass(2);
+
+        WHEN( "A Object Capture Class is added to Image Sink" )
+        {
+            REQUIRE( dsl_sink_image_object_capture_class_add(sinkName.c_str(), captureClass, 0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Opject Capture Class is correctly removed" )
+            {
+                REQUIRE( dsl_sink_image_object_capture_class_remove(sinkName.c_str(), captureClass) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

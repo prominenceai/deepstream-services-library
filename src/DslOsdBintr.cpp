@@ -419,6 +419,8 @@ namespace DSL
         pColorParams->blue = blue;
         pColorParams->alpha = alpha;
         
+        LOG_INFO("Adding Redaction Class " << classId << " for OsdBintr '" << GetName() << "'");
+
         m_redactionClasses[classId] = pColorParams;
         return true;
     }
@@ -432,7 +434,8 @@ namespace DSL
             LOG_ERROR("OsdBintr '" << GetName() <<"' does not have Redaction Class with ID " << classId);
             return false;
         }
-        
+        LOG_INFO("Removing Redaction Class " << classId << " for ImageSinkBintr '" << GetName() << "'");
+
         m_redactionClasses.erase(classId);
         return true;
     }
@@ -469,7 +472,7 @@ namespace DSL
     
     bool OsdBintr::HandleRedaction(GstBuffer* pBuffer)
     {
-        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta (pBuffer);
+        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
         {

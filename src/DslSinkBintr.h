@@ -40,6 +40,11 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
+    #define DSL_IMAGE_SINK_PTR std::shared_ptr<ImageSinkBintr>
+    #define DSL_IMAGE_SINK_NEW(name, outdir) \
+        std::shared_ptr<ImageSinkBintr>( \
+        new ImageSinkBintr(name, outdir))
+
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
     #define DSL_OVERLAY_SINK_NEW(name, overlayId, displayId, depth, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
@@ -398,6 +403,77 @@ namespace DSL
         DSL_ELEMENT_PTR m_pParser;
         DSL_ELEMENT_PTR m_pPayloader;  
     };
+    
+    class ImageSinkBintr : public FakeSinkBintr
+    {
+    public:
+    
+        ImageSinkBintr(const char* name, const char* outdir);
+        
+        ImageSinkBintr();
+        
+        uint GetFrameCaptureInterval();
+        
+        bool SetFrameCaptureInterval(uint frameCaptureInterval);
+        
+        bool GetFrameCaptureEnabled();
+        
+        bool SetFrameCaptureEnabled(bool enabled);
+        
+        bool HandleFrameCapture(GstBuffer* pBuffer);
+        
+        bool GetObjectCaptureEnabled();
+        
+        bool SetObjectCaptureEnabled(bool enabled);
+        
+        bool AddObjectCaptureClass(int classId, boolean fullFrame);
+        
+        bool RemoveObjectCaptureClass(int classId);
+        
+        bool HandleObjectCapture(GstBuffer* pBuffer);
+        
+    private:
+    
+        /**
+         * @brief Directory to save image output to
+         */
+        std::string m_outdir;
+
+        /**
+         * @brief The current frame count for the ongoing capture
+         */
+        uint m_frameCount;
+
+        /**
+         * @brief The frame interval to tranform and save. 0 = capture every frame
+         */
+        uint m_frameCaptureInterval;
+
+        /**
+         * @brief True if frame buffer should be transformed and output.
+         */ 
+        bool m_isFrameCaptureEnabled;
+
+        /**
+         * @brief The frame interval to tranform objects and save. 0 = capture every frame
+         */
+        uint m_objectCaptureInterval;
+
+        /**
+         * @brief True if objects in frame buffer should be transformed and output.
+         */ 
+        bool m_isObjectCaptureEnabled;
+
+        /**
+         * @brief map of class Id's to capture and whether to capture full frame or bbox rectangle
+         */
+        std::map <int, bool> m_captureClasses;
+
+    };
+    
+    static boolean FrameCaptureHandler(void* batch_meta, void* user_data);
+    
+    static boolean ObjectCaptureHandler(void* batch_meta, void* user_data);
 }
 #endif // _DSL_SINK_BINTR_H
     

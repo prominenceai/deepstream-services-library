@@ -36,7 +36,7 @@ NVDS_VERSION:=4.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-
+CUDA_VERSION:=10.0
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes
@@ -57,7 +57,8 @@ TEST_OBJS+= $(wildcard ./test/unit/*.o)
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
 	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	x11
+	x11 \
+	opencv4
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
@@ -75,6 +76,7 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
 	-I/usr/lib/aarch64-linux-gnu/glib-$(GLIB_VERSION)/include \
+	-I/usr/local/cuda-$(CUDA_VERSION)/targets/aarch64-linux/include \
 	-I./src \
 	-I./test \
 	-I./test/api \
@@ -95,10 +97,13 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvds_meta \
 	-lnvdsgst_helper \
 	-lnvds_utils \
+	-lnvbufsurface \
+	-lnvbufsurftransform \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
 	-Lgstreamer-rtsp-server-$(GSTREAMER_VERSION) \
+	-L/usr/local/cuda-$(CUDA_VERSION)/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 	
 CFLAGS+= `pkg-config --cflags $(PKGS)`

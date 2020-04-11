@@ -222,6 +222,24 @@ namespace DSL {
 
         DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
 
+        DslReturnType SinkImageNew(const char* name, const char* outdir);
+
+        DslReturnType SinkImageFrameCaptureIntervalGet(const char* name, uint* interval);
+
+        DslReturnType SinkImageFrameCaptureIntervalSet(const char* name, uint interval);
+            
+        DslReturnType SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled);
+            
+        DslReturnType SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SinkImageObjectCaptureClassAdd(const char* name, int classId, boolean fullFrame);
+
+        DslReturnType SinkImageObjectCaptureClassRemove(const char* name, int classId);
+
         uint SinkNumInUseGet();
         
         uint SinkNumInUseMaxGet();
