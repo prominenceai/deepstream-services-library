@@ -952,15 +952,17 @@ DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boo
     return DSL::Services::GetServices()->SinkImageObjectCaptureEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, int classId, boolean full_frame)
+DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint classId, 
+    boolean full_frame, uint capture_limit)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkImageObjectCaptureClassAdd(cstrName.c_str(), classId, full_frame);
+    return DSL::Services::GetServices()->SinkImageObjectCaptureClassAdd(cstrName.c_str(), 
+        classId, full_frame, capture_limit);
 }
 
-DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, int classId)
+DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint classId)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -4277,7 +4279,8 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkImageObjectCaptureClassAdd(const char* name, int classId, boolean fullFrame)
+    DslReturnType Services::SinkImageObjectCaptureClassAdd(const char* name, 
+        uint classId, boolean fullFrame, uint captureLimit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4290,9 +4293,9 @@ namespace DSL
             DSL_IMAGE_SINK_PTR sinkBintr = 
                 std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
 
-            if (!sinkBintr->AddObjectCaptureClass(classId, fullFrame))
+            if (!sinkBintr->AddObjectCaptureClass(classId, fullFrame, captureLimit))
             {
-                LOG_ERROR("OSD '" << name << "' failed to add Object Capture Class");
+                LOG_ERROR("Image Sink '" << name << "' failed to add Object Capture Class");
                 return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED;
             }
         }
@@ -4304,7 +4307,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkImageObjectCaptureClassRemove(const char* name, int classId)
+    DslReturnType Services::SinkImageObjectCaptureClassRemove(const char* name, uint classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

@@ -36,6 +36,11 @@ primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.ca
 
 source_uri = '../../test/streams/sample_1080p_h265.mp4'
 
+PGIE_CLASS_ID_VEHICLE = 0
+PGIE_CLASS_ID_BICYCLE = 1
+PGIE_CLASS_ID_PERSON = 2
+PGIE_CLASS_ID_ROADSIGN = 3
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -93,24 +98,32 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New OSD with clock enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', True  )
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        ## New Image Sink for object capture. Writing to local dir
+        retval = dsl_sink_image_new('image-sink', "./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Add the Vehicle and Person classes to capture, full_frame = false, capture_limit = 50 jpg files each.
+        retval = dsl_sink_image_object_capture_class_add('image-sink', PGIE_CLASS_ID_VEHICLE, False, 50)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_image_object_capture_class_add('image-sink', PGIE_CLASS_ID_PERSON, False, 50)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Enable capture
+        retval = dsl_sink_image_object_capture_enabled_set('image-sink', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'window-sink', 'image-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

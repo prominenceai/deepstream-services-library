@@ -1192,9 +1192,11 @@ DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boo
  * @param[in] name unique name of the Image Sink to update
  * @param[in] class_id id of the Object Capture Class to add
  * @param[in] full_frame if set to true, will capture full frame on object detection, bbox dimensions otherwise
+ * @param[in] capture_limit maximum number of objects to capture (transform and save to file) for a specific Class
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, int class_id, boolean full_frame);
+DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint class_id, 
+    boolean full_frame, uint capture_limit);
     
 /**
  * @brief Removes an Object Capture Class from a named Image Sink
@@ -1202,7 +1204,7 @@ DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, int c
  * @param[in] class_id id of the Object Capture Class to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
-DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, int class_id);
+DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint class_id);
 
 /**
  * @brief returns the number of Sinks currently in use by 

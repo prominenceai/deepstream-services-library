@@ -1226,7 +1226,7 @@ SCENARIO( "A Capture Class can be added to and removed from an ImageSinkBintr", 
 
         WHEN( "A Capture Class is added to the ImageSinkBintr" )
         {
-            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false) == true );
+            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == true );
             
             THEN( "The Capture Class can then be removed" )
             {
@@ -1244,11 +1244,11 @@ SCENARIO( "Invalid Capture Class calls are handled correctly by an ImageSinkBint
         std::string outdir("./");
 
         DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-        REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false) == true );
+        REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == true );
 
         WHEN( "A Duplicate Capture Class fails to be added " )
         {
-            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false) == false );
+            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == false );
             
             THEN( "Only the initial Capture Class can be removed successfully" )
             {

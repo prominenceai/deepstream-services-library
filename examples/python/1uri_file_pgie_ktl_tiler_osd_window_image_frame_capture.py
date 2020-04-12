@@ -94,7 +94,7 @@ def main(args):
             break
 
         ## New OSD with clock enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', True  )
+        retval = dsl_osd_new('on-screen-display', True )
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -103,14 +103,24 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+        ## New Image Sink for frame capture. writing to local dir
+        retval = dsl_sink_image_new('image-sink', "./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Set the frame capture interval, one capture every 2 seconds if running at 30 fps
+        retval = dsl_sink_image_frame_capture_interval_set('image-sink', 60)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## Enable frame capture
+        retval = dsl_sink_image_frame_capture_enabled_set('image-sink', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', 'image-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

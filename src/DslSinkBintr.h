@@ -404,6 +404,23 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPayloader;  
     };
     
+    class CaptureClass
+    {
+    public:
+    
+        CaptureClass(uint id, bool fullFrame, uint captureLimit)
+            : m_id(id)
+            , m_fullFrame(fullFrame)
+            , m_captureCount(0)
+            , m_captureLimit(captureLimit)
+            {}
+        
+        uint m_id;
+        bool m_fullFrame;
+        uint m_captureCount;
+        uint m_captureLimit;
+    };
+    
     class ImageSinkBintr : public FakeSinkBintr
     {
     public:
@@ -412,24 +429,73 @@ namespace DSL
         
         ImageSinkBintr();
         
+        /**
+         * @brief Gets the current interval at which to capture frames
+         * @return 0 for every frame, 1 for every other, etc.
+         */
         uint GetFrameCaptureInterval();
-        
+
+        /**
+         * @brief Sets the current Frame Capture interval
+         * @param frameCaptureInterval new interval value to use
+         * @return ture if successful, false otherwise
+         */
         bool SetFrameCaptureInterval(uint frameCaptureInterval);
         
+        /**
+         * @brief Gets the current state of the Frame Capture enabled flag
+         * @return true if enabled, false otherwise.
+         */
         bool GetFrameCaptureEnabled();
         
+        /**
+         * @brief Sets the current state of the Frame Capture enabled flag
+         * @param enabled set true to enable, false to disable
+         * @return true if successful, false otherwise
+         */
         bool SetFrameCaptureEnabled(bool enabled);
-        
+
+        /**
+         * @brief Frame callback handler for the Capture service
+         * @param pBuffer input buffer of frame data
+         * @return true to stay registered, false for self removal
+         */
         bool HandleFrameCapture(GstBuffer* pBuffer);
         
+        /**
+         * @brief Gets the current state of the Object Capture enabled flag
+         * @return true if enabled, false otherwise.
+         */
         bool GetObjectCaptureEnabled();
-        
+
+        /**
+         * @brief Sets the state of the Object Captue enabled flag
+         * @param enabled set to true to enable Object Capture, false to disable
+         * @return true if successful, false otherwise
+         */
         bool SetObjectCaptureEnabled(bool enabled);
         
-        bool AddObjectCaptureClass(int classId, boolean fullFrame);
+        /**
+         * @brief Adds an Object class to capture
+         * @param classId unique class id of the objects to capture
+         * @param fullFrame set to true to capture full-frame, false to capture image within bbox
+         * @param captureLimit max number of objects to capture for a specific class id, 0 = no limit
+         * @return true if successful, false otherwise
+         */
+        bool AddObjectCaptureClass(uint classId, boolean fullFrame, uint captureLimit);
         
-        bool RemoveObjectCaptureClass(int classId);
+        /**
+         * @brief Removes a previously added capture class
+         * @param classId unique classId to remove
+         * @return true if successful, false otherwise
+         */
+        bool RemoveObjectCaptureClass(uint classId);
         
+        /**
+         * @brief Frame callback handler for the Capture service
+         * @param pBuffer input buffer of frame data
+         * @return true to stay registered, false for self removal
+         */
         bool HandleObjectCapture(GstBuffer* pBuffer);
         
     private:
@@ -440,9 +506,9 @@ namespace DSL
         std::string m_outdir;
 
         /**
-         * @brief The current frame count for the ongoing capture
+         * @brief The current frame count for the ongoing frame capture
          */
-        uint m_frameCount;
+        uint m_frameCaptureframeCount;
 
         /**
          * @brief The frame interval to tranform and save. 0 = capture every frame
@@ -453,6 +519,11 @@ namespace DSL
          * @brief True if frame buffer should be transformed and output.
          */ 
         bool m_isFrameCaptureEnabled;
+
+        /**
+         * @brief The current frame count for the ongoing frame capture
+         */
+        uint m_objectCaptureFrameCount;
 
         /**
          * @brief The frame interval to tranform objects and save. 0 = capture every frame
@@ -467,7 +538,7 @@ namespace DSL
         /**
          * @brief map of class Id's to capture and whether to capture full frame or bbox rectangle
          */
-        std::map <int, bool> m_captureClasses;
+        std::map <uint, std::shared_ptr<CaptureClass>> m_captureClasses;
 
     };
     

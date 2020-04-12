@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "Dsl.h"
-#include "DslSinkBintr.h"
-#include "DslBranchBintr.h"
-#include "base64.h"
 #include <nvbufsurftransform.h>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/highgui/highgui.hpp"
+
+#include "Dsl.h"
+#include "DslSinkBintr.h"
+#include "DslBranchBintr.h"
 
 namespace DSL
 {
@@ -887,9 +887,10 @@ namespace DSL
     ImageSinkBintr::ImageSinkBintr(const char* name, const char* outdir)
         : FakeSinkBintr(name)
         , m_outdir(outdir)
-        , m_frameCount(0)
+        , m_frameCaptureframeCount(0)
         , m_frameCaptureInterval(0)
         , m_isFrameCaptureEnabled(false)
+        , m_objectCaptureFrameCount(0)
         , m_isObjectCaptureEnabled(false)
     {
         LOG_FUNC();
@@ -943,7 +944,7 @@ namespace DSL
             LOG_INFO("Enabling Frame Capture for ImageSinkBintr '" << GetName() << "'");
             
             // reset the Frame count for new capture
-            m_frameCount = 0;
+            m_frameCaptureframeCount = 0;
             return AddBatchMetaHandler(DSL_PAD_SINK, FrameCaptureHandler, this);
         }
         LOG_INFO("Disabling Frame Capture for ImageSinkBintr '" << GetName() << "'");
@@ -975,7 +976,7 @@ namespace DSL
             LOG_INFO("Enabling Object Capture for ImageSinkBintr '" << GetName() << "'");
             
             // reset the Frame count for new capture
-            m_frameCount = 0;
+            m_objectCaptureFrameCount = 0;
             return AddBatchMetaHandler(DSL_PAD_SINK, ObjectCaptureHandler, this);
         }
         LOG_INFO("Disabling Object Capture for ImageSinkBintr '" << GetName() << "'");
@@ -983,7 +984,7 @@ namespace DSL
         return RemoveBatchMetaHandler(DSL_PAD_SINK, ObjectCaptureHandler);
     }
     
-    bool ImageSinkBintr::AddObjectCaptureClass(int classId, boolean fullFrame)
+    bool ImageSinkBintr::AddObjectCaptureClass(uint classId, boolean fullFrame, uint captureLimit)
     {
         LOG_FUNC();
 
@@ -994,11 +995,14 @@ namespace DSL
         }
         LOG_INFO("Adding Object Capture Class " << classId << " for ImageSinkBintr '" << GetName() << "'");
 
-        m_captureClasses[classId] = fullFrame;
+        std::shared_ptr<CaptureClass> pCaptureClass = 
+            std::shared_ptr<CaptureClass>(new CaptureClass(classId, fullFrame, captureLimit));
+
+        m_captureClasses[classId] = pCaptureClass;
         return true;
     }
     
-    bool ImageSinkBintr::RemoveObjectCaptureClass(int classId)
+    bool ImageSinkBintr::RemoveObjectCaptureClass(uint classId)
     {
         LOG_FUNC();
         
@@ -1081,7 +1085,7 @@ namespace DSL
 
     bool ImageSinkBintr::HandleFrameCapture(GstBuffer* pBuffer)
     {
-        if (++m_frameCount % (m_frameCaptureInterval+1))
+        if (++m_frameCaptureframeCount % (m_frameCaptureInterval+1))
         {
             return GST_PAD_PROBE_OK;
         }
@@ -1100,7 +1104,7 @@ namespace DSL
         LOG_INFO("transforming frame surface with width "<< surface->surfaceList[0].width 
             << " and height "<< surface->surfaceList[0].height);
 
-        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCount) + ".jpg";
+        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpg";
 
         NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
         NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
@@ -1114,11 +1118,7 @@ namespace DSL
     
     bool ImageSinkBintr::HandleObjectCapture(GstBuffer* pBuffer)
     {
-        if (++m_frameCount % (m_frameCaptureInterval+1))
-        {
-            return GST_PAD_PROBE_OK;
-        }
-            
+        m_objectCaptureFrameCount++;
         GstMapInfo inMapInfo = {0};
 
         if (!gst_buffer_map(pBuffer, &inMapInfo, GST_MAP_READ))
@@ -1127,22 +1127,65 @@ namespace DSL
             gst_buffer_unmap(pBuffer, &inMapInfo);
             return GST_PAD_PROBE_OK;
         }
-        
         NvBufSurface* surface = (NvBufSurface*)inMapInfo.data;  
+        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
-        LOG_INFO("transforming frame surface with width "<< surface->surfaceList[0].width 
-            << " and height "<< surface->surfaceList[0].height);
+        // Iterate through the list of frames to access the meta data for each object
+        
+        for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
+        {
+            NvDsFrameMeta *frame_meta = (NvDsFrameMeta *) (l_frame->data);
 
-        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCount) + ".jpg";
+            if (frame_meta == NULL)
+            {
+                LOG_DEBUG("NvDS Meta contained NULL frame_meta for ImageSinkBintr '" << GetName() << "'");
+                return true;
+            }
+            // unique object id, per object per frame
+            uint objectId(0);
+            for (NvDsMetaList * l_obj = frame_meta->obj_meta_list; l_obj != NULL; l_obj = l_obj->next)
+            {
+        
+                NvDsObjectMeta *obj_meta = (NvDsObjectMeta *) (l_obj->data);
 
-        NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
-        NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
+                NvOSD_RectParams * rect_params = &(obj_meta->rect_params);
 
-        bool retVal = TransformAndSave(surface, filespec, srcRect, dstRect);
+                // if the object's classId is enabled for capture 
+                if (m_captureClasses.find(obj_meta->class_id) != m_captureClasses.end())
+                {
+                    // ensue that we don't exceed the maximun number of captures for this class
+                    if (m_captureClasses[obj_meta->class_id]->m_captureLimit == 0 or
+                        m_captureClasses[obj_meta->class_id]->m_captureCount < 
+                        m_captureClasses[obj_meta->class_id]->m_captureLimit)
+                    {
+                        m_captureClasses[obj_meta->class_id]->m_captureCount++;
+                            
+                        LOG_INFO("transforming frame surface for classId " << obj_meta->class_id << " with width "
+                            << rect_params->width << " and height "<< rect_params->height);
 
+                        std::string filespec = m_outdir + "/frame_" + std::to_string(m_objectCaptureFrameCount) + 
+                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpg";
+                        
+                        // capturing full frame or bbox rectangle only?
+                        if (m_captureClasses[obj_meta->class_id]->m_fullFrame)
+                        {
+                            NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
+                            NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
+                            TransformAndSave(surface, filespec, srcRect, dstRect);
+                        }
+                        else
+                        {
+                            NvBufSurfTransformRect srcRect = {rect_params->top, rect_params->left, rect_params->width, rect_params->height};
+                            NvBufSurfTransformRect dstRect = {0, 0, rect_params->width, rect_params->height};
+                            TransformAndSave(surface, filespec, srcRect, dstRect);
+                        }
+                    }
+                }
+            }
+        }
         gst_buffer_unmap(pBuffer, &inMapInfo);
         
-        return retVal;
+        return true;
     }
     
     static boolean FrameCaptureHandler(void* batch_meta, void* user_data)

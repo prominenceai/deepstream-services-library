@@ -236,9 +236,9 @@ namespace DSL {
 
         DslReturnType SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled);
 
-        DslReturnType SinkImageObjectCaptureClassAdd(const char* name, int classId, boolean fullFrame);
+        DslReturnType SinkImageObjectCaptureClassAdd(const char* name, uint classId, boolean fullFrame, uint captureLimit);
 
-        DslReturnType SinkImageObjectCaptureClassRemove(const char* name, int classId);
+        DslReturnType SinkImageObjectCaptureClassRemove(const char* name, uint classId);
 
         uint SinkNumInUseGet();
         

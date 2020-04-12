@@ -1120,11 +1120,13 @@ SCENARIO( "An Object Capture Class can be added to and removed from an Image Sin
 
         REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
         
-        int captureClass(2);
+        uint captureClass(2);
+        boolean fullFrame(false);
+        uint maxCapture(0);
 
         WHEN( "A Object Capture Class is added to Image Sink" )
         {
-            REQUIRE( dsl_sink_image_object_capture_class_add(sinkName.c_str(), captureClass, 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_sink_image_object_capture_class_add(sinkName.c_str(), captureClass, fullFrame, maxCapture) == DSL_RESULT_SUCCESS );
             
             THEN( "The Opject Capture Class is correctly removed" )
             {
