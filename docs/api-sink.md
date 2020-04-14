@@ -58,6 +58,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 ## Return Values
 The following return codes are used by the Sink API
 ```C++
+#define DSL_RESULT_SINK_RESULT                                      0x00040000
 #define DSL_RESULT_SINK_NAME_NOT_UNIQUE                             0x00040001
 #define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x00040002
 #define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x00040003
@@ -68,6 +69,8 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000C
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000D
 
 ```
 ## Codec Types
@@ -147,8 +150,8 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
 * `filepath` - [in] absolute or relative filespec for the media file to write to.
-* `codec` - [in] on of the [Codec Types](#Codec Types) defined above
-* `container` - [in] on of the [Video Container Types](#Video Container Types) defined above
+* `codec` - [in] on of the [Codec Types](#codec-types) defined above
+* `container` - [in] on of the [Video Container Types](#video-container-types) defined above
 * `bitrate` - [in] bitrate at which to code the video
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame
 
@@ -199,7 +202,7 @@ rtsp://my-jetson.local:8554/rtsp-sink-name
 * `host` - [in] host name 
 * `udp_port` - [in] UDP port setting for the RTSP server.
 * `rtsp_port` - [in] RTSP port setting for the server.
-* `codec` - [in] on of the [Codec Types](#Codec Types) defined above
+* `codec` - [in] on of the [Codec Types](#codec-types) defined above
 * `bitrate` - [in] bitrate at which to code the video
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame
 
