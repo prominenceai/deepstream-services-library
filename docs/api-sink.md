@@ -1,8 +1,9 @@
 # Sink API
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, among other components, to reach a state of Ready. DSL supports five types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, among other components, to reach a state of Ready. DSL supports six types of Sinks:
 * Overlay Sink - renders/overlays video on a Parent display
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
+* Image Sink - transforms frame buffer data into jpeg image files
 * RTSP Sink - streams encoded video on a specifed port
 * Fake Sink - consumes/drops all data 
 
@@ -21,6 +22,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_overlay_new](#dsl_sink_overlay_new)
 * [dsl_sink_window_new](#dsl_sink_window_new)
 * [dsl_sink_file_new](#dsl_sink_file_new)
+* [dsl_sink_image_new](#dsl_sink_file_new)
 * [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
@@ -36,6 +38,16 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_file_video_formats_get](#dsl_sink_file_video_formats_get)
 * [dsl_sink_file_encoder_settings_get](#dsl_sink_file_encoder_settings_get)
 * [dsl_sink_file_encoder_settings_set](#dsl_sink_file_encoder_settings_set)
+* [dsl_sink_image_outdir_get](#dsl_sink_image_outdir_get)
+* [dsl_sink_image_outdir_set](#dsl_sink_image_outdir_set)
+* [dsl_sink_image_frame_capture_interval_get](#dsl_sink_image_frame_capture_interval_get)
+* [dsl_sink_image_frame_capture_interval_set](#dsl_sink_image_frame_capture_interval_set)
+* [dsl_sink_image_frame_capture_enabled_get](#dsl_sink_image_frame_capture_enabled_get)
+* [dsl_sink_image_frame_capture_enabled_set](#dsl_sink_image_frame_capture_enabled_set)
+* [dsl_sink_image_object_capture_enabled_get](#dsl_sink_image_object_capture_enabled_get)
+* [dsl_sink_image_object_capture_enabled_set](#dsl_sink_image_object_capture_enabled_set)
+* [dsl_sink_image_object_capture_class_add](#dsl_sink_image_object_capture_class_add)
+* [dsl_sink_image_object_capture_class_remove](#dsl_sink_image_object_capture_class_remove)
 * [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
 * [dsl_sink_rtsp_encoder_settings_get](#dsl_sink_rtsp_encoder_settings_get)
 * [dsl_sink_rtsp_encoder_settings_set](#dsl_sink_rtsp_encoder_settings_set)
@@ -146,6 +158,26 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 **Python Example**
 ```Python
 retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+```
+
+<br>
+
+### *dsl_sink_image_new*
+```C++
+DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir);
+```
+The constructor creates a uniquely named Image Sink. Construction will fail if the name is currently in use. The output directory, specified on creation, must exist or the creation of the Image Sink will fail. The directory can be updated at anytime. 
+
+**Parameters**
+* `name` - [in] unique name for the File Sink to create.
+* `outdir` - [in] absolute or relative pathspec to the output directory to write all files to. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_new('my-image-sink', './my_out_dir')
 ```
 
 <br>
@@ -444,6 +476,201 @@ retval = dsl_sink_file_encoder_settings_set('my-file-sink', 2000000, 1)
 
 <br>
 
+### *dsl_sink_image_outdir_get*
+This service returns the current output director for the uniquely named Image Sink.
+```C++
+DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `outdir` - [out] the current output directory pathspec setting in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, outdir = dsl_sink_image_outdir_get('my-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_outdir_set*
+This service sets the current output director for the uniquely named Image Sink. The service will fail if the directory doesn't exist.
+```C++
+DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `outdir` - [in] abolute or relate pathspec for the output directory to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_outdir_get('my-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_frame_capture_interval_get*
+This service returns the current frame capture interval for the uniquely named Image Sink. The interval equates to the number of frames dropped between successive captures. 0 = capture every frame, 1 = capture every other frame, and so on. 
+```C++
+DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, const uint* interval);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `interval` - [out] the current capture interval in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, interval = dsl_sink_image_frame_capture_interval_get('my-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_frame_capture_interval_set*
+This service sets the current frame capture interval for the uniquely named Image Sink. The interval equates to the number of frames to be dropped between successive captures. 0 = capture every frame, 1 = capture every other frame, and so on. 
+```C++
+DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, const uint interval);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `interval` - [in] the new capture interval to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_frame_capture_interval_set('my-image-sink', 59)
+```
+
+<br>
+
+### *dsl_sink_image_frame_capture_enabled_get*
+This service returns the current frame-capture-enabled setting [true|false] for the uniquely named Image Sink.  
+```C++
+DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `enabled` - [out] true if capture is currently enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_image_frame_capture_enabled_get('my-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_frame_capture_enabled_set*
+This service sets the frame-capture-enabled setting [true|false] for the uniquely named Image Sink.  
+```C++
+DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean interval);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `enabled` - [in] set to true to enable frame capture, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_frame_capture_enabled_set('my-image-sink', True)
+```
+
+<br>
+
+### *dsl_sink_image_object_capture_enabled_get*
+This service returns the current object-capture-enabled setting [true|false] for the uniquely named Image Sink.  
+```C++
+DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `enabled` - [out] true if capture is currently enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_image_object_capture_enabled_get('my-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_object_capture_enabled_set*
+This service sets the object-capture-enabled setting [true|false] for the uniquely named Image Sink.  
+```C++
+DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to query.
+* `enabled` - [in] set to true to enable object capture, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_object_capture_enabled_set('my-image-sink', True)
+```
+
+<br>
+
+### *dsl_sink_image_object_capture_class_add*
+This service adds an object class -- the class Id for specific object(s) to be captured/transormed on identification -- for the uniquely named Image Sink. The classId is specific to the Inference Engine and Configuration File in use.
+```C++
+DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint class_id, 
+    boolean full_frame, uint capture_limit);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to update.
+* `class_id` - [in] the unique class id of the object(s) to capture and transform as identified by the Inference Engine.
+* `full_frame` - [in] set to true to transform the entire frame on object detection, or just the object based on its rectangle parameters provided by the Inference Engine.
+* `capture_limnit` - [in] the maximum number of images to capture for this class_id. 
+
+**Note:** A value of 0 for the `capture_limit` = **No Limit** - which can consume all available disc space.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_object_capture_class_add('my-image-sink', 0, False, 1000)
+```
+
+<br>
+
+### *dsl_sink_image_object_capture_class_remove*
+This service removes an object class that was previously added with [dsl_sink_image_object_capture_class_add](#dsl_sink_image_object_capture_class_add).
+```C++
+DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint class_id;
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to update.
+* `class_id` - [in] the unique class id of the capture class to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_image_object_capture_class_remove('my-image-sink', 0)
+```
+
+<br>
+
 ### *dsl_sink_rtsp_server_settings_get*
 This service returns the current RTSP video codec and Port settings for the uniquely named RTSP Sink.
 ```C++
@@ -456,7 +683,7 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
 * `port` - [out] the current Port number setting in use.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
