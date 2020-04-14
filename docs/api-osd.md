@@ -330,7 +330,6 @@ retval = dsl_osd_redaction_class_remove('my-on-screen-display', 0)
 
 <br>
 
-<br>
 ### *dsl_osd_batch_meta_handler_add*
 ```c++
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type, 
@@ -387,7 +386,8 @@ retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_
 
 if retval != DSL_RESULT_SUCCESS:
     # OSD setup failed
-```    
+```
+
 <br>
 
 ### *dsl_osd_batch_meta_handler_remove*
