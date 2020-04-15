@@ -1138,6 +1138,23 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
 DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir);
 
 /**
+ * @brief gets the current output directory in use by the named Image Sink.
+ * @param[in] name name of the Image Sink to query
+ * @param[out] outdir pathspec for the current impage file output directory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir);
+
+/**
+ * @brief sets the current output directory for a named Image Sink to use.
+ * Note: the frame interval can be viewed as the drop frame count
+ * @param[in] name name of the Image Sink to update
+ * @param[in] outdir relative or absolute pathspec for the file output directory to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir);
+
+/**
  * @brief gets the current frame interval to trasform and save images
  * Note: the frame interval can be viewed as the drop frame count
  * @param[in] name name of the Image Sink to query
@@ -1150,7 +1167,7 @@ DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uin
  * @brief sets the current frame interval to trasform and save images
  * Note: the frame interval can be viewed as the drop frame count
  * @param[in] name name of the Image Sink to update
- * @param[out] interval the bew frame capture interval to use. 0 = on every frame
+ * @param[in] interval the bew frame capture interval to use. 0 = on every frame
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval);

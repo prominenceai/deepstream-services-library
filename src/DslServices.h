@@ -224,6 +224,10 @@ namespace DSL {
 
         DslReturnType SinkImageNew(const char* name, const char* outdir);
 
+        DslReturnType SinkImageOutdirGet(const char* name, const char** outdir);
+
+        DslReturnType SinkImageOutdirSet(const char* name, const char* outdir);
+
         DslReturnType SinkImageFrameCaptureIntervalGet(const char* name, uint* interval);
 
         DslReturnType SinkImageFrameCaptureIntervalSet(const char* name, uint interval);

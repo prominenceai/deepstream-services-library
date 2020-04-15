@@ -904,6 +904,35 @@ DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir)
     return DSL::Services::GetServices()->SinkImageNew(cstrName.c_str(), cstrOutdir.c_str());
 }     
 
+DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cOutdir;
+    static std::string cstrOutdir;
+    static std::wstring wcstrOutdir;
+    
+    uint retval = DSL::Services::GetServices()->SinkImageOutdirGet(cstrName.c_str(), &cOutdir);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOutdir.assign(cOutdir);
+        wcstrOutdir.assign(cstrOutdir.begin(), cstrOutdir.end());
+        *outdir = wcstrOutdir.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->SinkImageOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
+}
+
 DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval)
 {
     std::wstring wstrName(name);
@@ -4113,7 +4142,7 @@ namespace DSL
         if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
         {
             LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
-            return false;
+            return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
         }
         try
         {
@@ -4128,6 +4157,67 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
+    
+    DslReturnType Services::SinkImageOutdirGet(const char* name, const char** outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            *outdir = sinkBintr->GetOutdir();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir get");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageOutdirSet(const char* name, const char* outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            // ensure outdir exists
+            struct stat info;
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+            }
+            
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetOutdir(outdir))
+            {
+                LOG_ERROR("Failed to set outdir '" << outdir << "' for Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir set");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
 
     DslReturnType Services::SinkImageFrameCaptureIntervalGet(const char* name, uint* interval)
     {

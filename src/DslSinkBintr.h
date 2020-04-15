@@ -427,7 +427,20 @@ namespace DSL
     
         ImageSinkBintr(const char* name, const char* outdir);
         
-        ImageSinkBintr();
+        ~ImageSinkBintr();
+        
+        /**
+         * @brief Gets the current outdir in use by this Bintr
+         * @return relative or absolute pathspec as provided on construction or set call.
+         */
+        const char* GetOutdir();
+
+        /**
+         * @brief Sets the outdir to use by this Bintr
+         * @param[in] relative or absolute pathspec to the existing directory to use
+         * @return true on successfull set, false otherwise
+         */
+        bool SetOutdir(const char* outdir);
         
         /**
          * @brief Gets the current interval at which to capture frames
@@ -539,6 +552,11 @@ namespace DSL
          * @brief map of class Id's to capture and whether to capture full frame or bbox rectangle
          */
         std::map <uint, std::shared_ptr<CaptureClass>> m_captureClasses;
+        
+        /**
+         * @brief mutex for updating Image Capture params
+         */
+        GMutex m_captureMutex;
 
     };
     

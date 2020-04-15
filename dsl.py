@@ -864,6 +864,27 @@ def dsl_sink_image_new(name, outdir):
     return int(result)
 
 ##
+## dsl_sink_image_outdir_get()
+##
+_dsl.dsl_sink_image_outdir_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_image_outdir_get.restype = c_uint
+def dsl_sink_image_outdir_get(name):
+    global _dsl
+    outdir = c_wchar_p(0)
+    result = _dsl.dsl_sink_image_outdir_get(name, DSL_WCHAR_PP(outdir))
+    return int(result), outdir.value 
+
+##
+## dsl_sink_image_outdir_set()
+##
+_dsl.dsl_sink_image_outdir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_image_outdir_set.restype = c_uint
+def dsl_sink_image_outdir_set(name, outdir):
+    global _dsl
+    result = _dsl.dsl_sink_image_outdir_set(name, outdir)
+    return int(result)
+
+##
 ## dsl_sink_image_frame_capture_interval_get()
 ##
 _dsl.dsl_sink_image_frame_capture_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]

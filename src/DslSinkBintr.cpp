@@ -895,7 +895,32 @@ namespace DSL
     {
         LOG_FUNC();
         
+        g_mutex_init(&m_captureMutex);
+        
         m_pSinkPadProbe = DSL_PAD_PROBE_NEW("image-sink-pad-probe", "sink", m_pQueue);
+    }
+    
+    ImageSinkBintr::~ImageSinkBintr()
+    {
+        LOG_FUNC();
+        
+        g_mutex_clear(&m_captureMutex);
+    }
+
+    const char* ImageSinkBintr::GetOutdir()
+    {
+        LOG_FUNC();
+        
+        return m_outdir.c_str();
+    }
+    
+    bool ImageSinkBintr::SetOutdir(const char* outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
+        
+        m_outdir.assign(outdir);
+        return true;
     }
 
     uint ImageSinkBintr::GetFrameCaptureInterval()
@@ -908,13 +933,7 @@ namespace DSL
     bool ImageSinkBintr::SetFrameCaptureInterval(uint frameCaptureInterval)
     {
         LOG_FUNC();
-        
-        if (IsLinked() and m_isFrameCaptureEnabled)
-        {
-            LOG_ERROR("Unable to set Frame Capture Interval for Image Sink '" 
-                << GetName() << " as it's actively capturing frames. Disable first");
-            return false;
-        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
         m_frameCaptureInterval = frameCaptureInterval;
         return true;
@@ -930,6 +949,7 @@ namespace DSL
     bool ImageSinkBintr::SetFrameCaptureEnabled(bool enabled)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
 
         if (m_isFrameCaptureEnabled == enabled)
         {
@@ -962,6 +982,7 @@ namespace DSL
     bool ImageSinkBintr::SetObjectCaptureEnabled(bool enabled)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
 
         if (m_isObjectCaptureEnabled == enabled)
         {
@@ -987,6 +1008,7 @@ namespace DSL
     bool ImageSinkBintr::AddObjectCaptureClass(uint classId, boolean fullFrame, uint captureLimit)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
 
         if (m_captureClasses.find(classId) != m_captureClasses.end())
         {
@@ -1005,6 +1027,7 @@ namespace DSL
     bool ImageSinkBintr::RemoveObjectCaptureClass(uint classId)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
         if (m_captureClasses.find(classId) == m_captureClasses.end())
         {
@@ -1085,6 +1108,8 @@ namespace DSL
 
     bool ImageSinkBintr::HandleFrameCapture(GstBuffer* pBuffer)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
+
         if (++m_frameCaptureframeCount % (m_frameCaptureInterval+1))
         {
             return GST_PAD_PROBE_OK;
@@ -1118,6 +1143,8 @@ namespace DSL
     
     bool ImageSinkBintr::HandleObjectCapture(GstBuffer* pBuffer)
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
+
         m_objectCaptureFrameCount++;
         GstMapInfo inMapInfo = {0};
 

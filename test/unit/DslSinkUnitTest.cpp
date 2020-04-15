@@ -1053,6 +1053,8 @@ SCENARIO( "A new ImageSinkBintr is created correctly",  "[ImageSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
+                std::string retOutdir(pSinkBintr->GetOutdir());
+                REQUIRE( outdir == retOutdir );
                 REQUIRE( pSinkBintr->GetFrameCaptureInterval() == 0 );
                 REQUIRE( pSinkBintr->GetFrameCaptureEnabled() == false );
                 REQUIRE( pSinkBintr->GetObjectCaptureEnabled() == false );
@@ -1156,29 +1158,6 @@ SCENARIO( "An ImageSinkBintr's Frame Capture interval can be updated", "[ImageSi
             THEN( "The new Frame Capture interval is returned on get" )
             {
                 REQUIRE( pSinkBintr->GetFrameCaptureInterval() == 123 );
-            }
-        }
-    }
-}
-
-SCENARIO( "An ImageSinkBintr's Frame Capture interval cannot be updated when linked and enabled", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr in memory with its Frame capture enabled" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->SetFrameCaptureEnabled(true) == true );
-
-        WHEN( "The ImageSinkBintr is linked" )
-        {
-            REQUIRE( pSinkBintr->LinkAll() == true );
-            
-            THEN( "Updated the SinkBintr's Frame Capture interval will" )
-            {
-                REQUIRE( pSinkBintr->SetFrameCaptureInterval(123) == false );
             }
         }
     }

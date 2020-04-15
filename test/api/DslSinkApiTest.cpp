@@ -1033,6 +1033,42 @@ SCENARIO( "An Image Sink's Frame Capture Interval can be updated", "[image-sink-
     }
 }
 
+SCENARIO( "An Image Sink's Output Directory can be updated", "[image-sink-api]" )
+{
+    GIVEN( "An Image Sink in memory with its Frame Capture interval as default" ) 
+    {
+        std::wstring sinkName = L"image-sink";
+        std::wstring outdir = L"./";
+        std::wstring newOutdir = L"./test/unit";
+        std::wstring badDir = L"./bad-dir/not-found";
+
+        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* pRetOutdir;
+
+        REQUIRE( dsl_sink_image_outdir_get(sinkName.c_str(), &pRetOutdir) == DSL_RESULT_SUCCESS );
+        std::wstring retOutdir(pRetOutdir);
+        REQUIRE( outdir == retOutdir );
+
+        WHEN( "The Image Sink's Output Directory is updated" )
+        {
+            // Test the fail case firt
+            REQUIRE( dsl_sink_image_outdir_set(sinkName.c_str(), badDir.c_str()) == DSL_RESULT_SINK_FILE_PATH_NOT_FOUND );
+
+            REQUIRE( dsl_sink_image_outdir_set(sinkName.c_str(), newOutdir.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Image Sink's Output Directory is returned on get" )
+            {
+                REQUIRE( dsl_sink_image_outdir_get(sinkName.c_str(), &pRetOutdir) == DSL_RESULT_SUCCESS );
+                retOutdir.assign(pRetOutdir);
+                REQUIRE( newOutdir == retOutdir );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "An Image Sink's Frame Capture can be enabled and disabled", "[image-sink-api]" )
 {
     GIVEN( "An Image Sink in memory with its Frame Capture disabled" ) 
