@@ -1,10 +1,18 @@
 # On-Screen Display (OSD)
 On-Screen Display components provide visualization of object categorization and tracking. OSDs add bounding boxes, labels, and clocks to objects detected in the video stream. As with all components, OSDs must be uniquely named from all other components created. 
 
-When using a [Demuxer](/docs/api-tiler.md), OSDs are added to their respective upstream Source by calling [dsl_source_osd_add](/docs/api-source.md#dsl_source_osd_add) and removed with [dsl_source_osd_remove](/docs/api-source.md#dsl_source_osd_remove). When using a [Tiler](/docs/api-tiler.md), OSDs (one at most) are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 
+#### OSD Construction and Destruction
+The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with a single option of enabling the on-screen clock. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their default values. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
-Once added to a Pipeline or a Source, an OSD must be removed before it can be used with another. OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+#### Adding and Removing 
+A single OSD can be added to Pipeline trunk or inidividual branch. OSD are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all). 
 
+A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all). 
+
+Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another. 
+
+#### Redaction Services
+OSDs perform class-based redaction by filling in the rectangular coordinates of detected objects -- faces and license plates for example. Specific classes to redact are identified by calling [dsl_osd_redaction_class_add](#dsl_osd_redaction_class_add) and removed with [dsl_osd_redaction_class_remove](#dsl_osd_redaction_class_remove). The redaction service can be enabled and disabled at anytime by calling [dsl_osd_redaction_enabled_set](#dsl_osd_redaction_enabled_set) with `enable = [true|false]`.
 
 ---
 ## On-Screen API
@@ -20,12 +28,17 @@ Once added to a Pipeline or a Source, an OSD must be removed before it can be us
 * [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
+* [dsl_osd_redaction_class_add](#dsl_osd_redaction_class_add)
+* [dsl_osd_redaction_class_remove](#dsl_osd_redaction_class_remove)
+* [dsl_osd_redaction_enabled_get](#dsl_osd_redaction_enabled_get)
+* [dsl_osd_redaction_enabled_set](#dsl_osd_redaction_enabled_set)
 * [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add)
 * [dsl_osd_batch_meta_handler_remove](#dsl_osd_batch_meta_handler_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
 ```C++
+#define DSL_RESULT_OSD_RESULT                                       0x00050000
 #define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x00050001
 #define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x00050002
 #define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x00050003
@@ -37,6 +50,9 @@ The following return codes are used by the On-Screen Display API
 #define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
+#define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
+#define DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED                   0x0005000D
+#define DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED                0x0005000E
 ```
 
 ## Constructors
@@ -187,22 +203,24 @@ retval = dsl_osd_clock_font_set('my-on-screen-display', 'arial', 12)
 
 ### *dsl_osd_clock_color_get*
 ```c++
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue);
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double alpha);
 ```
-This service gets the current clock color for the named On-Screen Display. The color is represented as weights for the three RGB values.
+This service gets the current clock color for the named On-Screen Display. The color is represented in RGBA format, each with weights between 0.0 and 1.0.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `red` - [out] red color weight `[0..255]`
-* `green` - [out] green color weight `[0..255]`
-* `blue` - [out] blue color weight `[0..255]`
+* `red` - [out] red color weight `[0.0...1.0]`
+* `green` - [out] green color weight `[0.0...1.0]`
+* `blue` - [out] blue color weight `[0.0...1.0]`
+* `alpha` - [out] alpha color weight `[0.0...1.0]`
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, red, green, blue = dsl_osd_clock_color_get('my-on-screen-display')
+retval, red, green, blue, alpha = dsl_osd_clock_color_get('my-on-screen-display')
 ```
 
 <br>
@@ -210,22 +228,104 @@ retval, red, green, blue = dsl_osd_clock_color_get('my-on-screen-display')
 
 ### *dsl_osd_clock_color_set*
 ```c++
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, uint double, uint blue);
 ```
-This service gets the current clock color for the named On-Screen Display. The color is represented as weights for the three RGB values.
+This service gets the current clock color for the named On-Screen Display. The color is  The color is specified in RGBA format.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `red` - [in] red color weight `[0..255]`
-* `green` - [in] green color weight `[0..255]`
-* `blue` - [in] blue color weight `[0..255]`
+* `red` - [in] red color weight `[0.0...1.0]`
+* `green` - [in] green color weight `[0.0...1.0]`
+* `blue` - [in] blue color weight `[0.0...1.0]`
+* `alpha` - [in] alpha color weight `[0.0...1.0]`
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_osd_clock_color_set('my-on-screen-display', 255, 0, 0)
+retval = dsl_osd_clock_color_set('my-on-screen-display', 0.6, 0.0, 0.6, 1.0)
+```
+
+<br>
+
+### *dsl_osd_redaction_enabled_get*
+This service returns the current redaction-enabled setting [true|false] for the uniquely named On Screen Display.  
+```C++
+DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled);
+```
+**Parameters**
+* `name` - [in] unique name of the On Screen Display to query.
+* `enabled` - [out] true if capture is currently enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_osd_redaction_enabled_get('my-on-screen-display')
+```
+
+<br>
+
+### *dsl_osd_redaction_enabled_set*
+This service sets the redaction-enabled setting [true|false] for the uniquely named On Screen Display.  
+```C++
+DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled);
+```
+**Parameters**
+* `name` - [in] unique name of the On Screen Display to query.
+* `enabled` - [in] set to true to enable object capture, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_osd_redaction_enabled_set('my-on-screen-display', True)
+```
+
+### *dsl_osd_redaction_class_add*
+This service adds a redaction class -- the class Id for specific object(s) to redact -- for the uniquely named On Screen Display. The classId is specific to the Inference Engine and Configuration File in use.
+
+```C++
+DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int class_id, 
+    double red, double green, double blue, double alpha);
+```
+**Parameters**
+* `name` - [in] unique name of the On Screen Display to update.
+* `class_id` - [in] the unique class id of the object(s) to capture and transform as identified by the Inference Engine.
+* `red` - [in] red color weight `[0.0...1.0]`
+* `green` - [in] green color weight `[0.0...1.0]`
+* `blue` - [in] blue color weight `[0.0...1.0]`
+* `alpha` - [in] alpha color weight `[0.0...1.0]`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+#
+retval = dsl_osd_redaction_class_add('my-on-screen-display', 2, 0.0, 0.0, 0.0,1.0)
+```
+
+<br>
+
+### *dsl_osd_redaction_class_remove*
+This service removes an object class that was previously added with [dsl_osd_redaction_class_add](#dsl_osd_redaction_class_add).
+```C++
+DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int class_id);
+```
+**Parameters**
+* `name` - [in] unique name of the Image Sink to update.
+* `class_id` - [in] the unique class id of the redaction class to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_osd_redaction_class_remove('my-on-screen-display', 0)
 ```
 
 <br>
@@ -286,7 +386,8 @@ retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_
 
 if retval != DSL_RESULT_SUCCESS:
     # OSD setup failed
-```    
+```
+
 <br>
 
 ### *dsl_osd_batch_meta_handler_remove*

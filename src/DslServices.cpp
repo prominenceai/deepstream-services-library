@@ -396,6 +396,14 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
     return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
     
+DslReturnType dsl_ofv_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OfvNew(cstrName.c_str());
+}
+
 DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled)
 {
     std::wstring wstrName(name);
@@ -465,20 +473,20 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
     return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), cstrFont.c_str(), size);
 }
 
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue)
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue);
+    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue, alpha);
 }
 
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue)
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue);
+    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
 }
 
 DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, 
@@ -497,6 +505,40 @@ DslReturnType dsl_osd_crop_settings_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OsdCropSettingsSet(cstrName.c_str(), left, top, width, height);
+}
+
+DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int classId, 
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionClassAdd(cstrName.c_str(), classId, 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int classId)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdRedactionClassRemove(cstrName.c_str(), classId);
 }
 
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -850,7 +892,112 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     
     return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), 
         bitrate, interval);
-}    
+}
+
+DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->SinkImageNew(cstrName.c_str(), cstrOutdir.c_str());
+}     
+
+DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cOutdir;
+    static std::string cstrOutdir;
+    static std::wstring wcstrOutdir;
+    
+    uint retval = DSL::Services::GetServices()->SinkImageOutdirGet(cstrName.c_str(), &cOutdir);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOutdir.assign(cOutdir);
+        wcstrOutdir.assign(cstrOutdir.begin(), cstrOutdir.end());
+        *outdir = wcstrOutdir.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->SinkImageOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
+}
+
+DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageFrameCaptureIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageFrameCaptureIntervalSet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageFrameCaptureEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageFrameCaptureEnabledSet(cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageObjectCaptureEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageObjectCaptureEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint classId, 
+    boolean full_frame, uint capture_limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageObjectCaptureClassAdd(cstrName.c_str(), 
+        classId, full_frame, capture_limit);
+}
+
+DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint classId)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkImageObjectCaptureClassRemove(cstrName.c_str(), classId);
+}
     
 uint dsl_sink_num_in_use_get()
 {
@@ -3137,6 +3284,31 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType Services::OfvNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("OFV name '" << name << "' is not unique");
+            return DSL_RESULT_OFV_NAME_NOT_UNIQUE;
+        }
+        try
+        {   
+            m_components[name] = std::shared_ptr<Bintr>(new OfvBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New OFV '" << name << "' threw exception on create");
+            return DSL_RESULT_OFV_THREW_EXCEPTION;
+        }
+        LOG_INFO("new OFV '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
     {
         LOG_FUNC();
@@ -3156,7 +3328,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New OSD '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
         LOG_INFO("new OSD '" << name << "' created successfully");
 
@@ -3337,7 +3509,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue)
+    DslReturnType Services::OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3350,7 +3522,7 @@ namespace DSL
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            osdBintr->GetClockColor(red, green, blue);
+            osdBintr->GetClockColor(red, green, blue, alpha);
         }
         catch(...)
         {
@@ -3360,7 +3532,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OsdClockColorSet(const char* name, uint red, uint green, uint blue)
+    DslReturnType Services::OsdClockColorSet(const char* name, double red, double green, double blue, double alpha)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3381,7 +3553,7 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             // TODO verify args before calling
-            if (!osdBintr->SetClockColor(red, green, blue))
+            if (!osdBintr->SetClockColor(red, green, blue, alpha))
             {
                 LOG_ERROR("OSD '" << name << "' failed to set Clock RGB colors");
                 return DSL_RESULT_OSD_SET_FAILED;
@@ -3445,7 +3617,117 @@ namespace DSL
         }
         return DSL_RESULT_SUCCESS;
     }
+
+    DslReturnType Services::OsdRedactionEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            *enabled = osdBintr->GetRedactionEnabled();
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception getting Redaction enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OsdRedactionEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->SetRedactionEnabled(enabled))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to set Redaction enabled");
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Redaction enabled");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
     
+    DslReturnType Services::OsdRedactionClassAdd(const char* name, int classId, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (red > 1.0 or green > 1.0 or blue > 1.0 or alpha > 1.0)
+            {
+                LOG_ERROR("Invalid Redaction color param passed to OSD '" << name << "'");
+                return DSL_RESULT_OSD_COLOR_PARAM_INVALID;
+            }
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->AddRedactionClass(classId, red, green, blue, alpha))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to add Redaction Class");
+                return DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Redaction Class");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OsdRedactionClassRemove(const char* name, int classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            DSL_OSD_PTR osdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!osdBintr->RemoveRedactionClass(classId))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to remove Redaction Class");
+                return DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Redaction Class");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
         dsl_batch_meta_handler_cb handler, void* user_data)
     {
@@ -3838,6 +4120,305 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("RTSP Sink '" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageNew(const char* name, const char* outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        struct stat info;
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Sink name '" << name << "' is not unique");
+            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+        }
+        // ensure outdir exists
+        if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+        {
+            LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
+            return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+        }
+        try
+        {
+            m_components[name] = DSL_IMAGE_SINK_NEW(name, outdir);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Image Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Image Sink '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SinkImageOutdirGet(const char* name, const char** outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            *outdir = sinkBintr->GetOutdir();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir get");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageOutdirSet(const char* name, const char* outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            // ensure outdir exists
+            struct stat info;
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+            }
+            
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetOutdir(outdir))
+            {
+                LOG_ERROR("Failed to set outdir '" << outdir << "' for Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir set");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+
+    DslReturnType Services::SinkImageFrameCaptureIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            *interval = sinkBintr->GetFrameCaptureInterval();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture interval");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageFrameCaptureIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetFrameCaptureInterval(interval))
+            {
+                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture interval");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture interval");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            *enabled = sinkBintr->GetFrameCaptureEnabled();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetFrameCaptureEnabled(enabled))
+            {
+                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture enabled");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            *enabled = sinkBintr->GetObjectCaptureEnabled();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Object Capture enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetObjectCaptureEnabled(enabled))
+            {
+                LOG_ERROR("Image Sink '" << name << "' failed to set Object Capture enabled");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Object Capture enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkImageObjectCaptureClassAdd(const char* name, 
+        uint classId, boolean fullFrame, uint captureLimit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->AddObjectCaptureClass(classId, fullFrame, captureLimit))
+            {
+                LOG_ERROR("Image Sink '" << name << "' failed to add Object Capture Class");
+                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception adding Object Capture Class");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::SinkImageObjectCaptureClassRemove(const char* name, uint classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+
+            DSL_IMAGE_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->RemoveObjectCaptureClass(classId))
+            {
+                LOG_ERROR("Image Sink '" << name << "' failed to remove Object Capture Class");
+                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception removing Redaction Class");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
@@ -4882,6 +5463,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_CODEC_VALUE_INVALID] = L"DSL_RESULT_SINK_CODEC_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_RESULT] = L"DSL_RESULT_OSD_RESULT";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
@@ -4894,6 +5477,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_OSD_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_OSD_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_PAD_TYPE_INVALID] = L"DSL_RESULT_OSD_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD] = L"DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD";
+        m_returnValueToString[DSL_RESULT_OSD_COLOR_PARAM_INVALID] = L"DSL_RESULT_OSD_COLOR_PARAM_INVALID";
+        m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED] = L"DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED] = L"DSL_RESULT_OSD_REDACTION_CALSS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_GIE_RESULT] = L"DSL_RESULT_GIE_RESULT";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_UNIQUE] = L"DSL_RESULT_GIE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_FOUND] = L"DSL_RESULT_GIE_NAME_NOT_FOUND";

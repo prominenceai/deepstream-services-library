@@ -444,12 +444,6 @@ SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls",
     {
         std::wstring fakeSinkName(L"fake-sink");
             
-        uint currBitrate(0);
-        uint currInterval(0);
-    
-        uint newBitrate(2500000);
-        uint newInterval(10);
-
         WHEN( "The On-Screen Display Get-Set API called with a Fake sink" )
         {
             
@@ -459,6 +453,9 @@ SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls",
             {
                 REQUIRE ( dsl_osd_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
                 REQUIRE ( dsl_osd_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                
+                REQUIRE ( dsl_osd_redaction_class_add(fakeSinkName.c_str(), 1, 0, 0, 0, 0) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
+                REQUIRE ( dsl_osd_redaction_class_remove(fakeSinkName.c_str(), 1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -482,6 +479,116 @@ SCENARIO( "A OSD can Enable and Disable Kitti output",  "[gie-api]" )
             THEN( "The Kitti output can then be disabled" )
             {
                 REQUIRE( dsl_osd_kitti_output_enabled_set(osdName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OSD's Redaction Enabled Setting can be enabled", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean preEnabled(false), retEnabled(false);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_redaction_enabled_get(osdName.c_str(), &retEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( retEnabled == false );
+        
+        WHEN( "The OSD's Redaction Enabled is Set" ) 
+        {
+            preEnabled = true;
+            REQUIRE( dsl_osd_redaction_enabled_set(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct value is returned on Get" ) 
+            {
+                REQUIRE( dsl_osd_redaction_enabled_get(osdName.c_str(), &retEnabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( preEnabled == retEnabled);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OSD's Redaction Enabled Setting can be disabled", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory with redaction set" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean preEnabled(false), retEnabled(false);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        preEnabled = true;
+        REQUIRE( dsl_osd_redaction_enabled_set(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_redaction_enabled_get(osdName.c_str(), &retEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( retEnabled == true );
+        
+        WHEN( "The OSD's Redaction Enabled is Set to false" ) 
+        {
+            preEnabled = false;
+            REQUIRE( dsl_osd_redaction_enabled_set(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on Get" ) 
+            {
+                REQUIRE( dsl_osd_redaction_enabled_get(osdName.c_str(), &retEnabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( preEnabled == retEnabled);
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Redaction Class can be added to and removed from an OSD ", "[osd-api]" )
+{
+    GIVEN( "An OsdBintr in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        
+        int redactClass(2);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Redaction Class is added to OsdBintr" )
+        {
+            REQUIRE( dsl_osd_redaction_class_add(osdName.c_str(), redactClass, 0.1, 0.1, 1.0, 1.0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Redaction Class is correctly removed" )
+            {
+                REQUIRE( dsl_osd_redaction_class_remove(osdName.c_str(), redactClass) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "Invalid Color Params are trapped by the OSD API", "[osd-api]" )
+{
+    GIVEN( "An OsdBintr in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        
+        int redactClass(2);
+        double badparam(12.3);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Redaction Class is added with bad color params" )
+        {
+            REQUIRE( dsl_osd_redaction_class_add(osdName.c_str(), redactClass, badparam, 0.1, 1.0, 1.0) 
+                == DSL_RESULT_OSD_COLOR_PARAM_INVALID );
+            
+            REQUIRE( dsl_osd_redaction_class_add(osdName.c_str(), redactClass, 0.1, 1.0, badparam, 1.0) 
+                == DSL_RESULT_OSD_COLOR_PARAM_INVALID );
+            
+            THEN( "The Redaction Class fails on remove" )
+            {
+                REQUIRE( dsl_osd_redaction_class_remove(osdName.c_str(), redactClass) == DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

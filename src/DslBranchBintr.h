@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
+#include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSGiesBintr.h"
@@ -74,6 +75,12 @@ namespace DSL
          * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
          */
         bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
+        
+        /**
+         * @brief adds a single OfvBintr to this Branch 
+         * @param[in] pOfvBintr shared pointer to the OFV Bintr to add
+         */
+        bool AddOfvBintr(DSL_NODETR_PTR pOfvBintr);
         
         /**
          * @brief adds a single TilerBintr to this Branch 
@@ -175,6 +182,8 @@ namespace DSL
          */
         DSL_TRACKER_PTR m_pTrackerBintr;
 
+        DSL_OFV_PTR m_pOfvBintr;
+        
         /**
          * @brief optional, one at most OSD for this Branch
          */

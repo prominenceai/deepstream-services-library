@@ -158,6 +158,8 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
+        DslReturnType OfvNew(const char* name);
+
         DslReturnType OsdNew(const char* name, boolean clockEnabled);
         
         DslReturnType OsdClockEnabledGet(const char* name, boolean* enabled);
@@ -172,13 +174,21 @@ namespace DSL {
 
         DslReturnType OsdClockFontSet(const char* name, const char* font, uint size);
 
-        DslReturnType OsdClockColorGet(const char* name, uint* red, uint* green, uint* blue);
+        DslReturnType OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha);
 
-        DslReturnType OsdClockColorSet(const char* name, uint red, uint green, uint blue);
+        DslReturnType OsdClockColorSet(const char* name, double red, double green, double blue, double alpha);
 
         DslReturnType OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height);
 
         DslReturnType OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height);
+
+        DslReturnType OsdRedactionEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdRedactionEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OsdRedactionClassAdd(const char* name, int classId, double red, double blue, double green, double alpha);
+
+        DslReturnType OsdRedactionClassRemove(const char* name, int classId);
 
         DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
 
@@ -211,6 +221,28 @@ namespace DSL {
         DslReturnType SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
 
         DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+
+        DslReturnType SinkImageNew(const char* name, const char* outdir);
+
+        DslReturnType SinkImageOutdirGet(const char* name, const char** outdir);
+
+        DslReturnType SinkImageOutdirSet(const char* name, const char* outdir);
+
+        DslReturnType SinkImageFrameCaptureIntervalGet(const char* name, uint* interval);
+
+        DslReturnType SinkImageFrameCaptureIntervalSet(const char* name, uint interval);
+            
+        DslReturnType SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled);
+            
+        DslReturnType SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SinkImageObjectCaptureClassAdd(const char* name, uint classId, boolean fullFrame, uint captureLimit);
+
+        DslReturnType SinkImageObjectCaptureClassRemove(const char* name, uint classId);
 
         uint SinkNumInUseGet();
         

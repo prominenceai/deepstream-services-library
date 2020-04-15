@@ -36,6 +36,7 @@ DSL_STATE_IN_TRANSITION = 5
 DSL_UINT_P = POINTER(c_uint)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
+DSL_DOUBLE_P = POINTER(c_double)
 
 ##
 ## Callback Typedefs
@@ -461,24 +462,25 @@ def dsl_osd_clock_font_set(name, font, size):
 ##
 ## dsl_osd_clock_color_get()
 ##
-_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_osd_clock_color_get.argtypes = [c_wchar_p, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
 _dsl.dsl_osd_clock_color_get.restype = c_uint
 def dsl_osd_clock_color_get(name):
     global _dsl
-    red = c_uint(0)
-    green = c_uint(0)
-    blue = c_uint(0)
-    result = _dsl.dsl_osd_clock_color_get(name, DSL_UINT_P(red), DSL_UINT_P(green), DSL_UINT_P(blue))
-    return int(result), red.value, green.value, blue.value 
+    red = c_double(0)
+    green = c_double(0)
+    blue = c_double(0)
+    alpha = c_double(0)
+    result = _dsl.dsl_osd_clock_color_get(name, DSL_DOUBLE_P(red), DSL_DOUBLE_P(green), DSL_DOUBLE_P(blue), DSL_DOUBLE_P(alpha))
+    return int(result), red.value, green.value, blue.value, alpha.value
 
 ##
 ## dsl_osd_clock_color_set()
 ##
-_dsl.dsl_osd_clock_color_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_osd_clock_color_set.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
 _dsl.dsl_osd_clock_color_set.restype = c_uint
-def dsl_osd_clock_color_set(name, red, green, blue):
+def dsl_osd_clock_color_set(name, red, green, blue, alpha):
     global _dsl
-    result = _dsl.dsl_osd_clock_color_set(name, red, green, blue)
+    result = _dsl.dsl_osd_clock_color_set(name, red, green, blue, alpha)
     return int(result)
 
 ##
@@ -503,6 +505,58 @@ _dsl.dsl_osd_crop_settings_set.restype = c_uint
 def dsl_osd_crop_settings_set(name, left, top, width, height):
     global _dsl
     result = _dsl.dsl_osd_crop_settings_set(name, left, top, width, height)
+    return int(result)
+
+##
+## dsl_osd_redaction_enabled_get()
+##
+_dsl.dsl_osd_redaction_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_redaction_enabled_get.restype = c_uint
+def dsl_osd_redaction_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_redaction_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_redaction_enabled_set()
+##
+_dsl.dsl_osd_redaction_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_redaction_enabled_set.restype = c_uint
+def dsl_osd_redaction_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_osd_redaction_enabled_get()
+##
+_dsl.dsl_osd_redaction_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_redaction_enabled_get.restype = c_uint
+def dsl_osd_redaction_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_redaction_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_redaction_class_add()
+##
+_dsl.dsl_osd_redaction_class_add.argtypes = [c_wchar_p, c_int, c_double, c_double, c_double, c_double]
+_dsl.dsl_osd_redaction_class_add.restype = c_uint
+def dsl_osd_redaction_class_add(name, class_id, red, green, blue, alpha):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_class_add(name, class_id, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_osd_redaction_class_remove()
+##
+_dsl.dsl_osd_redaction_class_remove.argtypes = [c_wchar_p, c_int]
+_dsl.dsl_osd_redaction_class_remove.restype = c_uint
+def dsl_osd_redaction_class_remove(name, class_id):
+    global _dsl
+    result = _dsl.dsl_osd_redaction_class_remove(name, class_id)
     return int(result)
 
 ##
@@ -797,6 +851,121 @@ _dsl.dsl_sink_rtsp_encoder_settings_set.restype = c_uint
 def dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval):
     global _dsl
     result = _dsl.dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_image_new()
+##
+_dsl.dsl_sink_image_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_image_new.restype = c_uint
+def dsl_sink_image_new(name, outdir):
+    global _dsl
+    result =_dsl.dsl_sink_image_new(name, outdir)
+    return int(result)
+
+##
+## dsl_sink_image_outdir_get()
+##
+_dsl.dsl_sink_image_outdir_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_image_outdir_get.restype = c_uint
+def dsl_sink_image_outdir_get(name):
+    global _dsl
+    outdir = c_wchar_p(0)
+    result = _dsl.dsl_sink_image_outdir_get(name, DSL_WCHAR_PP(outdir))
+    return int(result), outdir.value 
+
+##
+## dsl_sink_image_outdir_set()
+##
+_dsl.dsl_sink_image_outdir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_image_outdir_set.restype = c_uint
+def dsl_sink_image_outdir_set(name, outdir):
+    global _dsl
+    result = _dsl.dsl_sink_image_outdir_set(name, outdir)
+    return int(result)
+
+##
+## dsl_sink_image_frame_capture_interval_get()
+##
+_dsl.dsl_sink_image_frame_capture_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_image_frame_capture_interval_get.restype = c_uint
+def dsl_sink_image_frame_capture_interval_get(name):
+    global _dsl
+    interval = c_uint(0)
+    result = _dsl.dsl_sink_image_frame_capture_interval_get(name, DSL_UINT_P(interval))
+    return int(result), interval.value 
+
+##
+## dsl_sink_image_frame_capture_interval_set()
+##
+_dsl.dsl_sink_image_frame_capture_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_image_frame_capture_interval_set.restype = c_uint
+def dsl_sink_image_frame_capture_interval_set(name, interval):
+    global _dsl
+    result = _dsl.dsl_sink_image_frame_capture_interval_set(name, interval)
+    return int(result)
+
+##
+## dsl_sink_image_frame_capture_enabled_get()
+##
+_dsl.dsl_sink_image_frame_capture_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_image_frame_capture_enabled_get.restype = c_uint
+def dsl_sink_image_frame_capture_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_image_frame_capture_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_sink_image_frame_capture_enabled_set()
+##
+_dsl.dsl_sink_image_frame_capture_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_image_frame_capture_enabled_set.restype = c_uint
+def dsl_sink_image_frame_capture_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_sink_image_frame_capture_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sink_image_object_capture_enabled_get()
+##
+_dsl.dsl_sink_image_object_capture_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_image_object_capture_enabled_get.restype = c_uint
+def dsl_sink_image_object_capture_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_image_object_capture_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_sink_image_object_capture_enabled_set()
+##
+_dsl.dsl_sink_image_object_capture_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_image_object_capture_enabled_set.restype = c_uint
+def dsl_sink_image_object_capture_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_sink_image_object_capture_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sink_image_object_capture_class_add()
+##
+_dsl.dsl_sink_image_object_capture_class_add.argtypes = [c_wchar_p, c_uint, c_bool, c_uint]
+_dsl.dsl_sink_image_object_capture_class_add.restype = c_uint
+def dsl_sink_image_object_capture_class_add(name, class_id, full_frame, capture_limit):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_image_object_capture_class_add(name, class_id, full_frame, capture_limit)
+    return int(result)
+
+##
+## dsl_sink_image_object_capture_class_remove()
+##
+_dsl.dsl_sink_image_object_capture_class_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_image_object_capture_class_remove.restype = c_uint
+def dsl_sink_image_object_capture_class_remove(name, class_id):
+    global _dsl
+    result = _dsl.dsl_sink_image_object_capture_class_remove(name, class_id)
     return int(result)
 
 ##

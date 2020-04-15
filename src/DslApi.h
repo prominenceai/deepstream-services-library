@@ -111,7 +111,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
-
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000C
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000D
 /**
  * OSD API Return Values
  */
@@ -127,6 +128,25 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
+#define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
+#define DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED                   0x0005000D
+#define DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED                0x0005000E
+
+/**
+ * OFV API Return Values
+ */
+#define DSL_RESULT_OFV_RESULT                                       0x000C0000
+#define DSL_RESULT_OFV_NAME_NOT_UNIQUE                              0x000C0001
+#define DSL_RESULT_OFV_NAME_NOT_FOUND                               0x000C0002
+#define DSL_RESULT_OFV_NAME_BAD_FORMAT                              0x000C0003
+#define DSL_RESULT_OFV_THREW_EXCEPTION                              0x000C0004
+#define DSL_RESULT_OFV_MAX_DIMENSIONS_INVALID                       0x000C0005
+#define DSL_RESULT_OFV_IS_IN_USE                                    0x000C0006
+#define DSL_RESULT_OFV_SET_FAILED                                   0x000C0007
+#define DSL_RESULT_OFV_HANDLER_ADD_FAILED                           0x000C0008
+#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C0009
+#define DSL_RESULT_OFV_PAD_TYPE_INVALID                             0x000C000A
+#define DSL_RESULT_OFV_COMPONENT_IS_NOT_OFV                         0x000C000B
 
 /**
  * GIE API Return Values
@@ -350,9 +370,9 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
  * @brief returns the frame rate of the name source as a fraction
  * Camera sources will return the value used on source creation
  * URL and RTPS sources will return 0 until prior entering a state of play
- * @param name unique name of the source to query
- * @param width of the source in pixels
- * @param height of the source in pixels
+ * @param[in] name unique name of the source to query
+ * @param[out] width of the source in pixels
+ * @param[out] height of the source in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
@@ -361,9 +381,9 @@ DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* 
  * @brief returns the frame rate of the named source as a fraction
  * Camera sources will return the value used on source creation
  * URL and RTPS sources will return 0 until prior entering a state of play
- * @param name unique name of the source to query
- * @param fps_n frames per second numerator
- * @param fps_d frames per second denominator
+ * @param[in] name unique name of the source to query
+ * @param[out] fps_n frames per second numerator
+ * @param[out] fps_d frames per second denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_d);
@@ -386,15 +406,15 @@ DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param name name of the source object to update
- * @param dewarper name of the dewarper to add
+ * @param[in] name name of the source object to update
+ * @param[in] dewarper name of the dewarper to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 
 /**
  * @brief Adds a named dewarper to a named decode source (URI, RTSP)
- * @param name name of the source object to update
+ * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
@@ -402,7 +422,7 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 /**
  * @brief pauses a single Source object if the Source is 
  * currently in a state of in-use and Playing..
- * @param name the name of Source component to pause
+ * @param[in] name the name of Source component to pause
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_pause(const wchar_t* name);
@@ -410,14 +430,14 @@ DslReturnType dsl_source_pause(const wchar_t* name);
 /**
  * @brief resumes a single Source object if the Source is 
  * currently in a state of in-use and Paused..
- * @param name the name of Source component to resume
+ * @param[in] name the name of Source component to resume
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_resume(const wchar_t* name);
 
 /**
  * @brief returns whether the source stream is live or not
- * @param name the name of Source component to query
+ * @param[in] name the name of Source component to query
  * @return True if the source's stream is live
  */
 boolean dsl_source_is_live(const wchar_t* name);
@@ -448,8 +468,8 @@ boolean dsl_source_num_in_use_max_set(uint max);
 
 /**
  * @brief create a new, uniquely named Dewarper object
- * @param name unique name for the new Dewarper object
- * @param config_file absolute or relative path to Dewarper config text file
+ * @param[in] name unique name for the new Dewarper object
+ * @param[in] config_file absolute or relative path to Dewarper config text file
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
@@ -468,10 +488,10 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
 /**
  * @brief Adds a batch meta handler callback function to be called to process each buffer.
  * A Primary GIE can multiple Sink and Source batch meta handlers
- * @param name unique name of the Primary GIE to update
- * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param handler callback function to process batch meta data
- * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] handler callback function to process batch meta data
+ * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
 DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -479,8 +499,8 @@ DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint p
 
 /**
  * @brief Removes a batch meta handler callback function from the Primary GIE
- * @param name unique name of the Primary GIE to update
- * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
 DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, 
@@ -488,9 +508,9 @@ DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name,
     
 /**
  * @brief Enbles/disables the bbox output to kitti file for the named the GIE
- * @param name name of the Primary GIE to update
- * @param enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param path absolute or relative direcory path to write to. 
+ * @param[in] name name of the Primary GIE to update
+ * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
@@ -551,61 +571,60 @@ DslReturnType dsl_gie_interval_get(const wchar_t* name, uint* interval);
  * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
  * @param[in] name of Primary or Secondary GIE to update
  * @param[in] interval new Infer Interval value to use
- * @param 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
- * @param name name of the Primary or Secondary GIE to update
- * @param enabled set to true to enable frame-to-file output for each GIE layer
- * @param path absolute or relative direcory path to write to. 
+ * @param[in] name name of the Primary or Secondary GIE to update
+ * @param[in] enabled set to true to enable frame-to-file output for each GIE layer
+ * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_gie_raw_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* path);
 
 /**
  * @brief creates a new, uniquely named KTL Tracker object
- * @param name unique name for the new Tracker
- * @param max_width maximum frame width of the input transform buffer
- * @param max_height maximum_frame height of the input tranform buffer
+ * @param[in] name unique name for the new Tracker
+ * @param[in] max_width maximum frame width of the input transform buffer
+ * @param[in] max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_ktl_new(const wchar_t* name, uint max_width, uint max_height);
 
 /**
  * @brief creates a new, uniquely named IOU Tracker object
- * @param name unique name for the new Tracker
- * @param config_file fully qualified pathspec to the IOU Lib config text file
- * @param max_width maximum frame width of the input transform buffer
- * @param max_height maximum_frame height of the input tranform buffer
+ * @param[in] name unique name for the new Tracker
+ * @param[in] config_file fully qualified pathspec to the IOU Lib config text file
+ * @param[in] max_width maximum frame width of the input transform buffer
+ * @param[in] max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_iou_new(const wchar_t* name, const wchar_t* config_file, uint max_width, uint max_height);
 
 /**
  * @brief returns the current maximum frame width and height settings for the named IOU Tracker object
- * @param name unique name of the Tracker to query
- * @param max_width maximum frame width of the input transform buffer
- * @param max_height maximum_frame height of the input tranform buffer
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] max_width maximum frame width of the input transform buffer
+ * @param[out] max_height maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_max_dimensions_get(const wchar_t* name, uint* max_width, uint* max_height);
 
 /**
  * @brief sets the maximum frame width and height settings for the named IOU Tracker object
- * @param name unique name of the Tracker to update
- * @param max_width new maximum frame width of the input transform buffer
- * @param max_height new maximum_frame height of the input tranform buffer
+ * @param[in] name unique name of the Tracker to update
+ * @param[in] max_width new maximum frame width of the input transform buffer
+ * @param[in] max_height new maximum_frame height of the input tranform buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width, uint max_height);
 
 /**
  * @brief returns the current config file in use by the named IOU Tracker object
- * @param name unique name of the Tracker to query
- * @param config_file absolute or relative pathspec to the new config file to use
+ * @param[in] name unique name of the Tracker to query
+ * @param[out] config_file absolute or relative pathspec to the new config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
@@ -613,10 +632,10 @@ DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t
 /**
  * @brief Add a batch meta handler callback function to be called to process each frame buffer.
  * A Tracker can have multiple Sink and Source batch meta handlers
- * @param name unique name of the Tracker to update
- * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param handler callback function to process batch meta data
- * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @param[in] name unique name of the Tracker to update
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] handler callback function to process batch meta data
+ * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -624,8 +643,8 @@ DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad,
 
 /**
  * @brief Removes a batch meta handler callback function from the Tracker
- * @param name unique name of the Tracker to update
- * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] name unique name of the Tracker to update
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, 
@@ -633,24 +652,31 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name,
 
 /**
  * @brief sets the config file to use by named IOU Tracker object
- * @param name unique name of the Tracker to Update
- * @param config_file absolute or relative pathspec to the new config file to use
+ * @param[in] name unique name of the Tracker to Update
+ * @param[in] config_file absolute or relative pathspec to the new config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
 
 /**
  * @brief Enbles/disables the bbox output to kitti file for the named the Tracker
- * @param name name of the Tracker to update
- * @param enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param path absolute or relative direcory path to write to. 
+ * @param[in] name name of the Tracker to update
+ * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
 DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
+ * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj
+ * @param[in] name unique name for the new OFV
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OFD_RESULT otherwise
+ */
+DslReturnType dsl_ofv_new(const wchar_t* name);
+
+/**
  * @brief creates a new, uniquely named OSD obj
- * @param[in] name unique name for the new Sink
+ * @param[in] name unique name for the new OSD
  * @param[in] is_clock_enabled true if clock is visible
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
@@ -660,73 +686,75 @@ DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
  * @brief returns the current clock enabled setting for the named On-Screen Display
  * @param[in] name name of the Display to query
  * @param[out] enabled current setting for OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
  * @brief sets the the clock enabled setting for On-Screen-Display
  * @param[in] name name of the OSD to update
- * @param[in] enabled new enabled setting for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @param[in] enabled new enabled setting for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief returns the current X and Y offsets for On-Screen-Display clocks
+ * @brief returns the current X and Y offsets for On-Screen-Display clock
  * @param[in] name name of the OSD to query
  * @param[out] offsetX current offset in the X direction for the OSD clock in pixels
  * @param[out] offsetY current offset in the Y direction for the OSD clock in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY);
 
 /**
- * @brief sets the X and Y offsets for the On-Screen-Display clocks
+ * @brief sets the X and Y offsets for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
  * @param[in] offsetX new offset for the OSD clock in the X direction in pixels
  * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
 
 /**
- * @brief returns the font name and size for On-Screen-Display clocks
+ * @brief returns the font name and size for On-Screen-Display clock
  * @param[in] name name of the OSD to query
- * @param[out] font current font string for the OSD clocks
- * @param[out] size current font size for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @param[out] font current font string for the OSD clock
+ * @param[out] size current font size for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size);
 
 /**
- * @brief sets the font name and size for the On-Screen-Display clocks
+ * @brief sets the font name and size for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
- * @param[in] font new font string to use for the OSD clocks
- * @param[in] size new size string to use for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @param[in] font new font string to use for the OSD clock
+ * @param[in] size new size string to use for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size);
 
 /**
- * @brief returns the font name and size for On-Screen-Display clocks
+ * @brief returns the font name and size for On-Screen-Display clock
  * @param[in] name name of the OSD to query
- * @param[in] red current red color value for the OSD clocks
- * @param[in] gren current green color value for the OSD clocks
- * @param[in] blue current blue color value for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @param[out] red current red color value for the OSD clock
+ * @param[out] gren current green color value for the OSD clock
+ * @param[out] blue current blue color value for the OSD clock
+ * @param[out] alpha current alpha color value for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, uint* red, uint* green, uint* blue);
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha);
 
 /**
- * @brief sets the font name and size for the On-Screen-Display clocks
+ * @brief sets the font name and size for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
- * @param[in] red new red color value for the OSD clocks
- * @param[in] gren new green color value for the OSD clocks
- * @param[in] blue new blue color value for the OSD clocks
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @param[in] red new red color value for the OSD clock
+ * @param[in] gren new green color value for the OSD clock
+ * @param[in] blue new blue color value for the OSD clock
+ * @param[out] alpha current alpha color value for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green, uint blue);
+DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha);
 
 /**
  * @brief gets the current crop settings for the named On-Screen-Display
@@ -735,28 +763,65 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, uint red, uint green,
  * @param[out] top number of pixels to crop from the top
  * @param[out] width width of the cropped image in pixels
  * @param[out] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* top, uint* width, uint* height);
 
 /**
- * @brief gets the current crop settings for the named On-Screen-Display
+ * @brief Sets the current crop settings for the named On-Screen-Display
  * @param[in] name name of the OSD to query
  * @param[in] left number of pixels to crop from the left
  * @param[in] top number of pixels to crop from the top
  * @param[in] width width of the cropped image in pixels
  * @param[in] height height of the cropped image in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
 
 /**
+ * @brief Gets the current state of the Redaction enabled setting
+ * @param[in] name name of the OSD to query
+ * @param[out] enabled true if Redaction is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current state of the Redaction enabled setting
+ * @param[in] name name of the OSD to update
+ * @param[in] enabled set to true to enable Redaction, false to disable
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Adds a new Redaction Class to a named OSD
+ * @param[in] name unique name of the OSD to update
+ * @param[in] class_id id of the Redaction Class to add
+ * @param[in] red red value for the RGBA redaction box [1..0]
+ * @param[in] green green value for the RGBA redaction box [1..0]
+ * @param[in] blue blue value for the RGBA redaction box [1..0]
+ * @param[in] alpha alpha value for the RGBA redaction box [1..0]
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int class_id, 
+    double red, double green, double blue, double alpha);
+    
+/**
+ * @brief Remove a Redaction Class from a named OSD
+ * @param[in] name unique name of the OSD to update
+ * @param[in] class_id id of the Redaction Class to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int class_id);
+
+/**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
  * An On-Screen-Display can have multiple Sink and Source batch-meta-handlers
- * @param name unique name of the OSD to update
- * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param handler callback function to process batch meta data
- * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @param[in] name unique name of the OSD to update
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] handler callback function to process batch meta data
+ * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -764,8 +829,8 @@ DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad,
 
 /**
  * @brief Removes a batch meta handler callback function from the OSD
- * @param name unique name of the OSD to update
- * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] name unique name of the OSD to update
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, 
@@ -773,16 +838,16 @@ DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name,
 
 /**
  * @brief Enbles/disables the bbox output to kitti file for the named the OSD
- * @param name name of the OSD to update
- * @param enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param path absolute or relative direcory path to write to. 
+ * @param[in] name name of the OSD to update
+ * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
+ * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
 DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
- * @param name unique name for the new Stream Demuxer Tee
+ * @param[in] name unique name for the new Stream Demuxer Tee
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
@@ -798,7 +863,7 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* demuxer, const 
 
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
- * @param name unique name for the new Stream Splitter Tee
+ * @param[in] name unique name for the new Stream Splitter Tee
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
@@ -861,9 +926,9 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count);
 /**
  * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
  * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
- * @param name unique name of the Demuxer to update
- * @param handler callback function to process batch meta data
- * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @param[in] name unique name of the Demuxer to update
+ * @param[in] handler callback function to process batch meta data
+ * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
 DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
@@ -871,8 +936,8 @@ DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
 
 /**
  * @brief Removes a batch meta handler callback function from a named Demuxer
- * @param name unique name of the Demuxer to update
- * @param handler callback function to remove
+ * @param[in] name unique name of the Demuxer to update
+ * @param[in] handler callback function to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
 DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name, 
@@ -926,10 +991,10 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
  * A Tiled Display can have multiple Sink and Source batch meta handlers
- * @param name unique name of the Tiled Display to update
- * @param pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param handler callback function to process batch meta data
- * @param user_data opaque pointer to clients user data passed in to each callback call.
+ * @param[in] name unique name of the Tiled Display to update
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] handler callback function to process batch meta data
+ * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
 DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -937,8 +1002,8 @@ DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad,
 
 /**
  * @brief Removes a batch meta handler callback function from the Tiled Display
- * @param name unique name of the Tiled Dislplay to update
- * @param pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @param[in] name unique name of the Tiled Dislplay to update
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
 DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, 
@@ -979,12 +1044,12 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named File Sink component
- * @param name unique component name for the new File Sink
- * @param filepath absolute or relative file path including extension
- * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
- * @param container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param bitrate in bits per second - H264 and H265 only
- * @param interval iframe interval to encode at
+ * @param[in] name unique component name for the new File Sink
+ * @param[in] filepath absolute or relative file path including extension
+ * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] bitrate in bits per second - H264 and H265 only
+ * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
@@ -1002,9 +1067,9 @@ DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
 
 /**
  * @brief gets the current bit-rate and interval settings for the named File Sink
- * @param name unique name of the File Sink to query
- * @param bitrate current Encoder bit-rate in bits/sec for the named File Sink
- * @param interval current Encoder iframe interval value
+ * @param[in] name unique name of the File Sink to query
+ * @param[out] bitrate current Encoder bit-rate in bits/sec for the named File Sink
+ * @param[out] interval current Encoder iframe interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
@@ -1012,9 +1077,9 @@ DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
 
 /**
  * @brief sets new bit_rate and interval settings for the named File Sink
- * @param name unique name of the File Sink to update
- * @param bitrate new Encoder bit-rate in bits/sec for the named File Sink
- * @param interval new Encoder iframe interval value to use
+ * @param[in] name unique name of the File Sink to update
+ * @param[in] bitrate new Encoder bit-rate in bits/sec for the named File Sink
+ * @param[in] interval new Encoder iframe interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
@@ -1022,13 +1087,13 @@ DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named RTSP Sink component
- * @param name unique coomponent name for the new RTSP Sink
- * @param host address for the RTSP Server
- * @param port UDP port number for the RTSP Server
- * @param port RTSP port number for the RTSP Server
- * @param codec one of DSL_CODEC_H264, DSL_CODEC_H265
- * @param bitrate in bits per second
- * @param interval iframe interval to encode at
+ * @param[in] name unique coomponent name for the new RTSP Sink
+ * @param[in] host address for the RTSP Server
+ * @param[in] port UDP port number for the RTSP Server
+ * @param[in] port RTSP port number for the RTSP Server
+ * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265
+ * @param[in] bitrate in bits per second
+ * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
@@ -1063,6 +1128,100 @@ DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
+
+/**
+ * @brief creates a new, uniquely named Image Sink component
+ * @param[in] name unique component name for the new Image Sink
+ * @param[in] outdir absolute or relative path to the image output directory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir);
+
+/**
+ * @brief gets the current output directory in use by the named Image Sink.
+ * @param[in] name name of the Image Sink to query
+ * @param[out] outdir pathspec for the current impage file output directory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir);
+
+/**
+ * @brief sets the current output directory for a named Image Sink to use.
+ * Note: the frame interval can be viewed as the drop frame count
+ * @param[in] name name of the Image Sink to update
+ * @param[in] outdir relative or absolute pathspec for the file output directory to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir);
+
+/**
+ * @brief gets the current frame interval to trasform and save images
+ * Note: the frame interval can be viewed as the drop frame count
+ * @param[in] name name of the Image Sink to query
+ * @param[out] interval the current frame capture interval. 0 = on every frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief sets the current frame interval to trasform and save images
+ * Note: the frame interval can be viewed as the drop frame count
+ * @param[in] name name of the Image Sink to update
+ * @param[in] interval the bew frame capture interval to use. 0 = on every frame
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief Gets the current state of an Image Sink's Frame capture
+ * @param[in] name name of the Image Sink to query
+ * @param[out] enabled true if Frame capture is enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current state of an Image Sink's Frame capture
+ * @param[in] name name of the Image Sink to query
+ * @param[in] enabled set to true to enable Frame capture, false to disable
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Gets the current state of an Image Sink's Object capture
+ * @param[in] name name of the Image Sink to query
+ * @param[out] enabled true if Object capture is enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current state of an Image Sink's Object capture
+ * @param[in] name name of the Image Sink to query
+ * @param[in] enabled set to true to enable Object capture, false to disable
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Adds a new Object Capture Class to a named Image Sink
+ * @param[in] name unique name of the Image Sink to update
+ * @param[in] class_id id of the Object Capture Class to add
+ * @param[in] full_frame if set to true, will capture full frame on object detection, bbox dimensions otherwise
+ * @param[in] capture_limit maximum number of objects to capture (transform and save to file) for a specific Class
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint class_id, 
+    boolean full_frame, uint capture_limit);
+    
+/**
+ * @brief Removes an Object Capture Class from a named Image Sink
+ * @param[in] name unique name of the Image Sink to update
+ * @param[in] class_id id of the Object Capture Class to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint class_id);
 
 /**
  * @brief returns the number of Sinks currently in use by 
@@ -1100,7 +1259,7 @@ DslReturnType dsl_component_delete(const wchar_t* component);
 
 /**
  * @brief deletes a NULL terminated list of components
- * @param components NULL terminated list of names to delete
+ * @param[in] components NULL terminated list of names to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  */
 DslReturnType dsl_component_delete_many(const wchar_t** components);
@@ -1150,7 +1309,7 @@ DslReturnType dsl_branch_new(const wchar_t* name);
 
 /**
  * @brief creates a new Branch for each name in the names array
- * @param names a NULL terminated array of unique Branch names
+ * @param[in] names a NULL terminated array of unique Branch names
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
 DslReturnType dsl_branch_new_many(const wchar_t** names);
@@ -1209,7 +1368,7 @@ DslReturnType dsl_pipeline_new(const wchar_t* pipeline);
 
 /**
  * @brief creates a new Pipeline for each name pipelines array
- * @param pipelines a NULL terminated array of unique Pipeline names
+ * @param[in] pipelines a NULL terminated array of unique Pipeline names
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
@@ -1235,7 +1394,7 @@ DslReturnType dsl_pipeline_delete(const wchar_t* pipeline);
 
 /**
  * @brief deletes a NULL terminated list of pipelines
- * @param pipelines NULL terminated list of names to delete
+ * @param[in] pipelines NULL terminated list of names to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  * @info any/all components owned by the pipelines move
  * to a state of not-in-use.
@@ -1326,7 +1485,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 
 /**
  * @brief clears the Pipelines XWindow
- * @param pipeline name of the pipeline to update
+ * @param[in] pipeline name of the pipeline to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
@@ -1530,7 +1689,7 @@ void dsl_main_loop_quit();
 
 /**
  * @brief converts a numerical Result Code to a String
- * @param result result code to convert
+ * @param[in] result result code to convert
  * @return String value of result.
  */
 const wchar_t* dsl_return_value_to_string(uint result);

@@ -152,22 +152,27 @@ Clients of Tiler components can add/remove `batch-meta-handler` callback functio
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
-On-Screen Display (OSD) components highlight detected objects with colored bounding boxes, labels and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
+On-Screen Display (OSD) components highlight detected objects with colored bounding boxes and labels. and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
+
+The OSD component provides class based _**redaction services**_ -- for blurring or blanking faces, license plates, etc -- based on the class labels passed to the Inference Engine(s).
 
 OSDs are optional and a Pipeline can have at most one when using a Tiler or one-per-source when using a Demuxer. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
 ## Rendering and Streaming Sinks
-Sinks, as the end components in the Pipeline, are used to either render the Streaming media or to stream encoded data as a server or to a file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently five types of Sink Components that can be added.
+Sinks, as the end components in the Pipeline, are used to render the Streaming media, stream encoded data as a server or to a file, or capture and save frame and object images to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
 
 1. Overlay Render Sink
 2. X11/EGL Window Sink
 3. Media Container File Sink
-4. RTSP Server Sink
-5. Fake Sink
+4. Image Capture Sink
+5. RTSP Server Sink
+6. Fake Sink
 
 Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
 File Sinks support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.
+
+Image sinks capture and transform full video frames and identified objects into jpeg images and writes them to file
 
 RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
 
