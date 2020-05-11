@@ -24,16 +24,107 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslDetectionEvent.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
+#include "DslReporterBintr.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
 
 // Single GST debug catagory initialization
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
+
+DslReturnType dsl_event_detection_new(const wchar_t* name, uint evtype, uint class_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionNew(cstrName.c_str(), evtype, class_id);
+}
+
+DslReturnType dsl_event_detection_class_id_get(const wchar_t* name, uint* class_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionClassIdGet(cstrName.c_str(), class_id);
+}
+
+DslReturnType dsl_event_detection_class_id_set(const wchar_t* name, uint class_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionClassIdSet(cstrName.c_str(), class_id);
+}
+
+DslReturnType dsl_event_detection_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionDimensionsMinGet(cstrName.c_str(), min_width, min_height);
+}
+
+DslReturnType dsl_event_detection_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionDimensionsMinSet(cstrName.c_str(), min_width, min_height);
+}
+
+DslReturnType dsl_event_detection_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+}
+
+DslReturnType dsl_event_detection_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDetectionFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+}
+
+DslReturnType dsl_event_delete(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->EventDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_event_delete_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->EventDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_event_delete_all()
+{
+    return DSL::Services::GetServices()->EventDeleteAll();
+}
+
+uint dsl_event_list_size()
+{
+    return DSL::Services::GetServices()->EventListSize();
+}
 
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
@@ -396,6 +487,14 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
     return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
     
+DslReturnType dsl_reporter_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ReporterNew(cstrName.c_str());
+}
+
 DslReturnType dsl_ofv_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -1435,12 +1534,20 @@ DslReturnType dsl_pipeline_stop(const wchar_t* pipeline)
     return DSL::Services::GetServices()->PipelineStop(cstrPipeline.c_str());
 }
 
-DslReturnType dsl_pipeline_get_state(const wchar_t* pipeline)
+DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state)
 {
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
-    return DSL::Services::GetServices()->PipelineGetState(cstrPipeline.c_str());
+    return DSL::Services::GetServices()->PipelineStateGet(cstrPipeline.c_str(), state);
+}
+
+DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live)
+{
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineIsLive(cstrPipeline.c_str(), is_live);
 }
 
 DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename)
@@ -1564,6 +1671,26 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     return DSL::Services::GetServices()->
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
+
+#define RETURN_IF_EVENT_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("Event name '" << name << "' was not found"); \
+        return DSL_RESULT_EVENT_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(events, name) do \
+{ \
+    if (!events[name]->IsType(typeid(FirstOccurrenceEvent)) and  \
+        !events[name]->IsType(typeid(FirstAbsenceEvent))) \
+    { \
+        LOG_ERROR("Event '" << name << "' is not a Detection Event"); \
+        return DSL_RESULT_EVENT_IS_NOT_DETECTION_EVENT; \
+    } \
+}while(0); 
+
 
 #define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
 { \
@@ -1732,6 +1859,11 @@ const wchar_t* dsl_return_value_to_string(uint result)
     return DSL::Services::GetServices()->ReturnValueToString(result);
 }
 
+const wchar_t* dsl_state_value_to_string(uint state)
+{
+    return DSL::Services::GetServices()->StateValueToString(state);
+}
+
 const wchar_t* dsl_version_get()
 {
     return DSL_VERSION;
@@ -1804,6 +1936,229 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
+    DslReturnType Services::EventDetectionNew(const char* name, uint evtype, uint classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_events.find(name) != m_events.end())
+        {   
+            LOG_ERROR("Detection Event name '" << name << "' is not unique");
+            return DSL_RESULT_EVENT_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            switch (evtype)
+            {
+            case DSL_EVENT_TYPE_FIRST_OCCURRENCE :
+                m_events[name] = DSL_EVENT_FIRST_OCCURRENCE_NEW(name, classId);
+                break;
+            default :
+                LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
+                return DSL_RESULT_EVENT_TYPE_INVALID;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Detection Event '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::EventDetectionClassIdGet(const char* name, uint* classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            *classId = pEvent->GetClassId();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception getting class id");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services::EventDetectionClassIdSet(const char* name, uint classId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            pEvent->SetClassId(classId);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception getting class id");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services::EventDetectionDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            pEvent->GetMinDimensions(min_width, min_height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception getting minimum dimensions");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services::EventDetectionDimensionsMinSet(const char* name, uint min_width, uint min_height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            // TODO: validate the min values for in-range
+            pEvent->SetMinDimensions(min_width, min_height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception setting minimum dimensions");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services:: EventDetectionFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            pEvent->GetMinFrameCount(min_count_n, min_count_d);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services:: EventDetectionFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+            RETURN_IF_EVENT_IS_NOT_DETECTION_EVENT(m_events, name);
+            
+            DSL_EVENT_DETECTION_PTR pEvent = 
+                std::dynamic_pointer_cast<DetectionEvent>(m_events[name]);
+         
+            // TODO: validate the min values for in-range
+            pEvent->SetMinFrameCount(min_count_n, min_count_d);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
+            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }                
+
+    DslReturnType Services::EventDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_EVENT_NAME_NOT_FOUND(m_events, name);
+        
+        if (m_events[name]->IsInUse())
+        {
+            LOG_INFO("Event '" << name << "' is in use");
+            return DSL_RESULT_EVENT_IN_USE;
+        }
+        m_events.erase(name);
+
+        LOG_INFO("Event '" << name << "' deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::EventDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto const& imap: m_events)
+        {
+            // In the case of Delete all
+            if (imap.second->IsInUse())
+            {
+                LOG_ERROR("Event '" << imap.second->GetName() << "' is currently in use");
+                return DSL_RESULT_EVENT_IN_USE;
+            }
+        }
+
+        for (auto const& imap: m_events)
+        {
+            m_events.erase(imap.second->GetName());
+        }
+        LOG_INFO("All Events deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::EventListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_events.size();
+    }
+    
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fps_n, uint fps_d)
     {
@@ -1829,7 +2184,7 @@ namespace DSL
 
         return DSL_RESULT_SUCCESS;
     }
-    
+
     DslReturnType Services::SourceUsbNew(const char* name,
         uint width, uint height, uint fps_n, uint fps_d)
     {
@@ -3284,6 +3639,31 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
+    DslReturnType Services::ReporterNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure component name uniqueness 
+        if (m_components.find(name) != m_components.end())
+        {   
+            LOG_ERROR("Reporter name '" << name << "' is not unique");
+            return DSL_RESULT_REPORTER_NAME_NOT_UNIQUE;
+        }
+        try
+        {   
+            m_components[name] = std::shared_ptr<Bintr>(new ReporterBintr(name));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Reporter '" << name << "' threw exception on create");
+            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+        }
+        LOG_INFO("new Reporter '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
     DslReturnType Services::OfvNew(const char* name)
     {
         LOG_FUNC();
@@ -4457,7 +4837,6 @@ namespace DSL
         return true;
     }
 
-
     DslReturnType Services::ComponentDelete(const char* component)
     {
         LOG_FUNC();
@@ -5056,13 +5435,42 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::PipelineGetState(const char* pipeline)
+    DslReturnType Services::PipelineStateGet(const char* pipeline, uint* state)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
-        return DSL_RESULT_API_NOT_IMPLEMENTED;
+        try
+        {
+            *state = std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->GetState();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception getting state");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineIsLive(const char* pipeline, boolean* isLive)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            *isLive = std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->IsLive();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception getting 'is-live'");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineDumpToDot(const char* pipeline, char* filename)
@@ -5394,12 +5802,27 @@ namespace DSL
         if (m_returnValueToString.find(result) == m_returnValueToString.end())
         {
             LOG_ERROR("Invalid result = " << result << " unable to convert to string");
-            m_returnValueToString[0xFFFF].c_str();
+            m_returnValueToString[0xFFFFFFFF].c_str();
         }
 
         std::string cstrResult(m_returnValueToString[result].begin(), m_returnValueToString[result].end());
         LOG_INFO("Result = " << result << " = " << cstrResult);
         return m_returnValueToString[result].c_str();
+    }
+    
+    const wchar_t* Services::StateValueToString(uint state)
+    {
+        LOG_FUNC();
+        
+        if (m_stateValueToString.find(state) == m_returnValueToString.end())
+        {
+            LOG_ERROR("Invalid state = " << state << " unable to convert to string");
+            m_stateValueToString[0xFFFFFFFF].c_str();
+        }
+
+        std::string cstrState(m_stateValueToString[state].begin(), m_stateValueToString[state].end());
+        LOG_INFO("State = " << state << " = " << cstrState);
+        return m_stateValueToString[state].c_str();
     }
 
     void Services::InitToStringMaps()
@@ -5408,6 +5831,13 @@ namespace DSL
         
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H264] = "h264parse";
         m_mapParserTypes[DSL_SOURCE_CODEC_PARSER_H265] = "h265parse";
+        
+        m_stateValueToString[DSL_STATE_NULL] = L"DSL_STATE_NULL";
+        m_stateValueToString[DSL_STATE_READY] = L"DSL_STATE_READY";
+        m_stateValueToString[DSL_STATE_PAUSED] = L"DSL_STATE_PAUSED";
+        m_stateValueToString[DSL_STATE_PLAYING] = L"DSL_STATE_PLAYING";
+        m_stateValueToString[DSL_STATE_IN_TRANSITION] = L"DSL_STATE_IN_TRANSITION";
+        m_stateValueToString[0xFFFFFFFF] = L"Invalid DSL_STATE Value";
 
         m_returnValueToString[DSL_RESULT_SUCCESS] = L"DSL_RESULT_SUCCESS";
         m_returnValueToString[DSL_RESULT_COMPONENT_RESULT] = L"DSL_RESULT_COMPONENT_RESULT";
@@ -5452,6 +5882,17 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TRACKER_PAD_TYPE_INVALID] = L"DSL_RESULT_TRACKER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER] = L"DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER";
+        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_FOUND] = L"DSL_RESULT_REPORTER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_REPORTER_NAME_BAD_FORMAT] = L"DSL_RESULT_REPORTER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_REPORTER_THREW_EXCEPTION] = L"DSL_RESULT_REPORTER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_REPORTER_IS_IN_USE] = L"DSL_RESULT_REPORTER_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_REPORTER_SET_FAILED] = L"DSL_RESULT_REPORTER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_REPORTER_EVENT_ADD_FAILED] = L"DSL_RESULT_REPORTER_EVENT_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED] = L"DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER] = L"DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER";
         m_returnValueToString[DSL_RESULT_SINK_RESULT] = L"DSL_RESULT_SINK_RESULT";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";
@@ -5545,7 +5986,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_STOP] = L"DSL_RESULT_PIPELINE_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
-        m_returnValueToString[0xFFFFFFFF] = L"Invalid DSL Reslult CODE";
+        m_returnValueToString[0xFFFFFFFF] = L"Invalid DSL Result CODE";
     }
 
 } // namespace 

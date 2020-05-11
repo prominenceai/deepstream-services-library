@@ -113,6 +113,21 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000C
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000D
+
+/**
+ * Reporter API Return Values
+ */
+#define DSL_RESULT_REPORTER_RESULT                                  0x000D0000
+#define DSL_RESULT_REPORTER_NAME_NOT_UNIQUE                         0x000D0001
+#define DSL_RESULT_REPORTER_NAME_NOT_FOUND                          0x000D0002
+#define DSL_RESULT_REPORTER_NAME_BAD_FORMAT                         0x000D0003
+#define DSL_RESULT_REPORTER_THREW_EXCEPTION                         0x000D0004
+#define DSL_RESULT_REPORTER_IS_IN_USE                               0x000D0005
+#define DSL_RESULT_REPORTER_SET_FAILED                              0x000D0006
+#define DSL_RESULT_REPORTER_EVENT_ADD_FAILED                        0x000D0007
+#define DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED                     0x000D0008
+#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D0009
+
 /**
  * OSD API Return Values
  */
@@ -230,6 +245,16 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED                        0x000B0007
 #define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
+#define DSL_RESULT_EVENT_RESULT                                     0x000E0000
+#define DSL_RESULT_EVENT_NAME_NOT_UNIQUE                            0x000E0001
+#define DSL_RESULT_EVENT_NAME_NOT_FOUND                             0x000E0002
+#define DSL_RESULT_EVENT_TYPE_INVALID                               0x000E0003
+#define DSL_RESULT_EVENT_THREW_EXCEPTION                            0x000E0004
+#define DSL_RESULT_EVENT_IN_USE                                     0x000E0005
+#define DSL_RESULT_EVENT_SET_FAILED                                 0x000D0006
+#define DSL_RESULT_EVENT_IS_NOT_DETECTION_EVENT                     0x000E0007
+
+
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
@@ -255,6 +280,23 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+
+#define DSL_EVENT_TYPE_FIRST_OCCURRENCE                             0
+#define DSL_EVENT_TYPE_FIRST_ABSENCE                                1
+#define DSL_EVENT_TYPE_NEW_OCCURRENCE                               2
+#define DSL_EVENT_TYPE_NEW_ABSENCE                                  3
+#define DSL_EVENT_TYPE_NEW_MIN                                      4
+#define DSL_EVENT_TYPE_NEW_MAX                                      5
+#define DSL_EVENT_TYPE_NEW_COUNT                                    6
+#define DSL_EVENT_TYPE_LIMIT_LOWER_REACHED                          7
+#define DSL_EVENT_TYPE_LIMIT_LOWER_BREACHED                         8
+#define DSL_EVENT_TYPE_LIMIT_UPPER_REACHED                          9
+#define DSL_EVENT_TYPE_LIMIT_UPPER_BREACHED                         10
+
+#define DSL_EVENT_ACTION_LOG                                        0
+#define DSL_EVENT_ACTION_DISPLAY                                    1
+#define DSL_EVENT_ACTION_MESSAGE                                    2
+#define DSL_EVENT_ACTION_CALLBACK                                   3
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -319,6 +361,97 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* 
  * @param[in] user_data opaque pointer to client's user data
  */
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
+
+/**
+ * @brief Event to trigger on first occurrence of object detection
+ * @param[in] event_type unique identification for the detection event type to create
+ * @param[in] name unique name for this event object
+ * @param[in] class_id class id filter for this detection event
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_new(const wchar_t* name, uint evtype, uint class_id);
+
+/**
+ * @brief Gets the current class_id filter for the detection event
+ * @param[in] name unique name of the detection event to query
+ * @param[out] class_id returns the current class_id in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_class_id_get(const wchar_t* name, uint* class_id);
+
+/**
+ * @brief Sets the class_id for the detection event to filter on
+ * @param[in] name unique name of the detection event to query
+ * @param[in] class_id new class_id to use
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current minimum rectangle width and height values for the detection event
+ * A value of 0 = no minimum
+ * @param[in] name unique name of the detection event to query
+ * @param[out] min_width returns the current minimun frame width in use
+ * @param[out] min_height returns the current minimun frame hight in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+
+/**
+ * @brief Sets the current minimum rectangle width and height values for the detection event
+ * A value of 0 = no minimum
+ * @param[in] name unique name of the detection event to query
+ * @param[in] min_width the new minimun frame width to use
+ * @param[in] min_height the new minimun frame hight to use
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+
+/**
+ * @brief Gets the current min frame count (detected in last N out of D frames) for the detection event
+ * A value of 0 = no minimum
+ * @param[in] name unique name of the detection event to query
+ * @param[out] min_count_n returns the current minimun frame count numerator in use
+ * @param[out] min_count_d returns the current minimun frame count denomintor in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
+
+/**
+ * @brief Sets the current min frame count (detected in last N out of D frames) for the detection event
+ * A value of 0 = no minimum
+ * @param[in] name unique name of the detection event to query
+ * @param[out] min_count_n sets the current minimun frame count numerator to use
+ * @param[out] min_count_d sets the current minimun frame count denomintor to use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_detection_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
+
+/**
+ * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
+ * @brief[in] name unique name of the event to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of Events. The call will fail if any of the events are currently in use
+ * @brief[in] names Null terminaed list of event names to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all Events. The call will fail if any of the events are currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_event_delete_all();
+
+/**
+ * @brief Returns the size of the list of Events
+ * @return the number of Events in the list
+ */
+uint dsl_event_list_size();
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -673,6 +806,13 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OFD_RESULT otherwise
  */
 DslReturnType dsl_ofv_new(const wchar_t* name);
+
+/**
+ * @brief creates a new, uniquely named Reporter component
+ * @param[in] name unique name for the new Reporter
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_new(const wchar_t* name);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -1553,9 +1693,18 @@ DslReturnType dsl_pipeline_stop(const wchar_t* pipeline);
 /**
  * @brief gets the current state of a Pipeline
  * @param[in] pipeline unique name of the Pipeline to query
- * @return DSL_RESULT_PIPELINE_PAUSED | DSL_RESULT_PIPELINE_PLAYING
+ * @param[out] state one of the DSL_STATE_* values representing the current state
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_pipeline_get_state(const wchar_t* pipeline);
+DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state);
+
+/**
+ * @brief gets the type of source(s) in use, live, or non-live 
+ * @param pipeline unique name of the Pipeline to query
+ * @param is_live true if the Pipeline's sources are live, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live);
 
 /**
  * @brief dumps a Pipeline's graph to dot file.
@@ -1693,6 +1842,13 @@ void dsl_main_loop_quit();
  * @return String value of result.
  */
 const wchar_t* dsl_return_value_to_string(uint result);
+
+/**
+ * @brief converts a numerical DSL_STATE_* Value TO A String
+ * @param state state value to convert
+ * @return String value of state
+ */
+const wchar_t* dsl_state_value_to_string(uint state);
 
 /**
  * @brief Returns the current version of DSL

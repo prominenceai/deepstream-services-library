@@ -37,26 +37,6 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool BranchBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pOsdBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting OSD '" 
-                << m_pOsdBintr->GetName());
-            return false;
-        }
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
-            return false;
-        }
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
-        
-        return AddChild(pOsdBintr);
-    }
-
     bool BranchBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
@@ -173,6 +153,41 @@ namespace DSL
         m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
         
         return AddChild(pTilerBintr);
+    }
+
+    bool BranchBintr::AddReporterBintr(DSL_NODETR_PTR pReporterBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pReporterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting Reporter '" 
+                << m_pReporterBintr->GetName());
+            return false;
+        }
+        m_pReporterBintr = std::dynamic_pointer_cast<ReporterBintr>(pReporterBintr);
+        
+        return AddChild(pReporterBintr);
+    }
+
+    bool BranchBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pOsdBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting OSD '" 
+                << m_pOsdBintr->GetName());
+            return false;
+        }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
+            return false;
+        }
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
+        
+        return AddChild(pOsdBintr);
     }
 
     bool BranchBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
@@ -308,6 +323,20 @@ namespace DSL
             m_linkedComponents.push_back(m_pOfvBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Optical Flow Detector '" << 
                 m_pOfvBintr->GetName() << "' successfully");
+        }
+
+        if (m_pReporterBintr)
+        {
+            // Link All Tiler Elementrs and add as the next component in the Branch
+            m_pReporterBintr->SetBatchSize(m_batchSize);
+            if (!m_pReporterBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pReporterBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pReporterBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Reporter '" << 
+                m_pReporterBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer

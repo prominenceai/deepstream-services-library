@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslEvent.h"
 #include "DslPipelineBintr.h"
 
 namespace DSL {
@@ -49,6 +50,28 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/
+        DslReturnType EventDetectionNew(const char* name, uint evtype, uint classId);
+        
+        DslReturnType EventDetectionClassIdGet(const char* name, uint* classId);
+        
+        DslReturnType EventDetectionClassIdSet(const char* name, uint classId);
+        
+        DslReturnType EventDetectionDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
+        
+        DslReturnType EventDetectionDimensionsMinSet(const char* name, uint min_width, uint min_height);
+
+        DslReturnType EventDetectionFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+
+        DslReturnType EventDetectionFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+
+        DslReturnType EventDelete(const char* name);
+        
+        DslReturnType EventDeleteMany(const char** names);
+        
+        DslReturnType EventDeleteAll();
+        
+        DslReturnType EventListSize();
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
@@ -158,6 +181,8 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
+        DslReturnType ReporterNew(const char* name);
+
         DslReturnType OfvNew(const char* name);
 
         DslReturnType OsdNew(const char* name, boolean clockEnabled);
@@ -311,7 +336,9 @@ namespace DSL {
         
         DslReturnType PipelineStop(const char* pipeline);
         
-        DslReturnType PipelineGetState(const char* pipeline);
+        DslReturnType PipelineStateGet(const char* pipeline, uint* state);
+        
+        DslReturnType PipelineIsLive(const char* pipeline, boolean* isLive);
         
         DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
         
@@ -356,6 +383,8 @@ namespace DSL {
         }
         
         const wchar_t* ReturnValueToString(uint result);
+        
+        const wchar_t* StateValueToString(uint state);
 
         const wchar_t* VersionGet();
                         
@@ -412,6 +441,8 @@ namespace DSL {
         
         std::map <uint, std::wstring> m_returnValueToString;
         
+        std::map <uint, std::wstring> m_stateValueToString;
+        
         std::map <uint, std::string> m_mapParserTypes;
         
         /**
@@ -448,6 +479,11 @@ namespace DSL {
          * and updated as the first call to DSL.
          */
         uint m_sinkNumInUseMax;
+        
+        /**
+         * @brief map of all events created by the client, key=name
+         */
+        std::map <std::string, DSL_EVENT_PTR> m_events;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

@@ -194,7 +194,8 @@ def dsl_source_num_in_use_max_get():
 _dsl.dsl_source_num_in_use_max_set.argtypes = [c_uint]
 def dsl_source_num_in_use_max_set(max):
     global _dsl
-    result = _dsl.dsl_source_num_in_use_max_set(max)
+    success = _dsl.dsl_source_num_in_use_max_set(max)
+    return bool(success)
 
 ##
 ## dsl_dewarper_new()
@@ -1348,7 +1349,7 @@ def dsl_pipeline_xwindow_dimensions_get(name):
     width = c_uint(0)
     height = c_uint(0)
     result = _dsl.dsl_pipeline_xwindow_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
+    return int(result), int(width.value), int(height.value) 
 
 ##
 ## dsl_pipeline_xwindow_dimensions_set()
@@ -1389,6 +1390,28 @@ def dsl_pipeline_stop(name):
     global _dsl
     result =_dsl.dsl_pipeline_stop(name)
     return int(result)
+
+##
+## dsl_pipeline_state_get()
+##
+_dsl.dsl_pipeline_state_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_state_get.restype = c_uint
+def dsl_pipeline_state_get(name):
+    global _dsl
+    state = c_uint(0)
+    result =_dsl.dsl_pipeline_state_get(name,  DSL_UINT_P(state))
+    return int(result), int(state.value)
+
+##
+## dsl_pipeline_is_live()
+##
+_dsl.dsl_pipeline_is_live.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_pipeline_is_live.restype = c_uint
+def dsl_pipeline_is_live(name):
+    global _dsl
+    is_live = c_bool(0)
+    result =_dsl.dsl_pipeline_is_live(name,  DSL_BOOL_P(is_live))
+    return int(result), is_live.value
 
 ##
 ## dsl_pipeline_dump_to_dot()
@@ -1547,6 +1570,15 @@ _dsl.dsl_return_value_to_string.restype = c_wchar_p
 def dsl_return_value_to_string(result):
     global _dsl
     return _dsl.dsl_return_value_to_string(result)
+
+##
+## dsl_state_value_to_string()
+##
+_dsl.dsl_state_value_to_string.argtypes = [c_uint]
+_dsl.dsl_state_value_to_string.restype = c_wchar_p
+def dsl_state_value_to_string(state):
+    global _dsl
+    return _dsl.dsl_state_value_to_string(state)
 
 ##
 ## dsl_version_get()

@@ -67,9 +67,12 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display ca
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipelineName.c_str(), &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -129,8 +132,6 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );

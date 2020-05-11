@@ -343,6 +343,18 @@ namespace DSL
         return true;
     }
 
+    bool PipelineBintr::IsLive()
+    {
+        LOG_FUNC();
+        
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no sources, therefore is-live = false");
+            return false;
+        }
+        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive();
+    }
+    
     void PipelineBintr::DumpToDot(char* filename)
     {
         LOG_FUNC();

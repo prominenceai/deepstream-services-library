@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
+#include "DslReporterBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSGiesBintr.h"
 #include "DslMultiComponentsBintr.h"
@@ -87,6 +88,12 @@ namespace DSL
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
         bool AddTilerBintr(DSL_NODETR_PTR pTilerBintr);
+        
+        /**
+         * @brief adds a single ReporterBintr to this Branch 
+         * @param[in] pReporterBintr shared pointer to Reporter Bintr to add
+         */
+        bool AddReporterBintr(DSL_NODETR_PTR pReporterBintr);
         
         /**
          * @brief adds a single OsdBintr to this Branch 
@@ -182,8 +189,16 @@ namespace DSL
          */
         DSL_TRACKER_PTR m_pTrackerBintr;
 
+        /**
+         * @brief optional, one at most Optical Flow Fisualizer for this Branch
+         */
         DSL_OFV_PTR m_pOfvBintr;
-        
+
+        /**
+         * @brief optional, one at most Reporter for this Branch
+         */
+        DSL_REPORTER_PTR m_pReporterBintr;
+
         /**
          * @brief optional, one at most OSD for this Branch
          */
