@@ -58,7 +58,7 @@ namespace DSL
     }
     
 
-    bool MultiComponentsBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool MultiComponentsBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -107,7 +107,7 @@ namespace DSL
         return (m_pChildComponents.find(pChildComponent->GetName()) != m_pChildComponents.end());
     }
 
-    bool MultiComponentsBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool MultiComponentsBintr::RemoveChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -282,7 +282,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool DemuxerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -297,7 +297,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool SplitterBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SplitterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         

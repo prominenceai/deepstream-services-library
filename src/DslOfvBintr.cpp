@@ -97,7 +97,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool OfvBintr::AddToParent(DSL_NODETR_PTR pBranchBintr)
+    bool OfvBintr::AddToParent(DSL_BASE_PTR pBranchBintr)
     {
         LOG_FUNC();
         

@@ -62,7 +62,7 @@ namespace DSL
         }
     }
 
-    bool TrackerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool TrackerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         

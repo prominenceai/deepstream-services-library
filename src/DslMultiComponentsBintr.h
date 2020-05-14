@@ -152,13 +152,13 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
          */
-        bool AddChild(DSL_NODETR_PTR pChildElement);
+        bool AddChild(DSL_BASE_PTR pChildElement);
         
         /**
          * @brief removes a child Elementr from this MultiComponentsBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
-        bool RemoveChild(DSL_NODETR_PTR pChildElement);
+        bool RemoveChild(DSL_BASE_PTR pChildElement);
 
     };
 
@@ -188,7 +188,7 @@ namespace DSL
          * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
     };
 
@@ -206,7 +206,7 @@ namespace DSL
          * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
     };
 
 }

@@ -67,7 +67,7 @@ namespace DSL
         }
     }
 
-    bool TilerBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool TilerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         

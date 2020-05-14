@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
+#include "DslDetectionEvent.h"
 
 namespace DSL
 {
@@ -51,7 +52,7 @@ namespace DSL
          * @brief Adds the ReporterBintr to a Parent Pipeline Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr
@@ -65,12 +66,45 @@ namespace DSL
          */
         void UnlinkAll();
         
+        /**
+         * @brief Adds a detection type to this ReporterBintr
+         * @param[in] name unique name of the Event to add
+         * @param[in] newEvent shared pointer to detection event to add
+         * @return true if successful add, false otherwise
+         */
+        bool AddDetectionEvent(const char* name, DSL_EVENT_DETECTION_PTR newEvent);
+        
+        /**
+         * @brief Removes a uniquely named Event from the RepoterBintr
+         * @param[in] name unique name of the Event to remove
+         * @return true if successful remove, false otherwise
+         */
+        bool RemoveDetectionEvent(const char* name);
+        
+        /**
+         * @brief Removes all detection events from this ReporterBintr
+         */
+        void RemoveAllDetectionEvents();
+        
+        /**
+         * @brief Determines if a uniquely named Event is a child (in-use) by this ReporterBintr
+         * @param name unique name of the Event to check for
+         * @return true if the event is a child of this ReporterBinter
+         */
+        bool IsChildEvent(const char* name);
+        
     private:
 
         /**
          * @brief Queue Elementr as both Sink and Source for this ReporterBintr
          */
         DSL_ELEMENT_PTR m_pQueue;
+        
+        /**
+         * @brief map of all Detection Events in use by this ReporterBinter
+         */
+        std::map <std::string, DSL_EVENT_DETECTION_PTR> m_detectionEvents;
+
     };
 }
 

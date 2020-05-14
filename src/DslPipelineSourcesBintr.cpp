@@ -61,7 +61,7 @@ namespace DSL
         }
     }
 
-    bool PipelineSourcesBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSourcesBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -118,7 +118,7 @@ namespace DSL
         return (m_pChildSources.find(pChildSource->GetName()) != m_pChildSources.end());
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSourcesBintr::RemoveChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         

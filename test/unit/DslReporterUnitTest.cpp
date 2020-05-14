@@ -86,3 +86,43 @@ SCENARIO( "A Linked ReporterBintr can UnlinkAll Child Elementrs", "[ReporterBint
         }
     }
 }
+
+SCENARIO( "A ReporterBintr can add and remove a DetectionEvent", "[ReporterBintr]" )
+{
+    GIVEN( "A new ReporterBintr and DetectionEvent" ) 
+    {
+        std::string reporterName = "reporter";
+        std::string eventName = "first-occurence";
+        uint classId(1);
+
+        DSL_REPORTER_PTR pReporterBintr = DSL_REPORTER_NEW(reporterName.c_str());
+
+        DSL_EVENT_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_EVENT_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+
+        WHEN( "A the Event is added to the ReportBintr" )
+        {
+            REQUIRE( pReporterBintr->AddDetectionEvent(eventName.c_str(), pFirstOccurrenceEvent) == true );
+            
+            // ensure that the Event can not be added twice
+            REQUIRE( pReporterBintr->AddDetectionEvent(eventName.c_str(), pFirstOccurrenceEvent) == false );
+            
+            THEN( "The Event can be found and removed" )
+            {
+                REQUIRE( pReporterBintr->IsChildEvent(eventName.c_str()) == true );
+                REQUIRE( pFirstOccurrenceEvent->IsParent(pReporterBintr) == true );
+                REQUIRE( pFirstOccurrenceEvent->IsInUse() == true );
+                
+                REQUIRE( pReporterBintr->RemoveDetectionEvent(eventName.c_str()) == true );
+                
+                REQUIRE( pFirstOccurrenceEvent->IsParent(pReporterBintr) == false );
+                REQUIRE( pReporterBintr->IsChildEvent(eventName.c_str()) == false );
+                REQUIRE( pFirstOccurrenceEvent->IsInUse() == false );
+
+                // ensure removal fails on second call, 
+                REQUIRE( pReporterBintr->RemoveDetectionEvent(eventName.c_str()) == false );
+            }
+        }
+    }
+}
+

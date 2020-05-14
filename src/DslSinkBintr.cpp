@@ -50,7 +50,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool SinkBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -60,16 +60,17 @@ namespace DSL
     }
 
 
-    bool SinkBintr::IsParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
+        LOG_WARN("**************************************");
         
         // check if 'this' Sink is child of Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             IsSinkBintrChild(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    bool SinkBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -109,7 +110,7 @@ namespace DSL
         GstPad* pRequestedSourcePad(NULL);
 
         // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_NODETR_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
         DSL_ELEMENT_PTR pTeeElementr = 
             std::dynamic_pointer_cast<Elementr>(pTee);
 

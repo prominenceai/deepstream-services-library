@@ -29,7 +29,7 @@ namespace DSL
 {
 
     DetectionEvent::DetectionEvent(const char* name, uint classId)
-        : EventBase(name)
+        : Base(name)
         , m_classId(classId)
         , m_minWidth(0)
         , m_minHeight(0)
@@ -38,17 +38,20 @@ namespace DSL
     {
         LOG_FUNC();
 
+        g_mutex_init(&m_propertyMutex);
     }
 
     DetectionEvent::~DetectionEvent()
     {
         LOG_FUNC();
+
+        g_mutex_clear(&m_propertyMutex);
     }
     
     uint DetectionEvent::GetClassId()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         return m_classId;
     }
@@ -56,7 +59,7 @@ namespace DSL
     void DetectionEvent::SetClassId(uint classId)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_classId = classId;
     }
@@ -64,7 +67,7 @@ namespace DSL
     void DetectionEvent::GetMinDimensions(uint* minWidth, uint* minHeight)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         *minWidth = m_minWidth;
         *minHeight = m_minHeight;
@@ -74,7 +77,7 @@ namespace DSL
     void DetectionEvent::SetMinDimensions(uint minWidth, uint minHeight)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_minWidth = minWidth;
         m_minHeight = minHeight;
@@ -83,7 +86,7 @@ namespace DSL
     void DetectionEvent::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         *minFrameCountN = m_minFrameCountN;
         *minFrameCountD = m_minFrameCountD;
@@ -92,7 +95,7 @@ namespace DSL
     void DetectionEvent::SetMinFrameCount(uint minFrameCountN, uint minFrameCountD)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_eventMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_minFrameCountN = minFrameCountN;
         m_minFrameCountD = minFrameCountD;

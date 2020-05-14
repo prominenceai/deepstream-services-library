@@ -94,7 +94,7 @@ namespace DSL
         g_mutex_clear(&m_srcPadProbeMutex);
     }
      
-    bool PipelineSecondaryGiesBintr::AddChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSecondaryGiesBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -143,7 +143,7 @@ namespace DSL
         return (m_pChildSecondaryGies.find(pChildSecondaryGie->GetName()) != m_pChildSecondaryGies.end());
     }
 
-    bool PipelineSecondaryGiesBintr::RemoveChild(DSL_NODETR_PTR pChildElement)
+    bool PipelineSecondaryGiesBintr::RemoveChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         

@@ -126,7 +126,8 @@ THE SOFTWARE.
 #define DSL_RESULT_REPORTER_SET_FAILED                              0x000D0006
 #define DSL_RESULT_REPORTER_EVENT_ADD_FAILED                        0x000D0007
 #define DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED                     0x000D0008
-#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D0009
+#define DSL_RESULT_REPORTER_EVENT_NOT_IN_USE                        0x000D0009
+#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D000A
 
 /**
  * OSD API Return Values
@@ -292,6 +293,8 @@ THE SOFTWARE.
 #define DSL_EVENT_TYPE_LIMIT_LOWER_BREACHED                         8
 #define DSL_EVENT_TYPE_LIMIT_UPPER_REACHED                          9
 #define DSL_EVENT_TYPE_LIMIT_UPPER_BREACHED                         10
+#define DSL_EVENT_TYPE_COORDINATES_REACHED                          11
+#define DSL_EVENT_TYPE_COORDINATES_BREACHED                         12
 
 #define DSL_EVENT_ACTION_LOG                                        0
 #define DSL_EVENT_ACTION_DISPLAY                                    1
@@ -369,7 +372,7 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] class_id class id filter for this detection event
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_new(const wchar_t* name, uint evtype, uint class_id);
+DslReturnType dsl_detection_event_new(const wchar_t* name, uint evtype, uint class_id);
 
 /**
  * @brief Gets the current class_id filter for the detection event
@@ -377,7 +380,7 @@ DslReturnType dsl_event_detection_new(const wchar_t* name, uint evtype, uint cla
  * @param[out] class_id returns the current class_id in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_class_id_get(const wchar_t* name, uint* class_id);
+DslReturnType dsl_detection_event_class_id_get(const wchar_t* name, uint* class_id);
 
 /**
  * @brief Sets the class_id for the detection event to filter on
@@ -385,7 +388,7 @@ DslReturnType dsl_event_detection_class_id_get(const wchar_t* name, uint* class_
  * @param[in] class_id new class_id to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_class_id_set(const wchar_t* name, uint class_id);
+DslReturnType dsl_detection_event_class_id_set(const wchar_t* name, uint class_id);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the detection event
@@ -395,7 +398,7 @@ DslReturnType dsl_event_detection_class_id_set(const wchar_t* name, uint class_i
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+DslReturnType dsl_detection_event_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the detection event
@@ -405,7 +408,7 @@ DslReturnType dsl_event_detection_dimensions_min_get(const wchar_t* name, uint* 
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+DslReturnType dsl_detection_event_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
 
 /**
  * @brief Gets the current min frame count (detected in last N out of D frames) for the detection event
@@ -415,7 +418,7 @@ DslReturnType dsl_event_detection_dimensions_min_set(const wchar_t* name, uint m
  * @param[out] min_count_d returns the current minimun frame count denomintor in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
+DslReturnType dsl_detection_event_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
 
 /**
  * @brief Sets the current min frame count (detected in last N out of D frames) for the detection event
@@ -425,7 +428,7 @@ DslReturnType dsl_event_detection_frame_count_min_get(const wchar_t* name, uint*
  * @param[out] min_count_d sets the current minimun frame count denomintor to use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
  */
-DslReturnType dsl_event_detection_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
+DslReturnType dsl_detection_event_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
 
 /**
  * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
@@ -813,6 +816,45 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
  */
 DslReturnType dsl_reporter_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named Detection Event to a named Reporter Component
+ * @param[in] reporter unique name of the Reporter to update
+ * @param[in] detectionEvent unique name of the Event to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_detection_event_add(const wchar_t* reporter, const wchar_t* detection_event);
+
+/**
+ * @brief Adds a Null terminated listed of named Detection Events to a named Reporter Component
+ * @param[in] reporter unique name of the Reporter to update
+ * @param[in] detectionEvents Null terminated list of Event names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_detection_event_add_many(const wchar_t* reporter, const wchar_t** detection_events);
+
+/**
+ * @brief Removes a named Detection Event from a named Reporter Component
+ * @param[in] reporter unique name of the Reporter to update
+ * @param[in] detectionEvent unique name of the Event to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_detection_event_remove(const wchar_t* reporter, const wchar_t* detection_event);
+
+/**
+ * @brief Removes a Null terminated listed of named Detection Events from a named Reporter Component
+ * @param[in] reporter unique name of the Reporter to update
+ * @param[in] detectionEvents Null terminated list of Event names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_detection_event_remove_many(const wchar_t* reporter, const wchar_t** detection_events);
+
+/**
+ * @brief Removes all Detection Events from a named Reporter Component
+ * @param[in] reporter unique name of the Reporter to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_detection_event_remove_all(const wchar_t* reporter);
 
 /**
  * @brief creates a new, uniquely named OSD obj
