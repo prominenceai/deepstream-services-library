@@ -94,7 +94,7 @@ namespace DSL
         }
     }
 
-    bool DewarperBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool DewarperBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         

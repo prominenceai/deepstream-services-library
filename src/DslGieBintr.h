@@ -237,7 +237,7 @@ namespace DSL
          * @brief Adds the PrimaryGieBintr to a Parent Pipeline Bintr
          * @param pParentBintr Parent Pipeline to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr
@@ -297,7 +297,7 @@ namespace DSL
          * @brief Adds the SecondaryGieBintr to a Parent Bintr
          * @param[in] pParentBintr Parent to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr

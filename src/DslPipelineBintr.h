@@ -83,9 +83,9 @@ namespace DSL
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        bool AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        bool AddSourceBintr(DSL_BASE_PTR pSourceBintr);
 
-        bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
+        bool IsSourceBintrChild(DSL_BASE_PTR pSourceBintr);
 
         /**
          * @brief returns the number of Sources currently in use by
@@ -104,7 +104,7 @@ namespace DSL
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
 
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream Muxer

@@ -175,7 +175,7 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
-    bool OsdBintr::AddToParent(DSL_NODETR_PTR pBranchBintr)
+    bool OsdBintr::AddToParent(DSL_BASE_PTR pBranchBintr)
     {
         LOG_FUNC();
         

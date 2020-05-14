@@ -116,7 +116,7 @@ namespace DSL
          * @brief Adds this Bintr as a child to a ParentBinter
          * @param[in] pParentBintr to add to
          */
-        virtual bool AddToParent(DSL_NODETR_PTR pParent)
+        virtual bool AddToParent(DSL_BASE_PTR pParent)
         {
             LOG_FUNC();
                 
@@ -127,31 +127,31 @@ namespace DSL
          * @brief removes this Bintr from the provided pParentBintr
          * @param[in] pParentBintr Bintr to remove from
          */
-        virtual bool RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+        virtual bool RemoveFromParent(DSL_BASE_PTR pParentBintr)
         {
             LOG_FUNC();
                 
             return pParentBintr->RemoveChild(shared_from_this());
         }
         
-        /**
-         * @brief Adds a named Ghost Pad to this Bintr using a provided Elementr
-         * @param[in] name for the new Ghost Pad
-         * @param[in] pElementr to retrieve the static Sink pad from
-         */
-        virtual void AddGhostPad(const char* name, DSL_NODETR_PTR pElementr)
-        {
-            LOG_FUNC();
-            
-            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
-            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-            if (!gst_element_add_pad(GetGstElement(), 
-                gst_ghost_pad_new(name, gst_element_get_static_pad(pElementr->GetGstElement(), name))))
-            {
-                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
-                throw;
-            }
-        }
+//        /**
+//         * @brief Adds a named Ghost Pad to this Bintr using a provided Elementr
+//         * @param[in] name for the new Ghost Pad
+//         * @param[in] pElementr to retrieve the static Sink pad from
+//         */
+//        virtual void AddGhostPad(const char* name, DSL_BASE_PTR pElementr)
+//        {
+//            LOG_FUNC();
+//            
+//            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
+//            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
+//            if (!gst_element_add_pad(GetGstElement(), 
+//                gst_ghost_pad_new(name, gst_element_get_static_pad(pElementr->GetGstElement(), name))))
+//            {
+//                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
+//                throw;
+//            }
+//        }
 
         /**
          * @brief virtual function for derived classes to implement

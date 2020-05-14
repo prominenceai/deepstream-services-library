@@ -41,9 +41,9 @@ SCENARIO( "The Events container is updated correctly on multiple new Detection E
 
         WHEN( "Several new Events are created" ) 
         {
-            REQUIRE( dsl_event_detection_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_event_detection_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_event_detection_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
@@ -68,9 +68,9 @@ SCENARIO( "The Events container is updated correctly on Detection Event deletion
         uint evtype(DSL_EVENT_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
 
-        REQUIRE( dsl_event_detection_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_event_detection_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_event_detection_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
 
         WHEN( "When Events are deleted" )         
         {
@@ -98,20 +98,20 @@ SCENARIO( "A Detection Event's classId can be set/get", "[event-api]" )
         uint evtype(DSL_EVENT_TYPE_FIRST_OCCURRENCE);
         uint class_id(9);
 
-        REQUIRE( dsl_event_detection_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
 
         uint ret_class_id(0);
-        REQUIRE( dsl_event_detection_class_id_get(eventName.c_str(), &ret_class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_class_id_get(eventName.c_str(), &ret_class_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_class_id == class_id );
 
         WHEN( "When the Event's classId is updated" )         
         {
             uint new_class_id(4);
-            REQUIRE( dsl_event_detection_class_id_set(eventName.c_str(), new_class_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_class_id_set(eventName.c_str(), new_class_id) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_event_detection_class_id_get(eventName.c_str(), &ret_class_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_detection_event_class_id_get(eventName.c_str(), &ret_class_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_class_id == new_class_id );
                 REQUIRE( dsl_event_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -128,21 +128,21 @@ SCENARIO( "A Detection Event's minimum dimensions can be set/get", "[event-api]"
         uint evtype(DSL_EVENT_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
 
-        REQUIRE( dsl_event_detection_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
 
         uint min_width(1), min_height(1);
-        REQUIRE( dsl_event_detection_dimensions_min_get(eventName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_dimensions_min_get(eventName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
         REQUIRE( min_width == 0 );
         REQUIRE( min_height == 0 );
 
         WHEN( "When the Event's min dimensions are updated" )         
         {
             uint new_min_width(300), new_min_height(200);
-            REQUIRE( dsl_event_detection_dimensions_min_set(eventName.c_str(), new_min_width, new_min_height) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_dimensions_min_set(eventName.c_str(), new_min_width, new_min_height) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_event_detection_dimensions_min_get(eventName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_detection_event_dimensions_min_get(eventName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( min_width == new_min_width );
                 REQUIRE( min_height == new_min_height );
                 
@@ -161,21 +161,21 @@ SCENARIO( "A Detection Event's minimum frame count can be set/get", "[event-api]
         uint evtype(DSL_EVENT_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
 
-        REQUIRE( dsl_event_detection_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
 
         uint min_count_n(1), min_count_d(1);
-        REQUIRE( dsl_event_detection_frame_count_min_get(eventName.c_str(), &min_count_n, &min_count_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_detection_event_frame_count_min_get(eventName.c_str(), &min_count_n, &min_count_d) == DSL_RESULT_SUCCESS );
         REQUIRE( min_count_n == 0 );
         REQUIRE( min_count_d == 0 );
 
         WHEN( "When the Event's min frame count properties are updated" )         
         {
             uint new_min_count_n(300), new_min_count_d(200);
-            REQUIRE( dsl_event_detection_frame_count_min_set(eventName.c_str(), new_min_count_n, new_min_count_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_detection_event_frame_count_min_set(eventName.c_str(), new_min_count_n, new_min_count_d) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
             {
-                REQUIRE( dsl_event_detection_frame_count_min_get(eventName.c_str(), &min_count_n, &min_count_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_detection_event_frame_count_min_get(eventName.c_str(), &min_count_n, &min_count_d) == DSL_RESULT_SUCCESS );
                 REQUIRE( min_count_n == new_min_count_n );
                 REQUIRE( min_count_d == new_min_count_d );
                 

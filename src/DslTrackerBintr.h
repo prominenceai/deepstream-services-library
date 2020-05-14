@@ -72,7 +72,7 @@ namespace DSL
          * @brief Adds the TrackerBintr to a Parent Pipeline Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr

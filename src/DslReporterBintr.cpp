@@ -52,9 +52,10 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        RemoveAllDetectionEvents();
     }
 
-    bool ReporterBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool ReporterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -92,4 +93,51 @@ namespace DSL
         m_isLinked = false;
     }
     
+    bool ReporterBintr::AddDetectionEvent(const char* name, DSL_EVENT_DETECTION_PTR newEvent)
+    {
+        LOG_FUNC();
+        
+        if (IsChildEvent(name))
+        {
+            LOG_ERROR("Event '" << name << "' is already a child of ReporterBintr '" << m_name << "'");
+            return false;
+        }
+        // setup the Parent-Child relationship
+        newEvent->AssignParentName(GetName());
+        m_detectionEvents[name] = newEvent;
+        return true;
+    }
+
+    bool ReporterBintr::RemoveDetectionEvent(const char* name)
+    {
+        LOG_FUNC();
+        
+        if (!IsChildEvent(name))
+        {
+            LOG_ERROR("Event '" << name << "' is not a child of ReporterBintr '" << m_name << "'");
+            return false;
+        }
+        // Clear the Parent-Child relationship
+        m_detectionEvents[name]->ClearParentName();
+        m_detectionEvents.erase(name);
+        return true;
+    }
+
+    void ReporterBintr::RemoveAllDetectionEvents()
+    {
+        LOG_FUNC();
+
+        for (auto const& imap: m_detectionEvents)
+        {
+            imap.second->ClearParentName();
+        }
+        m_detectionEvents.clear();
+    }
+    
+    bool ReporterBintr::IsChildEvent(const char* name)
+    {
+        LOG_FUNC();
+        
+        return (m_detectionEvents.find(name) != m_detectionEvents.end());
+    }
 }

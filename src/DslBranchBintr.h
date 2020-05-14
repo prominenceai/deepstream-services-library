@@ -63,80 +63,80 @@ namespace DSL
          * @brief adds a single GIE Bintr to this Branch 
          * @param[in] pGieBintr shared pointer to GIE Bintr to add
          */
-        bool AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr);
+        bool AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr);
 
         /**
          * @brief adds a single Secondary GIE Nodetr to this Branch 
          * @param[in] pSecondaryGieNodetr shared pointer to SGIE Nodetr to add
          */
-        bool AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr);
+        bool AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr);
 
         /**
          * @brief adds a single TrackerBintr to this Branch 
          * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
          */
-        bool AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr);
+        bool AddTrackerBintr(DSL_BASE_PTR pTrackerBintr);
         
         /**
          * @brief adds a single OfvBintr to this Branch 
          * @param[in] pOfvBintr shared pointer to the OFV Bintr to add
          */
-        bool AddOfvBintr(DSL_NODETR_PTR pOfvBintr);
+        bool AddOfvBintr(DSL_BASE_PTR pOfvBintr);
         
         /**
          * @brief adds a single TilerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddTilerBintr(DSL_NODETR_PTR pTilerBintr);
+        bool AddTilerBintr(DSL_BASE_PTR pTilerBintr);
         
         /**
          * @brief adds a single ReporterBintr to this Branch 
          * @param[in] pReporterBintr shared pointer to Reporter Bintr to add
          */
-        bool AddReporterBintr(DSL_NODETR_PTR pReporterBintr);
+        bool AddReporterBintr(DSL_BASE_PTR pReporterBintr);
         
         /**
          * @brief adds a single OsdBintr to this Branch 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
          */
-        bool AddOsdBintr(DSL_NODETR_PTR pOsdBintr);
+        bool AddOsdBintr(DSL_BASE_PTR pOsdBintr);
         
         /**
          * @brief adds a single TeeBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddTeeBintr(DSL_NODETR_PTR pTeeBintr);
+        bool AddTeeBintr(DSL_BASE_PTR pTeeBintr);
         
         /**
          * @brief adds a single DemuxerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr);
+        bool AddDemuxerBintr(DSL_BASE_PTR pDemuxerBintr);
 
         /**
          * @brief adds a single SplitterBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          */
-        bool AddSplitterBintr(DSL_NODETR_PTR pSplitterBintr);
+        bool AddSplitterBintr(DSL_BASE_PTR pSplitterBintr);
 
         /**
          * @brief adds a single SinkBintr to this Branch 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
-        bool AddSinkBintr(DSL_NODETR_PTR pSinkBintr);
+        bool AddSinkBintr(DSL_BASE_PTR pSinkBintr);
 
         /**
          * @brief check if a SinkBintr is a child of the BranchBintr
          * @param pSinkBintr
          * @return true if SinkBintr is a child, false otherwise
          */
-        bool IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr);
+        bool IsSinkBintrChild(DSL_BASE_PTR pSinkBintr);
 
         /**
          * @brief removes a single SinkBintr from this Branch 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          */
-        bool RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr);
+        bool RemoveSinkBintr(DSL_BASE_PTR pSinkBintr);
 
         /**
          * @brief returns the number of Sinks currently in use by

@@ -50,7 +50,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool SourceBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -59,7 +59,7 @@ namespace DSL
             AddSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::IsParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -68,7 +68,7 @@ namespace DSL
             IsSourceBintrChild(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
 
-    bool SourceBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+    bool SourceBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -533,7 +533,7 @@ namespace DSL
     }
 
     
-    bool DecodeSourceBintr::AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr)
+    bool DecodeSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
     {
         LOG_FUNC();
         

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslEvent.h"
+#include "DslBase.h"
 #include "DslPipelineBintr.h"
 
 namespace DSL {
@@ -50,19 +50,19 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/
-        DslReturnType EventDetectionNew(const char* name, uint evtype, uint classId);
+        DslReturnType DetectionEventNew(const char* name, uint evtype, uint classId);
         
-        DslReturnType EventDetectionClassIdGet(const char* name, uint* classId);
+        DslReturnType DetectionEventClassIdGet(const char* name, uint* classId);
         
-        DslReturnType EventDetectionClassIdSet(const char* name, uint classId);
+        DslReturnType DetectionEventClassIdSet(const char* name, uint classId);
         
-        DslReturnType EventDetectionDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
+        DslReturnType DetectionEventDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
         
-        DslReturnType EventDetectionDimensionsMinSet(const char* name, uint min_width, uint min_height);
+        DslReturnType DetectionEventDimensionsMinSet(const char* name, uint min_width, uint min_height);
 
-        DslReturnType EventDetectionFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+        DslReturnType DetectionEventFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 
-        DslReturnType EventDetectionFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        DslReturnType DetectionEventFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
 
         DslReturnType EventDelete(const char* name);
         
@@ -182,6 +182,12 @@ namespace DSL {
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
         DslReturnType ReporterNew(const char* name);
+        
+        DslReturnType ReporterDetectionEventAdd(const char* reporter, const char* detectionEvent);
+
+        DslReturnType ReporterDetectionEventRemove(const char* reporter, const char* detectionEvent);
+
+        DslReturnType ReporterDetectionEventRemoveAll(const char* reporter);
 
         DslReturnType OfvNew(const char* name);
 
@@ -483,7 +489,7 @@ namespace DSL {
         /**
          * @brief map of all events created by the client, key=name
          */
-        std::map <std::string, DSL_EVENT_PTR> m_events;
+        std::map <std::string, DSL_EVENT_DETECTION_PTR> m_detectionEvents;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

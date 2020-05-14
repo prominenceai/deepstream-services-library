@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslEvent.h"
+#include "DslBase.h"
 
 namespace DSL
 {
@@ -40,7 +40,7 @@ namespace DSL
     #define DSL_EVENT_FIRST_OCCURRENCE_NEW(name, classId) \
         std::shared_ptr<FirstOccurrenceEvent>(new FirstOccurrenceEvent(name, classId))
         
-    class DetectionEvent : public EventBase
+    class DetectionEvent : public Base
     {
     public: 
     
@@ -91,6 +91,11 @@ namespace DSL
         void SetMinFrameCount(uint minFrameCountN, uint minFrameCountD);
 
     private:
+    
+        /**
+         * @brief Mutex to ensure mutual exlusion for propery get/sets
+         */
+        GMutex m_propertyMutex;
 
         /**
          * @brief GIE Class Id filter for this event
