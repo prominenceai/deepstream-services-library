@@ -34,7 +34,7 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_EVENT_DETECTION_PTR std::shared_ptr<DetectionEvent>
+    #define DSL_DETECTION_EVENT_PTR std::shared_ptr<DetectionEvent>
 
     #define DSL_EVENT_FIRST_OCCURRENCE_PTR std::shared_ptr<FirstOccurrenceEvent>
     #define DSL_EVENT_FIRST_OCCURRENCE_NEW(name, classId) \
@@ -44,19 +44,27 @@ namespace DSL
     {
     public: 
     
-        DetectionEvent(const char* name, uint classId);
+        DetectionEvent(const char* name, uint classId, uint64_t limit);
 
         ~DetectionEvent();
         
+        static uint s_eventCount;
+        
+        /**
+         * @brief Function to check a given Object Meta data structure for the occurence of an event
+         * and to invoke all Event Actions owned by the event
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         */
+        virtual void CheckForOccurrence(NvDsObjectMeta* pObjectMeta) = 0;
+        
         /**
          * @brief Gets the ClassId filter used for Object detection 
-         * @return 
+         * @return the current ClassId filter value
          */
         uint GetClassId();
         
         /**
          * @brief Sets the ClassId filter for Object detection 
-         * @return 
          */
         void SetClassId(uint classId);
         
@@ -90,7 +98,11 @@ namespace DSL
          */
         void SetMinFrameCount(uint minFrameCountN, uint minFrameCountD);
 
-    private:
+    protected:
+    
+        uint64_t m_triggered;    
+    
+        uint64_t m_limit;    
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -131,6 +143,13 @@ namespace DSL
         FirstOccurrenceEvent(const char* name, uint classId);
         
         ~FirstOccurrenceEvent();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for a First Occurence event
+         * and to invoke all Event Actions owned by the event
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         */
+        void CheckForOccurrence(NvDsObjectMeta* pObjectMeta);
         
     private:
     
@@ -143,6 +162,13 @@ namespace DSL
         FirstAbsenceEvent(const char* name, uint classId);
         
         ~FirstAbsenceEvent();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for a First Absence event
+         * and to invoke all Event Actions owned by the event
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         */
+        void CheckForOccurrence(NvDsObjectMeta* pObjectMeta);
         
     private:
     

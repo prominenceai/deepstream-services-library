@@ -39,7 +39,36 @@ SCENARIO( "A new ReporterBintr is created correctly", "[ReporterBintr]" )
 
             THEN( "The ReporterBintr's memebers are setup and returned correctly" )
             {
+                REQUIRE( pReporterBintr->GetReportingEnabled() == true );
                 REQUIRE( pReporterBintr->GetGstObject() != NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ReporterBintr can Disable and Re-enable Reporting", "[ReporterBintr]" )
+{
+    GIVEN( "A new ReporterBintr" ) 
+    {
+        std::string reporterName = "reporter";
+
+        DSL_REPORTER_PTR pReporterBintr = DSL_REPORTER_NEW(reporterName.c_str());
+        REQUIRE( pReporterBintr->GetReportingEnabled() == true );
+
+        // Attempting to enable and enabled Reporter must fail
+        REQUIRE( pReporterBintr->SetReportingEnabled(true) == false );
+
+        WHEN( "A new Reporter's reporting is Disabled'" )
+        {
+            REQUIRE( pReporterBintr->SetReportingEnabled(false) == true );
+
+            // Attempting to disable a disabled Reporter must fail
+            REQUIRE( pReporterBintr->SetReportingEnabled(false) == false );
+
+            THEN( "The ReporterBintr's reporting can be enabled again" )
+            {
+                REQUIRE( pReporterBintr->SetReportingEnabled(true) == true );
+                REQUIRE( pReporterBintr->GetReportingEnabled() == true );
             }
         }
     }
@@ -102,25 +131,26 @@ SCENARIO( "A ReporterBintr can add and remove a DetectionEvent", "[ReporterBintr
 
         WHEN( "A the Event is added to the ReportBintr" )
         {
-            REQUIRE( pReporterBintr->AddDetectionEvent(eventName.c_str(), pFirstOccurrenceEvent) == true );
+            REQUIRE( pReporterBintr->AddChild(pFirstOccurrenceEvent) == true );
             
             // ensure that the Event can not be added twice
-            REQUIRE( pReporterBintr->AddDetectionEvent(eventName.c_str(), pFirstOccurrenceEvent) == false );
+            REQUIRE( pReporterBintr->AddChild(pFirstOccurrenceEvent) == false );
             
             THEN( "The Event can be found and removed" )
             {
-                REQUIRE( pReporterBintr->IsChildEvent(eventName.c_str()) == true );
+                REQUIRE( pReporterBintr->IsChild(pFirstOccurrenceEvent) == true );
                 REQUIRE( pFirstOccurrenceEvent->IsParent(pReporterBintr) == true );
                 REQUIRE( pFirstOccurrenceEvent->IsInUse() == true );
                 
-                REQUIRE( pReporterBintr->RemoveDetectionEvent(eventName.c_str()) == true );
+                REQUIRE( pReporterBintr->RemoveChild(pFirstOccurrenceEvent) == true );
                 
+                REQUIRE( pReporterBintr->IsChild(pFirstOccurrenceEvent) == false );
+                REQUIRE( pFirstOccurrenceEvent->GetName() == eventName );
                 REQUIRE( pFirstOccurrenceEvent->IsParent(pReporterBintr) == false );
-                REQUIRE( pReporterBintr->IsChildEvent(eventName.c_str()) == false );
                 REQUIRE( pFirstOccurrenceEvent->IsInUse() == false );
 
                 // ensure removal fails on second call, 
-                REQUIRE( pReporterBintr->RemoveDetectionEvent(eventName.c_str()) == false );
+                REQUIRE( pReporterBintr->RemoveChild(pFirstOccurrenceEvent) == false );
             }
         }
     }

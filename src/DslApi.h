@@ -115,21 +115,6 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000D
 
 /**
- * Reporter API Return Values
- */
-#define DSL_RESULT_REPORTER_RESULT                                  0x000D0000
-#define DSL_RESULT_REPORTER_NAME_NOT_UNIQUE                         0x000D0001
-#define DSL_RESULT_REPORTER_NAME_NOT_FOUND                          0x000D0002
-#define DSL_RESULT_REPORTER_NAME_BAD_FORMAT                         0x000D0003
-#define DSL_RESULT_REPORTER_THREW_EXCEPTION                         0x000D0004
-#define DSL_RESULT_REPORTER_IS_IN_USE                               0x000D0005
-#define DSL_RESULT_REPORTER_SET_FAILED                              0x000D0006
-#define DSL_RESULT_REPORTER_EVENT_ADD_FAILED                        0x000D0007
-#define DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED                     0x000D0008
-#define DSL_RESULT_REPORTER_EVENT_NOT_IN_USE                        0x000D0009
-#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D000A
-
-/**
  * OSD API Return Values
  */
 #define DSL_RESULT_OSD_RESULT                                       0x00050000
@@ -246,14 +231,47 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_SOURCE_NOT_ALLOWED                        0x000B0007
 #define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
+/**
+ * Reporter API Return Values
+ */
+#define DSL_RESULT_REPORTER_RESULT                                  0x000D0000
+#define DSL_RESULT_REPORTER_NAME_NOT_UNIQUE                         0x000D0001
+#define DSL_RESULT_REPORTER_NAME_NOT_FOUND                          0x000D0002
+#define DSL_RESULT_REPORTER_NAME_BAD_FORMAT                         0x000D0003
+#define DSL_RESULT_REPORTER_THREW_EXCEPTION                         0x000D0004
+#define DSL_RESULT_REPORTER_IS_IN_USE                               0x000D0005
+#define DSL_RESULT_REPORTER_SET_FAILED                              0x000D0006
+#define DSL_RESULT_REPORTER_EVENT_ADD_FAILED                        0x000D0007
+#define DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED                     0x000D0008
+#define DSL_RESULT_REPORTER_EVENT_NOT_IN_USE                        0x000D0009
+#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D000A
+
+/**
+ * Detection Event API Return Values
+ */
 #define DSL_RESULT_EVENT_RESULT                                     0x000E0000
 #define DSL_RESULT_EVENT_NAME_NOT_UNIQUE                            0x000E0001
 #define DSL_RESULT_EVENT_NAME_NOT_FOUND                             0x000E0002
 #define DSL_RESULT_EVENT_TYPE_INVALID                               0x000E0003
 #define DSL_RESULT_EVENT_THREW_EXCEPTION                            0x000E0004
 #define DSL_RESULT_EVENT_IN_USE                                     0x000E0005
-#define DSL_RESULT_EVENT_SET_FAILED                                 0x000D0006
+#define DSL_RESULT_EVENT_SET_FAILED                                 0x000E0006
 #define DSL_RESULT_EVENT_IS_NOT_DETECTION_EVENT                     0x000E0007
+#define DSL_RESULT_EVENT_ACTION_ADD_FAILED                          0x000E0008
+#define DSL_RESULT_EVENT_ACTION_REMOVE_FAILED                       0x000E0009
+#define DSL_RESULT_EVENT_ACTION_NOT_IN_USE                          0x000E000A
+
+/**
+ * Event Action API Return Values
+ */
+#define DSL_RESULT_ACTION_RESULT                                    0x000F0000
+#define DSL_RESULT_ACTION_NAME_NOT_UNIQUE                           0x000F0001
+#define DSL_RESULT_ACTION_NAME_NOT_FOUND                            0x000F0002
+#define DSL_RESULT_ACTION_TYPE_INVALID                              0x000F0003
+#define DSL_RESULT_ACTION_THREW_EXCEPTION                           0x000F0004
+#define DSL_RESULT_ACTION_IN_USE                                    0x000F0005
+#define DSL_RESULT_ACTION_SET_FAILED                                0x000F0006
+#define DSL_RESULT_ACTION_IS_NOT_ACTION                             0x000F0007
 
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -366,6 +384,52 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* 
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
 
 /**
+ * @brief Creates a uniquely named Display Action
+ * @param[in] name unique name for the Display Action 
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_event_action_display_new(const wchar_t* name);
+
+/**
+ * @brief Creates a uniquely named Callback Action
+ * @param[in] name unique name for the Callback Action 
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_event_action_callback_new(const wchar_t* name);
+
+/**
+ * @brief Deletes an Event Action of any type
+ * This service will fail with DSL_RESULT_ACTION_IN_USE if the Action is currently
+ * owned by a Detection Event.
+ * @param[in] name unique name of the Event Action to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_event_action_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated array of Event Actions of any type
+ * This service will fail with DSL_RESULT_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a Detection Event.
+ * @param[in] names Null ternimated array of unique names to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_event_action_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all Event Actions of all types
+ * This service will fail with DSL_RESULT_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a Detection Event.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_event_action_delete_all();
+
+/**
+ * @brief Returns the size of the list of Events Actions
+ * @return the number of Event Actions in the list
+ */
+uint dsl_event_action_list_size();
+
+/**
  * @brief Event to trigger on first occurrence of object detection
  * @param[in] event_type unique identification for the detection event type to create
  * @param[in] name unique name for this event object
@@ -426,9 +490,49 @@ DslReturnType dsl_detection_event_frame_count_min_get(const wchar_t* name, uint*
  * @param[in] name unique name of the detection event to query
  * @param[out] min_count_n sets the current minimun frame count numerator to use
  * @param[out] min_count_d sets the current minimun frame count denomintor to use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
  */
 DslReturnType dsl_detection_event_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
+
+/**
+ * @brief Adds a named Event Action to a named Detection Event
+ * @param[in] name unique name of the Detection Event to update
+ * @param[in] action unique name of the Event Action to Add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_detection_event_action_add(const wchar_t* name, const wchar_t* action);
+
+/**
+ * @brief Adds a Null terminated list of named Event Actions to a named Detection Event
+ * @param[in] name unique name of the Detection Event to update
+ * @param[in] actions Null terminated list of unique names of the Event Actions to add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_detection_event_action_add_many(const wchar_t* name, const wchar_t** actions);
+
+/**
+ * @brief Removes a named Event Action from a named Detection Event
+ * @param[in] name unique name of the Detection Event to update
+ * @param[in] action unique name of the Event Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_detection_event_action_remove(const wchar_t* name, const wchar_t* action);
+
+/**
+ * @brief Removes a Null terminated list of named Event Actions from a named Detection Event
+ * @param[in] name unique name of the Detection Event to update
+ * @param[in] actions Null terminated list of unique names of the Event Actions to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_detection_event_action_remove_many(const wchar_t* name, const wchar_t** actions);
+
+/**
+ * @brief Removes a named Event Action from a named Detection Event
+ * @param[in] name unique name of the Detection Event to update
+ * @param[in] action unique name of the Event Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ */
+DslReturnType dsl_detection_event_action_remove_all(const wchar_t* name);
 
 /**
  * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
@@ -816,6 +920,24 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
  */
 DslReturnType dsl_reporter_new(const wchar_t* name);
+
+/**
+ * @brief Gets the Reporter's current reporting enabled setting
+ * @param[in] name unique name of the Reporter to query
+ * @param[out] enabled true if Reporting is current enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the Reporter's reporting enabled setting
+ * @param[in] name unique name of the Reporter to update
+ * @param[out] enabled set true to enable reporting, if in a disabled state, 
+ * false to disable if currently in an enbled state. 
+ * Attempts to reset to the same/current state will fail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ */
+DslReturnType dsl_reporter_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Adds a named Detection Event to a named Reporter Component

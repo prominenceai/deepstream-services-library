@@ -24,13 +24,22 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslDetectionEvent.h"
+#include "DslEventAction.h"
+
+#define LIMIT_ONE 1
+#define LIMIT_NONE 0
 
 namespace DSL
 {
 
-    DetectionEvent::DetectionEvent(const char* name, uint classId)
+    // Initialize static Event Counter
+    uint DetectionEvent::s_eventCount = 0;
+
+    DetectionEvent::DetectionEvent(const char* name, uint classId, uint64_t limit)
         : Base(name)
         , m_classId(classId)
+        , m_triggered(0)
+        , m_limit(limit)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_minFrameCountN(0)
@@ -101,29 +110,51 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
+    // *****************************************************************************
+    
     FirstOccurrenceEvent::FirstOccurrenceEvent(const char* name, uint classId)
-        : DetectionEvent(name, classId)
+        : DetectionEvent(name, classId, LIMIT_ONE)
     {
         LOG_FUNC();
-
     }
 
     FirstOccurrenceEvent::~FirstOccurrenceEvent()
     {
         LOG_FUNC();
-
+    }
+    
+    void FirstOccurrenceEvent::CheckForOccurrence(NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if ((m_limit and m_triggered == m_limit) or (m_classId != pObjectMeta->class_id))
+        {
+            return;
+        }
+        m_triggered++;
+        for (const auto &imap: m_pChildren)
+        {
+            DSL_EVENT_ACTION_PTR pAction = std::dynamic_pointer_cast<EventAction>(imap.second);
+            pAction->HandleOccurrence(GetName(), s_eventCount, pObjectMeta);
+        }
+        
     }
 
+    // *****************************************************************************
+
     FirstAbsenceEvent::FirstAbsenceEvent(const char* name, uint classId)
-        : DetectionEvent(name, classId)
+        : DetectionEvent(name, classId, LIMIT_ONE)
     {
         LOG_FUNC();
-
     }
 
     FirstAbsenceEvent::~FirstAbsenceEvent()
     {
         LOG_FUNC();
+    }
 
+    void FirstAbsenceEvent::CheckForOccurrence(NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
     }
 }
