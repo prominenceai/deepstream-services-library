@@ -31,17 +31,25 @@ namespace DSL
 
     ReporterBintr::ReporterBintr(const char* name)
         : Bintr(name)
+        , m_isReportingEnabled(true)
     {
         LOG_FUNC();
 
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "reporter-queue");
         
-        AddChild(m_pQueue);
+        Bintr::AddChild(m_pQueue);
 
         m_pQueue->AddGhostPadToParent("sink");
         m_pQueue->AddGhostPadToParent("src");
 
+        // New src pad probe for event processing and reporting
         m_pSrcPadProbe = DSL_PAD_PROBE_NEW("reporter-src-pad-probe", "src", m_pQueue);
+        
+        if (!AddBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler, this))
+        {
+            LOG_ERROR("ReporterBintr '" << m_name << "' failed to add probe buffer handler on create");
+            throw;
+        }
     }
 
     ReporterBintr::~ReporterBintr()
@@ -52,7 +60,7 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        RemoveAllDetectionEvents();
+        RemoveAllChildren();
     }
 
     bool ReporterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -93,51 +101,86 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool ReporterBintr::AddDetectionEvent(const char* name, DSL_EVENT_DETECTION_PTR newEvent)
+    bool ReporterBintr::AddChild(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
         
-        if (IsChildEvent(name))
-        {
-            LOG_ERROR("Event '" << name << "' is already a child of ReporterBintr '" << m_name << "'");
-            return false;
-        }
-        // setup the Parent-Child relationship
-        newEvent->AssignParentName(GetName());
-        m_detectionEvents[name] = newEvent;
-        return true;
+        return Base::AddChild(pChild);
     }
 
-    bool ReporterBintr::RemoveDetectionEvent(const char* name)
+    bool ReporterBintr::RemoveChild(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
         
-        if (!IsChildEvent(name))
-        {
-            LOG_ERROR("Event '" << name << "' is not a child of ReporterBintr '" << m_name << "'");
-            return false;
-        }
-        // Clear the Parent-Child relationship
-        m_detectionEvents[name]->ClearParentName();
-        m_detectionEvents.erase(name);
-        return true;
+        return Base::RemoveChild(pChild);
     }
 
-    void ReporterBintr::RemoveAllDetectionEvents()
+    bool ReporterBintr::GetReportingEnabled()
     {
         LOG_FUNC();
-
-        for (auto const& imap: m_detectionEvents)
-        {
-            imap.second->ClearParentName();
-        }
-        m_detectionEvents.clear();
+        
+        return m_isReportingEnabled;
     }
     
-    bool ReporterBintr::IsChildEvent(const char* name)
+    bool ReporterBintr::SetReportingEnabled(bool enabled)
     {
         LOG_FUNC();
+
+        if (m_isReportingEnabled == enabled)
+        {
+            LOG_ERROR("Can't set Reporting Enabled to the same value of " 
+                << enabled << " for ReporterBintr '" << GetName() << "' ");
+            return false;
+        }
+        m_isReportingEnabled = enabled;
         
-        return (m_detectionEvents.find(name) != m_detectionEvents.end());
+        if (enabled)
+        {
+            LOG_INFO("Enabling Reporting for ReporterBintr '" << GetName() << "'");
+            
+            return AddBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler, this);
+        }
+        LOG_INFO("Disabling Reporting for ReporterBintr '" << GetName() << "'");
+        
+        return RemoveBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler);
     }
+    
+    bool ReporterBintr::HandlePadBuffer(GstBuffer* pBuffer)
+    {
+        NvDsBatchMeta* batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        
+        for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
+        {
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta *) (l_frame->data);
+            if (pFrameMeta == NULL)
+            {
+                LOG_DEBUG("NvDs Meta contained NULL NvDsFrameMeta for ReporterBintr '" << GetName() << "'");
+                return true;
+            }
+            
+            for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
+            {
+                NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
+                if (pObjectMeta == NULL)
+                {
+                    LOG_DEBUG("NvDs Meta contained NULL NvDsObjectMeta for ReporterBintr '" << GetName() << "'");
+                    return true;
+                }
+                
+                for (const auto &imap: m_pChildren)
+                {
+                    DSL_DETECTION_EVENT_PTR pEvent = std::dynamic_pointer_cast<DetectionEvent>(imap.second);
+                    pEvent->CheckForOccurrence(pObjectMeta);
+                }
+            }
+        }
+        return true;
+    }
+    
+    static boolean PadBufferHandler(void* pBuffer, void* user_data)
+    {
+        return static_cast<ReporterBintr*>(user_data)->
+            HandlePadBuffer((GstBuffer*)pBuffer);
+    }
+    
 }

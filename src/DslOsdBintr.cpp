@@ -472,11 +472,11 @@ namespace DSL
     
     bool OsdBintr::HandleRedaction(GstBuffer* pBuffer)
     {
-        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        NvDsBatchMeta* batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
         {
-            NvDsFrameMeta *frame_meta = (NvDsFrameMeta *) (l_frame->data);
+            NvDsFrameMeta* frame_meta = (NvDsFrameMeta *) (l_frame->data);
 
             if (frame_meta == NULL)
             {
@@ -484,12 +484,12 @@ namespace DSL
                 return true;
             }
 
-            for (NvDsMetaList * l_obj = frame_meta->obj_meta_list; l_obj != NULL; l_obj = l_obj->next)
+            for (NvDsMetaList* l_obj = frame_meta->obj_meta_list; l_obj != NULL; l_obj = l_obj->next)
             {
-                NvDsObjectMeta *obj_meta = (NvDsObjectMeta *) (l_obj->data);
+                NvDsObjectMeta* obj_meta = (NvDsObjectMeta *) (l_obj->data);
 
-                NvOSD_RectParams * rect_params = &(obj_meta->rect_params);
-                NvOSD_TextParams * text_params = &(obj_meta->text_params);
+                NvOSD_RectParams* rect_params = &(obj_meta->rect_params);
+                NvOSD_TextParams* text_params = &(obj_meta->text_params);
 
                 if (text_params->display_text)
                 {

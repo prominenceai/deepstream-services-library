@@ -67,45 +67,55 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Adds a detection type to this ReporterBintr
-         * @param[in] name unique name of the Event to add
-         * @param[in] newEvent shared pointer to detection event to add
+         * @brief Adds a uniquely named Detection Event to this ReporterBintr
+         * @param[in] pChild shared pointer to detection event to add
          * @return true if successful add, false otherwise
          */
-        bool AddDetectionEvent(const char* name, DSL_EVENT_DETECTION_PTR newEvent);
+        bool AddChild(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a uniquely named Event from the RepoterBintr
+         * @brief Removes a uniquely named Event from this RepoterBintr
          * @param[in] name unique name of the Event to remove
          * @return true if successful remove, false otherwise
          */
-        bool RemoveDetectionEvent(const char* name);
+        bool RemoveChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief Gets the current state of the Reporting enabled flag
+         * @return true if Reporting is current enabled, false otherwise
+         */
+        bool GetReportingEnabled();
+
+        /**
+         * @brief Sets the current state of the Reporting enabled flag. 
+         * The default state on creation is True
+         * @param[in] enabled set to true if Repororting is to be enabled, false otherwise
+         */
+        bool SetReportingEnabled(bool enabled);
         
         /**
-         * @brief Removes all detection events from this ReporterBintr
+         * @brief Handles a Pad buffer, by iterating through each child Detection Event
+         * checking for an occurrence of such an event
+         * @param pBuffer Pad buffer
+         * @return true to continue handling, false to stop and self remove callback
          */
-        void RemoveAllDetectionEvents();
-        
-        /**
-         * @brief Determines if a uniquely named Event is a child (in-use) by this ReporterBintr
-         * @param name unique name of the Event to check for
-         * @return true if the event is a child of this ReporterBinter
-         */
-        bool IsChildEvent(const char* name);
-        
+        bool HandlePadBuffer(GstBuffer* pBuffer);
+
     private:
+    
+        /**
+         * @brief Reporting enabled setting, default = true (enabled), 
+         */ 
+        bool m_isReportingEnabled;
 
         /**
          * @brief Queue Elementr as both Sink and Source for this ReporterBintr
          */
         DSL_ELEMENT_PTR m_pQueue;
-        
-        /**
-         * @brief map of all Detection Events in use by this ReporterBinter
-         */
-        std::map <std::string, DSL_EVENT_DETECTION_PTR> m_detectionEvents;
 
     };
+    
+    static boolean PadBufferHandler(void* pBuffer, void* user_data);    
 }
 
 #endif // _DSL_REPORTER_BINTR_H

@@ -187,6 +187,7 @@ namespace DSL
                 return false;
             }
             m_pChildren.erase(pChild->m_name);
+            pChild->ClearParentName();
                             
             LOG_DEBUG("Child '" << pChild->m_name <<"' removed from Parent '" << m_name << "'");
             
@@ -203,6 +204,7 @@ namespace DSL
             for (auto &imap: m_pChildren)
             {
                 LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() << "'");
+                imap.second->ClearParentName();
             }
             m_pChildren.clear();
         }
