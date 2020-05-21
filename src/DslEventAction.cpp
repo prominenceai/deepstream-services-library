@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslDetectionEvent.h"
 #include "DslEventAction.h"
 
 namespace DSL
@@ -42,74 +43,94 @@ namespace DSL
 
     // ********************************************************************
 
-    EventActionLog::EventActionLog(const char* name)
+    CallbackEventAction::CallbackEventAction(const char* name)
         : EventAction(name)
     {
         LOG_FUNC();
 
     }
 
-    EventActionLog::~EventActionLog()
-    {
-        LOG_FUNC();
-
-    }
-
-    void EventActionLog::HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta)
-    {
-        LOG_FUNC();
-
-        LOG_INFO("Event Name   : " << eventName);
-        LOG_INFO("  event_id   : " << eventId);
-        LOG_INFO("  obj_label  : " << pObjectMeta->obj_label);
-        LOG_INFO("  class_id   : " << pObjectMeta->class_id);
-        LOG_INFO("  object_id  : " << pObjectMeta->object_id);
-        LOG_INFO("  confidence : " << pObjectMeta->confidence);
-        LOG_INFO("  left       : " << pObjectMeta->rect_params.left);
-        LOG_INFO("  top        : " << pObjectMeta->rect_params.top);
-        LOG_INFO("  width      : " << pObjectMeta->rect_params.width);
-        LOG_INFO("  height     : " << pObjectMeta->rect_params.height);
-    }
-
-    // ********************************************************************
-
-    EventActionDisplay::EventActionDisplay(const char* name)
-        : EventAction(name)
-    {
-        LOG_FUNC();
-
-    }
-
-    EventActionDisplay::~EventActionDisplay()
-    {
-        LOG_FUNC();
-
-    }
-
-    void EventActionDisplay::HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta)
-    {
-        LOG_FUNC();
-
-    }
-
-    // ********************************************************************
-
-    EventActionCallback::EventActionCallback(const char* name)
-        : EventAction(name)
-    {
-        LOG_FUNC();
-
-    }
-
-    EventActionCallback::~EventActionCallback()
+    CallbackEventAction::~CallbackEventAction()
     {
         LOG_FUNC();
 
     }
     
-    void EventActionCallback::HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta)
+    void CallbackEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOG_FUNC();
 
     }
+
+    // ********************************************************************
+
+    DisplayEventAction::DisplayEventAction(const char* name)
+        : EventAction(name)
+    {
+        LOG_FUNC();
+
+    }
+
+    DisplayEventAction::~DisplayEventAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void DisplayEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOG_FUNC();
+
+    }
+
+    // ********************************************************************
+
+    LogEventAction::LogEventAction(const char* name)
+        : EventAction(name)
+    {
+        LOG_FUNC();
+
+    }
+
+    LogEventAction::~LogEventAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void LogEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOG_FUNC();
+
+        DSL_DETECTION_EVENT_PTR pDetectionEvent = std::dynamic_pointer_cast<DetectionEvent>(pEvent);
+        
+        uint minWidth(0), minHeight(0);
+        pDetectionEvent->GetMinDimensions(&minWidth, &minHeight);
+        uint minFrameCountN(0), minFrameCountD(0); 
+        pDetectionEvent->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
+        
+        LOG_INFO("Event Name      : " << pDetectionEvent->GetName());
+        LOG_INFO("  Event Id      : " << eventId);
+        LOG_INFO("  Frame Number  : " << pFrameMeta->frame_num );
+        LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp );
+        LOG_INFO("  Source Id     : " << pFrameMeta->source_id );
+        LOG_INFO("  Class Id      : " << pObjectMeta->class_id);
+        LOG_INFO("  Object Id     : " << pObjectMeta->object_id);
+        LOG_INFO("  Object Label  : " << pObjectMeta->obj_label);
+        LOG_INFO("  Object Data   : ------------------------");
+        LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
+        LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
+        LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
+        LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
+        LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
+        LOG_INFO("  Min Criteria  : ------------------------");
+        LOG_INFO("    Confidence  : " << pDetectionEvent->GetMinConfidence());
+        LOG_INFO("    Frame Count : " << minFrameCountN << " out of " << minFrameCountD);
+        LOG_INFO("    Width       : " << minWidth);
+        LOG_INFO("    Height      : " << minHeight);
+    }
+
 }    

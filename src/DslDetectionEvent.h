@@ -47,15 +47,19 @@ namespace DSL
         DetectionEvent(const char* name, uint classId, uint64_t limit);
 
         ~DetectionEvent();
-        
-        static uint s_eventCount;
+
+        /**
+         * @brief total count of all events
+         */
+        static uint64_t s_eventCount;
         
         /**
          * @brief Function to check a given Object Meta data structure for the occurence of an event
          * and to invoke all Event Actions owned by the event
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
          */
-        virtual void CheckForOccurrence(NvDsObjectMeta* pObjectMeta) = 0;
+        virtual bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -67,6 +71,18 @@ namespace DSL
          * @brief Sets the ClassId filter for Object detection 
          */
         void SetClassId(uint classId);
+        
+        /**
+         * @brief Gets the Minimuum Inference Confidence to trigger the event
+         * @return the current Minimum Confidence value in use [0..1.0]
+         */
+        float GetMinConfidence();
+        
+        /**
+         * @brief Sets the Minumum Inference Confidence to trigger the event
+         * @param minConfidence new Minumum Confidence value to use
+         */
+        void SetMinConfidence(float minConfidence);
         
         /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event
@@ -115,6 +131,11 @@ namespace DSL
         uint m_classId;
         
         /**
+         * Mininum inference confidence to trigger event [0.0..1.0]
+         */
+        float m_minConfidence;
+        
+        /**
          * @brief Minimum rectangle width to trigger event
          */
         uint m_minWidth;
@@ -148,8 +169,9 @@ namespace DSL
          * @brief Function to check a given Object Meta data structure for a First Occurence event
          * and to invoke all Event Actions owned by the event
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
          */
-        void CheckForOccurrence(NvDsObjectMeta* pObjectMeta);
+        bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
@@ -167,8 +189,9 @@ namespace DSL
          * @brief Function to check a given Object Meta data structure for a First Absence event
          * and to invoke all Event Actions owned by the event
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
          */
-        void CheckForOccurrence(NvDsObjectMeta* pObjectMeta);
+        bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     

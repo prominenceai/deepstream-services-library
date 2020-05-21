@@ -33,13 +33,14 @@ namespace DSL
 {
 
     // Initialize static Event Counter
-    uint DetectionEvent::s_eventCount = 0;
+    uint64_t DetectionEvent::s_eventCount = 0;
 
     DetectionEvent::DetectionEvent(const char* name, uint classId, uint64_t limit)
         : Base(name)
         , m_classId(classId)
         , m_triggered(0)
         , m_limit(limit)
+        , m_minConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_minFrameCountN(0)
@@ -60,7 +61,6 @@ namespace DSL
     uint DetectionEvent::GetClassId()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         return m_classId;
     }
@@ -72,11 +72,25 @@ namespace DSL
         
         m_classId = classId;
     }
+
+    float DetectionEvent::GetMinConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_minConfidence;
+    }
+    
+    void DetectionEvent::SetMinConfidence(float minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_minConfidence = minConfidence;
+    }
     
     void DetectionEvent::GetMinDimensions(uint* minWidth, uint* minHeight)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         *minWidth = m_minWidth;
         *minHeight = m_minHeight;
@@ -95,7 +109,6 @@ namespace DSL
     void DetectionEvent::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         *minFrameCountN = m_minFrameCountN;
         *minFrameCountD = m_minFrameCountD;
@@ -123,21 +136,26 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void FirstOccurrenceEvent::CheckForOccurrence(NvDsObjectMeta* pObjectMeta)
+    bool FirstOccurrenceEvent::CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         if ((m_limit and m_triggered == m_limit) or (m_classId != pObjectMeta->class_id))
         {
-            return;
+            return false;
         }
+        // update the triggered count member variable
         m_triggered++;
+        
+        // update the total event count static variable
+        s_eventCount++;
+        
         for (const auto &imap: m_pChildren)
         {
             DSL_EVENT_ACTION_PTR pAction = std::dynamic_pointer_cast<EventAction>(imap.second);
-            pAction->HandleOccurrence(GetName(), s_eventCount, pObjectMeta);
+            pAction->HandleOccurrence(shared_from_this(), s_eventCount, pFrameMeta, pObjectMeta);
         }
-        
+        return true;
     }
 
     // *****************************************************************************
@@ -153,8 +171,9 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void FirstAbsenceEvent::CheckForOccurrence(NvDsObjectMeta* pObjectMeta)
+    bool FirstAbsenceEvent::CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        return true;
     }
 }

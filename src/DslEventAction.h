@@ -37,13 +37,18 @@ namespace DSL
 
     #define DSL_EVENT_ACTION_PTR std::shared_ptr<EventAction>
 
-    #define DSL_EVENT_ACTION_DISPLAY_PTR std::shared_ptr<EventActionDisplay>
-    #define DSL_EVENT_ACTION_DISPLAY_NEW(name) \
-        std::shared_ptr<EventActionDisplay>(new EventActionDisplay(name))
-        
-    #define DSL_EVENT_ACTION_CALLBACK_PTR std::shared_ptr<EventActionCallback>
+    #define DSL_EVENT_ACTION_CALLBACK_PTR std::shared_ptr<CallbackEventAction>
     #define DSL_EVENT_ACTION_CALLBACK_NEW(name) \
-        std::shared_ptr<EventActionCallback>(new EventActionCallback(name))
+        std::shared_ptr<CallbackEventAction>(new CallbackEventAction(name))
+        
+    #define DSL_EVENT_ACTION_DISPLAY_PTR std::shared_ptr<DisplayEventAction>
+    #define DSL_EVENT_ACTION_DISPLAY_NEW(name) \
+        std::shared_ptr<DisplayEventAction>(new DisplayEventAction(name))
+        
+    #define DSL_EVENT_ACTION_LOG_PTR std::shared_ptr<LogEventAction>
+    #define DSL_EVENT_ACTION_LOG_NEW(name) \
+        std::shared_ptr<LogEventAction>(new LogEventAction(name))
+        
         
     class EventAction : public Base
     {
@@ -53,53 +58,57 @@ namespace DSL
 
         ~EventAction();
         
-        virtual void HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta) = 0;
+        virtual void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
     private:
 
     };
-    
-    class EventActionLog : public EventAction
+
+    class CallbackEventAction : public EventAction
     {
     public:
     
-        EventActionLog(const char* name);
+        CallbackEventAction(const char* name);
         
-        ~EventActionLog();
-        
-        void HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta);
+        ~CallbackEventAction();
+
+        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
-    
-    };
 
-    class EventActionDisplay : public EventAction
+    };
+    
+    class DisplayEventAction : public EventAction
     {
     public:
     
-        EventActionDisplay(const char* name);
+        DisplayEventAction(const char* name);
         
-        ~EventActionDisplay();
+        ~DisplayEventAction();
         
-        void HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta);
+        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
     };
-
-    class EventActionCallback : public EventAction
+    class LogEventAction : public EventAction
     {
     public:
     
-        EventActionCallback(const char* name);
+        LogEventAction(const char* name);
         
-        ~EventActionCallback();
-
-        void HandleOccurrence(const std::string& eventName, uint eventId, NvDsObjectMeta* pObjectMeta);
+        ~LogEventAction();
+        
+        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
     };
+
 }
 
 

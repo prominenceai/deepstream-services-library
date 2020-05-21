@@ -152,25 +152,19 @@ namespace DSL
         for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
         {
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta *) (l_frame->data);
-            if (pFrameMeta == NULL)
+            if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
-                LOG_DEBUG("NvDs Meta contained NULL NvDsFrameMeta for ReporterBintr '" << GetName() << "'");
-                return true;
-            }
-            
-            for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
-            {
-                NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
-                if (pObjectMeta == NULL)
+                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {
-                    LOG_DEBUG("NvDs Meta contained NULL NvDsObjectMeta for ReporterBintr '" << GetName() << "'");
-                    return true;
-                }
-                
-                for (const auto &imap: m_pChildren)
-                {
-                    DSL_DETECTION_EVENT_PTR pEvent = std::dynamic_pointer_cast<DetectionEvent>(imap.second);
-                    pEvent->CheckForOccurrence(pObjectMeta);
+                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
+                    if (pObjectMeta != NULL)
+                    {
+                        for (const auto &imap: m_pChildren)
+                        {
+                            DSL_DETECTION_EVENT_PTR pEvent = std::dynamic_pointer_cast<DetectionEvent>(imap.second);
+                            pEvent->CheckForOccurrence(pFrameMeta, pObjectMeta);
+                        }
+                    }
                 }
             }
         }
