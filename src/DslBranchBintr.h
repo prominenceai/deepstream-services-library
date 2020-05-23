@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
 #include "DslOsdBintr.h"
-#include "DslReporterBintr.h"
+#include "DslOdeHandlerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSGiesBintr.h"
 #include "DslMultiComponentsBintr.h"
@@ -93,7 +93,7 @@ namespace DSL
          * @brief adds a single ReporterBintr to this Branch 
          * @param[in] pReporterBintr shared pointer to Reporter Bintr to add
          */
-        bool AddReporterBintr(DSL_BASE_PTR pReporterBintr);
+        bool AddOdeHandlerBintr(DSL_BASE_PTR pOdeHandlerBintr);
         
         /**
          * @brief adds a single OsdBintr to this Branch 
@@ -195,9 +195,9 @@ namespace DSL
         DSL_OFV_PTR m_pOfvBintr;
 
         /**
-         * @brief optional, one at most Reporter for this Branch
+         * @brief optional, one at most ODE Handler for this Branch
          */
-        DSL_REPORTER_PTR m_pReporterBintr;
+        DSL_ODE_HANDLER_PTR m_pOdeHandlerBintr;
 
         /**
          * @brief optional, one at most OSD for this Branch

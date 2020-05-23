@@ -23,15 +23,15 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslReporterBintr.h"
+#include "DslOdeHandlerBintr.h"
 #include "DslBranchBintr.h"
 
 namespace DSL
 {
 
-    ReporterBintr::ReporterBintr(const char* name)
+    OdeHandlerBintr::OdeHandlerBintr(const char* name)
         : Bintr(name)
-        , m_isReportingEnabled(true)
+        , m_isEnabled(true)
     {
         LOG_FUNC();
 
@@ -47,12 +47,12 @@ namespace DSL
         
         if (!AddBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler, this))
         {
-            LOG_ERROR("ReporterBintr '" << m_name << "' failed to add probe buffer handler on create");
+            LOG_ERROR("OdeHandlerBintr '" << m_name << "' failed to add probe buffer handler on create");
             throw;
         }
     }
 
-    ReporterBintr::~ReporterBintr()
+    OdeHandlerBintr::~OdeHandlerBintr()
     {
         LOG_FUNC();
 
@@ -63,22 +63,22 @@ namespace DSL
         RemoveAllChildren();
     }
 
-    bool ReporterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    bool OdeHandlerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
         // add 'this' reporter to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddReporterBintr(shared_from_this());
+            AddOdeHandlerBintr(shared_from_this());
     }
     
-    bool ReporterBintr::LinkAll()
+    bool OdeHandlerBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("ReporterBintr '" << m_name << "' is already linked");
+            LOG_ERROR("OdeHandlerBintr '" << m_name << "' is already linked");
             return false;
         }
 
@@ -88,89 +88,83 @@ namespace DSL
         return true;
     }
     
-    void ReporterBintr::UnlinkAll()
+    void OdeHandlerBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("ReporterBintr '" << m_name << "' is not linked");
+            LOG_ERROR("OdeHandlerBintr '" << m_name << "' is not linked");
             return;
         }
         // single element, nothing to unlink
         m_isLinked = false;
     }
     
-    bool ReporterBintr::AddChild(DSL_BASE_PTR pChild)
+    bool OdeHandlerBintr::AddChild(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
         
         return Base::AddChild(pChild);
     }
 
-    bool ReporterBintr::RemoveChild(DSL_BASE_PTR pChild)
+    bool OdeHandlerBintr::RemoveChild(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
         
         return Base::RemoveChild(pChild);
     }
 
-    bool ReporterBintr::GetReportingEnabled()
+    bool OdeHandlerBintr::GetEnabled()
     {
         LOG_FUNC();
         
-        return m_isReportingEnabled;
+        return m_isEnabled;
     }
     
-    bool ReporterBintr::SetReportingEnabled(bool enabled)
+    bool OdeHandlerBintr::SetEnabled(bool enabled)
     {
         LOG_FUNC();
 
-        if (m_isReportingEnabled == enabled)
+        if (m_isEnabled == enabled)
         {
             LOG_ERROR("Can't set Reporting Enabled to the same value of " 
-                << enabled << " for ReporterBintr '" << GetName() << "' ");
+                << enabled << " for OdeHandlerBintr '" << GetName() << "' ");
             return false;
         }
-        m_isReportingEnabled = enabled;
+        m_isEnabled = enabled;
         
         if (enabled)
         {
-            LOG_INFO("Enabling Reporting for ReporterBintr '" << GetName() << "'");
+            LOG_INFO("Enabling the OdeHandlerBintr '" << GetName() << "'");
             
             return AddBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler, this);
         }
-        LOG_INFO("Disabling Reporting for ReporterBintr '" << GetName() << "'");
+        LOG_INFO("Disabling the OdeHandlerBintr '" << GetName() << "'");
         
         return RemoveBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler);
     }
     
-    bool ReporterBintr::HandlePadBuffer(GstBuffer* pBuffer)
+    bool OdeHandlerBintr::HandlePadBuffer(GstBuffer* pBuffer)
     {
         NvDsBatchMeta* batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
         {
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta *) (l_frame->data);
-            if (pFrameMeta == NULL)
+            if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
-                LOG_DEBUG("NvDs Meta contained NULL NvDsFrameMeta for ReporterBintr '" << GetName() << "'");
-                return true;
-            }
-            
-            for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
-            {
-                NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
-                if (pObjectMeta == NULL)
+                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {
-                    LOG_DEBUG("NvDs Meta contained NULL NvDsObjectMeta for ReporterBintr '" << GetName() << "'");
-                    return true;
-                }
-                
-                for (const auto &imap: m_pChildren)
-                {
-                    DSL_DETECTION_EVENT_PTR pEvent = std::dynamic_pointer_cast<DetectionEvent>(imap.second);
-                    pEvent->CheckForOccurrence(pObjectMeta);
+                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
+                    if (pObjectMeta != NULL)
+                    {
+                        for (const auto &imap: m_pChildren)
+                        {
+                            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
+                            pOdeType->CheckForOccurrence(pFrameMeta, pObjectMeta);
+                        }
+                    }
                 }
             }
         }
@@ -179,7 +173,7 @@ namespace DSL
     
     static boolean PadBufferHandler(void* pBuffer, void* user_data)
     {
-        return static_cast<ReporterBintr*>(user_data)->
+        return static_cast<OdeHandlerBintr*>(user_data)->
             HandlePadBuffer((GstBuffer*)pBuffer);
     }
     

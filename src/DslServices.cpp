@@ -24,12 +24,12 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslDetectionEvent.h"
+#include "DslOdeType.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
-#include "DslReporterBintr.h"
+#include "DslOdeHandlerBintr.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
@@ -37,38 +37,38 @@ THE SOFTWARE.
 // Single GST debug catagory initialization
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
-DslReturnType dsl_event_action_display_new(const wchar_t* name)
+DslReturnType dsl_ode_action_display_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->EventActionDisplayNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str());
 }
 
-DslReturnType dsl_event_action_callback_new(const wchar_t* name)
+DslReturnType dsl_ode_action_callback_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->EventActionCallbackNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionCallbackNew(cstrName.c_str());
 }
 
-DslReturnType dsl_event_action_delete(const wchar_t* name)
+DslReturnType dsl_ode_action_delete(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->EventActionDelete(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionDelete(cstrName.c_str());
 }
 
-DslReturnType dsl_event_action_delete_many(const wchar_t** names)
+DslReturnType dsl_ode_action_delete_many(const wchar_t** names)
 {
     for (const wchar_t** name = names; *name; name++)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
 
-        DslReturnType retval = DSL::Services::GetServices()->EventActionDelete(cstrName.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->OdeActionDelete(cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -77,83 +77,83 @@ DslReturnType dsl_event_action_delete_many(const wchar_t** names)
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_event_action_delete_all()
+DslReturnType dsl_ode_action_delete_all()
 {
-    return DSL::Services::GetServices()->EventActionDeleteAll();
+    return DSL::Services::GetServices()->OdeActionDeleteAll();
 }
 
-uint dsl_event_action_list_size()
+uint dsl_ode_action_list_size()
 {
-    return DSL::Services::GetServices()->EventActionListSize();
+    return DSL::Services::GetServices()->OdeActionListSize();
 }
 
-DslReturnType dsl_detection_event_new(const wchar_t* name, uint evtype, uint class_id)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->DetectionEventNew(cstrName.c_str(), evtype, class_id);
-}
-
-DslReturnType dsl_detection_event_class_id_get(const wchar_t* name, uint* class_id)
+DslReturnType dsl_ode_type_new(const wchar_t* name, uint odeType, uint class_id)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventClassIdGet(cstrName.c_str(), class_id);
+    return DSL::Services::GetServices()->OdeTypeNew(cstrName.c_str(), odeType, class_id);
 }
 
-DslReturnType dsl_detection_event_class_id_set(const wchar_t* name, uint class_id)
+DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventClassIdSet(cstrName.c_str(), class_id);
+    return DSL::Services::GetServices()->OdeTypeClassIdGet(cstrName.c_str(), class_id);
 }
 
-DslReturnType dsl_detection_event_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
+DslReturnType dsl_ode_type_class_id_set(const wchar_t* name, uint class_id)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventDimensionsMinGet(cstrName.c_str(), min_width, min_height);
+    return DSL::Services::GetServices()->OdeTypeClassIdSet(cstrName.c_str(), class_id);
 }
 
-DslReturnType dsl_detection_event_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
+DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventDimensionsMinSet(cstrName.c_str(), min_width, min_height);
+    return DSL::Services::GetServices()->OdeTypeDimensionsMinGet(cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_detection_event_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTypeDimensionsMinSet(cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_detection_event_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DetectionEventFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeTypeFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
 }
 
-DslReturnType dsl_detection_event_action_add(const wchar_t* name, const wchar_t* action)
+DslReturnType dsl_ode_type_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+}
+
+DslReturnType dsl_ode_type_action_add(const wchar_t* name, const wchar_t* action)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrAction(action);
     std::string cstrAction(wstrAction.begin(), wstrAction.end());
 
-    return DSL::Services::GetServices()->DetectionEventActionAdd(cstrName.c_str(), cstrAction.c_str());
+    return DSL::Services::GetServices()->OdeTypeActionAdd(cstrName.c_str(), cstrAction.c_str());
 }
 
-DslReturnType dsl_detection_event_action_add_many(const wchar_t* name, const wchar_t** actions)
+DslReturnType dsl_ode_type_action_add_many(const wchar_t* name, const wchar_t** actions)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -164,7 +164,7 @@ DslReturnType dsl_detection_event_action_add_many(const wchar_t* name, const wch
         std::string cstrAction(wstrAction.begin(), wstrAction.end());
         
         DslReturnType retval = DSL::Services::GetServices()->
-            DetectionEventActionAdd(cstrName.c_str(), cstrAction.c_str());
+            OdeTypeActionAdd(cstrName.c_str(), cstrAction.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -173,17 +173,17 @@ DslReturnType dsl_detection_event_action_add_many(const wchar_t* name, const wch
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_detection_event_action_remove(const wchar_t* name, const wchar_t* action)
+DslReturnType dsl_ode_type_action_remove(const wchar_t* name, const wchar_t* action)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrAction(action);
     std::string cstrAction(wstrAction.begin(), wstrAction.end());
 
-    return DSL::Services::GetServices()->DetectionEventActionRemove(cstrName.c_str(), cstrAction.c_str());
+    return DSL::Services::GetServices()->OdeTypeActionRemove(cstrName.c_str(), cstrAction.c_str());
 }
 
-DslReturnType dsl_detection_event_action_remove_many(const wchar_t* name, const wchar_t** actions)
+DslReturnType dsl_type_ode_action_remove_many(const wchar_t* name, const wchar_t** actions)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -194,7 +194,7 @@ DslReturnType dsl_detection_event_action_remove_many(const wchar_t* name, const 
         std::string cstrAction(wstrAction.begin(), wstrAction.end());
         
         DslReturnType retval = DSL::Services::GetServices()->
-            DetectionEventActionRemove(cstrName.c_str(), cstrAction.c_str());
+            OdeTypeActionRemove(cstrName.c_str(), cstrAction.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -203,29 +203,29 @@ DslReturnType dsl_detection_event_action_remove_many(const wchar_t* name, const 
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_detection_event_action_remove_all(const wchar_t* name)
+DslReturnType dsl_ode_type_action_remove_all(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->DetectionEventActionRemoveAll(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeTypeActionRemoveAll(cstrName.c_str());
 }
 
-DslReturnType dsl_event_delete(const wchar_t* name)
+DslReturnType dsl_ode_type_delete(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->EventDelete(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeTypeDelete(cstrName.c_str());
 }
 
-DslReturnType dsl_event_delete_many(const wchar_t** names)
+DslReturnType dsl_ode_type_delete_many(const wchar_t** names)
 {
     for (const wchar_t** name = names; *name; name++)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->EventDelete(cstrName.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->OdeTypeDelete(cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -234,14 +234,14 @@ DslReturnType dsl_event_delete_many(const wchar_t** names)
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_event_delete_all()
+DslReturnType dsl_ode_type_delete_all()
 {
-    return DSL::Services::GetServices()->EventDeleteAll();
+    return DSL::Services::GetServices()->OdeTypeDeleteAll();
 }
 
-uint dsl_event_list_size()
+uint dsl_ode_type_list_size()
 {
-    return DSL::Services::GetServices()->EventListSize();
+    return DSL::Services::GetServices()->OdeTypeListSize();
 }
 
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
@@ -605,51 +605,51 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
     return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
     
-DslReturnType dsl_reporter_new(const wchar_t* name)
+DslReturnType dsl_ode_handler_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->ReporterNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeHandlerNew(cstrName.c_str());
 }
 
-DslReturnType dsl_reporter_enabled_get(const wchar_t* name, boolean* enabled)
+DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->ReporterEnabledGet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OdeHandlerEnabledGet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_reporter_enabled_set(const wchar_t* name, boolean enabled)
+DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->ReporterEnabledSet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OdeHandlerEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_reporter_detection_event_add(const wchar_t* reporter, const wchar_t* detection_event)
+DslReturnType dsl_ode_handler_type_add(const wchar_t* ode_handler, const wchar_t* ode_type)
 {
-    std::wstring wstrReporter(reporter);
-    std::string cstrReporter(wstrReporter.begin(), wstrReporter.end());
-    std::wstring wstrEvent(detection_event);
-    std::string cstrEvent(wstrEvent.begin(), wstrEvent.end());
+    std::wstring wstrOdeHandler(ode_handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+    std::wstring wstrOdeType(ode_type);
+    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
 
-    return DSL::Services::GetServices()->ReporterDetectionEventAdd(cstrReporter.c_str(), cstrEvent.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTypeAdd(cstrOdeHandler.c_str(), cstrOdeType.c_str());
 }
 
-DslReturnType dsl_reporter_detection_event_add_many(const wchar_t* reporter, const wchar_t** detection_events)
+DslReturnType dsl_ode_handler_type_add_many(const wchar_t* ode_handler, const wchar_t** ode_types)
 {
-    std::wstring wstrReporter(reporter);
-    std::string cstrReporter(wstrReporter.begin(), wstrReporter.end());
+    std::wstring wstrOdeHandler(ode_handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    for (const wchar_t** detection_event = detection_events; *detection_event; detection_event++)
+    for (const wchar_t** ode_type = ode_types; *ode_type; ode_type++)
     {
-        std::wstring wstrEvent(*detection_event);
-        std::string cstrEvent(wstrEvent.begin(), wstrEvent.end());
+        std::wstring wstrOdeType(*ode_type);
+        std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
         DslReturnType retval = DSL::Services::GetServices()->
-            ReporterDetectionEventAdd(cstrReporter.c_str(), cstrEvent.c_str());
+            OdeHandlerTypeAdd(cstrOdeHandler.c_str(), cstrOdeType.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -658,26 +658,26 @@ DslReturnType dsl_reporter_detection_event_add_many(const wchar_t* reporter, con
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_reporter_detection_event_remove(const wchar_t* reporter, const wchar_t* detection_event)
+DslReturnType dsl_ode_handler_type_remove(const wchar_t* ode_handler, const wchar_t* ode_type)
 {
-    std::wstring wstrReporter(reporter);
-    std::string cstrReporter(wstrReporter.begin(), wstrReporter.end());
-    std::wstring wstrEvent(detection_event);
-    std::string cstrEvent(wstrEvent.begin(), wstrEvent.end());
+    std::wstring wstrOdeHandler(ode_handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+    std::wstring wstrOdeType(ode_type);
+    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
 
-    return DSL::Services::GetServices()->ReporterDetectionEventRemove(cstrReporter.c_str(), cstrEvent.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTypeRemove(cstrOdeHandler.c_str(), cstrOdeType.c_str());
 }
 
-DslReturnType dsl_reporter_detection_event_remove_many(const wchar_t* reporter, const wchar_t** detection_events)
+DslReturnType dsl_ode_handler_type_remove_many(const wchar_t* ode_handler, const wchar_t** ode_types)
 {
-    std::wstring wstrReporter(reporter);
-    std::string cstrReporter(wstrReporter.begin(), wstrReporter.end());
+    std::wstring wstrOdeHandler(ode_handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    for (const wchar_t** detection_event = detection_events; *detection_event; detection_event++)
+    for (const wchar_t** ode_type = ode_types; *ode_type; ode_type++)
     {
-        std::wstring wstrEvent(*detection_event);
-        std::string cstrEvent(wstrEvent.begin(), wstrEvent.end());
-        DslReturnType retval = DSL::Services::GetServices()->ReporterDetectionEventRemove(cstrReporter.c_str(), cstrEvent.c_str());
+        std::wstring wstrOdeType(*ode_type);
+        std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+        DslReturnType retval = DSL::Services::GetServices()->OdeHandlerTypeRemove(cstrOdeHandler.c_str(), cstrOdeType.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -686,12 +686,12 @@ DslReturnType dsl_reporter_detection_event_remove_many(const wchar_t* reporter, 
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_reporter_detection_event_remove_all(const wchar_t* reporter)
+DslReturnType dsl_ode_handler_type_remove_all(const wchar_t* ode_handler)
 {
-    std::wstring wstrReporter(reporter);
-    std::string cstrReporter(wstrReporter.begin(), wstrReporter.end());
+    std::wstring wstrOdeHandler(ode_handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    return DSL::Services::GetServices()->ReporterDetectionEventRemoveAll(cstrReporter.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTypeRemoveAll(cstrOdeHandler.c_str());
 }
 
 DslReturnType dsl_ofv_new(const wchar_t* name)
@@ -1871,21 +1871,21 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
-#define RETURN_IF_ACTION_NAME_NOT_FOUND(actions, name) do \
+#define RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(actions, name) do \
 { \
     if (actions.find(name) == actions.end()) \
     { \
-        LOG_ERROR("Event Action name '" << name << "' was not found"); \
-        return DSL_RESULT_ACTION_NAME_NOT_FOUND; \
+        LOG_ERROR("ODE Action name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND; \
     } \
 }while(0); 
 
-#define RETURN_IF_EVENT_NAME_NOT_FOUND(events, name) do \
+#define RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \
     { \
         LOG_ERROR("Event name '" << name << "' was not found"); \
-        return DSL_RESULT_EVENT_NAME_NOT_FOUND; \
+        return DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND; \
     } \
 }while(0); 
 
@@ -2134,214 +2134,217 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
-    DslReturnType Services::EventActionDisplayNew(const char* name)
+    DslReturnType Services::OdeActionDisplayNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure event name uniqueness 
-        if (m_eventActions.find(name) != m_eventActions.end())
+        if (m_odeActions.find(name) != m_odeActions.end())
         {   
-            LOG_ERROR("Event Action name '" << name << "' is not unique");
-            return DSL_RESULT_ACTION_NAME_NOT_UNIQUE;
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_eventActions[name] = DSL_EVENT_ACTION_DISPLAY_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name);
         }
         catch(...)
         {
-            LOG_ERROR("New Display Event Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ACTION_THREW_EXCEPTION;
+            LOG_ERROR("New Display ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
-        LOG_INFO("new Display Event Action '" << name << "' created successfully");
+        LOG_INFO("new Display ODE Action '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::EventActionCallbackNew(const char* name)
+    DslReturnType Services::OdeActionCallbackNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure event name uniqueness 
-        if (m_eventActions.find(name) != m_eventActions.end())
+        if (m_odeActions.find(name) != m_odeActions.end())
         {   
-            LOG_ERROR("Event Action name '" << name << "' is not unique");
-            return DSL_RESULT_ACTION_NAME_NOT_UNIQUE;
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
         }
         try
         {
-            m_eventActions[name] = DSL_EVENT_ACTION_CALLBACK_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_CALLBACK_NEW(name);
         }
         catch(...)
         {
-            LOG_ERROR("New CallBack Event Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ACTION_THREW_EXCEPTION;
+            LOG_ERROR("New CallBack ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
-        LOG_INFO("new Callback Event Action '" << name << "' created successfully");
+        LOG_INFO("new Callback ODE Action '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::EventActionDelete(const char* name)
+    DslReturnType Services::OdeActionDelete(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ACTION_NAME_NOT_FOUND(m_eventActions, name);
+        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
         
-        if (m_eventActions[name]->IsInUse())
+        if (m_odeActions[name]->IsInUse())
         {
-            LOG_INFO("Event Action'" << name << "' is in use");
-            return DSL_RESULT_ACTION_IN_USE;
+            LOG_INFO("ODE Action'" << name << "' is in use");
+            return DSL_RESULT_ODE_ACTION_IN_USE;
         }
-        m_eventActions.erase(name);
+        m_odeActions.erase(name);
 
-        LOG_INFO("Event Action '" << name << "' deleted successfully");
+        LOG_INFO("ODE Action '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::EventActionDeleteAll()
+    DslReturnType Services::OdeActionDeleteAll()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_eventActions)
+        for (auto const& imap: m_odeActions)
         {
             // In the case of Delete all
             if (imap.second->IsInUse())
             {
-                LOG_ERROR("Event Action '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_ACTION_IN_USE;
+                LOG_ERROR("ODE Action '" << imap.second->GetName() << "' is currently in use");
+                return DSL_RESULT_ODE_ACTION_IN_USE;
             }
         }
-        m_eventActions.clear();
+        m_odeActions.clear();
 
         LOG_INFO("All Events deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    uint Services::EventActionListSize()
+    uint Services::OdeActionListSize()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        return m_eventActions.size();
+        return m_odeActions.size();
     }
     
     
-    DslReturnType Services::DetectionEventNew(const char* name, uint evtype, uint classId)
+    DslReturnType Services::OdeTypeNew(const char* name, uint odeType, uint classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         // ensure event name uniqueness 
-        if (m_detectionEvents.find(name) != m_detectionEvents.end())
+        if (m_odeTypes.find(name) != m_odeTypes.end())
         {   
-            LOG_ERROR("Detection Event name '" << name << "' is not unique");
-            return DSL_RESULT_EVENT_NAME_NOT_UNIQUE;
+            LOG_ERROR("ODE Type name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE;
         }
         try
         {
-            switch (evtype)
+            switch (odeType)
             {
-            case DSL_EVENT_TYPE_FIRST_OCCURRENCE :
-                m_detectionEvents[name] = DSL_EVENT_FIRST_OCCURRENCE_NEW(name, classId);
+            case DSL_ODE_TYPE_FIRST_OCCURRENCE :
+                m_odeTypes[name] = DSL_ODE_FIRST_OCCURRENCE_NEW(name, classId);
+                break;
+            case DSL_ODE_TYPE_EVERY_OCCURRENCE :
+                m_odeTypes[name] = DSL_ODE_EVERY_OCCURRENCE_NEW(name, classId);
                 break;
             default :
-                LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
-                return DSL_RESULT_EVENT_TYPE_INVALID;
+                LOG_ERROR("New ODE Type '" << odeType << "' invalid");
+                return DSL_RESULT_ODE_TYPE_INVALID;
             }
         }
         catch(...)
         {
-            LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            LOG_ERROR("New ODE Type '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("new Detection Event '" << name << "' created successfully");
+        LOG_INFO("new ODE Type '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::DetectionEventClassIdGet(const char* name, uint* classId)
+    DslReturnType Services::OdeTypeClassIdGet(const char* name, uint* classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             *classId = pEvent->GetClassId();
         }
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception getting class id");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services::DetectionEventClassIdSet(const char* name, uint classId)
+    DslReturnType Services::OdeTypeClassIdSet(const char* name, uint classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             pEvent->SetClassId(classId);
         }
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception getting class id");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services::DetectionEventDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
+    DslReturnType Services::OdeTypeDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             pEvent->GetMinDimensions(min_width, min_height);
         }
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception getting minimum dimensions");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services::DetectionEventDimensionsMinSet(const char* name, uint min_width, uint min_height)
+    DslReturnType Services::OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             // TODO: validate the min values for in-range
             pEvent->SetMinDimensions(min_width, min_height);
@@ -2349,44 +2352,44 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception setting minimum dimensions");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services:: DetectionEventFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
+    DslReturnType Services:: OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             pEvent->GetMinFrameCount(min_count_n, min_count_d);
         }
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services:: DetectionEventFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
+    DslReturnType Services:: OdeTypeFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_DETECTION_EVENT_PTR pEvent = 
-                std::dynamic_pointer_cast<DetectionEvent>(m_detectionEvents[name]);
+            DSL_ODE_TYPE_PTR pEvent = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             // TODO: validate the min values for in-range
             pEvent->SetMinFrameCount(min_count_n, min_count_d);
@@ -2394,148 +2397,148 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
     }                
 
-    DslReturnType Services::DetectionEventActionAdd(const char* name, const char* action)
+    DslReturnType Services::OdeTypeActionAdd(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
-        RETURN_IF_ACTION_NAME_NOT_FOUND(m_eventActions, action);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
         try
         {
-            // Can't add Actions if they're In use by another Detection Event
-            if (m_eventActions[action]->IsInUse())
+            // Can't add Actions if they're In use by another ODE Type
+            if (m_odeActions[action]->IsInUse())
             {
-                LOG_ERROR("Unable to add Event Action '" << action 
+                LOG_ERROR("Unable to add ODE Action '" << action 
                     << "' as it is currently in use");
-                return DSL_RESULT_ACTION_IN_USE;
+                return DSL_RESULT_ODE_ACTION_IN_USE;
             }
 
-            if (!m_detectionEvents[name]->AddChild(m_eventActions[action]))
+            if (!m_odeTypes[name]->AddChild(m_odeActions[action]))
             {
-                LOG_ERROR("Detection Event '" << name
-                    << "' failed to add Event Action '" << action << "'");
-                return DSL_RESULT_EVENT_ACTION_ADD_FAILED;
+                LOG_ERROR("ODE Type '" << name
+                    << "' failed to add ODE Action '" << action << "'");
+                return DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Detection Event '" << name
-                << "' threw exception adding Event Action '" << action << "'");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            LOG_ERROR("ODE Type '" << name
+                << "' threw exception adding ODE Action '" << action << "'");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("Event Action '" << action
-            << "' was added to Detection Event '" << name << "' successfully");
+        LOG_INFO("ODE Action '" << action
+            << "' was added to ODE Type '" << name << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DetectionEventActionRemove(const char* name, const char* action)
+    DslReturnType Services::OdeTypeActionRemove(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
-        RETURN_IF_ACTION_NAME_NOT_FOUND(m_eventActions, action);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
         try
         {
-            if (!m_eventActions[action]->IsParent(m_detectionEvents[name]))
+            if (!m_odeActions[action]->IsParent(m_odeTypes[name]))
             {
-                LOG_ERROR("Event Action'" << action << 
-                    "' is not in use by Detection Event '" << name << "'");
-                return DSL_RESULT_EVENT_ACTION_NOT_IN_USE;
+                LOG_ERROR("ODE Action'" << action << 
+                    "' is not in use by ODE Type '" << name << "'");
+                return DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE;
             }
 
-            if (!m_detectionEvents[name]->RemoveChild(m_eventActions[action]))
+            if (!m_odeTypes[name]->RemoveChild(m_odeActions[action]))
             {
-                LOG_ERROR("Detection Event '" << name
-                    << "' failed to remove Event Action '" << action << "'");
-                return DSL_RESULT_EVENT_ACTION_REMOVE_FAILED;
+                LOG_ERROR("ODE Type '" << name
+                    << "' failed to remove ODE Action '" << action << "'");
+                return DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Detection Event '" << name
-                << "' threw exception remove Event Action '" << action << "'");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            LOG_ERROR("ODE Type '" << name
+                << "' threw exception remove ODE Action '" << action << "'");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("Event Action '" << action
-            << "' was removed from Detection Event '" << name << "' successfully");
+        LOG_INFO("ODE Action '" << action
+            << "' was removed from ODE Type '" << name << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::DetectionEventActionRemoveAll(const char* name)
+    DslReturnType Services::OdeTypeActionRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
 
         try
         {
-            m_detectionEvents[name]->RemoveAllChildren();
+            m_odeTypes[name]->RemoveAllChildren();
         }
         catch(...)
         {
-            LOG_ERROR("Detection Event '" << name 
+            LOG_ERROR("ODE Type '" << name 
                 << "' threw an exception removing All Events Actions");
-            return DSL_RESULT_EVENT_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("All Events Actions removed from Detection Event '" << name << "' successfully");
+        LOG_INFO("All Events Actions removed from ODE Type '" << name << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::EventDelete(const char* name)
+    DslReturnType Services::OdeTypeDelete(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, name);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
         
-        if (m_detectionEvents[name]->IsInUse())
+        if (m_odeTypes[name]->IsInUse())
         {
             LOG_INFO("Event '" << name << "' is in use");
-            return DSL_RESULT_EVENT_IN_USE;
+            return DSL_RESULT_ODE_TYPE_IN_USE;
         }
-        m_detectionEvents.erase(name);
+        m_odeTypes.erase(name);
 
         LOG_INFO("Event '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::EventDeleteAll()
+    DslReturnType Services::OdeTypeDeleteAll()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_detectionEvents)
+        for (auto const& imap: m_odeTypes)
         {
             // In the case of Delete all
             if (imap.second->IsInUse())
             {
                 LOG_ERROR("Event '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_EVENT_IN_USE;
+                return DSL_RESULT_ODE_TYPE_IN_USE;
             }
         }
-        m_detectionEvents.clear();
+        m_odeTypes.clear();
 
         LOG_INFO("All Events deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    uint Services::EventListSize()
+    uint Services::OdeTypeListSize()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        return m_detectionEvents.size();
+        return m_odeTypes.size();
     }
     
     DslReturnType Services::SourceCsiNew(const char* name,
@@ -4018,7 +4021,7 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
    
-    DslReturnType Services::ReporterNew(const char* name)
+    DslReturnType Services::OdeHandlerNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4026,178 +4029,178 @@ namespace DSL
         // ensure component name uniqueness 
         if (m_components.find(name) != m_components.end())
         {   
-            LOG_ERROR("Reporter name '" << name << "' is not unique");
-            return DSL_RESULT_REPORTER_NAME_NOT_UNIQUE;
+            LOG_ERROR("ODE Handler name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE;
         }
         try
         {   
-            m_components[name] = std::shared_ptr<Bintr>(new ReporterBintr(name));
+            m_components[name] = std::shared_ptr<Bintr>(new OdeHandlerBintr(name));
         }
         catch(...)
         {
-            LOG_ERROR("New Reporter '" << name << "' threw exception on create");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            LOG_ERROR("New ODE Handler '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("new Reporter '" << name << "' created successfully");
+        LOG_INFO("new OdeHandler '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-   DslReturnType Services::ReporterEnabledGet(const char* reporter, boolean* enabled)
+   DslReturnType Services::OdeHandlerEnabledGet(const char* odeHandler, boolean* enabled)
    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, reporter);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
 
         try
         {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, reporter, ReporterBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, odeHandler, OdeHandlerBintr);
 
-            DSL_REPORTER_PTR pReporterBintr = 
-                std::dynamic_pointer_cast<ReporterBintr>(m_components[reporter]);
+            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
+                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
 
-            *enabled = pReporterBintr->GetReportingEnabled();
+            *enabled = pOdeHandlerBintr->GetEnabled();
         }
         catch(...)
         {
-            LOG_ERROR("Reporter '" << reporter
+            LOG_ERROR("OdeHandler '" << odeHandler
                 << "' threw exception getting the Enabled state");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
 
         return DSL_RESULT_SUCCESS;
     }
 
-   DslReturnType Services::ReporterEnabledSet(const char* reporter, boolean enabled)
+   DslReturnType Services::OdeHandlerEnabledSet(const char* odeHandler, boolean enabled)
    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, reporter);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
 
         try
         {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, reporter, ReporterBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, odeHandler, OdeHandlerBintr);
 
-            DSL_REPORTER_PTR pReporterBintr = 
-                std::dynamic_pointer_cast<ReporterBintr>(m_components[reporter]);
+            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
+                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
 
-            if (!pReporterBintr->SetReportingEnabled(enabled))
+            if (!pOdeHandlerBintr->SetEnabled(enabled))
             {
-                LOG_ERROR("Reporter '" << reporter
+                LOG_ERROR("ODE Handler '" << odeHandler
                     << "' failed to set enabled state");
-                return DSL_RESULT_REPORTER_SET_FAILED;
+                return DSL_RESULT_ODE_HANDLER_SET_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Reporter '" << reporter
+            LOG_ERROR("ODE Handler '" << odeHandler
                 << "' threw exception setting the Enabled state");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
 
         return DSL_RESULT_SUCCESS;
     }
 
-   DslReturnType Services::ReporterDetectionEventAdd(const char* reporter, const char* detectionEvent)
+   DslReturnType Services::OdeHandlerTypeAdd(const char* odeHandler, const char* odeType)
    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, reporter);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, detectionEvent);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, odeType);
 
         try
         {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, reporter, ReporterBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, odeHandler, OdeHandlerBintr);
 
-            // Can't add Events if they're In use by another Reporter
-            if (m_detectionEvents[detectionEvent]->IsInUse())
+            // Can't add Events if they're In use by another OdeHandler
+            if (m_odeTypes[odeType]->IsInUse())
             {
-                LOG_ERROR("Unable to add Detection Event '" << detectionEvent 
+                LOG_ERROR("Unable to add ODE Type '" << odeType 
                     << "' as it is currently in use");
-                return DSL_RESULT_EVENT_IN_USE;
+                return DSL_RESULT_ODE_TYPE_IN_USE;
             }
 
-            DSL_REPORTER_PTR pReporterBintr = 
-                std::dynamic_pointer_cast<ReporterBintr>(m_components[reporter]);
+            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
+                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
 
-            if (!pReporterBintr->AddChild(m_detectionEvents[detectionEvent]))
+            if (!pOdeHandlerBintr->AddChild(m_odeTypes[odeType]))
             {
-                LOG_ERROR("Reporter '" << reporter
-                    << "' failed to add Detection Event '" << detectionEvent << "'");
-                return DSL_RESULT_REPORTER_EVENT_ADD_FAILED;
+                LOG_ERROR("ODE Handler '" << odeHandler
+                    << "' failed to add ODE Type '" << odeType << "'");
+                return DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Reporter '" << reporter
-                << "' threw exception adding Detection Event '" << detectionEvent << "'");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            LOG_ERROR("ODE Handler '" << odeHandler
+                << "' threw exception adding ODE Type '" << odeType << "'");
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("Detection Event '" << detectionEvent 
-            << "' was added to Reporter '" << reporter << "' successfully");
+        LOG_INFO("ODE Type '" << odeType 
+            << "' was added to ODE Handler '" << odeHandler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
 
-    DslReturnType Services::ReporterDetectionEventRemove(const char* reporter, const char* detectionEvent)
+    DslReturnType Services::OdeHandlerTypeRemove(const char* odeHandler, const char* odeType)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, reporter);
-        RETURN_IF_EVENT_NAME_NOT_FOUND(m_detectionEvents, detectionEvent);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
+        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, odeType);
 
         try
         {
-            if (!m_detectionEvents[detectionEvent]->IsParent(m_components[reporter]))
+            if (!m_odeTypes[odeType]->IsParent(m_components[odeHandler]))
             {
-                LOG_ERROR("Detection Event '" << detectionEvent << 
-                    "' is not in use by Reporter '" << reporter << "'");
-                return DSL_RESULT_REPORTER_EVENT_NOT_IN_USE;
+                LOG_ERROR("ODE Type '" << odeType << 
+                    "' is not in use by ODE Handler '" << odeHandler << "'");
+                return DSL_RESULT_ODE_HANDLER_TYPE_NOT_IN_USE;
             }
             
-            DSL_REPORTER_PTR pReporterBintr = 
-                std::dynamic_pointer_cast<ReporterBintr>(m_components[reporter]);
+            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
+                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
                 
-            if (!pReporterBintr->RemoveChild(m_detectionEvents[detectionEvent]))
+            if (!pOdeHandlerBintr->RemoveChild(m_odeTypes[odeType]))
             {
-                LOG_ERROR("Reporter '" << reporter
-                    << "' failed to remove Detection Event '" << detectionEvent << "'");
-                return DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED;
+                LOG_ERROR("ODE Handler '" << odeHandler
+                    << "' failed to remove ODE Type '" << odeType << "'");
+                return DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED;
             }
         }
         catch(...)
         {
-            LOG_ERROR("Reporter '" << reporter 
-                << "' threw an exception removing Detection Event");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            LOG_ERROR("ODE Handler '" << odeHandler 
+                << "' threw an exception removing ODE Type");
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("Detection Event '" << detectionEvent 
-            << "' was removed from Reporter '" << reporter << "' successfully");
+        LOG_INFO("ODE Type '" << odeType 
+            << "' was removed from OdeHandler '" << odeHandler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::ReporterDetectionEventRemoveAll(const char* reporter)
+    DslReturnType Services::OdeHandlerTypeRemoveAll(const char* odeHandler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, reporter);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
 
         try
         {
-            DSL_REPORTER_PTR pReporterBintr = 
-                std::dynamic_pointer_cast<ReporterBintr>(m_components[reporter]);
+            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
+                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
 
-            pReporterBintr->RemoveAllChildren();
+            pOdeHandlerBintr->RemoveAllChildren();
         }
         catch(...)
         {
-            LOG_ERROR("Reporter '" << reporter 
-                << "' threw an exception removing All Detection Events");
-            return DSL_RESULT_REPORTER_THREW_EXCEPTION;
+            LOG_ERROR("ODE Handler '" << odeHandler 
+                << "' threw an exception removing All ODE Types");
+            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("All Detection Events removed from Reporter '" << reporter << "' successfully");
+        LOG_INFO("All ODE Types removed from ODE Handler '" << odeHandler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -6420,17 +6423,17 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TRACKER_PAD_TYPE_INVALID] = L"DSL_RESULT_TRACKER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER] = L"DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER";
-        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_FOUND] = L"DSL_RESULT_REPORTER_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_REPORTER_NAME_NOT_UNIQUE] = L"DSL_RESULT_REPORTER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_REPORTER_NAME_BAD_FORMAT] = L"DSL_RESULT_REPORTER_NAME_BAD_FORMAT";
-        m_returnValueToString[DSL_RESULT_REPORTER_THREW_EXCEPTION] = L"DSL_RESULT_REPORTER_THREW_EXCEPTION";
-        m_returnValueToString[DSL_RESULT_REPORTER_IS_IN_USE] = L"DSL_RESULT_REPORTER_IS_IN_USE";
-        m_returnValueToString[DSL_RESULT_REPORTER_SET_FAILED] = L"DSL_RESULT_REPORTER_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_REPORTER_EVENT_ADD_FAILED] = L"DSL_RESULT_REPORTER_EVENT_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED] = L"DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER] = L"DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT] = L"DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_IS_IN_USE] = L"DSL_RESULT_ODE_HANDLER_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_SET_FAILED] = L"DSL_RESULT_ODE_HANDLER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER] = L"DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER";
         m_returnValueToString[DSL_RESULT_SINK_RESULT] = L"DSL_RESULT_SINK_RESULT";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";

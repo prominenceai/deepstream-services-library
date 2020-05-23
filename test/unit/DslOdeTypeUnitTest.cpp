@@ -23,7 +23,8 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslDetectionEvent.h"
+#include "DslOdeType.h"
+#include "DslOdeAction.h"
 
 using namespace DSL;
 
@@ -36,8 +37,8 @@ SCENARIO( "A new FirstOccurrenceEvent is created correctly", "[DetectionEvent]" 
 
         WHEN( "A new DetectionEvent is created" )
         {
-            DSL_EVENT_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-                DSL_EVENT_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+            DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+                DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
 
             THEN( "The Events's memebers are setup and returned correctly" )
             {
@@ -54,3 +55,49 @@ SCENARIO( "A new FirstOccurrenceEvent is created correctly", "[DetectionEvent]" 
         }
     }
 }
+
+SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOccurrenceEvent]" )
+{
+    GIVEN( "A new FirstOccurrenceEvent with default criteria" ) 
+    {
+        std::string eventName("first-occurence");
+        uint classId(1);
+
+        std::string eventActionName("event-action");
+
+        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+
+        DSL_ODE_ACTION_LOG_PTR pEventAction = 
+            DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
+            
+        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+
+        WHEN( "A first occurent event is simulated" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            THEN( "The FirstOccurenceEvent is detected and only once" )
+            {
+                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(&frameMeta, &objectMeta) == true );
+                // second time must fail
+                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(&frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+
+
