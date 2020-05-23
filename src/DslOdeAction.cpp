@@ -23,8 +23,8 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslDetectionEvent.h"
-#include "DslEventAction.h"
+#include "DslOdeType.h"
+#include "DslOdeAction.h"
 
 namespace DSL
 {
@@ -56,8 +56,7 @@ namespace DSL
 
     }
     
-    void CallbackEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void CallbackEventAction::HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence)
     {
         LOG_FUNC();
 
@@ -78,8 +77,7 @@ namespace DSL
 
     }
 
-    void DisplayEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void DisplayEventAction::HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence)
     {
         LOG_FUNC();
 
@@ -100,37 +98,34 @@ namespace DSL
 
     }
 
-    void LogEventAction::HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void LogEventAction::HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence)
     {
         LOG_FUNC();
 
-        DSL_DETECTION_EVENT_PTR pDetectionEvent = std::dynamic_pointer_cast<DetectionEvent>(pEvent);
-        
-        uint minWidth(0), minHeight(0);
-        pDetectionEvent->GetMinDimensions(&minWidth, &minHeight);
-        uint minFrameCountN(0), minFrameCountD(0); 
-        pDetectionEvent->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
-        
-        LOG_INFO("Event Name      : " << pDetectionEvent->GetName());
-        LOG_INFO("  Event Id      : " << eventId);
-        LOG_INFO("  Frame Number  : " << pFrameMeta->frame_num );
-        LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp );
-        LOG_INFO("  Source Id     : " << pFrameMeta->source_id );
-        LOG_INFO("  Class Id      : " << pObjectMeta->class_id);
-        LOG_INFO("  Object Id     : " << pObjectMeta->object_id);
-        LOG_INFO("  Object Label  : " << pObjectMeta->obj_label);
+        LOG_INFO("Event Name      : " << pOdeOccurrence->event_name);
+        LOG_INFO("  Type          : " << pOdeOccurrence->event_type);
+        LOG_INFO("  Unique Id     : " << pOdeOccurrence->event_id);
+        LOG_INFO("  NTP Timestamp : " << pOdeOccurrence->ntp_timestamp );
+        LOG_INFO("  Source Data   : ------------------------");
+        LOG_INFO("    Id          : " << pOdeOccurrence->source_id );
+        LOG_INFO("    Frame       : " << pOdeOccurrence->frame_num );
+        LOG_INFO("    Width       : " << pOdeOccurrence->source_frame_width );
+        LOG_INFO("    Heigh       : " << pOdeOccurrence->source_frame_height );
         LOG_INFO("  Object Data   : ------------------------");
-        LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
-        LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
-        LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
-        LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
-        LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
+        LOG_INFO("    Class Id    : " << pOdeOccurrence->class_id );
+        LOG_INFO("    Tracking Id : " << pOdeOccurrence->object_id);
+        LOG_INFO("    Label       : " << pOdeOccurrence->object_label);
+        LOG_INFO("    Confidence  : " << pOdeOccurrence->confidence);
+        LOG_INFO("    Left        : " << pOdeOccurrence->box.top);
+        LOG_INFO("    Top         : " << pOdeOccurrence->box.left);
+        LOG_INFO("    Width       : " << pOdeOccurrence->box.width);
+        LOG_INFO("    Height      : " << pOdeOccurrence->box.height);
         LOG_INFO("  Min Criteria  : ------------------------");
-        LOG_INFO("    Confidence  : " << pDetectionEvent->GetMinConfidence());
-        LOG_INFO("    Frame Count : " << minFrameCountN << " out of " << minFrameCountD);
-        LOG_INFO("    Width       : " << minWidth);
-        LOG_INFO("    Height      : " << minHeight);
+        LOG_INFO("    Confidence  : " << pOdeOccurrence->min_confidence);
+        LOG_INFO("    Frame Count : " << pOdeOccurrence->min_frame_count_n
+            << " out of " << pOdeOccurrence->min_frame_count_d);
+        LOG_INFO("    Width       : " << pOdeOccurrence->box_criteria.width);
+        LOG_INFO("    Height      : " << pOdeOccurrence->box_criteria.height);
     }
 
 }    

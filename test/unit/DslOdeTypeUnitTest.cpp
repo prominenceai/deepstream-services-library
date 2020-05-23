@@ -23,8 +23,8 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslDetectionEvent.h"
-#include "DslEventAction.h"
+#include "DslOdeType.h"
+#include "DslOdeAction.h"
 
 using namespace DSL;
 
@@ -37,8 +37,8 @@ SCENARIO( "A new FirstOccurrenceEvent is created correctly", "[DetectionEvent]" 
 
         WHEN( "A new DetectionEvent is created" )
         {
-            DSL_EVENT_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-                DSL_EVENT_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+            DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+                DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
 
             THEN( "The Events's memebers are setup and returned correctly" )
             {
@@ -65,11 +65,11 @@ SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOcc
 
         std::string eventActionName("event-action");
 
-        DSL_EVENT_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_EVENT_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
 
-        DSL_EVENT_ACTION_LOG_PTR pEventAction = 
-            DSL_EVENT_ACTION_LOG_NEW(eventActionName.c_str());
+        DSL_ODE_ACTION_LOG_PTR pEventAction = 
+            DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
             
         REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
 

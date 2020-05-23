@@ -22,34 +22,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_REPORTER_BINTR_H
-#define _DSL_REPORTER_BINTR_H
+#ifndef _DSL_ODE_HANDLER_BINTR_H
+#define _DSL_ODE_HANDLER_BINTR_H
 
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
-#include "DslDetectionEvent.h"
+#include "DslOdeType.h"
 
 namespace DSL
 {
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_REPORTER_PTR std::shared_ptr<ReporterBintr>
-    #define DSL_REPORTER_NEW(name) \
-        std::shared_ptr<ReporterBintr>(new ReporterBintr(name))
+    #define DSL_ODE_HANDLER_PTR std::shared_ptr<OdeHandlerBintr>
+    #define DSL_ODE_HANDLER_NEW(name) \
+        std::shared_ptr<OdeHandlerBintr>(new OdeHandlerBintr(name))
         
-    class ReporterBintr : public Bintr
+    class OdeHandlerBintr : public Bintr
     {
     public: 
     
-        ReporterBintr(const char* name);
+        OdeHandlerBintr(const char* name);
 
-        ~ReporterBintr();
+        ~OdeHandlerBintr();
 
         /**
-         * @brief Adds the ReporterBintr to a Parent Pipeline Bintr
+         * @brief Adds the OdeHandlerBintr to a Parent Pipeline Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
@@ -67,7 +67,7 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Adds a uniquely named Detection Event to this ReporterBintr
+         * @brief Adds a uniquely named ODE Type to this OdeHandlerBintr
          * @param[in] pChild shared pointer to detection event to add
          * @return true if successful add, false otherwise
          */
@@ -81,20 +81,20 @@ namespace DSL
         bool RemoveChild(DSL_BASE_PTR pChild);
 
         /**
-         * @brief Gets the current state of the Reporting enabled flag
-         * @return true if Reporting is current enabled, false otherwise
+         * @brief Gets the current state of the Handler enabled flag
+         * @return true if Handler is current enabled, false otherwise
          */
-        bool GetReportingEnabled();
+        bool GetEnabled();
 
         /**
-         * @brief Sets the current state of the Reporting enabled flag. 
+         * @brief Sets the current state of the Handler enabled flag. 
          * The default state on creation is True
          * @param[in] enabled set to true if Repororting is to be enabled, false otherwise
          */
-        bool SetReportingEnabled(bool enabled);
+        bool SetEnabled(bool enabled);
         
         /**
-         * @brief Handles a Pad buffer, by iterating through each child Detection Event
+         * @brief Handles a Pad buffer, by iterating through each child ODE Type
          * checking for an occurrence of such an event
          * @param pBuffer Pad buffer
          * @return true to continue handling, false to stop and self remove callback
@@ -104,12 +104,12 @@ namespace DSL
     private:
     
         /**
-         * @brief Reporting enabled setting, default = true (enabled), 
+         * @brief Handler enabled setting, default = true (enabled), 
          */ 
-        bool m_isReportingEnabled;
+        bool m_isEnabled;
 
         /**
-         * @brief Queue Elementr as both Sink and Source for this ReporterBintr
+         * @brief Queue Elementr as both Sink and Source for this OdeHandlerBintr
          */
         DSL_ELEMENT_PTR m_pQueue;
 
@@ -118,4 +118,4 @@ namespace DSL
     static boolean PadBufferHandler(void* pBuffer, void* user_data);    
 }
 
-#endif // _DSL_REPORTER_BINTR_H
+#endif // _DSL_ODE_HANDLER_BINTR_H

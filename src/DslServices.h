@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
-#include "DslEventAction.h"
+#include "DslOdeAction.h"
 #include "DslPipelineBintr.h"
 
 namespace DSL {
@@ -51,41 +51,41 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/
-        DslReturnType EventActionDisplayNew(const char* name);
+        DslReturnType OdeActionDisplayNew(const char* name);
         
-        DslReturnType EventActionCallbackNew(const char* name);
+        DslReturnType OdeActionCallbackNew(const char* name);
         
-        DslReturnType EventActionDelete(const char* name);
+        DslReturnType OdeActionDelete(const char* name);
         
-        DslReturnType EventActionDeleteAll();
+        DslReturnType OdeActionDeleteAll();
         
-        uint EventActionListSize();
+        uint OdeActionListSize();
         
-        DslReturnType DetectionEventNew(const char* name, uint evtype, uint classId);
+        DslReturnType OdeTypeNew(const char* name, uint odeType, uint classId);
         
-        DslReturnType DetectionEventClassIdGet(const char* name, uint* classId);
+        DslReturnType OdeTypeClassIdGet(const char* name, uint* classId);
         
-        DslReturnType DetectionEventClassIdSet(const char* name, uint classId);
+        DslReturnType OdeTypeClassIdSet(const char* name, uint classId);
         
-        DslReturnType DetectionEventDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
+        DslReturnType OdeTypeDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
         
-        DslReturnType DetectionEventDimensionsMinSet(const char* name, uint min_width, uint min_height);
+        DslReturnType OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height);
 
-        DslReturnType DetectionEventFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+        DslReturnType OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 
-        DslReturnType DetectionEventFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        DslReturnType OdeTypeFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
         
-        DslReturnType DetectionEventActionAdd(const char* name, const char* action);
+        DslReturnType OdeTypeActionAdd(const char* name, const char* action);
 
-        DslReturnType DetectionEventActionRemove(const char* name, const char* action);
+        DslReturnType OdeTypeActionRemove(const char* name, const char* action);
 
-        DslReturnType DetectionEventActionRemoveAll(const char* name);
+        DslReturnType OdeTypeActionRemoveAll(const char* name);
 
-        DslReturnType EventDelete(const char* name);
+        DslReturnType OdeTypeDelete(const char* name);
         
-        DslReturnType EventDeleteAll();
+        DslReturnType OdeTypeDeleteAll();
         
-        uint EventListSize();
+        uint OdeTypeListSize();
         
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
@@ -196,17 +196,17 @@ namespace DSL {
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
-        DslReturnType ReporterNew(const char* name);
+        DslReturnType OdeHandlerNew(const char* name);
 
-        DslReturnType ReporterEnabledGet(const char* name, boolean* enabled);
+        DslReturnType OdeHandlerEnabledGet(const char* name, boolean* enabled);
         
-        DslReturnType ReporterEnabledSet(const char* name, boolean enabled);
+        DslReturnType OdeHandlerEnabledSet(const char* name, boolean enabled);
         
-        DslReturnType ReporterDetectionEventAdd(const char* reporter, const char* detectionEvent);
+        DslReturnType OdeHandlerTypeAdd(const char* odeHandler, const char* odeType);
 
-        DslReturnType ReporterDetectionEventRemove(const char* reporter, const char* detectionEvent);
+        DslReturnType OdeHandlerTypeRemove(const char* odeHandler, const char* odeType);
 
-        DslReturnType ReporterDetectionEventRemoveAll(const char* reporter);
+        DslReturnType OdeHandlerTypeRemoveAll(const char* odeHandler);
 
         DslReturnType OfvNew(const char* name);
 
@@ -508,12 +508,12 @@ namespace DSL {
         /**
          * @brief map of all events created by the client, key=name
          */
-        std::map <std::string, DSL_EVENT_ACTION_PTR> m_eventActions;
+        std::map <std::string, DSL_ODE_ACTION_PTR> m_odeActions;
         
         /**
-         * @brief map of all Detection Event created by the client, key=name
+         * @brief map of all ODE Type created by the client, key=name
          */
-        std::map <std::string, DSL_DETECTION_EVENT_PTR> m_detectionEvents;
+        std::map <std::string, DSL_ODE_TYPE_PTR> m_odeTypes;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

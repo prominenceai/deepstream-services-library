@@ -22,12 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_EVENT_ACTION_H
-#define _DSL_EVENT_ACTION_H
+#ifndef _DSL_ODE_ACTION_H
+#define _DSL_ODE_ACTION_H
 
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslOdeOccurrence.h"
 
 namespace DSL
 {
@@ -35,18 +36,18 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
 
-    #define DSL_EVENT_ACTION_PTR std::shared_ptr<EventAction>
+    #define DSL_ODE_ACTION_PTR std::shared_ptr<EventAction>
 
-    #define DSL_EVENT_ACTION_CALLBACK_PTR std::shared_ptr<CallbackEventAction>
-    #define DSL_EVENT_ACTION_CALLBACK_NEW(name) \
+    #define DSL_ODE_ACTION_CALLBACK_PTR std::shared_ptr<CallbackEventAction>
+    #define DSL_ODE_ACTION_CALLBACK_NEW(name) \
         std::shared_ptr<CallbackEventAction>(new CallbackEventAction(name))
         
-    #define DSL_EVENT_ACTION_DISPLAY_PTR std::shared_ptr<DisplayEventAction>
-    #define DSL_EVENT_ACTION_DISPLAY_NEW(name) \
+    #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayEventAction>
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name) \
         std::shared_ptr<DisplayEventAction>(new DisplayEventAction(name))
         
-    #define DSL_EVENT_ACTION_LOG_PTR std::shared_ptr<LogEventAction>
-    #define DSL_EVENT_ACTION_LOG_NEW(name) \
+    #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogEventAction>
+    #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogEventAction>(new LogEventAction(name))
         
         
@@ -58,8 +59,7 @@ namespace DSL
 
         ~EventAction();
         
-        virtual void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+        virtual void HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence) = 0;
         
     private:
 
@@ -73,8 +73,7 @@ namespace DSL
         
         ~CallbackEventAction();
 
-        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence);
         
     private:
 
@@ -88,8 +87,7 @@ namespace DSL
         
         ~DisplayEventAction();
         
-        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence);
         
     private:
     
@@ -102,8 +100,7 @@ namespace DSL
         
         ~LogEventAction();
         
-        void HandleOccurrence(DSL_BASE_PTR pEvent, uint64_t eventId, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void HandleOccurrence(DSL_ODE_OCCURRENCE_PTR pOdeOccurrence);
         
     private:
     
@@ -112,4 +109,4 @@ namespace DSL
 }
 
 
-#endif // _DSL_EVENT_ACTION_H
+#endif // _DSL_ODE_ACTION_H

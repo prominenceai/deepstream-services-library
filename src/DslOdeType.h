@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_DETECTION_EVENT_H
-#define _DSL_DETECTION_EVENT_H
+#ifndef _DSL_ODE_TYPE_H
+#define _DSL_ODE_TYPE_H
 
 #include "Dsl.h"
 #include "DslApi.h"
@@ -34,19 +34,31 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_DETECTION_EVENT_PTR std::shared_ptr<DetectionEvent>
+    #define DSL_ODE_TYPE_PTR std::shared_ptr<OdeType>
 
-    #define DSL_EVENT_FIRST_OCCURRENCE_PTR std::shared_ptr<FirstOccurrenceEvent>
-    #define DSL_EVENT_FIRST_OCCURRENCE_NEW(name, classId) \
+    #define DSL_ODE_FIRST_OCCURRENCE_PTR std::shared_ptr<FirstOccurrenceEvent>
+    #define DSL_ODE_FIRST_OCCURRENCE_NEW(name, classId) \
         std::shared_ptr<FirstOccurrenceEvent>(new FirstOccurrenceEvent(name, classId))
         
-    class DetectionEvent : public Base
+    #define DSL_ODE_FIRST_ABSENCE_PTR std::shared_ptr<FirstAbsenceEvent>
+    #define DSL_ODE_FIRST_ABSENCE_NEW(name, classId) \
+        std::shared_ptr<FirstAbsenceEvent>(new FirstAbsenceEvent(name, classId))
+        
+    #define DSL_ODE_EVERY_OCCURRENCE_PTR std::shared_ptr<EveryOccurrenceEvent>
+    #define DSL_ODE_EVERY_OCCURRENCE_NEW(name, classId) \
+        std::shared_ptr<EveryOccurrenceEvent>(new EveryOccurrenceEvent(name, classId))
+        
+    #define DSL_ODE_EVERY_ABSENCE_PTR std::shared_ptr<EveryAbsenceEvent>
+    #define DSL_ODE_EVERY_ABSENCE_NEW(name, classId) \
+        std::shared_ptr<EveryAbsenceEvent>(new EveryAbsenceEvent(name, classId))
+        
+    class OdeType : public Base
     {
     public: 
     
-        DetectionEvent(const char* name, uint classId, uint64_t limit);
+        OdeType(const char* name, uint eventType, uint classId, uint64_t limit);
 
-        ~DetectionEvent();
+        ~OdeType();
 
         /**
          * @brief total count of all events
@@ -116,6 +128,16 @@ namespace DSL
 
     protected:
     
+        /**
+         * @brief Common function to handle the Occurence of an event by creating the occurrence data 
+         * and invoking all Event Actions owned by the event
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data the triggered the event
+         */
+        void HandleOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        uint m_eventType;
+    
         uint64_t m_triggered;    
     
         uint64_t m_limit;    
@@ -157,7 +179,7 @@ namespace DSL
 
     };
     
-    class FirstOccurrenceEvent : public DetectionEvent
+    class FirstOccurrenceEvent : public OdeType
     {
     public:
     
@@ -168,6 +190,7 @@ namespace DSL
         /**
          * @brief Function to check a given Object Meta data structure for a First Occurence event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -177,17 +200,18 @@ namespace DSL
     
     };
 
-    class FirstAbsenceEvent : public DetectionEvent
+    class EveryOccurrenceEvent : public OdeType
     {
     public:
     
-        FirstAbsenceEvent(const char* name, uint classId);
+        EveryOccurrenceEvent(const char* name, uint classId);
         
-        ~FirstAbsenceEvent();
+        ~EveryOccurrenceEvent();
 
         /**
-         * @brief Function to check a given Object Meta data structure for a First Absence event
+         * @brief Function to check a given Object Meta data structure for an Every Occurence event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -196,7 +220,7 @@ namespace DSL
     private:
     
     };
+
 }
 
-
-#endif // _DSL_EVENT_H
+#endif // _DSL_ODE_H

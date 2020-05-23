@@ -23,8 +23,8 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslDetectionEvent.h"
-#include "DslEventAction.h"
+#include "DslOdeType.h"
+#include "DslOdeAction.h"
 
 using namespace DSL;
 
@@ -36,12 +36,12 @@ SCENARIO( "A new LogEventAction is created correctly", "[EventAction]" )
 
         WHEN( "A new EventAction is created" )
         {
-            DSL_EVENT_ACTION_LOG_PTR pEventAction = 
-                DSL_EVENT_ACTION_LOG_NEW(eventActionName.c_str());
+            DSL_ODE_ACTION_LOG_PTR pOdeAction = 
+                DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
 
             THEN( "The Events's memebers are setup and returned correctly" )
             {
-                std::string retName = pEventAction->GetCStrName();
+                std::string retName = pOdeAction->GetCStrName();
                 REQUIRE( eventActionName == retName );
             }
         }
@@ -57,24 +57,32 @@ SCENARIO( "A LogEventAction handles an Event Occurence correctly", "[EventAction
         
         std::string eventActionName = "event-action";
 
-        DSL_EVENT_FIRST_OCCURRENCE_PTR pDetectionEvent = 
-            DSL_EVENT_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
-
-        DSL_EVENT_ACTION_LOG_PTR pEventAction = 
-            DSL_EVENT_ACTION_LOG_NEW(eventActionName.c_str());
+        DSL_ODE_ACTION_LOG_PTR pOdeAction = 
+            DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
             
-        NvDsFrameMeta frameMeta =  {0};
-        frameMeta.frame_num = 444;
-        frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 2;
-
-        NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = INT32_MAX;
-        objectMeta.object_id = INT64_MAX;
-        objectMeta.rect_params.left = 10;
-        objectMeta.rect_params.top = 10;
-        objectMeta.rect_params.width = 200;
-        objectMeta.rect_params.height = 100;
+        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence = DSL_ODE_OCCURRENCE_NEW();
+        eventName.copy(pOdeOccurrence->event_name, MAX_NAME_SIZE-1, 0);
+        
+        pOdeOccurrence->event_type = 1;
+        pOdeOccurrence->event_id = 444;
+        pOdeOccurrence->ntp_timestamp = UINT64_MAX;
+        pOdeOccurrence->source_id = 3;
+        pOdeOccurrence->frame_num = 12345;
+        pOdeOccurrence->source_frame_width = 1280;
+        pOdeOccurrence->source_frame_height = 720;
+        pOdeOccurrence->class_id = 1;
+        pOdeOccurrence->object_id = 123; 
+        pOdeOccurrence->box.left = 123;
+        pOdeOccurrence->box.top = 123;
+        pOdeOccurrence->box.width = 300;
+        pOdeOccurrence->box.height = 200;
+        pOdeOccurrence->min_confidence = 0.5;
+        pOdeOccurrence->box_criteria.top = 0;
+        pOdeOccurrence->box_criteria.left = 0;
+        pOdeOccurrence->box_criteria.width = 0;
+        pOdeOccurrence->box_criteria.height = 0;
+        pOdeOccurrence->min_frame_count_n = 10;
+        pOdeOccurrence->min_frame_count_d = 30;
 
         WHEN( "A new Event is created" )
         {
@@ -82,7 +90,7 @@ SCENARIO( "A LogEventAction handles an Event Occurence correctly", "[EventAction
             
             THEN( "The EventAction can Handle the Occurrence" )
             {
-                pEventAction->HandleOccurrence(pDetectionEvent, eventId, &frameMeta, &objectMeta);
+                pOdeAction->HandleOccurrence(pOdeOccurrence);
             }
         }
     }

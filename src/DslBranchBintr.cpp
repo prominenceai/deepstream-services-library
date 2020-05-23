@@ -155,19 +155,19 @@ namespace DSL
         return AddChild(pTilerBintr);
     }
 
-    bool BranchBintr::AddReporterBintr(DSL_BASE_PTR pReporterBintr)
+    bool BranchBintr::AddOdeHandlerBintr(DSL_BASE_PTR pOdeHandlerBintr)
     {
         LOG_FUNC();
         
-        if (m_pReporterBintr)
+        if (m_pOdeHandlerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting Reporter '" 
-                << m_pReporterBintr->GetName());
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting ODE Handler '" 
+                << m_pOdeHandlerBintr->GetName());
             return false;
         }
-        m_pReporterBintr = std::dynamic_pointer_cast<ReporterBintr>(pReporterBintr);
+        m_pOdeHandlerBintr = std::dynamic_pointer_cast<OdeHandlerBintr>(pOdeHandlerBintr);
         
-        return AddChild(pReporterBintr);
+        return AddChild(pOdeHandlerBintr);
     }
 
     bool BranchBintr::AddOsdBintr(DSL_BASE_PTR pOsdBintr)
@@ -325,18 +325,18 @@ namespace DSL
                 m_pOfvBintr->GetName() << "' successfully");
         }
 
-        if (m_pReporterBintr)
+        if (m_pOdeHandlerBintr)
         {
             // Link All Tiler Elementrs and add as the next component in the Branch
-            m_pReporterBintr->SetBatchSize(m_batchSize);
-            if (!m_pReporterBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pReporterBintr)))
+            m_pOdeHandlerBintr->SetBatchSize(m_batchSize);
+            if (!m_pOdeHandlerBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOdeHandlerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pReporterBintr);
+            m_linkedComponents.push_back(m_pOdeHandlerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Reporter '" << 
-                m_pReporterBintr->GetName() << "' successfully");
+                m_pOdeHandlerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer

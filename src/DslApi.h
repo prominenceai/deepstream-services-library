@@ -232,46 +232,46 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
 /**
- * Reporter API Return Values
+ * ODE Handler API Return Values
  */
-#define DSL_RESULT_REPORTER_RESULT                                  0x000D0000
-#define DSL_RESULT_REPORTER_NAME_NOT_UNIQUE                         0x000D0001
-#define DSL_RESULT_REPORTER_NAME_NOT_FOUND                          0x000D0002
-#define DSL_RESULT_REPORTER_NAME_BAD_FORMAT                         0x000D0003
-#define DSL_RESULT_REPORTER_THREW_EXCEPTION                         0x000D0004
-#define DSL_RESULT_REPORTER_IS_IN_USE                               0x000D0005
-#define DSL_RESULT_REPORTER_SET_FAILED                              0x000D0006
-#define DSL_RESULT_REPORTER_EVENT_ADD_FAILED                        0x000D0007
-#define DSL_RESULT_REPORTER_EVENT_REMOVE_FAILED                     0x000D0008
-#define DSL_RESULT_REPORTER_EVENT_NOT_IN_USE                        0x000D0009
-#define DSL_RESULT_REPORTER_COMPONENT_IS_NOT_REPORTER               0x000D000A
+#define DSL_RESULT_ODE_HANDLER_RESULT                               0x000D0000
+#define DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE                      0x000D0001
+#define DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND                       0x000D0002
+#define DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT                      0x000D0003
+#define DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION                      0x000D0004
+#define DSL_RESULT_ODE_HANDLER_IS_IN_USE                            0x000D0005
+#define DSL_RESULT_ODE_HANDLER_SET_FAILED                           0x000D0006
+#define DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED                      0x000D0007
+#define DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED                   0x000D0008
+#define DSL_RESULT_ODE_HANDLER_TYPE_NOT_IN_USE                      0x000D0009
+#define DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER         0x000D000A
 
 /**
- * Detection Event API Return Values
+ * ODE Type API Return Values
  */
-#define DSL_RESULT_EVENT_RESULT                                     0x000E0000
-#define DSL_RESULT_EVENT_NAME_NOT_UNIQUE                            0x000E0001
-#define DSL_RESULT_EVENT_NAME_NOT_FOUND                             0x000E0002
-#define DSL_RESULT_EVENT_TYPE_INVALID                               0x000E0003
-#define DSL_RESULT_EVENT_THREW_EXCEPTION                            0x000E0004
-#define DSL_RESULT_EVENT_IN_USE                                     0x000E0005
-#define DSL_RESULT_EVENT_SET_FAILED                                 0x000E0006
-#define DSL_RESULT_EVENT_IS_NOT_DETECTION_EVENT                     0x000E0007
-#define DSL_RESULT_EVENT_ACTION_ADD_FAILED                          0x000E0008
-#define DSL_RESULT_EVENT_ACTION_REMOVE_FAILED                       0x000E0009
-#define DSL_RESULT_EVENT_ACTION_NOT_IN_USE                          0x000E000A
+#define DSL_RESULT_ODE_TYPE_RESULT                                  0x000E0000
+#define DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE                         0x000E0001
+#define DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND                          0x000E0002
+#define DSL_RESULT_ODE_TYPE_INVALID                                 0x000E0003
+#define DSL_RESULT_ODE_TYPE_THREW_EXCEPTION                         0x000E0004
+#define DSL_RESULT_ODE_TYPE_IN_USE                                  0x000E0005
+#define DSL_RESULT_ODE_TYPE_SET_FAILED                              0x000E0006
+#define DSL_RESULT_ODE_TYPE_IS_NOT_DETECTION_EVENT                  0x000E0007
+#define DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED                       0x000E0008
+#define DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED                    0x000E0009
+#define DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE                       0x000E000A
 
 /**
- * Event Action API Return Values
+ * ODE Action API Return Values
  */
-#define DSL_RESULT_ACTION_RESULT                                    0x000F0000
-#define DSL_RESULT_ACTION_NAME_NOT_UNIQUE                           0x000F0001
-#define DSL_RESULT_ACTION_NAME_NOT_FOUND                            0x000F0002
-#define DSL_RESULT_ACTION_TYPE_INVALID                              0x000F0003
-#define DSL_RESULT_ACTION_THREW_EXCEPTION                           0x000F0004
-#define DSL_RESULT_ACTION_IN_USE                                    0x000F0005
-#define DSL_RESULT_ACTION_SET_FAILED                                0x000F0006
-#define DSL_RESULT_ACTION_IS_NOT_ACTION                             0x000F0007
+#define DSL_RESULT_ODE_ACTION_RESULT                                0x000F0000
+#define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
+#define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
+#define DSL_RESULT_ODE_ACTION_TYPE_INVALID                          0x000F0003
+#define DSL_RESULT_ODE_ACTION_THREW_EXCEPTION                       0x000F0004
+#define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0005
+#define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
+#define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
 
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -300,24 +300,26 @@ THE SOFTWARE.
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
-#define DSL_EVENT_TYPE_FIRST_OCCURRENCE                             0
-#define DSL_EVENT_TYPE_FIRST_ABSENCE                                1
-#define DSL_EVENT_TYPE_NEW_OCCURRENCE                               2
-#define DSL_EVENT_TYPE_NEW_ABSENCE                                  3
-#define DSL_EVENT_TYPE_NEW_MIN                                      4
-#define DSL_EVENT_TYPE_NEW_MAX                                      5
-#define DSL_EVENT_TYPE_NEW_COUNT                                    6
-#define DSL_EVENT_TYPE_LIMIT_LOWER_REACHED                          7
-#define DSL_EVENT_TYPE_LIMIT_LOWER_BREACHED                         8
-#define DSL_EVENT_TYPE_LIMIT_UPPER_REACHED                          9
-#define DSL_EVENT_TYPE_LIMIT_UPPER_BREACHED                         10
-#define DSL_EVENT_TYPE_COORDINATES_REACHED                          11
-#define DSL_EVENT_TYPE_COORDINATES_BREACHED                         12
+#define DSL_ODE_TYPE_FIRST_OCCURRENCE                               0
+#define DSL_ODE_TYPE_EVERY_OCCURRENCE                               2
+#define DSL_ODE_TYPE_NEW_MIN                                        4
+#define DSL_ODE_TYPE_NEW_MAX                                        5
+#define DSL_ODE_TYPE_NEW_COUNT                                      6
+#define DSL_ODE_TYPE_LIMIT_LOWER_REACHED                            7
+#define DSL_ODE_TYPE_LIMIT_LOWER_BREACHED                           8
+#define DSL_ODE_TYPE_LIMIT_UPPER_REACHED                            9
+#define DSL_ODE_TYPE_LIMIT_UPPER_BREACHED                           10
+#define DSL_ODE_TYPE_COORDINATES_REACHED                            11
+#define DSL_ODE_TYPE_COORDINATES_BREACHED                           12
 
-#define DSL_EVENT_ACTION_LOG                                        0
-#define DSL_EVENT_ACTION_DISPLAY                                    1
-#define DSL_EVENT_ACTION_MESSAGE                                    2
-#define DSL_EVENT_ACTION_CALLBACK                                   3
+#define DSL_ODE_ACTION_CALLBACK                                     0
+#define DSL_ODE_ACTION_CAPTURE_FRAME                                1
+#define DSL_ODE_ACTION_CAPTURE_OBJECT                               2
+#define DSL_ODE_ACTION_DISPLAY                                      3
+#define DSL_ODE_ACTION_LOG                                          4
+#define DSL_ODE_ACTION_MESSAGE                                      5
+#define DSL_ODE_ACTION_QUEUE                                        6
+#define DSL_ODE_ACTION_REDACT                                       7
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -386,179 +388,179 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
 /**
  * @brief Creates a uniquely named Display Action
  * @param[in] name unique name for the Display Action 
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_event_action_display_new(const wchar_t* name);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name);
 
 /**
  * @brief Creates a uniquely named Callback Action
  * @param[in] name unique name for the Callback Action 
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_event_action_callback_new(const wchar_t* name);
+DslReturnType dsl_ode_action_callback_new(const wchar_t* name);
 
 /**
- * @brief Deletes an Event Action of any type
- * This service will fail with DSL_RESULT_ACTION_IN_USE if the Action is currently
- * owned by a Detection Event.
- * @param[in] name unique name of the Event Action to delete
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ * @brief Deletes an ODE Action of any type
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if the Action is currently
+ * owned by a ODE Type.
+ * @param[in] name unique name of the ODE Action to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_event_action_delete(const wchar_t* name);
+DslReturnType dsl_ode_action_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated array of Event Actions of any type
- * This service will fail with DSL_RESULT_ACTION_IN_USE if any of the Actions 
- * are currently owned by a Detection Event.
+ * @brief Deletes a Null terminated array of ODE Actions of any type
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a ODE Type.
  * @param[in] names Null ternimated array of unique names to delete
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_event_action_delete_many(const wchar_t** names);
+DslReturnType dsl_ode_action_delete_many(const wchar_t** names);
 
 /**
- * @brief Deletes all Event Actions of all types
- * This service will fail with DSL_RESULT_ACTION_IN_USE if any of the Actions 
- * are currently owned by a Detection Event.
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ACTION_RESULT otherwise.
+ * @brief Deletes all ODE Actions of all types
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a ODE Type.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_event_action_delete_all();
+DslReturnType dsl_ode_action_delete_all();
 
 /**
  * @brief Returns the size of the list of Events Actions
- * @return the number of Event Actions in the list
+ * @return the number of ODE Actions in the list
  */
-uint dsl_event_action_list_size();
+uint dsl_ode_action_list_size();
 
 /**
  * @brief Event to trigger on first occurrence of object detection
- * @param[in] event_type unique identification for the detection event type to create
  * @param[in] name unique name for this event object
- * @param[in] class_id class id filter for this detection event
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ * @param[in] odeType unique identification for the ODE type to create
+ * @param[in] class_id class id filter for this ODE type
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_new(const wchar_t* name, uint evtype, uint class_id);
+DslReturnType dsl_ode_type_new(const wchar_t* name, uint odeType, uint class_id);
 
 /**
- * @brief Gets the current class_id filter for the detection event
- * @param[in] name unique name of the detection event to query
+ * @brief Gets the current class_id filter for the ODE type
+ * @param[in] name unique name of the ODE type to query
  * @param[out] class_id returns the current class_id in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_class_id_get(const wchar_t* name, uint* class_id);
+DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id);
 
 /**
- * @brief Sets the class_id for the detection event to filter on
- * @param[in] name unique name of the detection event to query
+ * @brief Sets the class_id for the ODE type to filter on
+ * @param[in] name unique name of the ODE type to query
  * @param[in] class_id new class_id to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_class_id_set(const wchar_t* name, uint class_id);
+DslReturnType dsl_ode_type_class_id_set(const wchar_t* name, uint class_id);
 
 /**
- * @brief Gets the current minimum rectangle width and height values for the detection event
+ * @brief Gets the current minimum rectangle width and height values for the ODE type
  * A value of 0 = no minimum
- * @param[in] name unique name of the detection event to query
+ * @param[in] name unique name of the ODE type to query
  * @param[out] min_width returns the current minimun frame width in use
  * @param[out] min_height returns the current minimun frame hight in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
 
 /**
- * @brief Sets the current minimum rectangle width and height values for the detection event
+ * @brief Sets the current minimum rectangle width and height values for the ODE type
  * A value of 0 = no minimum
- * @param[in] name unique name of the detection event to query
+ * @param[in] name unique name of the ODE type to query
  * @param[in] min_width the new minimun frame width to use
  * @param[in] min_height the new minimun frame hight to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
 
 /**
- * @brief Gets the current min frame count (detected in last N out of D frames) for the detection event
+ * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE type
  * A value of 0 = no minimum
- * @param[in] name unique name of the detection event to query
+ * @param[in] name unique name of the ODE type to query
  * @param[out] min_count_n returns the current minimun frame count numerator in use
  * @param[out] min_count_d returns the current minimun frame count denomintor in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
+DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
 
 /**
- * @brief Sets the current min frame count (detected in last N out of D frames) for the detection event
+ * @brief Sets the current min frame count (detected in last N out of D frames) for the ODE type
  * A value of 0 = no minimum
- * @param[in] name unique name of the detection event to query
+ * @param[in] name unique name of the ODE type to query
  * @param[out] min_count_n sets the current minimun frame count numerator to use
  * @param[out] min_count_d sets the current minimun frame count denomintor to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
+DslReturnType dsl_ode_type_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
 
 /**
- * @brief Adds a named Event Action to a named Detection Event
- * @param[in] name unique name of the Detection Event to update
- * @param[in] action unique name of the Event Action to Add
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @brief Adds a named ODE Action to a named ODE Type
+ * @param[in] name unique name of the ODE Type to update
+ * @param[in] action unique name of the ODE Action to Add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_action_add(const wchar_t* name, const wchar_t* action);
+DslReturnType dsl_ode_type_action_add(const wchar_t* name, const wchar_t* action);
 
 /**
- * @brief Adds a Null terminated list of named Event Actions to a named Detection Event
- * @param[in] name unique name of the Detection Event to update
- * @param[in] actions Null terminated list of unique names of the Event Actions to add
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @brief Adds a Null terminated list of named ODE Actions to a named ODE Type
+ * @param[in] name unique name of the ODE Type to update
+ * @param[in] actions Null terminated list of unique names of the ODE Actions to add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_action_add_many(const wchar_t* name, const wchar_t** actions);
+DslReturnType dsl_ode_type_action_add_many(const wchar_t* name, const wchar_t** actions);
 
 /**
- * @brief Removes a named Event Action from a named Detection Event
- * @param[in] name unique name of the Detection Event to update
- * @param[in] action unique name of the Event Action to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @brief Removes a named ODE Action from a named ODE Type
+ * @param[in] name unique name of the ODE Type to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_action_remove(const wchar_t* name, const wchar_t* action);
+DslReturnType dsl_ode_type_action_remove(const wchar_t* name, const wchar_t* action);
 
 /**
- * @brief Removes a Null terminated list of named Event Actions from a named Detection Event
- * @param[in] name unique name of the Detection Event to update
- * @param[in] actions Null terminated list of unique names of the Event Actions to remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @brief Removes a Null terminated list of named ODE Actions from a named ODE Type
+ * @param[in] name unique name of the ODE Type to update
+ * @param[in] actions Null terminated list of unique names of the ODE Actions to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_action_remove_many(const wchar_t* name, const wchar_t** actions);
+DslReturnType dsl_ode_type_action_remove_many(const wchar_t* name, const wchar_t** actions);
 
 /**
- * @brief Removes a named Event Action from a named Detection Event
- * @param[in] name unique name of the Detection Event to update
- * @param[in] action unique name of the Event Action to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_EVENT_RESULT otherwise.
+ * @brief Removes a named ODE Action from a named ODE Type
+ * @param[in] name unique name of the ODE Type to update
+ * @param[in] action unique name of the ODE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_detection_event_action_remove_all(const wchar_t* name);
+DslReturnType dsl_ode_type_action_remove_all(const wchar_t* name);
 
 /**
  * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
  * @brief[in] name unique name of the event to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_event_delete(const wchar_t* name);
+DslReturnType dsl_ode_type_delete(const wchar_t* name);
 
 /**
  * @brief Deletes a Null terminated list of Events. The call will fail if any of the events are currently in use
  * @brief[in] names Null terminaed list of event names to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_event_delete_many(const wchar_t** names);
+DslReturnType dsl_ode_type_delete_many(const wchar_t** names);
 
 /**
  * @brief Deletes all Events. The call will fail if any of the events are currently in use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_EVENT_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_event_delete_all();
+DslReturnType dsl_ode_type_delete_all();
 
 /**
  * @brief Returns the size of the list of Events
  * @return the number of Events in the list
  */
-uint dsl_event_list_size();
+uint dsl_ode_type_list_size();
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -917,17 +919,17 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named Reporter component
  * @param[in] name unique name for the new Reporter
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_new(const wchar_t* name);
+DslReturnType dsl_ode_handler_new(const wchar_t* name);
 
 /**
  * @brief Gets the Reporter's current reporting enabled setting
  * @param[in] name unique name of the Reporter to query
  * @param[out] enabled true if Reporting is current enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_enabled_get(const wchar_t* name, boolean* enabled);
+DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
  * @brief Sets the Reporter's reporting enabled setting
@@ -935,48 +937,48 @@ DslReturnType dsl_reporter_enabled_get(const wchar_t* name, boolean* enabled);
  * @param[out] enabled set true to enable reporting, if in a disabled state, 
  * false to disable if currently in an enbled state. 
  * Attempts to reset to the same/current state will fail
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_enabled_set(const wchar_t* name, boolean enabled);
+DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Adds a named Detection Event to a named Reporter Component
- * @param[in] reporter unique name of the Reporter to update
- * @param[in] detectionEvent unique name of the Event to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @brief Adds a named ODE Type to a named Reporter Component
+ * @param[in] ode_handler unique name of the Reporter to update
+ * @param[in] odeType unique name of the Event to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_detection_event_add(const wchar_t* reporter, const wchar_t* detection_event);
+DslReturnType dsl_ode_handler_type_add(const wchar_t* ode_handler, const wchar_t* ode_type);
 
 /**
- * @brief Adds a Null terminated listed of named Detection Events to a named Reporter Component
- * @param[in] reporter unique name of the Reporter to update
- * @param[in] detectionEvents Null terminated list of Event names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @brief Adds a Null terminated listed of named ODE Types to a named Reporter Component
+ * @param[in] ode_handler unique name of the Reporter to update
+ * @param[in] odeTypes Null terminated list of Event names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_detection_event_add_many(const wchar_t* reporter, const wchar_t** detection_events);
+DslReturnType dsl_ode_handler_type_add_many(const wchar_t* ode_handler, const wchar_t** ode_types);
 
 /**
- * @brief Removes a named Detection Event from a named Reporter Component
- * @param[in] reporter unique name of the Reporter to update
- * @param[in] detectionEvent unique name of the Event to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @brief Removes a named ODE Type from a named Reporter Component
+ * @param[in] ode_handler unique name of the Reporter to update
+ * @param[in] odeType unique name of the Event to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_detection_event_remove(const wchar_t* reporter, const wchar_t* detection_event);
+DslReturnType dsl_ode_handler_type_remove(const wchar_t* ode_handler, const wchar_t* ode_type);
 
 /**
- * @brief Removes a Null terminated listed of named Detection Events from a named Reporter Component
- * @param[in] reporter unique name of the Reporter to update
- * @param[in] detectionEvents Null terminated list of Event names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @brief Removes a Null terminated listed of named ODE Types from a named Reporter Component
+ * @param[in] ode_handler unique name of the Reporter to update
+ * @param[in] odeTypes Null terminated list of Event names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_detection_event_remove_many(const wchar_t* reporter, const wchar_t** detection_events);
+DslReturnType dsl_ode_handler_type_remove_many(const wchar_t* ode_handler, const wchar_t** ode_types);
 
 /**
- * @brief Removes all Detection Events from a named Reporter Component
- * @param[in] reporter unique name of the Reporter to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_REPORTER_RESULT otherwise
+ * @brief Removes all ODE Types from a named Reporter Component
+ * @param[in] ode_handler unique name of the Reporter to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_reporter_detection_event_remove_all(const wchar_t* reporter);
+DslReturnType dsl_ode_handler_type_remove_all(const wchar_t* ode_handler);
 
 /**
  * @brief creates a new, uniquely named OSD obj
