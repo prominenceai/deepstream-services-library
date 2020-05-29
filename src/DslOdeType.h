@@ -136,16 +136,36 @@ namespace DSL
          */
         void HandleOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
-        uint m_eventType;
-    
-        uint64_t m_triggered;    
-    
-        uint64_t m_limit;    
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
         GMutex m_propertyMutex;
+
+    
+    public:
+    
+        // access made public for performace reasons
+
+        /**
+         * @brief Wide string name used for C/Python API
+         */
+        std::wstring m_wName;
+
+        /**
+         * @brief Unique DSL_ODE_TYPE_... identifer defined in dsl.h
+         */
+        uint m_eventType;
+    
+        /**
+         * @brief trigger count, incremented on every event occurrence
+         */
+        uint64_t m_triggered;    
+    
+        /**
+         * @brief trigger limit, once reached, actions will no longer be invoked
+         */
+        uint64_t m_limit;    
 
         /**
          * @brief GIE Class Id filter for this event

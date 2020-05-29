@@ -37,6 +37,7 @@ namespace DSL
     OdeType::OdeType(const char* name, 
         uint eventType, uint classId, uint64_t limit)
         : Base(name)
+        , m_wName(m_name.begin(), m_name.end())
         , m_eventType(eventType)
         , m_classId(classId)
         , m_triggered(0)
@@ -141,34 +142,10 @@ namespace DSL
             return;
         }
 
-        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence = DSL_ODE_OCCURRENCE_NEW();
-        m_name.copy(pOdeOccurrence->event_name, MAX_NAME_SIZE-1, 0);
-        
-        pOdeOccurrence->event_type = m_eventType;
-        pOdeOccurrence->event_id = s_eventCount;
-        pOdeOccurrence->ntp_timestamp = pFrameMeta->ntp_timestamp;
-        pOdeOccurrence->source_id = pFrameMeta->source_id;
-        pOdeOccurrence->frame_num = pFrameMeta->frame_num;
-        pOdeOccurrence->source_frame_width = pFrameMeta->source_frame_width;
-        pOdeOccurrence->source_frame_height = pFrameMeta->source_frame_height;
-        pOdeOccurrence->class_id = pObjectMeta->class_id;
-        pOdeOccurrence->object_id = pObjectMeta->object_id; 
-        pOdeOccurrence->box.left = pObjectMeta->rect_params.left;
-        pOdeOccurrence->box.top = pObjectMeta->rect_params.top;
-        pOdeOccurrence->box.width = pObjectMeta->rect_params.width;
-        pOdeOccurrence->box.height = pObjectMeta->rect_params.height;
-        pOdeOccurrence->min_confidence = m_minConfidence;
-        pOdeOccurrence->box_criteria.top = 0;
-        pOdeOccurrence->box_criteria.left = 0;
-        pOdeOccurrence->box_criteria.width = m_minWidth;
-        pOdeOccurrence->box_criteria.height = m_minHeight;
-        pOdeOccurrence->min_frame_count_n = m_minFrameCountN;
-        pOdeOccurrence->min_frame_count_d = m_minFrameCountD;
-        
         for (const auto &imap: m_pChildren)
         {
-            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<EventAction>(imap.second);
-            pAction->HandleOccurrence(pOdeOccurrence);
+            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pAction->HandleOccurrence(shared_from_this(), pFrameMeta, pObjectMeta);
         }
     }
 
@@ -189,11 +166,24 @@ namespace DSL
     bool FirstOccurrenceEvent::CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
+
+        // Don't exceed trigger count, and filter on correct Class ID
         if ((m_limit and m_triggered == m_limit) or (m_classId != pObjectMeta->class_id))
         {
             return false;
         }
+        // Ensure that the minimum confidence has been reached
+        if (pObjectMeta->confidence < m_minConfidence)
+        {
+            return false;
+        }
+        // If defined, check for minimum dimensions
+        if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
+            (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
+        {
+            return false;
+        }
+        
         HandleOccurrence(pFrameMeta, pObjectMeta);
         return true;
     }

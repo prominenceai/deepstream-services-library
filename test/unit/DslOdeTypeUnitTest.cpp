@@ -99,5 +99,107 @@ SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOcc
     }
 }
 
+SCENARIO( "A FirstOccurrenceEvent checks for Minimum Confidence correctly", "[FirstOccurrenceEvent]" )
+{
+    GIVEN( "A new FirstOccurrenceEvent with default criteria" ) 
+    {
+        std::string eventName("first-occurence");
+        uint classId(1);
+
+        std::string eventActionName("event-action");
+
+        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+            
+        // Set the minumum confidence value for detection
+        pFirstOccurrenceEvent->SetMinConfidence(0.5);    
+
+        DSL_ODE_ACTION_LOG_PTR pEventAction = 
+            DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
+            
+        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+
+        WHEN( "A first occurent event is simulated" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            // set the confidence level to just below the minumum
+            objectMeta.confidence = 0.4999; 
+            
+            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            {
+                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(&frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FirstOccurrenceEvent checks for Minimum Dimensions correctly", "[FirstOccurrenceEvent]" )
+{
+    GIVEN( "A new FirstOccurrenceEvent with minimum criteria" ) 
+    {
+        std::string eventName("first-occurence");
+        uint classId(1);
+
+        std::string eventActionName("event-action");
+
+        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+
+        DSL_ODE_ACTION_LOG_PTR pEventAction = 
+            DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
+            
+        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        objectMeta.confidence = 0.4999; 
+
+        WHEN( "A the Min Width is set above the Object's Width" )
+        {
+            pFirstOccurrenceEvent->SetMinDimensions(201, 0);    
+            
+            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            {
+                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(&frameMeta, &objectMeta) == false );
+
+            }
+        }
+        WHEN( "A the Min Height is set above the Object's Height" )
+        {
+            pFirstOccurrenceEvent->SetMinDimensions(0, 101);    
+            
+            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            {
+                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(&frameMeta, &objectMeta) == false );
+            }
+        }
+    }
+}
+
+
 
 

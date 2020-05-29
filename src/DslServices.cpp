@@ -45,12 +45,48 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_callback_new(const wchar_t* name)
+DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
+    dsl_ode_occurrence_handler_cb client_hanlder, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionCallbackNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionCallbackNew(cstrName.c_str(), client_hanlder, client_data);
+}
+
+DslReturnType dsl_ode_action_log_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_action_redact_new(const wchar_t* name,
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionRedactNew(cstrName.c_str(),
+        red, green, blue, alpha);
+}
+    
+
+DslReturnType dsl_ode_action_queue_new(const wchar_t* name, uint max_size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionQueueNew(cstrName.c_str(), max_size);
+}
+
+DslReturnType dsl_ode_action_queue_size_get(const wchar_t* name, uint* size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionQueueSizeGet(cstrName.c_str(), size);
 }
 
 DslReturnType dsl_ode_action_delete(const wchar_t* name)
@@ -1880,6 +1916,15 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(actions, name, odeAction) do \
+{ \
+    if (!actions[name]->IsType(typeid(odeAction)))\
+    { \
+        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
+        return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
 #define RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \
@@ -2154,12 +2199,13 @@ namespace DSL
             LOG_ERROR("New Display ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
-        LOG_INFO("new Display ODE Action '" << name << "' created successfully");
+        LOG_INFO("New ODE Display Action '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::OdeActionCallbackNew(const char* name)
+    DslReturnType Services::OdeActionCallbackNew(const char* name,
+        dsl_ode_occurrence_handler_cb clientHandler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2172,18 +2218,125 @@ namespace DSL
         }
         try
         {
-            m_odeActions[name] = DSL_ODE_ACTION_CALLBACK_NEW(name);
+            m_odeActions[name] = DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData);
         }
         catch(...)
         {
-            LOG_ERROR("New CallBack ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Callback Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
-        LOG_INFO("new Callback ODE Action '" << name << "' created successfully");
+        LOG_INFO("New ODE Callback Action '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::OdeActionLogNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_odeActions.find(name) != m_odeActions.end())
+        {   
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_odeActions[name] = DSL_ODE_ACTION_LOG_NEW(name);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Log Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        LOG_INFO("New ODE Log Action '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OdeActionRedactNew(const char* name,
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_odeActions.find(name) != m_odeActions.end())
+        {   
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_odeActions[name] = DSL_ODE_ACTION_REDACT_NEW(name,
+                red, green, blue, alpha);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Redact Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        LOG_INFO("New ODE Redact Action '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::OdeActionQueueNew(const char* name, uint maxSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_odeActions.find(name) != m_odeActions.end())
+        {   
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+        }
+        if (maxSize > DSL_ODE_ACTION_QUEUE_MAX_MAX_SIZE)
+        {
+            LOG_ERROR("Max size " << maxSize << " exceeds limit of " 
+                << DSL_ODE_ACTION_QUEUE_MAX_MAX_SIZE << " for ODE Action '" << name << "' ");
+            return DSL_RESULT_ODE_ACTION_QUEUE_MAX_SIZE_INVALID;
+        }
+        try
+        {
+            m_odeActions[name] = DSL_ODE_ACTION_QUEUE_NEW(name, maxSize);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Queue Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        LOG_INFO("New ODE Queue Action '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::OdeActionQueueSizeGet(const char* name, uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, name, QueueOdeAction);
+            
+            DSL_ODE_ACTION_QUEUE_PTR pQueueOdeAction = 
+                std::dynamic_pointer_cast<QueueOdeAction>(m_odeActions[name]);
+                
+            *size = pQueueOdeAction->GetCurrentSize();
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Queue Action '" << name << "' threw exception on Size Get");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::OdeActionDelete(const char* name)
     {
         LOG_FUNC();
@@ -2263,7 +2416,7 @@ namespace DSL
             LOG_ERROR("New ODE Type '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("new ODE Type '" << name << "' created successfully");
+        LOG_INFO("New ODE Type '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2562,7 +2715,7 @@ namespace DSL
             LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new CSI Source '" << name << "' created successfully");
+        LOG_INFO("New CSI Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2588,7 +2741,7 @@ namespace DSL
             LOG_ERROR("New USB Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new USB Source '" << name << "' created successfully");
+        LOG_INFO("New USB Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2630,7 +2783,7 @@ namespace DSL
             LOG_ERROR("New URI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new URI Source '" << name << "' created successfully");
+        LOG_INFO("New URI Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2657,7 +2810,7 @@ namespace DSL
             LOG_ERROR("New RTSP Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("new RTSP Source '" << name << "' created successfully");
+        LOG_INFO("New RTSP Source '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -2982,7 +3135,7 @@ namespace DSL
             LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
             return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
         }
-        LOG_INFO("new Dewarper '" << name << "' created successfully");
+        LOG_INFO("New Dewarper '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -3027,13 +3180,13 @@ namespace DSL
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        LOG_INFO("new Primary GIE '" << name << "' created successfully");
+        LOG_INFO("New Primary GIE '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
 
-    DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data)
+    DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3051,7 +3204,7 @@ namespace DSL
             DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
                 std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
 
-            if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, user_data))
+            if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, userData))
             {
                 LOG_ERROR("Primary GIE '" << name << "' failed to add a Batch Meta Handler");
                 return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
@@ -3166,7 +3319,7 @@ namespace DSL
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        LOG_INFO("new Secondary GIE '" << name << "' created successfully");
+        LOG_INFO("New Secondary GIE '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -3475,7 +3628,7 @@ namespace DSL
     }
 
     DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* user_data)
+        dsl_batch_meta_handler_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3493,7 +3646,7 @@ namespace DSL
             DSL_TRACKER_PTR pTrackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, user_data))
+            if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, userData))
             {
                 LOG_ERROR("Tracker '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
@@ -3754,7 +3907,7 @@ namespace DSL
     }
 
     DslReturnType Services::TeeBatchMetaHandlerAdd(const char* name, 
-        dsl_batch_meta_handler_cb handler, void* user_data)
+        dsl_batch_meta_handler_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3767,7 +3920,7 @@ namespace DSL
             DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
 
-            if (!pTeeBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, user_data))
+            if (!pTeeBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, userData))
             {
                 LOG_ERROR("Tee '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
@@ -3955,7 +4108,7 @@ namespace DSL
     }
 
     DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* user_data)
+        dsl_batch_meta_handler_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3973,7 +4126,7 @@ namespace DSL
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            if (!pTilerBintr->AddBatchMetaHandler(pad, handler, user_data))
+            if (!pTilerBintr->AddBatchMetaHandler(pad, handler, userData))
             {
                 LOG_ERROR("Tiler '" << name << "' failed to add Batch Meta Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
@@ -4041,7 +4194,7 @@ namespace DSL
             LOG_ERROR("New ODE Handler '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("new OdeHandler '" << name << "' created successfully");
+        LOG_INFO("New OdeHandler '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -4225,7 +4378,7 @@ namespace DSL
             LOG_ERROR("New OFV '" << name << "' threw exception on create");
             return DSL_RESULT_OFV_THREW_EXCEPTION;
         }
-        LOG_INFO("new OFV '" << name << "' created successfully");
+        LOG_INFO("New OFV '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -4251,7 +4404,7 @@ namespace DSL
             LOG_ERROR("New OSD '" << name << "' threw exception on create");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        LOG_INFO("new OSD '" << name << "' created successfully");
+        LOG_INFO("New OSD '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -4650,7 +4803,7 @@ namespace DSL
     }
 
     DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* user_data)
+        dsl_batch_meta_handler_cb handler, void* userData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4668,7 +4821,7 @@ namespace DSL
             DSL_OSD_PTR pOsdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
-            if (!pOsdBintr->AddBatchMetaHandler(pad, handler, user_data))
+            if (!pOsdBintr->AddBatchMetaHandler(pad, handler, userData))
             {
                 LOG_ERROR("OSD '" << name << "' already has a Batch Meta Handler");
                 return DSL_RESULT_OSD_HANDLER_ADD_FAILED;
@@ -5491,7 +5644,7 @@ namespace DSL
             LOG_ERROR("New Branch '" << name << "' threw exception on create");
             return DSL_RESULT_BRANCH_THREW_EXCEPTION;
         }
-        LOG_INFO("new BRANCH '" << name << "' created successfully");
+        LOG_INFO("New BRANCH '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -5601,7 +5754,7 @@ namespace DSL
             LOG_ERROR("New Pipeline '" << name << "' threw exception on create");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        LOG_INFO("new PIPELINE '" << name << "' created successfully");
+        LOG_INFO("New PIPELINE '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -6343,7 +6496,7 @@ namespace DSL
         if (m_returnValueToString.find(result) == m_returnValueToString.end())
         {
             LOG_ERROR("Invalid result = " << result << " unable to convert to string");
-            m_returnValueToString[0xFFFFFFFF].c_str();
+            return m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE].c_str();
         }
 
         std::string cstrResult(m_returnValueToString[result].begin(), m_returnValueToString[result].end());
@@ -6358,7 +6511,7 @@ namespace DSL
         if (m_stateValueToString.find(state) == m_returnValueToString.end())
         {
             LOG_ERROR("Invalid state = " << state << " unable to convert to string");
-            m_stateValueToString[0xFFFFFFFF].c_str();
+            return m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE].c_str();
         }
 
         std::string cstrState(m_stateValueToString[state].begin(), m_stateValueToString[state].end());
@@ -6378,10 +6531,9 @@ namespace DSL
         m_stateValueToString[DSL_STATE_PAUSED] = L"DSL_STATE_PAUSED";
         m_stateValueToString[DSL_STATE_PLAYING] = L"DSL_STATE_PLAYING";
         m_stateValueToString[DSL_STATE_IN_TRANSITION] = L"DSL_STATE_IN_TRANSITION";
-        m_stateValueToString[0xFFFFFFFF] = L"Invalid DSL_STATE Value";
+        m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE] = L"Invalid DSL_STATE Value";
 
         m_returnValueToString[DSL_RESULT_SUCCESS] = L"DSL_RESULT_SUCCESS";
-        m_returnValueToString[DSL_RESULT_COMPONENT_RESULT] = L"DSL_RESULT_COMPONENT_RESULT";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_FOUND] = L"DSL_RESULT_COMPONENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";
@@ -6390,7 +6542,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH] = L"DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH";
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_COMPONENT_SET_GPUID_FAILED] = L"DSL_RESULT_COMPONENT_SET_GPUID_FAILED";
-        m_returnValueToString[DSL_RESULT_SOURCE_RESULT] = L"DSL_RESULT_SOURCE_RESULT";
         m_returnValueToString[DSL_RESULT_SOURCE_NAME_NOT_UNIQUE] = L"DSL_RESULT_SOURCE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SOURCE_NAME_NOT_FOUND] = L"DSL_RESULT_SOURCE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_SOURCE_NAME_BAD_FORMAT] = L"DSL_RESULT_SOURCE_NAME_BAD_FORMAT";
@@ -6404,13 +6555,11 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
-        m_returnValueToString[DSL_RESULT_DEWARPER_RESULT] = L"DSL_RESULT_DEWARPER_RESULT";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEWARPER_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_DEWARPER_THREW_EXCEPTION] = L"DSL_RESULT_DEWARPER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_TRACKER_RESULT] = L"DSL_RESULT_TRACKER_RESULT";
         m_returnValueToString[DSL_RESULT_TRACKER_NAME_NOT_UNIQUE] = L"DSL_RESULT_TRACKER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TRACKER_NAME_NOT_FOUND] = L"DSL_RESULT_TRACKER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TRACKER_NAME_BAD_FORMAT] = L"DSL_RESULT_TRACKER_NAME_BAD_FORMAT";
@@ -6434,7 +6583,25 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER] = L"DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER";
-        m_returnValueToString[DSL_RESULT_SINK_RESULT] = L"DSL_RESULT_SINK_RESULT";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_INVALID] = L"DSL_RESULT_ODE_TYPE_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_ODE_TYPE_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_IN_USE] = L"DSL_RESULT_ODE_TYPE_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_SET_FAILED] = L"DSL_RESULT_ODE_TYPE_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_IS_NOT_DETECTION_EVENT] = L"DSL_RESULT_ODE_TYPE_IS_NOT_DETECTION_EVENT";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED] = L"DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED] = L"DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE] = L"DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_TYPE_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_IN_USE] = L"DSL_RESULT_ODE_ACTION_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_SET_FAILED] = L"DSL_RESULT_ODE_ACTION_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_IS_NOT_ACTION] = L"DSL_RESULT_ODE_ACTION_IS_NOT_ACTION";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_QUEUE_MAX_SIZE_INVALID] = L"DSL_RESULT_ODE_ACTION_QUEUE_MAX_SIZE_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_SINK_NAME_BAD_FORMAT] = L"DSL_RESULT_SINK_NAME_BAD_FORMAT";
@@ -6447,7 +6614,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_OSD_RESULT] = L"DSL_RESULT_OSD_RESULT";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -6462,7 +6628,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_OSD_COLOR_PARAM_INVALID] = L"DSL_RESULT_OSD_COLOR_PARAM_INVALID";
         m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED] = L"DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED] = L"DSL_RESULT_OSD_REDACTION_CALSS_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_GIE_RESULT] = L"DSL_RESULT_GIE_RESULT";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_UNIQUE] = L"DSL_RESULT_GIE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_GIE_NAME_NOT_FOUND] = L"DSL_RESULT_GIE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_GIE_NAME_BAD_FORMAT] = L"DSL_RESULT_GIE_NAME_BAD_FORMAT";
@@ -6476,7 +6641,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_GIE_PAD_TYPE_INVALID] = L"DSL_RESULT_GIE_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE] = L"DSL_RESULT_GIE_COMPONENT_IS_NOT_GIE";
         m_returnValueToString[DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST] = L"DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST";
-        m_returnValueToString[DSL_RESULT_TEE_RESULT] = L"DSL_RESULT_TEE_RESULT";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_UNIQUE] = L"DSL_RESULT_TEE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TEE_NAME_NOT_FOUND] = L"DSL_RESULT_TEE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TEE_NAME_BAD_FORMAT] = L"DSL_RESULT_TEE_NAME_BAD_FORMAT";
@@ -6487,7 +6651,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TEE_HANDLER_ADD_FAILED] = L"DSL_RESULT_TEE_HANDLER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TEE_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE] = L"DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE";
-        m_returnValueToString[DSL_RESULT_TILER_RESULT] = L"DSL_RESULT_TILER_RESULT";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_UNIQUE] = L"DSL_RESULT_TILER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TILER_NAME_NOT_FOUND] = L"DSL_RESULT_TILER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TILER_NAME_BAD_FORMAT] = L"DSL_RESULT_TILER_NAME_BAD_FORMAT";
@@ -6527,7 +6690,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_STOP] = L"DSL_RESULT_PIPELINE_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
-        m_returnValueToString[0xFFFFFFFF] = L"Invalid DSL Result CODE";
+        m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 
 } // namespace 

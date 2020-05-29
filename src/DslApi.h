@@ -38,6 +38,7 @@ THE SOFTWARE.
 
 #define DSL_RESULT_SUCCESS                                          0x00000000
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000001
+#define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
  * Component API Return Values
@@ -272,7 +273,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0005
 #define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
 #define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
-
+#define DSL_RESULT_ODE_ACTION_QUEUE_MAX_SIZE_INVALID                0x000F0008
+#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -293,6 +295,7 @@ THE SOFTWARE.
 #define DSL_STATE_PAUSED                                            3
 #define DSL_STATE_PLAYING                                           4
 #define DSL_STATE_IN_TRANSITION                                     5
+#define DSL_STATE_INVALID_STATE_VALUE                               UINT32_MAX
 
 #define DSL_PAD_SINK                                                0
 #define DSL_PAD_SRC                                                 1
@@ -321,6 +324,11 @@ THE SOFTWARE.
 #define DSL_ODE_ACTION_QUEUE                                        6
 #define DSL_ODE_ACTION_REDACT                                       7
 
+#define DSL_ODE_ACTION_QUEUE_MAX_MAX_SIZE                           1000
+
+#define DSL_MAX_EVENT_NAME_SIZE                                     128
+#define DSL_MAX_OBJECT_LABEL_SIZE                                   128
+
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
  */
@@ -336,6 +344,18 @@ EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
 typedef uint boolean;
+
+/**
+ *
+ * @brief callback typedef for a client ODE occurrence handler function. Once 
+ * registered, the function will be called on ODE occurrence
+ * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence
+ * @param[in] name unique name of the ODE Event Type that trigger the occurrence
+ * @param[in] ode_occurrence pointer to an ODE Occurence data structure
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef boolean (*dsl_ode_occurrence_handler_cb)(uint64_t event_id, const wchar_t* name,
+    void* frame_meta, void* object_meta, void* client_data);
 
 /**
  * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
@@ -386,18 +406,66 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* 
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
 
 /**
- * @brief Creates a uniquely named Display Action
- * @param[in] name unique name for the Display Action 
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ * @brief Creates a uniquely named ODE Callback Action
+ * @param[in] name unique name for the ODE Callback Action 
+ * @param[in] client_handler function to call on ODE occurrence
+ * @param[in] client_data opaue pointer to client's user data, returned on callback
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
+    dsl_ode_occurrence_handler_cb client_handler, void* client_data);
+
+/**
+ * @brief Creates a uniquely named ODE Display Action
+ * @param[in] name unique name for the ODE Display Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_display_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Callback Action
- * @param[in] name unique name for the Callback Action 
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ * @brief Creates a uniquely named ODE Log Action
+ * @param[in] name unique name for the ODE Log Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_callback_new(const wchar_t* name);
+DslReturnType dsl_ode_action_log_new(const wchar_t* name);
+
+/**
+ * @brief Creates a uniquely named ODE Redact Action
+ * @param[in] name unique name for the ODE Redact Action
+ * @param[in] red red value for the RGBA redaction box [1..0]
+ * @param[in] green green value for the RGBA redaction box [1..0]
+ * @param[in] blue blue value for the RGBA redaction box [1..0]
+ * @param[in] alpha alpha value for the RGBA redaction box [1..0]
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_redact_new(const wchar_t* name,
+    double red, double green, double blue, double alpha);
+
+/**
+ * @brief Creates a uniquely named ODE Queue Action
+ * @param[in] name unique name for the ODE Queue Action 
+ * @param[in] max_size maximum size for the queue to grow. Once reached, the oldest ODE data 
+ * will be popped from the queue to make room for new events.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_queue_new(const wchar_t* name, uint max_size);
+
+/**
+ * @brief Returns the current number of ODE occurrence data structureS queued
+ * @param[in] name unique name for the ODE Queue Action to query
+ * @param[out] size current size of the Queue
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_queue_size_get(const wchar_t* name, uint* size);
+
+/**
+ * @brief returns the earliest ODE occurrence data
+ * @param[in] name unique name of the ODE Queue Action to query
+ * @param[out] ode_occurrence earliest occurrence data. Caller must provide a valid
+ * DslOdeOccurrence structure for this service to populate. event_id == 0 means no events queued
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+//DslReturnType dsl_ode_action_queue_dequeue(const wchar_t* name, DslOdeOccurrence* ode_occurrence);
 
 /**
  * @brief Deletes an ODE Action of any type
@@ -1215,7 +1283,7 @@ DslReturnType dsl_tee_branch_remove(const wchar_t* tee, const wchar_t* branch);
 DslReturnType dsl_tee_branch_remove_many(const wchar_t* tee, const wchar_t** branches);
 
 /**
- * @brief removes a Branches from a Stream Demuxer or Splitter Tee
+ * @brief removes all Branches from a Stream Demuxer or Splitter Tee
  * @param[in] tee name of the Tee to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */

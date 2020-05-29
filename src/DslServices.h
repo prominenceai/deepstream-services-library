@@ -53,7 +53,17 @@ namespace DSL {
          ***************************************************************/
         DslReturnType OdeActionDisplayNew(const char* name);
         
-        DslReturnType OdeActionCallbackNew(const char* name);
+        DslReturnType OdeActionCallbackNew(const char* name,
+            dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
+
+        DslReturnType OdeActionLogNew(const char* name);
+        
+        DslReturnType OdeActionRedactNew(const char* name,
+            double red, double green, double blue, double alpha);
+        
+        DslReturnType OdeActionQueueNew(const char* name, uint maxSize);
+        
+        DslReturnType OdeActionQueueSizeGet(const char* name, uint* size);
         
         DslReturnType OdeActionDelete(const char* name);
         
@@ -130,7 +140,7 @@ namespace DSL {
 
         DslReturnType PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
         
-        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
@@ -160,7 +170,7 @@ namespace DSL {
         
         DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
         
-        DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
@@ -178,7 +188,7 @@ namespace DSL {
 
         DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
 
-        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TeeBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
         
@@ -192,7 +202,7 @@ namespace DSL {
 
         DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
 
-        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
@@ -240,7 +250,7 @@ namespace DSL {
 
         DslReturnType OsdRedactionClassRemove(const char* name, int classId);
 
-        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 

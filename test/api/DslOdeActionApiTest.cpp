@@ -22,39 +22,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_H
-#define _DSL_H
+#include "catch.hpp"
+#include "Dsl.h"
+#include "DslApi.h"
 
-#include <cstdlib>
+SCENARIO( "The ODE Actions container is updated correctly on multiple new ODE Action", "[ode-action-api]" )
+{
+    GIVEN( "An empty list of Events" ) 
+    {
+        std::wstring actionName1(L"log-action-1");
+        std::wstring actionName2(L"log-action-2");
+        std::wstring actionName3(L"log-action-3");
+        
+        REQUIRE( dsl_ode_action_list_size() == 0 );
 
-#include <gst/gst.h>
-#include <gst/video/videooverlay.h>
-#include <gst/rtsp-server/rtsp-server.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+        WHEN( "Several new Actions are created" ) 
+        {
+            REQUIRE( dsl_ode_action_log_new(actionName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_log_new(actionName2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_log_new(actionName3.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size and events are updated correctly" ) 
+            {
+                REQUIRE( dsl_ode_action_list_size() == 3 );
 
-#include <queue>
-#include <iostream> 
-#include <sstream>
-#include <vector>
-#include <map> 
-#include <memory> 
-#include <fstream>
-#include <thread>
-#include <chrono>
-#include <unordered_map>
-#include <typeinfo>
-#include <algorithm>
-#include <sys/types.h>
-#include <sys/stat.h>
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
 
-#include <deepstream_common.h>
-#include <deepstream_config.h>
-#include <deepstream_perf.h>
-#include <gstnvdsmeta.h>
-#include <gstnvdsinfer.h>
 
-#include "DslMutex.h"
-#include "DslLog.h"
-
-#endif // _DSL_H
