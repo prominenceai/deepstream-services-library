@@ -40,13 +40,15 @@ namespace DSL
         , m_wName(m_name.begin(), m_name.end())
         , m_eventType(eventType)
         , m_classId(classId)
+        , m_sourceId(0)
         , m_triggered(0)
         , m_limit(limit)
+        , m_occurrences(0)
         , m_minConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
-        , m_minFrameCountN(0)
-        , m_minFrameCountD(0)
+        , m_minFrameCountN(1)
+        , m_minFrameCountD(1)
     {
         LOG_FUNC();
 
@@ -73,6 +75,21 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_classId = classId;
+    }
+
+    uint OdeType::GetSourceId()
+    {
+        LOG_FUNC();
+        
+        return m_sourceId;
+    }
+    
+    void OdeType::SetSourceId(uint sourceId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_sourceId = sourceId;
     }
 
     float OdeType::GetMinConfidence()
@@ -125,28 +142,29 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
-    void OdeType::HandleOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    bool OdeType::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        // NOTE: private funtion... do not lock mutex
-        
-        // update the triggered count member variable
-        m_triggered++;
-        
-        // update the total event count static variable
-        s_eventCount++;
-        
-        // check to see if this Detection Event has any child Event actions to invoke 
-        // before building the Event Occurrence Data data structure
-        if (!m_pChildren.size())
-        {
-            return;
-        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        for (const auto &imap: m_pChildren)
+        // Don't exceed trigger count, and filter on correct Class ID
+        if ((m_limit and m_triggered == m_limit) or 
+            (m_classId != pObjectMeta->class_id) or
+            (m_sourceId and m_sourceId != pFrameMeta->source_id))
         {
-            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pAction->HandleOccurrence(shared_from_this(), pFrameMeta, pObjectMeta);
+            return false;
         }
+        // Ensure that the minimum confidence has been reached
+        if (pObjectMeta->confidence < m_minConfidence)
+        {
+            return false;
+        }
+        // If defined, check for minimum dimensions
+        if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
+            (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
+        {
+            return false;
+        }
+        return true;
     }
 
 
@@ -163,35 +181,32 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool FirstOccurrenceEvent::CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    bool FirstOccurrenceEvent::CheckForOccurrence(GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        // Don't exceed trigger count, and filter on correct Class ID
-        if ((m_limit and m_triggered == m_limit) or (m_classId != pObjectMeta->class_id))
-        {
-            return false;
-        }
-        // Ensure that the minimum confidence has been reached
-        if (pObjectMeta->confidence < m_minConfidence)
-        {
-            return false;
-        }
-        // If defined, check for minimum dimensions
-        if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
-            (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
+        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
         
-        HandleOccurrence(pFrameMeta, pObjectMeta);
+        m_triggered++;
+        m_occurrences++;
+        
+        // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pChildren)
+        {
+            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, pObjectMeta);
+        }
         return true;
     }
 
     // *****************************************************************************
 
     EveryOccurrenceEvent::EveryOccurrenceEvent(const char* name, uint classId)
-        : OdeType(name, DSL_ODE_TYPE_FIRST_OCCURRENCE, classId, LIMIT_ONE)
+        : OdeType(name, DSL_ODE_TYPE_FIRST_OCCURRENCE, classId, LIMIT_NONE)
     {
         LOG_FUNC();
     }
@@ -201,16 +216,122 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool EveryOccurrenceEvent::CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    bool EveryOccurrenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        if (m_classId != pObjectMeta->class_id)
+        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
-        HandleOccurrence(pFrameMeta, pObjectMeta);
+
+        m_triggered++;
+        m_occurrences++;
+        
+        // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pChildren)
+        {
+            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, pObjectMeta);
+        }
         return true;
     }
+
+    // *****************************************************************************
     
+    FirstAbsenceEvent::FirstAbsenceEvent(const char* name, uint classId)
+        : OdeType(name, DSL_ODE_TYPE_FIRST_ABSENCE, classId, LIMIT_ONE)
+    {
+        LOG_FUNC();
+    }
+
+    FirstAbsenceEvent::~FirstAbsenceEvent()
+    {
+        LOG_FUNC();
+    }
+    
+    bool FirstAbsenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    bool FirstAbsenceEvent::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_triggered or m_occurrences)
+        {
+            m_occurrences = 0;
+            return false;
+        }
+        
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pChildren)
+        {
+            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+        }
+        return true;
+   }
+
+    // *****************************************************************************
+    
+    EveryAbsenceEvent::EveryAbsenceEvent(const char* name, uint classId)
+        : OdeType(name, DSL_ODE_TYPE_FIRST_ABSENCE, classId, LIMIT_NONE)
+    {
+        LOG_FUNC();
+    }
+
+    EveryAbsenceEvent::~EveryAbsenceEvent()
+    {
+        LOG_FUNC();
+    }
+    
+    bool EveryAbsenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    bool EveryAbsenceEvent::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_occurrences)
+        {
+            // reset for next frame
+            m_occurrences = 0;
+        }
+
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pChildren)
+        {
+            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+        }
+        return true;
+   }
+
 }

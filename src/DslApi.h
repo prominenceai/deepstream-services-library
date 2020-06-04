@@ -268,13 +268,14 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_RESULT                                0x000F0000
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
-#define DSL_RESULT_ODE_ACTION_TYPE_INVALID                          0x000F0003
-#define DSL_RESULT_ODE_ACTION_THREW_EXCEPTION                       0x000F0004
-#define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0005
-#define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
-#define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
-#define DSL_RESULT_ODE_ACTION_QUEUE_MAX_SIZE_INVALID                0x000F0008
-#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
+#define DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID                  0x000F0003
+#define DSL_RESULT_ODE_ACTION_CAPTURE_LIMIT_INVALID                 0x000F0004
+#define DSL_RESULT_ODE_ACTION_THREW_EXCEPTION                       0x000F0005
+#define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0006
+#define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0007
+#define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0008
+#define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0009
+#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F000A
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -304,30 +305,31 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 #define DSL_ODE_TYPE_FIRST_OCCURRENCE                               0
-#define DSL_ODE_TYPE_EVERY_OCCURRENCE                               2
+#define DSL_ODE_TYPE_EVERY_OCCURRENCE                               1
+#define DSL_ODE_TYPE_FIRST_ABSENCE                                  2
+#define DSL_ODE_TYPE_EVERY_ABSENCE                                  3
 #define DSL_ODE_TYPE_NEW_MIN                                        4
 #define DSL_ODE_TYPE_NEW_MAX                                        5
 #define DSL_ODE_TYPE_NEW_COUNT                                      6
-#define DSL_ODE_TYPE_LIMIT_LOWER_REACHED                            7
-#define DSL_ODE_TYPE_LIMIT_LOWER_BREACHED                           8
-#define DSL_ODE_TYPE_LIMIT_UPPER_REACHED                            9
-#define DSL_ODE_TYPE_LIMIT_UPPER_BREACHED                           10
-#define DSL_ODE_TYPE_COORDINATES_REACHED                            11
-#define DSL_ODE_TYPE_COORDINATES_BREACHED                           12
+#define DSL_ODE_TYPE_LIMIT_LOWER                                    7
+#define DSL_ODE_TYPE_LIMIT_UPPER                                    8
+#define DSL_ODE_TYPE_COORDINATES_REACHED                            9
 
-#define DSL_ODE_ACTION_CALLBACK                                     0
-#define DSL_ODE_ACTION_CAPTURE_FRAME                                1
-#define DSL_ODE_ACTION_CAPTURE_OBJECT                               2
+#define DSL_ODE_ACTION_ADD                                          0
+#define DSL_ODE_ACTION_CALLBACK                                     1
+#define DSL_ODE_ACTION_CAPTURE                                      2
 #define DSL_ODE_ACTION_DISPLAY                                      3
-#define DSL_ODE_ACTION_LOG                                          4
-#define DSL_ODE_ACTION_MESSAGE                                      5
-#define DSL_ODE_ACTION_QUEUE                                        6
-#define DSL_ODE_ACTION_REDACT                                       7
+#define DSL_ODE_ACTION_DUMP                                         4
+#define DSL_ODE_ACTION_LOG                                          5
+#define DSL_ODE_ACTION_PAUSE                                        6
+#define DSL_ODE_ACTION_PRINT                                        7
+#define DSL_ODE_ACTION_MESSAGE                                      8
+#define DSL_ODE_ACTION_REDACT                                       9
+#define DSL_ODE_ACTION_REMOVE                                       10
 
-#define DSL_ODE_ACTION_QUEUE_MAX_MAX_SIZE                           1000
-
-#define DSL_MAX_EVENT_NAME_SIZE                                     128
-#define DSL_MAX_OBJECT_LABEL_SIZE                                   128
+#define DSL_CAPTURE_TYPE_OBJECT                                     0
+#define DSL_CAPTURE_TYPE_FRAME                                      1
+#define DSL_CAPTURE_LIMIT_UPPER                                     256
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -416,6 +418,18 @@ DslReturnType dsl_ode_action_callback_new(const wchar_t* name,
     dsl_ode_occurrence_handler_cb client_handler, void* client_data);
 
 /**
+ * @brief Creates a uniquely named ODE Capture Action
+ * @param[in] name unique name for the ODE Display Action 
+ * @param[in] capture_type capture type, DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
+ * @param[in] capture_limit limits the number of frame/object captures that can be saved to disc
+ * This value must be set between 1..DSL_CAPTURE_LIMIT_UPPER
+ * @param[in] outdir absolute or relative path to image capture directory 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_new(const wchar_t* name, 
+    uint capture_type, uint capture_limit, const wchar_t* outdir);
+
+/**
  * @brief Creates a uniquely named ODE Display Action
  * @param[in] name unique name for the ODE Display Action 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -440,32 +454,6 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name);
  */
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
-
-/**
- * @brief Creates a uniquely named ODE Queue Action
- * @param[in] name unique name for the ODE Queue Action 
- * @param[in] max_size maximum size for the queue to grow. Once reached, the oldest ODE data 
- * will be popped from the queue to make room for new events.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_queue_new(const wchar_t* name, uint max_size);
-
-/**
- * @brief Returns the current number of ODE occurrence data structureS queued
- * @param[in] name unique name for the ODE Queue Action to query
- * @param[out] size current size of the Queue
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_queue_size_get(const wchar_t* name, uint* size);
-
-/**
- * @brief returns the earliest ODE occurrence data
- * @param[in] name unique name of the ODE Queue Action to query
- * @param[out] ode_occurrence earliest occurrence data. Caller must provide a valid
- * DslOdeOccurrence structure for this service to populate. event_id == 0 means no events queued
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-//DslReturnType dsl_ode_action_queue_dequeue(const wchar_t* name, DslOdeOccurrence* ode_occurrence);
 
 /**
  * @brief Deletes an ODE Action of any type
@@ -518,11 +506,28 @@ DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id);
 
 /**
  * @brief Sets the class_id for the ODE type to filter on
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE type to update
  * @param[in] class_id new class_id to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_ode_type_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current source_id filter for the ODE type
+ * A value of 0 indicates filter disabled
+ * @param[in] name unique name of the ODE type to query
+ * @param[out] sorce_id returns the current source_id in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_source_id_get(const wchar_t* name, uint* source_id);
+
+/**
+ * @brief Sets the source_id for the ODE type to filter on
+ * @param[in] name unique name of the ODE type to update
+ * @param[in] source_id new source_id to filter on
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_source_id_set(const wchar_t* name, uint source_id);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE type

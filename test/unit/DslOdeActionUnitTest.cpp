@@ -81,7 +81,7 @@ SCENARIO( "A LogOdeAction handles an Event Occurence correctly", "[LogOdeAction]
             
             THEN( "The EventAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, &frameMeta, &objectMeta);
+                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
             }
         }
     }
@@ -140,105 +140,9 @@ SCENARIO( "A PrintOdeAction handles an Event Occurence correctly", "[PrintOdeAct
             
             THEN( "The EventAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, &frameMeta, &objectMeta);
+                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
             }
         }
     }
 }
 
-SCENARIO( "A new QueueOdeAction is created correctly", "[QueueEventAction]" )
-{
-    GIVEN( "Attributes for a new QueueOdeAction" ) 
-    {
-        std::string eventActionName("event-action");
-        uint maxSize(100);
-
-        WHEN( "A new EventAction is created" )
-        {
-            DSL_ODE_ACTION_QUEUE_PTR pOdeAction = 
-                DSL_ODE_ACTION_QUEUE_NEW(eventActionName.c_str(), maxSize);
-
-            THEN( "The Events's memebers are setup and returned correctly" )
-            {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( eventActionName == retName );
-                REQUIRE( pOdeAction->GetMaxSize() == maxSize );
-                REQUIRE( pOdeAction->GetCurrentSize() == 0 );
-            }
-        }
-    }
-}
-
-//SCENARIO( "A QueueEventAction handles an Event Occurence correctly", "[QueueEventAction]" )
-//{
-//    GIVEN( "A new QueueDetectionEvent" ) 
-//    {
-//        std::string eventName("first-occurence");
-//        uint classId(1);
-//        
-//        std::string eventActionName = "event-action";
-//        uint maxSize(100);
-//
-//        DSL_ODE_ACTION_QUEUE_PTR pOdeAction = 
-//            DSL_ODE_ACTION_QUEUE_NEW(eventActionName.c_str(), maxSize);
-//
-//        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence = DSL_ODE_OCCURRENCE_NEW();
-//        eventName.copy(pOdeOccurrence->event_name, DSL_MAX_EVENT_NAME_SIZE-1, 0);
-//        
-//        pOdeOccurrence->event_id = 124;
-//        pOdeOccurrence->ntp_timestamp = UINT64_MAX;
-//
-//        WHEN( "A new Event is created" )
-//        {
-//            uint64_t eventId(1);
-//            
-//            THEN( "The EventAction can Handle the Occurrence" )
-//            {
-//                pOdeAction->HandleOccurrence(pOdeOccurrence);
-//                REQUIRE( pOdeAction->GetCurrentSize() == 1 );
-//                
-//                REQUIRE( pOdeAction->Dequeue() == pOdeOccurrence );
-//                REQUIRE( pOdeAction->GetCurrentSize() == 0 );
-//            }
-//        }
-//    }
-//}
-//
-//SCENARIO( "A QueueEventAction handles the Max Queue size correctly", "[QueueEventAction]" )
-//{
-//    GIVEN( "A new QueueDetectionEvent" ) 
-//    {
-//        std::string eventName("first-occurence");
-//        uint classId(1);
-//        
-//        std::string eventActionName = "event-action";
-//        uint maxSize(2);
-//
-//        DSL_ODE_ACTION_QUEUE_PTR pOdeAction = 
-//            DSL_ODE_ACTION_QUEUE_NEW(eventActionName.c_str(), maxSize);
-//
-//        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence1 = DSL_ODE_OCCURRENCE_NEW();
-//        pOdeOccurrence1->event_id = 1;
-//
-//        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence2 = DSL_ODE_OCCURRENCE_NEW();
-//        pOdeOccurrence2->event_id = 2;
-//
-//        DSL_ODE_OCCURRENCE_PTR pOdeOccurrence3 = DSL_ODE_OCCURRENCE_NEW();
-//        pOdeOccurrence3->event_id = 3;
-//
-//        WHEN( "When the nuber of new Events exceeds the max size created" )
-//        {
-//            pOdeAction->HandleOccurrence(pOdeOccurrence1);
-//            pOdeAction->HandleOccurrence(pOdeOccurrence2);
-//            pOdeAction->HandleOccurrence(pOdeOccurrence3);
-//
-//            THEN( "The EventAction can Handle the Occurrence" )
-//            {
-//                REQUIRE( pOdeAction->GetCurrentSize() == 2 );
-//                
-//                REQUIRE( pOdeAction->Dequeue() == pOdeOccurrence2 );
-//                REQUIRE( pOdeAction->GetCurrentSize() == 1 );
-//            }
-//        }
-//    }
-//}

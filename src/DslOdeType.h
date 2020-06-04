@@ -68,10 +68,20 @@ namespace DSL
         /**
          * @brief Function to check a given Object Meta data structure for the occurence of an event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pFrameMeta pointer to the containing NvDsFrameMeta data
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        virtual bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+        virtual bool CheckForOccurrence(GstBuffer* pBuffer, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+        
+        /**
+         * @brief Function called to process all Occurrence/Absence data for the current frame
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for post processing
+         * @return true if Occurrence on post process, false otherwise
+         */
+        virtual bool PostProcessFrame(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta){return false;};
         
         /**
          * @brief Gets the ClassId filter used for Object detection 
@@ -81,8 +91,22 @@ namespace DSL
         
         /**
          * @brief Sets the ClassId filter for Object detection 
+         * @param[in] classId new filter value to use
          */
         void SetClassId(uint classId);
+        
+        /**
+         * @brief Get the SourceId filter used for Object detection
+         * A value of 0 indicates no filter.
+         * @return the current SourceId filter value
+         */
+        uint GetSourceId();
+        
+        /**
+         * @brief sets the SourceId filter for Object detection
+         * @param[in] sourceId new filter value to use
+         */
+        void SetSourceId(uint sourceId);
         
         /**
          * @brief Gets the Minimuum Inference Confidence to trigger the event
@@ -129,13 +153,12 @@ namespace DSL
     protected:
     
         /**
-         * @brief Common function to handle the Occurence of an event by creating the occurrence data 
-         * and invoking all Event Actions owned by the event
+         * @brief Common function to check if an Object's meta data meets the min criteria for ODE 
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data the triggered the event
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test for min criteria
+         * @return true if Min Criteria is met, false otherwise
          */
-        void HandleOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
+        bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -165,12 +188,24 @@ namespace DSL
         /**
          * @brief trigger limit, once reached, actions will no longer be invoked
          */
-        uint64_t m_limit;    
+        uint64_t m_limit;
+
+        /**
+         * @brief number of occurrences for the current frame, 
+         * reset on exit of PostProcessFrame
+         */
+        uint m_occurrences; 
 
         /**
          * @brief GIE Class Id filter for this event
          */
         uint m_classId;
+        
+        /**
+         * @brief unique source stream Id filter for this event
+         * 0 indicates filter is disabled
+         */
+        uint m_sourceId;
         
         /**
          * Mininum inference confidence to trigger event [0.0..1.0]
@@ -210,11 +245,14 @@ namespace DSL
         /**
          * @brief Function to check a given Object Meta data structure for a First Occurence event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
         
     private:
     
@@ -231,16 +269,79 @@ namespace DSL
         /**
          * @brief Function to check a given Object Meta data structure for an Every Occurence event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
          * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
     };
 
+    class FirstAbsenceEvent : public OdeType
+    {
+    public:
+    
+        FirstAbsenceEvent(const char* name, uint classId);
+        
+        ~FirstAbsenceEvent();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame for an Absence Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return true if an ODE occurred during post processing
+         */
+        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+    };
+
+    class EveryAbsenceEvent : public OdeType
+    {
+    public:
+    
+        EveryAbsenceEvent(const char* name, uint classId);
+        
+        ~EveryAbsenceEvent();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame for an Absence Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return true if an ODE occurred during post processing
+         */
+        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+    };
+    
+    
 }
 
 #endif // _DSL_ODE_H

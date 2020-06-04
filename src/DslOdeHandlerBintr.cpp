@@ -128,7 +128,7 @@ namespace DSL
 
         if (m_isEnabled == enabled)
         {
-            LOG_ERROR("Can't set Reporting Enabled to the same value of " 
+            LOG_ERROR("Can't set Handler Enabled to the same value of " 
                 << enabled << " for OdeHandlerBintr '" << GetName() << "' ");
             return false;
         }
@@ -149,22 +149,35 @@ namespace DSL
     {
         NvDsBatchMeta* batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
+        // For each frame in the batched meta data
         for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
         {
+            // Check for valid frame data, and if Inference was done on the frame
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta *) (l_frame->data);
             if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
+                // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {
+                    // Check for valid object data
                     NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
                     if (pObjectMeta != NULL)
                     {
+                        // For each ODE Type owned by this ODE Manager, check for ODE
                         for (const auto &imap: m_pChildren)
                         {
                             DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
-                            pOdeType->CheckForOccurrence(pFrameMeta, pObjectMeta);
+                            pOdeType->CheckForOccurrence(pBuffer, pFrameMeta, pObjectMeta);
                         }
                     }
+                }
+                
+                // After each detected object is checked for ODE individually, post process 
+                // each frame for Absence events, Limit events, etc. (i.e. frame level events).
+                for (const auto &imap: m_pChildren)
+                {
+                    DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
+                    pOdeType->PostProcessFrame(pBuffer, pFrameMeta);
                 }
             }
         }
