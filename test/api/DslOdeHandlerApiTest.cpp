@@ -116,11 +116,11 @@ SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[ode-handle
         std::wstring odeHandlerName(L"ode-handler");
 
         std::wstring eventName(L"first-occurrence");
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
+        uint limit(0);
 
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Detection Event is added to the ODE Handler" ) 
         {
@@ -149,21 +149,21 @@ SCENARIO( "A new ODE Handler can Add and Remove multiple Detection Events", "[od
     {
         std::wstring odeHandlerName(L"ode-handler");
 
-        std::wstring odeTypeName1(L"first-occurrence-1");
-        std::wstring odeTypeName2(L"first-occurrence-2");
-        std::wstring odeTypeName3(L"first-occurrence-3");
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
+        std::wstring odeTypeName1(L"occurrence-1");
+        std::wstring odeTypeName2(L"occurrence-2");
+        std::wstring odeTypeName3(L"occurrence-3");
         uint class_id(0);
+        uint limit(0);
 
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_type_new(odeTypeName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_new(odeTypeName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_new(odeTypeName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(odeTypeName1.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(odeTypeName2.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(odeTypeName3.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Detection Events are added to the ODE Handler" ) 
         {
-            const wchar_t* odeTypes[] = {L"first-occurrence-1", L"first-occurrence-2", L"first-occurrence-3", NULL};
+            const wchar_t* odeTypes[] = {L"occurrence-1", L"occurrence-2", L"occurrence-3", NULL};
 
             REQUIRE( dsl_ode_handler_type_add_many(odeHandlerName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
             

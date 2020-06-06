@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "opencv2/highgui/highgui.hpp"
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslOdeType.h"
 #include "DslOdeAction.h"
 
@@ -36,14 +37,10 @@ namespace DSL
     OdeAction::OdeAction(const char* name)
         : Base(name)
     {
-        LOG_FUNC();
-
     }
 
     OdeAction::~OdeAction()
     {
-        LOG_FUNC();
-
     }
 
     // ********************************************************************
@@ -230,13 +227,11 @@ namespace DSL
         : OdeAction(name)
     {
         LOG_FUNC();
-
     }
 
     LogOdeAction::~LogOdeAction()
     {
         LOG_FUNC();
-
     }
 
     void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
@@ -272,6 +267,27 @@ namespace DSL
             << " out of " << pOdeType->m_minFrameCountD);
         LOG_INFO("    Width       : " << pOdeType->m_minWidth);
         LOG_INFO("    Height      : " << pOdeType->m_minHeight);
+    }
+
+    // ********************************************************************
+
+    PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
+        : OdeAction(name)
+        , m_pipeline(pipeline)
+    {
+        LOG_FUNC();
+    }
+
+    PauseOdeAction::~PauseOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelinePause(m_pipeline.c_str());
     }
 
     // ********************************************************************
@@ -357,5 +373,136 @@ namespace DSL
     }
 
     // ********************************************************************
+
+    AddSinkOdeAction::AddSinkOdeAction(const char* name, 
+        const char* pipeline, const char* sink)
+        : OdeAction(name)
+        , m_pipeline(pipeline)
+        , m_sink(sink)
+    {
+        LOG_FUNC();
+    }
+
+    AddSinkOdeAction::~AddSinkOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
+    }
+
+    // ********************************************************************
+
+    RemoveSinkOdeAction::RemoveSinkOdeAction(const char* name, 
+        const char* pipeline, const char* sink)
+        : OdeAction(name)
+        , m_pipeline(pipeline)
+        , m_sink(sink)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveSinkOdeAction::~RemoveSinkOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_sink.c_str());
+    }
+
+    // ********************************************************************
+
+    AddSourceOdeAction::AddSourceOdeAction(const char* name, 
+        const char* pipeline, const char* source)
+        : OdeAction(name)
+        , m_pipeline(pipeline)
+        , m_source(source)
+    {
+        LOG_FUNC();
+    }
+
+    AddSourceOdeAction::~AddSourceOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_source.c_str());
+    }
+
+    // ********************************************************************
+
+    RemoveSourceOdeAction::RemoveSourceOdeAction(const char* name, 
+        const char* pipeline, const char* source)
+        : OdeAction(name)
+        , m_pipeline(pipeline)
+        , m_source(source)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveSourceOdeAction::~RemoveSourceOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_source.c_str());
+    }
+
+    // ********************************************************************
+
+    AddTypeOdeAction::AddTypeOdeAction(const char* name, 
+        const char* odeType, const char* odeHandler)
+        : OdeAction(name)
+        , m_odeType(odeType)
+        , m_odeHandler(odeHandler)
+    {
+        LOG_FUNC();
+    }
+
+    AddTypeOdeAction::~AddTypeOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->OdeHandlerTypeAdd(m_odeHandler.c_str(), m_odeType.c_str());
+    }
+
+    // ********************************************************************
+
+    RemoveTypeOdeAction::RemoveTypeOdeAction(const char* name, 
+        const char* odeType, const char* odeHandler)
+        : OdeAction(name)
+        , m_odeType(odeType)
+        , m_odeHandler(odeHandler)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveTypeOdeAction::~RemoveTypeOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->OdeHandlerTypeRemove(m_odeHandler.c_str(), m_odeType.c_str());
+    }
+
 }    
     

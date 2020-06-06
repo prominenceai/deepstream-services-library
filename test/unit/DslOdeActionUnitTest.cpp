@@ -54,11 +54,12 @@ SCENARIO( "A LogOdeAction handles an Event Occurence correctly", "[LogOdeAction]
     {
         std::string eventName("first-occurence");
         uint classId(1);
+        uint limit(1);
         
         std::string eventActionName = "event-action";
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_LOG_PTR pOdeAction = 
             DSL_ODE_ACTION_LOG_NEW(eventActionName.c_str());
@@ -113,11 +114,12 @@ SCENARIO( "A PrintOdeAction handles an Event Occurence correctly", "[PrintOdeAct
     {
         std::string eventName("first-occurence");
         uint classId(1);
+        uint limit(1);
         
         std::string eventActionName = "event-action";
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(eventName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(eventActionName.c_str());

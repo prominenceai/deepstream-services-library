@@ -36,27 +36,23 @@ namespace DSL
      */
     #define DSL_ODE_TYPE_PTR std::shared_ptr<OdeType>
 
-    #define DSL_ODE_FIRST_OCCURRENCE_PTR std::shared_ptr<FirstOccurrenceEvent>
-    #define DSL_ODE_FIRST_OCCURRENCE_NEW(name, classId) \
-        std::shared_ptr<FirstOccurrenceEvent>(new FirstOccurrenceEvent(name, classId))
+    #define DSL_ODE_TYPE_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeType>
+    #define DSL_ODE_TYPE_OCCURRENCE_NEW(name, classId, limit) \
+        std::shared_ptr<OccurrenceOdeType>(new OccurrenceOdeType(name, classId, limit))
         
-    #define DSL_ODE_FIRST_ABSENCE_PTR std::shared_ptr<FirstAbsenceEvent>
-    #define DSL_ODE_FIRST_ABSENCE_NEW(name, classId) \
-        std::shared_ptr<FirstAbsenceEvent>(new FirstAbsenceEvent(name, classId))
+    #define DSL_ODE_TYPE_ABSENCE_PTR std::shared_ptr<AbsenceOdeType>
+    #define DSL_ODE_TYPE_ABSENCE_NEW(name, classId, limit) \
+        std::shared_ptr<AbsenceOdeType>(new AbsenceOdeType(name, classId, limit))
         
-    #define DSL_ODE_EVERY_OCCURRENCE_PTR std::shared_ptr<EveryOccurrenceEvent>
-    #define DSL_ODE_EVERY_OCCURRENCE_NEW(name, classId) \
-        std::shared_ptr<EveryOccurrenceEvent>(new EveryOccurrenceEvent(name, classId))
-        
-    #define DSL_ODE_EVERY_ABSENCE_PTR std::shared_ptr<EveryAbsenceEvent>
-    #define DSL_ODE_EVERY_ABSENCE_NEW(name, classId) \
-        std::shared_ptr<EveryAbsenceEvent>(new EveryAbsenceEvent(name, classId))
+    #define DSL_ODE_TYPE_SUMMATION_PTR std::shared_ptr<SummationOdeType>
+    #define DSL_ODE_TYPE_SUMMATION_NEW(name, classId, limit) \
+        std::shared_ptr<SummationOdeType>(new SummationOdeType(name, classId, limit))
         
     class OdeType : public Base
     {
     public: 
     
-        OdeType(const char* name, uint eventType, uint classId, uint64_t limit);
+        OdeType(const char* name, uint classId, uint limit);
 
         ~OdeType();
 
@@ -176,11 +172,6 @@ namespace DSL
         std::wstring m_wName;
 
         /**
-         * @brief Unique DSL_ODE_TYPE_... identifer defined in dsl.h
-         */
-        uint m_eventType;
-    
-        /**
          * @brief trigger count, incremented on every event occurrence
          */
         uint64_t m_triggered;    
@@ -188,7 +179,7 @@ namespace DSL
         /**
          * @brief trigger limit, once reached, actions will no longer be invoked
          */
-        uint64_t m_limit;
+        uint m_limit;
 
         /**
          * @brief number of occurrences for the current frame, 
@@ -234,37 +225,13 @@ namespace DSL
 
     };
     
-    class FirstOccurrenceEvent : public OdeType
+    class OccurrenceOdeType : public OdeType
     {
     public:
     
-        FirstOccurrenceEvent(const char* name, uint classId);
+        OccurrenceOdeType(const char* name, uint classId, uint limit);
         
-        ~FirstOccurrenceEvent();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for a First Occurence event
-         * and to invoke all Event Actions owned by the event
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        
-    private:
-    
-    };
-
-    class EveryOccurrenceEvent : public OdeType
-    {
-    public:
-    
-        EveryOccurrenceEvent(const char* name, uint classId);
-        
-        ~EveryOccurrenceEvent();
+        ~OccurrenceOdeType();
 
         /**
          * @brief Function to check a given Object Meta data structure for an Every Occurence event
@@ -281,43 +248,13 @@ namespace DSL
     
     };
 
-    class FirstAbsenceEvent : public OdeType
+    class AbsenceOdeType : public OdeType
     {
     public:
     
-        FirstAbsenceEvent(const char* name, uint classId);
+        AbsenceOdeType(const char* name, uint classId, uint limit);
         
-        ~FirstAbsenceEvent();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
-         * @brief Function to post process the frame for an Absence Event 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
-         * @param[in] pFrameMeta Frame meta data to post process.
-         * @return true if an ODE occurred during post processing
-         */
-        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
-
-    private:
-    
-    };
-
-    class EveryAbsenceEvent : public OdeType
-    {
-    public:
-    
-        EveryAbsenceEvent(const char* name, uint classId);
-        
-        ~EveryAbsenceEvent();
+        ~AbsenceOdeType();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -341,6 +278,35 @@ namespace DSL
     
     };
     
+    class SummationOdeType : public OdeType
+    {
+    public:
+    
+        SummationOdeType(const char* name, uint classId, uint limit);
+        
+        ~SummationOdeType();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Summation Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return true if an ODE occurred during post processing
+         */
+        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+    };
     
 }
 

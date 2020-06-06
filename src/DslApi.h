@@ -253,14 +253,13 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TYPE_RESULT                                  0x000E0000
 #define DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE                         0x000E0001
 #define DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND                          0x000E0002
-#define DSL_RESULT_ODE_TYPE_INVALID                                 0x000E0003
-#define DSL_RESULT_ODE_TYPE_THREW_EXCEPTION                         0x000E0004
-#define DSL_RESULT_ODE_TYPE_IN_USE                                  0x000E0005
-#define DSL_RESULT_ODE_TYPE_SET_FAILED                              0x000E0006
-#define DSL_RESULT_ODE_TYPE_IS_NOT_DETECTION_EVENT                  0x000E0007
-#define DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED                       0x000E0008
-#define DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED                    0x000E0009
-#define DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE                       0x000E000A
+#define DSL_RESULT_ODE_TYPE_THREW_EXCEPTION                         0x000E0003
+#define DSL_RESULT_ODE_TYPE_IN_USE                                  0x000E0004
+#define DSL_RESULT_ODE_TYPE_SET_FAILED                              0x000E0005
+#define DSL_RESULT_ODE_TYPE_IS_NOT_ODE_TYPE                         0x000E0006
+#define DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED                       0x000E0007
+#define DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED                    0x000E0008
+#define DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE                       0x000E0009
 
 /**
  * ODE Action API Return Values
@@ -304,18 +303,6 @@ THE SOFTWARE.
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
-#define DSL_ODE_TYPE_FIRST_OCCURRENCE                               0
-#define DSL_ODE_TYPE_EVERY_OCCURRENCE                               1
-#define DSL_ODE_TYPE_FIRST_ABSENCE                                  2
-#define DSL_ODE_TYPE_EVERY_ABSENCE                                  3
-#define DSL_ODE_TYPE_NEW_MIN                                        4
-#define DSL_ODE_TYPE_NEW_MAX                                        5
-#define DSL_ODE_TYPE_NEW_COUNT                                      6
-#define DSL_ODE_TYPE_LIMIT_LOWER                                    7
-#define DSL_ODE_TYPE_LIMIT_UPPER                                    8
-#define DSL_ODE_TYPE_COORDINATES_REACHED                            9
-
-#define DSL_ODE_ACTION_ADD                                          0
 #define DSL_ODE_ACTION_CALLBACK                                     1
 #define DSL_ODE_ACTION_CAPTURE                                      2
 #define DSL_ODE_ACTION_DISPLAY                                      3
@@ -325,7 +312,12 @@ THE SOFTWARE.
 #define DSL_ODE_ACTION_PRINT                                        7
 #define DSL_ODE_ACTION_MESSAGE                                      8
 #define DSL_ODE_ACTION_REDACT                                       9
-#define DSL_ODE_ACTION_REMOVE                                       10
+#define DSL_ODE_ACTION_TYPE_ADD                                     10
+#define DSL_ODE_ACTION_TYPE_REMOVE                                  11
+#define DSL_ODE_ACTION_SINK_ADD                                     12
+#define DSL_ODE_ACTION_SINK_REMOVE                                  13
+#define DSL_ODE_ACTION_SOURCE_ADD                                   14
+#define DSL_ODE_ACTION_SOURCE_REMOVE                                15
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -336,7 +328,7 @@ THE SOFTWARE.
  */
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
-#define DSL_DEFAULT_SINK_IN_USE_MAX                                 32
+#define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         4000000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
@@ -444,6 +436,21 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name);
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
+ * @brief Creates a uniquely named ODE Pause Action
+ * @param[in] name unique name for the ODE Pause Action 
+ * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named ODE Print Action
+ * @param[in] name unique name for the ODE Print Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_print_new(const wchar_t* name);
+
+/**
  * @brief Creates a uniquely named ODE Redact Action
  * @param[in] name unique name for the ODE Redact Action
  * @param[in] red red value for the RGBA redaction box [1..0]
@@ -454,6 +461,72 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name);
  */
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
+
+/**
+ * @brief Creates a uniquely named Add Sink Action that adds
+ * a named Sink to a named Pipeline
+ * @param[in] name unique name for the ODE Add Sink Action 
+ * @param[in] pipeline unique name of the Pipeline to add the Source to
+ * @param[in] sink unique name of the Sink to add to the Pipeline
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_sink_add_new(const wchar_t* name,
+    const wchar_t* pipeline, const wchar_t* sink);
+
+/**
+ * @brief Creates a uniquely named Remove Sink Action that removes
+ * a named Sink from a named Pipeline
+ * @param[in] name unique name for the Sink Remove Action 
+ * @param[in] pipeline unique name of the Pipeline to remove the Sink from
+ * @param[in] sink unique name of the Sink to remove from the Pipeline
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
+    const wchar_t* pipeline, const wchar_t* sink);
+
+/**
+ * @brief Creates a uniquely named Add Source Action that adds
+ * a named Source to a named Pipeline
+ * @param[in] name unique name for the ODE Add Action 
+ * @param[in] pipeline unique name of the Pipeline to add the Source to
+ * @param[in] source unique name of the Source to add to the Pipeline
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
+    const wchar_t* pipeline, const wchar_t* source);
+
+/**
+ * @brief Creates a uniquely named Remove Source Action that removes
+ * a named Source from a named Pipeline
+ * @param[in] name unique name for the Source Remove Action 
+ * @param[in] pipeline unique name of the Pipeline to remove the Source from
+ * @param[in] source unique name of the Source to remove from the Pipeline
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
+    const wchar_t* pipeline, const wchar_t* source);
+
+/**
+ * @brief Creates a uniquely named Add ODE Type Action that adds
+ * a named ODE Type to a named ODE Handler
+ * @param[in] name unique name for the ODE Add Action 
+ * @param[in] ode_handler unique name of the handler to add the ODE type to
+ * @param[in] ode_type unique name of the ODE type to add to the ODE handler
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
+    const wchar_t* ode_handler, const wchar_t* ode_type);
+
+/**
+ * @brief Creates a uniquely named Remove ODE Type Action that removes
+ * a named ODE Type from a named ODE Handler
+ * @param[in] name unique name for the ODE Remove Action
+ * @param[in] ode_handler unique name of the handler to remove the ODE type from
+ * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_type_remove_new(const wchar_t* name,
+    const wchar_t* ode_handler, const wchar_t* ode_type);
 
 /**
  * @brief Deletes an ODE Action of any type
@@ -488,13 +561,32 @@ DslReturnType dsl_ode_action_delete_all();
 uint dsl_ode_action_list_size();
 
 /**
- * @brief Event to trigger on first occurrence of object detection
+ * @brief Event to trigger on occurrence of object detection
  * @param[in] name unique name for this event object
- * @param[in] odeType unique identification for the ODE type to create
  * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_new(const wchar_t* name, uint odeType, uint class_id);
+DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, uint64_t limit);
+
+/**
+ * @brief Event to trigger on absence of object detection within a frame
+ * @param[in] name unique name for this event object
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint64_t limit);
+
+/**
+ * @brief Event to trigger on summation of all objects detected within a frame
+ * @param[in] name unique name for this event object
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+ 
+DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uint64_t limit);
 
 /**
  * @brief Gets the current class_id filter for the ODE type

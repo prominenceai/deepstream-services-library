@@ -30,20 +30,20 @@ SCENARIO( "The ODE Types container is updated correctly on multiple new ODE Type
 {
     GIVEN( "An empty list of Events" ) 
     {
-        std::wstring eventName1(L"first-occurrence-1");
-        std::wstring eventName2(L"first-occurrence-2");
-        std::wstring eventName3(L"first-occurrence-3");
+        std::wstring eventName1(L"occurrence-1");
+        std::wstring eventName2(L"occurrence-2");
+        std::wstring eventName3(L"occurrence-3");
         
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
+        uint limit(0);
 
         REQUIRE( dsl_ode_type_list_size() == 0 );
 
         WHEN( "Several new Events are created" ) 
         {
-            REQUIRE( dsl_ode_type_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_type_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_type_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_type_occurrence_new(eventName1.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_type_occurrence_new(eventName2.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_type_occurrence_new(eventName3.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
@@ -61,16 +61,15 @@ SCENARIO( "The Events container is updated correctly on Detection Event deletion
 {
     GIVEN( "A list of Events" ) 
     {
-        std::wstring eventName1(L"first-occurrence-1");
-        std::wstring eventName2(L"first-occurrence-2");
-        std::wstring eventName3(L"first-occurrence-3");
-        
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
+        std::wstring eventName1(L"occurrence-1");
+        std::wstring eventName2(L"occurrence-2");
+        std::wstring eventName3(L"occurrence-3");
         uint class_id(0);
+        uint limit(0);
 
-        REQUIRE( dsl_ode_type_new(eventName1.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_new(eventName2.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_new(eventName3.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName1.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName2.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName3.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "When Events are deleted" )         
         {
@@ -93,12 +92,12 @@ SCENARIO( "A Detection Event's classId can be set/get", "[ode-type-api]" )
 {
     GIVEN( "A Detection Event" ) 
     {
-        std::wstring eventName(L"first-occurrence");
+        std::wstring eventName(L"occurrence");
         
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
         uint class_id(9);
+        uint limit(0);
 
-        REQUIRE( dsl_ode_type_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         uint ret_class_id(0);
         REQUIRE( dsl_ode_type_class_id_get(eventName.c_str(), &ret_class_id) == DSL_RESULT_SUCCESS );
@@ -123,12 +122,11 @@ SCENARIO( "A Detection Event's minimum dimensions can be set/get", "[ode-type-ap
 {
     GIVEN( "A Detection Event" ) 
     {
-        std::wstring eventName(L"first-occurrence");
-        
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
+        std::wstring eventName(L"occurrence");
+        uint limit(0);
         uint class_id(0);
 
-        REQUIRE( dsl_ode_type_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         uint min_width(1), min_height(1);
         REQUIRE( dsl_ode_type_dimensions_min_get(eventName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
@@ -158,10 +156,10 @@ SCENARIO( "A Detection Event's minimum frame count can be set/get", "[ode-type-a
     {
         std::wstring eventName(L"first-occurrence");
         
-        uint evtype(DSL_ODE_TYPE_FIRST_OCCURRENCE);
         uint class_id(0);
+        uint limit(0);
 
-        REQUIRE( dsl_ode_type_new(eventName.c_str(), evtype, class_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(eventName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         uint min_count_n(1), min_count_d(1);
         REQUIRE( dsl_ode_type_frame_count_min_get(eventName.c_str(), &min_count_n, &min_count_d) == DSL_RESULT_SUCCESS );

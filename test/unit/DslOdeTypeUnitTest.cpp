@@ -34,11 +34,12 @@ SCENARIO( "A new OdeType is created correctly", "[OdeType]" )
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
+        uint limit(1);
 
         WHEN( "A new OdeType is created" )
         {
-            DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-                DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+            DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+                DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
             THEN( "The OdeTypes's memebers are setup and returned correctly" )
             {
@@ -63,11 +64,12 @@ SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOcc
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pEventAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -109,11 +111,12 @@ SCENARIO( "A FirstOccurrenceEvent checks for Minimum Confidence correctly", "[Fi
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
             
         // Set the minumum confidence value for detection
         pFirstOccurrenceEvent->SetMinConfidence(0.5);    
@@ -156,12 +159,13 @@ SCENARIO( "A FirstOccurrenceEvent checks for SourceId correctly", "[FirstOccurre
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
+        uint limit(1);
         uint sourceId(2);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
             
         // Set the minumum confidence value for detection
         pFirstOccurrenceEvent->SetSourceId(sourceId);    
@@ -217,11 +221,12 @@ SCENARIO( "A FirstOccurrenceEvent checks for Minimum Dimensions correctly", "[Fi
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pEventAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -288,11 +293,12 @@ SCENARIO( "An EveryOccurrenceEvent detects every Occurrence", "[EveryOccurrenceE
     {
         std::string odeTypeName("every-occurence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_EVERY_OCCURRENCE_PTR pEveryOccurrenceEvent = 
-            DSL_ODE_EVERY_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_OCCURRENCE_PTR pEveryOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pEventAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -332,11 +338,12 @@ SCENARIO( "A FirstAbsenceEvent detects only the first frame Absense of Object De
     {
         std::string odeTypeName("first-absence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_ABSENCE_PTR pFirstAbsenceEvent = 
-            DSL_ODE_FIRST_ABSENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_ABSENCE_PTR pFirstAbsenceEvent = 
+            DSL_ODE_TYPE_ABSENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -380,11 +387,12 @@ SCENARIO( "A FirstAbsenceEvent checks for Minimum Confidence correctly", "[First
     {
         std::string odeTypeName("first-absence");
         uint classId(1);
+        uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_FIRST_ABSENCE_PTR pFirstAbsenceEvent = 
-            DSL_ODE_FIRST_ABSENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TYPE_ABSENCE_PTR pFirstAbsenceEvent = 
+            DSL_ODE_TYPE_ABSENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         // Set the minumum confidence value for detection
         pFirstAbsenceEvent->SetMinConfidence(0.5);    

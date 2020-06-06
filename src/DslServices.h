@@ -51,22 +51,40 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/
-        DslReturnType OdeActionDisplayNew(const char* name);
-        
         DslReturnType OdeActionCallbackNew(const char* name,
             dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
 
         DslReturnType OdeActionCaptureNew(const char* name, 
             uint captureType, uint captureLimit, const char* outdir);
         
+        DslReturnType OdeActionDisplayNew(const char* name);
+        
         DslReturnType OdeActionLogNew(const char* name);
+        
+        DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
+
+        DslReturnType OdeActionPrintNew(const char* name);
         
         DslReturnType OdeActionRedactNew(const char* name,
             double red, double green, double blue, double alpha);
-        
-        DslReturnType OdeActionQueueNew(const char* name, uint maxSize);
-        
-        DslReturnType OdeActionQueueSizeGet(const char* name, uint* size);
+
+        DslReturnType OdeActionSinkAddNew(const char* name, 
+            const char* pipeline, const char* sink);
+
+        DslReturnType OdeActionSinkRemoveNew(const char* name, 
+            const char* pipeline, const char* sink);
+
+        DslReturnType OdeActionSourceAddNew(const char* name, 
+            const char* pipeline, const char* source);
+
+        DslReturnType OdeActionSourceRemoveNew(const char* name, 
+            const char* pipeline, const char* source);
+
+        DslReturnType OdeActionTypeAddNew(const char* name, 
+            const char* odeHandler, const char* odeType);
+
+        DslReturnType OdeActionTypeRemoveNew(const char* name, 
+            const char* odeHandler, const char* odeType);
         
         DslReturnType OdeActionDelete(const char* name);
         
@@ -74,7 +92,11 @@ namespace DSL {
         
         uint OdeActionListSize();
         
-        DslReturnType OdeTypeNew(const char* name, uint odeType, uint classId);
+        DslReturnType OdeTypeOccurrenceNew(const char* name, uint classId, uint limit);
+        
+        DslReturnType OdeTypeAbsenceNew(const char* name, uint classId, uint limit);
+        
+        DslReturnType OdeTypeSummationNew(const char* name, uint classId, uint limit);
         
         DslReturnType OdeTypeClassIdGet(const char* name, uint* classId);
         

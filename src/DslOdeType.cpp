@@ -35,10 +35,9 @@ namespace DSL
     uint64_t OdeType::s_eventCount = 0;
 
     OdeType::OdeType(const char* name, 
-        uint eventType, uint classId, uint64_t limit)
+        uint classId, uint limit)
         : Base(name)
         , m_wName(m_name.begin(), m_name.end())
-        , m_eventType(eventType)
         , m_classId(classId)
         , m_sourceId(0)
         , m_triggered(0)
@@ -113,7 +112,6 @@ namespace DSL
         
         *minWidth = m_minWidth;
         *minHeight = m_minHeight;
-        
     }
 
     void OdeType::SetMinDimensions(uint minWidth, uint minHeight)
@@ -167,56 +165,21 @@ namespace DSL
         return true;
     }
 
-
-    // *****************************************************************************
     
-    FirstOccurrenceEvent::FirstOccurrenceEvent(const char* name, uint classId)
-        : OdeType(name, DSL_ODE_TYPE_FIRST_OCCURRENCE, classId, LIMIT_ONE)
-    {
-        LOG_FUNC();
-    }
-
-    FirstOccurrenceEvent::~FirstOccurrenceEvent()
-    {
-        LOG_FUNC();
-    }
-    
-    bool FirstOccurrenceEvent::CheckForOccurrence(GstBuffer* pBuffer, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
-        {
-            return false;
-        }
-        
-        m_triggered++;
-        m_occurrences++;
-        
-        // update the total event count static variable
-        s_eventCount++;
-
-        for (const auto &imap: m_pChildren)
-        {
-            DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, pObjectMeta);
-        }
-        return true;
-    }
-
     // *****************************************************************************
 
-    EveryOccurrenceEvent::EveryOccurrenceEvent(const char* name, uint classId)
-        : OdeType(name, DSL_ODE_TYPE_FIRST_OCCURRENCE, classId, LIMIT_NONE)
+    OccurrenceOdeType::OccurrenceOdeType(const char* name, uint classId, uint limit)
+        : OdeType(name, classId, limit)
     {
         LOG_FUNC();
     }
 
-    EveryOccurrenceEvent::~EveryOccurrenceEvent()
+    OccurrenceOdeType::~OccurrenceOdeType()
     {
         LOG_FUNC();
     }
     
-    bool EveryOccurrenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+    bool OccurrenceOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
@@ -240,18 +203,18 @@ namespace DSL
 
     // *****************************************************************************
     
-    FirstAbsenceEvent::FirstAbsenceEvent(const char* name, uint classId)
-        : OdeType(name, DSL_ODE_TYPE_FIRST_ABSENCE, classId, LIMIT_ONE)
+    AbsenceOdeType::AbsenceOdeType(const char* name, uint classId, uint limit)
+        : OdeType(name, classId, limit)
     {
         LOG_FUNC();
     }
 
-    FirstAbsenceEvent::~FirstAbsenceEvent()
+    AbsenceOdeType::~AbsenceOdeType()
     {
         LOG_FUNC();
     }
     
-    bool FirstAbsenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+    bool AbsenceOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
@@ -264,7 +227,7 @@ namespace DSL
         return true;
     }
 
-    bool FirstAbsenceEvent::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    bool AbsenceOdeType::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
         if (m_triggered or m_occurrences)
         {
@@ -288,18 +251,18 @@ namespace DSL
 
     // *****************************************************************************
     
-    EveryAbsenceEvent::EveryAbsenceEvent(const char* name, uint classId)
-        : OdeType(name, DSL_ODE_TYPE_FIRST_ABSENCE, classId, LIMIT_NONE)
+    SummationOdeType::SummationOdeType(const char* name, uint classId, uint limit)
+        : OdeType(name, classId, limit)
     {
         LOG_FUNC();
     }
 
-    EveryAbsenceEvent::~EveryAbsenceEvent()
+    SummationOdeType::~SummationOdeType()
     {
         LOG_FUNC();
     }
     
-    bool EveryAbsenceEvent::CheckForOccurrence(GstBuffer* pBuffer,
+    bool SummationOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
@@ -312,14 +275,8 @@ namespace DSL
         return true;
     }
 
-    bool EveryAbsenceEvent::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    bool SummationOdeType::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
-        if (m_occurrences)
-        {
-            // reset for next frame
-            m_occurrences = 0;
-        }
-
         // event has been triggered
         m_triggered++;
 
@@ -331,6 +288,8 @@ namespace DSL
             DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
         }
+        // reset for next frame
+        m_occurrences = 0;
         return true;
    }
 
