@@ -32,49 +32,50 @@ SCENARIO( "A new OdeType is created correctly", "[OdeType]" )
 {
     GIVEN( "Attributes for a new DetectionEvent" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTypeName("occurence");
         uint classId(1);
         uint limit(1);
 
         WHEN( "A new OdeType is created" )
         {
-            DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
                 DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
             THEN( "The OdeTypes's memebers are setup and returned correctly" )
             {
-                REQUIRE( pFirstOccurrenceEvent->GetClassId() == classId );
-                REQUIRE( pFirstOccurrenceEvent->GetSourceId() == 0 );
+                REQUIRE( pOdeType->GetEnabled() == true );
+                REQUIRE( pOdeType->GetClassId() == classId );
+                REQUIRE( pOdeType->GetSourceId() == 0 );
                 uint minWidth(123), minHeight(123);
-                pFirstOccurrenceEvent->GetMinDimensions(&minWidth, &minHeight);
+                pOdeType->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
                 REQUIRE( minHeight == 0 );
                 uint minFrameCountN(123), minFrameCountD(123);
-                pFirstOccurrenceEvent->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
-                REQUIRE( minFrameCountN == 0 );
-                REQUIRE( minFrameCountD == 0 );
+                pOdeType->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
+                REQUIRE( minFrameCountN == 1 );
+                REQUIRE( minFrameCountD == 1 );
             }
         }
     }
 }
 
-SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOccurrenceEvent]" )
+SCENARIO( "An OdeType checks its enabled setting ", "[OdeType]" )
 {
-    GIVEN( "A new FirstOccurrenceEvent with default criteria" ) 
+    GIVEN( "A new OdeType with default criteria" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTypeName("occurence");
         uint classId(1);
-        uint limit(1);
+        uint limit(0); // not limit
 
-        std::string odeActionName("event-action");
+        std::string odeActionName("print-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
             DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_PRINT_PTR pEventAction = 
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
 
         // Frame Meta test data
         NvDsFrameMeta frameMeta =  {0};
@@ -92,95 +93,123 @@ SCENARIO( "A FirstOccurrenceEvent can detect an Occurence only once", "[FirstOcc
         objectMeta.rect_params.width = 200;
         objectMeta.rect_params.height = 100;
         
-        WHEN( "A First Occurrence ODE is simulated" )
+        WHEN( "The ODE Type is enabled and an ODE occurrence is simulated" )
         {
-            REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            pOdeType->SetEnabled(true);
             
-            THEN( "All other objects are ignored" )
+            THEN( "The ODE is triggered" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Type is disabled and an ODE occurrence is simulated" )
+        {
+            pOdeType->SetEnabled(false);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
 }
 
-SCENARIO( "A FirstOccurrenceEvent checks for Minimum Confidence correctly", "[FirstOccurrenceEvent]" )
+SCENARIO( "An  checks its minimum confidence correctly", "[OdeType]" )
 {
-    GIVEN( "A new FirstOccurrenceEvent with default criteria" ) 
+    GIVEN( "A new OdeType with default criteria" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTypeName("occurence");
         uint classId(1);
-        uint limit(1);
+        uint limit(0); // not limit
 
-        std::string odeActionName("event-action");
+        std::string odeActionName("print-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
             DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
-            
-        // Set the minumum confidence value for detection
-        pFirstOccurrenceEvent->SetMinConfidence(0.5);    
 
-        DSL_ODE_ACTION_PRINT_PTR pEventAction = 
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
 
-        WHEN( "A first occurent event is simulated" )
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        objectMeta.confidence = 0.5;
+        
+        WHEN( "The ODE Type's minimum confidence is less than the Object's confidence" )
         {
-            NvDsFrameMeta frameMeta =  {0};
-            frameMeta.bInferDone = true;  // required to process
-            frameMeta.frame_num = 444;
-            frameMeta.ntp_timestamp = INT64_MAX;
-            frameMeta.source_id = 2;
-
-            NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
-            objectMeta.object_id = INT64_MAX; 
-            objectMeta.rect_params.left = 10;
-            objectMeta.rect_params.top = 10;
-            objectMeta.rect_params.width = 200;
-            objectMeta.rect_params.height = 100;
+            pOdeType->SetMinConfidence(0.4999);
             
-            // set the confidence level to just below the minumum
-            objectMeta.confidence = 0.4999; 
-            
-            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            THEN( "The ODE is triggered" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Type's minimum confidence is equal to the Object's confidence" )
+        {
+            pOdeType->SetMinConfidence(0.5);
+            
+            THEN( "The ODE is triggered" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The ODE Type's minimum confidence is greater tahn the Object's confidence" )
+        {
+            pOdeType->SetMinConfidence(0.5001);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
 }
 
-SCENARIO( "A FirstOccurrenceEvent checks for SourceId correctly", "[FirstOccurrenceEvent]" )
+
+SCENARIO( "A OdeType checks for SourceId correctly", "[OdeType]" )
 {
-    GIVEN( "A new FirstOccurrenceEvent with default criteria" ) 
+    GIVEN( "A new OdeType with default criteria" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTypeName("occurence");
         uint classId(1);
-        uint limit(1);
+        uint limit(0);
         uint sourceId(2);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
             DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
             
         // Set the minumum confidence value for detection
-        pFirstOccurrenceEvent->SetSourceId(sourceId);    
+        pOdeType->SetSourceId(sourceId);    
         
-        REQUIRE( pFirstOccurrenceEvent->GetSourceId() == sourceId );
+        REQUIRE( pOdeType->GetSourceId() == sourceId );
 
-        DSL_ODE_ACTION_PRINT_PTR pEventAction = 
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 1;
 
         NvDsObjectMeta objectMeta = {0};
         objectMeta.class_id = classId; // must match Detections Event's classId
@@ -192,46 +221,53 @@ SCENARIO( "A FirstOccurrenceEvent checks for SourceId correctly", "[FirstOccurre
         
         objectMeta.confidence = 0.9999; 
         
-        WHEN( "The Source ID matches the filter" )
+        WHEN( "The the Source ID filter is disabled" )
         {
-            // match filter for first call
-            frameMeta.source_id = sourceId;
+            pOdeType->SetSourceId(0);
             
-            THEN( "The FirstOccurenceEvent is detected because of the filter match" )
+            THEN( "The ODE is triggered" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Source ID matches the filter" )
         {
-            // unmatch filter for second call
-            frameMeta.source_id = sourceId+1;
+            pOdeType->SetSourceId(1);
             
-            THEN( "The FirstOccurenceEvent is detected because of the filter match" )
+            THEN( "The ODE is triggered" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Source ID does not matche the filter" )
+        {
+            pOdeType->SetSourceId(2);
+            
+            THEN( "The ODE is NOT triggered" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
 }
 
-SCENARIO( "A FirstOccurrenceEvent checks for Minimum Dimensions correctly", "[FirstOccurrenceEvent]" )
+SCENARIO( "A OdeType checks for Minimum Dimensions correctly", "[OdeType]" )
 {
-    GIVEN( "A new FirstOccurrenceEvent with minimum criteria" ) 
+    GIVEN( "A new OdeType with minimum criteria" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTypeName("occurence");
         uint classId(1);
         uint limit(1);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
             DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_PRINT_PTR pEventAction = 
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pFirstOccurrenceEvent->AddChild(pEventAction) == true );        
+        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
@@ -250,196 +286,38 @@ SCENARIO( "A FirstOccurrenceEvent checks for Minimum Dimensions correctly", "[Fi
 
         WHEN( "the Min Width is set above the Object's Width" )
         {
-            pFirstOccurrenceEvent->SetMinDimensions(201, 0);    
+            pOdeType->SetMinDimensions(201, 0);    
             
-            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            THEN( "The OdeType is NOT detected because of the minimum criteria" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Min Width is set below the Object's Width" )
         {
-            pFirstOccurrenceEvent->SetMinDimensions(199, 0);    
+            pOdeType->SetMinDimensions(199, 0);    
             
-            THEN( "The FirstOccurenceEvent is detected because of the minimum criteria" )
+            THEN( "The OdeType is detected because of the minimum criteria" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Min Height is set above the Object's Height" )
         {
-            pFirstOccurrenceEvent->SetMinDimensions(0, 101);    
+            pOdeType->SetMinDimensions(0, 101);    
             
-            THEN( "The FirstOccurenceEvent is NOT detected because of the minimum criteria" )
+            THEN( "The OdeType is NOT detected because of the minimum criteria" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Min Height is set below the Object's Height" )
         {
-            pFirstOccurrenceEvent->SetMinDimensions(0, 99);    
+            pOdeType->SetMinDimensions(0, 99);    
             
-            THEN( "The FirstOccurenceEvent is detected because of the minimum criteria" )
+            THEN( "The OdeType is detected because of the minimum criteria" )
             {
-                REQUIRE( pFirstOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "An EveryOccurrenceEvent detects every Occurrence", "[EveryOccurrenceEvent]" )
-{
-    GIVEN( "An new EveryOccurrenceEvent with default criteria" ) 
-    {
-        std::string odeTypeName("every-occurence");
-        uint classId(1);
-        uint limit(1);
-
-        std::string odeActionName("event-action");
-
-        DSL_ODE_TYPE_OCCURRENCE_PTR pEveryOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
-
-        DSL_ODE_ACTION_PRINT_PTR pEventAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        REQUIRE( pEveryOccurrenceEvent->AddChild(pEventAction) == true );        
-
-        NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
-        frameMeta.frame_num = 444;
-        frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 2;
-
-        NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match Detections Event's classId
-        objectMeta.object_id = INT64_MAX; 
-        objectMeta.rect_params.left = 10;
-        objectMeta.rect_params.top = 10;
-        objectMeta.rect_params.width = 200;
-        objectMeta.rect_params.height = 100;
-            
-        WHEN( "A First Occurrence ODE is simulated" )
-        {
-            REQUIRE( pEveryOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
-            
-            THEN( "Every objects is still detected aftwards" )
-            {
-                REQUIRE( pEveryOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
-                REQUIRE( pEveryOccurrenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A FirstAbsenceEvent detects only the first frame Absense of Object Detection", "[FirstAbsenceEvent]" )
-{
-    GIVEN( "A new FirstAbsenceEvent with default criteria" ) 
-    {
-        std::string odeTypeName("first-absence");
-        uint classId(1);
-        uint limit(1);
-
-        std::string odeActionName("event-action");
-
-        DSL_ODE_TYPE_ABSENCE_PTR pFirstAbsenceEvent = 
-            DSL_ODE_TYPE_ABSENCE_NEW(odeTypeName.c_str(), classId, limit);
-
-        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        REQUIRE( pFirstAbsenceEvent->AddChild(pOdeAction) == true );        
-
-        WHEN( "An ODE is simulated" )
-        {
-            NvDsFrameMeta frameMeta =  {0};
-            frameMeta.bInferDone = true;  // required to process
-            frameMeta.frame_num = 444;
-            frameMeta.ntp_timestamp = INT64_MAX;
-            frameMeta.source_id = 2;
-
-            NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId+1; // must NOT match ODE's classId
-            objectMeta.object_id = INT64_MAX; 
-            objectMeta.rect_params.left = 10;
-            objectMeta.rect_params.top = 10;
-            objectMeta.rect_params.width = 200;
-            objectMeta.rect_params.height = 100;
-            
-            THEN( "The FirstAbsesnceEvent takes action only once" )
-            {
-                // No occurrence should be found
-                REQUIRE( pFirstAbsenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
-                // First Absence should take action
-                REQUIRE( pFirstAbsenceEvent->PostProcessFrame(NULL, &frameMeta) == true );
-                 // No occurrence should be found
-                REQUIRE( pFirstAbsenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
-                // second time, First Absence should NOT take action
-                REQUIRE( pFirstAbsenceEvent->PostProcessFrame(NULL, &frameMeta) == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A FirstAbsenceEvent checks for Minimum Confidence correctly", "[FirstAbsenceEvent]" )
-{
-    GIVEN( "A new FirstAbsenceEvent with default criteria" ) 
-    {
-        std::string odeTypeName("first-absence");
-        uint classId(1);
-        uint limit(1);
-
-        std::string odeActionName("event-action");
-
-        DSL_ODE_TYPE_ABSENCE_PTR pFirstAbsenceEvent = 
-            DSL_ODE_TYPE_ABSENCE_NEW(odeTypeName.c_str(), classId, limit);
-
-        // Set the minumum confidence value for detection
-        pFirstAbsenceEvent->SetMinConfidence(0.5);    
-
-        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        REQUIRE( pFirstAbsenceEvent->AddChild(pOdeAction) == true );        
-
-        NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
-        frameMeta.frame_num = 444;
-        frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 2;
-
-        NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; //match ODE Types's classId
-        objectMeta.object_id = INT64_MAX; 
-        objectMeta.rect_params.left = 10;
-        objectMeta.rect_params.top = 10;
-        objectMeta.rect_params.width = 200;
-        objectMeta.rect_params.height = 100;
-
-        WHEN( "When an Object's meta confidence is below the minimum" )
-        {
-            // set the confidence level to just below the minumum
-            objectMeta.confidence = 0.4999; 
-            
-            THEN( "The FirstAbsesnceEvent takes action" )
-            {
-                // No occurrence should NOT be found
-                REQUIRE( pFirstAbsenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
-                // First Absence should take action
-                REQUIRE( pFirstAbsenceEvent->PostProcessFrame(NULL, &frameMeta) == true );
-            }
-        }
-        WHEN( "When an Object's meta confidence is equal to the minimum" )
-        {
-            // set the confidence level to just below the minumum
-            objectMeta.confidence = 0.5; 
-            
-            THEN( "The FirstAbsesnceEvent does not take action" )
-            {
-                // No occurrence should be found
-                REQUIRE( pFirstAbsenceEvent->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
-                // First Absence should NOT take action
-                REQUIRE( pFirstAbsenceEvent->PostProcessFrame(NULL, &frameMeta) == false );
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }

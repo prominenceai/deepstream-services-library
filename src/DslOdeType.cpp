@@ -38,6 +38,7 @@ namespace DSL
         uint classId, uint limit)
         : Base(name)
         , m_wName(m_name.begin(), m_name.end())
+        , m_enabled(true)
         , m_classId(classId)
         , m_sourceId(0)
         , m_triggered(0)
@@ -61,6 +62,21 @@ namespace DSL
         g_mutex_clear(&m_propertyMutex);
     }
     
+    bool OdeType::GetEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_enabled;
+    }
+    
+    void OdeType::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_enabled = enabled;
+    }
+
     uint OdeType::GetClassId()
     {
         LOG_FUNC();
@@ -144,8 +160,10 @@ namespace DSL
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        // Don't exceed trigger count, and filter on correct Class ID
-        if ((m_limit and m_triggered == m_limit) or 
+        // Ensure enabled, limit has not been exceeded, and filter 
+        // on correct Class ID and Source ID 
+        if ((!m_enabled) or
+            (m_limit and m_triggered == m_limit) or 
             (m_classId != pObjectMeta->class_id) or
             (m_sourceId and m_sourceId != pFrameMeta->source_id))
         {

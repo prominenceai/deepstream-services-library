@@ -80,6 +80,18 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta){return false;};
         
         /**
+         * @brief Gets the current Enabled setting, default = true
+         * @return the current Enabled setting
+         */
+        bool GetEnabled();
+        
+        /**
+         * @brief Sets the Enabled setting for ODE type
+         * @param[in] the new value to use
+         */
+        void SetEnabled(bool enabled);
+        
+        /**
          * @brief Gets the ClassId filter used for Object detection 
          * @return the current ClassId filter value
          */
@@ -170,6 +182,11 @@ namespace DSL
          * @brief Wide string name used for C/Python API
          */
         std::wstring m_wName;
+        
+        /**
+         * @brief enabled flag.
+         */
+        bool m_enabled;
 
         /**
          * @brief trigger count, incremented on every event occurrence

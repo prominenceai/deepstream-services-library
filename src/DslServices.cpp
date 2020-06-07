@@ -47,7 +47,7 @@ DslReturnType dsl_ode_action_callback_new(const wchar_t* name,
 }
 
 DslReturnType dsl_ode_action_capture_new(const wchar_t* name, 
-    uint capture_type, uint capture_limit, const wchar_t* outdir)
+    uint capture_type, const wchar_t* outdir)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -55,7 +55,7 @@ DslReturnType dsl_ode_action_capture_new(const wchar_t* name,
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
     return DSL::Services::GetServices()->OdeActionCaptureNew(cstrName.c_str(), 
-        capture_type, capture_limit, cstrOutdir.c_str());
+        capture_type, cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_display_new(const wchar_t* name)
@@ -173,6 +173,28 @@ DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
         cstrOdeHandler.c_str(), cstrOdeType.c_str());
 }
 
+DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t* odeType)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOdeType(odeType);
+    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+
+    return DSL::Services::GetServices()->OdeActionTypeDisableNew(cstrName.c_str(),
+        cstrOdeType.c_str());
+}
+
+DslReturnType dsl_ode_action_type_enable_new(const wchar_t* name, const wchar_t* odeType)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOdeType(odeType);
+    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+
+    return DSL::Services::GetServices()->OdeActionTypeEnableNew(cstrName.c_str(),
+        cstrOdeType.c_str());
+}
+
 DslReturnType dsl_ode_action_type_remove_new(const wchar_t* name,
     const wchar_t* odeHandler, const wchar_t* odeType)
 {
@@ -243,6 +265,21 @@ DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uin
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeTypeSummationNew(cstrName.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_type_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeEnabledGet(cstrName.c_str(), enabled);
+}
+DslReturnType dsl_ode_type_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeEnabledSet(cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id)
@@ -2059,7 +2096,7 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
 { \
     if (events.find(name) == events.end()) \
     { \
-        LOG_ERROR("Event name '" << name << "' was not found"); \
+        LOG_ERROR("ODE Type name '" << name << "' was not found"); \
         return DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND; \
     } \
 }while(0); 
@@ -2362,7 +2399,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionCaptureNew(const char* name,
-        uint captureType, uint captureLimit, const char* outdir)
+        uint captureType, const char* outdir)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2382,11 +2419,6 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID;
             }
             
-            if (!captureLimit or captureLimit > DSL_CAPTURE_LIMIT_UPPER)
-            {
-                LOG_ERROR("Invalid capture limit '" << captureLimit << "' for Capture Action '" << name << "'");
-                return DSL_RESULT_ODE_ACTION_CAPTURE_LIMIT_INVALID;
-            }
             // ensure outdir exists
             struct stat info;
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
@@ -2394,7 +2426,7 @@ namespace DSL
                 LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, captureLimit, outdir);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, outdir);
         }
         catch(...)
         {
@@ -2635,13 +2667,65 @@ namespace DSL
             }
             m_odeActions[name] = DSL_ODE_ACTION_TYPE_ADD_NEW(name, odeType, odeHandler);
 
-            LOG_INFO("New ODE Add Action '" << name << "' created successfully");
+            LOG_INFO("New Type Add Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Add Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Type Add ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionTypeDisableNew(const char* name, const char* odeType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TYPE_DISABLE_NEW(name, odeType);
+
+            LOG_INFO("New ODE Disable Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Disable Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionTypeEnableNew(const char* name, const char* odeType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TYPE_ENABLE_NEW(name, odeType);
+
+            LOG_INFO("New ODE Disable Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Disable Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -2799,6 +2883,50 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeTypeEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            *enabled = pOdeType->GetEnabled();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting Enabled setting");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTypeEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            pOdeType->SetEnabled(enabled);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception setting Enabled");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTypeClassIdGet(const char* name, uint* classId)
     {
         LOG_FUNC();
@@ -2808,17 +2936,17 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            *classId = pEvent->GetClassId();
+            *classId = pOdeType->GetClassId();
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeClassIdSet(const char* name, uint classId)
@@ -2830,17 +2958,17 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            pEvent->SetClassId(classId);
+            pOdeType->SetClassId(classId);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeSourceIdGet(const char* name, uint* sourceId)
@@ -2852,17 +2980,17 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            *sourceId = pEvent->GetSourceId();
+            *sourceId = pOdeType->GetSourceId();
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting source id");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting source id");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeSourceIdSet(const char* name, uint sourceId)
@@ -2874,17 +3002,17 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            pEvent->SetSourceId(sourceId);
+            pOdeType->SetSourceId(sourceId);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
@@ -2896,17 +3024,17 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            pEvent->GetMinDimensions(min_width, min_height);
+            pOdeType->GetMinDimensions(min_width, min_height);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting minimum dimensions");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum dimensions");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height)
@@ -2918,18 +3046,19 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             // TODO: validate the min values for in-range
-            pEvent->SetMinDimensions(min_width, min_height);
+            pOdeType->SetMinDimensions(min_width, min_height);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception setting minimum dimensions");
+            LOG_ERROR("ODE Type '" << name << "' threw exception setting minimum dimensions");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services:: OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
@@ -2941,17 +3070,18 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            pEvent->GetMinFrameCount(min_count_n, min_count_d);
+            pOdeType->GetMinFrameCount(min_count_n, min_count_d);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services:: OdeTypeFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
@@ -2963,29 +3093,31 @@ namespace DSL
         {
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             
-            DSL_ODE_TYPE_PTR pEvent = 
+            DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             // TODO: validate the min values for in-range
-            pEvent->SetMinFrameCount(min_count_n, min_count_d);
+            pOdeType->SetMinFrameCount(min_count_n, min_count_d);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Event '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
 
     DslReturnType Services::OdeTypeActionAdd(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
         try
         {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
+
             // Can't add Actions if they're In use by another ODE Type
             if (m_odeActions[action]->IsInUse())
             {
@@ -3000,6 +3132,9 @@ namespace DSL
                     << "' failed to add ODE Action '" << action << "'");
                 return DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED;
             }
+            LOG_INFO("ODE Action '" << action
+                << "' was added to ODE Type '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3007,21 +3142,18 @@ namespace DSL
                 << "' threw exception adding ODE Action '" << action << "'");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Action '" << action
-            << "' was added to ODE Type '" << name << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OdeTypeActionRemove(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
         try
         {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
+
             if (!m_odeActions[action]->IsParent(m_odeTypes[name]))
             {
                 LOG_ERROR("ODE Action'" << action << 
@@ -3035,6 +3167,10 @@ namespace DSL
                     << "' failed to remove ODE Action '" << action << "'");
                 return DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED;
             }
+            LOG_INFO("ODE Action '" << action
+                << "' was removed from ODE Type '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3042,21 +3178,21 @@ namespace DSL
                 << "' threw exception remove ODE Action '" << action << "'");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Action '" << action
-            << "' was removed from ODE Type '" << name << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OdeTypeActionRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
 
         try
         {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+
             m_odeTypes[name]->RemoveAllChildren();
+
+            LOG_INFO("All Events Actions removed from ODE Type '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3064,9 +3200,6 @@ namespace DSL
                 << "' threw an exception removing All Events Actions");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
-        LOG_INFO("All Events Actions removed from ODE Type '" << name << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OdeTypeDelete(const char* name)
@@ -3077,12 +3210,12 @@ namespace DSL
         
         if (m_odeTypes[name]->IsInUse())
         {
-            LOG_INFO("Event '" << name << "' is in use");
+            LOG_INFO("ODE Type '" << name << "' is in use");
             return DSL_RESULT_ODE_TYPE_IN_USE;
         }
         m_odeTypes.erase(name);
 
-        LOG_INFO("Event '" << name << "' deleted successfully");
+        LOG_INFO("ODE Type '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -3097,7 +3230,7 @@ namespace DSL
             // In the case of Delete all
             if (imap.second->IsInUse())
             {
-                LOG_ERROR("Event '" << imap.second->GetName() << "' is currently in use");
+                LOG_ERROR("ODE Type '" << imap.second->GetName() << "' is currently in use");
                 return DSL_RESULT_ODE_TYPE_IN_USE;
             }
         }
@@ -7022,7 +7155,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_IS_NOT_ACTION] = L"DSL_RESULT_ODE_ACTION_IS_NOT_ACTION";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
-        m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_LIMIT_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_LIMIT_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";

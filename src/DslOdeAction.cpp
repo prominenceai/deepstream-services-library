@@ -71,11 +71,9 @@ namespace DSL
     // ********************************************************************
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, uint captureLimit, const char* outdir)
+        uint captureType, const char* outdir)
         : OdeAction(name)
         , m_captureType(captureType)
-        , m_captureLimit(captureLimit)
-        , m_captureCount(0)
         , m_outdir(outdir)
     {
         LOG_FUNC();
@@ -95,13 +93,6 @@ namespace DSL
         {
             return;
         }
-        // ensure we don't exceed the capture limit
-        if (m_captureCount == m_captureLimit)
-        {
-            return;
-        }
-        m_captureCount++;
-        
         GstMapInfo inMapInfo = {0};
 
         if (!gst_buffer_map(pBuffer, &inMapInfo, GST_MAP_READ))
@@ -336,7 +327,7 @@ namespace DSL
         std::cout << "    Frame Count : " << pOdeType->m_minFrameCountN
             << " out of " << pOdeType->m_minFrameCountD << "\n";
         std::cout << "    Width       : " << pOdeType->m_minWidth << "\n";
-        std::cout << "    Height      : " << pOdeType->m_minHeight << "\n";
+        std::cout << "    Height      : " << pOdeType->m_minHeight << "\n\n";
     }
 
     // ********************************************************************
@@ -345,7 +336,10 @@ namespace DSL
         : OdeAction(name)
     {
         LOG_FUNC();
-
+        m_backgroundColor.red = red;
+        m_backgroundColor.green = green;
+        m_backgroundColor.blue = blue;
+        m_backgroundColor.alpha = alpha;
     }
 
     RedactOdeAction::~RedactOdeAction()
@@ -480,6 +474,46 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         Services::GetServices()->OdeHandlerTypeAdd(m_odeHandler.c_str(), m_odeType.c_str());
+    }
+
+    // ********************************************************************
+
+    DisableTypeOdeAction::DisableTypeOdeAction(const char* name, const char* odeType)
+        : OdeAction(name)
+        , m_odeType(odeType)
+    {
+        LOG_FUNC();
+    }
+
+    DisableTypeOdeAction::~DisableTypeOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void DisableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), false);
+    }
+
+    // ********************************************************************
+
+    EnableTypeOdeAction::EnableTypeOdeAction(const char* name, const char* odeType)
+        : OdeAction(name)
+        , m_odeType(odeType)
+    {
+        LOG_FUNC();
+    }
+
+    EnableTypeOdeAction::~EnableTypeOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void EnableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), true);
     }
 
     // ********************************************************************

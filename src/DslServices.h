@@ -55,7 +55,7 @@ namespace DSL {
             dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
 
         DslReturnType OdeActionCaptureNew(const char* name, 
-            uint captureType, uint captureLimit, const char* outdir);
+            uint captureType, const char* outdir);
         
         DslReturnType OdeActionDisplayNew(const char* name);
         
@@ -83,6 +83,10 @@ namespace DSL {
         DslReturnType OdeActionTypeAddNew(const char* name, 
             const char* odeHandler, const char* odeType);
 
+        DslReturnType OdeActionTypeDisableNew(const char* name, const char* odeType);
+
+        DslReturnType OdeActionTypeEnableNew(const char* name, const char* odeType);
+
         DslReturnType OdeActionTypeRemoveNew(const char* name, 
             const char* odeHandler, const char* odeType);
         
@@ -98,6 +102,10 @@ namespace DSL {
         
         DslReturnType OdeTypeSummationNew(const char* name, uint classId, uint limit);
         
+        DslReturnType OdeTypeEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OdeTypeEnabledSet(const char* name, boolean enabled);
+
         DslReturnType OdeTypeClassIdGet(const char* name, uint* classId);
         
         DslReturnType OdeTypeClassIdSet(const char* name, uint classId);

@@ -268,13 +268,12 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE                       0x000F0001
 #define DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND                        0x000F0002
 #define DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID                  0x000F0003
-#define DSL_RESULT_ODE_ACTION_CAPTURE_LIMIT_INVALID                 0x000F0004
-#define DSL_RESULT_ODE_ACTION_THREW_EXCEPTION                       0x000F0005
-#define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0006
-#define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0007
-#define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0008
-#define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0009
-#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F000A
+#define DSL_RESULT_ODE_ACTION_THREW_EXCEPTION                       0x000F0004
+#define DSL_RESULT_ODE_ACTION_IN_USE                                0x000F0005
+#define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
+#define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
+#define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
+#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
@@ -413,13 +412,11 @@ DslReturnType dsl_ode_action_callback_new(const wchar_t* name,
  * @brief Creates a uniquely named ODE Capture Action
  * @param[in] name unique name for the ODE Display Action 
  * @param[in] capture_type capture type, DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
- * @param[in] capture_limit limits the number of frame/object captures that can be saved to disc
- * This value must be set between 1..DSL_CAPTURE_LIMIT_UPPER
  * @param[in] outdir absolute or relative path to image capture directory 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_new(const wchar_t* name, 
-    uint capture_type, uint capture_limit, const wchar_t* outdir);
+    uint capture_type, const wchar_t* outdir);
 
 /**
  * @brief Creates a uniquely named ODE Display Action
@@ -509,7 +506,7 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
 /**
  * @brief Creates a uniquely named Add ODE Type Action that adds
  * a named ODE Type to a named ODE Handler
- * @param[in] name unique name for the ODE Add Action 
+ * @param[in] name unique name for the ODE Type Add Action 
  * @param[in] ode_handler unique name of the handler to add the ODE type to
  * @param[in] ode_type unique name of the ODE type to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -518,9 +515,27 @@ DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
     const wchar_t* ode_handler, const wchar_t* ode_type);
 
 /**
+ * @brief Creates a uniquely named Disable ODE Type Action that disables
+ * a named ODE Type on ODE occurrence
+ * @param[in] name unique name for the ODE Type Disable Action 
+ * @param[in] ode_type unique name of the ODE type to disable
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t* ode_type);
+
+/**
+ * @brief Creates a uniquely named Enable ODE Type Action that enables
+ * a named ODE Type on ODE occurrence
+ * @param[in] name unique name for the ODE Type Enable Action 
+ * @param[in] ode_type unique name of the ODE type to disable
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_type_enable_new(const wchar_t* name, const wchar_t* ode_type);
+
+/**
  * @brief Creates a uniquely named Remove ODE Type Action that removes
  * a named ODE Type from a named ODE Handler
- * @param[in] name unique name for the ODE Remove Action
+ * @param[in] name unique name for the ODE Type Remove Action
  * @param[in] ode_handler unique name of the handler to remove the ODE type from
  * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -567,7 +582,7 @@ uint dsl_ode_action_list_size();
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, uint64_t limit);
+DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
  * @brief Event to trigger on absence of object detection within a frame
@@ -576,7 +591,7 @@ DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, ui
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint64_t limit);
+DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
  * @brief Event to trigger on summation of all objects detected within a frame
@@ -586,7 +601,23 @@ DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint6
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
  
-DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uint64_t limit);
+DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uint limit);
+
+/**
+ * @brief Gets the current enabled setting for the ODE type
+ * @param[in] name unique name of the ODE type to query
+ * @param[out] enabled true if the ODE type is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the enabled setting for the ODE type
+ * @param[in] name unique name of the ODE type to update
+ * @param[in] enabled true if the ODE type is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Gets the current class_id filter for the ODE type

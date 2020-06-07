@@ -42,8 +42,8 @@ namespace DSL
         std::shared_ptr<CallbackOdeAction>(new CallbackOdeAction(name, clientHandler, clientData))
         
     #define DSL_ODE_ACTION_CAPTURE_PTR std::shared_ptr<CaptureOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, captureLimit, outdir) \
-        std::shared_ptr<CaptureOdeAction>(new CaptureOdeAction(name, captureType, captureLimit, outdir))
+    #define DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, outdir) \
+        std::shared_ptr<CaptureOdeAction>(new CaptureOdeAction(name, captureType, outdir))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_NEW(name) \
@@ -84,6 +84,14 @@ namespace DSL
     #define DSL_ODE_ACTION_TYPE_ADD_PTR std::shared_ptr<AddTypeOdeAction>
     #define DSL_ODE_ACTION_TYPE_ADD_NEW(name, odeType, odeHandler) \
         std::shared_ptr<AddTypeOdeAction>(new AddTypeOdeAction(name, odeType, odeHandler))
+        
+    #define DSL_ODE_ACTION_TYPE_DISABLE_PTR std::shared_ptr<DisableTypeOdeAction>
+    #define DSL_ODE_ACTION_TYPE_DISABLE_NEW(name, odeType) \
+        std::shared_ptr<DisableTypeOdeAction>(new DisableTypeOdeAction(name, odeType))
+        
+    #define DSL_ODE_ACTION_TYPE_ENABLE_PTR std::shared_ptr<EnableTypeOdeAction>
+    #define DSL_ODE_ACTION_TYPE_ENABLE_NEW(name, odeType) \
+        std::shared_ptr<EnableTypeOdeAction>(new EnableTypeOdeAction(name, odeType))
         
     #define DSL_ODE_ACTION_TYPE_REMOVE_PTR std::shared_ptr<RemoveTypeOdeAction>
     #define DSL_ODE_ACTION_TYPE_REMOVE_NEW(name, odeType, odeHandler) \
@@ -183,7 +191,7 @@ namespace DSL
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          * @param[in] outdir output directory to write captured image files
          */
-        CaptureOdeAction(const char* name, uint captureType, uint captureLimit, const char* outdir);
+        CaptureOdeAction(const char* name, uint captureType, const char* outdir);
         
         /**
          * @brief dtor for the ODE Capture Action class
@@ -207,16 +215,6 @@ namespace DSL
          * @brief either DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          */
         uint m_captureType;
-        
-        /**
-         * @brief limit to the number of image captures can be saved to disk
-         */
-        uint m_captureLimit;
-
-        /**
-         * @brief running capture count
-         */
-        uint m_captureCount;
         
         /**
          * @brief relative or absolute path to output directory
@@ -657,6 +655,88 @@ namespace DSL
          * @brief ODE Handler to add the ODE Type to
          */ 
         std::string m_odeHandler;
+
+    };
+    
+    /**
+     * @class DisableTypeOdeAction
+     * @brief Disable Type ODE Action class
+     */
+    class DisableTypeOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Disable Type ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] odeType ODE Type to disable on ODE occurrence
+         */
+        DisableTypeOdeAction(const char* name, const char* odeType);
+        
+        /**
+         * @brief dtor for the ODE Add Action class
+         */
+        ~DisableTypeOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by disabling a named ODE Type
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief ODE Type to disable on ODE occurrence
+         */
+        std::string m_odeType;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class EnableTypeOdeAction
+     * @brief Enable Type ODE Action class
+     */
+    class EnableTypeOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Enable Type ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] odeType ODE Type to disable on ODE occurrence
+         */
+        EnableTypeOdeAction(const char* name, const char* odeType);
+        
+        /**
+         * @brief dtor for the ODE Add Action class
+         */
+        ~EnableTypeOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by enabling a named ODE Type
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief ODE Type to enable on ODE occurrence
+         */
+        std::string m_odeType;
 
     };
     
