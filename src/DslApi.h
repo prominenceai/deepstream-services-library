@@ -504,9 +504,9 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source);
 
 /**
- * @brief Creates a uniquely named Add ODE Type Action that adds
- * a named ODE Type to a named ODE Handler
- * @param[in] name unique name for the ODE Type Add Action 
+ * @brief Creates a uniquely named Add Type ODE Action that adds
+ * a named ODE Type to a named ODE Handler on ODE occurrence
+ * @param[in] name unique name for the Add Type ODE Action 
  * @param[in] ode_handler unique name of the handler to add the ODE type to
  * @param[in] ode_type unique name of the ODE type to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
@@ -515,16 +515,16 @@ DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
     const wchar_t* ode_handler, const wchar_t* ode_type);
 
 /**
- * @brief Creates a uniquely named Disable ODE Type Action that disables
+ * @brief Creates a uniquely named Disable Type ODE Action that disables
  * a named ODE Type on ODE occurrence
- * @param[in] name unique name for the ODE Type Disable Action 
+ * @param[in] name unique name for the Disable ODE Type Action 
  * @param[in] ode_type unique name of the ODE type to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t* ode_type);
 
 /**
- * @brief Creates a uniquely named Enable ODE Type Action that enables
+ * @brief Creates a uniquely named Enable Type ODE Action that enables
  * a named ODE Type on ODE occurrence
  * @param[in] name unique name for the ODE Type Enable Action 
  * @param[in] ode_type unique name of the ODE type to disable
@@ -533,15 +533,70 @@ DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t
 DslReturnType dsl_ode_action_type_enable_new(const wchar_t* name, const wchar_t* ode_type);
 
 /**
- * @brief Creates a uniquely named Remove ODE Type Action that removes
+ * @brief Creates a uniquely named Remove Type ODE Action that removes
  * a named ODE Type from a named ODE Handler
- * @param[in] name unique name for the ODE Type Remove Action
+ * @param[in] name unique name for the Remove Type ODE Action
  * @param[in] ode_handler unique name of the handler to remove the ODE type from
  * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_type_remove_new(const wchar_t* name,
     const wchar_t* ode_handler, const wchar_t* ode_type);
+
+/**
+ * @brief Creates a uniquely named Add Action ODE Action that adds
+ * a named ODE Action to a named ODE Type on ODE occurrence
+ * @param[in] name unique name for the ODE Type Add Action 
+ * @param[in] ode_handler unique name of the handler to add the ODE type to
+ * @param[in] ode_type unique name of the ODE type to add to the ODE handler
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
+    const wchar_t* ode_type, const wchar_t* ode_action);
+
+/**
+ * @brief Creates a uniquely named Disable Action ODE Action that disables
+ * a named ODE Action on ODE occurrence
+ * @param[in] name unique name for the ODE Type Disable Action 
+ * @param[in] ode_type unique name of the ODE type to disable
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* ode_action);
+
+/**
+ * @brief Creates a uniquely named Enable Action ODE Action that enables
+ * a named ODE Action on ODE occurrence
+ * @param[in] name unique name for the ODE Type Enable Action 
+ * @param[in] ode_type unique name of the ODE type to disable
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* ode_action);
+
+/**
+ * @brief Creates a uniquely named Remove Action ODE Action that removes
+ * a named ODE Action from a named ODE Type on ODE occurrence
+ * @param[in] name unique name for the ODE Type Remove Action
+ * @param[in] ode_handler unique name of the handler to remove the ODE type from
+ * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_action_remove_new(const wchar_t* name,
+    const wchar_t* ode_type, const wchar_t* ode_action);
+/**
+ * @brief Gets the current enabled setting for the ODE Action
+ * @param[in] name unique name of the ODE Action to query
+ * @param[out] enabled true if the ODE Action is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the enabled setting for the ODE Action
+ * @param[in] name unique name of the ODE Action to update
+ * @param[in] enabled true if the ODE Action is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Deletes an ODE Action of any type

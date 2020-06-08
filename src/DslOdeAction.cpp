@@ -36,11 +36,26 @@ namespace DSL
 {
     OdeAction::OdeAction(const char* name)
         : Base(name)
+        , m_enabled(true)
     {
     }
 
     OdeAction::~OdeAction()
     {
+    }
+
+    bool OdeAction::GetEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_enabled;
+    }
+    
+    void OdeAction::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        m_enabled = enabled;
     }
 
     // ********************************************************************
@@ -62,10 +77,13 @@ namespace DSL
     void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+        if (m_enabled)
+        {
+            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
 
-        m_clientHandler(pOdeType->s_eventCount, pOdeType->m_wName.c_str(),
-            pFrameMeta, pObjectMeta, m_clientData);
+            m_clientHandler(pOdeType->s_eventCount, pOdeType->m_wName.c_str(),
+                pFrameMeta, pObjectMeta, m_clientData);
+        }
     }
 
     // ********************************************************************
@@ -87,6 +105,10 @@ namespace DSL
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        if (!m_enabled)
+        {
+            return;
+        }
         // ensure that if we're capturing an Object, object data must be provided
         // i.e Object capture and Frame event action result in a NOP
         if ((m_captureType == DSL_CAPTURE_TYPE_OBJECT) and (!pObjectMeta))
@@ -208,8 +230,10 @@ namespace DSL
     void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
-
+        if (m_enabled)
+        {
+            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+        }
     }
 
     // ********************************************************************
@@ -228,36 +252,39 @@ namespace DSL
     void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
-        
-        LOG_INFO("Event Name      : " << pOdeType->GetName());
-        LOG_INFO("  Unique Id     : " << pOdeType->s_eventCount);
-        LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
-        LOG_INFO("  Source Data   : ------------------------");
-        LOG_INFO("    Id          : " << pFrameMeta->source_id);
-        LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
-        LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
-        LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
-        LOG_INFO("  Object Data   : ------------------------");
-        LOG_INFO("    Class Id    : " << pOdeType->m_classId );
-        LOG_INFO("    Occurrences : " << pOdeType->m_occurrences );
-        
-        if (pObjectMeta)
+        if (m_enabled)
         {
-            LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
-            LOG_INFO("    Label       : " << pObjectMeta->obj_label);
-            LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
-            LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
-            LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
-            LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
-            LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
+            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            
+            LOG_INFO("Event Name      : " << pOdeType->GetName());
+            LOG_INFO("  Unique Id     : " << pOdeType->s_eventCount);
+            LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
+            LOG_INFO("  Source Data   : ------------------------");
+            LOG_INFO("    Id          : " << pFrameMeta->source_id);
+            LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
+            LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
+            LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
+            LOG_INFO("  Object Data   : ------------------------");
+            LOG_INFO("    Class Id    : " << pOdeType->m_classId );
+            LOG_INFO("    Occurrences : " << pOdeType->m_occurrences );
+            
+            if (pObjectMeta)
+            {
+                LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
+                LOG_INFO("    Label       : " << pObjectMeta->obj_label);
+                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
+                LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
+                LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
+                LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
+                LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
+            }
+            LOG_INFO("  Min Criteria  : ------------------------");
+            LOG_INFO("    Confidence  : " << pOdeType->m_minConfidence);
+            LOG_INFO("    Frame Count : " << pOdeType->m_minFrameCountN
+                << " out of " << pOdeType->m_minFrameCountD);
+            LOG_INFO("    Width       : " << pOdeType->m_minWidth);
+            LOG_INFO("    Height      : " << pOdeType->m_minHeight);
         }
-        LOG_INFO("  Min Criteria  : ------------------------");
-        LOG_INFO("    Confidence  : " << pOdeType->m_minConfidence);
-        LOG_INFO("    Frame Count : " << pOdeType->m_minFrameCountN
-            << " out of " << pOdeType->m_minFrameCountD);
-        LOG_INFO("    Width       : " << pOdeType->m_minWidth);
-        LOG_INFO("    Height      : " << pOdeType->m_minHeight);
     }
 
     // ********************************************************************
@@ -277,8 +304,11 @@ namespace DSL
     void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        // Ignore the return value, errors will be logged 
-        Services::GetServices()->PipelinePause(m_pipeline.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->PipelinePause(m_pipeline.c_str());
+        }
     }
 
     // ********************************************************************
@@ -297,37 +327,40 @@ namespace DSL
     void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
-        
-        std::cout << "Event Name      : " << pOdeType->GetName() << "\n";
-        std::cout << "  Unique Id     : " << pOdeType->s_eventCount << "\n";
-        std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
-        std::cout << "  Source Data   : ------------------------" << "\n";
-        std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
-        std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
-        std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
-        std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
-        std::cout << "  Object Data   : ------------------------" << "\n";
-        std::cout << "    Class Id    : " << pOdeType->m_classId << "\n";
-        std::cout << "    Occurrences : " << pOdeType->m_occurrences << "\n";
-
-        if (pObjectMeta)
+        if (m_enabled)
         {
-            std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
-            std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
-            std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
-            std::cout << "    Left        : " << pObjectMeta->rect_params.left << "\n";
-            std::cout << "    Top         : " << pObjectMeta->rect_params.top << "\n";
-            std::cout << "    Width       : " << pObjectMeta->rect_params.width << "\n";
-            std::cout << "    Height      : " << pObjectMeta->rect_params.height << "\n";
-        }
+            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            
+            std::cout << "Event Name      : " << pOdeType->GetName() << "\n";
+            std::cout << "  Unique Id     : " << pOdeType->s_eventCount << "\n";
+            std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
+            std::cout << "  Source Data   : ------------------------" << "\n";
+            std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
+            std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
+            std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
+            std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
+            std::cout << "  Object Data   : ------------------------" << "\n";
+            std::cout << "    Class Id    : " << pOdeType->m_classId << "\n";
+            std::cout << "    Occurrences : " << pOdeType->m_occurrences << "\n";
 
-        std::cout << "  Min Criteria  : ------------------------" << "\n";
-        std::cout << "    Confidence  : " << pOdeType->m_minConfidence << "\n";
-        std::cout << "    Frame Count : " << pOdeType->m_minFrameCountN
-            << " out of " << pOdeType->m_minFrameCountD << "\n";
-        std::cout << "    Width       : " << pOdeType->m_minWidth << "\n";
-        std::cout << "    Height      : " << pOdeType->m_minHeight << "\n\n";
+            if (pObjectMeta)
+            {
+                std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
+                std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
+                std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
+                std::cout << "    Left        : " << pObjectMeta->rect_params.left << "\n";
+                std::cout << "    Top         : " << pObjectMeta->rect_params.top << "\n";
+                std::cout << "    Width       : " << pObjectMeta->rect_params.width << "\n";
+                std::cout << "    Height      : " << pObjectMeta->rect_params.height << "\n";
+            }
+
+            std::cout << "  Min Criteria  : ------------------------" << "\n";
+            std::cout << "    Confidence  : " << pOdeType->m_minConfidence << "\n";
+            std::cout << "    Frame Count : " << pOdeType->m_minFrameCountN
+                << " out of " << pOdeType->m_minFrameCountD << "\n";
+            std::cout << "    Width       : " << pOdeType->m_minWidth << "\n";
+            std::cout << "    Height      : " << pOdeType->m_minHeight << "\n\n";
+        }
     }
 
     // ********************************************************************
@@ -351,19 +384,22 @@ namespace DSL
     void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        // hide the OSD display text
-        if (pObjectMeta->text_params.display_text)
+        if (m_enabled)
         {
-            pObjectMeta->text_params.set_bg_clr = 0;
-            pObjectMeta->text_params.font_params.font_size = 0;
+            // hide the OSD display text
+            if (pObjectMeta->text_params.display_text)
+            {
+                pObjectMeta->text_params.set_bg_clr = 0;
+                pObjectMeta->text_params.font_params.font_size = 0;
+            }
+            // shade in the background
+            pObjectMeta->rect_params.border_width = 0;
+            pObjectMeta->rect_params.has_bg_color = 1;
+            pObjectMeta->rect_params.bg_color.red = m_backgroundColor.red;
+            pObjectMeta->rect_params.bg_color.green = m_backgroundColor.green;
+            pObjectMeta->rect_params.bg_color.blue = m_backgroundColor.blue;
+            pObjectMeta->rect_params.bg_color.alpha = m_backgroundColor.alpha;
         }
-        // shade in the background
-        pObjectMeta->rect_params.border_width = 0;
-        pObjectMeta->rect_params.has_bg_color = 1;
-        pObjectMeta->rect_params.bg_color.red = m_backgroundColor.red;
-        pObjectMeta->rect_params.bg_color.green = m_backgroundColor.green;
-        pObjectMeta->rect_params.bg_color.blue = m_backgroundColor.blue;
-        pObjectMeta->rect_params.bg_color.alpha = m_backgroundColor.alpha;
     }
 
     // ********************************************************************
@@ -385,7 +421,10 @@ namespace DSL
     void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
+        if (m_enabled)
+        {
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_sink.c_str());
+        }
     }
 
     // ********************************************************************
@@ -407,7 +446,11 @@ namespace DSL
     void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_sink.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_sink.c_str());
+        }
     }
 
     // ********************************************************************
@@ -429,7 +472,11 @@ namespace DSL
     void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_source.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), m_source.c_str());
+        }
     }
 
     // ********************************************************************
@@ -451,16 +498,20 @@ namespace DSL
     void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_source.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), m_source.c_str());
+        }
     }
 
     // ********************************************************************
 
     AddTypeOdeAction::AddTypeOdeAction(const char* name, 
-        const char* odeType, const char* odeHandler)
+        const char* odeHandler, const char* odeType)
         : OdeAction(name)
-        , m_odeType(odeType)
         , m_odeHandler(odeHandler)
+        , m_odeType(odeType)
     {
         LOG_FUNC();
     }
@@ -473,7 +524,11 @@ namespace DSL
     void AddTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->OdeHandlerTypeAdd(m_odeHandler.c_str(), m_odeType.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeHandlerTypeAdd(m_odeHandler.c_str(), m_odeType.c_str());
+        }
     }
 
     // ********************************************************************
@@ -493,7 +548,11 @@ namespace DSL
     void DisableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), false);
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), false);
+        }
     }
 
     // ********************************************************************
@@ -513,16 +572,20 @@ namespace DSL
     void EnableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), true);
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), true);
+        }
     }
 
     // ********************************************************************
 
     RemoveTypeOdeAction::RemoveTypeOdeAction(const char* name, 
-        const char* odeType, const char* odeHandler)
+        const char* odeHandler, const char* odeType)
         : OdeAction(name)
-        , m_odeType(odeType)
         , m_odeHandler(odeHandler)
+        , m_odeType(odeType)
     {
         LOG_FUNC();
     }
@@ -535,8 +598,111 @@ namespace DSL
     void RemoveTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        Services::GetServices()->OdeHandlerTypeRemove(m_odeHandler.c_str(), m_odeType.c_str());
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeHandlerTypeRemove(m_odeHandler.c_str(), m_odeType.c_str());
+        }
     }
 
+    // ********************************************************************
+
+    AddActionOdeAction::AddActionOdeAction(const char* name, 
+        const char* odeType, const char* odeAction)
+        : OdeAction(name)
+        , m_odeType(odeType)
+        , m_odeAction(odeAction)
+    {
+        LOG_FUNC();
+    }
+
+    AddActionOdeAction::~AddActionOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTypeActionAdd(m_odeType.c_str(), m_odeAction.c_str());
+        }
+    }
+
+    // ********************************************************************
+
+    DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* odeAction)
+        : OdeAction(name)
+        , m_odeAction(odeAction)
+    {
+        LOG_FUNC();
+    }
+
+    DisableActionOdeAction::~DisableActionOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeActionEnabledSet(m_odeAction.c_str(), false);
+        }
+    }
+
+    // ********************************************************************
+
+    EnableActionOdeAction::EnableActionOdeAction(const char* name, const char* odeAction)
+        : OdeAction(name)
+        , m_odeAction(odeAction)
+    {
+        LOG_FUNC();
+    }
+
+    EnableActionOdeAction::~EnableActionOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeActionEnabledSet(m_odeAction.c_str(), true);
+        }
+    }
+
+    // ********************************************************************
+
+    RemoveActionOdeAction::RemoveActionOdeAction(const char* name, 
+        const char* odeType, const char* odeAction)
+        : OdeAction(name)
+        , m_odeType(odeType)
+        , m_odeAction(odeAction)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveActionOdeAction::~RemoveActionOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTypeActionRemove(m_odeType.c_str(), m_odeAction.c_str());
+        }
+    }
 }    
     

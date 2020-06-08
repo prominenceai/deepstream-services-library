@@ -50,7 +50,7 @@ namespace DSL {
         
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
-         ***************************************************************/
+         ***************************************************************/ 
         DslReturnType OdeActionCallbackNew(const char* name,
             dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
 
@@ -80,6 +80,16 @@ namespace DSL {
         DslReturnType OdeActionSourceRemoveNew(const char* name, 
             const char* pipeline, const char* source);
 
+        DslReturnType OdeActionActionAddNew(const char* name, 
+            const char* odeType, const char* odeAction);
+
+        DslReturnType OdeActionActionDisableNew(const char* name, const char* odeAction);
+
+        DslReturnType OdeActionActionEnableNew(const char* name, const char* odeAction);
+
+        DslReturnType OdeActionActionRemoveNew(const char* name, 
+            const char* odeType, const char* odeAction);
+        
         DslReturnType OdeActionTypeAddNew(const char* name, 
             const char* odeHandler, const char* odeType);
 
@@ -90,6 +100,10 @@ namespace DSL {
         DslReturnType OdeActionTypeRemoveNew(const char* name, 
             const char* odeHandler, const char* odeType);
         
+        DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
+
         DslReturnType OdeActionDelete(const char* name);
         
         DslReturnType OdeActionDeleteAll();

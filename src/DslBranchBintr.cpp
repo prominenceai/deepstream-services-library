@@ -327,7 +327,7 @@ namespace DSL
 
         if (m_pOdeHandlerBintr)
         {
-            // Link All Tiler Elementrs and add as the next component in the Branch
+            // Link All ODE Handler Elementrs and add as the next component in the Branch
             m_pOdeHandlerBintr->SetBatchSize(m_batchSize);
             if (!m_pOdeHandlerBintr->LinkAll() or
                 (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOdeHandlerBintr)))
@@ -335,7 +335,7 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pOdeHandlerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Reporter '" << 
+            LOG_INFO("Branch '" << GetName() << "' Linked up ODE Handler '" << 
                 m_pOdeHandlerBintr->GetName() << "' successfully");
         }
 

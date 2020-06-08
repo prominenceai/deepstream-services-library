@@ -158,12 +158,14 @@ namespace DSL
 
     bool OdeType::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // Ensure enabled, limit has not been exceeded, and filter 
         // on correct Class ID and Source ID 
         if ((!m_enabled) or
-            (m_limit and m_triggered == m_limit) or 
+            (m_limit and m_triggered >= m_limit) or 
             (m_classId != pObjectMeta->class_id) or
             (m_sourceId and m_sourceId != pFrameMeta->source_id))
         {

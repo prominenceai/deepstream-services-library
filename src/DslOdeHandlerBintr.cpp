@@ -35,7 +35,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "reporter-queue");
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "ode-handler-queue");
         
         Bintr::AddChild(m_pQueue);
 
@@ -43,7 +43,7 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("src");
 
         // New src pad probe for event processing and reporting
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("reporter-src-pad-probe", "src", m_pQueue);
+        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("ode-handler-src-pad-probe", "src", m_pQueue);
         
         if (!AddBatchMetaHandler(DSL_PAD_SRC, PadBufferHandler, this))
         {
@@ -67,7 +67,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' reporter to the Parent Pipeline 
+        // add 'this' ode-handler to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddOdeHandlerBintr(shared_from_this());
     }
@@ -82,7 +82,7 @@ namespace DSL
             return false;
         }
 
-        // single element, noting to link
+        // single element, nothing to link
         m_isLinked = true;
         
         return true;
@@ -105,14 +105,36 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return Base::AddChild(pChild);
+        if (!Base::AddChild(pChild))
+        {
+            LOG_ERROR("Failed to add ODE Type' " << pChild->GetName() 
+                << "' as a child of '" << GetName() << "'");
+            return false;
+        }
+        m_pOdeTypes[pChild->GetName()] = pChild;
+        return true;
     }
 
     bool OdeHandlerBintr::RemoveChild(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
         
+        if (!Base::RemoveChild(pChild))
+        {
+            LOG_ERROR("Failed to remove ODE Type' " << pChild->GetName() 
+                << "' as a child of '" << GetName() << "'");
+            return false;
+        }
+        m_pOdeTypes.erase(pChild->GetName());
         return Base::RemoveChild(pChild);
+    }
+    
+    void OdeHandlerBintr::RemoveAllChildren()
+    {
+        LOG_FUNC();
+        
+        m_pOdeTypes.clear();
+        Base::RemoveAllChildren();
     }
 
     bool OdeHandlerBintr::GetEnabled()
@@ -164,7 +186,7 @@ namespace DSL
                     if (pObjectMeta != NULL)
                     {
                         // For each ODE Type owned by this ODE Manager, check for ODE
-                        for (const auto &imap: m_pChildren)
+                        for (const auto &imap: m_pOdeTypes)
                         {
                             DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
                             pOdeType->CheckForOccurrence(pBuffer, pFrameMeta, pObjectMeta);
@@ -174,7 +196,7 @@ namespace DSL
                 
                 // After each detected object is checked for ODE individually, post process 
                 // each frame for Absence events, Limit events, etc. (i.e. frame level events).
-                for (const auto &imap: m_pChildren)
+                for (const auto &imap: m_pOdeTypes)
                 {
                     DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
                     pOdeType->PostProcessFrame(pBuffer, pFrameMeta);
