@@ -2956,7 +2956,7 @@ namespace DSL
         }
         m_odeActions.clear();
 
-        LOG_INFO("All Events deleted successfully");
+        LOG_INFO("All ODE Actions deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -3283,13 +3283,8 @@ namespace DSL
             RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
             RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
-            // Can't add Actions if they're In use by another ODE Type
-            if (m_odeActions[action]->IsInUse())
-            {
-                LOG_ERROR("Unable to add ODE Action '" << action 
-                    << "' as it is currently in use");
-                return DSL_RESULT_ODE_ACTION_IN_USE;
-            }
+            // Note: Actions can be added when in use, i.e. shared between
+            // multiple ODE Types
 
             if (!m_odeTypes[name]->AddChild(m_odeActions[action]))
             {
@@ -3401,7 +3396,7 @@ namespace DSL
         }
         m_odeTypes.clear();
 
-        LOG_INFO("All Events deleted successfully");
+        LOG_INFO("All ODE Types deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }

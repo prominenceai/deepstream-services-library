@@ -169,20 +169,20 @@ namespace DSL
     
     bool OdeHandlerBintr::HandlePadBuffer(GstBuffer* pBuffer)
     {
-        NvDsBatchMeta* batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         // For each frame in the batched meta data
-        for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
+        for (NvDsMetaList* pFrameMetaList = batchMeta->frame_meta_list; pFrameMetaList != NULL; pFrameMetaList = pFrameMetaList->next)
         {
             // Check for valid frame data, and if Inference was done on the frame
-            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta *) (l_frame->data);
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {
                     // Check for valid object data
-                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta *) (pMeta->data);
+                    NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pMeta->data);
                     if (pObjectMeta != NULL)
                     {
                         // For each ODE Type owned by this ODE Manager, check for ODE

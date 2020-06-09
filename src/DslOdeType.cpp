@@ -58,7 +58,9 @@ namespace DSL
     OdeType::~OdeType()
     {
         LOG_FUNC();
-
+        
+        RemoveAllChildren();
+        
         g_mutex_clear(&m_propertyMutex);
     }
     
