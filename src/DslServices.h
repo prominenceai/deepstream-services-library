@@ -57,7 +57,8 @@ namespace DSL {
         DslReturnType OdeActionCaptureNew(const char* name, 
             uint captureType, const char* outdir);
         
-        DslReturnType OdeActionDisplayNew(const char* name);
+        DslReturnType OdeActionDisplayNew(const char* name,
+            uint offsetX, uint offsetY, bool offsetY_with_classId);
         
         DslReturnType OdeActionLogNew(const char* name);
         
@@ -131,6 +132,12 @@ namespace DSL {
         DslReturnType OdeTypeDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
         
         DslReturnType OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height);
+
+        DslReturnType OdeTypeAreaGet(const char* name, 
+            uint* left, uint* top, uint* width, uint* height);
+
+        DslReturnType OdeTypeAreaSet(const char* name, 
+            uint left, uint top, uint width, uint height);
 
         DslReturnType OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 

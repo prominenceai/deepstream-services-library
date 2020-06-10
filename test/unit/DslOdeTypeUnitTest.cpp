@@ -86,7 +86,7 @@ SCENARIO( "An OdeType checks its enabled setting ", "[OdeType]" )
 
         // Object Meta test data
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.class_id = classId; // must match ODE Type's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -141,7 +141,7 @@ SCENARIO( "An  checks its minimum confidence correctly", "[OdeType]" )
 
         // Object Meta test data
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.class_id = classId; // must match ODE Type's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -212,7 +212,7 @@ SCENARIO( "A OdeType checks for SourceId correctly", "[OdeType]" )
         frameMeta.source_id = 1;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.class_id = classId; // must match ODE Type's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -276,7 +276,7 @@ SCENARIO( "A OdeType checks for Minimum Dimensions correctly", "[OdeType]" )
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta = {0};
-        objectMeta.class_id = classId; // must match Detections Event's classId
+        objectMeta.class_id = classId; // must match ODE Type's classId
         objectMeta.object_id = INT64_MAX; 
         objectMeta.rect_params.left = 10;
         objectMeta.rect_params.top = 10;
@@ -318,6 +318,87 @@ SCENARIO( "A OdeType checks for Minimum Dimensions correctly", "[OdeType]" )
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
+{
+    GIVEN( "A new OdeType with minimum criteria" ) 
+    {
+        std::string odeTypeName("occurence");
+        uint classId(1);
+        uint limit(1);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 200;
+        objectMeta.rect_params.top = 100;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        objectMeta.confidence = 0.4999; 
+
+        WHEN( "The Area is set so that the Object's top left corner overlaps" )
+        {
+            pOdeType->SetArea(0, 0, 201, 101);    
+            
+            THEN( "The OdeType is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area is set so that the Object's top right corner overlaps" )
+        {
+            pOdeType->SetArea(400, 0, 100, 100);    
+            
+            THEN( "The OdeType is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
+        {
+            pOdeType->SetArea(0, 199, 201, 100);    
+            
+            THEN( "The OdeType is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
+        {
+            pOdeType->SetArea(400, 200, 100, 100);    
+            
+            THEN( "The OdeType is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area is set so that the Object does not overlap" )
+        {
+            pOdeType->SetArea(0, 0, 10, 10);    
+            
+            THEN( "The OdeType is NOT detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }

@@ -47,10 +47,17 @@ namespace DSL
         , m_minConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
+        , m_areaParams{0}
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
     {
         LOG_FUNC();
+        
+        m_areaParams.has_bg_color = true;
+        m_areaParams.bg_color.red = 1.0;
+        m_areaParams.bg_color.green = 1.0;
+        m_areaParams.bg_color.blue = 1.0;
+        m_areaParams.bg_color.alpha = 0.5;
 
         g_mutex_init(&m_propertyMutex);
     }
@@ -63,7 +70,25 @@ namespace DSL
         
         g_mutex_clear(&m_propertyMutex);
     }
-    
+
+    void OdeType::PreProcessFrame(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled)
+        {
+            return;
+        }
+        if (m_areaParams.width and m_areaParams.height)
+        {
+            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+            
+            pDisplayMeta->num_rects = 1;
+            pDisplayMeta->rect_params[0] = m_areaParams;
+            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+        }
+    }
+
     bool OdeType::GetEnabled()
     {
         LOG_FUNC();
@@ -140,6 +165,27 @@ namespace DSL
         m_minWidth = minWidth;
         m_minHeight = minHeight;
     }
+    
+    void OdeType::GetArea(uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *left = m_areaParams.left;
+        *top = m_areaParams.top;
+        *width = m_areaParams.width;
+        *height = m_areaParams.height;
+    }
+    
+    void OdeType::SetArea(uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_areaParams.left = left;
+        m_areaParams.top = top;
+        m_areaParams.width = width;
+        m_areaParams.height = height;
+    }
 
     void OdeType::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
     {
@@ -158,7 +204,7 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
-    bool OdeType::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    bool OdeType::checkForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
@@ -184,9 +230,29 @@ namespace DSL
         {
             return false;
         }
+        // If area defined, check for overlay
+        if ((m_areaParams.width and m_areaParams.height) and !doesOverlap(pObjectMeta->rect_params))
+        {
+            return false;
+        }
         return true;
     }
 
+    inline bool OdeType::valueInRange(int value, int min, int max)
+    { 
+        return (value >= min) && (value <= max);
+    }
+
+    inline bool OdeType::doesOverlap(NvOSD_RectParams rectParams)
+    {
+        bool xOverlap = valueInRange(rectParams.left, m_areaParams.left, m_areaParams.left + m_areaParams.width) ||
+                        valueInRange(m_areaParams.left, rectParams.left, rectParams.left + rectParams.width);
+
+        bool yOverlap = valueInRange(rectParams.top, m_areaParams.top, m_areaParams.top + m_areaParams.height) ||
+                        valueInRange(m_areaParams.top, rectParams.top, rectParams.top + rectParams.height);
+
+        return xOverlap && yOverlap;
+    }    
     
     // *****************************************************************************
 
@@ -204,7 +270,7 @@ namespace DSL
     bool OccurrenceOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -239,7 +305,7 @@ namespace DSL
     bool AbsenceOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -248,7 +314,7 @@ namespace DSL
         
         return true;
     }
-
+    
     bool AbsenceOdeType::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
         if (m_triggered or m_occurrences)
@@ -287,7 +353,7 @@ namespace DSL
     bool SummationOdeType::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }

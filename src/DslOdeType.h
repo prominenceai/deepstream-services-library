@@ -70,6 +70,13 @@ namespace DSL
          */
         virtual bool CheckForOccurrence(GstBuffer* pBuffer, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+
+        /**
+         * @brief Function called to pre process the current frame data prior to checking for Occurrences
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre processing
+         */
+        virtual void PreProcessFrame(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta);
         
         /**
          * @brief Function called to process all Occurrence/Absence data for the current frame
@@ -145,6 +152,24 @@ namespace DSL
         void SetMinDimensions(uint minWidth, uint minHeight);
         
         /**
+         * @brief Gets the current detection area rectange settings, 
+         * @param[out] left location of the area's left side on the x-axis in pixels, from the left of the frame
+         * @param[out] top location of the area's top on the y-axis in pixels, from the top of the frame
+         * @param[out] width width of the area in pixels
+         * @param[out] height of the area in pixels
+         */
+        void GetArea(uint* left, uint* top, uint* width, uint* height);
+
+        /**
+         * @brief sets the currenty detection area rectange settings, 
+         * @param[in] left location of the area's left side on the x-axis in pixels, from the left of the frame
+         * @param[in] top location of the area's top on the y-axis in pixels, from the top of the frame
+         * @param[in] width width of the area in pixels
+         * @param[in] height of the area in pixels
+         */
+        void SetArea(uint left, uint top, uint width, uint height);
+        
+        /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
          * @param[out] minFrameCountN frame count numeratior  
          * @param[out] minFrameCountD frame count denominator
@@ -166,7 +191,23 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test for min criteria
          * @return true if Min Criteria is met, false otherwise
          */
-        bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        bool checkForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief helper function for doesOverlap
+         * @param value to check if in range
+         * @param min min value of range check
+         * @param max max value of range check
+         * @return trun if value in range of min-max
+         */
+        bool valueInRange(int value, int min, int max);
+        
+        /**
+         * @brief Determines if an object's rectangle overlaps with the ODE Type's area
+         * @param rectParams object's rectangle to check for overlap
+         * @return true if the object's rectangle overlaps, false otherwise
+         */
+        bool doesOverlap(NvOSD_RectParams rectParams);
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -229,6 +270,11 @@ namespace DSL
          * @brief Minimum rectangle height to trigger event
          */
         uint m_minHeight;
+
+        /**
+         * @brief Rectangle array for object detection 
+         */
+        NvOSD_RectParams m_areaParams;
 
         /**
          * @brief Minimum frame count numerator to trigger event

@@ -421,9 +421,14 @@ DslReturnType dsl_ode_action_capture_new(const wchar_t* name,
 /**
  * @brief Creates a uniquely named ODE Display Action
  * @param[in] name unique name for the ODE Display Action 
+ * @param[out] offsetX offset in the X direction for the OSD clock in pixels
+ * @param[out] offsetY offset in the Y direction for the OSD clock in pixels
+ * @param[out] offsetY_with_classId adds an additional offset based on ODE class Id if set true
+ * The setting allows multiple ODE types with difference class Ids to share the same Display action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_new(const wchar_t* name);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
+    uint offsetX, uint offsetY, boolean offsetY_with_classId);
 
 /**
  * @brief Creates a uniquely named ODE Log Action
@@ -726,6 +731,32 @@ DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_wid
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+
+/**
+ * @brief Gets the current area rectangle params. If width and height are set, then
+ * the object's rectangle must overlap by at least one pixel for occurrence to be triggered
+ * @param[in] name unique name of the ODE type to query
+ * @param[out] left left param for area rectangle in pixels
+ * @param[out] top top param for area rectangle in pixels
+ * @param[out] width width param for area rectangle in pixels
+ * @param[out] height height param for area rectangle in pixels
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_area_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height);
+
+/**
+ * @brief Sets the current area rectangle params. If width and height are set, then
+ * the object's rectangle must overlap by at least one pixel for occurrence to be triggered
+ * @param[in] name unique name of the ODE type to query
+ * @param[in] left left param for area rectangle in pixels
+ * @param[in] top top param for area rectangle in pixels
+ * @param[in] width width param for area rectangle in pixels
+ * @param[in] height height param for area rectangle in pixels
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_area_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height);
 
 /**
  * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE type

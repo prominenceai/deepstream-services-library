@@ -178,6 +178,12 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
+                // Preprocess the frame
+                for (const auto &imap: m_pOdeTypes)
+                {
+                    DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
+                    pOdeType->PreProcessFrame(pBuffer, pFrameMeta);
+                }
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {

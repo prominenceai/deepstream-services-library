@@ -46,8 +46,8 @@ namespace DSL
         std::shared_ptr<CaptureOdeAction>(new CaptureOdeAction(name, captureType, outdir))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_NEW(name) \
-        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name))
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
+        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
         
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
@@ -268,8 +268,11 @@ namespace DSL
         /**
          * @brief ctor for the ODE Display Action class
          * @param[in] name unique name for the ODE action
+         * @param[in] offsetX horizontal X-offset for the ODE occurrence data to display
+         * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
+         * @param[in] offsetYWithClassId adds an additional offset based on ODE class Id if set true
          */
-        DisplayOdeAction(const char* name);
+        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -289,6 +292,20 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
+    
+        /**
+         * @brief Horizontal X-offset for the ODE occurrence data to display
+         */
+        uint m_offsetX;
+        
+        /**
+         * @brief Vertical Y-offset for the ODE occurrence data to display
+         */
+        uint m_offsetY;
+        /**
+         * @brief Adds an additional offset based on ODE class Id if set true
+         */
+        bool m_offsetYWithClassId;
     
     };
 

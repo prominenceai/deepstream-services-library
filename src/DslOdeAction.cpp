@@ -218,8 +218,12 @@ namespace DSL
 
     // ********************************************************************
 
-    DisplayOdeAction::DisplayOdeAction(const char* name)
+    DisplayOdeAction::DisplayOdeAction(const char* name, 
+        uint offsetX, uint offsetY, bool offsetYWithClassId)
         : OdeAction(name)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetX)
+        , m_offsetYWithClassId(offsetYWithClassId)
     {
         LOG_FUNC();
     }
@@ -242,17 +246,22 @@ namespace DSL
             pDisplayMeta->num_labels = 1;
 
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[0];
-            pTextParams->display_text = (gchar*) g_malloc0 (MAX_DISPLAY_LEN);
+            pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
             std::string test = pOdeType->GetName() + " = " + std::to_string(pOdeType->m_occurrences);
-            test.copy(pTextParams->display_text, test.size(), 0);
+            test.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+
+            // Setup X and Y display offsets
+            pTextParams->x_offset = m_offsetX;
+            pTextParams->y_offset = m_offsetY;
             
-//            snprintf(pTextParams->display_text, MAX_DISPLAY_LEN, "Occurrences = %d ", pOdeType->m_occurrences);
+            // Typically set if action is shared by multiple ODE Types/ClassId's 
+            if (m_offsetYWithClassId)
+            {
+                pTextParams->y_offset += pOdeType->m_classId * 30 + 2;
+            }
 
-            pTextParams->x_offset = 10;
-            pTextParams->y_offset = 12 + pOdeType->m_classId * 30 + 2;
-
-            /* Font , font-color and font-size */
+            // Font, font-size, font-color
             pTextParams->font_params.font_name = (gchar *) "Serif";
             pTextParams->font_params.font_size = 10;
             pTextParams->font_params.font_color.red = 1.0;
@@ -260,7 +269,7 @@ namespace DSL
             pTextParams->font_params.font_color.blue = 1.0;
             pTextParams->font_params.font_color.alpha = 1.0;
 
-            /* Text background color */
+            // Text background color
             pTextParams->set_bg_clr = 1;
             pTextParams->text_bg_clr.red = 0.0;
             pTextParams->text_bg_clr.green = 0.0;

@@ -58,12 +58,14 @@ DslReturnType dsl_ode_action_capture_new(const wchar_t* name,
         capture_type, cstrOutdir.c_str());
 }
 
-DslReturnType dsl_ode_action_display_new(const wchar_t* name)
+DslReturnType dsl_ode_action_display_new(const wchar_t* name,
+    uint offsetX, uint offsetY, boolean offsetY_with_classId)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str());
+    return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
+        offsetX, offsetY, offsetY_with_classId);
 }
 
 DslReturnType dsl_ode_action_log_new(const wchar_t* name)
@@ -345,6 +347,26 @@ DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_widt
     return DSL::Services::GetServices()->OdeTypeDimensionsMinSet(cstrName.c_str(), min_width, min_height);
 }
 
+DslReturnType dsl_ode_type_area_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeAreaGet(cstrName.c_str(), 
+        left, top, width, height);
+}
+    
+DslReturnType dsl_ode_type_area_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeAreaSet(cstrName.c_str(), 
+        left, top, width, height);
+}
+    
 DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
 {
     std::wstring wstrName(name);
@@ -2361,31 +2383,6 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
-    DslReturnType Services::OdeActionDisplayNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // ensure event name uniqueness 
-        if (m_odeActions.find(name) != m_odeActions.end())
-        {   
-            LOG_ERROR("ODE Action name '" << name << "' is not unique");
-            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-        }
-        try
-        {
-            m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name);
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Display ODE Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-        LOG_INFO("New ODE Display Action '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
     DslReturnType Services::OdeActionCallbackNew(const char* name,
         dsl_ode_occurrence_handler_cb clientHandler, void* clientData)
     {
@@ -2453,6 +2450,32 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_odeActions.find(name) != m_odeActions.end())
+        {   
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
+                offsetX, offsetY, offsetYWithClassId);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Display ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        LOG_INFO("New ODE Display Action '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::OdeActionLogNew(const char* name)
     {
         LOG_FUNC();
@@ -3226,7 +3249,56 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services:: OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
+    DslReturnType Services::OdeTypeAreaGet(const char* name, 
+        uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            pOdeType->GetArea(left, top, width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area criteria");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeTypeAreaSet(const char* name, 
+        uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            // TODO: validate the values for in-range
+            pOdeType->SetArea(left, top, width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception setting Area criteria");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

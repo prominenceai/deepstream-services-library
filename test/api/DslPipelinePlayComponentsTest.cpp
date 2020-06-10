@@ -1416,7 +1416,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //    }
 //}
 
-//SCENARIO( "A new Pipeline with a URI File Source, OFV, Window Sink, and Tiled Display can play", "[test]" )
+//SCENARIO( "A new Pipeline with a URI File Source, OFV, Window Sink, and Tiled Display can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, OFV, Window Sink, and Tiled Display" ) 
 //    {
@@ -1617,7 +1617,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
     }
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture objects", "[test]" )
+SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture objects", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Tiled Display, and Image Sink" ) 
     {
