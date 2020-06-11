@@ -428,7 +428,7 @@ namespace DSL
     void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (m_enabled)
+        if (m_enabled and pObjectMeta)
         {
             // hide the OSD display text
             if (pObjectMeta->text_params.display_text)

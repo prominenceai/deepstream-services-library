@@ -48,6 +48,10 @@ namespace DSL
     #define DSL_ODE_TYPE_SUMMATION_NEW(name, classId, limit) \
         std::shared_ptr<SummationOdeType>(new SummationOdeType(name, classId, limit))
         
+    #define DSL_ODE_TYPE_INTERSECTION_PTR std::shared_ptr<IntersectionOdeType>
+    #define DSL_ODE_TYPE_INTERSECTION_NEW(name, classId, limit) \
+        std::shared_ptr<IntersectionOdeType>(new IntersectionOdeType(name, classId, limit))
+        
     class OdeType : public Base
     {
     public: 
@@ -157,17 +161,37 @@ namespace DSL
          * @param[out] top location of the area's top on the y-axis in pixels, from the top of the frame
          * @param[out] width width of the area in pixels
          * @param[out] height of the area in pixels
+         * @param[out] display if true, the area will be displayed by adding meta data
          */
-        void GetArea(uint* left, uint* top, uint* width, uint* height);
+        void GetArea(uint* left, uint* top, uint* width, uint* height, bool* display);
 
         /**
-         * @brief sets the currenty detection area rectange settings, 
+         * @brief sets the current detection area rectange settings, 
          * @param[in] left location of the area's left side on the x-axis in pixels, from the left of the frame
          * @param[in] top location of the area's top on the y-axis in pixels, from the top of the frame
          * @param[in] width width of the area in pixels
          * @param[in] height of the area in pixels
+         * @param[in] display if true, the area will be displayed by adding meta data
          */
-        void SetArea(uint left, uint top, uint width, uint height);
+        void SetArea(uint left, uint top, uint width, uint height, bool display);
+        
+        /**
+         * @brief Gets the current detection area backtround color
+         * @param[out] red red level for the area background color [0..1]
+         * @param[out] blue blue level for the area background color [0..1]
+         * @param[out] green green level for the area background color [0..1]
+         * @param[out] alpha alpha level for the area background color [0..1]
+         */
+        void GetAreaColor(double* red, double* green, double* blue, double* alpha);
+        
+        /**
+         * @brief Sets the current detection area backtround color
+         * @param[in] red red level for the area background color [0..1]
+         * @param[in] blue blue level for the area background color [0..1]
+         * @param[in] green green level for the area background color [0..1]
+         * @param[in] alpha alpha level for the area background color [0..1]
+         */
+        void SetAreaColor(double red, double green, double blue, double alpha);
         
         /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
@@ -203,11 +227,12 @@ namespace DSL
         bool valueInRange(int value, int min, int max);
         
         /**
-         * @brief Determines if an object's rectangle overlaps with the ODE Type's area
-         * @param rectParams object's rectangle to check for overlap
+         * @brief Determines if two rectangles overlaps 
+         * @param[in] a rectangle A for test
+         * @param[in] b rectangle A for test
          * @return true if the object's rectangle overlaps, false otherwise
          */
-        bool doesOverlap(NvOSD_RectParams rectParams);
+        bool doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b);
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -275,6 +300,11 @@ namespace DSL
          * @brief Rectangle array for object detection 
          */
         NvOSD_RectParams m_areaParams;
+        
+        /**
+         * @brief Display the area (add display meta) if true
+         */
+        bool m_areaDisplayed;
 
         /**
          * @brief Minimum frame count numerator to trigger event
@@ -368,6 +398,43 @@ namespace DSL
         bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
 
     private:
+    
+    };
+    
+    class IntersectionOdeType : public OdeType
+    {
+    public:
+    
+        IntersectionOdeType(const char* name, uint classId, uint limit);
+        
+        ~IntersectionOdeType();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Intersection Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return true if an ODE occurred during post processing
+         */
+        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data
+         * Each object occurrence that matches the min criteria will be added
+         * to list to be checked for intersection on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
     
     };
     

@@ -48,16 +48,18 @@ namespace DSL
         , m_minWidth(0)
         , m_minHeight(0)
         , m_areaParams{0}
+        , m_areaDisplayed(false)
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
     {
         LOG_FUNC();
         
+        // default area background color
         m_areaParams.has_bg_color = true;
         m_areaParams.bg_color.red = 1.0;
         m_areaParams.bg_color.green = 1.0;
         m_areaParams.bg_color.blue = 1.0;
-        m_areaParams.bg_color.alpha = 0.5;
+        m_areaParams.bg_color.alpha = 0.2;
 
         g_mutex_init(&m_propertyMutex);
     }
@@ -78,7 +80,7 @@ namespace DSL
         {
             return;
         }
-        if (m_areaParams.width and m_areaParams.height)
+        if (m_areaDisplayed and m_areaParams.width and m_areaParams.height)
         {
             NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
             NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
@@ -166,7 +168,7 @@ namespace DSL
         m_minHeight = minHeight;
     }
     
-    void OdeType::GetArea(uint* left, uint* top, uint* width, uint* height)
+    void OdeType::GetArea(uint* left, uint* top, uint* width, uint* height, bool* display)
     {
         LOG_FUNC();
         
@@ -174,9 +176,10 @@ namespace DSL
         *top = m_areaParams.top;
         *width = m_areaParams.width;
         *height = m_areaParams.height;
+        *display = m_areaDisplayed;
     }
     
-    void OdeType::SetArea(uint left, uint top, uint width, uint height)
+    void OdeType::SetArea(uint left, uint top, uint width, uint height, bool display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -185,6 +188,27 @@ namespace DSL
         m_areaParams.top = top;
         m_areaParams.width = width;
         m_areaParams.height = height;
+        m_areaDisplayed = display;
+    }
+    
+    void OdeType::GetAreaColor(double* red, double* green, double* blue, double* alpha)
+    {
+        LOG_FUNC();
+        
+        *red = m_areaParams.bg_color.red;
+        *green = m_areaParams.bg_color.green;
+        *blue = m_areaParams.bg_color.blue;
+        *alpha = m_areaParams.bg_color.alpha;
+    }
+
+    void OdeType::SetAreaColor(double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        
+        m_areaParams.bg_color.red = red;
+        m_areaParams.bg_color.green = green;
+        m_areaParams.bg_color.blue = blue;
+        m_areaParams.bg_color.alpha = alpha;
     }
 
     void OdeType::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
@@ -231,7 +255,8 @@ namespace DSL
             return false;
         }
         // If area defined, check for overlay
-        if ((m_areaParams.width and m_areaParams.height) and !doesOverlap(pObjectMeta->rect_params))
+        if ((m_areaParams.width and m_areaParams.height) and 
+            !doesOverlap(pObjectMeta->rect_params, m_areaParams))
         {
             return false;
         }
@@ -243,13 +268,13 @@ namespace DSL
         return (value >= min) && (value <= max);
     }
 
-    inline bool OdeType::doesOverlap(NvOSD_RectParams rectParams)
+    inline bool OdeType::doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b)
     {
-        bool xOverlap = valueInRange(rectParams.left, m_areaParams.left, m_areaParams.left + m_areaParams.width) ||
-                        valueInRange(m_areaParams.left, rectParams.left, rectParams.left + rectParams.width);
+        bool xOverlap = valueInRange(a.left, b.left, b.left + b.width) ||
+                        valueInRange(b.left, a.left, a.left + a.width);
 
-        bool yOverlap = valueInRange(rectParams.top, m_areaParams.top, m_areaParams.top + m_areaParams.height) ||
-                        valueInRange(m_areaParams.top, rectParams.top, rectParams.top + rectParams.height);
+        bool yOverlap = valueInRange(a.top, b.top, b.top + b.height) ||
+                        valueInRange(b.top, a.top, a.top + a.height);
 
         return xOverlap && yOverlap;
     }    
@@ -379,6 +404,65 @@ namespace DSL
         // reset for next frame
         m_occurrences = 0;
         return true;
+   }
+
+    // *****************************************************************************
+    
+    IntersectionOdeType::IntersectionOdeType(const char* name, uint classId, uint limit)
+        : OdeType(name, classId, limit)
+    {
+        LOG_FUNC();
+    }
+
+    IntersectionOdeType::~IntersectionOdeType()
+    {
+        LOG_FUNC();
+    }
+    
+    bool IntersectionOdeType::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrenceMetaList.push_back(pObjectMeta);
+        
+        return true;
+    }
+
+    bool IntersectionOdeType::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        bool retval(false);
+        
+        // iterate through the list of objects occurrences that passed all min criteria
+        for (uint i = 1; i < m_occurrenceMetaList.size(); i++) 
+        {
+            // check each in turn for any frame overlap
+            if (doesOverlap(m_occurrenceMetaList[i]->rect_params, m_occurrenceMetaList[i-1]->rect_params))
+            {
+                for (const auto &imap: m_pChildren)
+                {
+
+                    DSL_ODE_ACTION_PTR pAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                    
+                    // Invoke each action twice, once for each object in the tested pair
+                    pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, m_occurrenceMetaList[i-1]);
+                    pAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, m_occurrenceMetaList[i]);
+                }
+                // event has been triggered
+                retval = true;
+                m_triggered++;
+                 // update the total event count static variable
+                s_eventCount++;
+            }
+        }
+
+        // reset for next frame
+        m_occurrenceMetaList.clear();
+        m_occurrences = 0;
+        return retval;
    }
 
 }

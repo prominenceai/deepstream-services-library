@@ -742,21 +742,45 @@ DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_widt
  * @param[out] height height param for area rectangle in pixels
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_area_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height);
+DslReturnType dsl_ode_type_area_rectangle_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height, boolean display);
 
 /**
  * @brief Sets the current area rectangle params. If width and height are set, then
  * the object's rectangle must overlap by at least one pixel for occurrence to be triggered
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE type to update
  * @param[in] left left param for area rectangle in pixels
  * @param[in] top top param for area rectangle in pixels
  * @param[in] width width param for area rectangle in pixels
  * @param[in] height height param for area rectangle in pixels
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height);
+DslReturnType dsl_ode_type_area_rectangle_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, boolean display);
+
+/**
+ * @brief Gets the current detection area background color values
+ * @param[in] name unique name of the ODE type to query
+ * @param[out] red red level for the area background color [0..1]
+ * @param[out] blue blue level for the area background color [0..1]
+ * @param[out] green green level for the area background color [0..1]
+ * @param[out] alpha alpha level for the area background color [0..1]
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_area_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha);
+
+/**
+ * @brief Sets the current detection area background color values
+ * @param[in] name unique name of the ODE type to update
+ * @param[in] red red level for the area background color [0..1]
+ * @param[in] blue blue level for the area background color [0..1]
+ * @param[in] green green level for the area background color [0..1]
+ * @param[in] alpha alpha level for the area background color [0..1]
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_type_area_color_set(const wchar_t* name, 
+    double red, double green, double blue, double alpha);
 
 /**
  * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE type

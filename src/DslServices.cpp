@@ -347,24 +347,44 @@ DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_widt
     return DSL::Services::GetServices()->OdeTypeDimensionsMinSet(cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_ode_type_area_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height)
+DslReturnType dsl_ode_type_area_rectangle_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height, boolean* display)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeAreaGet(cstrName.c_str(), 
-        left, top, width, height);
+    return DSL::Services::GetServices()->OdeTypeAreaRectangleGet(cstrName.c_str(), 
+        left, top, width, height, display);
 }
     
-DslReturnType dsl_ode_type_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height)
+DslReturnType dsl_ode_type_area_rectangle_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, boolean display)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeAreaSet(cstrName.c_str(), 
-        left, top, width, height);
+    return DSL::Services::GetServices()->OdeTypeAreaRectangleSet(cstrName.c_str(), 
+        left, top, width, height, display);
+}
+
+DslReturnType dsl_ode_type_area_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeAreaColorGet(cstrName.c_str(), 
+        red, green, blue, alpha);
+}
+    
+DslReturnType dsl_ode_type_area_color_set(const wchar_t* name, 
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTypeAreaColorSet(cstrName.c_str(), 
+        red, green, blue, alpha);
 }
     
 DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
@@ -3249,8 +3269,8 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTypeAreaGet(const char* name, 
-        uint* left, uint* top, uint* width, uint* height)
+    DslReturnType Services::OdeTypeAreaRectangleGet(const char* name, 
+        uint* left, uint* top, uint* width, uint* height, boolean* display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3262,7 +3282,7 @@ namespace DSL
             DSL_ODE_TYPE_PTR pOdeType = 
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
-            pOdeType->GetArea(left, top, width, height);
+            pOdeType->GetArea(left, top, width, height, (bool*)display);
 
             return DSL_RESULT_SUCCESS;
         }
@@ -3273,8 +3293,8 @@ namespace DSL
         }
     }                
             
-    DslReturnType Services::OdeTypeAreaSet(const char* name, 
-        uint left, uint top, uint width, uint height)
+    DslReturnType Services::OdeTypeAreaRectangleSet(const char* name, 
+        uint left, uint top, uint width, uint height, boolean display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3287,13 +3307,67 @@ namespace DSL
                 std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
          
             // TODO: validate the values for in-range
-            pOdeType->SetArea(left, top, width, height);
+            pOdeType->SetArea(left, top, width, height, display);
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception setting Area criteria");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeTypeAreaColorGet(const char* name, 
+        double* red, double* green, double* blue, double* alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            pOdeType->GetAreaColor(red, green, blue, alpha);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area Color");
+            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeTypeAreaColorSet(const char* name, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            
+            if ((red > 1) or (green > 1) or (blue > 1) or (alpha));
+            {
+                LOG_ERROR("Invalid Area color value for ODE Type '" << name << "'");
+                return DSL_RESULT_ODE_TYPE_SET_FAILED;
+            }
+            
+            DSL_ODE_TYPE_PTR pOdeType = 
+                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+         
+            pOdeType->SetAreaColor(red, green, blue, alpha);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception setting Area Color");
             return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
         }
     }                

@@ -358,7 +358,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
 
         WHEN( "The Area is set so that the Object's top left corner overlaps" )
         {
-            pOdeType->SetArea(0, 0, 201, 101);    
+            pOdeType->SetArea(0, 0, 201, 101, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -367,7 +367,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's top right corner overlaps" )
         {
-            pOdeType->SetArea(400, 0, 100, 100);    
+            pOdeType->SetArea(400, 0, 100, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -376,7 +376,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
         {
-            pOdeType->SetArea(0, 199, 201, 100);    
+            pOdeType->SetArea(0, 199, 201, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -385,7 +385,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
         {
-            pOdeType->SetArea(400, 200, 100, 100);    
+            pOdeType->SetArea(400, 200, 100, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -394,7 +394,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object does not overlap" )
         {
-            pOdeType->SetArea(0, 0, 10, 10);    
+            pOdeType->SetArea(0, 0, 10, 10, false);    
             
             THEN( "The OdeType is NOT detected because of the minimum criteria" )
             {

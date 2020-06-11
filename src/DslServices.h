@@ -133,11 +133,17 @@ namespace DSL {
         
         DslReturnType OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height);
 
-        DslReturnType OdeTypeAreaGet(const char* name, 
-            uint* left, uint* top, uint* width, uint* height);
+        DslReturnType OdeTypeAreaRectangleGet(const char* name, 
+            uint* left, uint* top, uint* width, uint* height, boolean* display);
 
-        DslReturnType OdeTypeAreaSet(const char* name, 
-            uint left, uint top, uint width, uint height);
+        DslReturnType OdeTypeAreaRectangleSet(const char* name, 
+            uint left, uint top, uint width, uint height, boolean display);
+
+        DslReturnType OdeTypeAreaColorGet(const char* name, 
+            double* red, double* green, double* blue, double* alpha);
+
+        DslReturnType OdeTypeAreaColorSet(const char* name, 
+            double red, double green, double blue, double alpha);
 
         DslReturnType OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 

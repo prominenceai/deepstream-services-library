@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(10000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(20000)
 
 SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can play", "[ode-behavior]" )
 {
@@ -90,8 +90,6 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can pl
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -180,8 +178,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -287,8 +283,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
 
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -389,8 +383,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -484,8 +476,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -601,8 +591,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -718,8 +706,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -775,19 +761,23 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
         std::wstring odeHandlerName(L"ode-handler");
         
-        std::wstring carOccurrenceName(L"Car");
+        std::wstring carSummationName(L"Car");
         uint carClassId(0);
-        std::wstring bicycleOccurrenceName(L"Bicycle");
+        std::wstring bicycleSummationName(L"Bicycle");
         uint bicycleClassId(1);
-        std::wstring personOccurrenceName(L"Person");
+        std::wstring personSummationName(L"Person");
+        std::wstring personOccurrenceName(L"person-occurrence");
         uint personClassId(2);
-        std::wstring roadsignOccurrenceName(L"Roadsign");
+        std::wstring roadsignSummationName(L"Roadsign");
         uint roadsignClassId(3);
         
         uint limit(0);
         std::wstring displayActionName(L"display-action");
         uint textOffsetX(10);
         uint textOffsetY(20);
+        
+        std::wstring printActionName(L"print-action");
+        std::wstring shadeActionName(L"shade-action");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -803,22 +793,26 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
-        // Single display action shared by all ODT Occurrence Types
+        // Set Area critera, and The shade action for ODE occurrence caused by overlap
+        REQUIRE( dsl_ode_action_redact_new(shadeActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_area_rectangle_set(personOccurrenceName.c_str(), 500, 0, 10, 1080, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_action_add(personOccurrenceName.c_str(), shadeActionName.c_str()) == DSL_RESULT_SUCCESS );
+
+        // Single display action shared by all ODT Summation Types
         REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true) == DSL_RESULT_SUCCESS );
         
-        // Create all occurrences
-        REQUIRE( dsl_ode_type_summation_new(carOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_action_add(carOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_summation_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_action_add(bicycleOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_summation_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_action_add(personOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_summation_new(roadsignOccurrenceName.c_str(), roadsignClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_action_add(roadsignOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_ode_type_area_set(personOccurrenceName.c_str(), 300, 200, 100, 200) == DSL_RESULT_SUCCESS );
+        // Create all Summation types and add common Display action
+        REQUIRE( dsl_ode_type_summation_new(carSummationName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_action_add(carSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_summation_new(bicycleSummationName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_action_add(bicycleSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_summation_new(personSummationName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_action_add(personSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_summation_new(roadsignSummationName.c_str(), roadsignClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_action_add(roadsignSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
+        const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", L"person-occurrence", NULL};
         
         REQUIRE( dsl_ode_handler_type_add_many(odeHandlerName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
@@ -837,8 +831,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
