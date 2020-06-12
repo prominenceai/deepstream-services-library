@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslOdeType.h"
 #include "DslOdeAction.h"
+#include "DslOdeArea.h"
 
 using namespace DSL;
 
@@ -75,7 +76,7 @@ SCENARIO( "An OdeType checks its enabled setting ", "[OdeType]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
 
         // Frame Meta test data
         NvDsFrameMeta frameMeta =  {0};
@@ -114,7 +115,7 @@ SCENARIO( "An OdeType checks its enabled setting ", "[OdeType]" )
     }
 }
 
-SCENARIO( "An  checks its minimum confidence correctly", "[OdeType]" )
+SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeType]" )
 {
     GIVEN( "A new OdeType with default criteria" ) 
     {
@@ -130,7 +131,7 @@ SCENARIO( "An  checks its minimum confidence correctly", "[OdeType]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
 
         // Frame Meta test data
         NvDsFrameMeta frameMeta =  {0};
@@ -203,7 +204,7 @@ SCENARIO( "A OdeType checks for SourceId correctly", "[OdeType]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
@@ -267,7 +268,7 @@ SCENARIO( "A OdeType checks for Minimum Dimensions correctly", "[OdeType]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
@@ -331,7 +332,8 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         uint classId(1);
         uint limit(1);
 
-        std::string odeActionName("event-action");
+        std::string odeActionName("ode-action");
+        std::string odeAreaName("ode-area");
 
         DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
             DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
@@ -339,7 +341,11 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddChild(pOdeAction) == true );        
+        DSL_ODE_AREA_PTR pOdeArea =
+            DSL_ODE_AREA_NEW(odeAreaName.c_str(), 0, 0, 1, 1, false);
+            
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
+        REQUIRE( pOdeType->AddArea(pOdeArea) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
@@ -358,7 +364,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
 
         WHEN( "The Area is set so that the Object's top left corner overlaps" )
         {
-            pOdeType->SetArea(0, 0, 201, 101, false);    
+            pOdeArea->SetArea(0, 0, 201, 101, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -367,7 +373,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's top right corner overlaps" )
         {
-            pOdeType->SetArea(400, 0, 100, 100, false);    
+            pOdeArea->SetArea(400, 0, 100, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -376,7 +382,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
         {
-            pOdeType->SetArea(0, 199, 201, 100, false);    
+            pOdeArea->SetArea(0, 199, 201, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -385,7 +391,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
         {
-            pOdeType->SetArea(400, 200, 100, 100, false);    
+            pOdeArea->SetArea(400, 200, 100, 100, false);    
             
             THEN( "The OdeType is detected because of the minimum criteria" )
             {
@@ -394,7 +400,7 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
         WHEN( "The Area is set so that the Object does not overlap" )
         {
-            pOdeType->SetArea(0, 0, 10, 10, false);    
+            pOdeArea->SetArea(0, 0, 10, 10, false);    
             
             THEN( "The OdeType is NOT detected because of the minimum criteria" )
             {
@@ -403,3 +409,106 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         }
     }
 }
+
+SCENARIO( "An Intersection OdeType checks for intersection correctly", "[IntersectionOdeType]" )
+{
+    GIVEN( "A new OdeType with minimum criteria" ) 
+    {
+        std::string odeTypeName("intersection");
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TYPE_INTERSECTION_PTR pOdeType = 
+            DSL_ODE_TYPE_INTERSECTION_NEW(odeTypeName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; // must match ODE Type's classId
+        
+        WHEN( "Two objects occur without overlap" )
+        {
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+
+            objectMeta2.rect_params.left = 101;
+            objectMeta2.rect_params.top = 101;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "NO ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "two objects occur with overlap" )
+        {
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+
+            objectMeta2.rect_params.left = 99;
+            objectMeta2.rect_params.top = 99;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "An ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "Three objects occur, each overlaping the other two" )
+        {
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+
+            objectMeta2.rect_params.left = 99;
+            objectMeta2.rect_params.top = 99;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            objectMeta3.rect_params.left = 198;
+            objectMeta3.rect_params.top = 0;
+            objectMeta3.rect_params.width = 100;
+            objectMeta3.rect_params.height = 100;
+
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            
+            THEN( "Three ODE occurrences are detected" )
+            {
+                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 3 );
+            }
+        }
+    }
+}
+

@@ -779,6 +779,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         std::wstring printActionName(L"print-action");
         std::wstring shadeActionName(L"shade-action");
         
+        std::wstring areaName(L"area");
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -794,10 +796,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Set Area critera, and The shade action for ODE occurrence caused by overlap
-        REQUIRE( dsl_ode_action_redact_new(shadeActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_type_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_type_area_rectangle_set(personOccurrenceName.c_str(), 500, 0, 10, 1080, true) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_redact_new(shadeActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_type_action_add(personOccurrenceName.c_str(), shadeActionName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        // Create a new ODE Area for criteria
+        REQUIRE( dsl_ode_area_new(areaName.c_str(), 500, 0, 10, 1080, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_type_area_add(personOccurrenceName.c_str(), areaName.c_str()) == DSL_RESULT_SUCCESS );
 
         // Single display action shared by all ODT Summation Types
         REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true) == DSL_RESULT_SUCCESS );
@@ -843,6 +849,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
                 REQUIRE( dsl_ode_type_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
             }
         }
     }
