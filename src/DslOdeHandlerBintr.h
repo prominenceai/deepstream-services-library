@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 
 namespace DSL
 {
@@ -121,7 +121,7 @@ namespace DSL
         /**
          * @brief map of Child ODE in-use by this OdeHandlerBintr
          */
-        std::map<std::string, DSL_BASE_PTR> m_pOdeTypes;
+        std::map<std::string, DSL_BASE_PTR> m_pOdeTriggers;
     };
     
     static boolean PadBufferHandler(void* pBuffer, void* user_data);    

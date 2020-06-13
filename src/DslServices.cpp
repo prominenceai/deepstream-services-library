@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
@@ -161,29 +161,29 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
         cstrPipeline.c_str(), cstrSource.c_str());
 }
 
-DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
-    const wchar_t* odeHandler, const wchar_t* odeType)
+DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
+    const wchar_t* odeHandler, const wchar_t* trigger)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOdeType(odeType);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
     std::wstring wstrOdeHandler(odeHandler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    return DSL::Services::GetServices()->OdeActionTypeAddNew(cstrName.c_str(),
-        cstrOdeHandler.c_str(), cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeActionTriggerAddNew(cstrName.c_str(),
+        cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
 }
 
-DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t* odeType)
+DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wchar_t* trigger)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOdeType(odeType);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
 
-    return DSL::Services::GetServices()->OdeActionTypeDisableNew(cstrName.c_str(),
-        cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeActionTriggerDisableNew(cstrName.c_str(),
+        cstrOdeTrigger.c_str());
 }
 
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)
@@ -201,29 +201,29 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OdeActionEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_ode_action_type_enable_new(const wchar_t* name, const wchar_t* odeType)
+DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar_t* trigger)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOdeType(odeType);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
 
-    return DSL::Services::GetServices()->OdeActionTypeEnableNew(cstrName.c_str(),
-        cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeActionTriggerEnableNew(cstrName.c_str(),
+        cstrOdeTrigger.c_str());
 }
 
-DslReturnType dsl_ode_action_type_remove_new(const wchar_t* name,
-    const wchar_t* odeHandler, const wchar_t* odeType)
+DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
+    const wchar_t* odeHandler, const wchar_t* trigger)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOdeType(odeType);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
     std::wstring wstrOdeHandler(odeHandler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    return DSL::Services::GetServices()->OdeActionTypeRemoveNew(cstrName.c_str(),
-        cstrOdeHandler.c_str(), cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeActionTriggerRemoveNew(cstrName.c_str(),
+        cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
 }
 
 DslReturnType dsl_ode_action_delete(const wchar_t* name)
@@ -260,232 +260,72 @@ uint dsl_ode_action_list_size()
     return DSL::Services::GetServices()->OdeActionListSize();
 }
 
-DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, uint limit)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeOccurrenceNew(cstrName.c_str(), class_id, limit);
-}
-
-DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint limit)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeAbsenceNew(cstrName.c_str(), class_id, limit);
-}
-
-DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uint limit)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeSummationNew(cstrName.c_str(), class_id, limit);
-}
-
-DslReturnType dsl_ode_type_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeEnabledGet(cstrName.c_str(), enabled);
-}
-DslReturnType dsl_ode_type_enabled_set(const wchar_t* name, boolean enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeEnabledSet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeClassIdGet(cstrName.c_str(), class_id);
-}
-
-DslReturnType dsl_ode_type_class_id_set(const wchar_t* name, uint class_id)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeClassIdSet(cstrName.c_str(), class_id);
-}
-
-DslReturnType dsl_ode_type_source_id_get(const wchar_t* name, uint* source_id)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeSourceIdGet(cstrName.c_str(), source_id);
-}
-
-DslReturnType dsl_ode_type_source_id_set(const wchar_t* name, uint source_id)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeSourceIdSet(cstrName.c_str(), source_id);
-}
-
-DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeDimensionsMinGet(cstrName.c_str(), min_width, min_height);
-}
-
-DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeDimensionsMinSet(cstrName.c_str(), min_width, min_height);
-}
-
-DslReturnType dsl_ode_type_area_rectangle_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height, boolean* display)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeAreaRectangleGet(cstrName.c_str(), 
-        left, top, width, height, display);
-}
-    
-DslReturnType dsl_ode_type_area_rectangle_set(const wchar_t* name, 
+DslReturnType dsl_ode_area_new(const wchar_t* name, 
     uint left, uint top, uint width, uint height, boolean display)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeAreaRectangleSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeAreaNew(cstrName.c_str(), 
         left, top, width, height, display);
 }
 
-DslReturnType dsl_ode_type_area_color_get(const wchar_t* name, 
+DslReturnType dsl_ode_area_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height, boolean* display)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeAreaGet(cstrName.c_str(), 
+        left, top, width, height, display);
+}
+    
+DslReturnType dsl_ode_area_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, boolean display)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeAreaSet(cstrName.c_str(), 
+        left, top, width, height, display);
+}
+
+DslReturnType dsl_ode_area_color_get(const wchar_t* name, 
     double* red, double* green, double* blue, double* alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeAreaColorGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeAreaColorGet(cstrName.c_str(), 
         red, green, blue, alpha);
 }
     
-DslReturnType dsl_ode_type_area_color_set(const wchar_t* name, 
+DslReturnType dsl_ode_area_color_set(const wchar_t* name, 
     double red, double green, double blue, double alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeAreaColorSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeAreaColorSet(cstrName.c_str(), 
         red, green, blue, alpha);
 }
-    
-DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+
+DslReturnType dsl_ode_area_delete(const wchar_t* name)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeTypeFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+    return DSL::Services::GetServices()->OdeAreaDelete(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_type_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
-}
-
-DslReturnType dsl_ode_type_action_add(const wchar_t* name, const wchar_t* action)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrAction(action);
-    std::string cstrAction(wstrAction.begin(), wstrAction.end());
-
-    return DSL::Services::GetServices()->OdeTypeActionAdd(cstrName.c_str(), cstrAction.c_str());
-}
-
-DslReturnType dsl_ode_type_action_add_many(const wchar_t* name, const wchar_t** actions)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    for (const wchar_t** action = actions; *action; action++)
-    {
-        std::wstring wstrAction(*action);
-        std::string cstrAction(wstrAction.begin(), wstrAction.end());
-        
-        DslReturnType retval = DSL::Services::GetServices()->
-            OdeTypeActionAdd(cstrName.c_str(), cstrAction.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_ode_type_action_remove(const wchar_t* name, const wchar_t* action)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrAction(action);
-    std::string cstrAction(wstrAction.begin(), wstrAction.end());
-
-    return DSL::Services::GetServices()->OdeTypeActionRemove(cstrName.c_str(), cstrAction.c_str());
-}
-
-DslReturnType dsl_type_ode_action_remove_many(const wchar_t* name, const wchar_t** actions)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    for (const wchar_t** action = actions; *action; action++)
-    {
-        std::wstring wstrAction(*action);
-        std::string cstrAction(wstrAction.begin(), wstrAction.end());
-        
-        DslReturnType retval = DSL::Services::GetServices()->
-            OdeTypeActionRemove(cstrName.c_str(), cstrAction.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_ode_type_action_remove_all(const wchar_t* name)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->OdeTypeActionRemoveAll(cstrName.c_str());
-}
-
-DslReturnType dsl_ode_type_delete(const wchar_t* name)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeTypeDelete(cstrName.c_str());
-}
-
-DslReturnType dsl_ode_type_delete_many(const wchar_t** names)
+DslReturnType dsl_ode_area_delete_many(const wchar_t** names)
 {
     for (const wchar_t** name = names; *name; name++)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->OdeTypeDelete(cstrName.c_str());
+
+        DslReturnType retval = DSL::Services::GetServices()->OdeAreaDelete(cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -494,14 +334,286 @@ DslReturnType dsl_ode_type_delete_many(const wchar_t** names)
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_ode_type_delete_all()
+DslReturnType dsl_ode_area_delete_all()
 {
-    return DSL::Services::GetServices()->OdeTypeDeleteAll();
+    return DSL::Services::GetServices()->OdeAreaDeleteAll();
 }
 
-uint dsl_ode_type_list_size()
+uint dsl_ode_area_list_size()
 {
-    return DSL::Services::GetServices()->OdeTypeListSize();
+    return DSL::Services::GetServices()->OdeAreaListSize();
+}
+
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerOccurrenceNew(cstrName.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAbsenceNew(cstrName.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerSummationNew(cstrName.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerEnabledGet(cstrName.c_str(), enabled);
+}
+DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerClassIdGet(cstrName.c_str(), class_id);
+}
+
+DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerClassIdSet(cstrName.c_str(), class_id);
+}
+
+DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerSourceIdGet(cstrName.c_str(), source_id);
+}
+
+DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerSourceIdSet(cstrName.c_str(), source_id);
+}
+
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMinGet(cstrName.c_str(), min_width, min_height);
+}
+
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMinSet(cstrName.c_str(), min_width, min_height);
+}
+
+DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinGet(cstrName.c_str(), min_count_n, min_count_d);
+}
+
+DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerFrameCountMinSet(cstrName.c_str(), min_count_n, min_count_d);
+}
+
+DslReturnType dsl_ode_trigger_action_add(const wchar_t* name, const wchar_t* action)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->OdeTriggerActionAdd(cstrName.c_str(), cstrAction.c_str());
+}
+
+DslReturnType dsl_ode_trigger_action_add_many(const wchar_t* name, const wchar_t** actions)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeTriggerActionAdd(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_trigger_action_remove(const wchar_t* name, const wchar_t* action)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->OdeTriggerActionRemove(cstrName.c_str(), cstrAction.c_str());
+}
+
+DslReturnType dsl_trigger_ode_action_remove_many(const wchar_t* name, const wchar_t** actions)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeTriggerActionRemove(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_trigger_action_remove_all(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->OdeTriggerActionRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_trigger_area_add(const wchar_t* name, const wchar_t* area)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrArea(area);
+    std::string cstrArea(wstrArea.begin(), wstrArea.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAreaAdd(cstrName.c_str(), cstrArea.c_str());
+}
+
+DslReturnType dsl_ode_trigger_area_add_many(const wchar_t* name, const wchar_t** areas)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** area = areas; *area; area++)
+    {
+        std::wstring wstrArea(*area);
+        std::string cstrArea(wstrArea.begin(), wstrArea.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeTriggerAreaAdd(cstrName.c_str(), cstrArea.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_trigger_area_remove(const wchar_t* name, const wchar_t* area)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrArea(area);
+    std::string cstrArea(wstrArea.begin(), wstrArea.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAreaRemove(cstrName.c_str(), cstrArea.c_str());
+}
+
+DslReturnType dsl_trigger_ode_area_remove_many(const wchar_t* name, const wchar_t** areas)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** area = areas; *area; area++)
+    {
+        std::wstring wstrArea(*area);
+        std::string cstrArea(wstrArea.begin(), wstrArea.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeTriggerAreaRemove(cstrName.c_str(), cstrArea.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->OdeTriggerAreaRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_trigger_delete(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->OdeTriggerDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_ode_trigger_delete_all()
+{
+    return DSL::Services::GetServices()->OdeTriggerDeleteAll();
+}
+
+uint dsl_ode_trigger_list_size()
+{
+    return DSL::Services::GetServices()->OdeTriggerListSize();
 }
 
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
@@ -889,27 +1001,27 @@ DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OdeHandlerEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_ode_handler_type_add(const wchar_t* ode_handler, const wchar_t* ode_type)
+DslReturnType dsl_ode_handler_trigger_add(const wchar_t* handler, const wchar_t* trigger)
 {
-    std::wstring wstrOdeHandler(ode_handler);
+    std::wstring wstrOdeHandler(handler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-    std::wstring wstrOdeType(ode_type);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
 
-    return DSL::Services::GetServices()->OdeHandlerTypeAdd(cstrOdeHandler.c_str(), cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
 }
 
-DslReturnType dsl_ode_handler_type_add_many(const wchar_t* ode_handler, const wchar_t** ode_types)
+DslReturnType dsl_ode_handler_trigger_add_many(const wchar_t* handler, const wchar_t** triggers)
 {
-    std::wstring wstrOdeHandler(ode_handler);
+    std::wstring wstrOdeHandler(handler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    for (const wchar_t** ode_type = ode_types; *ode_type; ode_type++)
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
     {
-        std::wstring wstrOdeType(*ode_type);
-        std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+        std::wstring wstrOdeTrigger(*trigger);
+        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
         DslReturnType retval = DSL::Services::GetServices()->
-            OdeHandlerTypeAdd(cstrOdeHandler.c_str(), cstrOdeType.c_str());
+            OdeHandlerTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -918,26 +1030,26 @@ DslReturnType dsl_ode_handler_type_add_many(const wchar_t* ode_handler, const wc
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_ode_handler_type_remove(const wchar_t* ode_handler, const wchar_t* ode_type)
+DslReturnType dsl_ode_handler_trigger_remove(const wchar_t* handler, const wchar_t* trigger)
 {
-    std::wstring wstrOdeHandler(ode_handler);
+    std::wstring wstrOdeHandler(handler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-    std::wstring wstrOdeType(ode_type);
-    std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
 
-    return DSL::Services::GetServices()->OdeHandlerTypeRemove(cstrOdeHandler.c_str(), cstrOdeType.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
 }
 
-DslReturnType dsl_ode_handler_type_remove_many(const wchar_t* ode_handler, const wchar_t** ode_types)
+DslReturnType dsl_ode_handler_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers)
 {
-    std::wstring wstrOdeHandler(ode_handler);
+    std::wstring wstrOdeHandler(handler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    for (const wchar_t** ode_type = ode_types; *ode_type; ode_type++)
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
     {
-        std::wstring wstrOdeType(*ode_type);
-        std::string cstrOdeType(wstrOdeType.begin(), wstrOdeType.end());
-        DslReturnType retval = DSL::Services::GetServices()->OdeHandlerTypeRemove(cstrOdeHandler.c_str(), cstrOdeType.c_str());
+        std::wstring wstrOdeTrigger(*trigger);
+        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
+        DslReturnType retval = DSL::Services::GetServices()->OdeHandlerTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -946,12 +1058,12 @@ DslReturnType dsl_ode_handler_type_remove_many(const wchar_t* ode_handler, const
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_ode_handler_type_remove_all(const wchar_t* ode_handler)
+DslReturnType dsl_ode_handler_trigger_remove_all(const wchar_t* handler)
 {
-    std::wstring wstrOdeHandler(ode_handler);
+    std::wstring wstrOdeHandler(handler);
     std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
 
-    return DSL::Services::GetServices()->OdeHandlerTypeRemoveAll(cstrOdeHandler.c_str());
+    return DSL::Services::GetServices()->OdeHandlerTriggerRemoveAll(cstrOdeHandler.c_str());
 }
 
 DslReturnType dsl_ofv_new(const wchar_t* name)
@@ -2140,21 +2252,30 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     } \
 }while(0); 
 
-#define RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(actions, name, odeAction) do \
+#define RETURN_IF_ODE_AREA_NAME_NOT_FOUND(areas, name) do \
 { \
-    if (!actions[name]->IsType(typeid(odeAction)))\
+    if (areas.find(name) == areas.end()) \
+    { \
+        LOG_ERROR("ODE Area name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_AREA_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(actions, name, action) do \
+{ \
+    if (!actions[name]->IsType(typeid(action)))\
     { \
         LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
         return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
     } \
 }while(0); 
 
-#define RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(events, name) do \
+#define RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \
     { \
-        LOG_ERROR("ODE Type name '" << name << "' was not found"); \
-        return DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND; \
+        LOG_ERROR("ODE Trigger name '" << name << "' was not found"); \
+        return DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND; \
     } \
 }while(0); 
 
@@ -2710,7 +2831,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionActionAddNew(const char* name, 
-        const char* odeType, const char* odeAction)
+        const char* trigger, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2723,7 +2844,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_ADD_NEW(name, odeType, odeAction);
+            m_odeActions[name] = DSL_ODE_ACTION_ACTION_ADD_NEW(name, trigger, action);
 
             LOG_INFO("New Add Action ODE Action '" << name << "' created successfully");
 
@@ -2736,7 +2857,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* odeAction)
+    DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2749,7 +2870,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_DISABLE_NEW(name, odeAction);
+            m_odeActions[name] = DSL_ODE_ACTION_ACTION_DISABLE_NEW(name, action);
 
             LOG_INFO("New Disable Action ODE Action '" << name << "' created successfully");
 
@@ -2762,7 +2883,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionActionEnableNew(const char* name, const char* odeAction)
+    DslReturnType Services::OdeActionActionEnableNew(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2775,7 +2896,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_ENABLE_NEW(name, odeAction);
+            m_odeActions[name] = DSL_ODE_ACTION_ACTION_ENABLE_NEW(name, action);
 
             LOG_INFO("New Enable Action ODE Action'" << name << "' created successfully");
 
@@ -2789,7 +2910,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionActionRemoveNew(const char* name, 
-        const char* odeType, const char* odeAction)
+        const char* trigger, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2802,7 +2923,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, odeType, odeAction);
+            m_odeActions[name] = DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, trigger, action);
 
             LOG_INFO("New ODE Remove Action '" << name << "' created successfully");
 
@@ -2815,8 +2936,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionTypeAddNew(const char* name, 
-        const char* odeHandler, const char* odeType)
+    DslReturnType Services::OdeActionTriggerAddNew(const char* name, 
+        const char* odeHandler, const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2829,20 +2950,20 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TYPE_ADD_NEW(name, odeHandler, odeType);
+            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_ADD_NEW(name, odeHandler, trigger);
 
-            LOG_INFO("New Type Add ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Trigger Add ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Type Add ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Trigger Add ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeActionTypeDisableNew(const char* name, const char* odeType)
+    DslReturnType Services::OdeActionTriggerDisableNew(const char* name, const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2855,20 +2976,20 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TYPE_DISABLE_NEW(name, odeType);
+            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(name, trigger);
 
-            LOG_INFO("New Disable Type ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Disable Trigger ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Disable Type ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Disable Trigger ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeActionTypeEnableNew(const char* name, const char* odeType)
+    DslReturnType Services::OdeActionTriggerEnableNew(const char* name, const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2881,21 +3002,21 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TYPE_ENABLE_NEW(name, odeType);
+            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_ENABLE_NEW(name, trigger);
 
-            LOG_INFO("New Enable Type ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Enable Trigger ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Enable Type ODE Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Enable Trigger ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeActionTypeRemoveNew(const char* name, 
-        const char* odeHandler, const char* odeType)
+    DslReturnType Services::OdeActionTriggerRemoveNew(const char* name, 
+        const char* odeHandler, const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2908,9 +3029,9 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TYPE_REMOVE_NEW(name, odeHandler, odeType);
+            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_REMOVE_NEW(name, odeHandler, trigger);
 
-            LOG_INFO("New Remove Type ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Remove Trigger ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -2971,7 +3092,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
         
-        if (m_odeActions[name]->IsInUse())
+        if (m_odeActions[name].use_count())
         {
             LOG_INFO("ODE Action'" << name << "' is in use");
             return DSL_RESULT_ODE_ACTION_IN_USE;
@@ -2991,7 +3112,7 @@ namespace DSL
         for (auto const& imap: m_odeActions)
         {
             // In the case of Delete all
-            if (imap.second->IsInUse())
+            if (imap.second.use_count() > 1)
             {
                 LOG_ERROR("ODE Action '" << imap.second->GetName() << "' is currently in use");
                 return DSL_RESULT_ODE_ACTION_IN_USE;
@@ -3012,8 +3133,190 @@ namespace DSL
         return m_odeActions.size();
     }
     
+    DslReturnType Services::OdeAreaNew(const char* name, 
+        uint left, uint top, uint width, uint height, boolean display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure ODE Area name uniqueness 
+            if (m_odeAreas.find(name) != m_odeAreas.end())
+            {   
+                LOG_ERROR("ODE Area name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
+            }
+            
+            m_odeAreas[name] = DSL_ODE_AREA_NEW(name, left, top, width, height, display);
+         
+            LOG_INFO("New ODE Area '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE ODE Area '" << name << "' threw exception on creation");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
+    }                
+    DslReturnType Services::OdeAreaGet(const char* name, 
+        uint* left, uint* top, uint* width, uint* height, boolean* display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
+            
+            DSL_ODE_AREA_PTR pOdeArea = 
+                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+         
+            pOdeArea->GetArea(left, top, width, height, (bool*)display);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area criteria");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeAreaSet(const char* name, 
+        uint left, uint top, uint width, uint height, boolean display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
+            
+            DSL_ODE_AREA_PTR pOdeArea = 
+                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+         
+            // TODO: validate the values for in-range
+            pOdeArea->SetArea(left, top, width, height, display);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Area '" << name << "' threw exception setting Area criteria");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeAreaColorGet(const char* name, 
+        double* red, double* green, double* blue, double* alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
+            
+            DSL_ODE_AREA_PTR pOdeArea = 
+                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+         
+            pOdeArea->GetColor(red, green, blue, alpha);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area Color");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+            
+    DslReturnType Services::OdeAreaColorSet(const char* name, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
+            
+            DSL_ODE_AREA_PTR pOdeArea = 
+                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+                
+            LOG_INFO("Setting Area '" << name << "to: red = " << red << " green = " 
+                << green << " blue = " << blue << " alpha = " << alpha);
+                
+            if ((red > 1.0) or (green > 1.0) or (blue > 1.0) or (alpha > 1.0))
+            {
+                LOG_ERROR("Invalid color value for ODE Area '" << name << "'");
+                return DSL_RESULT_ODE_AREA_SET_FAILED;
+            }
+            
+            DSL_ODE_AREA_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+         
+            pOdeArea->SetColor(red, green, blue, alpha);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Area '" << name << "' threw exception setting Color");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeAreaDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeAreas, name);
+        
+        if (m_odeAreas[name].use_count() > 1)
+        {
+            LOG_INFO("ODE Area'" << name << "' is in use");
+            return DSL_RESULT_ODE_ACTION_IN_USE;
+        }
+        m_odeAreas.erase(name);
+
+        LOG_INFO("ODE Area '" << name << "' deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
     
-    DslReturnType Services::OdeTypeOccurrenceNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeAreaDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        for (auto const& imap: m_odeAreas)
+        {
+            // In the case of Delete all
+            if (imap.second.use_count() > 1)
+            {
+                LOG_ERROR("ODE Area '" << imap.second->GetName() << "' is currently in use");
+                return DSL_RESULT_ODE_ACTION_IN_USE;
+            }
+        }
+        m_odeAreas.clear();
+
+        LOG_INFO("All ODE Areas deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::OdeAreaListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_odeAreas.size();
+    }
+        
+    DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3021,12 +3324,12 @@ namespace DSL
         try
         {
             // ensure event name uniqueness 
-            if (m_odeTypes.find(name) != m_odeTypes.end())
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
                 LOG_ERROR("ODE Type name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTypes[name] = DSL_ODE_TYPE_OCCURRENCE_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit);
             
             LOG_INFO("New Occurrence ODE Type '" << name << "' created successfully");
 
@@ -3035,11 +3338,11 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Occurrence ODE Type '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTypeAbsenceNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerAbsenceNew(const char* name, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3047,12 +3350,12 @@ namespace DSL
         try
         {
             // ensure event name uniqueness 
-            if (m_odeTypes.find(name) != m_odeTypes.end())
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
                 LOG_ERROR("ODE Type name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTypes[name] = DSL_ODE_TYPE_ABSENCE_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit);
             
             LOG_INFO("New Absence ODE Type '" << name << "' created successfully");
 
@@ -3061,11 +3364,11 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Absence ODE Type '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTypeSummationNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerSummationNew(const char* name, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3073,12 +3376,12 @@ namespace DSL
         try
         {
             // ensure event name uniqueness 
-            if (m_odeTypes.find(name) != m_odeTypes.end())
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
                 LOG_ERROR("ODE Type name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE;
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTypes[name] = DSL_ODE_TYPE_SUMMATION_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit);
             
             LOG_INFO("New Summation ODE Type '" << name << "' created successfully");
 
@@ -3087,356 +3390,254 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Summation ODE Type '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTypeEnabledGet(const char* name, boolean* enabled)
+    DslReturnType Services::OdeTriggerEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            *enabled = pOdeType->GetEnabled();
+            *enabled = pOdeTrigger->GetEnabled();
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting Enabled setting");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeEnabledSet(const char* name, boolean enabled)
+    DslReturnType Services::OdeTriggerEnabledSet(const char* name, boolean enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            pOdeType->SetEnabled(enabled);
+            pOdeTrigger->SetEnabled(enabled);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception setting Enabled");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeClassIdGet(const char* name, uint* classId)
+    DslReturnType Services::OdeTriggerClassIdGet(const char* name, uint* classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            *classId = pOdeType->GetClassId();
+            *classId = pOdeTrigger->GetClassId();
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeClassIdSet(const char* name, uint classId)
+    DslReturnType Services::OdeTriggerClassIdSet(const char* name, uint classId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            pOdeType->SetClassId(classId);
+            pOdeTrigger->SetClassId(classId);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeSourceIdGet(const char* name, uint* sourceId)
+    DslReturnType Services::OdeTriggerSourceIdGet(const char* name, uint* sourceId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            *sourceId = pOdeType->GetSourceId();
+            *sourceId = pOdeTrigger->GetSourceId();
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting source id");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeSourceIdSet(const char* name, uint sourceId)
+    DslReturnType Services::OdeTriggerSourceIdSet(const char* name, uint sourceId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
 
-            pOdeType->SetSourceId(sourceId);
+            pOdeTrigger->SetSourceId(sourceId);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            pOdeType->GetMinDimensions(min_width, min_height);
+            pOdeTrigger->GetMinDimensions(min_width, min_height);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum dimensions");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeDimensionsMinSet(const char* name, uint min_width, uint min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
             // TODO: validate the min values for in-range
-            pOdeType->SetMinDimensions(min_width, min_height);
+            pOdeTrigger->SetMinDimensions(min_width, min_height);
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception setting minimum dimensions");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeAreaRectangleGet(const char* name, 
-        uint* left, uint* top, uint* width, uint* height, boolean* display)
+            
+    DslReturnType Services::OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
-            pOdeType->GetArea(left, top, width, height, (bool*)display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area criteria");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeTypeAreaRectangleSet(const char* name, 
-        uint left, uint top, uint width, uint height, boolean display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-            
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
-         
-            // TODO: validate the values for in-range
-            pOdeType->SetArea(left, top, width, height, display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Type '" << name << "' threw exception setting Area criteria");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeTypeAreaColorGet(const char* name, 
-        double* red, double* green, double* blue, double* alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-            
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
-         
-            pOdeType->GetAreaColor(red, green, blue, alpha);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area Color");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeTypeAreaColorSet(const char* name, 
-        double red, double green, double blue, double alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-            
-            if ((red > 1) or (green > 1) or (blue > 1) or (alpha));
-            {
-                LOG_ERROR("Invalid Area color value for ODE Type '" << name << "'");
-                return DSL_RESULT_ODE_TYPE_SET_FAILED;
-            }
-            
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
-         
-            pOdeType->SetAreaColor(red, green, blue, alpha);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Type '" << name << "' threw exception setting Area Color");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeTypeFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
-            
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
-         
-            pOdeType->GetMinFrameCount(min_count_n, min_count_d);
+            pOdeTrigger->GetMinFrameCount(min_count_n, min_count_d);
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services:: OdeTypeFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
+    DslReturnType Services:: OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
-            DSL_ODE_TYPE_PTR pOdeType = 
-                std::dynamic_pointer_cast<OdeType>(m_odeTypes[name]);
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
          
             // TODO: validate the min values for in-range
-            pOdeType->SetMinFrameCount(min_count_n, min_count_d);
+            pOdeTrigger->SetMinFrameCount(min_count_n, min_count_d);
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
 
-    DslReturnType Services::OdeTypeActionAdd(const char* name, const char* action)
+    DslReturnType Services::OdeTriggerActionAdd(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
             // Note: Actions can be added when in use, i.e. shared between
             // multiple ODE Types
 
-            if (!m_odeTypes[name]->AddChild(m_odeActions[action]))
+            if (!m_odeTriggers[name]->AddAction(m_odeActions[action]))
             {
                 LOG_ERROR("ODE Type '" << name
                     << "' failed to add ODE Action '" << action << "'");
-                return DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED;
+                return DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED;
             }
             LOG_INFO("ODE Action '" << action
                 << "' was added to ODE Type '" << name << "' successfully");
@@ -3446,32 +3647,32 @@ namespace DSL
         {
             LOG_ERROR("ODE Type '" << name
                 << "' threw exception adding ODE Action '" << action << "'");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeTypeActionRemove(const char* name, const char* action)
+    DslReturnType Services::OdeTriggerActionRemove(const char* name, const char* action)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
-            if (!m_odeActions[action]->IsParent(m_odeTypes[name]))
+            if (!m_odeActions[action]->IsParent(m_odeTriggers[name]))
             {
                 LOG_ERROR("ODE Action'" << action << 
                     "' is not in use by ODE Type '" << name << "'");
-                return DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE;
+                return DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE;
             }
 
-            if (!m_odeTypes[name]->RemoveChild(m_odeActions[action]))
+            if (!m_odeTriggers[name]->RemoveAction(m_odeActions[action]))
             {
                 LOG_ERROR("ODE Type '" << name
                     << "' failed to remove ODE Action '" << action << "'");
-                return DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED;
+                return DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED;
             }
             LOG_INFO("ODE Action '" << action
                 << "' was removed from ODE Type '" << name << "' successfully");
@@ -3482,20 +3683,20 @@ namespace DSL
         {
             LOG_ERROR("ODE Type '" << name
                 << "' threw exception remove ODE Action '" << action << "'");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeTypeActionRemoveAll(const char* name)
+    DslReturnType Services::OdeTriggerActionRemoveAll(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
 
-            m_odeTypes[name]->RemoveAllChildren();
+            m_odeTriggers[name]->RemoveAllActions();
 
             LOG_INFO("All Events Actions removed from ODE Type '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
@@ -3504,55 +3705,144 @@ namespace DSL
         {
             LOG_ERROR("ODE Type '" << name 
                 << "' threw an exception removing All Events Actions");
-            return DSL_RESULT_ODE_TYPE_THREW_EXCEPTION;
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTypeDelete(const char* name)
+    DslReturnType Services::OdeTriggerAreaAdd(const char* name, const char* area)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, name);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
+
+            // Note: Areas can be added when in use, i.e. shared between
+            // multiple ODE Types
+
+            if (!m_odeTriggers[name]->AddArea(m_odeAreas[area]))
+            {
+                LOG_ERROR("ODE Type '" << name
+                    << "' failed to add ODE Area '" << area << "'");
+                return DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED;
+            }
+            LOG_INFO("ODE Area '" << area
+                << "' was added to ODE Type '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name
+                << "' threw exception adding ODE Area '" << area << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerAreaRemove(const char* name, const char* area)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
+
+            if (!m_odeAreas[area]->IsParent(m_odeTriggers[name]))
+            {
+                LOG_ERROR("ODE Area'" << area << 
+                    "' is not in use by ODE Type '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE;
+            }
+
+            if (!m_odeTriggers[name]->RemoveArea(m_odeAreas[area]))
+            {
+                LOG_ERROR("ODE Type '" << name
+                    << "' failed to remove ODE Area '" << area << "'");
+                return DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Area '" << area
+                << "' was removed from ODE Type '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name
+                << "' threw exception remove ODE Area '" << area << "'");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerAreaRemoveAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+
+            m_odeTriggers[name]->RemoveAllAreas();
+
+            LOG_INFO("All Events Areas removed from ODE Type '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Type '" << name 
+                << "' threw an exception removing All ODE Areas");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
         
-        if (m_odeTypes[name]->IsInUse())
+        if (m_odeTriggers[name]->IsInUse())
         {
             LOG_INFO("ODE Type '" << name << "' is in use");
-            return DSL_RESULT_ODE_TYPE_IN_USE;
+            return DSL_RESULT_ODE_TRIGGER_IN_USE;
         }
-        m_odeTypes.erase(name);
+        m_odeTriggers.erase(name);
 
         LOG_INFO("ODE Type '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OdeTypeDeleteAll()
+    DslReturnType Services::OdeTriggerDeleteAll()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_odeTypes)
+        for (auto const& imap: m_odeTriggers)
         {
             // In the case of Delete all
             if (imap.second->IsInUse())
             {
                 LOG_ERROR("ODE Type '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_ODE_TYPE_IN_USE;
+                return DSL_RESULT_ODE_TRIGGER_IN_USE;
             }
         }
-        m_odeTypes.clear();
+        m_odeTriggers.clear();
 
         LOG_INFO("All ODE Types deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
-    uint Services::OdeTypeListSize()
+    uint Services::OdeTriggerListSize()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        return m_odeTypes.size();
+        return m_odeTriggers.size();
     }
     
     DslReturnType Services::SourceCsiNew(const char* name,
@@ -5115,72 +5405,72 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
-   DslReturnType Services::OdeHandlerTypeAdd(const char* odeHandler, const char* odeType)
+   DslReturnType Services::OdeHandlerTriggerAdd(const char* odeHandler, const char* trigger)
    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, odeType);
+        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
         try
         {
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, odeHandler, OdeHandlerBintr);
 
             // Can't add Events if they're In use by another OdeHandler
-            if (m_odeTypes[odeType]->IsInUse())
+            if (m_odeTriggers[trigger]->IsInUse())
             {
-                LOG_ERROR("Unable to add ODE Type '" << odeType 
+                LOG_ERROR("Unable to add ODE Type '" << trigger 
                     << "' as it is currently in use");
-                return DSL_RESULT_ODE_TYPE_IN_USE;
+                return DSL_RESULT_ODE_TRIGGER_IN_USE;
             }
 
             DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
                 std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
 
-            if (!pOdeHandlerBintr->AddChild(m_odeTypes[odeType]))
+            if (!pOdeHandlerBintr->AddChild(m_odeTriggers[trigger]))
             {
                 LOG_ERROR("ODE Handler '" << odeHandler
-                    << "' failed to add ODE Type '" << odeType << "'");
-                return DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED;
+                    << "' failed to add ODE Type '" << trigger << "'");
+                return DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED;
             }
         }
         catch(...)
         {
             LOG_ERROR("ODE Handler '" << odeHandler
-                << "' threw exception adding ODE Type '" << odeType << "'");
+                << "' threw exception adding ODE Type '" << trigger << "'");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Type '" << odeType 
+        LOG_INFO("ODE Type '" << trigger 
             << "' was added to ODE Handler '" << odeHandler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
 
 
-    DslReturnType Services::OdeHandlerTypeRemove(const char* odeHandler, const char* odeType)
+    DslReturnType Services::OdeHandlerTriggerRemove(const char* odeHandler, const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, odeHandler);
-        RETURN_IF_ODE_TYPE_NAME_NOT_FOUND(m_odeTypes, odeType);
+        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
         try
         {
-            if (!m_odeTypes[odeType]->IsParent(m_components[odeHandler]))
+            if (!m_odeTriggers[trigger]->IsParent(m_components[odeHandler]))
             {
-                LOG_ERROR("ODE Type '" << odeType << 
+                LOG_ERROR("ODE Type '" << trigger << 
                     "' is not in use by ODE Handler '" << odeHandler << "'");
-                return DSL_RESULT_ODE_HANDLER_TYPE_NOT_IN_USE;
+                return DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE;
             }
             
             DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
                 std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[odeHandler]);
                 
-            if (!pOdeHandlerBintr->RemoveChild(m_odeTypes[odeType]))
+            if (!pOdeHandlerBintr->RemoveChild(m_odeTriggers[trigger]))
             {
                 LOG_ERROR("ODE Handler '" << odeHandler
-                    << "' failed to remove ODE Type '" << odeType << "'");
-                return DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED;
+                    << "' failed to remove ODE Type '" << trigger << "'");
+                return DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED;
             }
         }
         catch(...)
@@ -5189,13 +5479,13 @@ namespace DSL
                 << "' threw an exception removing ODE Type");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Type '" << odeType 
+        LOG_INFO("ODE Type '" << trigger 
             << "' was removed from OdeHandler '" << odeHandler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OdeHandlerTypeRemoveAll(const char* odeHandler)
+    DslReturnType Services::OdeHandlerTriggerRemoveAll(const char* odeHandler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -7441,18 +7731,22 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_IS_IN_USE] = L"DSL_RESULT_ODE_HANDLER_IS_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_SET_FAILED] = L"DSL_RESULT_ODE_HANDLER_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER] = L"DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_ODE_TYPE_THREW_EXCEPTION";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_IN_USE] = L"DSL_RESULT_ODE_TYPE_IN_USE";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_SET_FAILED] = L"DSL_RESULT_ODE_TYPE_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_IS_NOT_ODE_TYPE] = L"DSL_RESULT_ODE_TYPE_IS_NOT_ODE_TYPE";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED] = L"DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED] = L"DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE] = L"DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_SET_FAILED] = L"DSL_RESULT_ODE_TRIGGER_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_IS_NOT_ODE_TRIGGER] = L"DSL_RESULT_ODE_TRIGGER_IS_NOT_ODE_TRIGGER";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED] = L"DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";
@@ -7462,6 +7756,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_ODE_AREA_THREW_EXCEPTION] = L"DSL_RESULT_ODE_AREA_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_AREA_SET_FAILED] = L"DSL_RESULT_ODE_AREA_SET_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_SINK_NAME_BAD_FORMAT] = L"DSL_RESULT_SINK_NAME_BAD_FORMAT";

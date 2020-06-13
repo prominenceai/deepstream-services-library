@@ -127,8 +127,8 @@ SCENARIO( "A OdeHandlerBintr can add and remove a DetectionEvent", "[OdeHandlerB
 
         DSL_ODE_HANDLER_PTR pOdeHandlerBintr = DSL_ODE_HANDLER_NEW(odeHandlerName.c_str());
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         WHEN( "A the Event is added to the ReportBintr" )
         {

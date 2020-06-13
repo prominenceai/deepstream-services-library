@@ -34,31 +34,31 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_ODE_TYPE_PTR std::shared_ptr<OdeType>
+    #define DSL_ODE_TRIGGER_PTR std::shared_ptr<OdeTrigger>
 
-    #define DSL_ODE_TYPE_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeType>
-    #define DSL_ODE_TYPE_OCCURRENCE_NEW(name, classId, limit) \
-        std::shared_ptr<OccurrenceOdeType>(new OccurrenceOdeType(name, classId, limit))
+    #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
+    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit) \
+        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, classId, limit))
         
-    #define DSL_ODE_TYPE_ABSENCE_PTR std::shared_ptr<AbsenceOdeType>
-    #define DSL_ODE_TYPE_ABSENCE_NEW(name, classId, limit) \
-        std::shared_ptr<AbsenceOdeType>(new AbsenceOdeType(name, classId, limit))
+    #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
+    #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit) \
+        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, classId, limit))
         
-    #define DSL_ODE_TYPE_SUMMATION_PTR std::shared_ptr<SummationOdeType>
-    #define DSL_ODE_TYPE_SUMMATION_NEW(name, classId, limit) \
-        std::shared_ptr<SummationOdeType>(new SummationOdeType(name, classId, limit))
+    #define DSL_ODE_TRIGGER_SUMMATION_PTR std::shared_ptr<SummationOdeTrigger>
+    #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit) \
+        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, classId, limit))
         
-    #define DSL_ODE_TYPE_INTERSECTION_PTR std::shared_ptr<IntersectionOdeType>
-    #define DSL_ODE_TYPE_INTERSECTION_NEW(name, classId, limit) \
-        std::shared_ptr<IntersectionOdeType>(new IntersectionOdeType(name, classId, limit))
-        
-    class OdeType : public Base
+    #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
+    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit) \
+        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, classId, limit))
+
+    class OdeTrigger : public Base
     {
     public: 
     
-        OdeType(const char* name, uint classId, uint limit);
+        OdeTrigger(const char* name, uint classId, uint limit);
 
-        ~OdeType();
+        ~OdeTrigger();
 
         /**
          * @brief total count of all events
@@ -85,10 +85,48 @@ namespace DSL
         /**
          * @brief Function called to process all Occurrence/Absence data for the current frame
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for post processing
-         * @return true if Occurrence on post process, false otherwise
+         * @return the number of ODE Occurrences triggered on post process
          */
-        virtual bool PostProcessFrame(GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta){return false;};
+        virtual uint PostProcessFrame(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta){return 0;};
+
+        /**
+         * @brief Adds an ODE Action as a child to this ODE Type
+         * @param[in] pChild pointer to ODE Action to add
+         * @return true if successful, false otherwise
+         */
+        bool AddAction(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief Removes a child ODE Action from this ODE Type
+         * @param[in] pChild pointer to ODE Action to remove
+         * @return true if successful, false otherwise
+         */
+        bool RemoveAction(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief Removes all child ODE Actions from this ODE Type
+         */
+        void RemoveAllActions();
+        
+        /**
+         * @brief Adds an ODE Area as a child to this ODE Type
+         * @param[in] pChild pointer to ODE Area to add
+         * @return true if successful, false otherwise
+         */
+        bool AddArea(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief Removes a child ODE Area from this ODE Type
+         * @param[in] pChild pointer to ODE Area to remove
+         * @return true if successful, false otherwise
+         */
+        bool RemoveArea(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief Removes all child ODE Areas from this ODE Type
+         */
+        void RemoveAllAreas();
         
         /**
          * @brief Gets the current Enabled setting, default = true
@@ -156,44 +194,6 @@ namespace DSL
         void SetMinDimensions(uint minWidth, uint minHeight);
         
         /**
-         * @brief Gets the current detection area rectange settings, 
-         * @param[out] left location of the area's left side on the x-axis in pixels, from the left of the frame
-         * @param[out] top location of the area's top on the y-axis in pixels, from the top of the frame
-         * @param[out] width width of the area in pixels
-         * @param[out] height of the area in pixels
-         * @param[out] display if true, the area will be displayed by adding meta data
-         */
-        void GetArea(uint* left, uint* top, uint* width, uint* height, bool* display);
-
-        /**
-         * @brief sets the current detection area rectange settings, 
-         * @param[in] left location of the area's left side on the x-axis in pixels, from the left of the frame
-         * @param[in] top location of the area's top on the y-axis in pixels, from the top of the frame
-         * @param[in] width width of the area in pixels
-         * @param[in] height of the area in pixels
-         * @param[in] display if true, the area will be displayed by adding meta data
-         */
-        void SetArea(uint left, uint top, uint width, uint height, bool display);
-        
-        /**
-         * @brief Gets the current detection area backtround color
-         * @param[out] red red level for the area background color [0..1]
-         * @param[out] blue blue level for the area background color [0..1]
-         * @param[out] green green level for the area background color [0..1]
-         * @param[out] alpha alpha level for the area background color [0..1]
-         */
-        void GetAreaColor(double* red, double* green, double* blue, double* alpha);
-        
-        /**
-         * @brief Sets the current detection area backtround color
-         * @param[in] red red level for the area background color [0..1]
-         * @param[in] blue blue level for the area background color [0..1]
-         * @param[in] green green level for the area background color [0..1]
-         * @param[in] alpha alpha level for the area background color [0..1]
-         */
-        void SetAreaColor(double red, double green, double blue, double alpha);
-        
-        /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
          * @param[out] minFrameCountN frame count numeratior  
          * @param[out] minFrameCountD frame count denominator
@@ -233,6 +233,16 @@ namespace DSL
          * @return true if the object's rectangle overlaps, false otherwise
          */
         bool doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b);
+        
+        /**
+         * @brief Map of ODE Areas to use for minimum critera
+         */
+        std::map <std::string, DSL_BASE_PTR> m_pOdeAreas;
+        
+        /**
+         * @brief Map of child ODE Actions to invoke on ODE occurrence
+         */
+        std::map <std::string, DSL_BASE_PTR> m_pOdeActions;
     
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
@@ -297,16 +307,6 @@ namespace DSL
         uint m_minHeight;
 
         /**
-         * @brief Rectangle array for object detection 
-         */
-        NvOSD_RectParams m_areaParams;
-        
-        /**
-         * @brief Display the area (add display meta) if true
-         */
-        bool m_areaDisplayed;
-
-        /**
          * @brief Minimum frame count numerator to trigger event
          */
         uint m_minFrameCountN;
@@ -318,13 +318,13 @@ namespace DSL
 
     };
     
-    class OccurrenceOdeType : public OdeType
+    class OccurrenceOdeTrigger : public OdeTrigger
     {
     public:
     
-        OccurrenceOdeType(const char* name, uint classId, uint limit);
+        OccurrenceOdeTrigger(const char* name, uint classId, uint limit);
         
-        ~OccurrenceOdeType();
+        ~OccurrenceOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for an Every Occurence event
@@ -341,13 +341,13 @@ namespace DSL
     
     };
 
-    class AbsenceOdeType : public OdeType
+    class AbsenceOdeTrigger : public OdeTrigger
     {
     public:
     
-        AbsenceOdeType(const char* name, uint classId, uint limit);
+        AbsenceOdeTrigger(const char* name, uint classId, uint limit);
         
-        ~AbsenceOdeType();
+        ~AbsenceOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -363,21 +363,21 @@ namespace DSL
          * @brief Function to post process the frame for an Absence Event 
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
-         * @return true if an ODE occurred during post processing
+         * @return the number of ODE Occurrences triggered on post process
          */
-        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
 
     private:
     
     };
     
-    class SummationOdeType : public OdeType
+    class SummationOdeTrigger : public OdeTrigger
     {
     public:
     
-        SummationOdeType(const char* name, uint classId, uint limit);
+        SummationOdeTrigger(const char* name, uint classId, uint limit);
         
-        ~SummationOdeType();
+        ~SummationOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -393,21 +393,21 @@ namespace DSL
          * @brief Function to post process the frame and generate a Summation Event 
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
-         * @return true if an ODE occurred during post processing
+         * @return the number of ODE Occurrences triggered on post process
          */
-        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
 
     private:
     
     };
     
-    class IntersectionOdeType : public OdeType
+    class IntersectionOdeTrigger : public OdeTrigger
     {
     public:
     
-        IntersectionOdeType(const char* name, uint classId, uint limit);
+        IntersectionOdeTrigger(const char* name, uint classId, uint limit);
         
-        ~IntersectionOdeType();
+        ~IntersectionOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -423,9 +423,9 @@ namespace DSL
          * @brief Function to post process the frame and generate a Intersection Event 
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
-         * @return true if an ODE occurred during post processing
+         * @return the number of ODE Occurrences triggered on post process
          */
-        bool PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
 
     private:
     

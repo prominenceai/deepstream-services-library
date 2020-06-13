@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslServices.h"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 
 #define MAX_DISPLAY_LEN 64
@@ -76,14 +76,14 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
 
-            m_clientHandler(pOdeType->s_eventCount, pOdeType->m_wName.c_str(),
+            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(),
                 pFrameMeta, pObjectMeta, m_clientData);
         }
     }
@@ -104,7 +104,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled)
@@ -127,10 +127,10 @@ namespace DSL
         }
         NvBufSurface* surface = (NvBufSurface*)inMapInfo.data;
 
-        DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
-        std::string filespec = m_outdir + "/" + pOdeType->GetName() + "-" +
-            std::to_string(pOdeType->s_eventCount) + ".jpg";
+        std::string filespec = m_outdir + "/" + pTrigger->GetName() + "-" +
+            std::to_string(pTrigger->s_eventCount) + ".jpg";
 
         NvBufSurfTransformRect src_rect = {0};
         NvBufSurfTransformRect dst_rect = {0};
@@ -233,14 +233,14 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
             
-            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
             NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
             pDisplayMeta->num_labels = 1;
@@ -248,17 +248,17 @@ namespace DSL
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[0];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
-            std::string test = pOdeType->GetName() + " = " + std::to_string(pOdeType->m_occurrences);
+            std::string test = pTrigger->GetName() + " = " + std::to_string(pTrigger->m_occurrences);
             test.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
 
             // Setup X and Y display offsets
             pTextParams->x_offset = m_offsetX;
             pTextParams->y_offset = m_offsetY;
             
-            // Typically set if action is shared by multiple ODE Types/ClassId's 
+            // Typically set if action is shared by multiple ODE Triggers/ClassId's 
             if (m_offsetYWithClassId)
             {
-                pTextParams->y_offset += pOdeType->m_classId * 30 + 2;
+                pTextParams->y_offset += pTrigger->m_classId * 30 + 2;
             }
 
             // Font, font-size, font-color
@@ -293,15 +293,15 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            LOG_INFO("Event Name      : " << pOdeType->GetName());
-            LOG_INFO("  Unique Id     : " << pOdeType->s_eventCount);
+            LOG_INFO("Event Name      : " << pTrigger->GetName());
+            LOG_INFO("  Unique Id     : " << pTrigger->s_eventCount);
             LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
             LOG_INFO("  Source Data   : ------------------------");
             LOG_INFO("    Id          : " << pFrameMeta->source_id);
@@ -309,8 +309,8 @@ namespace DSL
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
             LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Class Id    : " << pOdeType->m_classId );
-            LOG_INFO("    Occurrences : " << pOdeType->m_occurrences );
+            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
+            LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
             
             if (pObjectMeta)
             {
@@ -323,11 +323,11 @@ namespace DSL
                 LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
             }
             LOG_INFO("  Min Criteria  : ------------------------");
-            LOG_INFO("    Confidence  : " << pOdeType->m_minConfidence);
-            LOG_INFO("    Frame Count : " << pOdeType->m_minFrameCountN
-                << " out of " << pOdeType->m_minFrameCountD);
-            LOG_INFO("    Width       : " << pOdeType->m_minWidth);
-            LOG_INFO("    Height      : " << pOdeType->m_minHeight);
+            LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
+            LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD);
+            LOG_INFO("    Width       : " << pTrigger->m_minWidth);
+            LOG_INFO("    Height      : " << pTrigger->m_minHeight);
         }
     }
 
@@ -345,7 +345,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -368,15 +368,15 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(pBaseType);
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            std::cout << "Event Name      : " << pOdeType->GetName() << "\n";
-            std::cout << "  Unique Id     : " << pOdeType->s_eventCount << "\n";
+            std::cout << "Event Name      : " << pTrigger->GetName() << "\n";
+            std::cout << "  Unique Id     : " << pTrigger->s_eventCount << "\n";
             std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
             std::cout << "  Source Data   : ------------------------" << "\n";
             std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
@@ -384,8 +384,8 @@ namespace DSL
             std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
             std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
             std::cout << "  Object Data   : ------------------------" << "\n";
-            std::cout << "    Class Id    : " << pOdeType->m_classId << "\n";
-            std::cout << "    Occurrences : " << pOdeType->m_occurrences << "\n";
+            std::cout << "    Class Id    : " << pTrigger->m_classId << "\n";
+            std::cout << "    Occurrences : " << pTrigger->m_occurrences << "\n";
 
             if (pObjectMeta)
             {
@@ -399,11 +399,11 @@ namespace DSL
             }
 
             std::cout << "  Min Criteria  : ------------------------" << "\n";
-            std::cout << "    Confidence  : " << pOdeType->m_minConfidence << "\n";
-            std::cout << "    Frame Count : " << pOdeType->m_minFrameCountN
-                << " out of " << pOdeType->m_minFrameCountD << "\n";
-            std::cout << "    Width       : " << pOdeType->m_minWidth << "\n";
-            std::cout << "    Height      : " << pOdeType->m_minHeight << "\n\n";
+            std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
+            std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD << "\n";
+            std::cout << "    Width       : " << pTrigger->m_minWidth << "\n";
+            std::cout << "    Height      : " << pTrigger->m_minHeight << "\n\n";
         }
     }
 
@@ -425,7 +425,7 @@ namespace DSL
 
     }
 
-    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -462,7 +462,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -487,7 +487,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -513,7 +513,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -539,7 +539,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -551,111 +551,111 @@ namespace DSL
 
     // ********************************************************************
 
-    AddTypeOdeAction::AddTypeOdeAction(const char* name, 
-        const char* odeHandler, const char* odeType)
+    AddTriggerOdeAction::AddTriggerOdeAction(const char* name, 
+        const char* handler, const char* trigger)
         : OdeAction(name)
-        , m_odeHandler(odeHandler)
-        , m_odeType(odeType)
+        , m_handler(handler)
+        , m_trigger(trigger)
     {
         LOG_FUNC();
     }
 
-    AddTypeOdeAction::~AddTypeOdeAction()
+    AddTriggerOdeAction::~AddTriggerOdeAction()
     {
         LOG_FUNC();
     }
     
-    void AddTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void AddTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerTypeAdd(m_odeHandler.c_str(), m_odeType.c_str());
+            Services::GetServices()->OdeHandlerTriggerAdd(m_handler.c_str(), m_trigger.c_str());
         }
     }
 
     // ********************************************************************
 
-    DisableTypeOdeAction::DisableTypeOdeAction(const char* name, const char* odeType)
+    DisableTriggerOdeAction::DisableTriggerOdeAction(const char* name, const char* trigger)
         : OdeAction(name)
-        , m_odeType(odeType)
+        , m_trigger(trigger)
     {
         LOG_FUNC();
     }
 
-    DisableTypeOdeAction::~DisableTypeOdeAction()
+    DisableTriggerOdeAction::~DisableTriggerOdeAction()
     {
         LOG_FUNC();
     }
     
-    void DisableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), false);
+            Services::GetServices()->OdeTriggerEnabledSet(m_trigger.c_str(), false);
         }
     }
 
     // ********************************************************************
 
-    EnableTypeOdeAction::EnableTypeOdeAction(const char* name, const char* odeType)
+    EnableTriggerOdeAction::EnableTriggerOdeAction(const char* name, const char* trigger)
         : OdeAction(name)
-        , m_odeType(odeType)
+        , m_trigger(trigger)
     {
         LOG_FUNC();
     }
 
-    EnableTypeOdeAction::~EnableTypeOdeAction()
+    EnableTriggerOdeAction::~EnableTriggerOdeAction()
     {
         LOG_FUNC();
     }
     
-    void EnableTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTypeEnabledSet(m_odeType.c_str(), true);
+            Services::GetServices()->OdeTriggerEnabledSet(m_trigger.c_str(), true);
         }
     }
 
     // ********************************************************************
 
-    RemoveTypeOdeAction::RemoveTypeOdeAction(const char* name, 
-        const char* odeHandler, const char* odeType)
+    RemoveTriggerOdeAction::RemoveTriggerOdeAction(const char* name, 
+        const char* handler, const char* trigger)
         : OdeAction(name)
-        , m_odeHandler(odeHandler)
-        , m_odeType(odeType)
+        , m_handler(handler)
+        , m_trigger(trigger)
     {
         LOG_FUNC();
     }
 
-    RemoveTypeOdeAction::~RemoveTypeOdeAction()
+    RemoveTriggerOdeAction::~RemoveTriggerOdeAction()
     {
         LOG_FUNC();
     }
     
-    void RemoveTypeOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void RemoveTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerTypeRemove(m_odeHandler.c_str(), m_odeType.c_str());
+            Services::GetServices()->OdeHandlerTriggerRemove(m_handler.c_str(), m_trigger.c_str());
         }
     }
 
     // ********************************************************************
 
     AddActionOdeAction::AddActionOdeAction(const char* name, 
-        const char* odeType, const char* odeAction)
+        const char* trigger, const char* action)
         : OdeAction(name)
-        , m_odeType(odeType)
-        , m_odeAction(odeAction)
+        , m_trigger(trigger)
+        , m_action(action)
     {
         LOG_FUNC();
     }
@@ -665,21 +665,21 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void AddActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTypeActionAdd(m_odeType.c_str(), m_odeAction.c_str());
+            Services::GetServices()->OdeTriggerActionAdd(m_trigger.c_str(), m_action.c_str());
         }
     }
 
     // ********************************************************************
 
-    DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* odeAction)
+    DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* action)
         : OdeAction(name)
-        , m_odeAction(odeAction)
+        , m_action(action)
     {
         LOG_FUNC();
     }
@@ -689,21 +689,21 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeActionEnabledSet(m_odeAction.c_str(), false);
+            Services::GetServices()->OdeActionEnabledSet(m_action.c_str(), false);
         }
     }
 
     // ********************************************************************
 
-    EnableActionOdeAction::EnableActionOdeAction(const char* name, const char* odeAction)
+    EnableActionOdeAction::EnableActionOdeAction(const char* name, const char* action)
         : OdeAction(name)
-        , m_odeAction(odeAction)
+        , m_action(action)
     {
         LOG_FUNC();
     }
@@ -713,23 +713,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeActionEnabledSet(m_odeAction.c_str(), true);
+            Services::GetServices()->OdeActionEnabledSet(m_action.c_str(), true);
         }
     }
 
     // ********************************************************************
 
     RemoveActionOdeAction::RemoveActionOdeAction(const char* name, 
-        const char* odeType, const char* odeAction)
+        const char* trigger, const char* action)
         : OdeAction(name)
-        , m_odeType(odeType)
-        , m_odeAction(odeAction)
+        , m_trigger(trigger)
+        , m_action(action)
     {
         LOG_FUNC();
     }
@@ -739,13 +739,13 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveActionOdeAction::HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+    void RemoveActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTypeActionRemove(m_odeType.c_str(), m_odeAction.c_str());
+            Services::GetServices()->OdeTriggerActionRemove(m_trigger.c_str(), m_action.c_str());
         }
     }
 }    

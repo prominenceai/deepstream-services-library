@@ -81,37 +81,37 @@ namespace DSL
     #define DSL_ODE_ACTION_SOURCE_REMOVE_NEW(name, pipeline, source) \
         std::shared_ptr<RemoveSourceOdeAction>(new RemoveSourceOdeAction(name, pipeline, source))
         
-    #define DSL_ODE_ACTION_TYPE_ADD_PTR std::shared_ptr<AddTypeOdeAction>
-    #define DSL_ODE_ACTION_TYPE_ADD_NEW(name, odeType, odeHandler) \
-        std::shared_ptr<AddTypeOdeAction>(new AddTypeOdeAction(name, odeType, odeHandler))
+    #define DSL_ODE_ACTION_TRIGGER_ADD_PTR std::shared_ptr<AddTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_ADD_NEW(name, handler, trigger) \
+        std::shared_ptr<AddTriggerOdeAction>(new AddTriggerOdeAction(name, handler, trigger))
         
-    #define DSL_ODE_ACTION_TYPE_DISABLE_PTR std::shared_ptr<DisableTypeOdeAction>
-    #define DSL_ODE_ACTION_TYPE_DISABLE_NEW(name, odeType) \
-        std::shared_ptr<DisableTypeOdeAction>(new DisableTypeOdeAction(name, odeType))
+    #define DSL_ODE_ACTION_TRIGGER_DISABLE_PTR std::shared_ptr<DisableTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(name, trigger) \
+        std::shared_ptr<DisableTriggerOdeAction>(new DisableTriggerOdeAction(name, trigger))
         
-    #define DSL_ODE_ACTION_TYPE_ENABLE_PTR std::shared_ptr<EnableTypeOdeAction>
-    #define DSL_ODE_ACTION_TYPE_ENABLE_NEW(name, odeType) \
-        std::shared_ptr<EnableTypeOdeAction>(new EnableTypeOdeAction(name, odeType))
+    #define DSL_ODE_ACTION_TRIGGER_ENABLE_PTR std::shared_ptr<EnableTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_ENABLE_NEW(name, trigger) \
+        std::shared_ptr<EnableTriggerOdeAction>(new EnableTriggerOdeAction(name, trigger))
         
-    #define DSL_ODE_ACTION_TYPE_REMOVE_PTR std::shared_ptr<RemoveTypeOdeAction>
-    #define DSL_ODE_ACTION_TYPE_REMOVE_NEW(name, odeType, odeHandler) \
-        std::shared_ptr<RemoveTypeOdeAction>(new RemoveTypeOdeAction(name, odeType, odeHandler))
+    #define DSL_ODE_ACTION_TRIGGER_REMOVE_PTR std::shared_ptr<RemoveTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_REMOVE_NEW(name, handler, trigger) \
+        std::shared_ptr<RemoveTriggerOdeAction>(new RemoveTriggerOdeAction(name, handler, trigger))
         
     #define DSL_ODE_ACTION_ACTION_ADD_PTR std::shared_ptr<AddActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_ADD_NEW(name, odeType, odeHandler) \
-        std::shared_ptr<AddActionOdeAction>(new AddActionOdeAction(name, odeType, odeHandler))
+    #define DSL_ODE_ACTION_ACTION_ADD_NEW(name, trigger, action) \
+        std::shared_ptr<AddActionOdeAction>(new AddActionOdeAction(name, trigger, action))
         
     #define DSL_ODE_ACTION_ACTION_DISABLE_PTR std::shared_ptr<DisableActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_DISABLE_NEW(name, odeType) \
-        std::shared_ptr<DisableActionOdeAction>(new DisableActionOdeAction(name, odeType))
+    #define DSL_ODE_ACTION_ACTION_DISABLE_NEW(name, trigger) \
+        std::shared_ptr<DisableActionOdeAction>(new DisableActionOdeAction(name, trigger))
         
     #define DSL_ODE_ACTION_ACTION_ENABLE_PTR std::shared_ptr<EnableActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_ENABLE_NEW(name, odeType) \
-        std::shared_ptr<EnableActionOdeAction>(new EnableActionOdeAction(name, odeType))
+    #define DSL_ODE_ACTION_ACTION_ENABLE_NEW(name, trigger) \
+        std::shared_ptr<EnableActionOdeAction>(new EnableActionOdeAction(name, trigger))
         
     #define DSL_ODE_ACTION_ACTION_REMOVE_PTR std::shared_ptr<RemoveActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, odeType, odeHandler) \
-        std::shared_ptr<RemoveActionOdeAction>(new RemoveActionOdeAction(name, odeType, odeHandler))
+    #define DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, trigger, action) \
+        std::shared_ptr<RemoveActionOdeAction>(new RemoveActionOdeAction(name, trigger, action))
         
     // ********************************************************************
 
@@ -143,12 +143,12 @@ namespace DSL
          * @brief Virtual function to handle the occurrence of an ODE by taking
          * a specific Action as implemented by the derived class
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        virtual void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
     protected:
@@ -185,12 +185,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by calling the client handler
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -232,13 +232,13 @@ namespace DSL
 
         /**
          * @brief Handles the ODE occurrence by capturing a frame or object image to file
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Type that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -282,13 +282,13 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by adding display info
          * using OSD text overlay
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -333,13 +333,13 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by adding/calling LOG_INFO 
          * with the ODE occurrence data data
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -370,13 +370,13 @@ namespace DSL
         
         /**
          * @brief Handles the ODE occurrence by pausing a named Pipeline
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -409,13 +409,13 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by printing the  
          * the occurrence data to the console
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -450,13 +450,13 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by redacting the object 
          * with the boox coordinates in the ODE occurrence data
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -494,12 +494,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by adding a named Sink to a named Pipeline
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -542,12 +542,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by removing a named Sink from a named Pipeline
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -590,12 +590,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by adding a named Source to a named Pipeline
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -638,12 +638,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by removing a named Soure from a named Pipeline
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -663,176 +663,176 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class AddTypeOdeAction
+     * @class AddTriggerOdeAction
      * @brief Add ODE Action class
      */
-    class AddTypeOdeAction : public OdeAction
+    class AddTriggerOdeAction : public OdeAction
     {
     public:
     
         /**
          * @brief ctor for the ODE Add Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeHandler ODE Handler component to add the ODE type to
-         * @param[in] odeType ODE Type to add on ODE occurrence
+         * @param[in] handler ODE Handler component to add the ODE type to
+         * @param[in] trigger ODE Trigger to add on ODE occurrence
          */
-        AddTypeOdeAction(const char* name, const char* odeHandler, const char* odeType);
+        AddTriggerOdeAction(const char* name, const char* handler, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
          */
-        ~AddTypeOdeAction();
+        ~AddTriggerOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding an ODE Type to and ODE Handler
+         * @brief Handles the ODE occurrence by adding an ODE Trigger to and ODE Handler
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Handler to add the ODE Type to
+         * @brief ODE Handler to add the ODE Trigger to
          */ 
-        std::string m_odeHandler;
+        std::string m_handler;
 
         /**
-         * @brief ODE Type to add to the ODE Handler on ODE occurrence
+         * @brief ODE Trigger to add to the ODE Handler on ODE occurrence
          */
-        std::string m_odeType;
+        std::string m_trigger;
     };
     
     /**
-     * @class DisableTypeOdeAction
-     * @brief Disable Type ODE Action class
+     * @class DisableTriggerOdeAction
+     * @brief Disable Trigger ODE Action class
      */
-    class DisableTypeOdeAction : public OdeAction
+    class DisableTriggerOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Disable Type ODE Action class
+         * @brief ctor for the Disable Trigger ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeType ODE Type to disable on ODE occurrence
+         * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
-        DisableTypeOdeAction(const char* name, const char* odeType);
+        DisableTriggerOdeAction(const char* name, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
          */
-        ~DisableTypeOdeAction();
+        ~DisableTriggerOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by disabling a named ODE Type
+         * @brief Handles the ODE occurrence by disabling a named ODE Trigger
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Type to disable on ODE occurrence
+         * @brief ODE Trigger to disable on ODE occurrence
          */
-        std::string m_odeType;
+        std::string m_trigger;
 
     };
     
     // ********************************************************************
 
     /**
-     * @class EnableTypeOdeAction
-     * @brief Enable Type ODE Action class
+     * @class EnableTriggerOdeAction
+     * @brief Enable Trigger ODE Action class
      */
-    class EnableTypeOdeAction : public OdeAction
+    class EnableTriggerOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Enable Type ODE Action class
+         * @brief ctor for the Enable Trigger ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeType ODE Type to disable on ODE occurrence
+         * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
-        EnableTypeOdeAction(const char* name, const char* odeType);
+        EnableTriggerOdeAction(const char* name, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
          */
-        ~EnableTypeOdeAction();
+        ~EnableTriggerOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by enabling a named ODE Type
+         * @brief Handles the ODE occurrence by enabling a named ODE Trigger
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Type to enable on ODE occurrence
+         * @brief ODE Trigger to enable on ODE occurrence
          */
-        std::string m_odeType;
+        std::string m_trigger;
 
     };
     
     // ********************************************************************
     /**
-     * @class RemoveTypeOdeAction
+     * @class RemoveTriggerOdeAction
      * @brief Remove ODE Action class
      */
-    class RemoveTypeOdeAction : public OdeAction
+    class RemoveTriggerOdeAction : public OdeAction
     {
     public:
     
         /**
          * @brief ctor for the ODE Remove Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeHandler ODE Handler component to add the ODE type to
-         * @param[in] odeType ODE Type to add on ODE occurrence
+         * @param[in] handler ODE Handler component to add the ODE type to
+         * @param[in] trigger ODE Trigger to add on ODE occurrence
          */
-        RemoveTypeOdeAction(const char* name, const char* odeHandler, const char* odeType);
+        RemoveTriggerOdeAction(const char* name, const char* handler, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
          */
-        ~RemoveTypeOdeAction();
+        ~RemoveTriggerOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing an ODE Type from an ODE Handler
+         * @brief Handles the ODE occurrence by removing an ODE Trigger from an ODE Handler
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Handler to remove the ODE Type from
+         * @brief ODE Handler to remove the ODE Trigger from
          */ 
-        std::string m_odeHandler;
+        std::string m_handler;
 
         /**
-         * @brief ODE Type to remove from the ODE Handler on ODE occurrence
+         * @brief ODE Trigger to remove from the ODE Handler on ODE occurrence
          */
-        std::string m_odeType;
+        std::string m_trigger;
     };
 
     // ********************************************************************
@@ -848,10 +848,10 @@ namespace DSL
         /**
          * @brief ctor for the Add Action ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeType ODE Type to add the ODE action to
-         * @param[in] odeAction ODE Action to add on ODE occurrence
+         * @param[in] trigger ODE Trigger to add the ODE action to
+         * @param[in] action ODE Action to add on ODE occurrence
          */
-        AddActionOdeAction(const char* name, const char* odeType, const char* odeAction);
+        AddActionOdeAction(const char* name, const char* trigger, const char* action);
         
         /**
          * @brief dtor for the Add Action class
@@ -859,27 +859,27 @@ namespace DSL
         ~AddActionOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding an ODE Action to an ODE Type
+         * @brief Handles the ODE occurrence by adding an ODE Action to an ODE Trigger
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Type to add the ODE Action to
+         * @brief ODE Trigger to add the ODE Action to
          */ 
-        std::string m_odeType;
+        std::string m_trigger;
 
         /**
-         * @brief ODE Action to add to the ODE Type on ODE occurrence
+         * @brief ODE Action to add to the ODE Trigger on ODE occurrence
          */
-        std::string m_odeAction;
+        std::string m_action;
     };
     
     /**
@@ -893,9 +893,9 @@ namespace DSL
         /**
          * @brief ctor for the Disable Action ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeType ODE Type to disable on ODE occurrence
+         * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
-        DisableActionOdeAction(const char* name, const char* odeType);
+        DisableActionOdeAction(const char* name, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
@@ -905,12 +905,12 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by disabling a named ODE Action
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -918,7 +918,7 @@ namespace DSL
         /**
          * @brief ODE Action to disable on ODE occurrence
          */
-        std::string m_odeAction;
+        std::string m_action;
 
     };
     
@@ -935,9 +935,9 @@ namespace DSL
         /**
          * @brief ctor for the Enable Action ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeAction ODE Action to enabled on ODE occurrence
+         * @param[in] action ODE Action to enabled on ODE occurrence
          */
-        EnableActionOdeAction(const char* name, const char* odeAction);
+        EnableActionOdeAction(const char* name, const char* action);
         
         /**
          * @brief dtor for the ODE Add Action class
@@ -945,14 +945,14 @@ namespace DSL
         ~EnableActionOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by enabling a named ODE Type
+         * @brief Handles the ODE occurrence by enabling a named ODE Trigger
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -960,7 +960,7 @@ namespace DSL
         /**
          * @brief ODE Action to enable on ODE occurrence
          */
-        std::string m_odeAction;
+        std::string m_action;
 
     };
     
@@ -976,10 +976,10 @@ namespace DSL
         /**
          * @brief ctor for the Remove Action ODE Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] odeType ODE Type to add the ODE Action to
-         * @param[in] odeAction ODE Action to add on ODE occurrence
+         * @param[in] trigger ODE Trigger to add the ODE Action to
+         * @param[in] action ODE Action to add on ODE occurrence
          */
-        RemoveActionOdeAction(const char* name, const char* odeHandler, const char* odeType);
+        RemoveActionOdeAction(const char* name, const char* handler, const char* trigger);
         
         /**
          * @brief dtor for the ODE Add Action class
@@ -989,25 +989,25 @@ namespace DSL
         /**
          * @brief Handles the ODE occurrence by removing an ODE Action from an ODE Handler
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeType shared pointer to ODE Type that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseType, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Type to remove the ODE Action from
+         * @brief ODE Trigger to remove the ODE Action from
          */ 
-        std::string m_odeType;
+        std::string m_trigger;
 
         /**
-         * @brief ODE Action to remove from the ODE Type on ODE occurrence
+         * @brief ODE Action to remove from the ODE Trigger on ODE occurrence
          */
-        std::string m_odeAction;
+        std::string m_action;
     };
 }
 

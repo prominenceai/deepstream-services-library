@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 
 using namespace DSL;
@@ -89,8 +89,8 @@ SCENARIO( "A CallbackOdeAction handles an Event Occurence correctly", "[Callback
 
         std::string odeActionName("ode-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_CALLBACK_PTR pOdeAction = 
             DSL_ODE_ACTION_CALLBACK_NEW(odeActionName.c_str(), ode_occurrence_handler_cb, NULL);
@@ -170,8 +170,8 @@ SCENARIO( "A LogOdeAction handles an Event Occurence correctly", "[LogOdeAction]
         
         std::string odeActionName = "ode-action";
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_LOG_PTR pOdeAction = 
             DSL_ODE_ACTION_LOG_NEW(odeActionName.c_str());
@@ -232,8 +232,8 @@ SCENARIO( "A PauseOdeAction handles an Event Occurence correctly", "[PauseOdeAct
         std::string odeActionName = "ode-action";
         std::string pipelineName("pipeline");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PAUSE_PTR pOdeAction = 
             DSL_ODE_ACTION_PAUSE_NEW(odeActionName.c_str(), pipelineName.c_str());
@@ -293,8 +293,8 @@ SCENARIO( "A PrintOdeAction handles an Event Occurence correctly", "[PrintOdeAct
         
         std::string odeActionName = "ode-action";
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -355,8 +355,8 @@ SCENARIO( "A RedactOdeAction handles an Event Occurence correctly", "[RedactOdeA
         std::string odeActionName = "ode-action";
         float red(1), green(1), blue(1), alpha(1);
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_REDACT_PTR pOdeAction = 
             DSL_ODE_ACTION_REDACT_NEW(odeActionName.c_str(), red, green, blue, alpha);

@@ -242,24 +242,27 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION                      0x000D0004
 #define DSL_RESULT_ODE_HANDLER_IS_IN_USE                            0x000D0005
 #define DSL_RESULT_ODE_HANDLER_SET_FAILED                           0x000D0006
-#define DSL_RESULT_ODE_HANDLER_TYPE_ADD_FAILED                      0x000D0007
-#define DSL_RESULT_ODE_HANDLER_TYPE_REMOVE_FAILED                   0x000D0008
-#define DSL_RESULT_ODE_HANDLER_TYPE_NOT_IN_USE                      0x000D0009
+#define DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED                   0x000D0007
+#define DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED                0x000D0008
+#define DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE                   0x000D0009
 #define DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER         0x000D000A
 
 /**
- * ODE Type API Return Values
+ * ODE Trigger API Return Values
  */
-#define DSL_RESULT_ODE_TYPE_RESULT                                  0x000E0000
-#define DSL_RESULT_ODE_TYPE_NAME_NOT_UNIQUE                         0x000E0001
-#define DSL_RESULT_ODE_TYPE_NAME_NOT_FOUND                          0x000E0002
-#define DSL_RESULT_ODE_TYPE_THREW_EXCEPTION                         0x000E0003
-#define DSL_RESULT_ODE_TYPE_IN_USE                                  0x000E0004
-#define DSL_RESULT_ODE_TYPE_SET_FAILED                              0x000E0005
-#define DSL_RESULT_ODE_TYPE_IS_NOT_ODE_TYPE                         0x000E0006
-#define DSL_RESULT_ODE_TYPE_ACTION_ADD_FAILED                       0x000E0007
-#define DSL_RESULT_ODE_TYPE_ACTION_REMOVE_FAILED                    0x000E0008
-#define DSL_RESULT_ODE_TYPE_ACTION_NOT_IN_USE                       0x000E0009
+#define DSL_RESULT_ODE_TRIGGER_RESULT                               0x000E0000
+#define DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE                      0x000E0001
+#define DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND                       0x000E0002
+#define DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION                      0x000E0003
+#define DSL_RESULT_ODE_TRIGGER_IN_USE                               0x000E0004
+#define DSL_RESULT_ODE_TRIGGER_SET_FAILED                           0x000E0005
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_ODE_TRIGGER                   0x000E0006
+#define DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED                    0x000E0007
+#define DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED                 0x000E0008
+#define DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE                    0x000E0009
+#define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
+#define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
+#define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 
 /**
  * ODE Action API Return Values
@@ -275,6 +278,19 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
 #define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 
+/**
+ * ODE Area API Return Values
+ */
+#define DSL_RESULT_ODE_AREA_RESULT                                  0x00100000
+#define DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE                         0x00100001
+#define DSL_RESULT_ODE_AREA_NAME_NOT_FOUND                          0x00100002
+#define DSL_RESULT_ODE_AREA_THREW_EXCEPTION                         0x00100003
+#define DSL_RESULT_ODE_AREA_IN_USE                                  0x00100004
+#define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
+
+/**
+ *
+ */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
@@ -343,7 +359,7 @@ typedef uint boolean;
  * @brief callback typedef for a client ODE occurrence handler function. Once 
  * registered, the function will be called on ODE occurrence
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence
- * @param[in] name unique name of the ODE Event Type that trigger the occurrence
+ * @param[in] name unique name of the ODE Event Trigger that trigger the occurrence
  * @param[in] ode_occurrence pointer to an ODE Occurence data structure
  * @param[in] client_data opaque pointer to client's user data
  */
@@ -509,84 +525,84 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source);
 
 /**
- * @brief Creates a uniquely named Add Type ODE Action that adds
- * a named ODE Type to a named ODE Handler on ODE occurrence
- * @param[in] name unique name for the Add Type ODE Action 
- * @param[in] ode_handler unique name of the handler to add the ODE type to
- * @param[in] ode_type unique name of the ODE type to add to the ODE handler
+ * @brief Creates a uniquely named Add Trigger ODE Action that adds
+ * a named ODE Trigger to a named ODE Handler on ODE occurrence
+ * @param[in] name unique name for the Add Trigger ODE Action 
+ * @param[in] handler unique name of the handler to add the ODE type to
+ * @param[in] trigger unique name of the ODE type to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_type_add_new(const wchar_t* name,
-    const wchar_t* ode_handler, const wchar_t* ode_type);
+DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
+    const wchar_t* handler, const wchar_t* trigger);
 
 /**
- * @brief Creates a uniquely named Disable Type ODE Action that disables
- * a named ODE Type on ODE occurrence
- * @param[in] name unique name for the Disable ODE Type Action 
- * @param[in] ode_type unique name of the ODE type to disable
+ * @brief Creates a uniquely named Disable Trigger ODE Action that disables
+ * a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the Disable ODE Trigger Action 
+ * @param[in] trigger unique name of the ODE type to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_type_disable_new(const wchar_t* name, const wchar_t* ode_type);
+DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wchar_t* trigger);
 
 /**
- * @brief Creates a uniquely named Enable Type ODE Action that enables
- * a named ODE Type on ODE occurrence
- * @param[in] name unique name for the ODE Type Enable Action 
- * @param[in] ode_type unique name of the ODE type to disable
+ * @brief Creates a uniquely named Enable Trigger ODE Action that enables
+ * a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the ODE Trigger Enable Action 
+ * @param[in] trigger unique name of the ODE type to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_type_enable_new(const wchar_t* name, const wchar_t* ode_type);
+DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar_t* trigger);
 
 /**
- * @brief Creates a uniquely named Remove Type ODE Action that removes
- * a named ODE Type from a named ODE Handler
- * @param[in] name unique name for the Remove Type ODE Action
- * @param[in] ode_handler unique name of the handler to remove the ODE type from
- * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
+ * @brief Creates a uniquely named Remove Trigger ODE Action that removes
+ * a named ODE Trigger from a named ODE Handler
+ * @param[in] name unique name for the Remove Trigger ODE Action
+ * @param[in] handler unique name of the handler to remove the ODE type from
+ * @param[in] trigger unique name of the ODE type to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_type_remove_new(const wchar_t* name,
-    const wchar_t* ode_handler, const wchar_t* ode_type);
+DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
+    const wchar_t* handler, const wchar_t* trigger);
 
 /**
  * @brief Creates a uniquely named Add Action ODE Action that adds
- * a named ODE Action to a named ODE Type on ODE occurrence
- * @param[in] name unique name for the ODE Type Add Action 
- * @param[in] ode_handler unique name of the handler to add the ODE type to
- * @param[in] ode_type unique name of the ODE type to add to the ODE handler
+ * a named ODE Action to a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the ODE Trigger Add Action 
+ * @param[in] handler unique name of the handler to add the ODE type to
+ * @param[in] trigger unique name of the ODE type to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
-    const wchar_t* ode_type, const wchar_t* ode_action);
+    const wchar_t* trigger, const wchar_t* action);
 
 /**
  * @brief Creates a uniquely named Disable Action ODE Action that disables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Type Disable Action 
- * @param[in] ode_type unique name of the ODE type to disable
+ * @param[in] name unique name for the ODE Trigger Disable Action 
+ * @param[in] trigger unique name of the ODE type to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* ode_action);
+DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* action);
 
 /**
  * @brief Creates a uniquely named Enable Action ODE Action that enables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Type Enable Action 
- * @param[in] ode_type unique name of the ODE type to disable
+ * @param[in] name unique name for the ODE Trigger Enable Action 
+ * @param[in] trigger unique name of the ODE type to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* ode_action);
+DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* action);
 
 /**
  * @brief Creates a uniquely named Remove Action ODE Action that removes
- * a named ODE Action from a named ODE Type on ODE occurrence
- * @param[in] name unique name for the ODE Type Remove Action
- * @param[in] ode_handler unique name of the handler to remove the ODE type from
- * @param[in] ode_type unique name of the ODE type to remove frome the ODE handler
+ * a named ODE Action from a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the ODE Trigger Remove Action
+ * @param[in] handler unique name of the handler to remove the ODE type from
+ * @param[in] trigger unique name of the ODE type to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_remove_new(const wchar_t* name,
-    const wchar_t* ode_type, const wchar_t* ode_action);
+    const wchar_t* trigger, const wchar_t* action);
 /**
  * @brief Gets the current enabled setting for the ODE Action
  * @param[in] name unique name of the ODE Action to query
@@ -606,7 +622,7 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
 /**
  * @brief Deletes an ODE Action of any type
  * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if the Action is currently
- * owned by a ODE Type.
+ * owned by a ODE Trigger.
  * @param[in] name unique name of the ODE Action to delete
  * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
@@ -615,7 +631,7 @@ DslReturnType dsl_ode_action_delete(const wchar_t* name);
 /**
  * @brief Deletes a Null terminated array of ODE Actions of any type
  * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Actions 
- * are currently owned by a ODE Type.
+ * are currently owned by a ODE Trigger.
  * @param[in] names Null ternimated array of unique names to delete
  * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
@@ -624,93 +640,185 @@ DslReturnType dsl_ode_action_delete_many(const wchar_t** names);
 /**
  * @brief Deletes all ODE Actions of all types
  * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Actions 
- * are currently owned by a ODE Type.
+ * are currently owned by a ODE Trigger.
  * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_delete_all();
 
 /**
- * @brief Returns the size of the list of Events Actions
+ * @brief Returns the size of the list of ODE Actions
  * @return the number of ODE Actions in the list
  */
 uint dsl_ode_action_list_size();
+
+/**
+ * @brief Creates a uniquely named ODE Area
+ * @param[in] name unique name of the ODE area to create
+ * @param[in] left left param for area rectangle in pixels
+ * @param[in] top top param for area rectangle in pixels
+ * @param[in] width width param for area rectangle in pixels
+ * @param[in] height height param for area rectangle in pixels
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_new(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, boolean display);
+
+/**
+ * @brief Gets the current rectangle params for the named ODE Area.
+ * @param[in] name unique name of the ODE area to query
+ * @param[out] left left param for area rectangle in pixels
+ * @param[out] top top param for area rectangle in pixels
+ * @param[out] width width param for area rectangle in pixels
+ * @param[out] height height param for area rectangle in pixels
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_get(const wchar_t* name, 
+    uint* left, uint* top, uint* width, uint* height, boolean *display);
+
+/**
+ * @brief Sets the current rectangle params for the named ODE Area. 
+ * @param[in] name unique name of the ODE area to update
+ * @param[in] left left param for area rectangle in pixels
+ * @param[in] top top param for area rectangle in pixels
+ * @param[in] width width param for area rectangle in pixels
+ * @param[in] height height param for area rectangle in pixels
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_set(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, boolean display);
+
+/**
+ * @brief Gets the current detection area background color values
+ * @param[in] name unique name of the ODE area to query
+ * @param[out] red red level for the area background color [0..1]
+ * @param[out] blue blue level for the area background color [0..1]
+ * @param[out] green green level for the area background color [0..1]
+ * @param[out] alpha alpha level for the area background color [0..1]
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha);
+
+/**
+ * @brief Sets the current detection area background color values
+ * @param[in] name unique name of the ODE area to update
+ * @param[in] red red level for the area background color [0..1]
+ * @param[in] blue blue level for the area background color [0..1]
+ * @param[in] green green level for the area background color [0..1]
+ * @param[in] alpha alpha level for the area background color [0..1]
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_color_set(const wchar_t* name, 
+    double red, double green, double blue, double alpha);
+
+/**
+ * @brief Deletes an ODE Area
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if the Area is currently
+ * owned by a ODE Trigger.
+ * @param[in] name unique name of the ODE Area to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated array of ODE Areas of any type
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Areas 
+ * are currently owned by a ODE Trigger.
+ * @param[in] names Null ternimated array of unique names to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all ODE Areas of all types
+ * This service will fail with DSL_RESULT_ODE_ACTION_IN_USE if any of the Areas 
+ * are currently owned by a ODE Trigger.
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_delete_all();
+
+/**
+ * @brief Returns the size of the list of ODE Areas
+ * @return the number of ODE Actions in the list
+ */
+uint dsl_ode_area_list_size();
 
 /**
  * @brief Event to trigger on occurrence of object detection
  * @param[in] name unique name for this event object
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_occurrence_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
  * @brief Event to trigger on absence of object detection within a frame
  * @param[in] name unique name for this event object
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_absence_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
  * @brief Event to trigger on summation of all objects detected within a frame
  * @param[in] name unique name for this event object
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
  
-DslReturnType dsl_ode_type_summation_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
  * @brief Gets the current enabled setting for the ODE type
  * @param[in] name unique name of the ODE type to query
  * @param[out] enabled true if the ODE type is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_enabled_get(const wchar_t* name, boolean* enabled);
+DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
  * @brief Sets the enabled setting for the ODE type
  * @param[in] name unique name of the ODE type to update
  * @param[in] enabled true if the ODE type is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_enabled_set(const wchar_t* name, boolean enabled);
+DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Gets the current class_id filter for the ODE type
  * @param[in] name unique name of the ODE type to query
  * @param[out] class_id returns the current class_id in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_class_id_get(const wchar_t* name, uint* class_id);
+DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
 
 /**
  * @brief Sets the class_id for the ODE type to filter on
  * @param[in] name unique name of the ODE type to update
  * @param[in] class_id new class_id to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_class_id_set(const wchar_t* name, uint class_id);
+DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
 
 /**
  * @brief Gets the current source_id filter for the ODE type
  * A value of 0 indicates filter disabled
  * @param[in] name unique name of the ODE type to query
  * @param[out] sorce_id returns the current source_id in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_source_id_get(const wchar_t* name, uint* source_id);
+DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id);
 
 /**
  * @brief Sets the source_id for the ODE type to filter on
  * @param[in] name unique name of the ODE type to update
  * @param[in] source_id new source_id to filter on
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_source_id_set(const wchar_t* name, uint source_id);
+DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE type
@@ -718,9 +826,9 @@ DslReturnType dsl_ode_type_source_id_set(const wchar_t* name, uint source_id);
  * @param[in] name unique name of the ODE type to query
  * @param[out] min_width returns the current minimun frame width in use
  * @param[out] min_height returns the current minimun frame hight in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the ODE type
@@ -728,59 +836,9 @@ DslReturnType dsl_ode_type_dimensions_min_get(const wchar_t* name, uint* min_wid
  * @param[in] name unique name of the ODE type to query
  * @param[in] min_width the new minimun frame width to use
  * @param[in] min_height the new minimun frame hight to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
-
-/**
- * @brief Gets the current area rectangle params. If width and height are set, then
- * the object's rectangle must overlap by at least one pixel for occurrence to be triggered
- * @param[in] name unique name of the ODE type to query
- * @param[out] left left param for area rectangle in pixels
- * @param[out] top top param for area rectangle in pixels
- * @param[out] width width param for area rectangle in pixels
- * @param[out] height height param for area rectangle in pixels
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_ode_type_area_rectangle_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height, boolean display);
-
-/**
- * @brief Sets the current area rectangle params. If width and height are set, then
- * the object's rectangle must overlap by at least one pixel for occurrence to be triggered
- * @param[in] name unique name of the ODE type to update
- * @param[in] left left param for area rectangle in pixels
- * @param[in] top top param for area rectangle in pixels
- * @param[in] width width param for area rectangle in pixels
- * @param[in] height height param for area rectangle in pixels
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_ode_type_area_rectangle_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
-
-/**
- * @brief Gets the current detection area background color values
- * @param[in] name unique name of the ODE type to query
- * @param[out] red red level for the area background color [0..1]
- * @param[out] blue blue level for the area background color [0..1]
- * @param[out] green green level for the area background color [0..1]
- * @param[out] alpha alpha level for the area background color [0..1]
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_ode_type_area_color_get(const wchar_t* name, 
-    double* red, double* green, double* blue, double* alpha);
-
-/**
- * @brief Sets the current detection area background color values
- * @param[in] name unique name of the ODE type to update
- * @param[in] red red level for the area background color [0..1]
- * @param[in] blue blue level for the area background color [0..1]
- * @param[in] green green level for the area background color [0..1]
- * @param[in] alpha alpha level for the area background color [0..1]
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_ode_type_area_color_set(const wchar_t* name, 
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
 
 /**
  * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE type
@@ -788,9 +846,9 @@ DslReturnType dsl_ode_type_area_color_set(const wchar_t* name,
  * @param[in] name unique name of the ODE type to query
  * @param[out] min_count_n returns the current minimun frame count numerator in use
  * @param[out] min_count_d returns the current minimun frame count denomintor in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
+DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
 
 /**
  * @brief Sets the current min frame count (detected in last N out of D frames) for the ODE type
@@ -798,75 +856,115 @@ DslReturnType dsl_ode_type_frame_count_min_get(const wchar_t* name, uint* min_co
  * @param[in] name unique name of the ODE type to query
  * @param[out] min_count_n sets the current minimun frame count numerator to use
  * @param[out] min_count_d sets the current minimun frame count denomintor to use
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
+DslReturnType dsl_ode_trigger_frame_count_min_set(const wchar_t* name, uint min_count_n, uint min_count_d);
 
 /**
- * @brief Adds a named ODE Action to a named ODE Type
- * @param[in] name unique name of the ODE Type to update
+ * @brief Adds a named ODE Action to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] action unique name of the ODE Action to Add
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_action_add(const wchar_t* name, const wchar_t* action);
+DslReturnType dsl_ode_trigger_action_add(const wchar_t* name, const wchar_t* action);
 
 /**
- * @brief Adds a Null terminated list of named ODE Actions to a named ODE Type
- * @param[in] name unique name of the ODE Type to update
+ * @brief Adds a Null terminated list of named ODE Actions to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] actions Null terminated list of unique names of the ODE Actions to add
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_action_add_many(const wchar_t* name, const wchar_t** actions);
+DslReturnType dsl_ode_trigger_action_add_many(const wchar_t* name, const wchar_t** actions);
 
 /**
- * @brief Removes a named ODE Action from a named ODE Type
- * @param[in] name unique name of the ODE Type to update
+ * @brief Removes a named ODE Action from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] action unique name of the ODE Action to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_action_remove(const wchar_t* name, const wchar_t* action);
+DslReturnType dsl_ode_trigger_action_remove(const wchar_t* name, const wchar_t* action);
 
 /**
- * @brief Removes a Null terminated list of named ODE Actions from a named ODE Type
- * @param[in] name unique name of the ODE Type to update
+ * @brief Removes a Null terminated list of named ODE Actions from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] actions Null terminated list of unique names of the ODE Actions to remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_action_remove_many(const wchar_t* name, const wchar_t** actions);
+DslReturnType dsl_ode_trigger_action_remove_many(const wchar_t* name, const wchar_t** actions);
 
 /**
- * @brief Removes a named ODE Action from a named ODE Type
- * @param[in] name unique name of the ODE Type to update
+ * @brief Removes a named ODE Action from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] action unique name of the ODE Action to Remove
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_action_remove_all(const wchar_t* name);
+DslReturnType dsl_ode_trigger_action_remove_all(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Area to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] area unique name of the ODE Area to Add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_area_add(const wchar_t* name, const wchar_t* area);
+
+/**
+ * @brief Adds a Null terminated list of named ODE Areas to a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] areas Null terminated list of unique names of the ODE Areas to add
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_area_add_many(const wchar_t* name, const wchar_t** areas);
+
+/**
+ * @brief Removes a named ODE Area from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] area unique name of the ODE Area to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_area_remove(const wchar_t* name, const wchar_t* area);
+
+/**
+ * @brief Removes a Null terminated list of named ODE Areas from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] areas Null terminated list of unique names of the ODE Areas to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_t** areas);
+
+/**
+ * @brief Removes a named ODE Area from a named ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] area unique name of the ODE Area to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 
 /**
  * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
  * @brief[in] name unique name of the event to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_delete(const wchar_t* name);
+DslReturnType dsl_ode_trigger_delete(const wchar_t* name);
 
 /**
  * @brief Deletes a Null terminated list of Events. The call will fail if any of the events are currently in use
  * @brief[in] names Null terminaed list of event names to delte
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_delete_many(const wchar_t** names);
+DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names);
 
 /**
  * @brief Deletes all Events. The call will fail if any of the events are currently in use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TYPE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_type_delete_all();
+DslReturnType dsl_ode_trigger_delete_all();
 
 /**
  * @brief Returns the size of the list of Events
  * @return the number of Events in the list
  */
-uint dsl_ode_type_list_size();
+uint dsl_ode_trigger_list_size();
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -1223,23 +1321,23 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
 DslReturnType dsl_ofv_new(const wchar_t* name);
 
 /**
- * @brief creates a new, uniquely named Reporter component
- * @param[in] name unique name for the new Reporter
+ * @brief creates a new, uniquely named ODE Handler component
+ * @param[in] name unique name for the new ODE Handler
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
 DslReturnType dsl_ode_handler_new(const wchar_t* name);
 
 /**
- * @brief Gets the Reporter's current reporting enabled setting
- * @param[in] name unique name of the Reporter to query
+ * @brief Gets the ODE Handler's current reporting enabled setting
+ * @param[in] name unique name of the ODE Handler to query
  * @param[out] enabled true if Reporting is current enabled, false otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
 DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the Reporter's reporting enabled setting
- * @param[in] name unique name of the Reporter to update
+ * @brief Sets the ODE Handler's reporting enabled setting
+ * @param[in] name unique name of the ODE Handler to update
  * @param[out] enabled set true to enable reporting, if in a disabled state, 
  * false to disable if currently in an enbled state. 
  * Attempts to reset to the same/current state will fail
@@ -1248,43 +1346,43 @@ DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled)
 DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Adds a named ODE Type to a named Reporter Component
- * @param[in] ode_handler unique name of the Reporter to update
+ * @brief Adds a named ODE Trigger to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
  * @param[in] odeType unique name of the Event to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_ode_handler_type_add(const wchar_t* ode_handler, const wchar_t* ode_type);
+DslReturnType dsl_ode_handler_trigger_add(const wchar_t* handler, const wchar_t* trigger);
 
 /**
- * @brief Adds a Null terminated listed of named ODE Types to a named Reporter Component
- * @param[in] ode_handler unique name of the Reporter to update
- * @param[in] odeTypes Null terminated list of Event names to add
+ * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Event names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_ode_handler_type_add_many(const wchar_t* ode_handler, const wchar_t** ode_types);
+DslReturnType dsl_ode_handler_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
 
 /**
- * @brief Removes a named ODE Type from a named Reporter Component
- * @param[in] ode_handler unique name of the Reporter to update
+ * @brief Removes a named ODE Trigger from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
  * @param[in] odeType unique name of the Event to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_ode_handler_type_remove(const wchar_t* ode_handler, const wchar_t* ode_type);
+DslReturnType dsl_ode_handler_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
 
 /**
- * @brief Removes a Null terminated listed of named ODE Types from a named Reporter Component
- * @param[in] ode_handler unique name of the Reporter to update
- * @param[in] odeTypes Null terminated list of Event names to remove
+ * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Event names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_ode_handler_type_remove_many(const wchar_t* ode_handler, const wchar_t** ode_types);
+DslReturnType dsl_ode_handler_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
 
 /**
- * @brief Removes all ODE Types from a named Reporter Component
- * @param[in] ode_handler unique name of the Reporter to update
+ * @brief Removes all ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_ode_handler_type_remove_all(const wchar_t* ode_handler);
+DslReturnType dsl_ode_handler_trigger_remove_all(const wchar_t* handler);
 
 /**
  * @brief creates a new, uniquely named OSD obj

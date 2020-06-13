@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 
@@ -39,8 +39,8 @@ SCENARIO( "A new OdeType is created correctly", "[OdeType]" )
 
         WHEN( "A new OdeType is created" )
         {
-            DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-                DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+                DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
             THEN( "The OdeTypes's memebers are setup and returned correctly" )
             {
@@ -70,8 +70,8 @@ SCENARIO( "An OdeType checks its enabled setting ", "[OdeType]" )
 
         std::string odeActionName("print-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -125,8 +125,8 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeType]" )
 
         std::string odeActionName("print-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -193,8 +193,8 @@ SCENARIO( "A OdeType checks for SourceId correctly", "[OdeType]" )
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
             
         // Set the minumum confidence value for detection
         pOdeType->SetSourceId(sourceId);    
@@ -262,8 +262,8 @@ SCENARIO( "A OdeType checks for Minimum Dimensions correctly", "[OdeType]" )
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -335,8 +335,8 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
         std::string odeActionName("ode-action");
         std::string odeAreaName("ode-area");
 
-        DSL_ODE_TYPE_OCCURRENCE_PTR pOdeType = 
-            DSL_ODE_TYPE_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeType = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -410,9 +410,9 @@ SCENARIO( "A OdeType checks for Area overlap correctly", "[OdeType]" )
     }
 }
 
-SCENARIO( "An Intersection OdeType checks for intersection correctly", "[IntersectionOdeType]" )
+SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[IntersectionOdeTrigger]" )
 {
-    GIVEN( "A new OdeType with minimum criteria" ) 
+    GIVEN( "A new OdeTrigger with minimum criteria" ) 
     {
         std::string odeTypeName("intersection");
         uint classId(1);
@@ -420,13 +420,13 @@ SCENARIO( "An Intersection OdeType checks for intersection correctly", "[Interse
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TYPE_INTERSECTION_PTR pOdeType = 
-            DSL_ODE_TYPE_INTERSECTION_NEW(odeTypeName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_INTERSECTION_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTypeName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        REQUIRE( pOdeType->AddAction(pOdeAction) == true );        
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  // required to process
@@ -455,12 +455,12 @@ SCENARIO( "An Intersection OdeType checks for intersection correctly", "[Interse
             objectMeta2.rect_params.width = 100;
             objectMeta2.rect_params.height = 100;
 
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "NO ODE occurrence is detected" )
             {
-                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 0 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
             }
         }
         WHEN( "two objects occur with overlap" )
@@ -475,12 +475,12 @@ SCENARIO( "An Intersection OdeType checks for intersection correctly", "[Interse
             objectMeta2.rect_params.width = 100;
             objectMeta2.rect_params.height = 100;
 
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "An ODE occurrence is detected" )
             {
-                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 1 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
             }
         }
         WHEN( "Three objects occur, each overlaping the other two" )
@@ -500,13 +500,13 @@ SCENARIO( "An Intersection OdeType checks for intersection correctly", "[Interse
             objectMeta3.rect_params.width = 100;
             objectMeta3.rect_params.height = 100;
 
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeType->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "Three ODE occurrences are detected" )
             {
-                REQUIRE( pOdeType->PostProcessFrame(NULL, &frameMeta) == 3 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 3 );
             }
         }
     }

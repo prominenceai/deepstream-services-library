@@ -107,11 +107,11 @@ namespace DSL
         
         if (!Base::AddChild(pChild))
         {
-            LOG_ERROR("Failed to add ODE Type' " << pChild->GetName() 
+            LOG_ERROR("Failed to add ODE Trigger' " << pChild->GetName() 
                 << "' as a child of '" << GetName() << "'");
             return false;
         }
-        m_pOdeTypes[pChild->GetName()] = pChild;
+        m_pOdeTriggers[pChild->GetName()] = pChild;
         return true;
     }
 
@@ -121,11 +121,11 @@ namespace DSL
         
         if (!Base::RemoveChild(pChild))
         {
-            LOG_ERROR("Failed to remove ODE Type' " << pChild->GetName() 
+            LOG_ERROR("Failed to remove ODE Trigger' " << pChild->GetName() 
                 << "' as a child of '" << GetName() << "'");
             return false;
         }
-        m_pOdeTypes.erase(pChild->GetName());
+        m_pOdeTriggers.erase(pChild->GetName());
         return Base::RemoveChild(pChild);
     }
     
@@ -133,7 +133,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pOdeTypes.clear();
+        m_pOdeTriggers.clear();
         Base::RemoveAllChildren();
     }
 
@@ -179,10 +179,10 @@ namespace DSL
             if (pFrameMeta != NULL and pFrameMeta->bInferDone)
             {
                 // Preprocess the frame
-                for (const auto &imap: m_pOdeTypes)
+                for (const auto &imap: m_pOdeTriggers)
                 {
-                    DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
-                    pOdeType->PreProcessFrame(pBuffer, pFrameMeta);
+                    DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                    pOdeTrigger->PreProcessFrame(pBuffer, pFrameMeta);
                 }
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
@@ -191,21 +191,21 @@ namespace DSL
                     NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pMeta->data);
                     if (pObjectMeta != NULL)
                     {
-                        // For each ODE Type owned by this ODE Manager, check for ODE
-                        for (const auto &imap: m_pOdeTypes)
+                        // For each ODE Trigger owned by this ODE Manager, check for ODE
+                        for (const auto &imap: m_pOdeTriggers)
                         {
-                            DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
-                            pOdeType->CheckForOccurrence(pBuffer, pFrameMeta, pObjectMeta);
+                            DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                            pOdeTrigger->CheckForOccurrence(pBuffer, pFrameMeta, pObjectMeta);
                         }
                     }
                 }
                 
                 // After each detected object is checked for ODE individually, post process 
                 // each frame for Absence events, Limit events, etc. (i.e. frame level events).
-                for (const auto &imap: m_pOdeTypes)
+                for (const auto &imap: m_pOdeTriggers)
                 {
-                    DSL_ODE_TYPE_PTR pOdeType = std::dynamic_pointer_cast<OdeType>(imap.second);
-                    pOdeType->PostProcessFrame(pBuffer, pFrameMeta);
+                    DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
+                    pOdeTrigger->PostProcessFrame(pBuffer, pFrameMeta);
                 }
             }
         }
