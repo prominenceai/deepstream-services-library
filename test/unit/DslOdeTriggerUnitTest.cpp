@@ -463,7 +463,7 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[Inte
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
             }
         }
-        WHEN( "two objects occur with overlap" )
+        WHEN( "Two objects occur with overlap" )
         {
             objectMeta1.rect_params.left = 0;
             objectMeta1.rect_params.top = 0;

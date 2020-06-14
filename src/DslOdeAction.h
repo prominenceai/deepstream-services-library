@@ -49,6 +49,10 @@ namespace DSL
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
         
+    #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
+    #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
+        std::shared_ptr<HideOdeAction>(new HideOdeAction(name, text, border))
+        
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
@@ -112,6 +116,14 @@ namespace DSL
     #define DSL_ODE_ACTION_ACTION_REMOVE_PTR std::shared_ptr<RemoveActionOdeAction>
     #define DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, trigger, action) \
         std::shared_ptr<RemoveActionOdeAction>(new RemoveActionOdeAction(name, trigger, action))
+
+    #define DSL_ODE_ACTION_AREA_ADD_PTR std::shared_ptr<AddAreaOdeAction>
+    #define DSL_ODE_ACTION_AREA_ADD_NEW(name, trigger, area) \
+        std::shared_ptr<AddAreaOdeAction>(new AddAreaOdeAction(name, trigger, area))
+        
+    #define DSL_ODE_ACTION_AREA_REMOVE_PTR std::shared_ptr<RemoveAreaOdeAction>
+    #define DSL_ODE_ACTION_AREA_REMOVE_NEW(name, trigger, area) \
+        std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
     // ********************************************************************
 
@@ -170,7 +182,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Callback Action class
+         * @brief ctor for the Callback ODE Action class
          * @param[in] name unique name for the ODE action
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
@@ -218,7 +230,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Capture Action class
+         * @brief ctor for the Capture ODE Action class
          * @param[in] name unique name for the ODE action
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          * @param[in] outdir output directory to write captured image files
@@ -226,7 +238,7 @@ namespace DSL
         CaptureOdeAction(const char* name, uint captureType, const char* outdir);
         
         /**
-         * @brief dtor for the ODE Capture Action class
+         * @brief dtor for the Capture ODE Action class
          */
         ~CaptureOdeAction();
 
@@ -266,7 +278,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Display Action class
+         * @brief ctor for the Display ODE Action class
          * @param[in] name unique name for the ODE action
          * @param[in] offsetX horizontal X-offset for the ODE occurrence data to display
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
@@ -275,7 +287,7 @@ namespace DSL
         DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId);
         
         /**
-         * @brief dtor for the ODE Display Action class
+         * @brief dtor for the Display ODE Action class
          */
         ~DisplayOdeAction();
         
@@ -313,20 +325,20 @@ namespace DSL
 
     /**
      * @class LogOdeAction
-     * @brief ODE Log Ode Action class
+     * @brief Log Ode Action class
      */
     class LogOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the ODE Log Action class
+         * @brief ctor for the Log ODE Action class
          * @param[in] name unique name for the ODE action
          */
         LogOdeAction(const char* name);
         
         /**
-         * @brief dtor for the ODE Display Action class
+         * @brief dtor for the Log ODE Action class
          */
         ~LogOdeAction();
         
@@ -349,6 +361,54 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @class HideOdeAction
+     * @brief Hide Ode Action class
+     */
+    class HideOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Hide ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] text if true, hides the Object's Display Text on HandleOccurrence
+         * @param[in] border if true, hides the Object Rectangle Boarder on HandlerOccurrence 
+         */
+        HideOdeAction(const char* name, bool text, bool border);
+        
+        /**
+         * @brief dtor for the Log ODE Action class
+         */
+        ~HideOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by hiding the Object's Display Text and/or Rectangle Border 
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+        /**
+         * @brief If true, hides the Object's Display Text on HandleOccurrence
+         */
+        bool m_hideText;
+        
+        /**
+         * @brief If true, hides the Object's Rectangle Border on HandlerOccurrence
+         */
+        bool m_hideBorder;
+    
+    };
+        
+    // ********************************************************************
+
+    /**
      * @class PauseOdeAction
      * @brief Pause ODE Action class
      */
@@ -357,14 +417,14 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Pause Action class
+         * @brief ctor for the Pause ODE Action class
          * @param[in] name unique name for the ODE action
          * @param[in] pipeline unique name of the pipeline to pause on ODE occurrence
          */
         PauseOdeAction(const char* name, const char* pipeline);
         
         /**
-         * @brief dtor for the ODE Pause Action class
+         * @brief dtor for the Pause ODE Action class
          */
         ~PauseOdeAction();
         
@@ -402,7 +462,7 @@ namespace DSL
         PrintOdeAction(const char* name);
         
         /**
-         * @brief dtor for the ODE Display Action class
+         * @brief dtor for the Print ODE Action class
          */
         ~PrintOdeAction();
         
@@ -679,7 +739,7 @@ namespace DSL
         AddTriggerOdeAction(const char* name, const char* handler, const char* trigger);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Add Trigger ODE Action class
          */
         ~AddTriggerOdeAction();
 
@@ -723,7 +783,7 @@ namespace DSL
         DisableTriggerOdeAction(const char* name, const char* trigger);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Disable Trigger ODE Action class
          */
         ~DisableTriggerOdeAction();
 
@@ -765,7 +825,7 @@ namespace DSL
         EnableTriggerOdeAction(const char* name, const char* trigger);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Enable Trigger ODE Action class
          */
         ~EnableTriggerOdeAction();
 
@@ -799,7 +859,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Remove Action class
+         * @brief ctor for the Remove Trigger ODE Action class
          * @param[in] name unique name for the ODE action
          * @param[in] handler ODE Handler component to add the ODE type to
          * @param[in] trigger ODE Trigger to add on ODE occurrence
@@ -807,7 +867,7 @@ namespace DSL
         RemoveTriggerOdeAction(const char* name, const char* handler, const char* trigger);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Remove Trigger ODE Action class
          */
         ~RemoveTriggerOdeAction();
 
@@ -854,7 +914,7 @@ namespace DSL
         AddActionOdeAction(const char* name, const char* trigger, const char* action);
         
         /**
-         * @brief dtor for the Add Action class
+         * @brief dtor for the Add Action ODE Action class
          */
         ~AddActionOdeAction();
 
@@ -895,10 +955,10 @@ namespace DSL
          * @param[in] name unique name for the ODE action
          * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
-        DisableActionOdeAction(const char* name, const char* trigger);
+        DisableActionOdeAction(const char* name, const char* action);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Disable Action ODE Action class
          */
         ~DisableActionOdeAction();
 
@@ -940,7 +1000,7 @@ namespace DSL
         EnableActionOdeAction(const char* name, const char* action);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Enable Action ODE class
          */
         ~EnableActionOdeAction();
 
@@ -979,10 +1039,10 @@ namespace DSL
          * @param[in] trigger ODE Trigger to add the ODE Action to
          * @param[in] action ODE Action to add on ODE occurrence
          */
-        RemoveActionOdeAction(const char* name, const char* handler, const char* trigger);
+        RemoveActionOdeAction(const char* name, const char* trigger, const char* action);
         
         /**
-         * @brief dtor for the ODE Add Action class
+         * @brief dtor for the Remove Action ODE Action class
          */
         ~RemoveActionOdeAction();
 
@@ -1009,7 +1069,99 @@ namespace DSL
          */
         std::string m_action;
     };
-}
 
+    // ********************************************************************
+
+    /**
+     * @class AddAreaOdeAction
+     * @brief Add Area ODE Action class
+     */
+    class AddAreaOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Add Area ODE Action class
+         * @param[in] name unique name for the Add Area ODE Action
+         * @param[in] trigger ODE Trigger to add the ODE Area to
+         * @param[in] action ODE Area to add on ODE occurrence
+         */
+        AddAreaOdeAction(const char* name, const char* trigger, const char* area);
+        
+        /**
+         * @brief dtor for the Add Area ODE Action class
+         */
+        ~AddAreaOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by adding an ODE Area to an ODE Trigger
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief ODE Trigger to add the ODE Area to
+         */ 
+        std::string m_trigger;
+
+        /**
+         * @brief ODE Area to add to the ODE Trigger on ODE occurrence
+         */
+        std::string m_area;
+    };
+
+    // ********************************************************************
+    /**
+     * @class RemoveAreaOdeAction
+     * @brief Remove Area ODE Action class
+     */
+    class RemoveAreaOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Remove Area ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] trigger ODE Trigger to add the ODE Area to
+         * @param[in] action ODE Area to add on ODE occurrence
+         */
+        RemoveAreaOdeAction(const char* name, const char* trigger, const char* area);
+        
+        /**
+         * @brief dtor for the Remove Area ODE Action class
+         */
+        ~RemoveAreaOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by removing an ODE Area from an ODE Trigger
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief ODE Trigger to remove the ODE Action from
+         */ 
+        std::string m_trigger;
+
+        /**
+         * @brief ODE Area to remove from the ODE Trigger on ODE occurrence
+         */
+        std::string m_area;
+    };
+}
 
 #endif // _DSL_ODE_ACTION_H

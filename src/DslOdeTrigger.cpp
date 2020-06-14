@@ -283,7 +283,7 @@ namespace DSL
             for (const auto &imap: m_pOdeAreas)
             {
                 DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-                doesOverlap(pObjectMeta->rect_params, pOdeArea->m_rectParams);
+                if (doesOverlap(pObjectMeta->rect_params, pOdeArea->m_rectParams))
                 {
                     return true;
                 }

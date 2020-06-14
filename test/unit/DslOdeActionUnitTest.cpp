@@ -35,7 +35,7 @@ static boolean ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)frame_meta;
-    std::cout << "Event Name      : " << cstrName << "\n";
+    std::cout << "Trigger Name      : " << cstrName << "\n";
     std::cout << "  Unique Id     : " << event_id << "\n";
     std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
     std::cout << "  Source Data   : ------------------------" << "\n";
@@ -59,27 +59,27 @@ static boolean ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     }
 }    
 
-SCENARIO( "A new CallbackOdeAction is created correctly", "[CallbackOdeAction]" )
+SCENARIO( "A new CallbackOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new CallbackOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
 
         WHEN( "A new CallbackOdeAction is created" )
         {
-            DSL_ODE_ACTION_CALLBACK_PTR pOdeAction = 
-                DSL_ODE_ACTION_CALLBACK_NEW(odeActionName.c_str(), ode_occurrence_handler_cb, NULL);
+            DSL_ODE_ACTION_CALLBACK_PTR pAction = 
+                DSL_ODE_ACTION_CALLBACK_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A CallbackOdeAction handles an Event Occurence correctly", "[CallbackOdeAction]" )
+SCENARIO( "A CallbackOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
     GIVEN( "A new CallbackOdeAction" ) 
     {
@@ -87,15 +87,15 @@ SCENARIO( "A CallbackOdeAction handles an Event Occurence correctly", "[Callback
         uint classId(1);
         uint limit(1);
 
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
 
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_CALLBACK_PTR pOdeAction = 
-            DSL_ODE_ACTION_CALLBACK_NEW(odeActionName.c_str(), ode_occurrence_handler_cb, NULL);
+        DSL_ODE_ACTION_CALLBACK_PTR pAction = 
+            DSL_ODE_ACTION_CALLBACK_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
 
-        WHEN( "A new Event is created" )
+        WHEN( "A new ODE is created" )
         {
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
@@ -104,79 +104,79 @@ SCENARIO( "A CallbackOdeAction handles an Event Occurence correctly", "[Callback
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
             objectMeta.rect_params.left = 10;
             objectMeta.rect_params.top = 10;
             objectMeta.rect_params.width = 200;
             objectMeta.rect_params.height = 100;
             
-            THEN( "The EventAction can Handle the Occurrence" )
+            THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }
 }
 
-SCENARIO( "A new CaptureOdeAction is created correctly", "[CaptureOdeAction]" )
+SCENARIO( "A new CaptureOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new CaptureOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
         std::string outdir("./");
 
         WHEN( "A new CaptureOdeAction is created" )
         {
-            DSL_ODE_ACTION_CAPTURE_PTR pOdeAction = 
-                DSL_ODE_ACTION_CAPTURE_NEW(odeActionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str());
+            DSL_ODE_ACTION_CAPTURE_PTR pAction = 
+                DSL_ODE_ACTION_CAPTURE_NEW(actionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str());
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A new LogOdeAction is created correctly", "[LogOdeAction]" )
+SCENARIO( "A new LogOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new LogOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
 
-        WHEN( "A new EventAction is created" )
+        WHEN( "A new OdeAction is created" )
         {
-            DSL_ODE_ACTION_LOG_PTR pOdeAction = 
-                DSL_ODE_ACTION_LOG_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_LOG_PTR pAction = 
+                DSL_ODE_ACTION_LOG_NEW(actionName.c_str());
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A LogOdeAction handles an Event Occurence correctly", "[LogOdeAction]" )
+SCENARIO( "A LogOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
     GIVEN( "A new LogOdeAction" ) 
     {
-        std::string eventName("first-occurence");
+        std::string triggerName("first-occurence");
         uint classId(1);
         uint limit(1);
         
-        std::string odeActionName = "ode-action";
+        std::string actionName = "ode-action";
 
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_LOG_PTR pOdeAction = 
-            DSL_ODE_ACTION_LOG_NEW(odeActionName.c_str());
+        DSL_ODE_ACTION_LOG_PTR pAction = 
+            DSL_ODE_ACTION_LOG_NEW(actionName.c_str());
 
-        WHEN( "A new Event is created" )
+        WHEN( "A new ODE is created" )
         {
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
@@ -185,60 +185,60 @@ SCENARIO( "A LogOdeAction handles an Event Occurence correctly", "[LogOdeAction]
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
             objectMeta.rect_params.left = 10;
             objectMeta.rect_params.top = 10;
             objectMeta.rect_params.width = 200;
             objectMeta.rect_params.height = 100;
             
-            THEN( "The EventAction can Handle the Occurrence" )
+            THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }
 }
 
-SCENARIO( "A new PauseOdeAction is created correctly", "[PauseOdeAction]" )
+SCENARIO( "A new PauseOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new PrintOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
         std::string pipelineName("pipeline");
 
         WHEN( "A new PauseOdeAction is created" )
         {
-            DSL_ODE_ACTION_PAUSE_PTR pOdeAction = 
-                DSL_ODE_ACTION_PAUSE_NEW(odeActionName.c_str(), pipelineName.c_str());
+            DSL_ODE_ACTION_PAUSE_PTR pAction = 
+                DSL_ODE_ACTION_PAUSE_NEW(actionName.c_str(), pipelineName.c_str());
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A PauseOdeAction handles an Event Occurence correctly", "[PauseOdeAction]" )
+SCENARIO( "A PauseOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
     GIVEN( "A new PauseOdeAction" ) 
     {
-        std::string eventName("first-occurence");
+        std::string triggerName("first-occurence");
         uint classId(1);
         uint limit(1);
         
-        std::string odeActionName = "ode-action";
+        std::string actionName = "ode-action";
         std::string pipelineName("pipeline");
 
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_PAUSE_PTR pOdeAction = 
-            DSL_ODE_ACTION_PAUSE_NEW(odeActionName.c_str(), pipelineName.c_str());
+        DSL_ODE_ACTION_PAUSE_PTR pAction = 
+            DSL_ODE_ACTION_PAUSE_NEW(actionName.c_str(), pipelineName.c_str());
 
-        WHEN( "A new Event is created" )
+        WHEN( "A new ODE is created" )
         {
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
@@ -247,59 +247,59 @@ SCENARIO( "A PauseOdeAction handles an Event Occurence correctly", "[PauseOdeAct
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
             objectMeta.rect_params.left = 10;
             objectMeta.rect_params.top = 10;
             objectMeta.rect_params.width = 200;
             objectMeta.rect_params.height = 100;
             
-            THEN( "The EventAction can Handle the Occurrence" )
+            THEN( "The OdeAction can Handle the Occurrence" )
             {
                 // NOTE:: Pipeline pause will produce an error message as it does not exist
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }
 }
 
-SCENARIO( "A new PrintOdeAction is created correctly", "[PrintOdeAction]" )
+SCENARIO( "A new PrintOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new PrintOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
 
-        WHEN( "A new EventAction is created" )
+        WHEN( "A new OdeAction is created" )
         {
-            DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-                DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            DSL_ODE_ACTION_PRINT_PTR pAction = 
+                DSL_ODE_ACTION_PRINT_NEW(actionName.c_str());
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A PrintOdeAction handles an Event Occurence correctly", "[PrintOdeAction]" )
+SCENARIO( "A PrintOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
     GIVEN( "A new PrintOdeAction" ) 
     {
-        std::string eventName("first-occurence");
+        std::string triggerName("first-occurence");
         uint classId(1);
         uint limit(1);
         
-        std::string odeActionName = "ode-action";
+        std::string actionName = "ode-action";
 
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+        DSL_ODE_ACTION_PRINT_PTR pAction = 
+            DSL_ODE_ACTION_PRINT_NEW(actionName.c_str());
 
-        WHEN( "A new Event is created" )
+        WHEN( "A new ODE is created" )
         {
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
@@ -308,60 +308,60 @@ SCENARIO( "A PrintOdeAction handles an Event Occurence correctly", "[PrintOdeAct
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
             objectMeta.rect_params.left = 10;
             objectMeta.rect_params.top = 10;
             objectMeta.rect_params.width = 200;
             objectMeta.rect_params.height = 100;
             
-            THEN( "The EventAction can Handle the Occurrence" )
+            THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }
 }
 
-SCENARIO( "A new RedactOdeAction is created correctly", "[RedactOdeAction]" )
+SCENARIO( "A new RedactOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new RedactOdeAction" ) 
     {
-        std::string odeActionName("ode-action");
+        std::string actionName("ode-action");
         float red(1), green(1), blue(1), alpha(1);
 
         WHEN( "A new RedactOdeAction is created" )
         {
-            DSL_ODE_ACTION_REDACT_PTR pOdeAction = 
-                DSL_ODE_ACTION_REDACT_NEW(odeActionName.c_str(), red, green, blue, alpha);
+            DSL_ODE_ACTION_REDACT_PTR pAction = 
+                DSL_ODE_ACTION_REDACT_NEW(actionName.c_str(), red, green, blue, alpha);
 
-            THEN( "The Events's memebers are setup and returned correctly" )
+            THEN( "The Action's memebers are setup and returned correctly" )
             {
-                std::string retName = pOdeAction->GetCStrName();
-                REQUIRE( odeActionName == retName );
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }
 }
 
-SCENARIO( "A RedactOdeAction handles an Event Occurence correctly", "[RedactOdeAction]" )
+SCENARIO( "A RedactOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
     GIVEN( "A new RedactOdeAction" ) 
     {
-        std::string eventName("first-occurence");
+        std::string triggerName("first-occurence");
         uint classId(1);
         uint limit(1);
         
-        std::string odeActionName = "ode-action";
+        std::string actionName = "ode-action";
         float red(1), green(1), blue(1), alpha(1);
 
-        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(eventName.c_str(), classId, limit);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_REDACT_PTR pOdeAction = 
-            DSL_ODE_ACTION_REDACT_NEW(odeActionName.c_str(), red, green, blue, alpha);
+        DSL_ODE_ACTION_REDACT_PTR pAction = 
+            DSL_ODE_ACTION_REDACT_NEW(actionName.c_str(), red, green, blue, alpha);
 
-        WHEN( "A new Event is created" )
+        WHEN( "A new ODE is created" )
         {
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
@@ -370,7 +370,7 @@ SCENARIO( "A RedactOdeAction handles an Event Occurence correctly", "[RedactOdeA
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
-            objectMeta.class_id = classId; // must match Detections Event's classId
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
             objectMeta.rect_params.left = 10;
             objectMeta.rect_params.top = 10;
@@ -384,15 +384,339 @@ SCENARIO( "A RedactOdeAction handles an Event Occurence correctly", "[RedactOdeA
             objectMeta.rect_params.bg_color.blue = 0;
             objectMeta.rect_params.bg_color.alpha = 0;
             
-            THEN( "The EventAction can Handle the Occurrence" )
+            THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pOdeAction->HandleOccurrence(pFirstOccurrenceEvent, NULL, &frameMeta, &objectMeta);
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
                 REQUIRE( objectMeta.rect_params.border_width == 0 );
                 REQUIRE( objectMeta.rect_params.has_bg_color == 1 );
                 REQUIRE( objectMeta.rect_params.bg_color.red == red );
                 REQUIRE( objectMeta.rect_params.bg_color.green == green );
                 REQUIRE( objectMeta.rect_params.bg_color.blue == blue );
                 REQUIRE( objectMeta.rect_params.bg_color.alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new SinkAddOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SinkAddOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sinkName("sink");
+
+        WHEN( "A new SinkAddOdeAction is created" )
+        {
+            DSL_ODE_ACTION_SINK_ADD_PTR pAction = 
+                DSL_ODE_ACTION_SINK_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SinkAddOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SinkAddOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sinkName("sink");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_SINK_ADD_PTR pAction = 
+            DSL_ODE_ACTION_SINK_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Sink add will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new SinkRemoveOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SinkRemoveOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sinkName("sink");
+
+        WHEN( "A new SinkRemoveOdeAction is created" )
+        {
+            DSL_ODE_ACTION_SINK_REMOVE_PTR pAction = 
+                DSL_ODE_ACTION_SINK_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SinkRemoveOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SinkRemoveOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sinkName("sink");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_SINK_REMOVE_PTR pAction = 
+            DSL_ODE_ACTION_SINK_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Sink remove will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new SourceAddOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SourceAddOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sourceName("source");
+
+        WHEN( "A new SourceAddOdeAction is created" )
+        {
+            DSL_ODE_ACTION_SOURCE_ADD_PTR pAction = 
+                DSL_ODE_ACTION_SOURCE_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SourceAddOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SourceAddOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sourceName("source");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_SOURCE_ADD_PTR pAction = 
+            DSL_ODE_ACTION_SOURCE_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Source add will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new SourceRemoveOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SourceRemoveOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sourceName("source");
+
+        WHEN( "A new SourceRemoveOdeAction is created" )
+        {
+            DSL_ODE_ACTION_SOURCE_REMOVE_PTR pAction = 
+                DSL_ODE_ACTION_SOURCE_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SourceRemoveOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SourceRemoveOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string sourceName("source");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_SOURCE_REMOVE_PTR pAction = 
+            DSL_ODE_ACTION_SOURCE_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Source remove will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AreaAddOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new AreaAddOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string areaName("area");
+
+        WHEN( "A new AreaAddOdeAction is created" )
+        {
+            DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
+                DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), pipelineName.c_str(), areaName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A AreaAddOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new AreaAddOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string areaName("area");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
+            DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), pipelineName.c_str(), areaName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Area add will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AreaRemoveOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new AreaRemoveOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string areaName("area");
+
+        WHEN( "A new AreaRemoveOdeAction is created" )
+        {
+            DSL_ODE_ACTION_AREA_REMOVE_PTR pAction = 
+                DSL_ODE_ACTION_AREA_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), areaName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A AreaRemoveOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new AreaRemoveOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string pipelineName("pipeline");
+        std::string areaName("area");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_AREA_REMOVE_PTR pAction = 
+            DSL_ODE_ACTION_AREA_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), areaName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Pipeline Area remove will produce an error message as neither components exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }

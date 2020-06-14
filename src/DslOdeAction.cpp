@@ -76,12 +76,12 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pTrigger);
 
             m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(),
                 pFrameMeta, pObjectMeta, m_clientData);
@@ -331,6 +331,37 @@ namespace DSL
         }
     }
 
+    // ********************************************************************
+
+    HideOdeAction::HideOdeAction(const char* name, bool text, bool border)
+        : OdeAction(name)
+        , m_hideText(text)
+        , m_hideBorder(border)
+    {
+        LOG_FUNC();
+    }
+
+    HideOdeAction::~HideOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled and pObjectMeta)
+        {
+            if (m_hideText and (pObjectMeta->text_params.display_text))
+            {
+                pObjectMeta->text_params.set_bg_clr = 0;
+                pObjectMeta->text_params.font_params.font_size = 0;
+            }
+            if (m_hideBorder)
+            {
+                pObjectMeta->rect_params.border_width = 0;
+            }
+        }
+    }
     // ********************************************************************
 
     PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
@@ -748,5 +779,58 @@ namespace DSL
             Services::GetServices()->OdeTriggerActionRemove(m_trigger.c_str(), m_action.c_str());
         }
     }
+
+    // ********************************************************************
+
+    AddAreaOdeAction::AddAreaOdeAction(const char* name, 
+        const char* trigger, const char* area)
+        : OdeAction(name)
+        , m_trigger(trigger)
+        , m_area(area)
+    {
+        LOG_FUNC();
+    }
+
+    AddAreaOdeAction::~AddAreaOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTriggerAreaAdd(m_trigger.c_str(), m_area.c_str());
+        }
+    }
+    
+    // ********************************************************************
+
+    RemoveAreaOdeAction::RemoveAreaOdeAction(const char* name, 
+        const char* trigger, const char* area)
+        : OdeAction(name)
+        , m_trigger(trigger)
+        , m_area(area)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveAreaOdeAction::~RemoveAreaOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTriggerAreaRemove(m_trigger.c_str(), m_area.c_str());
+        }
+    }
+    
 }    
     

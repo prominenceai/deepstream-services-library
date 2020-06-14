@@ -63,6 +63,8 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
         
+        DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
+        
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
         DslReturnType OdeActionPrintNew(const char* name);
@@ -91,6 +93,12 @@ namespace DSL {
 
         DslReturnType OdeActionActionRemoveNew(const char* name, 
             const char* trigger, const char* action);
+
+        DslReturnType OdeActionAreaAddNew(const char* name, 
+            const char* trigger, const char* area);
+        
+        DslReturnType OdeActionAreaRemoveNew(const char* name, 
+            const char* trigger, const char* area);
         
         DslReturnType OdeActionTriggerAddNew(const char* name, 
             const char* odeHandler, const char* trigger);
