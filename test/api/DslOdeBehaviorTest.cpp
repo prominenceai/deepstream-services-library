@@ -231,11 +231,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         std::wstring odeHandlerName(L"ode-handler");
         
         std::wstring odeCarOccurrenceName(L"car-occurrence");
-        std::wstring odeCarActionName(L"redact-car");
         uint carClassId(0);
         std::wstring odePersonOccurrenceName(L"person-occurrence");
-        std::wstring odePersonActionName(L"redact-person");
         uint personClassId(2);
+
+        std::wstring odeRedactActionName(L"redact");
         
         uint limit(0);
         
@@ -259,11 +259,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         REQUIRE( dsl_ode_trigger_occurrence_new(odeCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_redact_new(odeCarActionName.c_str(), 0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_redact_new(odePersonActionName.c_str(), 0.92, 0.75, 0.56, 1.0) == DSL_RESULT_SUCCESS );
+        // shared redaction action
+        REQUIRE( dsl_ode_action_redact_new(odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_action_add(odeCarOccurrenceName.c_str(), odeCarActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(odePersonOccurrenceName.c_str(), odePersonActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(odeCarOccurrenceName.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(odePersonOccurrenceName.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), odeCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
@@ -777,7 +777,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         uint textOffsetY(20);
         
         std::wstring printActionName(L"print-action");
-        std::wstring shadeActionName(L"shade-action");
+        std::wstring fillActionName(L"fill-action");
         
         std::wstring areaName(L"area");
         
@@ -795,11 +795,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
-        // Set Area critera, and The shade action for ODE occurrence caused by overlap
+        // Set Area critera, and The fill action for ODE occurrence caused by overlap
         REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_redact_new(shadeActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), shadeActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_fill_new(fillActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria
         REQUIRE( dsl_ode_area_new(areaName.c_str(), 500, 0, 10, 1080, true) == DSL_RESULT_SUCCESS );

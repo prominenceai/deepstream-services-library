@@ -70,7 +70,7 @@ namespace DSL
         
         if (m_pOdeActions.find(pChild->GetName()) != m_pOdeActions.end())
         {
-            LOG_ERROR("ODE Area '" << pChild->GetName() << "' is already a child of ODE Type'" << GetName() << "'");
+            LOG_ERROR("ODE Area '" << pChild->GetName() << "' is already a child of ODE Trigger'" << GetName() << "'");
             return false;
         }
         m_pOdeActions[pChild->GetName()] = pChild;
@@ -83,7 +83,7 @@ namespace DSL
         
         if (m_pOdeActions.find(pChild->GetName()) == m_pOdeActions.end())
         {
-            LOG_WARN("'" << pChild->GetName() <<"' is not a child of ODE Type '" << GetName() << "'");
+            LOG_WARN("'" << pChild->GetName() <<"' is not a child of ODE Trigger '" << GetName() << "'");
             return false;
         }
         m_pOdeAreas.erase(pChild->GetName());
@@ -107,7 +107,7 @@ namespace DSL
         
         if (m_pOdeAreas.find(pChild->GetName()) != m_pOdeAreas.end())
         {
-            LOG_ERROR("ODE Area '" << pChild->GetName() << "' is already a child of ODE Type'" << GetName() << "'");
+            LOG_ERROR("ODE Area '" << pChild->GetName() << "' is already a child of ODE Trigger'" << GetName() << "'");
             return false;
         }
         m_pOdeAreas[pChild->GetName()] = pChild;
@@ -244,8 +244,7 @@ namespace DSL
                 NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
                 NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
                 
-                pDisplayMeta->num_rects = 1;
-                pDisplayMeta->rect_params[0] = pOdeArea->m_rectParams;
+                pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = pOdeArea->m_rectParams;
                 nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
             }
         }

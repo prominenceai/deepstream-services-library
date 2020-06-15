@@ -63,14 +63,16 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
         
+        DslReturnType OdeActionFillNew(const char* name,
+            double red, double green, double blue, double alpha);
+
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
         DslReturnType OdeActionPrintNew(const char* name);
         
-        DslReturnType OdeActionRedactNew(const char* name,
-            double red, double green, double blue, double alpha);
+        DslReturnType OdeActionRedactNew(const char* name);
 
         DslReturnType OdeActionSinkAddNew(const char* name, 
             const char* pipeline, const char* sink);

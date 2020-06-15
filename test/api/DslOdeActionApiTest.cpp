@@ -206,6 +206,37 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
     }
 }
 
+SCENARIO( "A new Fill ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Fill ODE Action" ) 
+    {
+        std::wstring actionName(L"fill-action");
+
+        WHEN( "A new Fill Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Fill Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Fill Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Fill Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Log ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Log ODE Action" ) 
@@ -310,7 +341,7 @@ SCENARIO( "A new Redact ODE Action can be created and deleted", "[ode-action-api
 
         WHEN( "A new Redact Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_redact_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_redact_new(actionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Redact Action can be deleted" ) 
             {
@@ -320,11 +351,11 @@ SCENARIO( "A new Redact ODE Action can be created and deleted", "[ode-action-api
         }
         WHEN( "A new Redact Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_redact_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_redact_new(actionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Redact Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_redact_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_redact_new(actionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

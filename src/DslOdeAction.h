@@ -49,6 +49,10 @@ namespace DSL
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
         
+    #define DSL_ODE_ACTION_FILL_PTR std::shared_ptr<FillOdeAction>
+    #define DSL_ODE_ACTION_FILL_NEW(name, red, green, blue, alpha) \
+        std::shared_ptr<FillOdeAction>(new FillOdeAction(name, red, green, blue, alpha))
+
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
         std::shared_ptr<HideOdeAction>(new HideOdeAction(name, text, border))
@@ -66,8 +70,8 @@ namespace DSL
         std::shared_ptr<PrintOdeAction>(new PrintOdeAction(name))
         
     #define DSL_ODE_ACTION_REDACT_PTR std::shared_ptr<RedactOdeAction>
-    #define DSL_ODE_ACTION_REDACT_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<RedactOdeAction>(new RedactOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_REDACT_NEW(name) \
+        std::shared_ptr<RedactOdeAction>(new RedactOdeAction(name))
 
     #define DSL_ODE_ACTION_SINK_ADD_PTR std::shared_ptr<AddSinkOdeAction>
     #define DSL_ODE_ACTION_SINK_ADD_NEW(name, pipeline, sink) \
@@ -361,6 +365,51 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @class FillOdeAction
+     * @brief Fill ODE Action class
+     */
+    class FillOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] red red level for the redaction background color [0..1]
+         * @param[in] blue blue level for the redaction background color [0..1]
+         * @param[in] green green level for the redaction background color [0..1]
+         * @param[in] alpha alpha level for the redaction background color [0..1]
+         */
+        FillOdeAction(const char* name, double red, double green, double blue, double alpha);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~FillOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by Filling the object's rectangle background 
+         * with a set of RGBA color values
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Background color used to Fill the object
+         */
+        NvOSD_ColorParams m_backgroundColor;
+    
+    };
+    // ********************************************************************
+
+    /**
      * @class HideOdeAction
      * @brief Hide Ode Action class
      */
@@ -493,14 +542,10 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for the ODE Log Action class
+         * @brief ctor for the ODE Redact Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] red red level for the redaction background color [0..1]
-         * @param[in] blue blue level for the redaction background color [0..1]
-         * @param[in] green green level for the redaction background color [0..1]
-         * @param[in] alpha alpha level for the redaction background color [0..1]
          */
-        RedactOdeAction(const char* name, double red, double green, double blue, double alpha);
+        RedactOdeAction(const char* name);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -520,11 +565,6 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
-    
-        /**
-         * @brief Background color used to Redact the object
-         */
-        NvOSD_ColorParams m_backgroundColor;
     
     };
 

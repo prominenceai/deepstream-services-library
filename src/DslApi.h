@@ -447,11 +447,17 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name,
     uint offsetX, uint offsetY, boolean offsetY_with_classId);
 
 /**
- * @brief Creates a uniquely named ODE Log Action
- * @param[in] name unique name for the ODE Log Action 
+ * @brief Creates a uniquely named ODE Fill Action, that fills an object's
+ * Background with RGBA color values
+ * @param[in] name unique name for the ODE Fill Action
+ * @param[in] red red value for the RGBA background color [1..0]
+ * @param[in] green green value for the RGBA background color [1..0]
+ * @param[in] blue blue value for the RGBA background color [1..0]
+ * @param[in] alpha alpha value for the RGBA background color [1..0]
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_log_new(const wchar_t* name);
+DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
+    double red, double green, double blue, double alpha);
 
 /**
  * @brief Creates a uniquely named ODE Hide Action
@@ -461,6 +467,13 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
+
+/**
+ * @brief Creates a uniquely named ODE Log Action
+ * @param[in] name unique name for the ODE Log Action 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
  * @brief Creates a uniquely named ODE Pause Action
@@ -478,16 +491,12 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
 DslReturnType dsl_ode_action_print_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named ODE Redact Action
+ * @brief Creates a uniquely named ODE Redact Action, that blacks out an 
+ * Object's background redacting the rectangle area
  * @param[in] name unique name for the ODE Redact Action
- * @param[in] red red value for the RGBA redaction box [1..0]
- * @param[in] green green value for the RGBA redaction box [1..0]
- * @param[in] blue blue value for the RGBA redaction box [1..0]
- * @param[in] alpha alpha value for the RGBA redaction box [1..0]
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_redact_new(const wchar_t* name,
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_redact_new(const wchar_t* name);
 
 /**
  * @brief Creates a uniquely named Add Sink Action that adds

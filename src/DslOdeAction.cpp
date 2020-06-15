@@ -282,52 +282,32 @@ namespace DSL
 
     // ********************************************************************
 
-    LogOdeAction::LogOdeAction(const char* name)
+    FillOdeAction::FillOdeAction(const char* name, double red, double green, double blue, double alpha)
         : OdeAction(name)
     {
         LOG_FUNC();
+        m_backgroundColor.red = red;
+        m_backgroundColor.green = green;
+        m_backgroundColor.blue = blue;
+        m_backgroundColor.alpha = alpha;
     }
 
-    LogOdeAction::~LogOdeAction()
+    FillOdeAction::~FillOdeAction()
     {
         LOG_FUNC();
+
     }
 
-    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void FillOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (m_enabled)
+        if (m_enabled and pObjectMeta)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
-            
-            LOG_INFO("Event Name      : " << pTrigger->GetName());
-            LOG_INFO("  Unique Id     : " << pTrigger->s_eventCount);
-            LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
-            LOG_INFO("  Source Data   : ------------------------");
-            LOG_INFO("    Id          : " << pFrameMeta->source_id);
-            LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
-            LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
-            LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
-            LOG_INFO("  Object Data   : ------------------------");
-            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
-            LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
-            
-            if (pObjectMeta)
-            {
-                LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
-                LOG_INFO("    Label       : " << pObjectMeta->obj_label);
-                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
-                LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
-                LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
-                LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
-                LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
-            }
-            LOG_INFO("  Min Criteria  : ------------------------");
-            LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
-            LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
-                << " out of " << pTrigger->m_minFrameCountD);
-            LOG_INFO("    Width       : " << pTrigger->m_minWidth);
-            LOG_INFO("    Height      : " << pTrigger->m_minHeight);
+            pObjectMeta->rect_params.has_bg_color = true;
+            pObjectMeta->rect_params.bg_color.red = m_backgroundColor.red;
+            pObjectMeta->rect_params.bg_color.green = m_backgroundColor.green;
+            pObjectMeta->rect_params.bg_color.blue = m_backgroundColor.blue;
+            pObjectMeta->rect_params.bg_color.alpha = m_backgroundColor.alpha;
         }
     }
 
@@ -362,6 +342,58 @@ namespace DSL
             }
         }
     }
+
+    // ********************************************************************
+
+    LogOdeAction::LogOdeAction(const char* name)
+        : OdeAction(name)
+    {
+        LOG_FUNC();
+    }
+
+    LogOdeAction::~LogOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            
+            LOG_INFO("Trigger Name    : " << pTrigger->GetName());
+            LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
+            LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
+            LOG_INFO("  Source Data   : ------------------------");
+            LOG_INFO("    Id          : " << pFrameMeta->source_id);
+            LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
+            LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
+            LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
+            LOG_INFO("  Object Data   : ------------------------");
+            LOG_INFO("    Class Id    : " << pTrigger->m_classId );
+            LOG_INFO("    Occurrences : " << pTrigger->m_occurrences );
+            
+            if (pObjectMeta)
+            {
+                LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
+                LOG_INFO("    Label       : " << pObjectMeta->obj_label);
+                LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
+                LOG_INFO("    Left        : " << pObjectMeta->rect_params.left);
+                LOG_INFO("    Top         : " << pObjectMeta->rect_params.top);
+                LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
+                LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
+            }
+            LOG_INFO("  Min Criteria  : ------------------------");
+            LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
+            LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
+                << " out of " << pTrigger->m_minFrameCountD);
+            LOG_INFO("    Width       : " << pTrigger->m_minWidth);
+            LOG_INFO("    Height      : " << pTrigger->m_minHeight);
+        }
+    }
+
     // ********************************************************************
 
     PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
@@ -406,8 +438,8 @@ namespace DSL
         {
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            std::cout << "Event Name      : " << pTrigger->GetName() << "\n";
-            std::cout << "  Unique Id     : " << pTrigger->s_eventCount << "\n";
+            std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
+            std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
             std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
             std::cout << "  Source Data   : ------------------------" << "\n";
             std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
@@ -440,14 +472,10 @@ namespace DSL
 
     // ********************************************************************
 
-    RedactOdeAction::RedactOdeAction(const char* name, double red, double green, double blue, double alpha)
+    RedactOdeAction::RedactOdeAction(const char* name)
         : OdeAction(name)
     {
         LOG_FUNC();
-        m_backgroundColor.red = red;
-        m_backgroundColor.green = green;
-        m_backgroundColor.blue = blue;
-        m_backgroundColor.alpha = alpha;
     }
 
     RedactOdeAction::~RedactOdeAction()
@@ -470,10 +498,10 @@ namespace DSL
             // shade in the background
             pObjectMeta->rect_params.border_width = 0;
             pObjectMeta->rect_params.has_bg_color = 1;
-            pObjectMeta->rect_params.bg_color.red = m_backgroundColor.red;
-            pObjectMeta->rect_params.bg_color.green = m_backgroundColor.green;
-            pObjectMeta->rect_params.bg_color.blue = m_backgroundColor.blue;
-            pObjectMeta->rect_params.bg_color.alpha = m_backgroundColor.alpha;
+            pObjectMeta->rect_params.bg_color.red = 0.0;
+            pObjectMeta->rect_params.bg_color.green = 0.0;
+            pObjectMeta->rect_params.bg_color.blue = 0.0;
+            pObjectMeta->rect_params.bg_color.alpha = 1.0;
         }
     }
 

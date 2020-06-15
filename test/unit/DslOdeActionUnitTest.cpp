@@ -35,7 +35,7 @@ static boolean ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)frame_meta;
-    std::cout << "Trigger Name      : " << cstrName << "\n";
+    std::cout << "Trigger Name    : " << cstrName << "\n";
     std::cout << "  Unique Id     : " << event_id << "\n";
     std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
     std::cout << "  Source Data   : ------------------------" << "\n";
@@ -113,7 +113,7 @@ SCENARIO( "A CallbackOdeAction handles an ODE Occurence correctly", "[OdeAction]
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+//                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
             }
         }
     }
@@ -135,6 +135,150 @@ SCENARIO( "A new CaptureOdeAction is created correctly", "[OdeAction]" )
             {
                 std::string retName = pAction->GetCStrName();
                 REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new FillOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FillOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        float red(1), green(1), blue(1), alpha(1);
+
+        WHEN( "A new FillOdeAction is created" )
+        {
+            DSL_ODE_ACTION_FILL_PTR pAction = 
+                DSL_ODE_ACTION_FILL_NEW(actionName.c_str(), red, green, blue, alpha);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FillOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new FillOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName = "ode-action";
+        float red(0.222), green(0.333), blue(0.444), alpha(0.555);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_FILL_PTR pAction = 
+            DSL_ODE_ACTION_FILL_NEW(actionName.c_str(), red, green, blue, alpha);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            objectMeta.rect_params.border_width = 9;
+            objectMeta.rect_params.has_bg_color = false;  // Set false, action must set true
+            objectMeta.rect_params.bg_color.red = 0;
+            objectMeta.rect_params.bg_color.green = 0;
+            objectMeta.rect_params.bg_color.blue = 0;
+            objectMeta.rect_params.bg_color.alpha = 0;
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+                // Boarder Width must be unchanged
+                REQUIRE( objectMeta.rect_params.border_width == 9 );
+                
+                // Has background color must be enabled
+                REQUIRE( objectMeta.rect_params.has_bg_color == 1 );
+                
+                // Background color must be updated
+                REQUIRE( objectMeta.rect_params.bg_color.red == red );
+                REQUIRE( objectMeta.rect_params.bg_color.green == green );
+                REQUIRE( objectMeta.rect_params.bg_color.blue == blue );
+                REQUIRE( objectMeta.rect_params.bg_color.alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new HideOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new HideOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+
+        WHEN( "A new OdeAction is created" )
+        {
+            DSL_ODE_ACTION_HIDE_PTR pAction = 
+                DSL_ODE_ACTION_HIDE_NEW(actionName.c_str(), true, true);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A HideOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new HideOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("ode-action");
+        std::string displayText("display-text");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_HIDE_PTR pAction = 
+            DSL_ODE_ACTION_HIDE_NEW(actionName.c_str(), true, true);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.text_params.set_bg_clr = 1; // set true, hide action must disable
+            objectMeta.text_params.font_params.font_size = 10; // set size, hide action must disable
+            objectMeta.rect_params.border_width = 10; // set width, hide action must disable
+            objectMeta.text_params.display_text = (char*)(123); // Must have text for hide action to hide
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+                REQUIRE( objectMeta.text_params.set_bg_clr == 0 );
+                REQUIRE( objectMeta.text_params.font_params.font_size == 0 );
+                REQUIRE( objectMeta.rect_params.border_width == 0 );
             }
         }
     }
@@ -328,12 +472,11 @@ SCENARIO( "A new RedactOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new RedactOdeAction" ) 
     {
         std::string actionName("ode-action");
-        float red(1), green(1), blue(1), alpha(1);
 
         WHEN( "A new RedactOdeAction is created" )
         {
             DSL_ODE_ACTION_REDACT_PTR pAction = 
-                DSL_ODE_ACTION_REDACT_NEW(actionName.c_str(), red, green, blue, alpha);
+                DSL_ODE_ACTION_REDACT_NEW(actionName.c_str());
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -353,13 +496,12 @@ SCENARIO( "A RedactOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
         uint limit(1);
         
         std::string actionName = "ode-action";
-        float red(1), green(1), blue(1), alpha(1);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_REDACT_PTR pAction = 
-            DSL_ODE_ACTION_REDACT_NEW(actionName.c_str(), red, green, blue, alpha);
+            DSL_ODE_ACTION_REDACT_NEW(actionName.c_str());
 
         WHEN( "A new ODE is created" )
         {
@@ -389,10 +531,10 @@ SCENARIO( "A RedactOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
                 pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
                 REQUIRE( objectMeta.rect_params.border_width == 0 );
                 REQUIRE( objectMeta.rect_params.has_bg_color == 1 );
-                REQUIRE( objectMeta.rect_params.bg_color.red == red );
-                REQUIRE( objectMeta.rect_params.bg_color.green == green );
-                REQUIRE( objectMeta.rect_params.bg_color.blue == blue );
-                REQUIRE( objectMeta.rect_params.bg_color.alpha == alpha );
+                REQUIRE( objectMeta.rect_params.bg_color.red == 0.0 );
+                REQUIRE( objectMeta.rect_params.bg_color.green == 0.0 );
+                REQUIRE( objectMeta.rect_params.bg_color.blue == 0.0 );
+                REQUIRE( objectMeta.rect_params.bg_color.alpha == 1.0 );
             }
         }
     }
