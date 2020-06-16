@@ -2310,6 +2310,15 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+void dsl_delete_all()
+{
+    dsl_pipeline_delete_all();
+    dsl_component_delete_all();
+    dsl_ode_trigger_delete_all();
+    dsl_ode_area_delete_all();
+    dsl_ode_action_delete_all();
+}
+
 #define RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(actions, name) do \
 { \
     if (actions.find(name) == actions.end()) \

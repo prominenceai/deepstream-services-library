@@ -290,6 +290,8 @@ namespace DSL
         m_backgroundColor.green = green;
         m_backgroundColor.blue = blue;
         m_backgroundColor.alpha = alpha;
+        LOG_INFO("Setting Area '" << name << "to: red = " << red << " green = " 
+            << green << " blue = " << blue << " alpha = " << alpha);        
     }
 
     FillOdeAction::~FillOdeAction()
@@ -303,11 +305,8 @@ namespace DSL
     {
         if (m_enabled and pObjectMeta)
         {
-            pObjectMeta->rect_params.has_bg_color = true;
-            pObjectMeta->rect_params.bg_color.red = m_backgroundColor.red;
-            pObjectMeta->rect_params.bg_color.green = m_backgroundColor.green;
-            pObjectMeta->rect_params.bg_color.blue = m_backgroundColor.blue;
-            pObjectMeta->rect_params.bg_color.alpha = m_backgroundColor.alpha;
+            pObjectMeta->rect_params.has_bg_color = 1;
+            pObjectMeta->rect_params.bg_color = m_backgroundColor;
         }
     }
 

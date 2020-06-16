@@ -2444,6 +2444,11 @@ const wchar_t* dsl_state_value_to_string(uint state);
  */
 const wchar_t* dsl_version_get();
 
+/**
+ * @brief Releases/deletes all DSL/GST resources
+ */
+void dsl_delete_all();
+
 
 EXTERN_C_END
 

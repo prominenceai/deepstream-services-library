@@ -90,22 +90,22 @@ def main(args):
         # The second area will be shared by both Person and Vehicle classes... and defines
         # a vertical rectangle to the right of the sidewalk and left of the street
         # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_new('shared-area', left=500, top=0, width=10, height=1089, display=True)
+        retval = dsl_ode_area_new('shared-area', left=500, top=0, width=60, height=1089, display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-#        retval = dsl_ode_area_color_set('shared-area', red=0.0, green=0.0, blue=1.0, alpha = 0.35)
+        retval = dsl_ode_area_color_set('shared-area', red=1.0, green=1.0, blue=0.0, alpha = 0.05)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate that
         # overlap with one or more of the defined Area's has occurred, i.e. ODE occurrence. The action will be
         # used with both the Person and Car class Ids to indicate thay have entered the area of caution
-        retval = dsl_ode_action_fill_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.35)
+        retval = dsl_ode_action_fill_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle
+        # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
         retval = dsl_ode_action_capture_new('bicycle-capture', capture_type=DSL_CAPTURE_TYPE_FRAME, outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -117,26 +117,26 @@ def main(args):
             break
         
         # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
-        # Add the two Areas as Occurrence criteria (overlap) and the action to Fill the background red on occurrence
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence
+        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_area_add_many('person-occurrence', areas=['person-area', 'shared-area', None])
+        retval = dsl_ode_trigger_area_add_many('person-area-overlap', areas=['person-area', 'shared-area', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('person-occurrence', action='red-fill-action')
+        retval = dsl_ode_trigger_action_add('person-area-overlap', action='red-fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # New Occurrence Trigger, filtering on the Vehicle ClassId, with no limit on the number of occurrences
         # Add the single Shared Area and the action to Fill the background red on occurrence 
-        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_area_add('vehicle-occurrence', area='shared-area')
+        retval = dsl_ode_trigger_area_add('vehicle-area-overlap', area='shared-area')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('vehicle-occurrence', action='red-fill-action')
+        retval = dsl_ode_trigger_action_add('vehicle-area-overlap', action='red-fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -169,18 +169,39 @@ def main(args):
         retval = dsl_ode_trigger_action_add('Pedestrians', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
+        # A hide action to use with two occurrence Triggers, filtering on the Person Class Id and Vehicle Class Id
+        # We will use an every occurrece Trigger to hide the Display Text and Rectangle Border for each object detected
+        # We will leave the Bicycle Display Text and Border untouched
+        retval = dsl_ode_action_hide_new('hide-action', text=True, border=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('person-every-occurrence', action='hide-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('vehicle-every-occurrence', action='hide-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_ode_handler_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
-            'vehicle-occurrence',
-            'person-occurrence', 
+            'vehicle-area-overlap',
+            'person-area-overlap', 
             'bicycle-first-occurrence',
             'Vehicles',
             'Bicycles',
             'Pedestrians',
+            'person-every-occurrence',
+            'vehicle-every-occurrence',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -254,11 +275,8 @@ def main(args):
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
-    dsl_ode_trigger_delete_all()
-    dsl_ode_area_delete_all()
-    dsl_ode_action_delete_all()
-
+    # Cleanup all DSL/GST resources
+    print(dsl_delete_all())
+    
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
