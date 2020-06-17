@@ -55,8 +55,9 @@ namespace DSL {
         DslReturnType OdeActionCallbackNew(const char* name,
             dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
 
-        DslReturnType OdeActionCaptureNew(const char* name, 
-            uint captureType, const char* outdir);
+        DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir);
+        
+        DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
         
         DslReturnType OdeActionDisplayNew(const char* name,
             uint offsetX, uint offsetY, bool offsetY_with_classId);

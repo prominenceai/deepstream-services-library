@@ -119,17 +119,38 @@ SCENARIO( "A CallbackOdeAction handles an ODE Occurence correctly", "[OdeAction]
     }
 }
 
-SCENARIO( "A new CaptureOdeAction is created correctly", "[OdeAction]" )
+SCENARIO( "A new CaptureFrameOdeAction is created correctly", "[OdeAction]" )
 {
-    GIVEN( "Attributes for a new CaptureOdeAction" ) 
+    GIVEN( "Attributes for a new CaptureFrameOdeAction" ) 
     {
         std::string actionName("ode-action");
         std::string outdir("./");
 
-        WHEN( "A new CaptureOdeAction is created" )
+        WHEN( "A new CaptureFrameOdeAction is created" )
         {
-            DSL_ODE_ACTION_CAPTURE_PTR pAction = 
-                DSL_ODE_ACTION_CAPTURE_NEW(actionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str());
+            DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
+                DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), outdir.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new CaptureObjectOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+
+        WHEN( "A new CaptureObjectOdeAction is created" )
+        {
+            DSL_ODE_ACTION_CAPTURE_OBJECT_PTR pAction = 
+                DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(actionName.c_str(), outdir.c_str());
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {

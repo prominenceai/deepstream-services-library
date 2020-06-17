@@ -30,6 +30,13 @@ DSL_STATE_PAUSED = 3
 DSL_STATE_PLAYING = 4
 DSL_STATE_IN_TRANSITION = 5
 
+DSL_CAPTURE_TYPE_OBJECT = 0
+DSL_CAPTURE_TYPE_FRAME = 1
+
+DSL_ODE_TRIGGER_LIMIT_NONE = 0
+DSL_ODE_TRIGGER_LIMIT_ONE = 1
+
+
 ##
 ## Pointer Typedefs
 ##
@@ -55,6 +62,346 @@ DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 ##
 callbacks = []
 
+##
+## dsl_ode_action_capture_frame_new()
+##
+_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_frame_new.restype = c_uint
+def dsl_ode_action_capture_frame_new(name, outdir):
+    global _dsl
+    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir)
+    return int(result)
+
+##
+## dsl_ode_action_capture_object_new()
+##
+_dsl.dsl_ode_action_capture_object_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_object_new.restype = c_uint
+def dsl_ode_action_capture_object_new(name, outdir):
+    global _dsl
+    result =_dsl.dsl_ode_action_capture_object_new(name, outdir)
+    return int(result)
+
+##
+## dsl_ode_action_display_new()
+##
+_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool]
+_dsl.dsl_ode_action_display_new.restype = c_uint
+def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId):
+    global _dsl
+    result =_dsl.dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId)
+    return int(result)
+
+##
+## dsl_ode_action_fill_new()
+##
+_dsl.dsl_ode_action_fill_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_new.restype = c_uint
+def dsl_ode_action_fill_new(name, red, green, blue, alpha):
+    global _dsl
+    result =_dsl.dsl_ode_action_fill_new(name, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_ode_action_hide_new()
+##
+_dsl.dsl_ode_action_hide_new.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_ode_action_hide_new.restype = c_uint
+def dsl_ode_action_hide_new(name, text, border):
+    global _dsl
+    result =_dsl.dsl_ode_action_hide_new(name, text, border)
+    return int(result)
+
+##
+## dsl_ode_action_delete()
+##
+_dsl.dsl_ode_action_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_action_delete.restype = c_uint
+def dsl_ode_action_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_action_delete(name)
+    return int(result)
+
+##
+## dsl_ode_action_delete_many()
+##
+#_dsl.dsl_ode_action_delete_many.argtypes = [??]
+_dsl.dsl_ode_action_delete_many.restype = c_uint
+def dsl_ode_action_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_action_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_action_delete_all()
+##
+_dsl.dsl_ode_action_delete_all.argtypes = []
+_dsl.dsl_ode_action_delete_all.restype = c_uint
+def dsl_ode_action_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_action_delete_all()
+    return int(result)
+
+##
+## dsl_ode_action_list_size()
+##
+_dsl.dsl_ode_action_list_size.restype = c_uint
+def dsl_ode_action_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_action_list_size()
+    return int(result)
+
+##
+## dsl_ode_area_new()
+##
+_dsl.dsl_ode_area_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
+_dsl.dsl_ode_area_new.restype = c_uint
+def dsl_ode_area_new(name, left, top, width, height, display):
+    global _dsl
+    result =_dsl.dsl_ode_area_new(name, left, top, width, height, display)
+    return int(result)
+
+##
+## dsl_ode_area_get()
+##
+_dsl.dsl_ode_area_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_area_get.restype = c_uint
+def dsl_ode_area_get(name):
+    global _dsl
+    left = c_uint(0)
+    top = c_uint(0)
+    width = c_uint(0)
+    height = c_uint(0)
+    display = c_bool(0)
+    result = _dsl.dsl_ode_area_get(name, DSL_UINT_P(left), 
+        DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height), DSL_BOOL_P(display))
+    return int(result), left.value, top.value, width.value, height.value, display.value 
+
+##
+## dsl_ode_area_set()
+##
+_dsl.dsl_ode_area_set.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
+_dsl.dsl_ode_area_set.restype = c_uint
+def dsl_ode_area_set(name, left, top, width, height, display):
+    global _dsl
+    result =_dsl.dsl_ode_area_set(name, left, top, width, height, display)
+    return int(result)
+
+##
+## dsl_ode_area_color_get()
+##
+_dsl.dsl_ode_area_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_area_color_get.restype = c_uint
+def dsl_ode_area_color_get(name):
+    global _dsl
+    red = c_double(0)
+    green = c_double(0)
+    blue = c_double(0)
+    alpha = c_double(0)
+    result = _dsl.dsl_ode_area_color_get(name, 
+        DSL_DOUBLE_P(red), DSL_DOUBLE_P(green), DSL_DOUBLE_P(blue), DSL_DOUBLE_P(alpha))
+    return int(result), red.value, green.value, blue.value, alpha.value 
+
+##
+## dsl_ode_area_color_set()
+##
+_dsl.dsl_ode_area_color_set.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_area_color_set.restype = c_uint
+def dsl_ode_area_color_set(name, red, green, blue, alpha):
+    global _dsl
+    result =_dsl.dsl_ode_area_color_set(name, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_ode_area_delete()
+##
+_dsl.dsl_ode_area_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_area_delete.restype = c_uint
+def dsl_ode_area_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_area_delete(name)
+    return int(result)
+
+##
+## dsl_ode_area_delete_many()
+##
+#_dsl.dsl_ode_area_delete_many.argtypes = [??]
+_dsl.dsl_ode_area_delete_many.restype = c_uint
+def dsl_ode_area_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_area_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_area_delete_all()
+##
+_dsl.dsl_ode_area_delete_all.argtypes = []
+_dsl.dsl_ode_area_delete_all.restype = c_uint
+def dsl_ode_area_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_area_delete_all()
+    return int(result)
+
+##
+## dsl_ode_area_list_size()
+##
+_dsl.dsl_ode_area_list_size.restype = c_uint
+def dsl_ode_area_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_area_list_size()
+    return int(result)
+
+##
+## dsl_ode_trigger_absence_new()
+##
+_dsl.dsl_ode_trigger_absence_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_absence_new.restype = c_uint
+def dsl_ode_trigger_absence_new(name, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_absence_new(name, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_occurrence_new()
+##
+_dsl.dsl_ode_trigger_occurrence_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_occurrence_new.restype = c_uint
+def dsl_ode_trigger_occurrence_new(name, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_occurrence_new(name, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_summation_new()
+##
+_dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_summation_new.restype = c_uint
+def dsl_ode_trigger_summation_new(name, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_summation_new(name, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_action_add()
+##
+_dsl.dsl_ode_trigger_action_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_action_add.restype = c_uint
+def dsl_ode_trigger_action_add(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_action_add(name, action)
+    return int(result)
+
+##
+## dsl_ode_trigger_action_add_many()
+##
+#_dsl.dsl_ode_trigger_action_add_many.argtypes = [??]
+_dsl.dsl_ode_trigger_action_add_many.restype = c_uint
+def dsl_ode_trigger_action_add_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_trigger_action_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_trigger_area_add()
+##
+_dsl.dsl_ode_trigger_area_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_area_add.restype = c_uint
+def dsl_ode_trigger_area_add(name, area):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_area_add(name, area)
+    return int(result)
+
+##
+## dsl_ode_trigger_area_add_many()
+##
+#_dsl.dsl_ode_trigger_area_add_many.argtypes = [??]
+_dsl.dsl_ode_trigger_area_add_many.restype = c_uint
+def dsl_ode_trigger_area_add_many(name, areas):
+    global _dsl
+    arr = (c_wchar_p * len(areas))()
+    arr[:] = areas
+    result =_dsl.dsl_ode_trigger_area_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_trigger_delete()
+##
+_dsl.dsl_ode_trigger_delete.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_delete.restype = c_uint
+def dsl_ode_trigger_delete(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_delete(name)
+    return int(result)
+
+##
+## dsl_ode_trigger_delete_many()
+##
+#_dsl.dsl_ode_trigger_delete_many.argtypes = [??]
+_dsl.dsl_ode_trigger_delete_many.restype = c_uint
+def dsl_ode_trigger_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_ode_trigger_delete_many(arr)
+    return int(result)
+
+##
+## dsl_ode_trigger_delete_all()
+##
+_dsl.dsl_ode_trigger_delete_all.argtypes = []
+_dsl.dsl_ode_trigger_delete_all.restype = c_uint
+def dsl_ode_trigger_delete_all():
+    global _dsl
+    result =_dsl.dsl_ode_trigger_delete_all()
+    return int(result)
+
+##
+## dsl_ode_trigger_list_size()
+##
+_dsl.dsl_ode_trigger_list_size.restype = c_uint
+def dsl_ode_trigger_list_size():
+    global _dsl
+    result =_dsl.dsl_ode_trigger_list_size()
+    return int(result)
+
+##
+## dsl_ode_handler_new()
+##
+_dsl.dsl_ode_handler_new.argtypes = [c_wchar_p]
+_dsl.dsl_ode_handler_new.restype = c_uint
+def dsl_ode_handler_new(name):
+    global _dsl
+    result =_dsl.dsl_ode_handler_new(name)
+    return int(result)
+
+##
+## dsl_ode_handler_trigger_add()
+##
+_dsl.dsl_ode_handler_trigger_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_handler_trigger_add.restype = c_uint
+def dsl_ode_handler_trigger_add(name, trigger):
+    global _dsl
+    result =_dsl.dsl_ode_handler_trigger_add(name, trigger)
+    return int(result)
+
+##
+## dsl_ode_handler_trigger_add_many()
+##
+#_dsl.dsl_ode_handler_trigger_add_many.argtypes = [??]
+_dsl.dsl_ode_handler_trigger_add_many.restype = c_uint
+def dsl_ode_handler_trigger_add_many(name, triggers):
+    global _dsl
+    arr = (c_wchar_p * len(triggers))()
+    arr[:] = triggers
+    result =_dsl.dsl_ode_handler_trigger_add_many(name, arr)
+    return int(result)
+    
 ##
 ## dsl_source_csi_new()
 ##
@@ -1587,3 +1934,11 @@ _dsl.dsl_version_get.restype = c_wchar_p
 def dsl_version_get():
     global _dsl
     return _dsl.dsl_version_get()
+
+##
+## dsl_delete_all()
+##
+_dsl.dsl_delete_all.restype = c_bool
+def dsl_delete_all():
+    global _dsl
+    return _dsl.dsl_delete_all()

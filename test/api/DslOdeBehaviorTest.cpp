@@ -361,7 +361,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
         REQUIRE( dsl_ode_trigger_occurrence_new(firstCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_action_capture_new(captureActionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
         
         // Add the same capture Action to both ODE Types
         REQUIRE( dsl_ode_trigger_action_add(firstCarOccurrenceName.c_str(), captureActionName.c_str()) == DSL_RESULT_SUCCESS );

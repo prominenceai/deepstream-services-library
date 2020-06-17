@@ -425,17 +425,23 @@ DslReturnType dsl_ode_action_callback_new(const wchar_t* name,
     dsl_ode_occurrence_handler_cb client_handler, void* client_data);
 
 /**
- * @brief Creates a uniquely named ODE Capture Action
- * @param[in] name unique name for the ODE Display Action 
- * @param[in] capture_type capture type, DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
+ * @brief Creates a uniquely named Capture Frame ODE Action
+ * @param[in] name unique name for the Capture Frame ODE Action 
  * @param[in] outdir absolute or relative path to image capture directory 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_capture_new(const wchar_t* name, 
-    uint capture_type, const wchar_t* outdir);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir);
 
 /**
- * @brief Creates a uniquely named ODE Display Action
+ * @brief Creates a uniquely named Capture Object ODE Action
+ * @param[in] name unique name for the Capture Object ODE Action 
+ * @param[in] outdir absolute or relative path to image capture directory 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir);
+
+/**
+ * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
  * @param[out] offsetX offset in the X direction for the OSD clock in pixels
  * @param[out] offsetY offset in the Y direction for the OSD clock in pixels
@@ -447,9 +453,9 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name,
     uint offsetX, uint offsetY, boolean offsetY_with_classId);
 
 /**
- * @brief Creates a uniquely named ODE Fill Action, that fills an object's
+ * @brief Creates a uniquely named Fill Background ODE Action, that fills an object's
  * Background with RGBA color values
- * @param[in] name unique name for the ODE Fill Action
+ * @param[in] name unique name for the Fill Backtround ODE Action
  * @param[in] red red value for the RGBA background color [1..0]
  * @param[in] green green value for the RGBA background color [1..0]
  * @param[in] blue blue value for the RGBA background color [1..0]
@@ -460,7 +466,7 @@ DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
 
 /**
- * @brief Creates a uniquely named ODE Hide Action
+ * @brief Creates a uniquely named Hide Object Display ODE Action
  * @param[in] name unique name for the ODE Hide Action 
  * @param[in] if true, hides the Object's Display Text on HandleOccurrence
  * @param[in] if true, hides the Object's Rectangle Border on HandleOccurrence
@@ -469,31 +475,31 @@ DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
 DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border);
 
 /**
- * @brief Creates a uniquely named ODE Log Action
- * @param[in] name unique name for the ODE Log Action 
+ * @brief Creates a uniquely named Log ODE Action
+ * @param[in] name unique name for the Log ODE Action 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named ODE Pause Action
- * @param[in] name unique name for the ODE Pause Action 
+ * @brief Creates a uniquely named Pause ODE Action
+ * @param[in] name unique name for the Pause ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
 
 /**
- * @brief Creates a uniquely named ODE Print Action
- * @param[in] name unique name for the ODE Print Action 
+ * @brief Creates a uniquely named Print ODE Action
+ * @param[in] name unique name for the Print ODE Action 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_print_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named ODE Redact Action, that blacks out an 
+ * @brief Creates a uniquely named Redact Object ODE Action, that blacks out an 
  * Object's background redacting the rectangle area
- * @param[in] name unique name for the ODE Redact Action
+ * @param[in] name unique name for the Redact Object ODE Action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name);

@@ -46,16 +46,24 @@ DslReturnType dsl_ode_action_callback_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionCallbackNew(cstrName.c_str(), client_hanlder, client_data);
 }
 
-DslReturnType dsl_ode_action_capture_new(const wchar_t* name, 
-    uint capture_type, const wchar_t* outdir)
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureNew(cstrName.c_str(), 
-        capture_type, cstrOutdir.c_str());
+    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), cstrOutdir.c_str());
+}
+
+DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), cstrOutdir.c_str());
 }
 
 DslReturnType dsl_ode_action_display_new(const wchar_t* name,
@@ -2627,8 +2635,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionCaptureNew(const char* name,
-        uint captureType, const char* outdir)
+    DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
+        const char* outdir)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2642,10 +2650,39 @@ namespace DSL
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
-            if (captureType > DSL_CAPTURE_TYPE_FRAME)
+            // ensure outdir exists
+            struct stat info;
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Invalid capture type '" << captureType << "' for Capture Action '" << name << "'");
-                return DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID;
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
+                return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir);
+
+            LOG_INFO("New Capture Frame ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Capture Frame ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeActionCaptureObjectNew(const char* name,
+        const char* outdir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
             
             // ensure outdir exists
@@ -2655,16 +2692,17 @@ namespace DSL
                 LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, outdir);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir);
+
+            LOG_INFO("New Capture Object ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Log Action '" << name << "' threw exception on create");
+            LOG_ERROR("New Capture Object ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
-        LOG_INFO("New ODE Capture Action '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId)

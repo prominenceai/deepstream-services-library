@@ -41,13 +41,21 @@ namespace DSL
     #define DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData) \
         std::shared_ptr<CallbackOdeAction>(new CallbackOdeAction(name, clientHandler, clientData))
         
-    #define DSL_ODE_ACTION_CAPTURE_PTR std::shared_ptr<CaptureOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_NEW(name, captureType, outdir) \
-        std::shared_ptr<CaptureOdeAction>(new CaptureOdeAction(name, captureType, outdir))
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
+        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir))
+        
+    #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
+    #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
+        std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction(name, outdir))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
         std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
+        
+    #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
+    #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
+        std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
     #define DSL_ODE_ACTION_FILL_PTR std::shared_ptr<FillOdeAction>
     #define DSL_ODE_ACTION_FILL_NEW(name, red, green, blue, alpha) \
@@ -257,7 +265,7 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
-    private:
+    protected:
     
         /**
          * @brief either DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
@@ -271,6 +279,45 @@ namespace DSL
 
     };
     
+    // ********************************************************************
+
+    /**
+     * @class CaptureFrameOdeAction
+     * @brief ODE Capture Frame Action class
+     */
+    class CaptureFrameOdeAction : public CaptureOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Capture Frame ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] outdir output directory to write captured image files
+         */
+        CaptureFrameOdeAction(const char* name, const char* outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir)
+        {};
+
+    };
+
+    /**
+     * @class CaptureObjectOdeAction
+     * @brief ODE Capture Object Action class
+     */
+    class CaptureObjectOdeAction : public CaptureOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Capture Frame ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] outdir output directory to write captured image files
+         */
+        CaptureObjectOdeAction(const char* name, const char* outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir)
+        {};
+
+    };
     // ********************************************************************
 
     /**
@@ -325,6 +372,48 @@ namespace DSL
     
     };
 
+    // ********************************************************************
+
+    /**
+     * @class DisableHandlerOdeAction
+     * @brief ODE Disable Handelr ODE Action class
+     */
+    class DisableHandlerOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Display ODE Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] handler unique name for the ODE Handler to disable
+         */
+        DisableHandlerOdeAction(const char* name, const char* handler);
+        
+        /**
+         * @brief dtor for the Display ODE Action class
+         */
+        ~DisableHandlerOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by disabling a named ODE Handler
+         * using OSD text overlay
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Unique name of the ODE handler to disable 
+         */
+        std::string m_handler;
+    
+    };
     // ********************************************************************
 
     /**

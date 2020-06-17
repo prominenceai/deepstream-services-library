@@ -106,7 +106,7 @@ def main(args):
 
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
-        retval = dsl_ode_action_capture_new('bicycle-capture', capture_type=DSL_CAPTURE_TYPE_FRAME, outdir="./")
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -276,7 +276,7 @@ def main(args):
     print(dsl_return_value_to_string(retval))
 
     # Cleanup all DSL/GST resources
-    print(dsl_delete_all())
+    dsl_delete_all()
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

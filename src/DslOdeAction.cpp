@@ -218,6 +218,30 @@ namespace DSL
 
     // ********************************************************************
 
+    DisableHandlerOdeAction::DisableHandlerOdeAction(const char* name, const char* handler)
+        : OdeAction(name)
+        , m_handler(handler)
+    {
+        LOG_FUNC();
+    }
+
+    DisableHandlerOdeAction::~DisableHandlerOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeHandlerEnabledSet(m_handler.c_str(), false);
+        }
+    }
+
+    // ********************************************************************
+
     DisplayOdeAction::DisplayOdeAction(const char* name, 
         uint offsetX, uint offsetY, bool offsetYWithClassId)
         : OdeAction(name)

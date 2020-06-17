@@ -128,31 +128,31 @@ SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-a
     }
 }
 
-SCENARIO( "A new Capture ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Capture ODE Action" ) 
+    GIVEN( "Attributes for a new Frame Capture ODE Action" ) 
     {
         std::wstring actionName(L"capture-action");
         std::wstring outdir(L"./");
 
-        WHEN( "A new Capture Action is created" ) 
+        WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_new(actionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Capture Action can be deleted" ) 
+            THEN( "The Frame Capture Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
-        WHEN( "A new Capture Action is created" ) 
+        WHEN( "A new Frame Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_new(actionName.c_str(), DSL_CAPTURE_TYPE_OBJECT, outdir.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_frame_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Capture Action of the same names fails to create" ) 
+            THEN( "A second Frame Capture Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_capture_new(actionName.c_str(), 
-                    DSL_CAPTURE_TYPE_OBJECT, outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_capture_frame_new(actionName.c_str(), 
+                    outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -161,10 +161,53 @@ SCENARIO( "A new Capture ODE Action can be created and deleted", "[ode-action-ap
         {
             std::wstring invalidOutDir(L"/invalid/output/directory");
             
-            THEN( "A new Capture Action fails to create" ) 
+            THEN( "A new Frame Capture Action fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_capture_new(actionName.c_str(), 
-                    DSL_CAPTURE_TYPE_OBJECT, invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
+                REQUIRE( dsl_ode_action_capture_frame_new(actionName.c_str(), 
+                    invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Object Capture ODE Action" ) 
+    {
+        std::wstring actionName(L"capture-action");
+        std::wstring outdir(L"./");
+
+        WHEN( "A new Object Capture Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Object Capture Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Object Capture Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Object Capture Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
+                    outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid Output Directory is specified" ) 
+        {
+            std::wstring invalidOutDir(L"/invalid/output/directory");
+            
+            THEN( "A new Object Capture Action fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
+                    invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
