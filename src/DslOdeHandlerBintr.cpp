@@ -126,7 +126,7 @@ namespace DSL
             return false;
         }
         m_pOdeTriggers.erase(pChild->GetName());
-        return Base::RemoveChild(pChild);
+        return true;
     }
     
     void OdeHandlerBintr::RemoveAllChildren()

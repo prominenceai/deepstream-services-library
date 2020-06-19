@@ -38,7 +38,7 @@ THE SOFTWARE.
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
 DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
-    dsl_ode_occurrence_handler_cb client_hanlder, void* client_data)
+    dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -74,6 +74,17 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
         offsetX, offsetY, offsetY_with_classId);
+}
+
+DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+
+    return DSL::Services::GetServices()->OdeActionHandlerDisableNew(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean border)
@@ -183,6 +194,34 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionSourceRemoveNew(cstrName.c_str(),
         cstrPipeline.c_str(), cstrSource.c_str());
+}
+
+DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
+    const wchar_t* trigger, const wchar_t* area)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrArea(area);
+    std::string cstrArea(wstrArea.begin(), wstrArea.end());
+    std::wstring wstrTrigger(trigger);
+    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
+
+    return DSL::Services::GetServices()->OdeActionAreaAddNew(cstrName.c_str(),
+        cstrTrigger.c_str(), cstrArea.c_str());
+}
+
+DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
+    const wchar_t* trigger, const wchar_t* area)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrArea(area);
+    std::string cstrArea(wstrArea.begin(), wstrArea.end());
+    std::wstring wstrTrigger(trigger);
+    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
+
+    return DSL::Services::GetServices()->OdeActionAreaRemoveNew(cstrName.c_str(),
+        cstrTrigger.c_str(), cstrArea.c_str());
 }
 
 DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
@@ -443,6 +482,16 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
     return DSL::Services::GetServices()->OdeTriggerSummationNew(cstrName.c_str(), class_id, limit);
 }
 
+DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
+    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerCustomNew(cstrName.c_str(), 
+        class_id, limit, client_checker, client_data);
+}
+    
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 {
     std::wstring wstrName(name);
@@ -2609,7 +2658,7 @@ namespace DSL
     }
     
     DslReturnType Services::OdeActionCallbackNew(const char* name,
-        dsl_ode_occurrence_handler_cb clientHandler, void* clientData)
+        dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2759,6 +2808,32 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionHandlerDisableNew(const char* name, const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler);
+
+            LOG_INFO("New ODE Disable Handler Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Disable Handler Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionHideNew(const char* name, boolean text, boolean border)
     {
         LOG_FUNC();
@@ -3400,7 +3475,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area criteria");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Area criteria");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3449,7 +3524,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting Area Color");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Area Color");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3547,18 +3622,18 @@ namespace DSL
             // ensure event name uniqueness 
             if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
-                LOG_ERROR("ODE Type name '" << name << "' is not unique");
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit);
             
-            LOG_INFO("New Occurrence ODE Type '" << name << "' created successfully");
+            LOG_INFO("New Occurrence ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Occurrence ODE Type '" << name << "' threw exception on create");
+            LOG_ERROR("New Occurrence ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -3573,18 +3648,18 @@ namespace DSL
             // ensure event name uniqueness 
             if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
-                LOG_ERROR("ODE Type name '" << name << "' is not unique");
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit);
             
-            LOG_INFO("New Absence ODE Type '" << name << "' created successfully");
+            LOG_INFO("New Absence ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Absence ODE Type '" << name << "' threw exception on create");
+            LOG_ERROR("New Absence ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -3599,22 +3674,55 @@ namespace DSL
             // ensure event name uniqueness 
             if (m_odeTriggers.find(name) != m_odeTriggers.end())
             {   
-                LOG_ERROR("ODE Type name '" << name << "' is not unique");
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit);
             
-            LOG_INFO("New Summation ODE Type '" << name << "' created successfully");
+            LOG_INFO("New Summation ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Summation ODE Type '" << name << "' threw exception on create");
+            LOG_ERROR("New Summation ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
+    DslReturnType Services::OdeTriggerCustomNew(const char* name, 
+        uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
+            }
+            
+            if (!client_checker)
+            {
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, client_checker, client_data);
+            
+            LOG_INFO("New Custom ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custon ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::OdeTriggerEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
@@ -3632,7 +3740,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting Enabled setting");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Enabled setting");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3654,7 +3762,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception setting Enabled");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting Enabled");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3676,7 +3784,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3698,7 +3806,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3720,7 +3828,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting source id");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3742,7 +3850,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting class id");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3764,7 +3872,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum dimensions");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3788,7 +3896,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception setting minimum dimensions");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting minimum dimensions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3812,7 +3920,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3836,7 +3944,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name << "' threw exception getting minimum frame count");
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum frame count");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }                
@@ -3852,21 +3960,21 @@ namespace DSL
             RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, action);
 
             // Note: Actions can be added when in use, i.e. shared between
-            // multiple ODE Types
+            // multiple ODE Triggers
 
             if (!m_odeTriggers[name]->AddAction(m_odeActions[action]))
             {
-                LOG_ERROR("ODE Type '" << name
+                LOG_ERROR("ODE Trigger '" << name
                     << "' failed to add ODE Action '" << action << "'");
                 return DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED;
             }
             LOG_INFO("ODE Action '" << action
-                << "' was added to ODE Type '" << name << "' successfully");
+                << "' was added to ODE Trigger '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name
+            LOG_ERROR("ODE Trigger '" << name
                 << "' threw exception adding ODE Action '" << action << "'");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -3885,24 +3993,24 @@ namespace DSL
             if (!m_odeActions[action]->IsParent(m_odeTriggers[name]))
             {
                 LOG_ERROR("ODE Action'" << action << 
-                    "' is not in use by ODE Type '" << name << "'");
+                    "' is not in use by ODE Trigger '" << name << "'");
                 return DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE;
             }
 
             if (!m_odeTriggers[name]->RemoveAction(m_odeActions[action]))
             {
-                LOG_ERROR("ODE Type '" << name
+                LOG_ERROR("ODE Trigger '" << name
                     << "' failed to remove ODE Action '" << action << "'");
                 return DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED;
             }
             LOG_INFO("ODE Action '" << action
-                << "' was removed from ODE Type '" << name << "' successfully");
+                << "' was removed from ODE Trigger '" << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name
+            LOG_ERROR("ODE Trigger '" << name
                 << "' threw exception remove ODE Action '" << action << "'");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -3919,12 +4027,12 @@ namespace DSL
 
             m_odeTriggers[name]->RemoveAllActions();
 
-            LOG_INFO("All Events Actions removed from ODE Type '" << name << "' successfully");
+            LOG_INFO("All Events Actions removed from ODE Trigger '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name 
+            LOG_ERROR("ODE Trigger '" << name 
                 << "' threw an exception removing All Events Actions");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -3941,21 +4049,21 @@ namespace DSL
             RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, area);
 
             // Note: Areas can be added when in use, i.e. shared between
-            // multiple ODE Types
+            // multiple ODE Triggers
 
             if (!m_odeTriggers[name]->AddArea(m_odeAreas[area]))
             {
-                LOG_ERROR("ODE Type '" << name
+                LOG_ERROR("ODE Trigger '" << name
                     << "' failed to add ODE Area '" << area << "'");
                 return DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED;
             }
             LOG_INFO("ODE Area '" << area
-                << "' was added to ODE Type '" << name << "' successfully");
+                << "' was added to ODE Trigger '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name
+            LOG_ERROR("ODE Trigger '" << name
                 << "' threw exception adding ODE Area '" << area << "'");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -3974,24 +4082,24 @@ namespace DSL
             if (!m_odeAreas[area]->IsParent(m_odeTriggers[name]))
             {
                 LOG_ERROR("ODE Area'" << area << 
-                    "' is not in use by ODE Type '" << name << "'");
+                    "' is not in use by ODE Trigger '" << name << "'");
                 return DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE;
             }
 
             if (!m_odeTriggers[name]->RemoveArea(m_odeAreas[area]))
             {
-                LOG_ERROR("ODE Type '" << name
+                LOG_ERROR("ODE Trigger '" << name
                     << "' failed to remove ODE Area '" << area << "'");
                 return DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED;
             }
             LOG_INFO("ODE Area '" << area
-                << "' was removed from ODE Type '" << name << "' successfully");
+                << "' was removed from ODE Trigger '" << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name
+            LOG_ERROR("ODE Trigger '" << name
                 << "' threw exception remove ODE Area '" << area << "'");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -4008,12 +4116,12 @@ namespace DSL
 
             m_odeTriggers[name]->RemoveAllAreas();
 
-            LOG_INFO("All Events Areas removed from ODE Type '" << name << "' successfully");
+            LOG_INFO("All Events Areas removed from ODE Trigger '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Type '" << name 
+            LOG_ERROR("ODE Trigger '" << name 
                 << "' threw an exception removing All ODE Areas");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
@@ -4027,12 +4135,12 @@ namespace DSL
         
         if (m_odeTriggers[name]->IsInUse())
         {
-            LOG_INFO("ODE Type '" << name << "' is in use");
+            LOG_INFO("ODE Trigger '" << name << "' is in use");
             return DSL_RESULT_ODE_TRIGGER_IN_USE;
         }
         m_odeTriggers.erase(name);
 
-        LOG_INFO("ODE Type '" << name << "' deleted successfully");
+        LOG_INFO("ODE Trigger '" << name << "' deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -4047,13 +4155,13 @@ namespace DSL
             // In the case of Delete all
             if (imap.second->IsInUse())
             {
-                LOG_ERROR("ODE Type '" << imap.second->GetName() << "' is currently in use");
+                LOG_ERROR("ODE Trigger '" << imap.second->GetName() << "' is currently in use");
                 return DSL_RESULT_ODE_TRIGGER_IN_USE;
             }
         }
         m_odeTriggers.clear();
 
-        LOG_INFO("All ODE Types deleted successfully");
+        LOG_INFO("All ODE Triggers deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -5640,7 +5748,7 @@ namespace DSL
             // Can't add Events if they're In use by another OdeHandler
             if (m_odeTriggers[trigger]->IsInUse())
             {
-                LOG_ERROR("Unable to add ODE Type '" << trigger 
+                LOG_ERROR("Unable to add ODE Trigger '" << trigger 
                     << "' as it is currently in use");
                 return DSL_RESULT_ODE_TRIGGER_IN_USE;
             }
@@ -5651,17 +5759,17 @@ namespace DSL
             if (!pOdeHandlerBintr->AddChild(m_odeTriggers[trigger]))
             {
                 LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to add ODE Type '" << trigger << "'");
+                    << "' failed to add ODE Trigger '" << trigger << "'");
                 return DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED;
             }
         }
         catch(...)
         {
             LOG_ERROR("ODE Handler '" << handler
-                << "' threw exception adding ODE Type '" << trigger << "'");
+                << "' threw exception adding ODE Trigger '" << trigger << "'");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Type '" << trigger 
+        LOG_INFO("ODE Trigger '" << trigger 
             << "' was added to ODE Handler '" << handler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
@@ -5679,7 +5787,7 @@ namespace DSL
         {
             if (!m_odeTriggers[trigger]->IsParent(m_components[handler]))
             {
-                LOG_ERROR("ODE Type '" << trigger << 
+                LOG_ERROR("ODE Trigger '" << trigger << 
                     "' is not in use by ODE Handler '" << handler << "'");
                 return DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE;
             }
@@ -5690,17 +5798,17 @@ namespace DSL
             if (!pOdeHandlerBintr->RemoveChild(m_odeTriggers[trigger]))
             {
                 LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to remove ODE Type '" << trigger << "'");
+                    << "' failed to remove ODE Trigger '" << trigger << "'");
                 return DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED;
             }
         }
         catch(...)
         {
             LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing ODE Type");
+                << "' threw an exception removing ODE Trigger");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("ODE Type '" << trigger 
+        LOG_INFO("ODE Trigger '" << trigger 
             << "' was removed from OdeHandler '" << handler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
@@ -5722,10 +5830,10 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing All ODE Types");
+                << "' threw an exception removing All ODE Triggers");
             return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
         }
-        LOG_INFO("All ODE Types removed from ODE Handler '" << handler << "' successfully");
+        LOG_INFO("All ODE Triggers removed from ODE Handler '" << handler << "' successfully");
 
         return DSL_RESULT_SUCCESS;
     }
@@ -7968,6 +8076,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";

@@ -199,7 +199,7 @@ namespace DSL
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
          */
-        CallbackOdeAction(const char* name, dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
+        CallbackOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
         
         /**
          * @brief dtor for the ODE Callback Action class
@@ -222,7 +222,7 @@ namespace DSL
         /**
          * @brief Client Callback function to call on ODE occurrence
          */
-        dsl_ode_occurrence_handler_cb m_clientHandler;
+        dsl_ode_handle_occurrence_cb m_clientHandler;
         
         /**
          * @brief pointer to client's data returned on callback

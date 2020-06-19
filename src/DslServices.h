@@ -53,7 +53,7 @@ namespace DSL {
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/ 
         DslReturnType OdeActionCallbackNew(const char* name,
-            dsl_ode_occurrence_handler_cb clientHandler, void* clientData);
+            dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
 
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir);
         
@@ -66,6 +66,8 @@ namespace DSL {
         
         DslReturnType OdeActionFillNew(const char* name,
             double red, double green, double blue, double alpha);
+
+        DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
 
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
@@ -149,6 +151,9 @@ namespace DSL {
         DslReturnType OdeTriggerAbsenceNew(const char* name, uint classId, uint limit);
         
         DslReturnType OdeTriggerSummationNew(const char* name, uint classId, uint limit);
+
+        DslReturnType OdeTriggerCustomNew(const char* name, 
+            uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
         
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 

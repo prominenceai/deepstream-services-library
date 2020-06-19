@@ -27,6 +27,7 @@
 import sys
 sys.path.insert(0, "../../")
 from dsl import *
+import pyds
 
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
@@ -73,136 +74,111 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+        
+## 
+# Function called by a Custom ODE Trigger to check for an ODE occurrence 
+## 
+def check_for_occurrence(buffer, frame_data, object_data, client_data):
+    
+    # increment our client trigger count Note... this could just as easily
+    # be done by passing the count via the client_data
+    global trigger_count
+    trigger_count += 1
+    
+    # a contrived example of some type of occurrence criteria
+    if (trigger_count % 100 == 0):
+        
+        # Note: sure this is possible. Need to talk with Nvida
+        # may need to cast and traverse the buffer pointer... less than ideal
+        
+        # cast the frame data to a pyds.NvDsFrameMeta
+ #       frame_meta = pyds.glist_get_nvds_frame_meta(frame_data)
+
+        # cast the object data to a pyds.NvDsObjectMeta
+        #object_meta = pyds.glist_get_nvds_object_meta(object_data)
+        
+#        print("occurrence triggered: object-label=", object_meta.obj_label)
+        print("occurrence triggered: trigger_count=", trigger_count)
+        
+        # return True to invoke all actions
+        return True
+    
+    # return false, actions will NOT be invoked for this Trigger
+    return False
+    
+
+## 
+# Function called by a Callback ODE Action to handle an ODE occurrence 
+## 
+#def handle_occurrence(ode_id, trigger):
+def handle_occurrence(ode_id, trigger, buffer, frame_data, objec_data, client_data):
+    
+    # Note: sure this is possible. Need to talk with Nvida
+    # may need to cast and traverse the buffer pointer... less than ideal
+
+    # cast the frame data to a pyds.NvDsFrameMeta
+#    frame_meta = pyds.glist_get_nvds_frame_meta(frame_data)
+
+    # cast the object data to a pyds.NvDsObjectMeta
+#    object_meta = pyds.glist_get_nvds_object_meta(object_data)
+    
+    print("Unique IDE Id=", ode_id)
+
+##
+# Trigger count, to track the number of times the Custom Trigger
+# Calls the client "check-for-occurrence" managed as Client Data
+trigger_count = 0
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # Create two areas to be used as criteria for ODE Occurrence. The first area
-        # will be for the Person class alone...  and defines a vertical rectangle to 
-        # the left of the pedestrian sidewalk. The pixel values are relative to the
-        # Stream-Muxer output dimensions (default 1920 x 1080), vs. the Tiler/Sink
-        retval = dsl_ode_area_new('person-area', left=200, top=0, width=10, height=1089, display=True)
+        # This example creates two ODE triggers; one built-in Occurrence Trigger to call a Custom Action, and 
+        # one Custom Trigger to call two built-in Actions, Fill and Print.
+        
+        # Create a new Custom Callback action that will print out the details of the ODE occurrence
+        retval = dsl_ode_action_callback_new('callback-action', client_handler=handle_occurrence, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # The second area will be shared by both Person and Vehicle classes... and defines
-        # a vertical rectangle to the right of the sidewalk and left of the street
-        # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_new('shared-area', left=500, top=0, width=60, height=1089, display=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_area_color_set('shared-area', red=1.0, green=1.0, blue=0.0, alpha = 0.05)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate that
-        # overlap with one or more of the defined Area's has occurred, i.e. ODE occurrence. The action will be
-        # used with both the Person and Car class Ids to indicate thay have entered the area of caution
+        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate occurrence
         retval = dsl_ode_action_fill_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./")
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # One more Action used to display all Object detection summations for each frame. Use the classId
-        # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=10, offsetY=50, offsetY_with_classId=True)
+        # Create a new Print Action to print out the ODE Details to the console winodw
+        # The action will be triggered on every occurrence of a bicycle that meets the minimum criteria
+        retval = dsl_ode_action_print_new('shared-print-action')
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
-        # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence
-        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        # New Custom Trigger, filtering on the Vehical Class Id, with no limit on the number of occurrences
+        retval = dsl_ode_trigger_custom_new('custom-trigger', class_id=PGIE_CLASS_ID_VEHICLE, limit=0,
+            client_checker=check_for_occurrence, client_data=trigger_count)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_area_add_many('person-area-overlap', areas=['person-area', 'shared-area', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('person-area-overlap', action='red-fill-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Occurrence Trigger, filtering on the Vehicle ClassId, with no limit on the number of occurrences
-        # Add the single Shared Area and the action to Fill the background red on occurrence 
-        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_area_add('vehicle-area-overlap', area='shared-area')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('vehicle-area-overlap', action='red-fill-action')
+        # Add the red-fill and shared-print actions to be called when the "check-for-occurrence" returns true
+        retval = dsl_ode_trigger_action_add_many('custom-trigger', actions=[
+            'red-fill-action', 'shared-print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # New Occurrence Trigger, filtering on the Bicycle ClassId, with a limit of one occurrence
-        # Add the capture-frame action to the first occurrence event
-        retval = dsl_ode_trigger_occurrence_new('bicycle-first-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('bicycle-first-occurrence', action='bicycle-capture')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New ODE Triggers for Object summation - i.e. new ODE occurrence on detection summation.
-        # Each Trigger will share the same ODE Display Action
-        retval = dsl_ode_trigger_summation_new('Vehicles', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Vehicles', action='display-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_summation_new('Bicycles', class_id=PGIE_CLASS_ID_BICYCLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Bicycles', action='display-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_summation_new('Pedestrians', class_id=PGIE_CLASS_ID_PERSON, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Pedestrians', action='display-action')
+        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence', actions=[
+            'red-fill-action', 'shared-print-action', 'callback-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # A hide action to use with two occurrence Triggers, filtering on the Person Class Id and Vehicle Class Id
-        # We will use an every occurrece Trigger to hide the Display Text and Rectangle Border for each object detected
-        # We will leave the Bicycle Display Text and Border untouched
-        retval = dsl_ode_action_hide_new('hide-action', text=True, border=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('person-every-occurrence', action='hide-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('vehicle-every-occurrence', action='hide-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
+        # New ODE Handler to handle all ODE Triggers and their Actions    
         retval = dsl_ode_handler_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
-            'vehicle-area-overlap',
-            'person-area-overlap', 
-            'bicycle-first-occurrence',
-            'Vehicles',
-            'Bicycles',
-            'Pedestrians',
-            'person-every-occurrence',
-            'vehicle-every-occurrence',
-            None])
+            'custom-trigger', 'bicycle-occurrence', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         

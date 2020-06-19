@@ -115,26 +115,26 @@ SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[ode-handle
     {
         std::wstring odeHandlerName(L"ode-handler");
 
-        std::wstring eventName(L"first-occurrence");
+        std::wstring triggerName(L"first-occurrence");
         uint class_id(0);
         uint limit(0);
 
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(eventName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(triggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Detection Event is added to the ODE Handler" ) 
         {
-            REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), eventName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             // Adding the same Event twice must fail
-            REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), eventName.c_str()) == DSL_RESULT_ODE_TRIGGER_IN_USE );
+            REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_IN_USE );
             
             THEN( "The same Detection Event can be removed correctly" ) 
             {
-                REQUIRE( dsl_ode_handler_trigger_remove(odeHandlerName.c_str(), eventName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_handler_trigger_remove(odeHandlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
 
                 // Adding the same Event twice must fail
-                REQUIRE( dsl_ode_handler_trigger_remove(odeHandlerName.c_str(), eventName.c_str()) == DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE );
+                REQUIRE( dsl_ode_handler_trigger_remove(odeHandlerName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE );
                 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );

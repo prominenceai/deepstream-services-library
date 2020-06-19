@@ -63,7 +63,7 @@ namespace DSL
     // ********************************************************************
 
     CallbackOdeAction::CallbackOdeAction(const char* name, 
-        dsl_ode_occurrence_handler_cb clientHandler, void* clientData)
+        dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
@@ -76,15 +76,22 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pTrigger, GstBuffer* pBuffer, 
+    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (m_enabled)
+        if (!m_enabled)
         {
-            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pTrigger);
-
-            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(),
+            return;
+        }
+        try
+        {
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pBase);
+            m_clientHandler(pTrigger->s_eventCount, pTrigger->m_wName.c_str(), pBuffer,
                 pFrameMeta, pObjectMeta, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Callback ODE Action '" << GetName() << "' threw exception calling client callback");
         }
     }
 

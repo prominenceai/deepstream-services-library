@@ -36,21 +36,27 @@ namespace DSL
      */
     #define DSL_ODE_TRIGGER_PTR std::shared_ptr<OdeTrigger>
 
-    #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit) \
-        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, classId, limit))
-        
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit) \
         std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, classId, limit))
-        
+
+    #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
+    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit) \
+        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, classId, limit))
+
+    #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
+    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit) \
+        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, classId, limit))
+
     #define DSL_ODE_TRIGGER_SUMMATION_PTR std::shared_ptr<SummationOdeTrigger>
     #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit) \
         std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, classId, limit))
         
-    #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
-    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit) \
-        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
+    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientData) \
+        std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, classId, limit, clientChecker, clientData))
+        
+        
 
     class OdeTrigger : public Base
     {
@@ -437,7 +443,41 @@ namespace DSL
         std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
     
     };
+
+    class CustomOdeTrigger : public OdeTrigger
+    {
+    public:
     
+        CustomOdeTrigger(const char* name, 
+            uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, void* clientData);
+        
+        ~CustomOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for an Occurrence that meets the min criteria
+         * and to inkoke the client provided "client_checker". If the client returns TRUE, all Event Actions owned 
+         * by the trigger will be invoked.
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief client provided Check for Occurrence callback
+         */
+        dsl_ode_check_for_occurrence_cb m_clientChecker;
+        
+        /**
+         * @brief client data to be returned to the client on callback
+         */
+        void* m_clientData;
+    
+    };    
 }
 
 #endif // _DSL_ODE_H

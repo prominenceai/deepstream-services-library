@@ -263,6 +263,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
+#define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
 
 /**
  * ODE Action API Return Values
@@ -318,25 +319,11 @@ THE SOFTWARE.
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 
-#define DSL_ODE_ACTION_CALLBACK                                     1
-#define DSL_ODE_ACTION_CAPTURE                                      2
-#define DSL_ODE_ACTION_DISPLAY                                      3
-#define DSL_ODE_ACTION_DUMP                                         4
-#define DSL_ODE_ACTION_LOG                                          5
-#define DSL_ODE_ACTION_PAUSE                                        6
-#define DSL_ODE_ACTION_PRINT                                        7
-#define DSL_ODE_ACTION_MESSAGE                                      8
-#define DSL_ODE_ACTION_REDACT                                       9
-#define DSL_ODE_ACTION_TYPE_ADD                                     10
-#define DSL_ODE_ACTION_TYPE_REMOVE                                  11
-#define DSL_ODE_ACTION_SINK_ADD                                     12
-#define DSL_ODE_ACTION_SINK_REMOVE                                  13
-#define DSL_ODE_ACTION_SOURCE_ADD                                   14
-#define DSL_ODE_ACTION_SOURCE_REMOVE                                15
-
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
-#define DSL_CAPTURE_LIMIT_UPPER                                     256
+
+#define DSL_ODE_ANY_SOURCE                                          INT32_MAX
+#define DSL_ODE_ANY_CLASS                                           INT32_MAX
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -359,12 +346,28 @@ typedef uint boolean;
  * @brief callback typedef for a client ODE occurrence handler function. Once 
  * registered, the function will be called on ODE occurrence
  * @param[in] event_id unique ODE occurrence ID, numerically ordered by occurrence
- * @param[in] name unique name of the ODE Event Trigger that trigger the occurrence
- * @param[in] ode_occurrence pointer to an ODE Occurence data structure
+ * @param[in] trigger unique name of the ODE Event Trigger that trigger the occurrence
+ * @param[in] pointer to a frame_meta structure that triggered the ODE event
+ * @param[in] pointer to a object_meta structure that triggered the ODE event
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef boolean (*dsl_ode_occurrence_handler_cb)(uint64_t event_id, const wchar_t* name,
+typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
+    void* buffer, void* frame_meta, void* object_meta, void* client_data);
+
+/**
+ * @brief callback typedef for a client ODE Custom Trigger check-for-occurrence function. Once 
+ * registered, the function will be called on every object detected that meets the minimum
+ * criteria for the Custom Trigger. The client, determining that criteria is met for ODE occurrence,
+ * returns true to invoke all ODE acctions owned by the Custom Trigger
+ * @param[in] pointer to a frame_meta structure that triggered the ODE event
+ * @param[in] pointer to a object_meta structure that triggered the ODE event
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
+
 
 /**
  * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
@@ -422,7 +425,7 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
-    dsl_ode_occurrence_handler_cb client_handler, void* client_data);
+    dsl_ode_handle_occurrence_cb client_handler, void* client_data);
 
 /**
  * @brief Creates a uniquely named Capture Frame ODE Action
@@ -464,6 +467,15 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
+
+/**
+ * @brief Creates a uniquely named Disable Handler Action that disables
+ * a namded ODE Handler
+ * @param[in] name unique name for the Fill Backtround ODE Action
+ * @param[in] handler unique name of the ODE Handler to disable
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief Creates a uniquely named Hide Object Display ODE Action
@@ -547,6 +559,28 @@ DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source);
+
+/**
+ * @brief Creates a uniquely named Add Area ODE Action that adds
+ * a named ODE Area to a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the Add Area ODE Action 
+ * @param[in] trigger unique name of the ODE Trigger to add the ODE Area to
+ * @param[in] area unique name of the ODE Area to add to the ODE Trigger
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
+    const wchar_t* trigger, const wchar_t* area);
+
+/**
+ * @brief Creates a uniquely named Remove Area ODE Action that removes
+ * a named ODE Area from a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the Remvoe Area ODE Action 
+ * @param[in] trigger unique name of the ODE Trigger to remove the ODE Area from
+ * @param[in] area unique name of the ODE Area to remove from the ODE Trigger
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
+    const wchar_t* trigger, const wchar_t* area);
 
 /**
  * @brief Creates a uniquely named Add Trigger ODE Action that adds
@@ -768,8 +802,8 @@ DslReturnType dsl_ode_area_delete_all();
 uint dsl_ode_area_list_size();
 
 /**
- * @brief Event to trigger on occurrence of object detection
- * @param[in] name unique name for this event object
+ * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
+ * @param[in] name unique name for the ODE Trigger
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -777,8 +811,8 @@ uint dsl_ode_area_list_size();
 DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
- * @brief Event to trigger on absence of object detection within a frame
- * @param[in] name unique name for this event object
+ * @brief Absence trigger that checks for the absence of Objects within a frame
+ * @param[in] name unique name for the ODE Trigger
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -786,14 +820,30 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id,
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
- * @brief Event to trigger on summation of all objects detected within a frame
- * @param[in] name unique name for this event object
+ * @brief Summation trigger that checks for and sums all objects detected within a frame
+ * @param[in] name unique name for the ODE Trigger
  * @param[in] class_id class id filter for this ODE type
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
  
 DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit);
+
+/**
+ * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
+ * to be called with Frame Meta and Object Meta data for every object that meets the trigger's
+ * criteria: class id, min dimensions, min confidence, etc. The Client can maitain and test with
+ * their own criteria, running stats etc, managed with client_data.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] client_checker client custom callback function to Check for the occurrence
+ * of an ODE.
+ * @param[in] client_data opaque client data returned to the client on callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
+    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
 
 /**
  * @brief Gets the current enabled setting for the ODE type

@@ -39,7 +39,7 @@ namespace DSL
         , m_wName(m_name.begin(), m_name.end())
         , m_enabled(true)
         , m_classId(classId)
-        , m_sourceId(0)
+        , m_sourceId(DSL_ODE_ANY_SOURCE)
         , m_triggered(0)
         , m_limit(limit)
         , m_occurrences(0)
@@ -86,7 +86,7 @@ namespace DSL
             LOG_WARN("'" << pChild->GetName() <<"' is not a child of ODE Trigger '" << GetName() << "'");
             return false;
         }
-        m_pOdeAreas.erase(pChild->GetName());
+        m_pOdeActions.erase(pChild->GetName());
         return true;
     }
     
@@ -126,7 +126,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        for (auto &imap: m_pOdeActions)
+        for (auto &imap: m_pOdeAreas)
         {
             LOG_DEBUG("Removing Action '" << imap.second->GetName() <<"' from Parent '" << GetName() << "'");
             imap.second->ClearParentName();
@@ -259,9 +259,17 @@ namespace DSL
         // Ensure enabled, limit has not been exceeded, and filter 
         // on correct Class ID and Source ID 
         if ((!m_enabled) or
-            (m_limit and m_triggered >= m_limit) or 
-            (m_classId != pObjectMeta->class_id) or
-            (m_sourceId and m_sourceId != pFrameMeta->source_id))
+            (m_limit and m_triggered >= m_limit)) 
+        {
+            return false;
+        }
+        // Filter on Class id if set
+        if ((m_classId != DSL_ODE_ANY_CLASS) and (m_classId != pObjectMeta->class_id))
+        {
+            return false;
+        }
+        // Filter on Source id if set
+        if ((m_sourceId != DSL_ODE_ANY_SOURCE) and (m_sourceId != pFrameMeta->source_id))
         {
             return false;
         }
@@ -503,5 +511,55 @@ namespace DSL
         m_occurrenceMetaList.clear();
         return m_occurrences;
    }
+
+    // *****************************************************************************
+
+    CustomOdeTrigger::CustomOdeTrigger(const char* name, 
+        uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, void* clientData)
+        : OdeTrigger(name, classId, limit)
+        , m_clientChecker(clientChecker)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+    }
+
+    CustomOdeTrigger::~CustomOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool CustomOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        try
+        {
+            if (!m_clientChecker(pBuffer, pFrameMeta, pObjectMeta, m_clientData))
+            {
+                return false;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custon ODE Trigger '" << GetName() << "' threw exception calling client callback");
+            return false;
+        }
+
+        m_triggered++;
+        m_occurrences++;
+        
+        // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, pObjectMeta);
+        }
+        return true;
+    }
 
 }

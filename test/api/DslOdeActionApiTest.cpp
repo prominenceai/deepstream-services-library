@@ -101,7 +101,7 @@ SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-a
     GIVEN( "Attributes for a new Callback ODE Action" ) 
     {
         std::wstring actionName(L"callback-action");
-        dsl_ode_occurrence_handler_cb client_handler;
+        dsl_ode_handle_occurrence_cb client_handler;
 
         WHEN( "A new Callback ODE Action is created" ) 
         {
@@ -272,6 +272,38 @@ SCENARIO( "A new Fill ODE Action can be created and deleted", "[ode-action-api]"
             THEN( "A second Fill Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Handler Disable ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Handler Disable ODE Action" ) 
+    {
+        std::wstring actionName(L"handler-disable-action");
+        std::wstring handlerName(L"handler");
+
+        WHEN( "A new Handler Disable Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_handler_disable_new(actionName.c_str(), handlerName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Handler Disable Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Handler Disable Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_handler_disable_new(actionName.c_str(), handlerName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Handler Disable Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_handler_disable_new(actionName.c_str(), handlerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
