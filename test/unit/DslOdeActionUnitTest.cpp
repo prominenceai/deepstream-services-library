@@ -213,17 +213,17 @@ SCENARIO( "A HandlerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
     }
 }
 
-SCENARIO( "A new FillOdeAction is created correctly", "[OdeAction]" )
+SCENARIO( "A new FillObjectOdeAction is created correctly", "[OdeAction]" )
 {
-    GIVEN( "Attributes for a new FillOdeAction" ) 
+    GIVEN( "Attributes for a new FillObjectOdeAction" ) 
     {
         std::string actionName("ode-action");
         float red(1), green(1), blue(1), alpha(1);
 
-        WHEN( "A new FillOdeAction is created" )
+        WHEN( "A new FillObjectOdeAction is created" )
         {
-            DSL_ODE_ACTION_FILL_PTR pAction = 
-                DSL_ODE_ACTION_FILL_NEW(actionName.c_str(), red, green, blue, alpha);
+            DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
+                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), red, green, blue, alpha);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -234,9 +234,9 @@ SCENARIO( "A new FillOdeAction is created correctly", "[OdeAction]" )
     }
 }
 
-SCENARIO( "A FillOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+SCENARIO( "A FillObjectOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
-    GIVEN( "A new FillOdeAction" ) 
+    GIVEN( "A new FillObjectOdeAction" ) 
     {
         std::string triggerName("first-occurence");
         uint classId(1);
@@ -248,8 +248,8 @@ SCENARIO( "A FillOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_FILL_PTR pAction = 
-            DSL_ODE_ACTION_FILL_NEW(actionName.c_str(), red, green, blue, alpha);
+        DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
+            DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), red, green, blue, alpha);
 
         WHEN( "A new ODE is created" )
         {

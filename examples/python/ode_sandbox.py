@@ -100,7 +100,7 @@ def main(args):
         # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate that
         # overlap with one or more of the defined Area's has occurred, i.e. ODE occurrence. The action will be
         # used with both the Person and Car class Ids to indicate thay have entered the area of caution
-        retval = dsl_ode_action_fill_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
+        retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
 

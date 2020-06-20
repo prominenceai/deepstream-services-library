@@ -249,29 +249,60 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
     }
 }
 
-SCENARIO( "A new Fill ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Fill ODE Action" ) 
+    GIVEN( "Attributes for a new Fill Frame ODE Action" ) 
     {
-        std::wstring actionName(L"fill-action");
+        std::wstring actionName(L"fill-frame-action");
 
-        WHEN( "A new Fill Action is created" ) 
+        WHEN( "A new Fill Frame Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Fill Action can be deleted" ) 
+            THEN( "The Fill Frame Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
-        WHEN( "A new Fill Action is created" ) 
+        WHEN( "A new Fill Frame Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Fill Action of the same names fails to create" ) 
+            THEN( "A second Fill Frame Action of the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_fill_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Fill Object ODE Action" ) 
+    {
+        std::wstring actionName(L"fill-object-action");
+
+        WHEN( "A new Fill Object Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Fill Object Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Fill Object Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Fill Object Action of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

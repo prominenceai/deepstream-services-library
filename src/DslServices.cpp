@@ -95,13 +95,23 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
     return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
 }
 
-DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
+DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name,
     double red, double green, double blue, double alpha)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OdeActionFillNew(cstrName.c_str(),
+    return DSL::Services::GetServices()->OdeActionFillFrameNew(cstrName.c_str(),
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name,
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionFillObjectNew(cstrName.c_str(),
         red, green, blue, alpha);
 }
 
@@ -2808,7 +2818,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillNew(const char* name,
+    DslReturnType Services::OdeActionFillFrameNew(const char* name,
         double red, double green, double blue, double alpha)
     {
         LOG_FUNC();
@@ -2822,16 +2832,44 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_NEW(name,
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name,
                 red, green, blue, alpha);
 
-            LOG_INFO("New ODE Fill Action '" << name << "' created successfully");
+            LOG_INFO("New ODE Fill Frame Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Fill Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Fill Frame Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionFillObjectNew(const char* name,
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name,
+                red, green, blue, alpha);
+
+            LOG_INFO("New ODE Fill Object Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Fill Object Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }

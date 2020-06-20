@@ -88,7 +88,7 @@ def check_for_occurrence(buffer, frame_data, object_data, client_data):
     # a contrived example of some type of occurrence criteria
     if (trigger_count % 100 == 0):
         
-        # Note: sure this is possible. Need to talk with Nvida
+        # Note: not sure this is possible. Need to talk with Nvida
         # may need to cast and traverse the buffer pointer... less than ideal
         
         # cast the frame data to a pyds.NvDsFrameMeta
@@ -113,7 +113,7 @@ def check_for_occurrence(buffer, frame_data, object_data, client_data):
 #def handle_occurrence(ode_id, trigger):
 def handle_occurrence(ode_id, trigger, buffer, frame_data, objec_data, client_data):
     
-    # Note: sure this is possible. Need to talk with Nvida
+    # Note: not sure this is possible. Need to talk with Nvida
     # may need to cast and traverse the buffer pointer... less than ideal
 
     # cast the frame data to a pyds.NvDsFrameMeta
@@ -126,7 +126,7 @@ def handle_occurrence(ode_id, trigger, buffer, frame_data, objec_data, client_da
 
 ##
 # Trigger count, to track the number of times the Custom Trigger
-# Calls the client "check-for-occurrence" managed as Client Data
+# Calls the client "check-for-occurrence"
 trigger_count = 0
 
 def main(args):
@@ -143,7 +143,7 @@ def main(args):
             break
         
         # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate occurrence
-        retval = dsl_ode_action_fill_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
+        retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
 

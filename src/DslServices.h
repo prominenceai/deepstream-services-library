@@ -64,7 +64,10 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
         
-        DslReturnType OdeActionFillNew(const char* name,
+        DslReturnType OdeActionFillFrameNew(const char* name,
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OdeActionFillObjectNew(const char* name,
             double red, double green, double blue, double alpha);
 
         DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);

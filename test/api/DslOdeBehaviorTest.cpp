@@ -798,7 +798,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         // Set Area critera, and The fill action for ODE occurrence caused by overlap
         REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_new(fillActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_fill_object_new(fillActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria

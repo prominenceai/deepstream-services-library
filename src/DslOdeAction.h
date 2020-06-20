@@ -57,9 +57,13 @@ namespace DSL
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
-    #define DSL_ODE_ACTION_FILL_PTR std::shared_ptr<FillOdeAction>
-    #define DSL_ODE_ACTION_FILL_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<FillOdeAction>(new FillOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_FRAME_PTR std::shared_ptr<FillFrameOdeAction>
+    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, red, green, blue, alpha) \
+        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, red, green, blue, alpha))
+
+    #define DSL_ODE_ACTION_FILL_OBJECT_PTR std::shared_ptr<FillObjectOdeAction>
+    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, red, green, blue, alpha) \
+        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, red, green, blue, alpha))
 
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
@@ -454,27 +458,73 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class FillOdeAction
+     * @class FillFrameOdeAction
      * @brief Fill ODE Action class
      */
-    class FillOdeAction : public OdeAction
+    class FillFrameOdeAction : public OdeAction
     {
     public:
     
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE action
-         * @param[in] red red level for the redaction background color [0..1]
-         * @param[in] blue blue level for the redaction background color [0..1]
-         * @param[in] green green level for the redaction background color [0..1]
-         * @param[in] alpha alpha level for the redaction background color [0..1]
+         * @param[in] red red level for the rectangle background color [0..1]
+         * @param[in] blue blue level for the rectangle background color [0..1]
+         * @param[in] green green level for the rectangle background color [0..1]
+         * @param[in] alpha alpha level for the rectangle background color [0..1]
          */
-        FillOdeAction(const char* name, double red, double green, double blue, double alpha);
+        FillFrameOdeAction(const char* name, double red, double green, double blue, double alpha);
         
         /**
          * @brief dtor for the ODE Display Action class
          */
-        ~FillOdeAction();
+        ~FillFrameOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by adding a rectangle to Fill the Frame
+         * with a set of RGBA color values
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Background color used to Fill the object
+         */
+        NvOSD_RectParams m_rectangleParams;
+    
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class FillObjectOdeAction
+     * @brief Fill ODE Action class
+     */
+    class FillObjectOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Object Action class
+         * @param[in] name unique name for the ODE action
+         * @param[in] red red level for the object background color [0..1]
+         * @param[in] blue blue level for the object background color [0..1]
+         * @param[in] green green level for the object background color [0..1]
+         * @param[in] alpha alpha level for the object background color [0..1]
+         */
+        FillObjectOdeAction(const char* name, double red, double green, double blue, double alpha);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~FillObjectOdeAction();
         
         /**
          * @brief Handles the ODE occurrence by Filling the object's rectangle background 

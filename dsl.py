@@ -110,13 +110,23 @@ def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId):
     return int(result)
 
 ##
-## dsl_ode_action_fill_new()
+## dsl_ode_action_fill_frame_new()
 ##
-_dsl.dsl_ode_action_fill_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
-_dsl.dsl_ode_action_fill_new.restype = c_uint
-def dsl_ode_action_fill_new(name, red, green, blue, alpha):
+_dsl.dsl_ode_action_fill_frame_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_frame_new.restype = c_uint
+def dsl_ode_action_fill_frame_new(name, red, green, blue, alpha):
     global _dsl
-    result =_dsl.dsl_ode_action_fill_new(name, red, green, blue, alpha)
+    result =_dsl.dsl_ode_action_fill_frame_new(name, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_ode_action_fill_object_new()
+##
+_dsl.dsl_ode_action_fill_object_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_object_new.restype = c_uint
+def dsl_ode_action_fill_object_new(name, red, green, blue, alpha):
+    global _dsl
+    result =_dsl.dsl_ode_action_fill_object_new(name, red, green, blue, alpha)
     return int(result)
 
 ##

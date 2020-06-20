@@ -456,16 +456,29 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name,
     uint offsetX, uint offsetY, boolean offsetY_with_classId);
 
 /**
- * @brief Creates a uniquely named Fill Background ODE Action, that fills an object's
- * Background with RGBA color values
- * @param[in] name unique name for the Fill Backtround ODE Action
+ * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
+ * frame with a give RGBA color value
+ * @param[in] name unique name for the Fill Frame ODE Action
  * @param[in] red red value for the RGBA background color [1..0]
  * @param[in] green green value for the RGBA background color [1..0]
  * @param[in] blue blue value for the RGBA background color [1..0]
  * @param[in] alpha alpha value for the RGBA background color [1..0]
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_fill_new(const wchar_t* name,
+DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name,
+    double red, double green, double blue, double alpha);
+
+/**
+ * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
+ * Background with RGBA color values
+ * @param[in] name unique name for the Fill Object ODE Action
+ * @param[in] red red value for the RGBA background color [1..0]
+ * @param[in] green green value for the RGBA background color [1..0]
+ * @param[in] blue blue value for the RGBA background color [1..0]
+ * @param[in] alpha alpha value for the RGBA background color [1..0]
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name,
     double red, double green, double blue, double alpha);
 
 /**

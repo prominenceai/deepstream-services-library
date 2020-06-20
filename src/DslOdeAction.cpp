@@ -313,25 +313,64 @@ namespace DSL
 
     // ********************************************************************
 
-    FillOdeAction::FillOdeAction(const char* name, double red, double green, double blue, double alpha)
+    FillFrameOdeAction::FillFrameOdeAction(const char* name, double red, double green, double blue, double alpha)
+        : OdeAction(name)
+        , m_rectangleParams{0}
+    {
+        LOG_FUNC();
+        
+        m_rectangleParams.left = 0;
+        m_rectangleParams.left = 0;
+        m_rectangleParams.has_bg_color = 1;
+        m_rectangleParams.bg_color.red = red;
+        m_rectangleParams.bg_color.green = green;
+        m_rectangleParams.bg_color.blue = blue;
+        m_rectangleParams.bg_color.alpha = alpha;
+        
+    }
+
+    FillFrameOdeAction::~FillFrameOdeAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+            
+            m_rectangleParams.width = pFrameMeta->source_frame_width;
+            m_rectangleParams.height = pFrameMeta->source_frame_height;
+            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = m_rectangleParams;
+            
+            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+        }
+    }
+
+    // ********************************************************************
+
+    FillObjectOdeAction::FillObjectOdeAction(const char* name, double red, double green, double blue, double alpha)
         : OdeAction(name)
     {
         LOG_FUNC();
+
         m_backgroundColor.red = red;
         m_backgroundColor.green = green;
         m_backgroundColor.blue = blue;
         m_backgroundColor.alpha = alpha;
-        LOG_INFO("Setting Area '" << name << "to: red = " << red << " green = " 
-            << green << " blue = " << blue << " alpha = " << alpha);        
     }
 
-    FillOdeAction::~FillOdeAction()
+    FillObjectOdeAction::~FillObjectOdeAction()
     {
         LOG_FUNC();
 
     }
 
-    void FillOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)

@@ -241,6 +241,7 @@ namespace DSL
 
         for (const auto &imap: m_pOdeAreas)
         {
+            // If an Area is set to display, create a rectange and color representation
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
             if (pOdeArea->m_display)
             {
