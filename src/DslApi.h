@@ -820,6 +820,17 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id,
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
+ * @brief Intersection trigger that checks for intersection of all Object detected
+ * and triggers an ODE occurrence for each unique overlaping pair.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+ 
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_id, uint limit);
+
+/**
  * @brief Summation trigger that checks for and sums all objects detected within a frame
  * @param[in] name unique name for the ODE Trigger
  * @param[in] class_id class id filter for this ODE type
@@ -844,6 +855,30 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
  */
 DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
+
+/**
+ * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
+ * against a specified minimum number, and generates an ODE occurence if not met
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum count that must be present before triggering an ODE occurence
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, 
+    uint class_id, uint limit, uint minimum);
+
+/**
+ * @brief Maximum occurence trigger that checks for the occurrence of Objects within a frame
+ * against a specified maximum number, and generates an ODE occurence if exceeded
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE type
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] maximum the maximum count allowed without triggering ODE occurence
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, 
+    uint class_id, uint limit, uint maximum);
 
 /**
  * @brief Gets the current enabled setting for the ODE type

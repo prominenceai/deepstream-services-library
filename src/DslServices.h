@@ -150,10 +150,16 @@ namespace DSL {
         
         DslReturnType OdeTriggerAbsenceNew(const char* name, uint classId, uint limit);
         
+        DslReturnType OdeTriggerIntersectionNew(const char* name, uint classId, uint limit);
+
         DslReturnType OdeTriggerSummationNew(const char* name, uint classId, uint limit);
 
         DslReturnType OdeTriggerCustomNew(const char* name, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
+
+        DslReturnType OdeTriggerMinimumNew(const char* name, uint classId, uint limit, uint minimum);
+        
+        DslReturnType OdeTriggerMaximumNew(const char* name, uint classId, uint limit, uint maximum);
         
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 

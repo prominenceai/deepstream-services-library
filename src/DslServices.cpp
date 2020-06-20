@@ -474,6 +474,14 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, ui
     return DSL::Services::GetServices()->OdeTriggerAbsenceNew(cstrName.c_str(), class_id, limit);
 }
 
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerIntersectionNew(cstrName.c_str(), class_id, limit);
+}
+
 DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit)
 {
     std::wstring wstrName(name);
@@ -492,6 +500,26 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name,
         class_id, limit, client_checker, client_data);
 }
     
+DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, 
+    uint class_id, uint limit, uint minimum)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerMinimumNew(cstrName.c_str(), 
+        class_id, limit, minimum);
+}
+
+DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, 
+    uint class_id, uint limit, uint maximum)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerMaximumNew(cstrName.c_str(), 
+        class_id, limit, maximum);
+}
+
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 {
     std::wstring wstrName(name);
@@ -3664,6 +3692,32 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit);
+            
+            LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Intersection ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeTriggerSummationNew(const char* name, uint classId, uint limit)
     {
         LOG_FUNC();
@@ -3723,6 +3777,60 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::OdeTriggerMinimumNew(const char* name, 
+        uint classId, uint limit, uint minimum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum);
+            
+            LOG_INFO("New Minimum ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Minimum ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerMaximumNew(const char* name, 
+        uint classId, uint limit, uint maximum)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum);
+            
+            LOG_INFO("New Maximum ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Maximum ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeTriggerEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();

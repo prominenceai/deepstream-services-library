@@ -80,7 +80,7 @@ SCENARIO( "An OdeTrigger checks its enabled setting ", "[OdeTrigger]" )
 
         // Frame Meta test data
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 1;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
@@ -135,7 +135,7 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
 
         // Frame Meta test data
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 1;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
@@ -207,7 +207,7 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 1;
@@ -271,7 +271,7 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
@@ -348,7 +348,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
@@ -410,7 +410,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
     }
 }
 
-SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[IntersectionOdeTrigger]" )
+SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with minimum criteria" ) 
     {
@@ -429,7 +429,7 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[Inte
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
-        frameMeta.bInferDone = true;  // required to process
+        frameMeta.bInferDone = true;  
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
         frameMeta.source_id = 2;
@@ -518,7 +518,7 @@ static boolean ode_check_for_occurrence_cb(void* buffer,
     return true;
 }
 
-SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[CustomOdeTrigger]" )
+SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new CustomOdeTrigger with client occurrence checker" ) 
     {
@@ -539,7 +539,7 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[C
         WHEN( "Minimum ODE criteria is met" )
         {
             NvDsFrameMeta frameMeta =  {0};
-            frameMeta.bInferDone = true;  // required to process
+            frameMeta.bInferDone = true;  
             frameMeta.frame_num = 444;
             frameMeta.ntp_timestamp = INT64_MAX;
             frameMeta.source_id = 2;
@@ -560,3 +560,116 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[C
     }
 }
 
+SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
+    {
+        std::string odeTriggerName("maximum");
+        uint classId(1);
+        uint limit(0);
+        uint maximum(2);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_MAXIMUM_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_MAXIMUM_NEW(odeTriggerName.c_str(), classId, limit, maximum);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; // must match ODE Type's classId
+        
+        WHEN( "Two objects occur -- equal to the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "NO ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "Three objects occur -- greater than the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            
+            THEN( "ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 3 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
+    {
+        std::string odeTriggerName("maximum");
+        uint classId(1);
+        uint limit(0);
+        uint minimum(3);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_MINIMUM_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_MINIMUM_NEW(odeTriggerName.c_str(), classId, limit, minimum);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; // must match ODE Type's classId
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; // must match ODE Type's classId
+        
+        WHEN( "Two objects occur -- less than the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "NO ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 2 );
+            }
+        }
+        WHEN( "Three objects occur -- equal than the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            
+            THEN( "ODE occurrence is detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
+            }
+        }
+    }
+}

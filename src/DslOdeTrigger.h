@@ -55,8 +55,14 @@ namespace DSL
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
     #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientData) \
         std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, classId, limit, clientChecker, clientData))
+
+    #define DSL_ODE_TRIGGER_MINIMUM_PTR std::shared_ptr<MinimumOdeTrigger>
+    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum) \
+        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, classId, limit, minimum))
         
-        
+    #define DSL_ODE_TRIGGER_MAXIMUM_PTR std::shared_ptr<MaximumOdeTrigger>
+    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum) \
+        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, classId, limit, maximum))
 
     class OdeTrigger : public Base
     {
@@ -94,7 +100,7 @@ namespace DSL
          * @return the number of ODE Occurrences triggered on post process
          */
         virtual uint PostProcessFrame(GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta){return 0;};
+            NvDsFrameMeta* pFrameMeta){return m_occurrences;};
 
         /**
          * @brief Adds an ODE Action as a child to this ODE Type
@@ -478,6 +484,79 @@ namespace DSL
         void* m_clientData;
     
     };    
+
+    class MinimumOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        MinimumOdeTrigger(const char* name, uint classId, uint limit, uint minimum);
+        
+        ~MinimumOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence, 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Minimum ODE occurrence if the 
+         * number of occurrences is less that the Trigger's Minimum value
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief minimum object count before for ODE occurrence
+         */
+        uint m_minimum;
+        
+    };
+
+    class MaximumOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        MaximumOdeTrigger(const char* name, uint classId, uint limit, uint maximum);
+        
+        ~MaximumOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence, 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Maximum ODE occurrence if the 
+         * number of occurrences is greater that the Trigger's Maximum value
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief maximum object count before for ODE occurrence
+         */
+        uint m_maximum;
+    
+    };
+
 }
 
 #endif // _DSL_ODE_H

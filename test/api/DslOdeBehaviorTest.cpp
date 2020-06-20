@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(20000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 
 SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can play", "[ode-behavior]" )
 {

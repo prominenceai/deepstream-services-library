@@ -397,6 +397,15 @@ namespace DSL
             LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
             LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
             LOG_INFO("  Source Data   : ------------------------");
+            
+            if (pFrameMeta->bInferDone)
+            {
+                LOG_INFO("    Inference   : Yes");
+            }
+            else
+            {
+                LOG_INFO("    Inference   : No");
+            }
             LOG_INFO("    Id          : " << pFrameMeta->source_id);
             LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
@@ -472,6 +481,14 @@ namespace DSL
             std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
             std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
             std::cout << "  Source Data   : ------------------------" << "\n";
+            if (pFrameMeta->bInferDone)
+            {
+                std::cout << "    Inference   : Yes\n";
+            }
+            else
+            {
+                std::cout << "    Inference   : No\n";
+            }
             std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
             std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
             std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";

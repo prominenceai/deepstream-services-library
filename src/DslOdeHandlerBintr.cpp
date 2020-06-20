@@ -174,9 +174,9 @@ namespace DSL
         // For each frame in the batched meta data
         for (NvDsMetaList* pFrameMetaList = batchMeta->frame_meta_list; pFrameMetaList != NULL; pFrameMetaList = pFrameMetaList->next)
         {
-            // Check for valid frame data, and if Inference was done on the frame
+            // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
-            if (pFrameMeta != NULL and pFrameMeta->bInferDone)
+            if (pFrameMeta != NULL)
             {
                 // Preprocess the frame
                 for (const auto &imap: m_pOdeTriggers)
