@@ -48,6 +48,7 @@ namespace DSL
         , m_minHeight(0)
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
+        , m_inferDoneOnly(false)
     {
         LOG_FUNC();
 
@@ -134,7 +135,14 @@ namespace DSL
         m_pOdeAreas.clear();
     }
     
-
+    void OdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+    }
+        
     bool OdeTrigger::GetEnabled()
     {
         LOG_FUNC();
@@ -212,6 +220,20 @@ namespace DSL
         m_minHeight = minHeight;
     }
     
+    bool OdeTrigger::GetInferDoneOnlySetting()
+    {
+        LOG_FUNC();
+        
+        return m_inferDoneOnly;
+    }
+    
+    void OdeTrigger::SetInferDoneOnlySetting(bool inferDoneOnly)
+    {
+        LOG_FUNC();
+        
+        m_inferDoneOnly = inferDoneOnly;
+    }
+    
     void OdeTrigger::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
     {
         LOG_FUNC();
@@ -260,8 +282,7 @@ namespace DSL
         // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        // Ensure enabled, limit has not been exceeded, and filter 
-        // on correct Class ID and Source ID 
+        // Ensure enabled, and that the limit has not been exceeded
         if ((!m_enabled) or
             (m_limit and m_triggered >= m_limit)) 
         {
@@ -285,6 +306,11 @@ namespace DSL
         // If defined, check for minimum dimensions
         if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
             (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
+        {
+            return false;
+        }
+        // If define, check if Inference was done on the frame or not
+        if (m_inferDoneOnly and !pFrameMeta->bInferDone)
         {
             return false;
         }
@@ -641,6 +667,54 @@ namespace DSL
     uint MaximumOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
         if (m_occurrences <= m_maximum)
+        {
+            return 0;
+        }
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+        }
+        return m_occurrences;
+   }
+
+    // *****************************************************************************
+    
+    RangeOdeTrigger::RangeOdeTrigger(const char* name, uint classId, uint limit, uint lower, uint upper)
+        : OdeTrigger(name, classId, limit)
+        , m_lower(lower)
+        , m_upper(upper)
+    {
+        LOG_FUNC();
+    }
+
+    RangeOdeTrigger::~RangeOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool RangeOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    uint RangeOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        if ((m_occurrences < m_lower) or (m_occurrences > m_upper))
         {
             return 0;
         }

@@ -64,6 +64,9 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
         
+        DslReturnType OdeActionFillAreaNew(const char* name,
+            const char* area, double red, double green, double blue, double alpha);
+
         DslReturnType OdeActionFillFrameNew(const char* name,
             double red, double green, double blue, double alpha);
 
@@ -163,7 +166,12 @@ namespace DSL {
         DslReturnType OdeTriggerMinimumNew(const char* name, uint classId, uint limit, uint minimum);
         
         DslReturnType OdeTriggerMaximumNew(const char* name, uint classId, uint limit, uint maximum);
+
+        DslReturnType OdeTriggerRangeNew(const char* name, 
+            uint classId, uint limit, uint lower, uint upper);
         
+        DslReturnType OdeTriggerReset(const char* name);
+
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
@@ -183,6 +191,10 @@ namespace DSL {
         DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 
         DslReturnType OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        
+        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly);
+        
+        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
         
         DslReturnType OdeTriggerActionAdd(const char* name, const char* action);
 

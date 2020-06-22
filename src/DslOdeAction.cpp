@@ -253,7 +253,7 @@ namespace DSL
         uint offsetX, uint offsetY, bool offsetYWithClassId)
         : OdeAction(name)
         , m_offsetX(offsetX)
-        , m_offsetY(offsetX)
+        , m_offsetY(offsetY)
         , m_offsetYWithClassId(offsetYWithClassId)
     {
         LOG_FUNC();
@@ -306,6 +306,56 @@ namespace DSL
             pTextParams->text_bg_clr.green = 0.0;
             pTextParams->text_bg_clr.blue = 0.0;
             pTextParams->text_bg_clr.alpha = 1.0;
+            
+            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+        }
+    }
+
+    // ********************************************************************
+
+    FillAreaOdeAction::FillAreaOdeAction(const char* name, const char* area, 
+        double red, double green, double blue, double alpha)
+        : OdeAction(name)
+        , m_odeArea(area)
+        , m_rectangleParams{0}
+    {
+        LOG_FUNC();
+        
+        m_rectangleParams.has_bg_color = 1;
+        m_rectangleParams.bg_color.red = red;
+        m_rectangleParams.bg_color.green = green;
+        m_rectangleParams.bg_color.blue = blue;
+        m_rectangleParams.bg_color.alpha = alpha;
+        
+    }
+
+    FillAreaOdeAction::~FillAreaOdeAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void FillAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            boolean display;
+            
+            // Service will log error if Area is not found
+            uint retval = Services::GetServices()->OdeAreaGet(m_odeArea.c_str(), 
+                &m_rectangleParams.left, &m_rectangleParams.top, 
+                &m_rectangleParams.width, &m_rectangleParams.height, 
+                &display);
+                
+            if ((retval != DSL_RESULT_SUCCESS) or (!display))
+            {
+                return;
+            }
+            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+            
+            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = m_rectangleParams;
             
             nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
@@ -469,6 +519,15 @@ namespace DSL
                 << " out of " << pTrigger->m_minFrameCountD);
             LOG_INFO("    Width       : " << pTrigger->m_minWidth);
             LOG_INFO("    Height      : " << pTrigger->m_minHeight);
+            
+            if (pTrigger->m_inferDoneOnly)
+            {
+                LOG_INFO("    Inference   : Yes");
+            }
+            else
+            {
+                LOG_INFO("    Inference   : No");
+            }
         }
     }
 
@@ -552,7 +611,16 @@ namespace DSL
             std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
             std::cout << "    Width       : " << pTrigger->m_minWidth << "\n";
-            std::cout << "    Height      : " << pTrigger->m_minHeight << "\n\n";
+            std::cout << "    Height      : " << pTrigger->m_minHeight << "\n";
+
+            if (pTrigger->m_inferDoneOnly)
+            {
+                std::cout << "    Inference   : Yes\n\n";
+            }
+            else
+            {
+                std::cout << "    Inference   : No\n\n";
+            }
         }
     }
 

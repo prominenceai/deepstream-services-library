@@ -55,6 +55,7 @@ SCENARIO( "A new OdeTrigger is created correctly", "[OdeTrigger]" )
                 pOdeTrigger->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
                 REQUIRE( minFrameCountN == 1 );
                 REQUIRE( minFrameCountD == 1 );
+                REQUIRE( pOdeTrigger->GetInferDoneOnlySetting() == false );
             }
         }
     }
@@ -317,6 +318,61 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
             pOdeTrigger->SetMinDimensions(0, 99);    
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with default criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(0); // not limit
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        // Frame Meta test data
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = false;  // set to false to fail criteria  
+        frameMeta.frame_num = 1;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        // Object Meta test data
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        
+        WHEN( "The ODE Type's InferOnOnly setting is enable and an ODE occurrence is simulated" )
+        {
+            pOdeTrigger->SetInferDoneOnlySetting(true);
+            
+            THEN( "The ODE is NOT triggered because the frame's flage is false" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The ODE Type's InferOnOnly setting is disabled and an ODE occurrence is simulated" )
+        {
+            pOdeTrigger->SetInferDoneOnlySetting(false);
+            
+            THEN( "The ODE is triggered because the criteria is not set" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
             }

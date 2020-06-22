@@ -449,11 +449,25 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
  * @param[out] offsetX offset in the X direction for the OSD clock in pixels
  * @param[out] offsetY offset in the Y direction for the OSD clock in pixels
  * @param[out] offsetY_with_classId adds an additional offset based on ODE class Id if set true
- * The setting allows multiple ODE types with difference class Ids to share the same Display action
+ * The setting allows multiple ODE Triggers with difference class Ids to share the same Display action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
     uint offsetX, uint offsetY, boolean offsetY_with_classId);
+
+/**
+ * @brief Creates a uniquely named Fill Area ODE Action, that fills an ODE Area
+ * with a give RGBA color value
+ * @param[in] name unique name for the Fill Area ODE Action
+ * @param[in] area unique name for the ODE Area to Fill
+ * @param[in] red red value for the RGBA background color [1..0]
+ * @param[in] green green value for the RGBA background color [1..0]
+ * @param[in] blue blue value for the RGBA background color [1..0]
+ * @param[in] alpha alpha value for the RGBA background color [1..0]
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_fill_area_new(const wchar_t* name, const wchar_t* area,
+    double red, double green, double blue, double alpha);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
@@ -599,8 +613,8 @@ DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
  * @brief Creates a uniquely named Add Trigger ODE Action that adds
  * a named ODE Trigger to a named ODE Handler on ODE occurrence
  * @param[in] name unique name for the Add Trigger ODE Action 
- * @param[in] handler unique name of the handler to add the ODE type to
- * @param[in] trigger unique name of the ODE type to add to the ODE handler
+ * @param[in] handler unique name of the handler to add the ODE Trigger to
+ * @param[in] trigger unique name of the ODE Trigger to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
@@ -610,7 +624,7 @@ DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
  * @brief Creates a uniquely named Disable Trigger ODE Action that disables
  * a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the Disable ODE Trigger Action 
- * @param[in] trigger unique name of the ODE type to disable
+ * @param[in] trigger unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wchar_t* trigger);
@@ -619,7 +633,7 @@ DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wcha
  * @brief Creates a uniquely named Enable Trigger ODE Action that enables
  * a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the ODE Trigger Enable Action 
- * @param[in] trigger unique name of the ODE type to disable
+ * @param[in] trigger unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar_t* trigger);
@@ -628,8 +642,8 @@ DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar
  * @brief Creates a uniquely named Remove Trigger ODE Action that removes
  * a named ODE Trigger from a named ODE Handler
  * @param[in] name unique name for the Remove Trigger ODE Action
- * @param[in] handler unique name of the handler to remove the ODE type from
- * @param[in] trigger unique name of the ODE type to remove frome the ODE handler
+ * @param[in] handler unique name of the handler to remove the ODE Trigger from
+ * @param[in] trigger unique name of the ODE Trigger to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
@@ -639,8 +653,8 @@ DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
  * @brief Creates a uniquely named Add Action ODE Action that adds
  * a named ODE Action to a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the ODE Trigger Add Action 
- * @param[in] handler unique name of the handler to add the ODE type to
- * @param[in] trigger unique name of the ODE type to add to the ODE handler
+ * @param[in] handler unique name of the handler to add the ODE Trigger to
+ * @param[in] trigger unique name of the ODE Trigger to add to the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
@@ -650,7 +664,7 @@ DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
  * @brief Creates a uniquely named Disable Action ODE Action that disables
  * a named ODE Action on ODE occurrence
  * @param[in] name unique name for the ODE Trigger Disable Action 
- * @param[in] trigger unique name of the ODE type to disable
+ * @param[in] trigger unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* action);
@@ -659,7 +673,7 @@ DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar
  * @brief Creates a uniquely named Enable Action ODE Action that enables
  * a named ODE Action on ODE occurrence
  * @param[in] name unique name for the ODE Trigger Enable Action 
- * @param[in] trigger unique name of the ODE type to disable
+ * @param[in] trigger unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* action);
@@ -668,8 +682,8 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
  * @brief Creates a uniquely named Remove Action ODE Action that removes
  * a named ODE Action from a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the ODE Trigger Remove Action
- * @param[in] handler unique name of the handler to remove the ODE type from
- * @param[in] trigger unique name of the ODE type to remove frome the ODE handler
+ * @param[in] handler unique name of the handler to remove the ODE Trigger from
+ * @param[in] trigger unique name of the ODE Trigger to remove frome the ODE handler
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_remove_new(const wchar_t* name,
@@ -817,7 +831,7 @@ uint dsl_ode_area_list_size();
 /**
  * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -826,7 +840,7 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id,
 /**
  * @brief Absence trigger that checks for the absence of Objects within a frame
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -836,7 +850,7 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, ui
  * @brief Intersection trigger that checks for intersection of all Object detected
  * and triggers an ODE occurrence for each unique overlaping pair.
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -846,7 +860,7 @@ DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_i
 /**
  * @brief Summation trigger that checks for and sums all objects detected within a frame
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -859,7 +873,7 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
  * criteria: class id, min dimensions, min confidence, etc. The Client can maitain and test with
  * their own criteria, running stats etc, managed with client_data.
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] client_checker client custom callback function to Check for the occurrence
  * of an ODE.
@@ -873,7 +887,7 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name,
  * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
  * against a specified minimum number, and generates an ODE occurence if not met
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] minimum the minimum count that must be present before triggering an ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -885,7 +899,7 @@ DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name,
  * @brief Maximum occurence trigger that checks for the occurrence of Objects within a frame
  * against a specified maximum number, and generates an ODE occurence if exceeded
  * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE type
+ * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] maximum the maximum count allowed without triggering ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -894,58 +908,79 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name,
     uint class_id, uint limit, uint maximum);
 
 /**
- * @brief Gets the current enabled setting for the ODE type
- * @param[in] name unique name of the ODE type to query
- * @param[out] enabled true if the ODE type is currently enabled, false otherwise
+ * @brief Range occurence trigger that checks for the occurrence of Objects within a frame
+ * against a range of numbers, and generates an ODE occurence if within range
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] lower the lower range for triggering ODE occurence
+ * @param[in] upper the upper range for triggering ODE occurence
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, 
+    uint class_id, uint limit, uint lower, uint upper);
+
+/**
+ * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
+ * This affects Triggers with fixed limits, whether they have reached their limit or not.
+ * @param[in] name unique name of the ODE Trigger to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_reset(const wchar_t* name);
+
+/**
+ * @brief Gets the current enabled setting for the ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] enabled true if the ODE Trigger is currently enabled, false otherwise
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
 
 /**
- * @brief Sets the enabled setting for the ODE type
- * @param[in] name unique name of the ODE type to update
- * @param[in] enabled true if the ODE type is currently enabled, false otherwise
+ * @brief Sets the enabled setting for the ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] enabled true if the ODE Trigger is currently enabled, false otherwise
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Gets the current class_id filter for the ODE type
- * @param[in] name unique name of the ODE type to query
+ * @brief Gets the current class_id filter for the ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[out] class_id returns the current class_id in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
 
 /**
- * @brief Sets the class_id for the ODE type to filter on
- * @param[in] name unique name of the ODE type to update
+ * @brief Sets the class_id for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] class_id new class_id to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
 
 /**
- * @brief Gets the current source_id filter for the ODE type
+ * @brief Gets the current source_id filter for the ODE Trigger
  * A value of 0 indicates filter disabled
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[out] sorce_id returns the current source_id in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id);
 
 /**
- * @brief Sets the source_id for the ODE type to filter on
- * @param[in] name unique name of the ODE type to update
+ * @brief Sets the source_id for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
  * @param[in] source_id new source_id to filter on
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
 
 /**
- * @brief Gets the current minimum rectangle width and height values for the ODE type
+ * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
  * A value of 0 = no minimum
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[out] min_width returns the current minimun frame width in use
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -953,9 +988,9 @@ DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
 DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
 
 /**
- * @brief Sets the current minimum rectangle width and height values for the ODE type
+ * @brief Sets the current minimum rectangle width and height values for the ODE Trigger
  * A value of 0 = no minimum
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[in] min_width the new minimun frame width to use
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -963,9 +998,25 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_
 DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
 
 /**
- * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE type
+ * @brief Gets the current Inferrence-Done-Only setting for the named trigger
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[in] infer_done_only if true, then Inference Done will become minimum criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_done_only_get(const wchar_t* name, boolean* infer_done_only);
+
+/**
+ * @brief Sets the current Inferrence-Done-Only setting for the named trigger
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[in] infer_done_only if true, then Inference Done will become minimum criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_infer_done_only_set(const wchar_t* name, boolean infer_done_only);
+
+/**
+ * @brief Gets the current min frame count (detected in last N out of D frames) for the ODE Trigger
  * A value of 0 = no minimum
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[out] min_count_n returns the current minimun frame count numerator in use
  * @param[out] min_count_d returns the current minimun frame count denomintor in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -973,9 +1024,9 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_w
 DslReturnType dsl_ode_trigger_frame_count_min_get(const wchar_t* name, uint* min_count_n, uint* min_count_d);
 
 /**
- * @brief Sets the current min frame count (detected in last N out of D frames) for the ODE type
+ * @brief Sets the current min frame count (detected in last N out of D frames) for the ODE Trigger
  * A value of 0 = no minimum
- * @param[in] name unique name of the ODE type to query
+ * @param[in] name unique name of the ODE Trigger to query
  * @param[out] min_count_n sets the current minimun frame count numerator to use
  * @param[out] min_count_d sets the current minimun frame count denomintor to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.

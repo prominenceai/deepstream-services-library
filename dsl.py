@@ -110,6 +110,16 @@ def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId):
     return int(result)
 
 ##
+## dsl_ode_action_fill_area_new()
+##
+_dsl.dsl_ode_action_fill_area_new.argtypes = [c_wchar_p, c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_area_new.restype = c_uint
+def dsl_ode_action_fill_area_new(name, area, red, green, blue, alpha):
+    global _dsl
+    result =_dsl.dsl_ode_action_fill_area_new(name, area, red, green, blue, alpha)
+    return int(result)
+
+##
 ## dsl_ode_action_fill_frame_new()
 ##
 _dsl.dsl_ode_action_fill_frame_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
@@ -505,6 +515,68 @@ def dsl_ode_trigger_summation_new(name, class_id, limit):
     return int(result)
 
 ##
+## dsl_ode_trigger_range_new()
+##
+_dsl.dsl_ode_trigger_range_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_range_new.restype = c_uint
+def dsl_ode_trigger_range_new(name, class_id, limit, lower, upper):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_range_new(name, class_id, limit, lower, upper)
+    return int(result)
+
+##
+## dsl_ode_trigger_source_id_get()
+##
+_dsl.dsl_ode_trigger_source_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_source_id_get.restype = c_uint
+def dsl_ode_trigger_source_id_get(name):
+    global _dsl
+    class_id = c_uint(0)
+    result =_dsl.dsl_ode_trigger_source_id_get(name, DSL_UINT_P(class_id))
+    return int(result), class_id.value
+
+##
+## dsl_ode_trigger_source_id_set()
+##
+_dsl.dsl_ode_trigger_source_id_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_source_id_set.restype = c_uint
+def dsl_ode_trigger_source_id_set(name, source_id):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_source_id_set(name, source_id)
+    return int(result)
+
+##
+## dsl_ode_trigger_reset()
+##
+_dsl.dsl_ode_trigger_reset.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_reset.restype = c_uint
+def dsl_ode_trigger_reset(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_reset(name)
+    return int(result)
+
+##
+## dsl_ode_trigger_infer_done_only_get()
+##
+_dsl.dsl_ode_trigger_infer_done_only_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_ode_trigger_infer_done_only_get.restype = c_uint
+def dsl_ode_trigger_infer_done_only_get(name):
+    global _dsl
+    infer_done_only = c_bool(0)
+    result =_dsl.dsl_ode_trigger_infer_done_only_get(name, DSL_BOOL_P(infer_done_only))
+    return int(result), infer_done_only.value
+
+##
+## dsl_ode_trigger_infer_done_only_set()
+##
+_dsl.dsl_ode_trigger_infer_done_only_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_ode_trigger_infer_done_only_set.restype = c_uint
+def dsl_ode_trigger_infer_done_only_set(name, infer_done_only):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_infer_done_only_set(name, infer_done_only)
+    return int(result)
+
+##
 ## dsl_ode_trigger_action_add()
 ##
 _dsl.dsl_ode_trigger_action_add.argtypes = [c_wchar_p, c_wchar_p]
@@ -524,6 +596,38 @@ def dsl_ode_trigger_action_add_many(name, actions):
     arr = (c_wchar_p * len(actions))()
     arr[:] = actions
     result =_dsl.dsl_ode_trigger_action_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_trigger_action_remove()
+##
+_dsl.dsl_ode_trigger_action_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_action_remove.restype = c_uint
+def dsl_ode_trigger_action_remove(name, action):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_action_remove(name, action)
+    return int(result)
+
+##
+## dsl_ode_trigger_action_remove_many()
+##
+#_dsl.dsl_ode_trigger_action_remove_many.argtypes = [??]
+_dsl.dsl_ode_trigger_action_remove_many.restype = c_uint
+def dsl_ode_trigger_action_remove_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_ode_trigger_action_remove_many(name, arr)
+    return int(result)
+
+##
+## dsl_ode_trigger_action_remove_all()
+##
+_dsl.dsl_ode_trigger_action_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_action_remove_all.restype = c_uint
+def dsl_ode_trigger_action_remove_all(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_action_remove_all(name)
     return int(result)
 
 ##
@@ -1277,6 +1381,28 @@ _dsl.dsl_tiler_new.restype = c_uint
 def dsl_tiler_new(name, width, height):
     global _dsl
     result =_dsl.dsl_tiler_new(name, width, height)
+    return int(result)
+
+##
+## dsl_tiler_dimensions_get()
+##
+_dsl.dsl_tiler_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tiler_dimensions_get.restype = c_uint
+def dsl_tiler_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tiler_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_tiler_dimensions_set()
+##
+_dsl.dsl_tiler_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tiler_dimensions_set.restype = c_uint
+def dsl_tiler_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_tiler_dimensions_set(name, width, height)
     return int(result)
 
 ##

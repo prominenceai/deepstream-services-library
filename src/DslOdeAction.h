@@ -57,6 +57,10 @@ namespace DSL
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
+    #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
+    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, red, green, blue, alpha) \
+        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, red, green, blue, alpha))
+
     #define DSL_ODE_ACTION_FILL_FRAME_PTR std::shared_ptr<FillFrameOdeAction>
     #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, red, green, blue, alpha) \
         std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, red, green, blue, alpha))
@@ -149,7 +153,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE virtual base class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          */
         OdeAction(const char* name);
 
@@ -199,7 +203,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Callback ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
          */
@@ -247,7 +251,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Capture ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          * @param[in] outdir output directory to write captured image files
          */
@@ -295,7 +299,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Capture Frame ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
          */
         CaptureFrameOdeAction(const char* name, const char* outdir)
@@ -314,7 +318,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Capture Frame ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
          */
         CaptureObjectOdeAction(const char* name, const char* outdir)
@@ -322,6 +326,7 @@ namespace DSL
         {};
 
     };
+
     // ********************************************************************
 
     /**
@@ -334,7 +339,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Display ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] offsetX horizontal X-offset for the ODE occurrence data to display
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
          * @param[in] offsetYWithClassId adds an additional offset based on ODE class Id if set true
@@ -388,7 +393,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Display ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] handler unique name for the ODE Handler to disable
          */
         DisableHandlerOdeAction(const char* name, const char* handler);
@@ -430,7 +435,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Log ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          */
         LogOdeAction(const char* name);
         
@@ -458,6 +463,59 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @class FillAreaOdeAction
+     * @brief Fill ODE Action class
+     */
+    class FillAreaOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Area Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] name unique name for the ODE Area to fill
+         * @param[in] red red level for the rectangle background color [0..1]
+         * @param[in] blue blue level for the rectangle background color [0..1]
+         * @param[in] green green level for the rectangle background color [0..1]
+         * @param[in] alpha alpha level for the rectangle background color [0..1]
+         */
+        FillAreaOdeAction(const char* name, const char* area, 
+            double red, double green, double blue, double alpha);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~FillAreaOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by filling in a named ODE Area
+         * with a set of RGBA color values. The filled area applies to the current frame only.
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Unique name of the ODE Area to Fill
+         */
+        std::string m_odeArea;
+        
+        /**
+         * @brief Background color used to Fill the object
+         */
+        NvOSD_RectParams m_rectangleParams;
+    
+    };
+
+    // ********************************************************************
+
+    /**
      * @class FillFrameOdeAction
      * @brief Fill ODE Action class
      */
@@ -467,7 +525,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE Fill Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] red red level for the rectangle background color [0..1]
          * @param[in] blue blue level for the rectangle background color [0..1]
          * @param[in] green green level for the rectangle background color [0..1]
@@ -513,7 +571,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE Fill Object Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] red red level for the object background color [0..1]
          * @param[in] blue blue level for the object background color [0..1]
          * @param[in] green green level for the object background color [0..1]
@@ -558,7 +616,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Hide ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] text if true, hides the Object's Display Text on HandleOccurrence
          * @param[in] border if true, hides the Object Rectangle Boarder on HandlerOccurrence 
          */
@@ -606,7 +664,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Pause ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] pipeline unique name of the pipeline to pause on ODE occurrence
          */
         PauseOdeAction(const char* name, const char* pipeline);
@@ -645,7 +703,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE Print Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          */
         PrintOdeAction(const char* name);
         
@@ -682,7 +740,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE Redact Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          */
         RedactOdeAction(const char* name);
         
@@ -719,7 +777,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Add Sink ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] pipeline unique name of the Pipeline to add the Sink to
          * @param[in] sink unique name of the Sink to add to the Pipeline
          */
@@ -767,7 +825,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Remove Sink ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] pipeline unique name of the Pipeline to add the Sink to
          * @param[in] sink unique name of the Sink to add to the Pipeline
          */
@@ -815,7 +873,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Add Source ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] pipeline unique name of the Pipeline to add the Source to
          * @param[in] source unique name of the Source to add to the Pipeline
          */
@@ -863,7 +921,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Remove Source ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] pipeline unique name of the Pipeline to add the Sink to
          * @param[in] souce unique name of the Sink to add to the Pipeline
          */
@@ -911,7 +969,7 @@ namespace DSL
     
         /**
          * @brief ctor for the ODE Add Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] handler ODE Handler component to add the ODE type to
          * @param[in] trigger ODE Trigger to add on ODE occurrence
          */
@@ -956,7 +1014,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Disable Trigger ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
         DisableTriggerOdeAction(const char* name, const char* trigger);
@@ -998,7 +1056,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Enable Trigger ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
         EnableTriggerOdeAction(const char* name, const char* trigger);
@@ -1039,7 +1097,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Remove Trigger ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] handler ODE Handler component to add the ODE type to
          * @param[in] trigger ODE Trigger to add on ODE occurrence
          */
@@ -1086,8 +1144,8 @@ namespace DSL
     
         /**
          * @brief ctor for the Add Action ODE Action class
-         * @param[in] name unique name for the ODE action
-         * @param[in] trigger ODE Trigger to add the ODE action to
+         * @param[in] name unique name for the ODE Action
+         * @param[in] trigger ODE Trigger to add the ODE Action to
          * @param[in] action ODE Action to add on ODE occurrence
          */
         AddActionOdeAction(const char* name, const char* trigger, const char* action);
@@ -1131,7 +1189,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Disable Action ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] trigger ODE Trigger to disable on ODE occurrence
          */
         DisableActionOdeAction(const char* name, const char* action);
@@ -1173,7 +1231,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Enable Action ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] action ODE Action to enabled on ODE occurrence
          */
         EnableActionOdeAction(const char* name, const char* action);
@@ -1214,7 +1272,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Remove Action ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] trigger ODE Trigger to add the ODE Action to
          * @param[in] action ODE Action to add on ODE occurrence
          */
@@ -1307,7 +1365,7 @@ namespace DSL
     
         /**
          * @brief ctor for the Remove Area ODE Action class
-         * @param[in] name unique name for the ODE action
+         * @param[in] name unique name for the ODE Action
          * @param[in] trigger ODE Trigger to add the ODE Area to
          * @param[in] action ODE Area to add on ODE occurrence
          */

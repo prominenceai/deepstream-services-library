@@ -64,6 +64,10 @@ namespace DSL
     #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum) \
         std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, classId, limit, maximum))
 
+    #define DSL_ODE_TRIGGER_RANGE_PTR std::shared_ptr<RangeOdeTrigger>
+    #define DSL_ODE_TRIGGER_RANGE_NEW(name, classId, limit, lower, upper) \
+        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, classId, limit, lower, upper))
+
     class OdeTrigger : public Base
     {
     public: 
@@ -139,6 +143,12 @@ namespace DSL
          * @brief Removes all child ODE Areas from this ODE Type
          */
         void RemoveAllAreas();
+        
+        
+        /**
+         * @brief Resets the Trigger
+         */
+        void Reset();
         
         /**
          * @brief Gets the current Enabled setting, default = true
@@ -219,6 +229,20 @@ namespace DSL
          */
         void SetMinFrameCount(uint minFrameCountN, uint minFrameCountD);
 
+        /**
+         * @brief Gets the current "inferrence-done" only setting
+         * If enabled, the bInferDone flag must be set to trigger ODE Occurrence
+         * @return true if enabled, false otherwise. Default=false
+         */
+        bool GetInferDoneOnlySetting();
+        
+        /**
+         * @brief Set the current "on-inferrence-frame only" setting
+         * @param[in] onInferOnly  if true/enabled, only frames with
+         * the bInfrDone
+         */
+        void SetInferDoneOnlySetting(bool inferDoneOnly);
+        
     protected:
     
         /**
@@ -304,29 +328,35 @@ namespace DSL
         uint m_sourceId;
         
         /**
-         * Mininum inference confidence to trigger event [0.0..1.0]
+         * Mininum inference confidence to trigger an ODE occurrence [0.0..1.0]
          */
         float m_minConfidence;
         
         /**
-         * @brief Minimum rectangle width to trigger event
+         * @brief Minimum rectangle width to trigger an ODE occurrence
          */
         uint m_minWidth;
 
         /**
-         * @brief Minimum rectangle height to trigger event
+         * @brief Minimum rectangle height to trigger an ODE occurrence
          */
         uint m_minHeight;
 
         /**
-         * @brief Minimum frame count numerator to trigger event
+         * @brief Minimum frame count numerator to trigger an ODE occurrence
          */
         uint m_minFrameCountN;
 
         /**
-         * @brief Minimum frame count denominator to trigger event
+         * @brief Minimum frame count denominator to trigger an ODE occurrence
          */
         uint m_minFrameCountD;
+        
+        /**
+         * @brief if set, the Frame meta value "bInferDone" must be set
+         * to trigger an occurrence
+         */
+        bool m_inferDoneOnly;
 
     };
     
@@ -554,6 +584,47 @@ namespace DSL
          * @brief maximum object count before for ODE occurrence
          */
         uint m_maximum;
+    
+    };
+
+    class RangeOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        RangeOdeTrigger(const char* name, uint classId, uint limit, uint lower, uint upper);
+        
+        ~RangeOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence, 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Range ODE occurrence if the 
+         * number of occurrences is with in range of the Trigger's Upper and Lower values
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief Lower range of the object count for ODE occurrence
+         */
+        uint m_lower;
+    
+        /**
+         * @brief Lower range of the object count for ODE occurrence
+         */
+        uint m_upper;
     
     };
 
