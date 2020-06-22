@@ -180,6 +180,10 @@ namespace DSL {
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
         
+        DslReturnType OdeTriggerConfidenceMinGet(const char* name, double* minConfidence);
+        
+        DslReturnType OdeTriggerConfidenceMinSet(const char* name, double minConfidence);
+        
         DslReturnType OdeTriggerSourceIdGet(const char* name, uint* sourceId);
         
         DslReturnType OdeTriggerSourceIdSet(const char* name, uint sourceId);

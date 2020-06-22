@@ -978,6 +978,24 @@ DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id
 DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
 
 /**
+ * @brief Gets the current minimum confidence setting for the ODE Trigger
+ * A value of 0.0 (default) indicates the minimum confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] min_confidence current minimum confidence criteria
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
+
+/**
+ * @brief Sets the enabled setting for the ODE Trigger
+ * Setting the value of 0.0 indicates the minimum confidence criteria is disabled
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] min_confidence minimum confidence to trigger an ODE occurrnce
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
+
+/**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
  * A value of 0 = no minimum
  * @param[in] name unique name of the ODE Trigger to query

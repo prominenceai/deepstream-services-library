@@ -608,6 +608,22 @@ DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
     return DSL::Services::GetServices()->OdeTriggerSourceIdSet(cstrName.c_str(), source_id);
 }
 
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMinGet(cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerConfidenceMinSet(cstrName.c_str(), min_confidence);
+}
+
 DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
 {
     std::wstring wstrName(name);
@@ -4125,6 +4141,50 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, double* minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *minConfidence = pOdeTrigger->GetMinConfidence();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, double minConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetMinConfidence(minConfidence);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting minimum confidence");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
     {
         LOG_FUNC();
@@ -5722,7 +5782,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tee '" << name << "' threw an exception adding Batch Meta Handler");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;

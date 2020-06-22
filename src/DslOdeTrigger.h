@@ -191,13 +191,13 @@ namespace DSL
          * @brief Gets the Minimuum Inference Confidence to trigger the event
          * @return the current Minimum Confidence value in use [0..1.0]
          */
-        float GetMinConfidence();
+        double GetMinConfidence();
         
         /**
          * @brief Sets the Minumum Inference Confidence to trigger the event
          * @param minConfidence new Minumum Confidence value to use
          */
-        void SetMinConfidence(float minConfidence);
+        void SetMinConfidence(double minConfidence);
         
         /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event

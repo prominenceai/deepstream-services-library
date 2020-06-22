@@ -116,13 +116,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Tiles for TilerBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
         m_rows = rows;
         m_columns = columns;
     

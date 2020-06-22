@@ -525,15 +525,46 @@ def dsl_ode_trigger_range_new(name, class_id, limit, lower, upper):
     return int(result)
 
 ##
+## dsl_ode_trigger_reset()
+##
+_dsl.dsl_ode_trigger_reset.argtypes = [c_wchar_p]
+_dsl.dsl_ode_trigger_reset.restype = c_uint
+def dsl_ode_trigger_reset(name):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_reset(name)
+    return int(result)
+
+##
+## dsl_ode_trigger_enabled_get()
+##
+_dsl.dsl_ode_trigger_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_ode_trigger_enabled_get.restype = c_uint
+def dsl_ode_trigger_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_ode_trigger_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_ode_trigger_enabled_set()
+##
+_dsl.dsl_ode_trigger_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_ode_trigger_enabled_set.restype = c_uint
+def dsl_ode_trigger_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_enabled_set(name, enabled)
+    return int(result)
+
+##
 ## dsl_ode_trigger_source_id_get()
 ##
 _dsl.dsl_ode_trigger_source_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
 _dsl.dsl_ode_trigger_source_id_get.restype = c_uint
 def dsl_ode_trigger_source_id_get(name):
     global _dsl
-    class_id = c_uint(0)
-    result =_dsl.dsl_ode_trigger_source_id_get(name, DSL_UINT_P(class_id))
-    return int(result), class_id.value
+    source_id = c_uint(0)
+    result =_dsl.dsl_ode_trigger_source_id_get(name, DSL_UINT_P(source_id))
+    return int(result), source_id.value
 
 ##
 ## dsl_ode_trigger_source_id_set()
@@ -546,13 +577,67 @@ def dsl_ode_trigger_source_id_set(name, source_id):
     return int(result)
 
 ##
-## dsl_ode_trigger_reset()
+## dsl_ode_trigger_class_id_get()
 ##
-_dsl.dsl_ode_trigger_reset.argtypes = [c_wchar_p]
-_dsl.dsl_ode_trigger_reset.restype = c_uint
-def dsl_ode_trigger_reset(name):
+_dsl.dsl_ode_trigger_class_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_class_id_get.restype = c_uint
+def dsl_ode_trigger_class_id_get(name):
     global _dsl
-    result =_dsl.dsl_ode_trigger_reset(name)
+    class_id = c_uint(0)
+    result =_dsl.dsl_ode_trigger_class_id_get(name, DSL_UINT_P(class_id))
+    return int(result), class_id.value
+
+##
+## dsl_ode_trigger_class_id_set()
+##
+_dsl.dsl_ode_trigger_class_id_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_class_id_set.restype = c_uint
+def dsl_ode_trigger_class_id_set(name, class_id):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_class_id_set(name, class_id)
+    return int(result)
+
+##
+## dsl_ode_trigger_confidence_min_get()
+##
+_dsl.dsl_ode_trigger_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_double)]
+_dsl.dsl_ode_trigger_confidence_min_get.restype = c_uint
+def dsl_ode_trigger_confidence_min_get(name):
+    global _dsl
+    min_confidence = c_doube(0)
+    result =_dsl.dsl_ode_trigger_confidence_min_get(name, DSL_DOUBLE_P(min_confidence))
+    return int(result), min_confidence.value
+
+##
+## dsl_ode_trigger_confidence_min_set()
+##
+_dsl.dsl_ode_trigger_confidence_min_set.argtypes = [c_wchar_p, c_double]
+_dsl.dsl_ode_trigger_confidence_min_set.restype = c_uint
+def dsl_ode_trigger_confidence_min_set(name, min_confidence):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
+## dsl_ode_trigger_dimensions_min_get()
+##
+_dsl.dsl_ode_trigger_dimensions_min_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_dimensions_min_get.restype = c_uint
+def dsl_ode_trigger_dimensions_min_get(name):
+    global _dsl
+    min_width = c_uint(0)
+    min_height = c_uint(0)
+    result = _dsl.dsl_ode_trigger_dimensions_min_get(name, DSL_UINT_P(min_width), DSL_UINT_P(min_height))
+    return int(result), min_width.value, min_height.value 
+
+##
+## dsl_ode_trigger_dimensions_min_set()
+##
+_dsl.dsl_ode_trigger_dimensions_min_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_dimensions_min_set.restype = c_uint
+def dsl_ode_trigger_dimensions_min_set(name, min_width, min_height):
+    global _dsl
+    result = _dsl.dsl_ode_trigger_dimensions_min_set(name, min_width, min_height)
     return int(result)
 
 ##

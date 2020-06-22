@@ -188,14 +188,14 @@ namespace DSL
         m_sourceId = sourceId;
     }
 
-    float OdeTrigger::GetMinConfidence()
+    double OdeTrigger::GetMinConfidence()
     {
         LOG_FUNC();
         
         return m_minConfidence;
     }
     
-    void OdeTrigger::SetMinConfidence(float minConfidence)
+    void OdeTrigger::SetMinConfidence(double minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);

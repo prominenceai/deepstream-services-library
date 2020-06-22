@@ -137,7 +137,7 @@ namespace DSL
         DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
         std::string filespec = m_outdir + "/" + pTrigger->GetName() + "-" +
-            std::to_string(pTrigger->s_eventCount) + ".jpg";
+            std::to_string(pTrigger->s_eventCount) + ".jpeg";
 
         NvBufSurfTransformRect src_rect = {0};
         NvBufSurfTransformRect dst_rect = {0};
