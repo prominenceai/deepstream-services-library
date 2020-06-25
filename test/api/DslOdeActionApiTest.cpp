@@ -602,6 +602,38 @@ SCENARIO( "A new Remove Source ODE Action can be created and deleted", "[ode-act
     }
 }
 
+SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Reset Trigger ODE Action" ) 
+    {
+        std::wstring actionName(L"trigger-reset-action");
+        std::wstring triggerName(L"trigger");
+
+        WHEN( "A new Reset Trigger Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_trigger_reset_new(actionName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Reset Trigger Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Reset Trigger Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_trigger_reset_new(actionName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Reset Trigger Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_trigger_reset_new(actionName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Add Trigger ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Add Trigger ODE Action" ) 

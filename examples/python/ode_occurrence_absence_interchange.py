@@ -77,137 +77,128 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if (new_state == DSL_STATE_PLAYING):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-    elif((old_state == DSL_STATE_PLAYING) and (new_state == DSL_STATE_PAUSED)):
-        time.sleep(3)
-        #print('playing Pipeline after short pause', dsl_pipeline_play('pipeline'))
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example is used to demonstrate the Use of Trigger Criteria to filter on specific.
-        # detections events. Using three Occurrence Triggers, one for each of the following classes
-        #    Vehicle = Minimum dimensions and Infer-done-only
-        #    Person = Area of Intersection and Infer-done-only
-        #    Bicycle = Minimum GIE confidence and Infer-done-only
+        # This example is used to demonstrate the Use of Two Triggers, one Occurrence and one Absence, to
+        # interchange between detecting the first Person coming into view and the last Person to leave view
+        # i.e the new Occurrence trigger interchanging with New Absence trigger. This can be accomplished
+        # by setting the Limit of each Trigger to one, and then using a Reset-Trigger action to reset the 
+        # the other Trigger on Occurrence. I.e. Occurrence resets Absence and Absence resets Occurrence
+        # 
+        # Note: this Video is a poor choice for the purpose of this example, and should be updated in the 
+        # future. You will need to let the Video run until the people become small enough for the GIE to 
+        # start missing on the inference for the Triggers sto start interchanging. 
         
-        # *** Important Note ***
-        # see https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20
-        # for the required DS 4.02 patch instructions to populate the confidence values in the object's meta data structure
+        # Each of the two Triggers will have three actions to invoke on ODE occurrence: 
+        #    1. A-visual flash by filling in the full frame with a semi-opaque background. 
+        #       Red for new occurrence, White flash for new absence
+        #    2. Print the ODE occurrence data to the console
+        #    3. Reset the other Trigger
         
-        # Each Trigger has four actions to invoke on ODE occurrence: 
-        #    1. Simulate a camera-flash by filling in the full frame with a semi-opaque white background.
-        #    2. Capture the object to a jpeg image and save to file
-        #    3. Print the ODE occurrence data to the console
-        #    4. Pause the Pipeline. The user resumes the Pipeline by Pressing the "R/r" key
-        
-        # This example illustrates an important consideration when adding Actions on Pipelines.
-        # Although the Pause-Pipeline Action is added/invoked after the Camera-Flash Action, the user 
-        # will observe the Pause first. The actual frame that caused ODE occurrence is still at the point 
-        # of the ODE Handler, several components upstream from the Window Sink. The User will not observe 
-        # the visual indication of the camera flash until after resuming the pipeline and the frame reaches 
-        # the Sink for rendering.
+        # This example uses other Triggers for the Purpose of displaying the Person Count on the display,
+        # as well as hiding Object display-text and borders.
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+        # Create a new Reset-Trigger Action to reset the Person-Occurrence Trigger that has a limit of one.
+        # This Action will be added to / invoked by the Person-Absence Trigger that has a limit of one as well.
+        retval = dsl_ode_action_trigger_reset_new('reset-occurrence', 'new-person-occurrence')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Reset-Trigger Action to reset the Person-Absence Trigger that has a limit of one.
+        # This Action will be added to / invoked by the Person-Occurrence Trigger that has a limit of one as well.
+        retval = dsl_ode_action_trigger_reset_new('reset-absence', 'new-person-absence')
+        if retval != DSL_RETURN_SUCCESS:
+            break
         
-        # Create a Fill-Area Action to simulate a 'camera-flash' as a visual indicator that an Object Image Capture 
-        # has occurred. This Action will be shared between all Triggers created for image capture
-        retval = dsl_ode_action_fill_frame_new('camera-flash-action', red=1.0, blue=0.8, green=1.0, alpha=0.7)
+        # Create a Fill-Area Action to simulate a 'red-flash' as a visual indicator that a new Occurrence
+        # has occurred. This Action will used by the Occurrence Trigger only
+        retval = dsl_ode_action_fill_frame_new('occurrence-flash-action', red=1.0, blue=0.0, green=0.0, alpha=0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a Fill-Area Action to simulate a 'white-flash' as a visual indicator that a new Absence
+        # has occurred. This Action will used by the Absence Trigger only
+        retval = dsl_ode_action_fill_frame_new('absence-flash-action', red=1.0, blue=1.0, green=1.0, alpha=0.3)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Action used to display all Object detection summations for each frame. 
+        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create an Action used to pause the Pipeline on Image capture. The Pipeline will be set back to play
-        # in our 'state_change_listener' callback defined above, after a short 1-sec pause.  
-        retval = dsl_ode_action_pause_new('pause-action', pipeline='pipeline')
+        # New Action to hide the display text for each detected object
+        retval = dsl_ode_action_hide_new('hide-text-action', text=True, border=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create an Action to Capture a detected object to jpeg file. This Action will be shared between all 
-        # Triggers created for image capture, each Trigger with its own criteria.
-        retval = dsl_ode_action_capture_object_new('capture-object-action', outdir='./')
+        # New Action to hide both the display text and border for each detected object
+        retval = dsl_ode_action_hide_new('hide-both-action', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Print Action to print out the Capture Object's Attributes and Trigger information
+        # Create a Print Action to print out the ODE occurrence information to the console
         retval = dsl_ode_action_print_new('print-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create an Area that defines a vertical rectangle to the right of the sidewalk and left of the street
-        # This area's background will be displayed shaded a default color of white. The Area will be added
-        # To the 'person-occurrence' Trigger as criteria for ODE occurrence
-        retval = dsl_ode_area_new('person-criteria-area', left=520, top=0, width=40, height=1089, display=True)
+        # Next, create the New Occurrence and New Absence Triggers, and add the Actions to Flash, Print and Reset the other.
+        retval = dsl_ode_trigger_occurrence_new('new-person-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('new-person-occurrence', actions=
+            ['occurrence-flash-action', 'print-action', 'reset-absence', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_absence_new('new-person-absence', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('new-person-absence', actions=
+            ['absence-flash-action', 'print-action', 'reset-occurrence', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create three new Occurrence triggers, each with their own specific criteria
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New Vehicle occurrence Trigger with a limit of one, with Minimum Dimensions set. 
-        # The default minimum width and height values are set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', 
-            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Set the minimum object rectangle dimensions criteria, in pixels, required to Trigger ODE occurrence
-        retval = dsl_ode_trigger_dimensions_min_set('vehicle-occurrence', min_width=250, min_height=250)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Set the inferrence-done-only criteria, since we are capturing images using the object's rectangle
-        # dimensions, we want to make sure the dimensions are for the current frame. Tracked frames use the
-        # rectangle dimensions from the last Inference, i.e. the last frame with the bInferDone meta flag set
-        retval = dsl_ode_trigger_infer_done_only_set('vehicle-occurrence', infer_done_only=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New Person occurrence Trigger with a limit of one, with the ODE Area created above as criteria. 
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence', 
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Add the area-of-overlap criteria, requiring at least one pixel of overlap between object rectangle and Area
-        retval = dsl_ode_trigger_area_add('person-occurrence', area='person-criteria-area')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Set the infer-done-only criteria for the person occurrence as well
-        retval = dsl_ode_trigger_infer_done_only_set('person-occurrence', infer_done_only=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # *** Important Note ***
-        # see https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20
-        # for the required DS 4.02 patch instruction to populate the confidence values in the object's meta data structure
+        # Next, create the Summation and Occurrence Triggers to display the Object Count and Hide each Object's Display Text
         
-        # New Bicycle occurrence Trigger with a limit of one, with Minimum Confidence set. 
-        # The default minimum confidence value is set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', 
-            class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
+        # New ODE Trigger for Person summation - i.e. new ODE occurrence on Person summation for each frame.
+        # Note: The Display-Action will use the Trigger's unique name as the label for the summation display
+        retval = dsl_ode_trigger_summation_new('Person count:', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        # Set the minimum Inference Confidence required to Trigger ODE occurrence.
-        retval = dsl_ode_trigger_confidence_min_set('bicycle-occurrence', min_confidence=0.05)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Set the infer-done-only criteria for the bicycle occurrence as well
-        retval = dsl_ode_trigger_infer_done_only_set('bicycle-occurrence', infer_done_only=True)
+        retval = dsl_ode_trigger_action_add('Person count:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, we will add all three of our Actions defined above to each of our Triggers
-
-        retval = dsl_ode_trigger_action_add_many('vehicle-occurrence', actions=[
-            'camera-flash-action', 'capture-object-action', 'print-action', 'pause-action', None] )
+        # New ODE occurrence Trigger to hide the Display Text and Border for all vehicles
+        retval = dsl_ode_trigger_occurrence_new('every-vehicle', class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('every-vehicle', action='hide-both-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_action_add_many('person-occurrence', actions=[
-            'camera-flash-action', 'capture-object-action', 'print-action', 'pause-action', None] )
+        # New ODE occurrence Trigger to hide the Display Text and Border for all bicycles
+        retval = dsl_ode_trigger_occurrence_new('every-bicycle', class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('every-bicycle', action='hide-both-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New ODE occurrence Trigger to hide just the Display Text for every person, we will leave the border visible
+        retval = dsl_ode_trigger_occurrence_new('every-person', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('every-person', action='hide-text-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -218,9 +209,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
-            'vehicle-occurrence',
-            'person-occurrence',
-            'bicycle-occurrence',
+            'new-person-occurrence',
+            'new-person-absence',
+            'Person count:',
+            'every-vehicle',
+            'every-bicycle',
+            'every-person',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break

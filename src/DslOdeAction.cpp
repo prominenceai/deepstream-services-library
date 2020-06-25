@@ -764,6 +764,30 @@ namespace DSL
 
     // ********************************************************************
 
+    ResetTriggerOdeAction::ResetTriggerOdeAction(const char* name, const char* trigger)
+        : OdeAction(name)
+        , m_trigger(trigger)
+    {
+        LOG_FUNC();
+    }
+
+    ResetTriggerOdeAction::~ResetTriggerOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->OdeTriggerReset(m_trigger.c_str());
+        }
+    }
+
+    // ********************************************************************
+
     AddTriggerOdeAction::AddTriggerOdeAction(const char* name, 
         const char* handler, const char* trigger)
         : OdeAction(name)

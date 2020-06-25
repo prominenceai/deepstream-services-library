@@ -46,6 +46,8 @@ namespace DSL
         , m_minConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
+        , m_maxWidth(0)
+        , m_maxHeight(0)
         , m_minFrameCountN(1)
         , m_minFrameCountD(1)
         , m_inferDoneOnly(false)
@@ -155,6 +157,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
+        LOG_INFO("Setting enable to " << enabled << " for Trigger '" << GetName() << "'");
         m_enabled = enabled;
     }
 
@@ -220,6 +223,23 @@ namespace DSL
         m_minHeight = minHeight;
     }
     
+    void OdeTrigger::GetMaxDimensions(uint* maxWidth, uint* maxHeight)
+    {
+        LOG_FUNC();
+        
+        *maxWidth = m_maxWidth;
+        *maxHeight = m_maxHeight;
+    }
+
+    void OdeTrigger::SetMaxDimensions(uint maxWidth, uint maxHeight)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_maxWidth = maxWidth;
+        m_maxHeight = maxHeight;
+    }
+    
     bool OdeTrigger::GetInferDoneOnlySetting()
     {
         LOG_FUNC();
@@ -283,8 +303,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
         // Ensure enabled, and that the limit has not been exceeded
-        if ((!m_enabled) or
-            (m_limit and m_triggered >= m_limit)) 
+        if (m_limit and m_triggered >= m_limit) 
         {
             return false;
         }
@@ -306,6 +325,12 @@ namespace DSL
         // If defined, check for minimum dimensions
         if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
             (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
+        {
+            return false;
+        }
+        // If defined, check for maximum dimensions
+        if ((m_maxWidth and pObjectMeta->rect_params.width > m_maxWidth) or
+            (m_maxHeight and pObjectMeta->rect_params.height > m_maxHeight))
         {
             return false;
         }
@@ -362,7 +387,7 @@ namespace DSL
     bool OccurrenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -397,6 +422,9 @@ namespace DSL
     bool AbsenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        // Important **** we need to check for Criteria even if the Absence Trigger is disabled. This is
+        // case another Trigger enables This trigger, and it checks for the number of occurrences in the 
+        // PostProcessFrame() . If the m_occurrences is not updated the Trigger will report Absence incorrectly
         if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
@@ -409,11 +437,13 @@ namespace DSL
     
     uint AbsenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
-        if (m_triggered or m_occurrences)
+        if (!m_enabled or
+            (m_limit and m_triggered >= m_limit) or 
+            m_occurrences) 
         {
             m_occurrences = 0;
             return m_occurrences;
-        }
+        }        
         
         // event has been triggered
         m_triggered++;
@@ -445,7 +475,7 @@ namespace DSL
     bool SummationOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -457,6 +487,10 @@ namespace DSL
 
     uint SummationOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
+        if (!m_enabled)
+        {
+            return 0;
+        }
         // event has been triggered
         m_triggered++;
 
@@ -487,7 +521,7 @@ namespace DSL
     bool IntersectionOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -559,7 +593,7 @@ namespace DSL
     bool CustomOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -619,7 +653,7 @@ namespace DSL
 
     uint MinimumOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
-        if (m_occurrences >= m_minimum)
+        if (!m_enabled or m_occurrences >= m_minimum)
         {
             return 0;
         }
@@ -666,7 +700,7 @@ namespace DSL
 
     uint MaximumOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
-        if (m_occurrences <= m_maximum)
+        if (!m_enabled or m_occurrences <= m_maximum)
         {
             return 0;
         }
@@ -714,7 +748,7 @@ namespace DSL
 
     uint RangeOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
-        if ((m_occurrences < m_lower) or (m_occurrences > m_upper))
+        if (!m_enabled or (m_occurrences < m_lower) or (m_occurrences > m_upper))
         {
             return 0;
         }

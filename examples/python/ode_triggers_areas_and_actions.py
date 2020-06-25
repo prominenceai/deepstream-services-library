@@ -40,9 +40,6 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-MIN_OBJECTS = 3
-MAX_OBJECTS = 8
-
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -81,123 +78,130 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-    
-        # This example is used to demonstrate the Use of Minimum, Maximum, and Range Triggers.
-        # The triggers, upon meeting all criteria, will fill a rectangle Area on the Frame 
-        # with color indicating: 
-        #    Yellow = object count below Minimum
-        #    Red = object count above Maximum 
-        #    Green = object count in range of Minimim to Maximum.
-        
-        # A secondary indicatory of filling the full Frame with a shade of red will be used
-        # to stress that the object count within the frame has exceeded the Maximum
-        
-        # An additional Summation Trigger with Display Action will display the total number of objects 
-        # next to the colored/filled area-indicator
-        
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        
-        # New Rectangle Area to be filled on Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_area_new('indicator', left=10, top=60, width=34, height=34, display=True)
+
+        # Create two areas to be used as criteria for ODE Occurrence. The first area
+        # will be for the Person class alone...  and defines a vertical rectangle to 
+        # the left of the pedestrian sidewalk. The pixel values are relative to the
+        # Stream-Muxer output dimensions (default 1920 x 1080), vs. the Tiler/Sink
+        retval = dsl_ode_area_new('person-area', left=200, top=0, width=10, height=1089, display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create all Fill-Area, Fill-Frame, Display and Hide Actions
-        
-        # New Action to fill the entire frame with a light shade of red - indicating object summation above maximum
-        retval = dsl_ode_action_fill_area_new('fill-area-red', 'indicator', red=1.0, blue=0.0, green=0.0, alpha=1.0)
+        # The second area will be shared by both Person and Vehicle classes... and defines
+        # a vertical rectangle to the right of the sidewalk and left of the street
+        # This area's background will be shaded yellow for caution
+        retval = dsl_ode_area_new('shared-area', left=500, top=0, width=60, height=1089, display=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_area_color_set('shared-area', red=1.0, green=1.0, blue=0.0, alpha = 0.05)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action to fill the entire frame with a light shade of yellow - indicating object summation below minimium
-        retval = dsl_ode_action_fill_area_new('fill-area-yellow', 'indicator', red=1.0, blue=0.0, green=1.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Action to fill the indicator with a full shade of green - indicating object summation with in range
-        retval = dsl_ode_action_fill_area_new('fill-area-geen', 'indicator', red=0.0, blue=0.0, green=1.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Action to fill the entire frame with a light shade of red - a secondary indication of object summation above maximum
-        retval = dsl_ode_action_fill_frame_new('shade-frame-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate that
+        # overlap with one or more of the defined Area's has occurred, i.e. ODE occurrence. The action will be
+        # used with both the Person and Car class Ids to indicate thay have entered the area of caution
+        retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action used to display all Object detection summations for each frame. 
-        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False)
+        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
+        # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Action to hide the display text for each detected object
-        retval = dsl_ode_action_hide_new('hide-text-action', text=True, border=False)
+        # One more Action used to display all Object detection summations for each frame. Use the classId
+        # to add an additional vertical offset so the one action can be shared accross classId's
+        retval = dsl_ode_action_display_new('display-action', offsetX=10, offsetY=50, offsetY_with_classId=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create Maximum, Minimum and Range Triggers, while adding their corresponding Fill colors
-
-        # New Maximum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_maximum_new('maximum-objects', 
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, maximum=MAX_OBJECTS)
+        
+        # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
+        # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence
+        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add_many('maximum-objects', actions=
-            ['shade-frame-red', 'fill-area-red', None])
+        retval = dsl_ode_trigger_area_add_many('person-area-overlap', areas=['person-area', 'shared-area', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('person-area-overlap', action='red-fill-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # New Occurrence Trigger, filtering on the Vehicle ClassId, with no limit on the number of occurrences
+        # Add the single Shared Area and the action to Fill the background red on occurrence 
+        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_area_add('vehicle-area-overlap', area='shared-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('vehicle-area-overlap', action='red-fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Minimum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_minimum_new('minimum-objects', 
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
+        # New Occurrence Trigger, filtering on the Bicycle ClassId, with a limit of one occurrence
+        # Add the capture-frame action to the first occurrence event
+        retval = dsl_ode_trigger_occurrence_new('bicycle-first-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('minimum-objects', action='fill-area-yellow')
+        retval = dsl_ode_trigger_action_add('bicycle-first-occurrence', action='bicycle-capture')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # New Range of occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_range_new('range-of-objects', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
-            lower=MIN_OBJECTS, upper=MAX_OBJECTS)
+            
+        # New ODE Triggers for Object summation - i.e. new ODE occurrence on detection summation.
+        # Each Trigger will share the same ODE Display Action
+        retval = dsl_ode_trigger_summation_new('Vehicles:', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('range-of-objects', action='fill-area-geen')
+        retval = dsl_ode_trigger_action_add('Vehicles:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Summation and Occurrence Triggers to display the Object Count and Hide each Object's Display Text
-        
-        # New ODE Trigger for Object summation - i.e. new ODE occurrence on detection summation for each frame.
-        retval = dsl_ode_trigger_summation_new('Objects', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_summation_new('Bicycles:', class_id=PGIE_CLASS_ID_BICYCLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('Objects', action='display-action')
+        retval = dsl_ode_trigger_action_add('Bicycles:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # New ODE occurrence Trigger to hide the Display Text for all detected objects
-        retval = dsl_ode_trigger_occurrence_new('every-object', class_id=DSL_ODE_ANY_CLASS, limit=0)
+        retval = dsl_ode_trigger_summation_new('Pedestrians:', class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('every-object', action='hide-text-action')
+        retval = dsl_ode_trigger_action_add('Pedestrians:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        
+        # A hide action to use with two occurrence Triggers, filtering on the Person Class Id and Vehicle Class Id
+        # We will use an every occurrece Trigger to hide the Display Text and Rectangle Border for each object detected
+        # We will leave the Bicycle Display Text and Border untouched
+        retval = dsl_ode_action_hide_new('hide-action', text=True, border=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('person-every-occurrence', action='hide-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('vehicle-every-occurrence', action='hide-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_ode_handler_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
-            'maximum-objects',
-            'minimum-objects',
-            'range-of-objects',
-            'Objects',
-            'every-object',
+            'vehicle-area-overlap',
+            'person-area-overlap', 
+            'bicycle-first-occurrence',
+            'Vehicles:',
+            'Bicycles:',
+            'Pedestrians:',
+            'person-every-occurrence',
+            'vehicle-every-occurrence',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break

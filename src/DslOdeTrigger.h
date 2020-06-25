@@ -216,6 +216,22 @@ namespace DSL
         void SetMinDimensions(uint minWidth, uint minHeight);
         
         /**
+         * @brief Gets the current Maximum rectangle width and height to trigger the event
+         * a value of 0 means no maximim
+         * @param[out] maxWidth current maximim width value in use
+         * @param[out] maxHeight current maximim height value in use
+         */
+        void GetMaxDimensions(uint* maxWidth, uint* maxHeight);
+
+        /**
+         * @brief Sets new Maximum rectangle width and height to trigger the event
+         * a value of 0 means no maximim
+         * @param[in] maxWidth current maximim width value in use
+         * @param[in] maxHeight current maximim height value in use
+         */
+        void SetMaxDimensions(uint maxWidth, uint maxHeight);
+        
+        /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
          * @param[out] minFrameCountN frame count numeratior  
          * @param[out] minFrameCountD frame count denominator
@@ -341,6 +357,16 @@ namespace DSL
          * @brief Minimum rectangle height to trigger an ODE occurrence
          */
         uint m_minHeight;
+
+        /**
+         * @brief Maximum rectangle width to trigger an ODE occurrence
+         */
+        uint m_maxWidth;
+
+        /**
+         * @brief Maximum rectangle height to trigger an ODE occurrence
+         */
+        uint m_maxHeight;
 
         /**
          * @brief Minimum frame count numerator to trigger an ODE occurrence

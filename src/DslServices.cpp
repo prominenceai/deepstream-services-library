@@ -246,6 +246,17 @@ DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
         cstrTrigger.c_str(), cstrArea.c_str());
 }
 
+DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_t* trigger)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTrigger(trigger);
+    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
+
+    return DSL::Services::GetServices()->OdeActionTriggerResetNew(cstrName.c_str(),
+        cstrTrigger.c_str());
+}
+
 DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
     const wchar_t* handler, const wchar_t* trigger)
 {
@@ -638,6 +649,22 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_w
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeTriggerDimensionsMinSet(cstrName.c_str(), min_width, min_height);
+}
+
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxGet(cstrName.c_str(), max_width, max_height);
+}
+
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerDimensionsMaxSet(cstrName.c_str(), max_width, max_height);
 }
 
 DslReturnType dsl_ode_trigger_infer_done_only_get(const wchar_t* name, boolean* infer_done_only)
@@ -3335,6 +3362,32 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionTriggerResetNew(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_RESET_NEW(name, trigger);
+
+            LOG_INFO("New Trigger Reset ODE Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Trigger Reset ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionTriggerAddNew(const char* name, 
         const char* handler, const char* trigger)
     {
@@ -3377,7 +3430,7 @@ namespace DSL
             }
             m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(name, trigger);
 
-            LOG_INFO("New  Trigger  Disable ODE Action '" << name << "' created successfully");
+            LOG_INFO("New Trigger Disable ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -4231,7 +4284,52 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
             
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetMaxDimensions(max_width, max_height);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting maximum dimensions");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            // TODO: validate the max values for in-range
+            pOdeTrigger->SetMaxDimensions(max_width, max_height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception setting maximum dimensions");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d)
     {
         LOG_FUNC();

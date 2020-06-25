@@ -610,6 +610,15 @@ DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
 
 /**
+ * @brief Creates a uniquely named Reset Trigger ODE Action that disables
+ * a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the Reset ODE Trigger Action 
+ * @param[in] trigger unique name of the ODE Trigger to reset
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_t* trigger);
+
+/**
  * @brief Creates a uniquely named Add Trigger ODE Action that adds
  * a named ODE Trigger to a named ODE Handler on ODE occurrence
  * @param[in] name unique name for the Add Trigger ODE Action 
@@ -1014,6 +1023,26 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+
+/**
+ * @brief Gets the current maximum rectangle width and height values for the ODE Trigger
+ * A value of 0 = no maximum
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] max_width returns the current maximun frame width in use
+ * @param[out] max_height returns the current maximun frame hight in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height);
+
+/**
+ * @brief Sets the current maximum rectangle width and height values for the ODE Trigger
+ * A value of 0 = no maximum
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[in] max_width the new maximun frame width to use
+ * @param[in] max_height the new maximun frame hight to use
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height);
 
 /**
  * @brief Gets the current Inferrence-Done-Only setting for the named trigger

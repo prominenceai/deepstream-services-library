@@ -51,6 +51,10 @@ SCENARIO( "A new OdeTrigger is created correctly", "[OdeTrigger]" )
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
                 REQUIRE( minHeight == 0 );
+                uint maxWidth(123), maxHeight(123);
+                pOdeTrigger->GetMaxDimensions(&maxWidth, &maxHeight);
+                REQUIRE( maxWidth == 0 );
+                REQUIRE( maxHeight == 0 );
                 uint minFrameCountN(123), minFrameCountD(123);
                 pOdeTrigger->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
                 REQUIRE( minFrameCountN == 1 );
@@ -325,6 +329,77 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
     }
 }
 
+SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new OdeTrigger with maximum criteria" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match ODE Type's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 10;
+        objectMeta.rect_params.top = 10;
+        objectMeta.rect_params.width = 200;
+        objectMeta.rect_params.height = 100;
+        objectMeta.confidence = 0.4999; 
+
+        WHEN( "the Maximum Width is set below the Object's Width" )
+        {
+            pOdeTrigger->SetMaxDimensions(199, 0);    
+            
+            THEN( "The OdeTrigger is NOT detected because of the maximum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The Max Width is set above the Object's Width" )
+        {
+            pOdeTrigger->SetMaxDimensions(201, 0);    
+            
+            THEN( "The OdeTrigger is detected because of the maximum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Max Height is set below the Object's Height" )
+        {
+            pOdeTrigger->SetMaxDimensions(0, 99);    
+            
+            THEN( "The OdeTrigger is NOT detected because of the maximum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+            }
+        }
+        WHEN( "The Max Height is set above the Object's Height" )
+        {
+            pOdeTrigger->SetMaxDimensions(0, 101);    
+            
+            THEN( "The OdeTrigger is detected because of the maximum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+    }
+}
 SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
@@ -382,7 +457,7 @@ SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
 
 SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
 {
-    GIVEN( "A new OdeTrigger with minimum criteria" ) 
+    GIVEN( "A new OdeTrigger with maximum criteria" ) 
     {
         std::string odeTriggerName("occurence");
         uint classId(1);

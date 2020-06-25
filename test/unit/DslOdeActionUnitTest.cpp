@@ -1145,6 +1145,58 @@ SCENARIO( "A AreaRemoveOdeAction handles an ODE Occurence correctly", "[OdeActio
     }
 }
 
+SCENARIO( "A new TriggerResetOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new TriggerResetOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string otherTriggerName("reset");
+
+        WHEN( "A new TriggerResetOdeAction is created" )
+        {
+            DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
+                DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A TriggerResetOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new TriggerResetOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string otherTriggerName("reset");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_TRIGGER_RESET_PTR pAction = 
+            DSL_ODE_ACTION_TRIGGER_RESET_NEW(actionName.c_str(), otherTriggerName.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action reset other Trigger will produce an error message as Trigger does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
 SCENARIO( "A new TriggerAddOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new TriggerAddOdeAction" ) 

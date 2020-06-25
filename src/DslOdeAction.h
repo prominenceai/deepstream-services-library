@@ -105,6 +105,10 @@ namespace DSL
     #define DSL_ODE_ACTION_SOURCE_REMOVE_NEW(name, pipeline, source) \
         std::shared_ptr<RemoveSourceOdeAction>(new RemoveSourceOdeAction(name, pipeline, source))
         
+    #define DSL_ODE_ACTION_TRIGGER_RESET_PTR std::shared_ptr<ResetTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_RESET_NEW(name, trigger) \
+        std::shared_ptr<ResetTriggerOdeAction>(new ResetTriggerOdeAction(name, trigger))
+        
     #define DSL_ODE_ACTION_TRIGGER_ADD_PTR std::shared_ptr<AddTriggerOdeAction>
     #define DSL_ODE_ACTION_TRIGGER_ADD_NEW(name, handler, trigger) \
         std::shared_ptr<AddTriggerOdeAction>(new AddTriggerOdeAction(name, handler, trigger))
@@ -954,6 +958,47 @@ namespace DSL
          * @brief Source to remove from the Pipeline on ODE occurrence
          */ 
         std::string m_source;
+
+    };
+    
+    // ********************************************************************
+    /**
+     * @class ResetTriggerOdeAction
+     * @brief Reset Trigger ODE Action class
+     */
+    class ResetTriggerOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Reset Trigger ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] trigger ODE Trigger to Rest on ODE occurrence
+         */
+        ResetTriggerOdeAction(const char* name, const char* trigger);
+        
+        /**
+         * @brief dtor for the Reset Trigger ODE Action class
+         */
+        ~ResetTriggerOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by reseting a named ODE Trigger
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief ODE Trigger to reset on ODE occurrence
+         */
+        std::string m_trigger;
 
     };
     

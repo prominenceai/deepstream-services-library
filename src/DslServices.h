@@ -111,6 +111,8 @@ namespace DSL {
         DslReturnType OdeActionAreaRemoveNew(const char* name, 
             const char* trigger, const char* area);
         
+        DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
+
         DslReturnType OdeActionTriggerAddNew(const char* name, 
             const char* odeHandler, const char* trigger);
 
@@ -191,6 +193,10 @@ namespace DSL {
         DslReturnType OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
         
         DslReturnType OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height);
+
+        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height);
+        
+        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height);
 
         DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 

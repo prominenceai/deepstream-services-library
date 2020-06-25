@@ -180,6 +180,38 @@ SCENARIO( "An ODE Trigger's minimum dimensions can be set/get", "[ode-trigger-ap
     }
 }    
 
+SCENARIO( "An ODE Trigger's maximum dimensions can be set/get", "[ode-trigger-api]" )
+{
+    GIVEN( "An ODE Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"occurrence");
+        uint limit(0);
+        uint class_id(0);
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+
+        uint max_width(1), max_height(1);
+        REQUIRE( dsl_ode_trigger_dimensions_max_get(odeTriggerName.c_str(), &max_width, &max_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( max_width == 0 );
+        REQUIRE( max_height == 0 );
+
+        WHEN( "When the Trigger's max dimensions are updated" )         
+        {
+            uint new_max_width(300), new_max_height(200);
+            REQUIRE( dsl_ode_trigger_dimensions_max_set(odeTriggerName.c_str(), new_max_width, new_max_height) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_ode_trigger_dimensions_max_get(odeTriggerName.c_str(), &max_width, &max_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( max_width == new_max_width );
+                REQUIRE( max_height == new_max_height );
+                
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "An ODE Trigger's minimum frame count can be set/get", "[ode-trigger-api]" )
 {
     GIVEN( "An ODE Trigger" ) 

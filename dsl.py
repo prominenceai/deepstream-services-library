@@ -280,6 +280,16 @@ def dsl_ode_action_area_remove_new(name, trigger, area):
     return int(result)
 
 ##
+## dsl_ode_action_trigger_reset_new()
+##
+_dsl.dsl_ode_action_trigger_reset_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_trigger_reset_new.restype = c_uint
+def dsl_ode_action_trigger_reset_new(name, trigger):
+    global _dsl
+    result =_dsl.dsl_ode_action_trigger_reset_new(name, trigger)
+    return int(result)
+
+##
 ## dsl_ode_action_trigger_add_new()
 ##
 _dsl.dsl_ode_action_trigger_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
@@ -287,6 +297,26 @@ _dsl.dsl_ode_action_trigger_add_new.restype = c_uint
 def dsl_ode_action_trigger_add_new(name, handler, trigger):
     global _dsl
     result =_dsl.dsl_ode_action_trigger_add_new(name, handler, trigger)
+    return int(result)
+
+##
+## dsl_ode_action_trigger_disable_new()
+##
+_dsl.dsl_ode_action_trigger_disable_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_trigger_disable_new.restype = c_uint
+def dsl_ode_action_trigger_disable_new(name, trigger):
+    global _dsl
+    result =_dsl.dsl_ode_action_trigger_disable_new(name, trigger)
+    return int(result)
+
+##
+## dsl_ode_action_trigger_enable_new()
+##
+_dsl.dsl_ode_action_trigger_enable_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_trigger_enable_new.restype = c_uint
+def dsl_ode_action_trigger_enable_new(name, trigger):
+    global _dsl
+    result =_dsl.dsl_ode_action_trigger_enable_new(name, trigger)
     return int(result)
 
 ##
@@ -638,6 +668,28 @@ _dsl.dsl_ode_trigger_dimensions_min_set.restype = c_uint
 def dsl_ode_trigger_dimensions_min_set(name, min_width, min_height):
     global _dsl
     result = _dsl.dsl_ode_trigger_dimensions_min_set(name, min_width, min_height)
+    return int(result)
+
+##
+## dsl_ode_trigger_dimensions_max_get()
+##
+_dsl.dsl_ode_trigger_dimensions_max_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_dimensions_max_get.restype = c_uint
+def dsl_ode_trigger_dimensions_max_get(name):
+    global _dsl
+    max_width = c_uint(0)
+    max_height = c_uint(0)
+    result = _dsl.dsl_ode_trigger_dimensions_max_get(name, DSL_UINT_P(max_width), DSL_UINT_P(max_height))
+    return int(result), max_width.value, max_height.value 
+
+##
+## dsl_ode_trigger_dimensions_max_set()
+##
+_dsl.dsl_ode_trigger_dimensions_max_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_dimensions_max_set.restype = c_uint
+def dsl_ode_trigger_dimensions_max_set(name, max_width, max_height):
+    global _dsl
+    result = _dsl.dsl_ode_trigger_dimensions_max_set(name, max_width, max_height)
     return int(result)
 
 ##
