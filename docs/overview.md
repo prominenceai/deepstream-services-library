@@ -5,6 +5,7 @@
   * [Streaming Sources](#streaming-sources)
   * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
   * [Multi-Object Trackers](#multi-object-trackers)
+  * [Object Detection Event Handler](#object-detection-event-handler)
   * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
   * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
@@ -136,8 +137,10 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
-## Object Detection Event (ODE) Handler
-The ODE Handler manages an ordered collection of **ODE Triggers**, each with an ordered collection of **ODE Actions**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display.
+## Object Detection Event Handler
+The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all of the Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers. 
+
+The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. 
 
 There are currently eight types of triggers supported:
 * **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
@@ -154,19 +157,21 @@ Triggers have optional, settable criteria and filters:
 * **Source Id** - filters on a unique Source Id, with a default of `DSL_ODE_ANY_SOURCE`
 * **Dimensions** - filters on an object's dimensions ensuring both width and height minimums are met. 
 * **Confidence** - filters on a object's GIE confidence requiring a minimum value.
-* **Inference** - filtering on the Object's inference-done flag
+* **Inference Done** - filtering on the Object's inference-done flag
+
+**ODE Actions can act on Triggers, on Actions and on Areas allowing for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger, using an Action, can enable a one-time Absence Trigger for the same class, and the Absense Trigger, using an Action, can reset/re-enable the Occurrence Trigger.
+
+* **Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Frame, Hide Text/Boarders
+* **Actions on ODE Data** - Print, Log, Display, Callback, 
+* **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
+* **Actions on Triggers** - Add/Remove/Disable/Enable/Reset Triggers
+* **Actions on Areas** - Add/Remove Areas
+* **Actions on Actions** - Add/Remove/Disable/Enable Actions
+
+Planned new actions for upcoming releases include **Start/Stop Record** and **Serialize/Deserialize**.
 
 **ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria for object occurrence/absence.
 
-**ODE Actions** 
-**Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Frame, Hide Text/Boarders
-**Actions on ODE Data** - Print, Log, Display, Callback, 
-**Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
-**Actions on Triggers** - Add/Remove/Disable/Enable Triggers
-**Actions on Arias** - Add/Remove Areas
-**Actions on Actions** - Add/Remove/Disable/Enable Actions
-
-Planned new actions for upcoming releases include **Start/Stop Record** and **Serialize/Deserialize**.
 
 A simple example using python
 
@@ -196,10 +201,10 @@ dsl_pipeline_component_add('my-pipeline', 'my-handler')
 ```
 
 See the below API Reference sections for more information
-* [ODE Handler API](docs/api-ode-handler.md)
-* [ODE Trigger API](docs/api-ode-trigger.md)
-* [ODE Action API](docs/api-ode-action.md)
-* [ODE Area API](docs/api-ode-area.md)
+* [ODE Handler API Refernce](docs/api-ode-handler.md)
+* [ODE Trigger API Refernce](docs/api-ode-trigger.md)
+* [ODE Action API Reference](docs/api-ode-action.md)
+* [ODE Area API Reference](docs/api-ode-area.md)
 
 
 ## Multi-Source Tiler
