@@ -8,8 +8,11 @@ The relationship between Pipelines and Trackers is one-to-one. Once added to a P
 Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) component in order to Play. 
 
 ## Tracker API
+**Constructors:**
 * [dsl_tracker_ktl_new](#dsl_tracker_ktl_new)
 * [dsl_tracker_iou_new](#dsl_tracker_iou_new)
+
+**Methods:**
 * [dsl_tracker_max_dimensions_get](#dsl_tracker_max_dimensions_get)
 * [dsl_tracker_max_dimensions_set](#dsl_tracker_max_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
