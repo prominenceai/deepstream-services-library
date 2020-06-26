@@ -28,7 +28,7 @@ Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can 
 * [dsl_ode_action_display_new](#dsl_ode_action_display_new)
 * [dsl_ode_action_dump_new](#dsl_ode_action_dump_new)
 * [dsl_ode_action_fill_new](#dsl_ode_action_fill_new)
-* [dsl_ode_action_handler_disable](dsl_ode_action_handler_disable)
+* [dsl_ode_action_handler_disable_new](dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
