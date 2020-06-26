@@ -140,6 +140,8 @@ Tracker components are optional and a Pipeline can have at most one. See the [Tr
 ## Object Detection Event Handler
 The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all of the Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers. 
 
+![ODE Services](/Images/ode-services.png)
+
 The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. 
 
 There are currently eight types of triggers supported:
