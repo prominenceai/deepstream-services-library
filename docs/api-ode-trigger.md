@@ -1,5 +1,3 @@
-
-
 ## ODE Trigger API
 
 Triggers are added to a handler by calling [dsl_ode_handler_trigger_add](docs/api-ode-handler.md#dsl_ode_handler_trigger_add) and [dsl_ode_handler_trigger_add_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_add_many) and removed with [dsl_ode_handler_trigger_remove](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove), [dsl_ode_handler_trigger_remove_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_many), and [dsl_ode_handler_trigger_remove_all](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_all).
@@ -40,6 +38,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
 * [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
+* [dsl_ode_trigger_dimensions_max_get](#dsl_ode_trigger_dimensions_max_get)
+* [dsl_ode_trigger_dimensions_max_set](#dsl_ode_trigger_dimensions_max_set)
 * [dsl_ode_trigger_infer_done_only_get](#dsl_ode_trigger_infer_done_only_get)
 * [dsl_ode_trigger_infer_done_only_set](#dsl_ode_trigger_infer_done_only_set)
 * [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add)
@@ -386,6 +386,8 @@ This service resets a named ODE Trigger, setting it's triggered count to 0.  Thi
 retval = dsl_ode_trigger_reset('my-trigger')
 ```
 
+<br>
+
 ### *dsl_ode_trigger_enabled_get*
 ```c++
 DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled);
@@ -423,7 +425,7 @@ This service sets the enabled setting for the named ODE Trigger. Note: Triggers 
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_enabled_set('my-action', False)
+retval = dsl_ode_trigger_enabled_set('my-trigger', False)
 ```
 
 <br>
@@ -708,7 +710,7 @@ retval = dsl_ode_trigger_action_remove('my-trigger', 'my-action')
 DslReturnType dsl_ode_trigger_action_remove_many(const wchar_t* name, const wchar_t** actions);
 ```
 
-This service remove a Null terminated list of named ODE Actions to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE if at any point one of the named Actions is not currently in-use by the named Trigger
+This service removes a Null terminated list of named ODE Actions to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE if at any point one of the named Actions is not currently in-use by the named Trigger
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -729,7 +731,7 @@ retval = dsl_ode_trigger_action_remove_many('my-trigger', ['my-action-a', 'my-ac
 DslReturnType dsl_ode_trigger_action_remove_all(const wchar_t* name);
 ```
 
-This service remove all ODE Actions from a named ODE Trigger. 
+This service removes all ODE Actions from a named ODE Trigger. 
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -812,7 +814,7 @@ retval = dsl_ode_trigger_area_remove('my-trigger', 'my-area')
 DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_t** areas);
 ```
 
-This service remove a Null terminated list of named ODE Areas to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE if at any point one of the named Areas is not currently in-use by the named Trigger
+This service removes a Null terminated list of named ODE Areas to a named ODE Trigger. The service returns DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE if at any point one of the named Areas is not currently in-use by the named Trigger
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
@@ -833,7 +835,7 @@ retval = dsl_ode_trigger_area_remove_many('my-trigger', ['my-area-a', 'my-area-b
 DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 ```
 
-This service remove all ODE Areas from a named ODE Trigger. 
+This service removes all ODE Areas from a named ODE Trigger. 
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to update.
