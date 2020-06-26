@@ -1,5 +1,12 @@
 # ODE Action Services API
+
 #### ODE Action Construction and Destruction
+ODE Actions are created by calling one of type specific [constructors](#ode-services-api) defined below. Each constructor must have a unqiue name, and using a duplicate name will fail with a result of `DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE`. Once created, all Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete),
+[dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail with a results of `DSL_RESULT_ODE_ACTION_IN_USE`
+
+#### Adding/Removing Actions
+Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-traigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-traigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-traigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-traigger#dsl_ode_trigger_action_remove_all).
+
 #### Actions on Actions
 #### Actions on Areas
 #### Actions on Triggers
@@ -31,6 +38,7 @@
 * [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new)
 * [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new)
 * [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new)
+* [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new)
 * [dsl_ode_action_trigger_add_new](#dsl_ode_action_trigger_add_new)
 * [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new)
 * [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
