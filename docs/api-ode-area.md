@@ -1,8 +1,15 @@
 # ODE Area Services API
+Object Detection Event (ODE) Areas define rectangles with coordinates, `left` and `top`, and dimensions `width` and `height` that can be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to an Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
+
+ODE Areas can be used strictly for the purpose of adding a rectange to the display metadata as and ODE Action to Fill with [dsl_ode_action_fill_area_new](/docs/api-ode-actions.md#dsl_ode_action_fill_area_new).
+
+ODE Actions can be used to update a Trigger's contaner of ODE Areas on ODE occurrence. See 
 
 #### ODE Area Construction and Destruction
+Areas are created by calling [dsl_ode_area_new](#dsl_ode_area_new)
 
 #### Adding/Removing ODE Areas
+ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add), [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and deleted with [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add)
 
 ## ODE Area Services API
 
