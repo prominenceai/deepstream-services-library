@@ -1,6 +1,6 @@
 # Object Detection Event (ODE) Handler API Reference
 
-The ODE Handler Component manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md. The Handler installs a `batch-meta-handler` callback to process the batched metadata for each GST Buffer flowing over the ODE Handler's Source Pad connected to the Sink Pad of the next component; On-Screen-Display for example. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers are created and with specific purpose and criteria looking for the occurrence of specific Object Detection Events (ODEs). On the occurrence of an object-detection-event, the Trigger iterates through its ordered collection of ODE Actions invoking their custom `handle-ode-occurrence` service. ODE Areas, rectangle locations and dimensions, can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers
+The ODE Handler Component manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a `batch-meta-handler` callback to process the batched metadata for each GST Buffer flowing over the ODE Handler's Source Pad connected to the Sink Pad of the next component; On-Screen-Display for example. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas, rectangle locations and dimensions, can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers
 
 #### ODE Handler Construction and Destruction
 ODE Handlers are created by calling [dsl_ode_handler_new](#dsl_ode_handler_new). Handlers are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
@@ -8,18 +8,21 @@ ODE Handlers are created by calling [dsl_ode_handler_new](#dsl_ode_handler_new).
 The Handler's name must be unique from all other components. The relationship between Pipeline/Branch and ODE Handler is one to one and a Handler must be removed from a Pipeline/Branch before it can be used with another.
 
 #### Adding to a Pipeline/Branch
-ODE Handlers are added to a Pipeline or Branch by  calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+ODE Handlers are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+
+ODE Handlers are added to a Branch by calling [dsl_branch_component_add](/docs/api-branch.md#dsl_branch_component_add) or [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many) (when adding with other components) and removed with [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), or [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+
 
 #### Adding and Removing Triggers
-ODE Triggers are added to an ODE Handler by calling [dsl_ode_handler_trigger_add](api-branch.md#dsl_tee_branch_add) or [dsl_tee_branch_add_many](api-branch.md#dsl_tee_branch_add_many) and removed with [dsl_tee_branch_remove](api-branch.md#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](api-branch.md#dsl_tee_branch_remove_many), or [dsl_tee_branch_remove_all](api-branch.md#dsl_tee_branch_remove_all).
+ODE Triggers are added to an ODE Handler by calling [dsl_ode_handler_trigger_add](#dsl_ode_handler_trigger_add) or [dsl_ode_handler_trigger_add_many](#dsl_ode_handler_trigger_add_many) and removed with [dsl_ode_handler_trigger_remove](#dsl_ode_handler_trigger_remove), [dsl_ode_handler_trigger_remove_many](#dsl_ode_handler_trigger_remove_many), or [dsl_ode_handler_trigger_remove_all](#dsl_ode_handler_trigger_remove_all).
 
 ## ODE Handler API
 **Constructors:**
 * [dsl_ode_handler_new](#dsl_ode_handler_new)
 
 **Methods**
-* [dsl_ode_handler_enabled_get](#dsl_ode_trigger_enabled_get)
-* [dsl_ode_handler_enabled_set](#dsl_ode_trigger_enabled_set)
+* [dsl_ode_handler_enabled_get](#dsl_ode_handler_enabled_get)
+* [dsl_ode_handler_enabled_set](#dsl_ode_handler_enabled_set)
 * [dsl_ode_handler_trigger_add](#dsl_ode_handler_trigger_add)
 * [dsl_ode_handler_trigger_add_many](#dsl_ode_handler_trigger_add_many)
 * [dsl_ode_handler_trigger_remove](#dsl_ode_handler_trigger_remove)
