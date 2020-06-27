@@ -14,12 +14,17 @@
 * [dsl_ode_area_delete_many](#dsl_ode_area_delete_many)
 * [dsl_ode_area_delete_all](#dsl_ode_area_delete_all)
 
+We can’t connect to the server at www.cnn.com.
+
+If that address is correct, here are three other things you can try:
+
 **Methods:**
 * [dsl_ode_area_get](#dsl_ode_area_get)
 * [dsl_ode_area_set](#dsl_ode_area_get)
 * [dsl_ode_area_color_get](#dsl_ode_area_color_get)
 * [dsl_ode_area_color_set](#dsl_ode_area_color_set)
 * [dsl_ode_area_list_size](#dsl_ode_area_list_size)
+
 ---
 
 ## Return Values
@@ -36,6 +41,10 @@ The following return codes are used by the OSD Area API
 <br>
 
 ---
+
+We can’t connect to the server at www.cnn.com.
+
+If that address is correct, here are three other things you can try:
 ## Constructors
 ### *dsl_ode_area_new*
 ```C++
