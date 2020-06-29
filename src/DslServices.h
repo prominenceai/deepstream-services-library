@@ -95,15 +95,9 @@ namespace DSL {
         DslReturnType OdeActionSourceRemoveNew(const char* name, 
             const char* pipeline, const char* source);
 
-        DslReturnType OdeActionActionAddNew(const char* name, 
-            const char* trigger, const char* odeAction);
-
         DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
 
         DslReturnType OdeActionActionEnableNew(const char* name, const char* action);
-
-        DslReturnType OdeActionActionRemoveNew(const char* name, 
-            const char* trigger, const char* action);
 
         DslReturnType OdeActionAreaAddNew(const char* name, 
             const char* trigger, const char* area);
@@ -111,18 +105,12 @@ namespace DSL {
         DslReturnType OdeActionAreaRemoveNew(const char* name, 
             const char* trigger, const char* area);
         
-        DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
-
-        DslReturnType OdeActionTriggerAddNew(const char* name, 
-            const char* odeHandler, const char* trigger);
-
         DslReturnType OdeActionTriggerDisableNew(const char* name, const char* trigger);
 
         DslReturnType OdeActionTriggerEnableNew(const char* name, const char* trigger);
 
-        DslReturnType OdeActionTriggerRemoveNew(const char* name, 
-            const char* odeHandler, const char* trigger);
-        
+        DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
+
         DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);

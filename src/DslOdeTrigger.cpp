@@ -287,11 +287,25 @@ namespace DSL
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
             if (pOdeArea->m_display)
             {
-                NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-                NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+                // If this is the first time seeing a frame for the reported Source Id.
+                if (pOdeArea->m_frameNumPerSource.find(pFrameMeta->source_id) == pOdeArea->m_frameNumPerSource.end())
+                {
+                    // Initial the frame number for the new source
+                    pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] = 0;
+                }
                 
-                pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = pOdeArea->m_rectParams;
-                nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+                // If the last frame number for the reported source is less than the current frame
+                if (pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] < pFrameMeta->frame_num)
+                {
+                    // Update the frame number so we only add the rectangle once
+                    pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
+                    
+                    NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+                    NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+                    
+                    pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = pOdeArea->m_rectParams;
+                    nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+                }
             }
         }
     }

@@ -105,14 +105,6 @@ namespace DSL
     #define DSL_ODE_ACTION_SOURCE_REMOVE_NEW(name, pipeline, source) \
         std::shared_ptr<RemoveSourceOdeAction>(new RemoveSourceOdeAction(name, pipeline, source))
         
-    #define DSL_ODE_ACTION_TRIGGER_RESET_PTR std::shared_ptr<ResetTriggerOdeAction>
-    #define DSL_ODE_ACTION_TRIGGER_RESET_NEW(name, trigger) \
-        std::shared_ptr<ResetTriggerOdeAction>(new ResetTriggerOdeAction(name, trigger))
-        
-    #define DSL_ODE_ACTION_TRIGGER_ADD_PTR std::shared_ptr<AddTriggerOdeAction>
-    #define DSL_ODE_ACTION_TRIGGER_ADD_NEW(name, handler, trigger) \
-        std::shared_ptr<AddTriggerOdeAction>(new AddTriggerOdeAction(name, handler, trigger))
-        
     #define DSL_ODE_ACTION_TRIGGER_DISABLE_PTR std::shared_ptr<DisableTriggerOdeAction>
     #define DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(name, trigger) \
         std::shared_ptr<DisableTriggerOdeAction>(new DisableTriggerOdeAction(name, trigger))
@@ -121,13 +113,9 @@ namespace DSL
     #define DSL_ODE_ACTION_TRIGGER_ENABLE_NEW(name, trigger) \
         std::shared_ptr<EnableTriggerOdeAction>(new EnableTriggerOdeAction(name, trigger))
         
-    #define DSL_ODE_ACTION_TRIGGER_REMOVE_PTR std::shared_ptr<RemoveTriggerOdeAction>
-    #define DSL_ODE_ACTION_TRIGGER_REMOVE_NEW(name, handler, trigger) \
-        std::shared_ptr<RemoveTriggerOdeAction>(new RemoveTriggerOdeAction(name, handler, trigger))
-        
-    #define DSL_ODE_ACTION_ACTION_ADD_PTR std::shared_ptr<AddActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_ADD_NEW(name, trigger, action) \
-        std::shared_ptr<AddActionOdeAction>(new AddActionOdeAction(name, trigger, action))
+    #define DSL_ODE_ACTION_TRIGGER_RESET_PTR std::shared_ptr<ResetTriggerOdeAction>
+    #define DSL_ODE_ACTION_TRIGGER_RESET_NEW(name, trigger) \
+        std::shared_ptr<ResetTriggerOdeAction>(new ResetTriggerOdeAction(name, trigger))
         
     #define DSL_ODE_ACTION_ACTION_DISABLE_PTR std::shared_ptr<DisableActionOdeAction>
     #define DSL_ODE_ACTION_ACTION_DISABLE_NEW(name, trigger) \
@@ -137,10 +125,6 @@ namespace DSL
     #define DSL_ODE_ACTION_ACTION_ENABLE_NEW(name, trigger) \
         std::shared_ptr<EnableActionOdeAction>(new EnableActionOdeAction(name, trigger))
         
-    #define DSL_ODE_ACTION_ACTION_REMOVE_PTR std::shared_ptr<RemoveActionOdeAction>
-    #define DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, trigger, action) \
-        std::shared_ptr<RemoveActionOdeAction>(new RemoveActionOdeAction(name, trigger, action))
-
     #define DSL_ODE_ACTION_AREA_ADD_PTR std::shared_ptr<AddAreaOdeAction>
     #define DSL_ODE_ACTION_AREA_ADD_NEW(name, trigger, area) \
         std::shared_ptr<AddAreaOdeAction>(new AddAreaOdeAction(name, trigger, area))
@@ -962,93 +946,7 @@ namespace DSL
     };
     
     // ********************************************************************
-    /**
-     * @class ResetTriggerOdeAction
-     * @brief Reset Trigger ODE Action class
-     */
-    class ResetTriggerOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the Reset Trigger ODE Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] trigger ODE Trigger to Rest on ODE occurrence
-         */
-        ResetTriggerOdeAction(const char* name, const char* trigger);
-        
-        /**
-         * @brief dtor for the Reset Trigger ODE Action class
-         */
-        ~ResetTriggerOdeAction();
 
-        /**
-         * @brief Handles the ODE occurrence by reseting a named ODE Trigger
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
-    private:
-    
-        /**
-         * @brief ODE Trigger to reset on ODE occurrence
-         */
-        std::string m_trigger;
-
-    };
-    
-    // ********************************************************************
-
-    /**
-     * @class AddTriggerOdeAction
-     * @brief Add ODE Action class
-     */
-    class AddTriggerOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the ODE Add Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] handler ODE Handler component to add the ODE type to
-         * @param[in] trigger ODE Trigger to add on ODE occurrence
-         */
-        AddTriggerOdeAction(const char* name, const char* handler, const char* trigger);
-        
-        /**
-         * @brief dtor for the Add Trigger ODE Action class
-         */
-        ~AddTriggerOdeAction();
-
-        /**
-         * @brief Handles the ODE occurrence by adding an ODE Trigger to and ODE Handler
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
-    private:
-    
-        /**
-         * @brief ODE Handler to add the ODE Trigger to
-         */ 
-        std::string m_handler;
-
-        /**
-         * @brief ODE Trigger to add to the ODE Handler on ODE occurrence
-         */
-        std::string m_trigger;
-    };
-    
     /**
      * @class DisableTriggerOdeAction
      * @brief Disable Trigger ODE Action class
@@ -1132,98 +1030,49 @@ namespace DSL
     };
     
     // ********************************************************************
+
     /**
-     * @class RemoveTriggerOdeAction
-     * @brief Remove ODE Action class
+     * @class ResetTriggerOdeAction
+     * @brief Reset Trigger ODE Action class
      */
-    class RemoveTriggerOdeAction : public OdeAction
+    class ResetTriggerOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Remove Trigger ODE Action class
+         * @brief ctor for the Reset Trigger ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] handler ODE Handler component to add the ODE type to
-         * @param[in] trigger ODE Trigger to add on ODE occurrence
+         * @param[in] trigger ODE Trigger to Rest on ODE occurrence
          */
-        RemoveTriggerOdeAction(const char* name, const char* handler, const char* trigger);
+        ResetTriggerOdeAction(const char* name, const char* trigger);
         
         /**
-         * @brief dtor for the Remove Trigger ODE Action class
+         * @brief dtor for the Reset Trigger ODE Action class
          */
-        ~RemoveTriggerOdeAction();
+        ~ResetTriggerOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing an ODE Trigger from an ODE Handler
+         * @brief Handles the ODE occurrence by reseting a named ODE Trigger
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
          * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
     
         /**
-         * @brief ODE Handler to remove the ODE Trigger from
-         */ 
-        std::string m_handler;
-
-        /**
-         * @brief ODE Trigger to remove from the ODE Handler on ODE occurrence
+         * @brief ODE Trigger to reset on ODE occurrence
          */
         std::string m_trigger;
-    };
 
+    };
+    
     // ********************************************************************
 
-    /**
-     * @class AddActionOdeAction
-     * @brief Add Action ODE Action class
-     */
-    class AddActionOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the Add Action ODE Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] trigger ODE Trigger to add the ODE Action to
-         * @param[in] action ODE Action to add on ODE occurrence
-         */
-        AddActionOdeAction(const char* name, const char* trigger, const char* action);
-        
-        /**
-         * @brief dtor for the Add Action ODE Action class
-         */
-        ~AddActionOdeAction();
-
-        /**
-         * @brief Handles the ODE occurrence by adding an ODE Action to an ODE Trigger
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
-    private:
-    
-        /**
-         * @brief ODE Trigger to add the ODE Action to
-         */ 
-        std::string m_trigger;
-
-        /**
-         * @brief ODE Action to add to the ODE Trigger on ODE occurrence
-         */
-        std::string m_action;
-    };
-    
     /**
      * @class DisableActionOdeAction
      * @brief Disable Action ODE Action class
@@ -1307,52 +1156,6 @@ namespace DSL
     };
     
     // ********************************************************************
-    /**
-     * @class RemoveActionOdeAction
-     * @brief Remove Action ODE Action class
-     */
-    class RemoveActionOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the Remove Action ODE Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] trigger ODE Trigger to add the ODE Action to
-         * @param[in] action ODE Action to add on ODE occurrence
-         */
-        RemoveActionOdeAction(const char* name, const char* trigger, const char* action);
-        
-        /**
-         * @brief dtor for the Remove Action ODE Action class
-         */
-        ~RemoveActionOdeAction();
-
-        /**
-         * @brief Handles the ODE occurrence by removing an ODE Action from an ODE Handler
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
-    private:
-    
-        /**
-         * @brief ODE Trigger to remove the ODE Action from
-         */ 
-        std::string m_trigger;
-
-        /**
-         * @brief ODE Action to remove from the ODE Trigger on ODE occurrence
-         */
-        std::string m_action;
-    };
-
-    // ********************************************************************
 
     /**
      * @class AddAreaOdeAction
@@ -1400,6 +1203,7 @@ namespace DSL
     };
 
     // ********************************************************************
+
     /**
      * @class RemoveAreaOdeAction
      * @brief Remove Area ODE Action class

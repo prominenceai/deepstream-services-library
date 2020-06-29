@@ -634,39 +634,6 @@ SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", "[ode-act
     }
 }
 
-SCENARIO( "A new Add Trigger ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Add Trigger ODE Action" ) 
-    {
-        std::wstring actionName(L"trigger_add-action");
-        std::wstring handlerName(L"handler");
-        std::wstring triggerName(L"trigger");
-
-        WHEN( "A new Add Trigger Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_trigger_add_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Add Trigger Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Add Trigger Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_trigger_add_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Add Trigger Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_trigger_add_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-    }
-}
-
 SCENARIO( "A new Disable Trigger ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Disable Trigger ODE Action" ) 
@@ -723,72 +690,6 @@ SCENARIO( "A new Enable Trigger ODE Action can be created and deleted", "[ode-ac
             THEN( "A second Enable Trigger Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_trigger_enable_new(actionName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A new Remove Trigger ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Remove Trigger ODE Action" ) 
-    {
-        std::wstring actionName(L"trigger_remove-action");
-        std::wstring handlerName(L"handler");
-        std::wstring triggerName(L"trigger");
-
-        WHEN( "A new Remove Trigger Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_trigger_remove_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Remove Trigger Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Remove Trigger Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_trigger_remove_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Remove Trigger Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_trigger_remove_new(actionName.c_str(), handlerName.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A new Add Action ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Add Action ODE Action" ) 
-    {
-        std::wstring actionName(L"action_add-action");
-        std::wstring triggerName(L"trigger");
-        std::wstring slaveActionName(L"action");
-
-        WHEN( "A new Add Action Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_action_add_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Add Action Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Add Action Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_action_add_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Add Action Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_action_add_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -861,35 +762,3 @@ SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-act
     }
 }
 
-SCENARIO( "A new Remove Action ODE Action can be created and deleted", "[ode-action-api]" )
-{
-    GIVEN( "Attributes for a new Remove Action ODE Action" ) 
-    {
-        std::wstring actionName(L"action_remove-action");
-        std::wstring triggerName(L"trigger");
-        std::wstring slaveActionName(L"action");
-
-        WHEN( "A new Remove Action Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_action_remove_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Remove Action Action can be deleted" ) 
-            {
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Remove Action Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_action_remove_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Remove Action Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_action_remove_new(actionName.c_str(), triggerName.c_str(), slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-    }
-}

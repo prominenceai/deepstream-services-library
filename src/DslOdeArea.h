@@ -107,13 +107,23 @@ namespace DSL
          */
         bool m_display;
         
+        /**
+         * @brief updated by parent Triggers for each source/frame. Allows multiple Triggers 
+         * to know if they are the first to use the shared Area for the current source/frame, 
+         * or not. If true, i.e. m_currentFrame < FrameNumber. The Trigger can do a 
+         * once-per-frame-per-source (add area as display data) and then update the variable to 
+         * m_currentFrame = FrameNumber. Other Triggers reading the value can skip doing 
+         * the same once-per-frame operations in OdeTrigger::PreProcessFrame()
+         */
+        std::map<uint, uint64_t> m_frameNumPerSource;
+    
     private:
 
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
         GMutex m_propertyMutex;
-    
+        
     };
 
 }

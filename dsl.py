@@ -240,23 +240,23 @@ def dsl_ode_action_source_remove_new(name, pipeline, source):
     return int(result)
 
 ##
-## dsl_ode_action_action_add_new()
+## dsl_ode_action_action_disable_new()
 ##
-_dsl.dsl_ode_action_action_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_action_add_new.restype = c_uint
-def dsl_ode_action_action_add_new(name, trigger, action):
+_dsl.dsl_ode_action_action_disable_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_action_disable_new.restype = c_uint
+def dsl_ode_action_action_disable_new(name, action):
     global _dsl
-    result =_dsl.dsl_ode_action_action_add_new(name, trigger, action)
+    result =_dsl.dsl_ode_action_action_disable_new(name, action)
     return int(result)
 
 ##
-## dsl_ode_action_action_remove_new()
+## dsl_ode_action_action_enable()
 ##
-_dsl.dsl_ode_action_action_remove_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_action_remove_new.restype = c_uint
-def dsl_ode_action_action_remove_new(name, trigger, action):
+_dsl.dsl_ode_action_action_enable_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_action_enable_new.restype = c_uint
+def dsl_ode_action_action_enable_new(name, action):
     global _dsl
-    result =_dsl.dsl_ode_action_action_remove_new(name, trigger, action)
+    result =_dsl.dsl_ode_action_action_enable_new(name, action)
     return int(result)
 
 ##
@@ -290,16 +290,6 @@ def dsl_ode_action_trigger_reset_new(name, trigger):
     return int(result)
 
 ##
-## dsl_ode_action_trigger_add_new()
-##
-_dsl.dsl_ode_action_trigger_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_trigger_add_new.restype = c_uint
-def dsl_ode_action_trigger_add_new(name, handler, trigger):
-    global _dsl
-    result =_dsl.dsl_ode_action_trigger_add_new(name, handler, trigger)
-    return int(result)
-
-##
 ## dsl_ode_action_trigger_disable_new()
 ##
 _dsl.dsl_ode_action_trigger_disable_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -317,16 +307,6 @@ _dsl.dsl_ode_action_trigger_enable_new.restype = c_uint
 def dsl_ode_action_trigger_enable_new(name, trigger):
     global _dsl
     result =_dsl.dsl_ode_action_trigger_enable_new(name, trigger)
-    return int(result)
-
-##
-## dsl_ode_action_trigger_remove_new()
-##
-_dsl.dsl_ode_action_trigger_remove_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_trigger_remove_new.restype = c_uint
-def dsl_ode_action_trigger_remove_new(name, handler, trigger):
-    global _dsl
-    result =_dsl.dsl_ode_action_trigger_remove_new(name, handler, trigger)
     return int(result)
 
 ##

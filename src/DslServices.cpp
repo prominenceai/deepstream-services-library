@@ -257,20 +257,6 @@ DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_
         cstrTrigger.c_str());
 }
 
-DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
-    const wchar_t* handler, const wchar_t* trigger)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrTrigger(trigger);
-    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
-    std::wstring wstrHandler(handler);
-    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
-
-    return DSL::Services::GetServices()->OdeActionTriggerAddNew(cstrName.c_str(),
-        cstrHandler.c_str(), cstrTrigger.c_str());
-}
-
 DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wchar_t* trigger)
 {
     std::wstring wstrName(name);
@@ -293,34 +279,6 @@ DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar
         cstrTrigger.c_str());
 }
 
-DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
-    const wchar_t* handler, const wchar_t* trigger)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrHandler(handler);
-    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
-    std::wstring wstrTrigger(trigger);
-    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
-
-    return DSL::Services::GetServices()->OdeActionTriggerRemoveNew(cstrName.c_str(),
-        cstrHandler.c_str(), cstrTrigger.c_str());
-}
-
-DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
-    const wchar_t* trigger, const wchar_t* action)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrTrigger(trigger);
-    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
-    std::wstring wstrAction(action);
-    std::string cstrAction(wstrAction.begin(), wstrAction.end());
-
-    return DSL::Services::GetServices()->OdeActionActionAddNew(cstrName.c_str(),
-        cstrTrigger.c_str(), cstrAction.c_str());
-}
-
 DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* action)
 {
     std::wstring wstrName(name);
@@ -341,20 +299,6 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
 
     return DSL::Services::GetServices()->OdeActionActionEnableNew(cstrName.c_str(),
         cstrAction.c_str());
-}
-
-DslReturnType dsl_ode_action_action_remove_new(const wchar_t* name,
-    const wchar_t* trigger, const wchar_t* action)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrAction(action);
-    std::string cstrAction(wstrAction.begin(), wstrAction.end());
-    std::wstring wstrTrigger(trigger);
-    std::string cstrTrigger(wstrTrigger.begin(), wstrTrigger.end());
-
-    return DSL::Services::GetServices()->OdeActionActionRemoveNew(cstrName.c_str(),
-        cstrTrigger.c_str(), cstrAction.c_str());
 }
 
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)
@@ -3256,33 +3200,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionActionAddNew(const char* name, 
-        const char* trigger, const char* action)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_ADD_NEW(name, trigger, action);
-
-            LOG_INFO("New Action Add ODE Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Action Add ODE Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();
@@ -3335,33 +3252,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionActionRemoveNew(const char* name, 
-        const char* trigger, const char* action)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_ACTION_REMOVE_NEW(name, trigger, action);
-
-            LOG_INFO("New ODE Remove Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Remove Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::OdeActionTriggerResetNew(const char* name, const char* trigger)
     {
         LOG_FUNC();
@@ -3384,33 +3274,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Trigger Reset ODE Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeActionTriggerAddNew(const char* name, 
-        const char* handler, const char* trigger)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_ADD_NEW(name, handler, trigger);
-
-            LOG_INFO("New Trigger Add ODE Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Trigger Add ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -3463,33 +3326,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Trigger Enable ODE Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeActionTriggerRemoveNew(const char* name, 
-        const char* handler, const char* trigger)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_TRIGGER_REMOVE_NEW(name, handler, trigger);
-
-            LOG_INFO("New Trigger Remove ODE Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Trigger Remove ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }

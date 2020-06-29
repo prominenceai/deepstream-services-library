@@ -786,31 +786,6 @@ namespace DSL
         }
     }
 
-    // ********************************************************************
-
-    AddTriggerOdeAction::AddTriggerOdeAction(const char* name, 
-        const char* handler, const char* trigger)
-        : OdeAction(name)
-        , m_handler(handler)
-        , m_trigger(trigger)
-    {
-        LOG_FUNC();
-    }
-
-    AddTriggerOdeAction::~AddTriggerOdeAction()
-    {
-        LOG_FUNC();
-    }
-    
-    void AddTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerTriggerAdd(m_handler.c_str(), m_trigger.c_str());
-        }
-    }
 
     // ********************************************************************
 
@@ -862,58 +837,6 @@ namespace DSL
 
     // ********************************************************************
 
-    RemoveTriggerOdeAction::RemoveTriggerOdeAction(const char* name, 
-        const char* handler, const char* trigger)
-        : OdeAction(name)
-        , m_handler(handler)
-        , m_trigger(trigger)
-    {
-        LOG_FUNC();
-    }
-
-    RemoveTriggerOdeAction::~RemoveTriggerOdeAction()
-    {
-        LOG_FUNC();
-    }
-    
-    void RemoveTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerTriggerRemove(m_handler.c_str(), m_trigger.c_str());
-        }
-    }
-
-    // ********************************************************************
-
-    AddActionOdeAction::AddActionOdeAction(const char* name, 
-        const char* trigger, const char* action)
-        : OdeAction(name)
-        , m_trigger(trigger)
-        , m_action(action)
-    {
-        LOG_FUNC();
-    }
-
-    AddActionOdeAction::~AddActionOdeAction()
-    {
-        LOG_FUNC();
-    }
-    
-    void AddActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTriggerActionAdd(m_trigger.c_str(), m_action.c_str());
-        }
-    }
-
-    // ********************************************************************
-
     DisableActionOdeAction::DisableActionOdeAction(const char* name, const char* action)
         : OdeAction(name)
         , m_action(action)
@@ -960,33 +883,7 @@ namespace DSL
         }
     }
 
-    // ********************************************************************
 
-    RemoveActionOdeAction::RemoveActionOdeAction(const char* name, 
-        const char* trigger, const char* action)
-        : OdeAction(name)
-        , m_trigger(trigger)
-        , m_action(action)
-    {
-        LOG_FUNC();
-    }
-
-    RemoveActionOdeAction::~RemoveActionOdeAction()
-    {
-        LOG_FUNC();
-    }
-    
-    void RemoveActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeTriggerActionRemove(m_trigger.c_str(), m_action.c_str());
-        }
-    }
-
-    // ********************************************************************
 
     AddAreaOdeAction::AddAreaOdeAction(const char* name, 
         const char* trigger, const char* area)

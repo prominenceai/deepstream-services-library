@@ -610,26 +610,6 @@ DslReturnType dsl_ode_action_area_remove_new(const wchar_t* name,
     const wchar_t* trigger, const wchar_t* area);
 
 /**
- * @brief Creates a uniquely named Reset Trigger ODE Action that disables
- * a named ODE Trigger on ODE occurrence
- * @param[in] name unique name for the Reset ODE Trigger Action 
- * @param[in] trigger unique name of the ODE Trigger to reset
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_t* trigger);
-
-/**
- * @brief Creates a uniquely named Add Trigger ODE Action that adds
- * a named ODE Trigger to a named ODE Handler on ODE occurrence
- * @param[in] name unique name for the Add Trigger ODE Action 
- * @param[in] handler unique name of the handler to add the ODE Trigger to
- * @param[in] trigger unique name of the ODE Trigger to add to the ODE handler
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_trigger_add_new(const wchar_t* name,
-    const wchar_t* handler, const wchar_t* trigger);
-
-/**
  * @brief Creates a uniquely named Disable Trigger ODE Action that disables
  * a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the Disable ODE Trigger Action 
@@ -648,26 +628,13 @@ DslReturnType dsl_ode_action_trigger_disable_new(const wchar_t* name, const wcha
 DslReturnType dsl_ode_action_trigger_enable_new(const wchar_t* name, const wchar_t* trigger);
 
 /**
- * @brief Creates a uniquely named Remove Trigger ODE Action that removes
- * a named ODE Trigger from a named ODE Handler
- * @param[in] name unique name for the Remove Trigger ODE Action
- * @param[in] handler unique name of the handler to remove the ODE Trigger from
- * @param[in] trigger unique name of the ODE Trigger to remove frome the ODE handler
+ * @brief Creates a uniquely named Reset Trigger ODE Action that disables
+ * a named ODE Trigger on ODE occurrence
+ * @param[in] name unique name for the Reset ODE Trigger Action 
+ * @param[in] trigger unique name of the ODE Trigger to reset
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_trigger_remove_new(const wchar_t* name,
-    const wchar_t* handler, const wchar_t* trigger);
-
-/**
- * @brief Creates a uniquely named Add Action ODE Action that adds
- * a named ODE Action to a named ODE Trigger on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Add Action 
- * @param[in] handler unique name of the handler to add the ODE Trigger to
- * @param[in] trigger unique name of the ODE Trigger to add to the ODE handler
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_action_add_new(const wchar_t* name,
-    const wchar_t* trigger, const wchar_t* action);
+DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_t* trigger);
 
 /**
  * @brief Creates a uniquely named Disable Action ODE Action that disables
@@ -687,16 +654,6 @@ DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar
  */
 DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* action);
 
-/**
- * @brief Creates a uniquely named Remove Action ODE Action that removes
- * a named ODE Action from a named ODE Trigger on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Remove Action
- * @param[in] handler unique name of the handler to remove the ODE Trigger from
- * @param[in] trigger unique name of the ODE Trigger to remove frome the ODE handler
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_action_remove_new(const wchar_t* name,
-    const wchar_t* trigger, const wchar_t* action);
 /**
  * @brief Gets the current enabled setting for the ODE Action
  * @param[in] name unique name of the ODE Action to query

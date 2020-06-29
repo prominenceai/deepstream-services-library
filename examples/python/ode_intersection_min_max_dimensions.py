@@ -27,10 +27,11 @@
 import sys
 sys.path.insert(0, "../../")
 from dsl import *
+import time
 
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
-# Filespecs for the Primary GIE and IOU Trcaker
+# Filespecs for the Primary GIE and IOU Tracker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
@@ -39,6 +40,9 @@ PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+MIN_OBJECTS = 3
+MAX_OBJECTS = 8
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -71,137 +75,87 @@ def eos_event_listener(client_data):
 ## 
 def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
-    if new_state == DSL_STATE_PLAYING:
+    if (new_state == DSL_STATE_PLAYING):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
-        # Create two areas to be used as criteria for ODE Occurrence. The first area
-        # will be for the Person class alone...  and defines a vertical rectangle to 
-        # the left of the pedestrian sidewalk. The pixel values are relative to the
-        # Stream-Muxer output dimensions (default 1920 x 1080), vs. the Tiler/Sink
-        retval = dsl_ode_area_new('person-area', left=200, top=0, width=10, height=1089, display=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+    
+        # This example is used to demonstrate the Use of Two Intersection Triggers, one for the Vehicle class
+        # the other for the Person class. A "fill-object" action will be used to shade the background of 
+        # the Objects intersecting.  Person intersecting with Person and Vehicle intersecting with Vehicle.
+        # 
+        # Min and Max Dimensions will set as addional criteria for the Preson and Vehicle Triggers respecively
         
-        # The second area will be shared by both Person and Vehicle classes... and defines
-        # a vertical rectangle to the right of the sidewalk and left of the street
-        # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_new('shared-area', left=500, top=0, width=60, height=1089, display=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_area_color_set('shared-area', red=1.0, green=1.0, blue=0.0, alpha = 0.1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate that
-        # overlap with one or more of the defined Area's has occurred, i.e. ODE occurrence. The action will be
-        # used with both the Person and Car class Ids to indicate thay have entered the area of caution
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+            
+        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate 
+        # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
+        # the Person and Car class Ids.
         retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./")
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # One more Action used to display all Object detection summations for each frame. Use the classId
-        # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=10, offsetY=50, offsetY_with_classId=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
-        # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence
-        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', class_id=PGIE_CLASS_ID_PERSON, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_area_add_many('person-area-overlap', areas=['person-area', 'shared-area', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('person-area-overlap', action='red-fill-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Occurrence Trigger, filtering on the Vehicle ClassId, with no limit on the number of occurrences
-        # Add the single Shared Area and the action to Fill the background red on occurrence 
-        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_area_add('vehicle-area-overlap', area='shared-area')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('vehicle-area-overlap', action='red-fill-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New Occurrence Trigger, filtering on the Bicycle ClassId, with a limit of one occurrence
-        # Add the capture-frame action to the first occurrence event
-        retval = dsl_ode_trigger_occurrence_new('bicycle-first-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('bicycle-first-occurrence', action='bicycle-capture')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # New ODE Triggers for Object summation - i.e. new ODE occurrence on detection summation.
-        # Each Trigger will share the same ODE Display Action
-        retval = dsl_ode_trigger_summation_new('Vehicles:', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Vehicles:', action='display-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_summation_new('Bicycles:', class_id=PGIE_CLASS_ID_BICYCLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Bicycles:', action='display-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_summation_new('Pedestrians:', class_id=PGIE_CLASS_ID_PERSON, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('Pedestrians:', action='display-action')
+        # Create a Print Action to print out the ODE occurrence information to the console
+        retval = dsl_ode_action_print_new('print-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # A hide action to use with two occurrence Triggers, filtering on the Person Class Id and Vehicle Class Id
-        # We will use an every occurrece Trigger to hide the Display Text and Rectangle Border for each object detected
-        # We will leave the Bicycle Display Text and Border untouched
-        retval = dsl_ode_action_hide_new('hide-action', text=True, border=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('person-every-occurrence', action='hide-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('vehicle-every-occurrence', action='hide-action')
+        # New Action to hide both the display text and border for each detected object
+        retval = dsl_ode_action_hide_new('hide-both-action', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Next, create the Person Intersection Trigger, and set a Minumum height as criteria, add the Actions to Fill 
+        # the Object and Print the ODE occurrence info to the console.
+        retval = dsl_ode_trigger_intersection_new('person-intersection', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_dimensions_min_set('person-intersection', min_width=0, min_height=70)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('person-intersection', actions=
+            ['red-fill-action', 'print-action', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Next, create the Vehicle Intersection Trigger, and set a Maximum height as criteria, add the Actions to Fill 
+        # the Object on ODE occurrence and Print the ODE occurrence info to the console.
+        retval = dsl_ode_trigger_intersection_new('vehicle-intersection', class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_dimensions_max_set('vehicle-intersection', max_width=0, max_height=80)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('vehicle-intersection', actions=
+            ['red-fill-action', 'print-action', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Next, create the Occurrence Trigger to Hide each Object's Display Text
+
+        # New ODE occurrence Trigger to hide the Display Text and Border for all vehicles
+        retval = dsl_ode_trigger_occurrence_new('every-object', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('every-object', action='hide-both-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_ode_handler_new('ode-hanlder')
+        retval = dsl_ode_handler_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
-            'vehicle-area-overlap',
-            'person-area-overlap', 
-            'bicycle-first-occurrence',
-            'Vehicles:',
-            'Bicycles:',
-            'Pedestrians:',
-            'person-every-occurrence',
-            'vehicle-every-occurrence',
+        retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
+            'person-intersection',
+            'vehicle-intersection',
+            'every-object',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -243,7 +197,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-hanlder', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-handler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
