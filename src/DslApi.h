@@ -131,8 +131,6 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
-#define DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED                   0x0005000D
-#define DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED                0x0005000E
 
 /**
  * OFV API Return Values
@@ -1665,42 +1663,6 @@ DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* t
  */
 DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
 
-/**
- * @brief Gets the current state of the Redaction enabled setting
- * @param[in] name name of the OSD to query
- * @param[out] enabled true if Redaction is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
- */
-DslReturnType dsl_osd_redaction_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current state of the Redaction enabled setting
- * @param[in] name name of the OSD to update
- * @param[in] enabled set to true to enable Redaction, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
- */
-DslReturnType dsl_osd_redaction_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Adds a new Redaction Class to a named OSD
- * @param[in] name unique name of the OSD to update
- * @param[in] class_id id of the Redaction Class to add
- * @param[in] red red value for the RGBA redaction box [1..0]
- * @param[in] green green value for the RGBA redaction box [1..0]
- * @param[in] blue blue value for the RGBA redaction box [1..0]
- * @param[in] alpha alpha value for the RGBA redaction box [1..0]
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
- */
-DslReturnType dsl_osd_redaction_class_add(const wchar_t* name, int class_id, 
-    double red, double green, double blue, double alpha);
-    
-/**
- * @brief Remove a Redaction Class from a named OSD
- * @param[in] name unique name of the OSD to update
- * @param[in] class_id id of the Redaction Class to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
- */
-DslReturnType dsl_osd_redaction_class_remove(const wchar_t* name, int class_id);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
@@ -1722,15 +1684,6 @@ DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad,
  */
 DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, 
     uint pad, dsl_batch_meta_handler_cb handler);
-
-/**
- * @brief Enbles/disables the bbox output to kitti file for the named the OSD
- * @param[in] name name of the OSD to update
- * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
- */
-DslReturnType dsl_osd_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
