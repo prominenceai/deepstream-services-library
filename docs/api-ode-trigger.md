@@ -1,15 +1,20 @@
 ## ODE Trigger API
+ODE Triggers use settable criteria to parse the frame and detected-object metadata looking for occurrences of specific object-detection-events: Absence, Occurrence, Intersection, etc. Triggers, on ODE occurrence, iterate through their collection of ordered [ODE Actions](/docs/api-ode-action.md) invoking each. [ODE Areas](/docs/api-ode-area.md), rectangles with location and dimension, can be added to one or more Triggers as criteria for ODE occurrence as well.
 
-Triggers are added to a handler by calling [dsl_ode_handler_trigger_add](docs/api-ode-handler.md#dsl_ode_handler_trigger_add) and [dsl_ode_handler_trigger_add_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_add_many) and removed with [dsl_ode_handler_trigger_remove](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove), [dsl_ode_handler_trigger_remove_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_many), and [dsl_ode_handler_trigger_remove_all](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_all).
+#### Construction and Destruction
+Triggers are created by calling one of the Type specific constructors defined below. Triggers are deleted by calling [dsl_ode_trigger_delete](#dsl_ode_trigger_delete), [dsl_ode_trigger_delete_many](#dsl_ode_trigger_delete_many), or [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all).
+
+#### Adding and Removing Triggers
+The relationship between ODE Handlers and ODE Triggers is one-to-many. A Trigger must be removed from a Handler before it can be used by another. Triggers are added to a handler by calling [dsl_ode_handler_trigger_add](docs/api-ode-handler.md#dsl_ode_handler_trigger_add) and [dsl_ode_handler_trigger_add_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_add_many), and removed with [dsl_ode_handler_trigger_remove](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove), [dsl_ode_handler_trigger_remove_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_many), and [dsl_ode_handler_trigger_remove_all](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_all).
 
 #### Adding and Removing Actions
-Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](#dsl_ode_trigger_action_remove_all).
+Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_add_many), and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](#dsl_ode_trigger_action_remove_all).
 
 #### Adding and Removing Areas
 As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add) and [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many), and [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all).
 
 
-**Important Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
+**Important Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 
 **Constructors:**
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
@@ -90,12 +95,12 @@ The following symbolic constants are used by the ODE Trigger API
 typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
 ```
-Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the (optional) criteria for the Custom Trigger. The client, determining that **custom** criteria has been met, returns true singnaling ODE occurrence. The Custom Trigger will then invoke all of the client provided Acctions.
+Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the (optional) criteria for the Custom Trigger. The client, determining that **custom** criteria has been met, returns true signaling ODE occurrence. The Custom Trigger will then invoke all the client provided Actions.
 
 **Parameters**
 * `buffer` - [in] pointer to frame buffer containing the Metadata for the object detected
 * `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event
-* `object_meta` - [in] opaque pointer to a object_meta structure that triggered the ODE event
+* `object_meta` - [in] opaque pointer to an object_meta structure that triggered the ODE event
 * `client_data` - [in] opque point to client user data provided by the client on callback registration
 
 <br>
@@ -108,14 +113,14 @@ Defines a Callback typedef for a Custom ODE Trigger. Once registered, the functi
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
 ```
 
-The constructor creates an Absence trigger that checks for the absence of Objects within a frame, and generates an ODE occurence if no object occur.
+The constructor creates an Absence trigger that checks for the absence of Objects within a frame and generates an ODE occurrence if no object occur.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -132,14 +137,14 @@ retval = dsl_ode_trigger_absence_new('my-absence-trigger', PGIE_PERSON_CLASS_ID,
 DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit);
 ```
 
-The constructor creates an Occurrence trigger that checks for the occurrence of Objects within a frame, and generates an ODE occurence invoking all ODE Action for **each** object detected that passes the triggers (option) critera.
+The constructor creates an Occurrence trigger that checks for the occurrence of Objects within a frame and generates an ODE occurrence invoking all ODE Action for **each** object detected that passes the triggers (option) criteria.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -155,7 +160,7 @@ retval = dsl_ode_trigger_absence_new('my-absence-trigger', DSL_ODE_ANY_CLASS, DS
 ```C++
 DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit);    
 ```
-This constructor creates a uniquly named Summation trigger that counts the number Objects within a frame that pass the trigger's (option) critera. The Trigger generates an ODE occurence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
+This constructor creates a uniquely named Summation trigger that counts the number Objects within a frame that pass the trigger's (option) criteria. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
 
 Note: Adding Actions to a Summation Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
 
@@ -164,7 +169,7 @@ Note: Adding Actions to a Summation Trigger that require Object metadata during 
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -181,18 +186,18 @@ retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_CLASS
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_id, uint limit);
 ```
 
-This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) critera, intersect, and generates an ODE occurence invoking all ODE Actions twice, once for **each object** in the intersection pair. 
+This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) criteria, intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. 
 
-For example: Given three objects A, B, and C. If A intersects B and B intersects C, then two unique ODE occurrence are generated. Each Action owned by the Trigger will be called for each object for every overlapping pair, i.e. a total of four times in this example.  If each of the three objects intersect with the other two, then three ODE occurrences will be triggered with each action called a total of 6 times. 
+For example: Given three objects A, B, and C. If A intersects B and B intersects C, then two unique ODE occurrences are generated. Each Action owned by the Trigger will be called for each object for every overlapping pair, i.e. a total of four times in this example.  If each of the three objects intersect with the other two, then three ODE occurrences will be triggered with each action called a total of 6 times. 
 
-Intersection requires at least one pixel of overlap between a pair of object's rectangle.
+Intersection requires at least one pixel of overlap between a pair of object's rectangles.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -210,24 +215,24 @@ DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name,
     uint class_id, uint limit, uint minimum);
 ```
 
-The constructor creates a uniquely named Minimum Occurence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurence invoking all Actions if the minimum is not met.
+The constructor creates a uniquely named Minimum Occurrence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurrence invoking all Actions if the minimum is not met.
 
-Note: Adding Actions to a Minimum Occurence Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
+Note: Adding Actions to a Minimum Occurrence Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `minimum` [in] the required minumum number of objects per-frame 
+* `minimum` [in] the required minimum number of objects per-frame 
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_minimum_new('my-minimum-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minmimum)
+retval = dsl_ode_trigger_minimum_new('my-minimum-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum)
 ```
 
 <br>
@@ -238,23 +243,23 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name,
     uint class_id, uint limit, uint maximum);
 ```
 
-The constructor creates a uniquely named Maximum Occurence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurence invoking all Actions if the maximum is exceeded.
+The constructor creates a uniquely named Maximum Occurrence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurrence invoking all Actions if the maximum is exceeded.
 
-Note: Adding Actions to a Range of Occurences Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
+Note: Adding Actions to a Range of Occurrences Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_maximum_new('my-maximum-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maxmimum)
+retval = dsl_ode_trigger_maximum_new('my-maximum-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maximum)
 ```
 
 <br>
@@ -265,7 +270,7 @@ DslReturnType dsl_ode_trigger_range_new(const wchar_t* name,
     uint class_id, uint limit, uint lower, uint upper);
 ```
 
-This constructor creates a uniquely named Range of Occurences Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a range of numbers. The Trigger generates an ODE occurence invoking all Actions if the object count is within range.
+This constructor creates a uniquely named Range of Occurrences Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a range of numbers. The Trigger generates an ODE occurrence invoking all Actions if the object count is within range.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -274,14 +279,14 @@ This constructor creates a uniquely named Range of Occurences Trigger that check
 * `lower` - [in] defines the lower limit in the range of numbers
 * `upper` - [in] defines the upper limit in the range of numbers
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_range_new('my-range-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, my_maxmimum)
+retval = dsl_ode_trigger_range_new('my-range-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maximum)
 ```
 
 <br>
@@ -292,7 +297,7 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name,
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
 ```
 
-The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers (optional) critera, and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer 
+The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers (optional) criteria and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer 
 
 
 **Parameters**
@@ -300,7 +305,7 @@ The constructor creates a Uniquely named Custom Trigger that checks for the occu
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
-**Note** Be carefull when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -317,7 +322,7 @@ retval = dsl_ode_trigger_custom_new('my-custom-trigger',
 ```C++
 DslReturnType dsl_ode_trigger_delete(const wchar_t* trigger);
 ```
-This destructor deletes a single, uniquely named ODE Trigger. The destructor will fail if the Trigger is currently `in-use` by a ODE Handler
+This destructor deletes a single, uniquely named ODE Trigger. The destructor will fail if the Trigger is currently `in-use` by an ODE Handler
 
 **Parameters**
 * `trigger` - [in] unique name for the ODE Trigger to delete
@@ -373,7 +378,7 @@ retval = dsl_ode_trigger_delete_all()
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name);
 ```
 
-This service resets a named ODE Trigger, setting it's triggered count to 0.  This affects Triggers with fixed limits, whether they have reached their limit or not.
+This service resets a named ODE Trigger, setting its triggered count to 0.  This affects Triggers with fixed limits, whether they have reached their limit or not.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to reset.
@@ -410,7 +415,7 @@ retval, enabled = dsl_ode_trigger_enabled_get('my-trigger')
 <br>
 
 ### *dsl_ode_trigger_enabled_set*
-```c++
+```C++
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 ```
 
@@ -519,11 +524,11 @@ retval, enabled = dsl_ode_trigger_source_id_set('my-trigger', 0)
 DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
 ```
 
-This service returns the current minumum confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the the detected object's GIE confidence value will not be used as criteria for ODE occurrence.
+This service returns the current minimum confidence criteria for the named ODE Trigger. A value of 0 (default) indicates that the criteria is disable and the detected object's GIE confidence value will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `min_confidence` - [out] current minimum confidence value between 0.0 and 1.0 for for the ODE Trigger to filter on, 0 indicateds disable.
+* `min_confidence` - [out] current minimum confidence value between 0.0 and 1.0 for the ODE Trigger to filter on, 0 indicates disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -540,11 +545,11 @@ retval, min_confidence = dsl_ode_trigger_confidence_min_get('my-trigger')
 DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
 ```
 
-This service sets the minimum confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the GIE cofidence level will not be used as criteria for ODE occurrence.
+This service sets the minimum confidence criteria for the named ODE Trigger. A value of 0 disables the filter and the GIE confidence level will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `min_confience` - [in] new minimum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
+* `min_confidence` - [in] new minimum confidence value as criteria for the ODE Trigger to filter on, or 0 to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -561,12 +566,12 @@ retval = dsl_ode_trigger_confidence_min_set('my-trigger', min_confidence)
 DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
 ```
 
-This service returns the current minumum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
+This service returns the current minimum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `min_width` - [out] current minimum width value for the ODE Trigger to filter on, 0 indicateds disabled.
-* `min_hight` - [out] current minimum height value for the ODE Trigger to filter on, 0 indicateds disabled.
+* `min_width` - [out] current minimum width value for the ODE Trigger to filter on, 0 indicates disabled.
+* `min_hight` - [out] current minimum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -583,12 +588,12 @@ retval, min_width, min_height = dsl_ode_trigger_dimensions_min_get('my-trigger')
 DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
 ```
 
-This service sets the current minumum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
+This service sets the current minimum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `min_width` - [out] minimum width value for the ODE Trigger to filter on, 0 indicateds disabled.
-* `min_hight` - [out] minimum height value for the ODE Trigger to filter on, 0 indicateds disabled.
+* `min_width` - [out] minimum width value for the ODE Trigger to filter on, 0 indicates disabled.
+* `min_hight` - [out] minimum height value for the ODE Trigger to filter on, 0 indicates disabled.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -596,6 +601,50 @@ This service sets the current minumum dimensions for the named ODE Trigger. A va
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_dimensions_min_get('my-trigger', min_width, min_height)
+```
+
+<br>
+
+### *dsl_ode_trigger_dimensions_max_get*
+```c++
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height);
+```
+
+This service returns the current maximum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_width` - [out] current maximum width value for the ODE Trigger to filter on, 0 indicates disabled.
+* `max_hight` - [out] current maximum height value for the ODE Trigger to filter on, 0 indicates disabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, max_width, max_height = dsl_ode_trigger_dimensions_max_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_dimensions_max_set*
+```c++
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height);
+```
+
+This service sets the current maximum dimensions for the named ODE Trigger. A value of 0 (default) indicates that the Object's rectangle width and/or height will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `max_width` - [out] maximum width value for the ODE Trigger to filter on, 0 indicates disabled.
+* `max_hight` - [out] maximum height value for the ODE Trigger to filter on, 0 indicates disabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_dimensions_max_get('my-trigger', max_width, max_height)
 ```
 
 <br>
@@ -609,7 +658,7 @@ This service returns the current "infer-done-only" criteria for the named ODE Tr
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `infer_done_only` - [out] if set to true, then the "inferrence-done" filer is enable, false indicates disabled.
+* `infer_done_only` - [out] if set to true, then the "inference-done" filer is enable, false indicates disabled.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -626,7 +675,7 @@ retval, infer_done_only = dsl_ode_trigger_infer_done_only_get('my-trigger')
 DslReturnType dsl_ode_trigger_infer_done_only_get(const wchar_t* name, boolean* infer_done_only)
 ```
 
-This service sets the "inference-done-only" criteria for the named ODE Trigger. A value of False (default) indicates that the Object's "inferrence-done" flag will not be used as criteria for ODE occurrence. If set to True, only those frames with the "inference-done" flag = true can trigger an ODE occurrence.
+This service sets the "inference-done-only" criteria for the named ODE Trigger. A value of False (default) indicates that the Object's "inference-done" flag will not be used as criteria for ODE occurrence. If set to True, only those frames with the "inference-done" flag = true can trigger an ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -876,11 +925,11 @@ size = dsl_ode_trigger_list_size()
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [Tiler](/docs/api-tiler.md)
 * [ODE Handler](/docs/ode-handler.md)
 * **ODE-Trigger**
 * [ODE Area](/docs/ode-area.md)
 * [ODE Action](/docs/ode-action.md)
+* [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
