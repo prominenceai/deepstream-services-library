@@ -51,8 +51,6 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
                 REQUIRE( top == 0 );
                 REQUIRE( width == 0 );
                 REQUIRE( height == 0 );
-                
-                REQUIRE( pOsdBintr->GetRedactionEnabled() == false );
             }
         }
     }
@@ -258,77 +256,3 @@ SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
     }
 }
             
-SCENARIO( "An OsdBintr's Redaction can be enabled and disabled", "[OsdBintr]" )
-{
-    GIVEN( "An OsdBintr in memory with its Redaction disabled" ) 
-    {
-        std::string osdName = "osd";
-        boolean enableClock(false);
-
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
-
-        REQUIRE( pOsdBintr->GetRedactionEnabled() == false );
-
-        // test negative scenario (set false when currently false)
-        REQUIRE( pOsdBintr->SetRedactionEnabled(false) == false );
-
-        WHEN( "The OsdBintr's Redaction is enabled" )
-        {
-            REQUIRE( pOsdBintr->SetRedactionEnabled(true) == true );
-            
-            // test negative scenario as well (set true when currently true)
-            REQUIRE( pOsdBintr->SetRedactionEnabled(true) == false );
-            
-            THEN( "The OsdBintr's Redaction can be disabled" )
-            {
-                REQUIRE( pOsdBintr->GetRedactionEnabled() == true );
-                REQUIRE( pOsdBintr->SetRedactionEnabled(false) == true );
-                REQUIRE( pOsdBintr->GetRedactionEnabled() == false );
-            }
-        }
-    }
-}
-            
-SCENARIO( "A Redaction Class can be added to and removed from an OsdBintr ", "[OsdBintr]" )
-{
-    GIVEN( "An OsdBintr in memory" ) 
-    {
-        std::string osdName = "osd";
-        boolean enableClock(false);
-
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
-
-        WHEN( "A Redaction Class is added to the OsdBintr" )
-        {
-            REQUIRE( pOsdBintr->AddRedactionClass(2, 0.1, 0.1, 1.0, 1.0) == true );
-            
-            THEN( "The Redaction Class can then be removed" )
-            {
-                REQUIRE( pOsdBintr->RemoveRedactionClass(2) == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "Invalid Redaction Class calls are handled correctly by an OsdBintr ", "[OsdBintr]" )
-{
-    GIVEN( "An OsdBintr with a Redaction Class" ) 
-    {
-        std::string osdName = "osd";
-        boolean enableClock(false);
-
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
-        REQUIRE( pOsdBintr->AddRedactionClass(2, 0.1, 0.1, 1.0, 1.0) == true );
-
-        WHEN( "A Duplicate Redaction Class fails to be added " )
-        {
-            REQUIRE( pOsdBintr->AddRedactionClass(2, 0.1, 0.1, 1.0, 1.0) == false );
-            
-            THEN( "Only the initial Redaction Class can be removed successfully" )
-            {
-                REQUIRE( pOsdBintr->RemoveRedactionClass(2) == true );
-                REQUIRE( pOsdBintr->RemoveRedactionClass(2) == false );
-            }
-        }
-    }
-}
