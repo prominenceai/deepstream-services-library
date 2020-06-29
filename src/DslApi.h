@@ -131,8 +131,6 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
-#define DSL_RESULT_OSD_REDACTION_CLASS_ADD_FAILED                   0x0005000D
-#define DSL_RESULT_OSD_REDACTION_CLASS_REMOVE_FAILED                0x0005000E
 
 /**
  * OFV API Return Values
