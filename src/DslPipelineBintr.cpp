@@ -94,7 +94,7 @@ namespace DSL
         g_mutex_clear(&m_displayMutex);
     }
     
-    bool PipelineBintr::AddSourceBintr(DSL_NODETR_PTR pSourceBintr)
+    bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
         
@@ -112,7 +112,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBintr::IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr)
+    bool PipelineBintr::IsSourceBintrChild(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
 
@@ -124,7 +124,7 @@ namespace DSL
         return (m_pPipelineSourcesBintr->IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
-    bool PipelineBintr::RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr)
+    bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
 
@@ -343,6 +343,18 @@ namespace DSL
         return true;
     }
 
+    bool PipelineBintr::IsLive()
+    {
+        LOG_FUNC();
+        
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_INFO("Pipeline '" << GetName() << "' has no sources, therefore is-live = false");
+            return false;
+        }
+        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive();
+    }
+    
     void PipelineBintr::DumpToDot(char* filename)
     {
         LOG_FUNC();

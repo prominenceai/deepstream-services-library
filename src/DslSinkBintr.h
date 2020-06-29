@@ -74,11 +74,11 @@ namespace DSL
 
         ~SinkBintr();
   
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
-        bool IsParent(DSL_NODETR_PTR pParentBintr);
+        bool IsParent(DSL_BASE_PTR pParentBintr);
         
-        bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         bool IsWindowCapable();
         

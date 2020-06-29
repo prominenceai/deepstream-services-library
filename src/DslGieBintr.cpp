@@ -342,7 +342,7 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool PrimaryGieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool PrimaryGieBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -453,7 +453,7 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool SecondaryGieBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SecondaryGieBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         

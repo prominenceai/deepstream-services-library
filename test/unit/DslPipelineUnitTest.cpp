@@ -46,6 +46,8 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
             THEN( "All member variables are setup correctly" )
             {
                 REQUIRE( pPipelineBintr->GetName() == pipelineName );
+                REQUIRE( pPipelineBintr->GetState() == DSL_STATE_NULL );
+                REQUIRE( pPipelineBintr->IsLive() == False );
             }
         }
     }

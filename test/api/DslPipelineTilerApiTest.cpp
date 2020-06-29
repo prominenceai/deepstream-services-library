@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(500)
 
-SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDisplay]" )
+SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]" )
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
@@ -88,7 +88,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
             REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            THEN( "The Display settings are correct and can't be updated" )
+            THEN( "The Display settings are correct and can be updated" )
             {
                 uint currRows(0), currCols(0), currWidth(0), currHeight(0);
                 
@@ -100,8 +100,8 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineDispla
                 REQUIRE( currWidth == width );
                 REQUIRE( currHeight == height );
 
-                REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), 4, 4) == DSL_RESULT_TILER_IS_IN_USE );
-                REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), 200, 200) == DSL_RESULT_TILER_IS_IN_USE );
+                REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), 3, 1) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), 1280, 360) == DSL_RESULT_SUCCESS );
         
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 

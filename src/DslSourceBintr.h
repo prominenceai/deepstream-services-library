@@ -72,11 +72,11 @@ namespace DSL
 
         ~SourceBintr();
 
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
-        bool IsParent(DSL_NODETR_PTR pParentBintr);
+        bool IsParent(DSL_BASE_PTR pParentBintr);
                         
-        bool RemoveFromParent(DSL_NODETR_PTR pParentBintr);
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
          * @brief returns the current, sensor Id as managed by the Parent pipeline
@@ -333,7 +333,7 @@ namespace DSL
          * @param[in] pDewarperBintr shared pointer to Dewarper to add
          * @returns true if the Dewarper could be added, false otherwise
          */
-        bool AddDewarperBintr(DSL_NODETR_PTR pDewarperBintr);
+        bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
 
         /**
          * @brief remove a previously added Dewarper Bintr from this DecodeSourceBintr 

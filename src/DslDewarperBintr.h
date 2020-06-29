@@ -59,7 +59,7 @@ namespace DSL
          * @brief Required by all Bintrs. but not used by Dewarper
          * @param[in] pParentBintr Parent Pipeline 
          */
-        bool AddToParent(DSL_NODETR_PTR pParentBintr);
+        bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Links all Child Elementrs owned by this Bintr

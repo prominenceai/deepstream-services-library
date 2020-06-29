@@ -5,11 +5,13 @@
   * [Streaming Sources](#streaming-sources)
   * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
   * [Multi-Object Trackers](#multi-object-trackers)
+  * [Object Detection Event Handler](#object-detection-event-handler)
   * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
   * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
   * [Pipeline Tees and Branches](#tees-and-branches)
 * [DSL Initialization](#dsl-initialization)
+* [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
 * [Batch Meta Handler Callback Functions](#batch-meta-handler-callback-functions)
@@ -21,15 +23,13 @@
 
 For those new to DeepStream, however, GStreamer comes with a learning curve that can be steep or lengthy for some. 
 
-The DeepStream Services Library (DSL) was built to enable *"less-experienced"* programmers and hobbyists to develop custom DeepStream applications -- in Python3 or C/C++ -- at a higher level of abstraction. 
-
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines. Modifications made: (1) based on the results of the real-time video analysis, and: (2) by the application user through external input. An example of each:
-1. Programmatically adding a stream to [File Sink](/docs/api-sinks.md) based on the occurrence of specific detected objects.
+1. Programmatically adding additional Source inputs or Sink outputs based on the occurrence of specific detected objects.
 2. Interactively resizing stream and window dimensions for viewing control.
 
 The general approach to using DSL is to:
 1. Create one or more uniquely named DeepStream [Pipelines](/docs/api-pipeline.md)
-2. Create a number of uniquely named [Components](/docs/api-reference-list.md) with desired attributes
+2. Create several uniquely named [Components](/docs/api-reference-list.md) with desired attributes
 3. Define and add one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) (optional)
 4. Add the Components to the Pipeline(s)
 5. Play the Pipeline(s) and start/join the main execution loop.
@@ -70,7 +70,7 @@ Add one or more Client Callback Functions
 ```Python
 # Function to be called on XWindow Delete event
 def xwindow_delete_event_handler(client_data):
-    # Quit the main loop to shutdown and release all resources
+    # Quit the main loop to shut down and release all resources
     dsl_main_loop_quit()
 
 retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
@@ -92,7 +92,7 @@ Transition the Pipeline to a state of Playing and start/join the main loop
  ```
 
 ## Pipeline Components
-There are seven categories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the categories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipeline. 
+There are eight categories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the categories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipeline. 
 
 ![DSL Components](/Images/dsl-components.png)
 
@@ -136,10 +136,84 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
+## Object Detection Event Handler
+The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
+
+![ODE Services](/Images/ode-services.png)
+
+The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. 
+
+There are currently eight types of **ODE Triggers** supported:
+* **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
+* **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
+* **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
+* **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair at most.
+* **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
+* **Maximum** - triggers when the count of detected objects in a frame exceeds a specified maximum number. Once per-frame at most.
+* **Range** - triggers when the count of detected objects falls within a specified lower and upper range. Once per-frame at most.
+* **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence" 
+
+Triggers have optional, settable criteria and filters: 
+* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS`
+* **Source Id** - filters on a unique Source Id, with a default of `DSL_ODE_ANY_SOURCE`
+* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and maximum are met. 
+* **Confidence** - filters on an object's GIE confidence requiring a minimum value.
+* **Inference Done** - filtering on the Object's inference-done flag
+Minimum Frames as criteria, expressed as two numbers `n out d` frames, and other forms of detection hysteresis are being considered. 
+
+**ODE Actions** can act on Triggers, on Actions and on Areas allowing for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger, using an Action, can enable a one-time Absence Trigger for the same class, and the Absence Trigger, using an Action, can reset/re-enable the Occurrence Trigger.
+
+* **Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Area, Capture-Frame, Hide Text/Boarders
+* **Actions on ODE Data** - Print, Log, Display, Callback, 
+* **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
+* **Actions on Triggers** - Disable/Enable/Reset Triggers
+* **Actions on Areas** - Add/Remove Areas
+* **Actions on Actions** - Disable/Enable Actions
+
+Planned new actions for upcoming releases include **Start/Stop Record**, **Serialize/Deserialize**, and **Message to cloud**
+
+**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria for object occurrence/absence.
+
+A simple example using python
+
+```python
+# example assumes that all return values are checked before proceeding
+
+# Create a new Print Action to print the ODE Frame/Object details to the console
+retval = dsl_ode_action_print_new('my-print-action')
+
+# Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
+retval = dsl_ode_action_capture_frame_new('my-capture-action', outdir='./')
+
+# Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
+# specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
+retval = dsl_ode_trigger_occurrence_new('my-occurrence-trigger', class_id=0, limit=1)
+retval = dsl_ode_trigger_action_add_many('my-occurrence-trigger', actions=['my-print-action', 'my-capture-action', None])
+
+# Create a new Area as criteria for occurrence and add to our Trigger. An Object must have
+# at least one pixel of overlap before occurrence will be triggered and the Actions invoked.
+retval = dsl_ode_area_new('my-area', left=245, top=0, width=20, height=1028, display=True)
+retval = dsl_ode_trigger_area_add('my-occurrence-trigger', 'my-area')
+
+# New ODE handler to add our Trigger to, and then add the handler to the Pipeline.
+retval = dsl_ode_handler_new('my-handler)
+retval = dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
+dsl_pipeline_component_add('my-pipeline', 'my-handler')
+```
+
+See the below API Reference sections for more information
+* [ODE Handler API Refernce](docs/api-ode-handler.md)
+* [ODE Trigger API Refernce](docs/api-ode-trigger.md)
+* [ODE Action API Reference](docs/api-ode-action.md)
+* [ODE Area API Reference](docs/api-ode-area.md)
+
+There are several ODE Python examples provided [here](/examples/python)
+
+
 ## Multi-Source Tiler
 To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching any Sink component downstream.
 
-Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
+Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler, the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
 # assumes all components have been created first
 retval = dsl_pipeline_component_add_many('my-pipeline', 
@@ -152,14 +226,12 @@ Clients of Tiler components can add/remove `batch-meta-handler` callback functio
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
-On-Screen Display (OSD) components highlight detected objects with colored bounding boxes and labels. and clocks. Positional offsets, colors and fonts can all be set and updated. A `batch-meta-handler` callback function, added to the input (sink pad) of the OSD, enables clients to add custom meta data for display [see below](#batch-meta-handler-callback-functions).
-
-The OSD component provides class based _**redaction services**_ -- for blurring or blanking faces, license plates, etc -- based on the class labels passed to the Inference Engine(s).
+On-Screen Display (OSD) components highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. ODE Actions can be used to add/update Frame and Object metadata for the OSD to display. 
 
 OSDs are optional and a Pipeline can have at most one when using a Tiler or one-per-source when using a Demuxer. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
 ## Rendering and Streaming Sinks
-Sinks, as the end components in the Pipeline, are used to render the Streaming media, stream encoded data as a server or to a file, or capture and save frame and object images to file. All Pipelines require at least one Sink Component in order to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case were the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
+Sinks, as the end components in the Pipeline, are used to render the Streaming media, stream encoded data as a server or to a file or capture and save frame and object images to file. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
 
 1. Overlay Render Sink
 2. X11/EGL Window Sink
@@ -189,7 +261,7 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 <br>
 
 ## Tees and Branches
-There are two types of Tees that can be added to a Pipeline; Demuxers and Splitters.
+There are two types of Tees that can be added to a Pipeline: Demuxers and Splitters.
 1. **Demuxer** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
 2. **Splitter** split the stream, batched or otherwise, into multiple duplicate streams. 
 
@@ -320,6 +392,14 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 
 ## DSL Initialization
 The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time, unless the calling application has already done so. 
+
+<br>
+
+## DSL Delete All
+All DSL and GStreammer resource should be deleted/released on code exit by calling on DSL to delete all.
+```Python
+dsl_delete_all()
+```
 
 <br>
 
@@ -529,8 +609,12 @@ dsl_component_delete_all()
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIEs](/docs/api-gie)
+* [Primary and Secondary GIEs](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
+* [ODE Handler](docs/api-ode-handler.md)
+* [ODE Trigger](docs/api-ode-trigger.md)
+* [ODE Action ](docs/api-ode-action.md)
+* [ODE Area](docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)

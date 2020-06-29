@@ -55,19 +55,37 @@ namespace DSL
         PipelineBintr(const char* pipeline);
         ~PipelineBintr();
 
+        /**
+         * @brief Attempts to link all and play the Pipeline
+         * @return true if able to play, false otherwise
+         */
         bool Play();
-        
+
+        /**
+         * @brief Attempts to pause the Pipeline, if non-live, and currently playing
+         * @return true if able to pause, false otherwise 
+         */
         bool Pause();
         
+        /**
+         * @brief Attempts to stop the Pipeline currently playing
+         * @return true if able to stop, false otherwise 
+         */
         bool Stop();
+        
+        /**
+         * @brief returns whether the Pipeline has all live sources or not.
+         * @return true if all sources are live, false otherwise (default when no sources).
+         */
+        bool IsLive();
 
         /**
          * @brief adds a single Source Bintr to this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        bool AddSourceBintr(DSL_NODETR_PTR pSourceBintr);
+        bool AddSourceBintr(DSL_BASE_PTR pSourceBintr);
 
-        bool IsSourceBintrChild(DSL_NODETR_PTR pSourceBintr);
+        bool IsSourceBintrChild(DSL_BASE_PTR pSourceBintr);
 
         /**
          * @brief returns the number of Sources currently in use by
@@ -86,8 +104,7 @@ namespace DSL
          * @brief removes a single Source Bintr from this Pipeline 
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
-        bool RemoveSourceBintr(DSL_NODETR_PTR pSourceBintr);
-
+        bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
 
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream Muxer

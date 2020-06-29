@@ -33,6 +33,7 @@ THE SOFTWARE.
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <queue>
 #include <iostream> 
 #include <sstream>
 #include <vector>

@@ -27,6 +27,9 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslBase.h"
+#include "DslOdeAction.h"
+#include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
 
 namespace DSL {
@@ -48,7 +51,167 @@ namespace DSL {
         
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
-         ***************************************************************/
+         ***************************************************************/ 
+        DslReturnType OdeActionCallbackNew(const char* name,
+            dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
+
+        DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir);
+        
+        DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
+        
+        DslReturnType OdeActionDisplayNew(const char* name,
+            uint offsetX, uint offsetY, bool offsetY_with_classId);
+        
+        DslReturnType OdeActionLogNew(const char* name);
+        
+        DslReturnType OdeActionFillAreaNew(const char* name,
+            const char* area, double red, double green, double blue, double alpha);
+
+        DslReturnType OdeActionFillFrameNew(const char* name,
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OdeActionFillObjectNew(const char* name,
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
+
+        DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
+        
+        DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
+
+        DslReturnType OdeActionPrintNew(const char* name);
+        
+        DslReturnType OdeActionRedactNew(const char* name);
+
+        DslReturnType OdeActionSinkAddNew(const char* name, 
+            const char* pipeline, const char* sink);
+
+        DslReturnType OdeActionSinkRemoveNew(const char* name, 
+            const char* pipeline, const char* sink);
+
+        DslReturnType OdeActionSourceAddNew(const char* name, 
+            const char* pipeline, const char* source);
+
+        DslReturnType OdeActionSourceRemoveNew(const char* name, 
+            const char* pipeline, const char* source);
+
+        DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
+
+        DslReturnType OdeActionActionEnableNew(const char* name, const char* action);
+
+        DslReturnType OdeActionAreaAddNew(const char* name, 
+            const char* trigger, const char* area);
+        
+        DslReturnType OdeActionAreaRemoveNew(const char* name, 
+            const char* trigger, const char* area);
+        
+        DslReturnType OdeActionTriggerDisableNew(const char* name, const char* trigger);
+
+        DslReturnType OdeActionTriggerEnableNew(const char* name, const char* trigger);
+
+        DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
+
+        DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OdeActionDelete(const char* name);
+        
+        DslReturnType OdeActionDeleteAll();
+        
+        uint OdeActionListSize();
+
+        DslReturnType OdeAreaNew(const char* name, 
+            uint left, uint top, uint width, uint height, boolean display);
+
+        DslReturnType OdeAreaGet(const char* name, 
+            uint* left, uint* top, uint* width, uint* height, boolean* display);
+
+        DslReturnType OdeAreaSet(const char* name, 
+            uint left, uint top, uint width, uint height, boolean display);
+
+        DslReturnType OdeAreaColorGet(const char* name, 
+            double* red, double* green, double* blue, double* alpha);
+
+        DslReturnType OdeAreaColorSet(const char* name, 
+            double red, double green, double blue, double alpha);
+
+        DslReturnType OdeAreaDelete(const char* name);
+        
+        DslReturnType OdeAreaDeleteAll();
+        
+        uint OdeAreaListSize();
+        
+        DslReturnType OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit);
+        
+        DslReturnType OdeTriggerAbsenceNew(const char* name, uint classId, uint limit);
+        
+        DslReturnType OdeTriggerIntersectionNew(const char* name, uint classId, uint limit);
+
+        DslReturnType OdeTriggerSummationNew(const char* name, uint classId, uint limit);
+
+        DslReturnType OdeTriggerCustomNew(const char* name, 
+            uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
+
+        DslReturnType OdeTriggerMinimumNew(const char* name, uint classId, uint limit, uint minimum);
+        
+        DslReturnType OdeTriggerMaximumNew(const char* name, uint classId, uint limit, uint maximum);
+
+        DslReturnType OdeTriggerRangeNew(const char* name, 
+            uint classId, uint limit, uint lower, uint upper);
+        
+        DslReturnType OdeTriggerReset(const char* name);
+
+        DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
+        
+        DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
+        
+        DslReturnType OdeTriggerConfidenceMinGet(const char* name, double* minConfidence);
+        
+        DslReturnType OdeTriggerConfidenceMinSet(const char* name, double minConfidence);
+        
+        DslReturnType OdeTriggerSourceIdGet(const char* name, uint* sourceId);
+        
+        DslReturnType OdeTriggerSourceIdSet(const char* name, uint sourceId);
+        
+        DslReturnType OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
+        
+        DslReturnType OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height);
+
+        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height);
+        
+        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height);
+
+        DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
+
+        DslReturnType OdeTriggerFrameCountMinSet(const char* name, uint min_count_n, uint min_count_d);
+        
+        DslReturnType OdeTriggerInferDoneOnlyGet(const char* name, boolean* inferDoneOnly);
+        
+        DslReturnType OdeTriggerInferDoneOnlySet(const char* name, boolean inferDoneOnly);
+        
+        DslReturnType OdeTriggerActionAdd(const char* name, const char* action);
+
+        DslReturnType OdeTriggerActionRemove(const char* name, const char* action);
+
+        DslReturnType OdeTriggerActionRemoveAll(const char* name);
+
+        DslReturnType OdeTriggerAreaAdd(const char* name, const char* area);
+
+        DslReturnType OdeTriggerAreaRemove(const char* name, const char* area);
+
+        DslReturnType OdeTriggerAreaRemoveAll(const char* name);
+
+        DslReturnType OdeTriggerDelete(const char* name);
+        
+        DslReturnType OdeTriggerDeleteAll();
+        
+        uint OdeTriggerListSize();
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
         
@@ -92,7 +255,7 @@ namespace DSL {
 
         DslReturnType PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
         
-        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
@@ -122,7 +285,7 @@ namespace DSL {
         
         DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
         
-        DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
@@ -140,7 +303,7 @@ namespace DSL {
 
         DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
 
-        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TeeBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
         
@@ -154,10 +317,22 @@ namespace DSL {
 
         DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
 
-        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
         
+        DslReturnType OdeHandlerNew(const char* name);
+
+        DslReturnType OdeHandlerEnabledGet(const char* name, boolean* enabled);
+        
+        DslReturnType OdeHandlerEnabledSet(const char* name, boolean enabled);
+        
+        DslReturnType OdeHandlerTriggerAdd(const char* odeHandler, const char* trigger);
+
+        DslReturnType OdeHandlerTriggerRemove(const char* odeHandler, const char* trigger);
+
+        DslReturnType OdeHandlerTriggerRemoveAll(const char* odeHandler);
+
         DslReturnType OfvNew(const char* name);
 
         DslReturnType OsdNew(const char* name, boolean clockEnabled);
@@ -182,20 +357,10 @@ namespace DSL {
 
         DslReturnType OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height);
 
-        DslReturnType OsdRedactionEnabledGet(const char* name, boolean* enabled);
-
-        DslReturnType OsdRedactionEnabledSet(const char* name, boolean enabled);
-
-        DslReturnType OsdRedactionClassAdd(const char* name, int classId, double red, double blue, double green, double alpha);
-
-        DslReturnType OsdRedactionClassRemove(const char* name, int classId);
-
-        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* user_data);
+        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 
         DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
 
-        DslReturnType OsdKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
-        
         DslReturnType SinkFakeNew(const char* name);
 
         DslReturnType SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
@@ -311,7 +476,9 @@ namespace DSL {
         
         DslReturnType PipelineStop(const char* pipeline);
         
-        DslReturnType PipelineGetState(const char* pipeline);
+        DslReturnType PipelineStateGet(const char* pipeline, uint* state);
+        
+        DslReturnType PipelineIsLive(const char* pipeline, boolean* isLive);
         
         DslReturnType PipelineDumpToDot(const char* pipeline, char* filename);
         
@@ -356,6 +523,8 @@ namespace DSL {
         }
         
         const wchar_t* ReturnValueToString(uint result);
+        
+        const wchar_t* StateValueToString(uint state);
 
         const wchar_t* VersionGet();
                         
@@ -412,6 +581,8 @@ namespace DSL {
         
         std::map <uint, std::wstring> m_returnValueToString;
         
+        std::map <uint, std::wstring> m_stateValueToString;
+        
         std::map <uint, std::string> m_mapParserTypes;
         
         /**
@@ -448,6 +619,21 @@ namespace DSL {
          * and updated as the first call to DSL.
          */
         uint m_sinkNumInUseMax;
+        
+        /**
+         * @brief map of all ODE Actions created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_ACTION_PTR> m_odeActions;
+        
+        /**
+         * @brief map of all ODE Areas created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_AREA_PTR> m_odeAreas;
+        
+        /**
+         * @brief map of all ODE Types created by the client, key=name
+         */
+        std::map <std::string, DSL_ODE_TRIGGER_PTR> m_odeTriggers;
         
         /**
          * @brief map of all pipelines creaated by the client, key=name

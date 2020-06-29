@@ -50,7 +50,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool SinkBintr::AddToParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -60,16 +60,17 @@ namespace DSL
     }
 
 
-    bool SinkBintr::IsParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
+        LOG_WARN("**************************************");
         
         // check if 'this' Sink is child of Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             IsSinkBintrChild(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    bool SinkBintr::RemoveFromParent(DSL_NODETR_PTR pParentBintr)
+    bool SinkBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
@@ -109,7 +110,7 @@ namespace DSL
         GstPad* pRequestedSourcePad(NULL);
 
         // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_NODETR_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
         DSL_ELEMENT_PTR pTeeElementr = 
             std::dynamic_pointer_cast<Elementr>(pTee);
 
@@ -1129,7 +1130,7 @@ namespace DSL
         LOG_INFO("transforming frame surface with width "<< surface->surfaceList[0].width 
             << " and height "<< surface->surfaceList[0].height);
 
-        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpg";
+        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpeg";
 
         NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
         NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
@@ -1191,7 +1192,7 @@ namespace DSL
                             << rect_params->width << " and height "<< rect_params->height);
 
                         std::string filespec = m_outdir + "/frame_" + std::to_string(m_objectCaptureFrameCount) + 
-                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpg";
+                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpeg";
                         
                         // capturing full frame or bbox rectangle only?
                         if (m_captureClasses[obj_meta->class_id]->m_fullFrame)

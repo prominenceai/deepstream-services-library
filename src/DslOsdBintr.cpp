@@ -43,7 +43,6 @@ namespace DSL
         , m_clockOffsetX(0)
         , m_clockOffsetY(0)
         , m_clockColor({})
-        , m_isRedactionEnabled(false)
         , m_streamId(-1)
     {
         LOG_FUNC();
@@ -175,7 +174,7 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
-    bool OsdBintr::AddToParent(DSL_NODETR_PTR pBranchBintr)
+    bool OsdBintr::AddToParent(DSL_BASE_PTR pBranchBintr)
     {
         LOG_FUNC();
         
@@ -402,117 +401,4 @@ namespace DSL
         gst_object_unref(pOsdStaticSinkPad);
     }
     
-    bool OsdBintr::AddRedactionClass(int classId, double red, double blue, double green, double alpha)
-    {
-        LOG_FUNC();
-
-        if (m_redactionClasses.find(classId) != m_redactionClasses.end())
-        {
-            LOG_ERROR("OsdBintr '" << GetName() <<"' has an existing Redaction Class with ID " << classId);
-            return false;
-        }
-        std::shared_ptr<NvOSD_ColorParams> pColorParams = 
-            std::shared_ptr<NvOSD_ColorParams>(new NvOSD_ColorParams);
-
-        pColorParams->red = red;
-        pColorParams->green = green;
-        pColorParams->blue = blue;
-        pColorParams->alpha = alpha;
-        
-        LOG_INFO("Adding Redaction Class " << classId << " for OsdBintr '" << GetName() << "'");
-
-        m_redactionClasses[classId] = pColorParams;
-        return true;
-    }
-    
-    bool OsdBintr::RemoveRedactionClass(int classId)
-    {
-        LOG_FUNC();
-        
-        if (m_redactionClasses.find(classId) == m_redactionClasses.end())
-        {
-            LOG_ERROR("OsdBintr '" << GetName() <<"' does not have Redaction Class with ID " << classId);
-            return false;
-        }
-        LOG_INFO("Removing Redaction Class " << classId << " for ImageSinkBintr '" << GetName() << "'");
-
-        m_redactionClasses.erase(classId);
-        return true;
-    }
-
-    bool OsdBintr::GetRedactionEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_isRedactionEnabled;
-    }
-    
-    bool OsdBintr::SetRedactionEnabled(bool enabled)
-    {
-        LOG_FUNC();
-
-        if (m_isRedactionEnabled == enabled)
-        {
-            LOG_ERROR("Can't set Redaction Enabled to the same value of " 
-                << enabled << " for OsdBintr '" << GetName() << "' ");
-            return false;
-        }
-        m_isRedactionEnabled = enabled;
-        
-        if (enabled)
-        {
-            LOG_INFO("Enabling Redaction for OsdBintr '" << GetName() << "'");
-            
-            return AddBatchMetaHandler(DSL_PAD_SINK, RedactionBatchMetaHandler, this);
-        }
-        LOG_INFO("Disabling Redaction for OsdBintr '" << GetName() << "'");
-        
-        return RemoveBatchMetaHandler(DSL_PAD_SINK, RedactionBatchMetaHandler);
-    }
-    
-    bool OsdBintr::HandleRedaction(GstBuffer* pBuffer)
-    {
-        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
-        
-        for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
-        {
-            NvDsFrameMeta *frame_meta = (NvDsFrameMeta *) (l_frame->data);
-
-            if (frame_meta == NULL)
-            {
-                LOG_DEBUG("NvDS Meta contained NULL frame_meta for OsdBintr '" << GetName() << "'");
-                return true;
-            }
-
-            for (NvDsMetaList * l_obj = frame_meta->obj_meta_list; l_obj != NULL; l_obj = l_obj->next)
-            {
-                NvDsObjectMeta *obj_meta = (NvDsObjectMeta *) (l_obj->data);
-
-                NvOSD_RectParams * rect_params = &(obj_meta->rect_params);
-                NvOSD_TextParams * text_params = &(obj_meta->text_params);
-
-                if (text_params->display_text)
-                {
-                    text_params->set_bg_clr = 0;
-                    text_params->font_params.font_size = 0;
-                }
-                if (m_redactionClasses.find(obj_meta->class_id) != m_redactionClasses.end())
-                {
-                    rect_params->border_width = 0;
-                    rect_params->has_bg_color = 1;
-                    rect_params->bg_color.red = m_redactionClasses[obj_meta->class_id]->red;
-                    rect_params->bg_color.green = m_redactionClasses[obj_meta->class_id]->green;
-                    rect_params->bg_color.blue = m_redactionClasses[obj_meta->class_id]->blue;
-                    rect_params->bg_color.alpha = m_redactionClasses[obj_meta->class_id]->alpha;
-                }
-            }
-        }
-        return true;
-    }    
-    
-    static boolean RedactionBatchMetaHandler(void* batch_meta, void* user_data)
-    {
-        return static_cast<OsdBintr*>(user_data)->
-            HandleRedaction((GstBuffer*)batch_meta);
-    }
 }    

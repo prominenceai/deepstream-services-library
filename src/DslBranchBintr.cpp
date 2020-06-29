@@ -37,27 +37,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool BranchBintr::AddOsdBintr(DSL_NODETR_PTR pOsdBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pOsdBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting OSD '" 
-                << m_pOsdBintr->GetName());
-            return false;
-        }
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
-            return false;
-        }
-        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
-        
-        return AddChild(pOsdBintr);
-    }
-
-    bool BranchBintr::AddPrimaryGieBintr(DSL_NODETR_PTR pPrmaryGieBintr)
+    bool BranchBintr::AddPrimaryGieBintr(DSL_BASE_PTR pPrmaryGieBintr)
     {
         LOG_FUNC();
         
@@ -72,7 +52,7 @@ namespace DSL
         return AddChild(pPrmaryGieBintr);
     }
 
-    bool BranchBintr::AddTrackerBintr(DSL_NODETR_PTR pTrackerBintr)
+    bool BranchBintr::AddTrackerBintr(DSL_BASE_PTR pTrackerBintr)
     {
         LOG_FUNC();
 
@@ -86,7 +66,7 @@ namespace DSL
         return AddChild(pTrackerBintr);
     }
 
-    bool BranchBintr::AddSecondaryGieBintr(DSL_NODETR_PTR pSecondaryGieBintr)
+    bool BranchBintr::AddSecondaryGieBintr(DSL_BASE_PTR pSecondaryGieBintr)
     {
         LOG_FUNC();
         
@@ -99,7 +79,7 @@ namespace DSL
         return m_pSecondaryGiesBintr->AddChild(std::dynamic_pointer_cast<SecondaryGieBintr>(pSecondaryGieBintr));
     }
 
-    bool BranchBintr::AddOfvBintr(DSL_NODETR_PTR pOfvBintr)
+    bool BranchBintr::AddOfvBintr(DSL_BASE_PTR pOfvBintr)
     {
         LOG_FUNC();
 
@@ -113,7 +93,7 @@ namespace DSL
         return AddChild(m_pOfvBintr);
     }
 
-    bool BranchBintr::AddDemuxerBintr(DSL_NODETR_PTR pDemuxerBintr)
+    bool BranchBintr::AddDemuxerBintr(DSL_BASE_PTR pDemuxerBintr)
     {
         LOG_FUNC();
 
@@ -137,7 +117,7 @@ namespace DSL
         return AddChild(pDemuxerBintr);
     }
 
-    bool BranchBintr::AddSplitterBintr(DSL_NODETR_PTR pSplitterBintr)
+    bool BranchBintr::AddSplitterBintr(DSL_BASE_PTR pSplitterBintr)
     {
         LOG_FUNC();
 
@@ -156,7 +136,7 @@ namespace DSL
         return AddChild(pSplitterBintr);
     }
 
-    bool BranchBintr::AddTilerBintr(DSL_NODETR_PTR pTilerBintr)
+    bool BranchBintr::AddTilerBintr(DSL_BASE_PTR pTilerBintr)
     {
         LOG_FUNC();
 
@@ -175,7 +155,42 @@ namespace DSL
         return AddChild(pTilerBintr);
     }
 
-    bool BranchBintr::AddSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    bool BranchBintr::AddOdeHandlerBintr(DSL_BASE_PTR pOdeHandlerBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pOdeHandlerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting ODE Handler '" 
+                << m_pOdeHandlerBintr->GetName());
+            return false;
+        }
+        m_pOdeHandlerBintr = std::dynamic_pointer_cast<OdeHandlerBintr>(pOdeHandlerBintr);
+        
+        return AddChild(pOdeHandlerBintr);
+    }
+
+    bool BranchBintr::AddOsdBintr(DSL_BASE_PTR pOsdBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pOsdBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has an exisiting OSD '" 
+                << m_pOsdBintr->GetName());
+            return false;
+        }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
+            return false;
+        }
+        m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
+        
+        return AddChild(pOsdBintr);
+    }
+
+    bool BranchBintr::AddSinkBintr(DSL_BASE_PTR pSinkBintr)
     {
         LOG_FUNC();
         
@@ -198,7 +213,7 @@ namespace DSL
         return m_pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pSinkBintr));
     }
 
-    bool BranchBintr::IsSinkBintrChild(DSL_NODETR_PTR pSinkBintr)
+    bool BranchBintr::IsSinkBintrChild(DSL_BASE_PTR pSinkBintr)
     {
         LOG_FUNC();
 
@@ -210,7 +225,7 @@ namespace DSL
         return (m_pMultiSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
     }
 
-    bool BranchBintr::RemoveSinkBintr(DSL_NODETR_PTR pSinkBintr)
+    bool BranchBintr::RemoveSinkBintr(DSL_BASE_PTR pSinkBintr)
     {
         LOG_FUNC();
 
@@ -308,6 +323,20 @@ namespace DSL
             m_linkedComponents.push_back(m_pOfvBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Optical Flow Detector '" << 
                 m_pOfvBintr->GetName() << "' successfully");
+        }
+
+        if (m_pOdeHandlerBintr)
+        {
+            // Link All ODE Handler Elementrs and add as the next component in the Branch
+            m_pOdeHandlerBintr->SetBatchSize(m_batchSize);
+            if (!m_pOdeHandlerBintr->LinkAll() or
+                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOdeHandlerBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pOdeHandlerBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up ODE Handler '" << 
+                m_pOdeHandlerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
@@ -453,7 +482,7 @@ namespace DSL
         GstPad* pRequestedSourcePad(NULL);
 
         // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_NODETR_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
         DSL_ELEMENT_PTR pTeeElementr = 
             std::dynamic_pointer_cast<Elementr>(pTee);
 

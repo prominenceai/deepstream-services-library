@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslBase.h"
 
 namespace DSL
 {
@@ -44,9 +45,9 @@ namespace DSL
 
     /**
      * @class Nodetr
-     * @brief Implements a base container class for all DSL Tree Node types
+     * @brief Implements a container class for all DSL Tree Node types
      */
-    class Nodetr : public std::enable_shared_from_this<Nodetr>
+    class Nodetr : public Base
     {
     public:
         
@@ -55,7 +56,7 @@ namespace DSL
          * @param[in] name for the new Nodetr
          */
         Nodetr(const char* name)
-        : m_name(name)
+        : Base(name)
         , m_pGstObj(NULL)
         , m_pParentGstObj(NULL)
         {
@@ -72,110 +73,6 @@ namespace DSL
             LOG_FUNC();
             
             LOG_DEBUG("Nodetr '" << m_name << "' deleted");
-        }
-        
-        /**
-         * @brief return the name given to this Nodetr on creation
-         * @return const std::string name given to this Nodetr
-         */
-        const std::string& GetName()
-        {
-            LOG_FUNC();
-            
-            return m_name;
-        }
-        
-        /**
-         * @brief return the name given to this Nodetr on creation
-         * @return const c_str name given to this Nodetr
-         */
-        const char* GetCStrName()
-        {
-            LOG_FUNC();
-            
-            return m_name.c_str();
-        }
-        
-        /**
-         * @brief adds a child Nodetr to this parent Nodetr
-         * @param[in] pChild to add to this parent Nodetr. 
-         */
-        virtual bool AddChild(DSL_NODETR_PTR pChild)
-        {
-            LOG_FUNC();
-            
-            if (IsChild(pChild))
-            {
-                LOG_ERROR("Child '" << pChild->m_name << "' is not unique for Parent '" <<m_name << "'");
-                return false;
-            }
-            m_pChildren[pChild->m_name] = pChild;
-            pChild->m_pParentGstObj = m_pGstObj;   
-                            
-            LOG_DEBUG("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
-            
-            return true;
-        }
-        
-        /**
-         * @brief removed a child Nodetr of this parent Nodetr
-         * @param[in] pChild to remove
-         */
-        virtual bool RemoveChild(DSL_NODETR_PTR pChild)
-        {
-            LOG_FUNC();
-            
-            if (!IsChild(pChild))
-            {
-                LOG_WARN("'" << pChild->m_name <<"' is not a child of Parent '" << m_name <<"'");
-                return false;
-            }
-            pChild->m_pParentGstObj = NULL;
-            m_pChildren[pChild->m_name] = nullptr;
-            m_pChildren.erase(pChild->m_name);
-                            
-            LOG_DEBUG("Child '" << pChild->m_name <<"' removed from Parent '" << m_name <<"'");
-            
-            return true;
-        }
-
-        /**
-         * @brief removes all child Nodetrs from this parent Nodetr
-         */
-        virtual void RemoveAllChildren()
-        {
-            LOG_FUNC();
-
-            for (auto &imap: m_pChildren)
-            {
-                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() <<"'");
-                imap.second->m_pParentGstObj = NULL;
-            }
-            m_pChildren.clear();
-        }
-        
-        /**
-         * @brief function to determine if a Nodetr is a child of this Nodetr
-         * @param[in] pChild Nodetr to test for the child relationship
-         * @return true if pChild is a child of this Nodetr
-         */
-        virtual bool IsChild(DSL_NODETR_PTR pChild)
-        {
-            LOG_FUNC();
-            
-            return (m_pChildren.find(pChild->GetName()) != m_pChildren.end());
-        }
-        
-        /**
-         * @brief determines whether this Nodetr is a child of a given pParent
-         * @param[in] pParent the Nodetr to check for a Parental relationship
-         * @return True if the provided Nodetr is this Nodetr's Parent
-         */
-        virtual bool IsParent(DSL_NODETR_PTR pParent)
-        {
-            LOG_FUNC();
-            
-            return (m_pParentGstObj == pParent->m_pGstObj);
         }
         
         /**
@@ -298,17 +195,6 @@ namespace DSL
             return m_pSource;
         }
         
-        /**
-         * @brief get the current number of children for this Nodetr 
-         * @return the number of Child Nodetrs held by this Parent Nodetr
-         */
-        uint GetNumChildren()
-        {
-            LOG_FUNC();
-            
-            return m_pChildren.size();
-        }
-
         GstObject* GetGstObject()
         {
             LOG_FUNC();
@@ -364,21 +250,12 @@ namespace DSL
         
     protected:
 
-        /**
-         * @brief unique name for this Nodetr
-         */
-        std::string m_name;
 
         /**
          * @brief Gst object wrapped by the Nodetr
          */
         GstObject * m_pGstObj;
 
-        /**
-         * @brief map of Child Nodetrs in-use by this Nodetr
-         */
-        std::map<std::string, DSL_NODETR_PTR> m_pChildren;
-        
         /**
          * @brief defines the relationship between a Source Nodetr
          * linked to this Nodetr, making this Nodetr a Sink
@@ -448,16 +325,18 @@ namespace DSL
          *  on the Child Bintr will return true
          * @return true if pChild was added successfully, false otherwise
          */
-        bool AddChild(DSL_NODETR_PTR pChild)
+        bool AddChild(DSL_BASE_PTR pChild)
         {
             LOG_FUNC();
             
-            LOG_DEBUG("Adding Child element to Bin");
-            if (!gst_bin_add(GST_BIN(m_pGstObj), pChild->GetGstElement()))
+            DSL_NODETR_PTR pChildNodetr = std::dynamic_pointer_cast<Nodetr>(pChild);
+
+            if (!gst_bin_add(GST_BIN(m_pGstObj), pChildNodetr->GetGstElement()))
             {
-                LOG_ERROR("Failed to add " << pChild->GetName() << " to " << GetName() <<"'");
+                LOG_ERROR("Failed to add " << pChildNodetr->GetName() << " to " << GetName() <<"'");
                 throw;
             }
+            pChildNodetr->m_pParentGstObj = m_pGstObj;
             return Nodetr::AddChild(pChild);
         }
         
@@ -466,7 +345,7 @@ namespace DSL
          * @param[in] pChildBintr to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
-        bool RemoveChild(DSL_NODETR_PTR pChild)
+        bool RemoveChild(DSL_BASE_PTR pChild)
         {
             LOG_FUNC();
             
@@ -476,15 +355,18 @@ namespace DSL
                 return false;
             }
 
-            // Increase the reference count so the child is not destroyed.
-            gst_object_ref(pChild->GetGstElement());
+            DSL_NODETR_PTR pChildNodetr = std::dynamic_pointer_cast<Nodetr>(pChild);
             
-            if (!gst_bin_remove(GST_BIN(m_pGstObj), pChild->GetGstElement()))
+            // Increase the reference count so the child is not destroyed.
+            gst_object_ref(pChildNodetr->GetGstElement());
+            
+            if (!gst_bin_remove(GST_BIN(m_pGstObj), pChildNodetr->GetGstElement()))
             {
-                LOG_ERROR("Failed to remove " << pChild->GetName() << " from " << GetName() <<"'");
+                LOG_ERROR("Failed to remove " << pChildNodetr->GetName() << " from " << GetName() <<"'");
                 return false;
             }
-            return Nodetr::RemoveChild(pChild);
+            pChildNodetr->m_pParentGstObj = NULL;
+            return Nodetr::RemoveChild(pChildNodetr);
         }
 
         /**
@@ -497,18 +379,20 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_DEBUG("Removing Child '" << imap.second->GetName() << "' from Parent '" << GetName() <<"'");
+                LOG_DEBUG("Removing Child GstNodetr'" << imap.second->GetName() << "' from Parent GST BIn'" << GetName() <<"'");
                 
-                // Increase the reference count so the child is not destroyed.
-                gst_object_ref(imap.second->GetGstElement());
+                DSL_NODETR_PTR pChildNodetr = std::dynamic_pointer_cast<Nodetr>(imap.second);
 
-                if (!gst_bin_remove(GST_BIN(m_pGstObj), imap.second->GetGstElement()))
+                // Increase the reference count so the child is not destroyed.
+                gst_object_ref(pChildNodetr->GetGstElement());
+
+                if (!gst_bin_remove(GST_BIN(m_pGstObj), pChildNodetr->GetGstElement()))
                 {
-                    LOG_ERROR("Failed to remove " << imap.second->GetName() << " from " << GetName() <<"'");
+                    LOG_ERROR("Failed to remove GstNodetr " << pChildNodetr->GetName() << " from " << GetName() <<"'");
                 }
-                imap.second->m_pParentGstObj = NULL;
+                pChildNodetr->m_pParentGstObj = NULL;
             }
-            m_pChildren.clear();
+            Nodetr::RemoveAllChildren();
         }
         
         /**
@@ -581,11 +465,13 @@ namespace DSL
         { 
             LOG_FUNC();
             
+            DSL_NODETR_PTR pSourceNodetr = std::dynamic_pointer_cast<Nodetr>(pSource);
+
             // Call the base class to setup the relationship first
             // Then call GST to Link Source Element to Sink Element 
-            if (!Nodetr::LinkToSource(pSource) or !gst_element_link(m_pSource->GetGstElement(), GetGstElement()))
+            if (!Nodetr::LinkToSource(pSourceNodetr) or !gst_element_link(pSourceNodetr->GetGstElement(), GetGstElement()))
             {
-                LOG_ERROR("Failed to link Source '" << pSource->GetName() << " to Sink" << GetName());
+                LOG_ERROR("Failed to link Source '" << pSourceNodetr->GetName() << " to Sink" << GetName());
                 return false;
             }
             return true;
