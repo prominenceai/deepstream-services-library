@@ -5,6 +5,7 @@
   * [Streaming Sources](#streaming-sources)
   * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
   * [Multi-Object Trackers](#multi-object-trackers)
+  * [Object Detection Event Handler](#object-detection-event-handler)
   * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
   * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
@@ -135,6 +136,78 @@ There are two types of streaming Multi-Object Tracker Components.
 Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-handler-callback-functions)
 
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
+
+## Object Detection Event Handler
+The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all of the Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers. 
+
+![ODE Services](/Images/ode-services.png)
+
+The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. 
+
+There are currently eight types of triggers supported:
+* **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
+* **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
+* **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
+* **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair at most.
+* **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
+* **Maximum** - triggers when the count of detected objects in a frame exceeds a specified maximum number. Once per-frame at most.
+* **Range** - triggers when the count of detected objects falls within a specified lower and upper range. Once per-frame at most.
+* **Custom** - allows the client to provide a callback function that implements a custom "Check For Occurrence" 
+
+Triggers have optional, settable criteria and filters: 
+* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS`
+* **Source Id** - filters on a unique Source Id, with a default of `DSL_ODE_ANY_SOURCE`
+* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums are met. 
+* **Confidence** - filters on a object's GIE confidence requiring a minimum value.
+* **Inference Done** - filtering on the Object's inference-done flag
+
+**ODE Actions can act on Triggers, on Actions and on Areas allowing for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger, using an Action, can enable a one-time Absence Trigger for the same class, and the Absense Trigger, using an Action, can reset/re-enable the Occurrence Trigger.
+
+* **Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Frame, Hide Text/Boarders
+* **Actions on ODE Data** - Print, Log, Display, Callback, 
+* **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
+* **Actions on Triggers** - Add/Remove/Disable/Enable/Reset Triggers
+* **Actions on Areas** - Add/Remove Areas
+* **Actions on Actions** - Add/Remove/Disable/Enable Actions
+
+Planned new actions for upcoming releases include **Start/Stop Record** and **Serialize/Deserialize**.
+
+**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria for object occurrence/absence.
+
+
+A simple example using python
+
+```python
+# example assumes that all return values are checked before proceeding
+
+# Create a new Print Action to print the ODE Frame/Object details to the console
+retval = dsl_ode_action_print_new('my-print-action')
+
+# Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
+retval = dsl_ode_action_capture_frame_new('my-capture-action', outdir='./')
+
+# Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
+# specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
+dsl_ode_trigger_occurrence_new('my-occurrence-trigger', class_id=0, limit=1)
+dsl_ode_trigger_action_add_many('my-occurrence-trigger', actions=['my-print-action', 'my-capture-action', None])
+
+# Create a new Area as criteria for occurrence and add to our Trigger. An Object must have
+# at least one pixel of overlap before occurrence will be triggered and the Actions invoked.
+retval = dsl_ode_area_new('my-area', left=245, top=0, width=20, height=1028, display=True)
+retval = dsl_ode_trigger_area_add('my-occurrence-trigger', 'my-area')
+
+# New ODE handler to add our Trigger to, and then add the handler to the Pipeline.
+dsl_ode_handler_new('my-handler)
+dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
+dsl_pipeline_component_add('my-pipeline', 'my-handler')
+```
+
+See the below API Reference sections for more information
+* [ODE Handler API Refernce](docs/api-ode-handler.md)
+* [ODE Trigger API Refernce](docs/api-ode-trigger.md)
+* [ODE Action API Reference](docs/api-ode-action.md)
+* [ODE Area API Reference](docs/api-ode-area.md)
+
 
 ## Multi-Source Tiler
 To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching any Sink component downstream.
@@ -529,8 +602,12 @@ dsl_component_delete_all()
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
-* [Primary and Secondary GIEs](/docs/api-gie)
+* [Primary and Secondary GIEs](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
+* [ODE Handler](docs/api-ode-handler.md)
+* [ODE Trigger](docs/api-ode-trigger.md)
+* [ODE Action ](docs/api-ode-action.md)
+* [ODE Area](docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)

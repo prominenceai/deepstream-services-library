@@ -144,68 +144,68 @@ SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display
         }
     }
 }
-SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
-{
-    GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
-    {
-        std::wstring sourceName1(L"uri-source");
-        std::wstring uri = L"https://www.radiantmediaplayer.com/media/bbb-360p.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring tilerName(L"tiler");
-        uint width(1280);
-        uint height(720);
-
-        std::wstring overlaySinkName(L"overlay-sink");
-        uint overlayId(1);
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        std::wstring pipelineName(L"test-pipeline");
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        // create for of the same types of source
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        // new tiler for this scenario
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        
-        const wchar_t* components[] = {L"uri-source", L"tiler", L"overlay-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                bool currIsClockEnabled(false);
-                
-                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
+//SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[temp]" )
+//{
+//    GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
+//    {
+//        std::wstring sourceName1(L"uri-source");
+//        std::wstring uri = L"https://www.radiantmediaplayer.com/media/bbb-360p.mp4";
+//        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+//        uint intrDecode(false);
+//        uint dropFrameInterval(0);
+//
+//        std::wstring tilerName(L"tiler");
+//        uint width(1280);
+//        uint height(720);
+//
+//        std::wstring overlaySinkName(L"overlay-sink");
+//        uint overlayId(1);
+//        uint displayId(0);
+//        uint depth(0);
+//        uint offsetX(100);
+//        uint offsetY(140);
+//        uint sinkW(1280);
+//        uint sinkH(720);
+//
+//        std::wstring pipelineName(L"test-pipeline");
+//        
+//        REQUIRE( dsl_component_list_size() == 0 );
+//
+//        // create for of the same types of source
+//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+//            true, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+//
+//        // overlay sink for observation 
+//        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+//            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+//
+//        // new tiler for this scenario
+//        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+//        
+//        const wchar_t* components[] = {L"uri-source", L"tiler", L"overlay-sink", NULL};
+//        
+//        WHEN( "When the Pipeline is Assembled" ) 
+//        {
+//            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+//
+//            THEN( "Pipeline is Able to LinkAll and Play" )
+//            {
+//                bool currIsClockEnabled(false);
+//                
+//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+//                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_pipeline_list_size() == 0 );
+//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_component_list_size() == 0 );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display can play", "[pipeline-play]" )
 {
@@ -1416,7 +1416,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //    }
 //}
 
-//SCENARIO( "A new Pipeline with a URI File Source, OFV, Window Sink, and Tiled Display can play", "[test]" )
+//SCENARIO( "A new Pipeline with a URI File Source, OFV, Window Sink, and Tiled Display can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, OFV, Window Sink, and Tiled Display" ) 
 //    {
@@ -1617,7 +1617,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
     }
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture objects", "[test]" )
+SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture objects", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Tiled Display, and Image Sink" ) 
     {

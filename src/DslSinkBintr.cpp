@@ -1130,7 +1130,7 @@ namespace DSL
         LOG_INFO("transforming frame surface with width "<< surface->surfaceList[0].width 
             << " and height "<< surface->surfaceList[0].height);
 
-        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpg";
+        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpeg";
 
         NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
         NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
@@ -1192,7 +1192,7 @@ namespace DSL
                             << rect_params->width << " and height "<< rect_params->height);
 
                         std::string filespec = m_outdir + "/frame_" + std::to_string(m_objectCaptureFrameCount) + 
-                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpg";
+                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpeg";
                         
                         // capturing full frame or bbox rectangle only?
                         if (m_captureClasses[obj_meta->class_id]->m_fullFrame)

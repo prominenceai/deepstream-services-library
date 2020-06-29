@@ -123,11 +123,12 @@ SCENARIO( "A OdeHandlerBintr can add and remove a DetectionEvent", "[OdeHandlerB
         std::string odeHandlerName = "ode-handler";
         std::string odeTypeName = "first-occurence";
         uint classId(1);
+        uint limit(1);
 
         DSL_ODE_HANDLER_PTR pOdeHandlerBintr = DSL_ODE_HANDLER_NEW(odeHandlerName.c_str());
 
-        DSL_ODE_FIRST_OCCURRENCE_PTR pFirstOccurrenceEvent = 
-            DSL_ODE_FIRST_OCCURRENCE_NEW(odeTypeName.c_str(), classId);
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceEvent = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
         WHEN( "A the Event is added to the ReportBintr" )
         {

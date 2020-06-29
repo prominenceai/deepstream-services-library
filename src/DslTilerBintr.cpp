@@ -116,13 +116,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Tiles for TilerBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
         m_rows = rows;
         m_columns = columns;
     
@@ -147,12 +140,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for TilerBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to set Dimensions for TilerBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
 
         m_width = width;
         m_height = height;

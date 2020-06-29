@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
-#include "DslOdeType.h"
+#include "DslOdeTrigger.h"
 
 namespace DSL
 {
@@ -74,11 +74,16 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChild);
         
         /**
-         * @brief Removes a uniquely named Event from this RepoterBintr
+         * @brief Removes a uniquely named Event from this OdeHandlerBintr
          * @param[in] name unique name of the Event to remove
          * @return true if successful remove, false otherwise
          */
         bool RemoveChild(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief Removes all ODE Types from the OdeHandlerBintr
+         */
+        void RemoveAllChildren();
 
         /**
          * @brief Gets the current state of the Handler enabled flag
@@ -113,6 +118,10 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pQueue;
 
+        /**
+         * @brief map of Child ODE in-use by this OdeHandlerBintr
+         */
+        std::map<std::string, DSL_BASE_PTR> m_pOdeTriggers;
     };
     
     static boolean PadBufferHandler(void* pBuffer, void* user_data);    
