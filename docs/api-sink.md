@@ -802,5 +802,6 @@ retval = dsl_sink_num_in_use_max_set(24)
 * [Tiler](/docs/api-tiler.md)
 * [Splitter and Demuxer](/docs/api-tee.md)
 * **Sink**
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
