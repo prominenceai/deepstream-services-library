@@ -1,5 +1,5 @@
 # ODE Action Services API
-Object Detection Event (ODE) Actions implement a custom `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. Multiple Actions can be added to a Trigger and each Action can be added to more than one Trigger.
+Object Detection Event (ODE) Actions implement a custom `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. The relationship of ODE Trigger to ODE Actions is many-tomany. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
 Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
@@ -24,7 +24,7 @@ ODE Actions are created by calling one of type specific [constructors](#ode-acti
 [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail with a result of `DSL_RESULT_ODE_ACTION_IN_USE`
 
 #### Adding/Removing Actions
-Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-traigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-traigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-traigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-traigger#dsl_ode_trigger_action_remove_all).
+ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-traigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-traigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-traigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-traigger#dsl_ode_trigger_action_remove_all).
 
 
 ## ODE Action API
