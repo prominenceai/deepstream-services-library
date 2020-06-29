@@ -1,9 +1,9 @@
 # ODE Area Services API
-Object Detection Event (ODE) Areas define rectangles with coordinates, `left` and `top`, and dimensions `width` and `height` that can be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to an Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
+Object Detection Event (ODE) Areas define rectangles with coordinates, `left` and `top`, and dimensions, `width` and `height`, that can be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to an Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
 
-ODE Areas can be used strictly for the purpose of adding a rectange to the display metadata as and ODE Action to Fill with [dsl_ode_action_fill_area_new](/docs/api-ode-actions.md#dsl_ode_action_fill_area_new).
+ODE Areas can be used strictly for the purpose of adding a rectange to the display metadata using an ODE Action to Fill it [dsl_ode_action_fill_area_new](/docs/api-ode-actions.md#dsl_ode_action_fill_area_new).
 
-ODE Actions can be used to update a Trigger's contaner of ODE Areas on ODE occurrence. See 
+ODE Actions can be used to update a Trigger's contaner of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new). 
 
 #### ODE Area Construction and Destruction
 Areas are created by calling [dsl_ode_area_new](#dsl_ode_area_new)
@@ -256,6 +256,8 @@ size = dsl_ode_area_list_size()
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [Tiler](/docs/api-tiler.md)
+* [ODE Handler](/docs/api-ode-handler.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Action](/docs/api-ode-action.md)
 * **ODE-Area**
 * [On-Screen Display](/docs/api-osd.md)
