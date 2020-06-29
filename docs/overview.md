@@ -138,7 +138,7 @@ Clients of Tracker components can add/remove `batch-meta-handler` callback funct
 Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
 
 ## Object Detection Event Handler
-The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all of the Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers. 
+The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all of the Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n ODE Triggers, each Trigger has one shared ODE Area and one unique ODE Area, and once shared ODE Action and one unique ODE action.
 
 ![ODE Services](/Images/ode-services.png)
 
@@ -157,7 +157,7 @@ There are currently eight types of triggers supported:
 Triggers have optional, settable criteria and filters: 
 * **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS`
 * **Source Id** - filters on a unique Source Id, with a default of `DSL_ODE_ANY_SOURCE`
-* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums are met. 
+* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and maximum are met. 
 * **Confidence** - filters on a object's GIE confidence requiring a minimum value.
 * **Inference Done** - filtering on the Object's inference-done flag
 
@@ -166,11 +166,11 @@ Triggers have optional, settable criteria and filters:
 * **Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Frame, Hide Text/Boarders
 * **Actions on ODE Data** - Print, Log, Display, Callback, 
 * **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
-* **Actions on Triggers** - Add/Remove/Disable/Enable/Reset Triggers
+* **Actions on Triggers** - Disable/Enable/Reset Triggers
 * **Actions on Areas** - Add/Remove Areas
-* **Actions on Actions** - Add/Remove/Disable/Enable Actions
+* **Actions on Actions** - Disable/Enable Actions
 
-Planned new actions for upcoming releases include **Start/Stop Record** and **Serialize/Deserialize**.
+Planned new actions for upcoming releases include **Start/Stop Record**, **Serialize/Deserialize**, and **Message to cloud**
 
 **ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria for object occurrence/absence.
 
@@ -188,8 +188,8 @@ retval = dsl_ode_action_capture_frame_new('my-capture-action', outdir='./')
 
 # Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
 # specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
-dsl_ode_trigger_occurrence_new('my-occurrence-trigger', class_id=0, limit=1)
-dsl_ode_trigger_action_add_many('my-occurrence-trigger', actions=['my-print-action', 'my-capture-action', None])
+retval = dsl_ode_trigger_occurrence_new('my-occurrence-trigger', class_id=0, limit=1)
+retval = dsl_ode_trigger_action_add_many('my-occurrence-trigger', actions=['my-print-action', 'my-capture-action', None])
 
 # Create a new Area as criteria for occurrence and add to our Trigger. An Object must have
 # at least one pixel of overlap before occurrence will be triggered and the Actions invoked.
@@ -197,8 +197,8 @@ retval = dsl_ode_area_new('my-area', left=245, top=0, width=20, height=1028, dis
 retval = dsl_ode_trigger_area_add('my-occurrence-trigger', 'my-area')
 
 # New ODE handler to add our Trigger to, and then add the handler to the Pipeline.
-dsl_ode_handler_new('my-handler)
-dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
+retval = dsl_ode_handler_new('my-handler)
+retval = dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
 dsl_pipeline_component_add('my-pipeline', 'my-handler')
 ```
 
@@ -207,6 +207,8 @@ See the below API Reference sections for more information
 * [ODE Trigger API Refernce](docs/api-ode-trigger.md)
 * [ODE Action API Reference](docs/api-ode-action.md)
 * [ODE Area API Reference](docs/api-ode-area.md)
+
+There are a number of ODE Python examples provided [here](/examples/python)
 
 
 ## Multi-Source Tiler
