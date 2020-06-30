@@ -199,15 +199,15 @@ retval = dsl_ode_trigger_area_add('my-occurrence-trigger', 'my-area')
 # New ODE handler to add our Trigger to, and then add the handler to the Pipeline.
 retval = dsl_ode_handler_new('my-handler)
 retval = dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
-dsl_pipeline_component_add('my-pipeline', 'my-handler')
+retval = ddsl_pipeline_component_add('my-pipeline', 'my-handler')
 ```
 [Issue #259](https://github.com/canammex-tech/deepstream-services-library/issues/259) has been opened to track all open items related to ODE Services.
 
 See the below API Reference sections for more information
-* [ODE Handler API Refernce](docs/api-ode-handler.md)
-* [ODE Trigger API Refernce](docs/api-ode-trigger.md)
-* [ODE Action API Reference](docs/api-ode-action.md)
-* [ODE Area API Reference](docs/api-ode-area.md)
+* [ODE Handler API Refernce](/docs/api-ode-handler.md)
+* [ODE Trigger API Refernce](/docs/api-ode-trigger.md)
+* [ODE Action API Reference](/docs/api-ode-action.md)
+* [ODE Area API Reference](/docs/api-ode-area.md)
 
 There are several ODE Python examples provided [here](/examples/python)
 
