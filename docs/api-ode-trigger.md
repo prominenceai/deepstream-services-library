@@ -14,7 +14,9 @@ Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can 
 As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add) and [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many), and [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all).
 
 
-**Important Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
+**Important Notes** 
+* Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
+* To use GIE Confidence as criteria, see the following NVIDIA [page](https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20) for the required DS 4.02 patch instructions to populate the confidence values in the object's meta data structure.
 
 **Constructors:**
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
@@ -503,7 +505,7 @@ retval, class_id = dsl_ode_trigger_source_id_get('my-trigger')
 DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
 ```
 
-This service sets the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` disables the filter and the GIE class Id will not be used as criteria for ODE occurrence.
+This service sets the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` disables the filter and the Source Id will not be used as criteria for ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
@@ -925,10 +927,10 @@ size = dsl_ode_trigger_list_size()
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/ode-handler.md)
+* [ODE Handler](/docs/api-ode-handler.md)
 * **ODE-Trigger**
-* [ODE Area](/docs/ode-area.md)
-* [ODE Action](/docs/ode-action.md)
+* [ODE Action](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
 * [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
