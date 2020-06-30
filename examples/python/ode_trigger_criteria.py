@@ -77,9 +77,6 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if (new_state == DSL_STATE_PLAYING):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-    elif((old_state == DSL_STATE_PLAYING) and (new_state == DSL_STATE_PAUSED)):
-        time.sleep(3)
-        #print('playing Pipeline after short pause', dsl_pipeline_play('pipeline'))
 
 def main(args):
 
