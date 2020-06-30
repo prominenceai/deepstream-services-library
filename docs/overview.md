@@ -159,6 +159,7 @@ Triggers have optional, settable criteria and filters:
 * **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and maximum are met. 
 * **Confidence** - filters on an object's GIE confidence requiring a minimum value.
 * **Inference Done** - filtering on the Object's inference-done flag
+
 Minimum Frames as criteria, expressed as two numbers `n out d` frames, and other forms of detection hysteresis are being considered. 
 
 **ODE Actions** can act on Triggers, on Actions and on Areas allowing for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger, using an Action, can enable a one-time Absence Trigger for the same class, and the Absence Trigger, using an Action, can reset/re-enable the Occurrence Trigger.
@@ -200,6 +201,7 @@ retval = dsl_ode_handler_new('my-handler)
 retval = dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
 dsl_pipeline_component_add('my-pipeline', 'my-handler')
 ```
+[Issue #259](https://github.com/canammex-tech/deepstream-services-library/issues/259) has been opened to track all open items related to ODE Services.
 
 See the below API Reference sections for more information
 * [ODE Handler API Refernce](docs/api-ode-handler.md)
