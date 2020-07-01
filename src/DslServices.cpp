@@ -2539,13 +2539,17 @@ namespace DSL
             return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
         }
         
-        LOG_INFO("Model engine file: " << modelEngineFile);
-        
-        std::ifstream modelFile(modelEngineFile);
-        if (!modelFile.good())
+        std::string testPath(modelEngineFile);
+        if (testPath.size())
         {
-            LOG_ERROR("Model Engine File not found");
-            return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+            LOG_INFO("Model engine file: " << modelEngineFile);
+            
+            std::ifstream modelFile(modelEngineFile);
+            if (!modelFile.good())
+            {
+                LOG_ERROR("Model Engine File not found");
+                return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+            }
         }
         try
         {

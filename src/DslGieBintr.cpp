@@ -58,7 +58,11 @@ namespace DSL
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
-        m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
+
+        if (m_modelEngineFile.size())
+        {
+            m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
+        }
         
         g_object_set (m_pInferEngine->GetGstObject(),
             "raw-output-generated-callback", OnRawOutputGeneratedCB,
@@ -252,7 +256,7 @@ namespace DSL
                 case INT32: typeSize = 4; break;
                 case INT8: typeSize = 1; break;
             }
-            streamOutputFile.write((char*)pLayerInfo->buffer, typeSize * pLayerInfo->dims.numElements * batchSize);
+            streamOutputFile.write((char*)pLayerInfo->buffer, typeSize * pLayerInfo->inferDims.numElements * batchSize);
             streamOutputFile.close();
         }
         m_rawOutputFrameNumber++;

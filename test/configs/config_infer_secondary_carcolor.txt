@@ -16,7 +16,7 @@
 #   num-detected-classes
 #
 # Optional properties for detectors:
-#   enable-dbscan(Default=false), interval(Primary mode only, Default=0)
+#   cluster-mode(Default=Group Rectangles), interval(Primary mode only, Default=0)
 #   custom-lib-path,
 #   parse-bbox-func-name
 #
@@ -37,7 +37,7 @@
 # Other optional properties:
 #   net-scale-factor(Default=1), network-mode(Default=0 i.e FP32),
 #   model-color-format(Default=0 i.e. RGB) model-engine-file, labelfile-path,
-#   mean-file, gie-unique-id(Default=0), offsets, gie-mode (Default=1 i.e. primary),
+#   mean-file, gie-unique-id(Default=0), offsets, process-mode (Default=1 i.e. primary),
 #   custom-lib-path, network-mode(Default=0 i.e FP32)
 #
 # The values in the config file are overridden by values set through GObject
@@ -48,10 +48,11 @@ gpu-id=0
 net-scale-factor=1
 model-file=../../models/Secondary_CarColor/resnet18.caffemodel
 proto-file=../../models/Secondary_CarColor/resnet18.prototxt
-model-engine-file=../../models/Secondary_CarColor/resnet18.caffemodel_b16_int8.engine
+model-engine-file=../../models/Secondary_CarColor/resnet18.caffemodel_b16_gpu0_int8.engine
 int8-calib-file=../../models/Secondary_CarColor/cal_trt.bin
 mean-file=../../models/Secondary_CarColor/mean.ppm
 labelfile-path=../../models/Secondary_CarColor/labels.txt
+force-implicit-batch-dim=1
 batch-size=16
 model-color-format=1
 process-mode=2
@@ -65,3 +66,5 @@ input-object-min-width=128
 input-object-min-height=128
 operate-on-gie-id=1
 operate-on-class-ids=0
+#scaling-filter=0
+#scaling-compute-hw=0

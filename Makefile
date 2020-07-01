@@ -32,11 +32,11 @@ CXX = g++
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
 DSL_VERSION:='L"v0.05.alpha"'
-NVDS_VERSION:=4.0
+NVDS_VERSION:=5.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-CUDA_VERSION:=10.0
+CUDA_VERSION:=10.2
 
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes

@@ -343,10 +343,13 @@ namespace DSL
             boolean display;
             
             // Service will log error if Area is not found
+            uint left(0), top(0), width(0), height(0);
             uint retval = Services::GetServices()->OdeAreaGet(m_odeArea.c_str(), 
-                &m_rectangleParams.left, &m_rectangleParams.top, 
-                &m_rectangleParams.width, &m_rectangleParams.height, 
-                &display);
+                &left, &top, &width, &height, &display);
+            m_rectangleParams.left = left;
+            m_rectangleParams.top = top;
+            m_rectangleParams.width = width;
+            m_rectangleParams.height = height;
                 
             if ((retval != DSL_RESULT_SUCCESS) or (!display))
             {

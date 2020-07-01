@@ -36,7 +36,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display ca
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint dropFrameInterval(0);
+        uint dropFrameInterval(0); 
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -280,7 +280,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -348,7 +348,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -421,7 +421,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -797,7 +797,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
 
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -805,7 +805,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         
         std::wstring secondaryGieName1(L"secondary-gie");
         std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_fp16.engine");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -882,7 +882,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
 
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -890,15 +890,17 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         
         std::wstring secondaryGieName1(L"secondary-gie1");
         std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_fp16.engine");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
         
+        // Note new model is not saved for car color with DS 5.0 ??????
+        // need to let it generate a new engine by loading the previous?
         std::wstring secondaryGieName2(L"secondary-gie2");
-        std::wstring sgieInferConfigFile2(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b1_fp16.engine");
+        std::wstring sgieInferConfigFile2(L"./test/configs/config_infer_secondary_carmake_nano.txt");
+        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring secondaryGieName3(L"secondary-gie3");
         std::wstring sgieInferConfigFile3(L"./test/configs/config_infer_secondary_vehicletypes_nano.txt");
-        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b1_fp16.engine");
+        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -1179,7 +1181,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b2_gpu0_fp16.engine");
 
         std::wstring demuxerName(L"demuxer");
 
@@ -1275,7 +1277,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
 
         std::wstring tilerName1(L"tiler1");
         std::wstring tilerName2(L"tiler2");
@@ -1548,7 +1550,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
