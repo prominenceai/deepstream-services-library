@@ -535,7 +535,7 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "file-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
@@ -543,7 +543,7 @@ namespace DSL
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "file-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "file-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
@@ -728,13 +728,13 @@ namespace DSL
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264, "rtsp-sink-bin-h264-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "rtsp-sink-bin-h264-encoder");
             m_pParser = DSL_ELEMENT_NEW("h264parse", "rtsp-sink-bin-h264-parser");
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", "rtsp-sink-bin-h264-payloader");
             codecString.assign("H264");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265, "rtsp-sink-bin-h265-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "rtsp-sink-bin-h265-encoder");
             m_pParser = DSL_ELEMENT_NEW("h265parse", "rtsp-sink-bin-h265-parser");
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", "rtsp-sink-bin-h265-payloader");
             codecString.assign("H265");
@@ -1197,14 +1197,15 @@ namespace DSL
                         // capturing full frame or bbox rectangle only?
                         if (m_captureClasses[obj_meta->class_id]->m_fullFrame)
                         {
-                            NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
-                            NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
+                            NvBufSurfTransformRect srcRect = {0, 0, (uint)surface->surfaceList[0].width, surface->surfaceList[0].height};
+                            NvBufSurfTransformRect dstRect = {0, 0, (uint)surface->surfaceList[0].width, surface->surfaceList[0].height};
                             TransformAndSave(surface, filespec, srcRect, dstRect);
                         }
                         else
                         {
-                            NvBufSurfTransformRect srcRect = {rect_params->top, rect_params->left, rect_params->width, rect_params->height};
-                            NvBufSurfTransformRect dstRect = {0, 0, rect_params->width, rect_params->height};
+                            NvBufSurfTransformRect srcRect = {(uint)rect_params->top, (uint)rect_params->left, 
+                                (uint)rect_params->width, (uint)rect_params->height};
+                            NvBufSurfTransformRect dstRect = {0, 0, (uint)rect_params->width, (uint)rect_params->height};
                             TransformAndSave(surface, filespec, srcRect, dstRect);
                         }
                     }

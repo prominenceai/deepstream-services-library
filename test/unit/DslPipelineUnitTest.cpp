@@ -306,7 +306,7 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
         std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b1_fp16.engine";
         
         uint interval(1);
         uint tilerW(1280);
@@ -364,7 +364,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
         std::string sinkName = "overlay-sink";
         std::string osdName = "on-screen-tiler";
         std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_fp16.engine";
         
         uint interval(1);
         uint tilerW(1280);
@@ -500,7 +500,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
         std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         std::string secondaryGieName = "secondary-gie";
         std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b1_fp16.engine";
         std::string osdName = "on-screen-tiler";
         
         uint interval(1);
@@ -1127,7 +1127,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         std::string primaryModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
         std::string secondaryGieName = "secondary-gie";
         std::string secondaryInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string secondaryModelEngineFile = "./test/models/Secondary_CarColor/resnet10.caffemodel_b1_fp16.engine";
         
         uint interval(1);
 

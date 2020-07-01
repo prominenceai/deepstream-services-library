@@ -315,7 +315,7 @@ namespace DSL
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
+        
         // Ensure enabled, and that the limit has not been exceeded
         if (m_limit and m_triggered >= m_limit) 
         {
@@ -331,11 +331,16 @@ namespace DSL
         {
             return false;
         }
-        // Ensure that the minimum confidence has been reached
-        if (pObjectMeta->confidence < m_minConfidence)
+        // Temporary hack? GIE is now reporting negative confidence without patch
+        if ((pObjectMeta->confidence > 0) and (pObjectMeta->confidence < m_minConfidence))
         {
             return false;
         }
+        // Ensure that the minimum confidence has been reached
+//        if (pObjectMeta->confidence < m_minConfidence)
+//        {
+//            return false;
+//        }
         // If defined, check for minimum dimensions
         if ((m_minWidth and pObjectMeta->rect_params.width < m_minWidth) or
             (m_minHeight and pObjectMeta->rect_params.height < m_minHeight))
