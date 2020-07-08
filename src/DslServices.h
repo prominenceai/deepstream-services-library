@@ -81,6 +81,9 @@ namespace DSL {
 
         DslReturnType OdeActionPrintNew(const char* name);
         
+        DslReturnType OdeActionRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
+
         DslReturnType OdeActionRedactNew(const char* name);
 
         DslReturnType OdeActionSinkAddNew(const char* name, 
@@ -378,6 +381,22 @@ namespace DSL {
 
         DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval);
 
+        DslReturnType SinkRecordNew(const char* name, const char* outdir, 
+            uint container, dsl_sink_record_client_listner_cb clientListener);
+            
+        DslReturnType SinkRecordSessionStart(const char* name, 
+            uint* session, uint start, uint duration, void* clientData);
+
+        DslReturnType SinkRecordSessionStop(const char* name, uint session);
+
+        DslReturnType SinkRecordCacheSizeGet(const char* name, uint* cacheSize);
+            
+        DslReturnType SinkRecordCacheSizeSet(const char* name, uint cacheSize);
+        
+        DslReturnType SinkRecordDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SinkRecordDimensionsSet(const char* name, uint width, uint height);
+            
         DslReturnType SinkRtspNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);
             

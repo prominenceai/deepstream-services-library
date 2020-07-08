@@ -586,6 +586,65 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[fi
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new Record Sink", "[record-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_sink_record_client_listner_cb client_listener;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Record Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+                container, client_listener) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                uint ret_cache_size(0);
+                uint ret_width(0), ret_height(0);
+                REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_cache_size == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+                REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == 0 );
+                REQUIRE( ret_height == 0 );
+                REQUIRE( dsl_component_list_size() == 1 );
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on Record Sink delete", "[record-sink-api]" )
+{
+    GIVEN( "A Record Sink Component" ) 
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+
+        dsl_sink_record_client_listner_cb client_listener;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            container, client_listener) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+
+        WHEN( "A new Record Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[rtsp-sink-api]" )
 {

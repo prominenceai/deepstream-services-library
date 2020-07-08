@@ -164,6 +164,8 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
+    //-------------------------------------------------------------------------
+
     FakeSinkBintr::FakeSinkBintr(const char* name)
         : SinkBintr(name)
         , m_sync(TRUE)
@@ -691,6 +693,201 @@ namespace DSL
         return true;
     }
     
+    //-------------------------------------------------------------------------
+    
+    RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, uint container, 
+        NvDsSRCallbackFunc clientListener)
+        : SinkBintr(name)
+        , m_outdir(outdir)
+        , m_pContext(NULL)
+    {
+        LOG_FUNC();
+        
+        switch (container)
+        {
+        case DSL_CONTAINER_MP4 :
+            m_initParams.containerType = NVDSSR_CONTAINER_MP4;        
+            break;
+        case DSL_CONTAINER_MKV :
+            m_initParams.containerType = NVDSSR_CONTAINER_MKV;        
+            break;
+        default:
+            LOG_ERROR("Invalid container = '" << container << "' for new RecordSinkBintr '" << name << "'");
+            throw;
+        }
+        
+        // Set single callback listener. Unique clients must identifed using client data provided on Start session
+        m_initParams.callback = clientListener;
+        
+        // Set both width and height params to zero = no-transcode
+        m_initParams.width = 0;  
+        m_initParams.height = 0; 
+        
+        // Filename prefix uses bintr name by default
+        m_initParams.fileNamePrefix = const_cast<gchar*>(GetCStrName());
+        m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
+        
+        m_initParams.defaultDuration = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC;
+        m_initParams.videoCacheSize = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC;
+
+    }
+    
+    RecordSinkBintr::~RecordSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RecordSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RecordSinkBintr '" << m_name << "' is already linked");
+            return false;
+        }
+
+        // Create the smart record context
+        if (NvDsSRCreate(&m_pContext, &m_initParams) != NVDSSR_STATUS_OK)
+        {
+            LOG_ERROR("Failed to create Smart Record Context for new RecordSinkBintr '" << m_name << "'");
+            return false;
+        }
+        
+        m_pRecordBin = DSL_NODETR_NEW("record-bin");
+        m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
+            
+        AddChild(m_pRecordBin);
+
+        if (!m_pQueue->LinkToSink(m_pRecordBin))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RecordSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        RemoveChild(m_pRecordBin);
+        
+        m_pRecordBin = nullptr;
+        NvDsSRDestroy(m_pContext);
+        
+        m_isLinked = false;
+    }
+
+    const char* RecordSinkBintr::GetOutdir()
+    {
+        LOG_FUNC();
+        
+        return m_outdir.c_str();
+    }
+    
+    bool RecordSinkBintr::SetOutdir(const char* outdir)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the Output for RecordSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        
+        m_outdir.assign(outdir);
+        return true;
+    }
+
+    uint RecordSinkBintr::GetCacheSize()
+    {
+        LOG_FUNC();
+        
+        return m_initParams.videoCacheSize;
+    }
+
+    bool RecordSinkBintr::SetCacheSize(uint videoCacheSize)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set cache size for RecordSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_initParams.videoCacheSize = videoCacheSize;
+        
+        return true;
+    }
+
+
+    void RecordSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_initParams.width;
+        *height = m_initParams.height;
+    }
+
+    bool RecordSinkBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Dimensions for RecordSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+
+        m_initParams.width = width;
+        m_initParams.height = height;
+        
+        return true;
+    }
+    
+    bool RecordSinkBintr::StartSession(uint* session, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        
+        if (!IsLinked())
+        {
+            LOG_ERROR("Unable to Start Session for RecordSinkBintr '" << GetName() 
+                << "' as it is not currently Linked");
+            return false;
+        }
+        return (NvDsSRStart(m_pContext, session, start, duration, clientData) == NVDSSR_STATUS_OK);
+    }
+    
+    bool RecordSinkBintr::StopSession(uint session)
+    {
+        LOG_FUNC();
+        
+        if (!IsLinked())
+        {
+            LOG_ERROR("Unable to Stop Session for RecordSinkBintr '" << GetName() 
+                << "' as it is not currently Linked");
+            return false;
+        }
+        return (NvDsSRStop(m_pContext, session) == NVDSSR_STATUS_OK);
+    }
+    
+
     //******************************************************************************************
     
     RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,

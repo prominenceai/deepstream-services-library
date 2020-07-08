@@ -655,6 +655,34 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionRecordStartNew(const char* name,
+        const char* recordSink, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        // ensure event name uniqueness 
+        if (m_odeActions.find(name) != m_odeActions.end())
+        {   
+            LOG_ERROR("ODE Action name '" << name << "' is not unique");
+            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+        }
+        try
+        {
+            m_odeActions[name] = DSL_ODE_ACTION_RECORD_START_NEW(name,
+                recordSink, start, duration, clientData);
+
+            LOG_INFO("New ODE Record Start Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Record Start Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionRedactNew(const char* name)
     {
         LOG_FUNC();
@@ -4315,6 +4343,202 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, 
+            uint container, dsl_sink_record_client_listner_cb clientListener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            struct stat info;
+
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            // ensure outdir exists
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Sink '" << name << "'");
+                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+            }
+            m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, container,
+                (NvDsSRCallbackFunc)clientListener);
+            
+            LOG_INFO("New Record Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Image Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordSessionStart(const char* name, 
+        uint* session, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!recordSinkBintr->StartSession(session, start, duration, clientData))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to Start Session");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordSessionStop(const char* name, uint session)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!recordSinkBintr->StopSession(session))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to Stop Session");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordCacheSizeGet(const char* name, uint* cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *cacheSize = recordSinkBintr->GetCacheSize();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordCacheSizeSet(const char* name, uint cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!recordSinkBintr->SetCacheSize(cacheSize))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to get dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::SinkRecordDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            recordSinkBintr->GetDimensions(width, height);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!recordSinkBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting dimensions");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;

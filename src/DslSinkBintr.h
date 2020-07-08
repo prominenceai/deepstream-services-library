@@ -31,6 +31,8 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslElementr.h"
 
+#include <gst-nvdssr.h>
+
 namespace DSL
 {
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
@@ -60,12 +62,17 @@ namespace DSL
         std::shared_ptr<FileSinkBintr>( \
         new FileSinkBintr(name, filepath, codec, container, bitRate, interval))
         
+    #define DSL_RECORD_SINK_PTR std::shared_ptr<RecordSinkBintr>
+    #define DSL_RECORD_SINK_NEW(name, outdir, container, clientListener) \
+        std::shared_ptr<RecordSinkBintr>( \
+        new RecordSinkBintr(name, outdir, container, clientListener))
+        
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitRate, interval))
-        
 
+        
     class SinkBintr : public Bintr
     {
     public: 
@@ -130,6 +137,8 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pFakeSink;
     };
+
+    //-------------------------------------------------------------------------
 
     class OverlaySinkBintr : public SinkBintr
     {
@@ -205,6 +214,8 @@ namespace DSL
         DSL_ELEMENT_PTR m_pOverlay;
     };
 
+    //-------------------------------------------------------------------------
+
     class WindowSinkBintr : public SinkBintr
     {
     public: 
@@ -271,6 +282,8 @@ namespace DSL
         DSL_ELEMENT_PTR m_pEglGles;
     };
 
+    //-------------------------------------------------------------------------
+
     class FileSinkBintr : public SinkBintr
     {
     public: 
@@ -336,7 +349,120 @@ namespace DSL
         DSL_ELEMENT_PTR m_pParser;
         DSL_ELEMENT_PTR m_pContainer;       
     };
+
+    //-------------------------------------------------------------------------
+
+    class RecordSinkBintr : public SinkBintr
+    {
+    public: 
     
+        RecordSinkBintr(const char* name, const char* outdir, uint container, 
+            NvDsSRCallbackFunc clientListener);
+
+        ~RecordSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current outdir in use by this Bintr
+         * @return relative or absolute pathspec as provided on construction or set call.
+         */
+        const char* GetOutdir();
+
+        /**
+         * @brief Sets the outdir to use by this Bintr
+         * @param[in] relative or absolute pathspec to the existing directory to use
+         * @return true on successfull set, false otherwise
+         */
+        bool SetOutdir(const char* outdir);
+
+        /**
+         * @brief Gets the Smart Record initialization parameters used by this SmartFileSinkBint
+         * @return size of the video cache in seconds 
+         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+         */
+        uint GetCacheSize();
+        
+        /**
+         * @brief Sets the Smart Record initialization parameters used by this SmartFileSinkBint
+         * @param[in] videoCacheSize size of video cache in seconds 
+         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+         * @param[in] defaultDuration default video recording duration.
+         * default = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC
+         */
+        bool SetCacheSize(uint videoCacheSize);
+        
+        /**
+         * @brief Gets the current width and height settings for this RecordSinkBintr
+         * Zero values indicates no transcode
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the current width and height settings for this RecordSinkBintr
+         * Zero values indicates no transcode
+         * The caller is required to provide valid width and height values
+         * @param[in] width the width value to set in pixels
+         * @param[in] height the height value to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
+        
+        /**
+         * @brief Start recording to file
+         * @param[out] session unique Id for the new recording session, 
+         * @param[in] start seconds before the current time. Should be less than video cache size.
+         * @param[in] duration of recording in seconds from start
+         * @param[in] clientData returned on call to client callback
+         * @return true on succesful start, false otherwise
+         */
+        bool StartSession(uint* session, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief Stop recording to file
+         * @param[in] session unique sission Id of the recording session to stop
+         * @return true on succesful start, false otherwise
+         */
+        bool StopSession(uint session);
+
+
+    private:
+
+        /**
+         * @brief absolute or relative path 
+         */
+        std::string m_outdir;
+
+        /**
+         * @brief SR context, once created, must be passed to 
+         */
+        NvDsSRContext* m_pContext;
+        
+        /**
+         * @brief SR context initialization parameters, provided by client
+         */
+        NvDsSRInitParams m_initParams;
+ 
+        
+        DSL_NODETR_PTR m_pRecordBin;
+        
+    };
+
+    
+    //-------------------------------------------------------------------------
+
     class RtspSinkBintr : public SinkBintr
     {
     public: 
@@ -404,6 +530,7 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPayloader;  
     };
     
+    //-------------------------------------------------------------------------
     class CaptureClass
     {
     public:
@@ -559,6 +686,7 @@ namespace DSL
         GMutex m_captureMutex;
 
     };
+
     
     static boolean FrameCaptureHandler(void* batch_meta, void* user_data);
     

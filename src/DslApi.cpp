@@ -145,6 +145,18 @@ DslReturnType dsl_ode_action_print_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionPrintNew(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_action_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSink(record_sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->OdeActionRecordStartNew(cstrName.c_str(), 
+        cstrSink.c_str(), start, duration, client_data);
+}
+
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -1664,8 +1676,70 @@ DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
     
     return DSL::Services::GetServices()->SinkFileEncoderSettingsSet(cstrName.c_str(), 
         bitrate, interval);
-}    
-    
+}
+
+DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
+     uint container, dsl_sink_record_client_listner_cb client_listener)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->SinkRecordNew(cstrName.c_str(), 
+        cstrOutdir.c_str(), container, client_listener);
+}     
+
+DslReturnType dsl_sink_record_session_start(const wchar_t* name, 
+     uint* session, uint start, uint duration,void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordSessionStart(cstrName.c_str(), 
+        session, start, duration, client_data);
+}     
+
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, uint session)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str(), session);
+}
+
+DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordCacheSizeGet(cstrName.c_str(), cache_size);
+}
+
+DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordCacheSizeSet(cstrName.c_str(), cache_size);
+}
+ 
+DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordDimensionsSet(cstrName.c_str(), width, height);
+}
+   
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {

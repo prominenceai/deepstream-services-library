@@ -830,6 +830,92 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
     }
 }
 
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[RecordSinkBintr]" )
+{
+    GIVEN( "Attributes for a new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        WHEN( "The DSL_CONTAINER_MP4 RecordSinkBintr is created" )
+        {
+            DSL_RECORD_SINK_PTR pSinkBintr = 
+                DSL_RECORD_SINK_NEW(sinkName.c_str(), outdir.c_str(), container, clientListener);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                uint width(0), height(0);
+                pSinkBintr->GetDimensions(&width, &height);
+                REQUIRE( width == 0 );
+                REQUIRE( height == 0 );
+                
+                std::string retOutdir = pSinkBintr->GetOutdir();
+                REQUIRE( outdir == retOutdir );
+                
+                REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs", "[RecordSinkBintr]" )
+{
+    GIVEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = 
+            DSL_RECORD_SINK_NEW(sinkName.c_str(), outdir.c_str(), container, clientListener);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H265 RecordSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elementrs", "[RecordSinkBintr]" )
+{
+    GIVEN( "A DSL_CONTAINER_MP4 RecordSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = 
+            DSL_RECORD_SINK_NEW(sinkName.c_str(), outdir.c_str(), container, clientListener);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CONTAINER_MP4 RecordSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CONTAINER_MP4 RecordSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
