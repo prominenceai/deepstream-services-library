@@ -215,10 +215,21 @@ def dsl_ode_action_sink_add_new(name, pipeline, sink):
 ##
 _dsl.dsl_ode_action_sink_remove_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_sink_remove_new.restype = c_uint
-def dsl_ode_action_sink_remove_new(name, pipeline, sink):
+def dsl_ode_action_sink_remove_new(name, pipeline, sink):   
     global _dsl
     result =_dsl.dsl_ode_action_sink_remove_new(name, pipeline, sink)
     return int(result)
+
+##
+## dsl_ode_action_sink_record_start_new()
+##
+_dsl.dsl_ode_action_sink_record_start_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_void_p]
+_dsl.dsl_ode_action_sink_record_start_new.restype = c_uint
+def dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data):
+    global _dsl
+    result =_dsl.dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data)
+    return int(result)
+
 
 ##
 ## dsl_ode_action_source_add_new()
@@ -1518,9 +1529,9 @@ def dsl_sink_window_new(name, offsetX, offsetY, width, height):
 ##
 _dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_file_new.restype = c_uint
-def dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval):
+def dsl_sink_file_new(name, filepath, codec, container, bitrate, interval):
     global _dsl
-    result =_dsl.dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval)
+    result =_dsl.dsl_sink_file_new(name, filepath, codec, container, bitrate, interval)
     return int(result)
 
 ##
@@ -1528,11 +1539,11 @@ def dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval):
 ##
 _dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_SINK_RECORD_CLIENT_LISTNER]
 _dsl.dsl_sink_record_new.restype = c_uint
-def dsl_sink_record_new(name, outdir, codec, mutex, bitrate, interval, client_listener):
+def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, client_listener):
     global _dsl
-    client_cb = DSL_SINK_RECORD_CLIENT_LISTNER(client_listener)
+    checker_cb = DSL_SINK_RECORD_CLIENT_LISTNER(client_listener)
     callbacks.append(checker_cb)
-    result =_dsl.dsl_sink_record_new(name, outdir, codec, mutex, bitrate, interval, client_cb)
+    result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, checker_cb)
     return int(result)
 
 ##

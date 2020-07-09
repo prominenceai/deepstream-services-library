@@ -145,7 +145,7 @@ DslReturnType dsl_ode_action_print_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionPrintNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_record_start_new(const wchar_t* name,
+DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
     const wchar_t* record_sink, uint start, uint duration, void* client_data)
 {
     std::wstring wstrName(name);

@@ -771,7 +771,7 @@ SCENARIO( "A new Start Record ODE Action can be created and deleted", "[ode-acti
 
         WHEN( "A new Start Record Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Start Record Action can be deleted" ) 
             {
@@ -781,11 +781,11 @@ SCENARIO( "A new Start Record ODE Action can be created and deleted", "[ode-acti
         }
         WHEN( "A new Start Record Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Start Record Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

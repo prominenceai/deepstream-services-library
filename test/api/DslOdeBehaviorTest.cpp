@@ -922,7 +922,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_action_print_new(printActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_record_start_new(recordActionName.c_str(), 
+        REQUIRE( dsl_ode_action_sink_record_start_new(recordActionName.c_str(), 
             recordSinkName.c_str(), 2, 5, NULL) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );

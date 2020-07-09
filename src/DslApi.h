@@ -544,19 +544,6 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
 DslReturnType dsl_ode_action_print_new(const wchar_t* name);
     
 /**
- * @brief Creates a uniquely named Start Record ODE Action
- * @param[in] name unique name for the Print ODE Action 
- * @param[in] record_sink unique name of the Record Sink to start recording
- * @param[in] start start time before current time in seconds
- * should be less the Record Sink's cache size
- * @param[in] duration duration of the recording in seconds
- * @param[in] client_data opaque pointer to client data
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_record_start_new(const wchar_t* name,
-    const wchar_t* record_sink, uint start, uint duration, void* client_data);
-
-/**
  * @brief Creates a uniquely named Redact Object ODE Action, that blacks out an 
  * Object's background redacting the rectangle area
  * @param[in] name unique name for the Redact Object ODE Action
@@ -585,6 +572,19 @@ DslReturnType dsl_ode_action_sink_add_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* sink);
+
+/**
+ * @brief Creates a uniquely named Start Record Sink ODE Action
+ * @param[in] name unique name for the Print ODE Action 
+ * @param[in] record_sink unique name of the Record Sink to start recording
+ * @param[in] start start time before current time in seconds
+ * should be less the Record Sink's cache size
+ * @param[in] duration duration of the recording in seconds
+ * @param[in] client_data opaque pointer to client data
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
 
 /**
  * @brief Creates a uniquely named Add Source Action that adds
