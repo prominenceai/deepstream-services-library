@@ -130,6 +130,16 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+    } \
+}while(0); 
+
 #define RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
@@ -4238,118 +4248,38 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
-        if (codec > DSL_CODEC_MPEG4)
-        {   
-            LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
-            return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-        }
-        if (container > DSL_CONTAINER_MKV)
-        {   
-            LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
-            return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_MPEG4)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
+            }
             m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval);
+            LOG_INFO("New File Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New File Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
-
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
-
-            fileSinkBintr->GetVideoFormats(codec, container);
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink '" << name << "' threw an exception getting Video formats");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
-
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
-
-            fileSinkBintr->GetEncoderSettings(bitrate, interval);
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
-
-            if (m_components[name]->IsInUse())
-            {
-                LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
-                    << "' as it's currently in use");
-                return DSL_RESULT_SINK_IS_IN_USE;
-            }
-
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
-
-            if (!fileSinkBintr->SetEncoderSettings(bitrate, interval))
-            {
-                LOG_ERROR("File Sink '" << name << "' failed to set Encoder settings");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, 
-            uint container, dsl_sink_record_client_listner_cb clientListener)
+    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
+        uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4370,8 +4300,20 @@ namespace DSL
                 LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
             }
-            m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, container,
-                (NvDsSRCallbackFunc)clientListener);
+
+            if (codec > DSL_CODEC_MPEG4)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
+            }
+
+            m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
+                codec, container, bitrate, interval, (NvDsSRCallbackFunc)clientListener);
             
             LOG_INFO("New Record Sink '" << name << "' created successfully");
 
@@ -4542,6 +4484,88 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
         return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            encodeSinkBintr->GetVideoFormats(codec, container);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink '" << name << "' threw an exception getting Video formats");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            encodeSinkBintr->GetEncoderSettings(bitrate, interval);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+
+            if (m_components[name]->IsLinked())
+            {
+                LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
+                    << "' as it's currently linked");
+                return DSL_RESULT_SINK_IS_IN_USE;
+            }
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            if (!encodeSinkBintr->SetEncoderSettings(bitrate, interval))
+            {
+                LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
     }
 
     DslReturnType Services::SinkRtspNew(const char* name, const char* host, 

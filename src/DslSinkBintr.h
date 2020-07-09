@@ -56,6 +56,8 @@ namespace DSL
     #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
         std::shared_ptr<WindowSinkBintr>( \
         new WindowSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
     #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitRate, interval) \
@@ -63,9 +65,9 @@ namespace DSL
         new FileSinkBintr(name, filepath, codec, container, bitRate, interval))
         
     #define DSL_RECORD_SINK_PTR std::shared_ptr<RecordSinkBintr>
-    #define DSL_RECORD_SINK_NEW(name, outdir, container, clientListener) \
+    #define DSL_RECORD_SINK_NEW(name, outdir, codec, container, bitRate, interval, clientListener) \
         std::shared_ptr<RecordSinkBintr>( \
-        new RecordSinkBintr(name, outdir, container, clientListener))
+        new RecordSinkBintr(name, outdir, codec, container, bitRate, interval, clientListener))
         
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
@@ -87,8 +89,6 @@ namespace DSL
         
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
-        bool IsWindowCapable();
-        
         bool LinkToSource(DSL_NODETR_PTR pTee);
 
         bool UnlinkFromSource();
@@ -99,12 +99,9 @@ namespace DSL
          * @brief Queue element as sink for all Sink Bintrs.
          */
         DSL_ELEMENT_PTR m_pQueue;
-
-        /**
-         * @brief true if the Sink is capable of Windowed Video rendering, false otherwise
-         */
-        bool m_isWindowCapable;
     };
+
+    //-------------------------------------------------------------------------
 
     class FakeSinkBintr : public SinkBintr
     {
@@ -270,9 +267,9 @@ namespace DSL
 
     private:
 
+        boolean m_qos;
         boolean m_sync;
         boolean m_async;
-        boolean m_qos;
         uint m_offsetX;
         uint m_offsetY;
         uint m_width;
@@ -284,26 +281,12 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class FileSinkBintr : public SinkBintr
+    class EncodeSinkBintr : public SinkBintr
     {
     public: 
     
-        FileSinkBintr(const char* name, const char* filepath, 
+        EncodeSinkBintr(const char* name, 
             uint codec, uint container, uint bitRate, uint interval);
-
-        ~FileSinkBintr();
-  
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
 
         /**
          * @brief Gets the current codec and media container formats for FileSinkBintr
@@ -333,7 +316,7 @@ namespace DSL
          */
         bool SetGpuId(uint gpuId);
 
-    private:
+    protected:
 
         uint m_codec;
         uint m_container;
@@ -342,7 +325,6 @@ namespace DSL
         boolean m_sync;
         boolean m_async;
  
-        DSL_ELEMENT_PTR m_pFileSink;
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pCapsFilter;
         DSL_ELEMENT_PTR m_pEncoder;
@@ -352,12 +334,43 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class RecordSinkBintr : public SinkBintr
+    class FileSinkBintr : public EncodeSinkBintr
     {
     public: 
     
-        RecordSinkBintr(const char* name, const char* outdir, uint container, 
-            NvDsSRCallbackFunc clientListener);
+        FileSinkBintr(const char* name, const char* filepath, 
+            uint codec, uint container, uint bitRate, uint interval);
+
+        ~FileSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    private:
+
+        boolean m_sync;
+        boolean m_async;
+
+        DSL_ELEMENT_PTR m_pFileSink;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class RecordSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RecordSinkBintr(const char* name, const char* outdir, uint codec, uint container, 
+            uint bitRate, uint interval, NvDsSRCallbackFunc clientListener);
 
         ~RecordSinkBintr();
   
@@ -454,10 +467,10 @@ namespace DSL
          * @brief SR context initialization parameters, provided by client
          */
         NvDsSRInitParams m_initParams;
- 
         
         DSL_NODETR_PTR m_pRecordBin;
         
+        DSL_ELEMENT_PTR m_pRecordBinQueue;
     };
 
     

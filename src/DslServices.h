@@ -375,14 +375,8 @@ namespace DSL {
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
             
-        DslReturnType SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container);
-
-        DslReturnType SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
-
-        DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval);
-
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint container, dsl_sink_record_client_listner_cb clientListener);
+            uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint* session, uint start, uint duration, void* clientData);
@@ -396,7 +390,13 @@ namespace DSL {
         DslReturnType SinkRecordDimensionsGet(const char* name, uint* width, uint* height);
 
         DslReturnType SinkRecordDimensionsSet(const char* name, uint width, uint height);
-            
+
+        DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
+
+        DslReturnType SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval);
+
+        DslReturnType SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval);
+
         DslReturnType SinkRtspNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);
             

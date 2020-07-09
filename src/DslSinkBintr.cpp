@@ -36,7 +36,6 @@ namespace DSL
 
     SinkBintr::SinkBintr(const char* name)
         : Bintr(name)
-        , m_isWindowCapable(false)
     {
         LOG_FUNC();
 
@@ -63,7 +62,6 @@ namespace DSL
     bool SinkBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
-        LOG_WARN("**************************************");
         
         // check if 'this' Sink is child of Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
@@ -84,13 +82,6 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    bool SinkBintr::IsWindowCapable()
-    {
-        LOG_FUNC();
-        
-        return m_isWindowCapable;
-    }
-    
     bool SinkBintr::LinkToSource(DSL_NODETR_PTR pTee)
     {
         LOG_FUNC();
@@ -174,8 +165,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_isWindowCapable = false;
-
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
         m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("max-lateness", -1);
@@ -239,8 +228,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_isWindowCapable = false;
-
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
         m_pOverlay->SetAttribute("overlay", m_overlayId);
         m_pOverlay->SetAttribute("display-id", m_displayId);
@@ -391,8 +378,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_isWindowCapable = true;
-
         m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_EGLTRANSFORM, "sink-bin-transform");
         m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
         
@@ -509,7 +494,7 @@ namespace DSL
     
     //-------------------------------------------------------------------------
     
-    FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
+    EncodeSinkBintr::EncodeSinkBintr(const char* name,
         uint codec, uint container, uint bitRate, uint interval)
         : SinkBintr(name)
         , m_sync(TRUE)
@@ -521,40 +506,32 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_isWindowCapable = false;
-
-        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "file-sink-bin");
-        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "file-sink-bin-transform");
-        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "file-sink-bin-caps-filter");
-
-        m_pFileSink->SetAttribute("location", filepath);
-        m_pFileSink->SetAttribute("sync", m_sync);
-        m_pFileSink->SetAttribute("async", m_async);
-        
+        m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "encode-sink-bin-transform");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "encode-sink-bin-caps-filter");
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
         GstCaps* pCaps(NULL);
         switch (codec)
         {
         case DSL_CODEC_H264 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "file-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H264_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "file-sink-bin-parser");
+            m_pParser = DSL_ELEMENT_NEW("h264parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_H265 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "file-sink-bin-encoder");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_H265_HW, "encode-sink-bin-encoder");
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             m_pEncoder->SetAttribute("bufapi-version", true);
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "file-sink-bin-parser");
+            m_pParser = DSL_ELEMENT_NEW("h265parse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
             break;
         case DSL_CODEC_MPEG4 :
-            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "file-sink-bin-encoder");
-            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "file-sink-bin-parser");
+            m_pEncoder = DSL_ELEMENT_NEW(NVDS_ELEM_ENC_MPEG4, "encode-sink-bin-encoder");
+            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", "encode-sink-bin-parser");
             pCaps = gst_caps_from_string("video/x-raw, format=I420");
             break;
         default:
@@ -564,26 +541,101 @@ namespace DSL
 
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
+
+        AddChild(m_pTransform);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pEncoder);
+        AddChild(m_pParser);
+    }
+
+    void  EncodeSinkBintr::GetVideoFormats(uint* codec, uint* container)
+    {
+        LOG_FUNC();
+        
+        *codec = m_codec;
+        *container = m_container;
+    }
+    
+    void  EncodeSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
+    {
+        LOG_FUNC();
+        
+        *bitRate = m_bitRate;
+        *interval = m_interval;
+    }
+    
+    bool EncodeSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_bitRate = bitRate;
+        m_interval = interval;
+
+        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
+        {
+            m_pEncoder->SetAttribute("bitrate", m_bitRate);
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        }
+        return true;
+    }
+    
+    bool EncodeSinkBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+
+        m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
+    
+    //-------------------------------------------------------------------------
+    
+    FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
+        uint codec, uint container, uint bitRate, uint interval)
+        : EncodeSinkBintr(name, codec, container, bitRate, interval)
+        , m_sync(TRUE)
+        , m_async(FALSE)
+    {
+        LOG_FUNC();
+        
+        m_pFileSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FILE, "file-sink-bin");
+
+        m_pFileSink->SetAttribute("location", filepath);
+        m_pFileSink->SetAttribute("sync", m_sync);
+        m_pFileSink->SetAttribute("async", m_async);
         
         switch (container)
         {
         case DSL_CONTAINER_MP4 :
-            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "file-sink-bin-container");        
+            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MUX_MP4, "encode-sink-bin-container");        
             break;
         case DSL_CONTAINER_MKV :
-            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "file-sink-bin-container");        
+            m_pContainer = DSL_ELEMENT_NEW(NVDS_ELEM_MKV, "encode-sink-bin-container");        
             break;
         default:
             LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << name << "'");
             throw;
         }
 
-        AddChild(m_pFileSink);
-        AddChild(m_pTransform);
-        AddChild(m_pCapsFilter);
-        AddChild(m_pEncoder);
-        AddChild(m_pParser);
         AddChild(m_pContainer);
+        AddChild(m_pFileSink);
     }
     
     FileSinkBintr::~FileSinkBintr()
@@ -635,74 +687,19 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
-
-    void  FileSinkBintr::GetVideoFormats(uint* codec, uint* container)
-    {
-        LOG_FUNC();
-        
-        *codec = m_codec;
-        *container = m_container;
-    }
-    
-    void  FileSinkBintr::GetEncoderSettings(uint* bitRate, uint* interval)
-    {
-        LOG_FUNC();
-        
-        *bitRate = m_bitRate;
-        *interval = m_interval;
-    }
-    
-    bool FileSinkBintr::SetEncoderSettings(uint bitRate, uint interval)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_bitRate = bitRate;
-        m_interval = interval;
-
-        if (m_codec == DSL_CODEC_H264 or m_codec == DSL_CODEC_H265)
-        {
-            m_pEncoder->SetAttribute("bitrate", m_bitRate);
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
-        }
-        return true;
-    }
-    
-    bool FileSinkBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
-
-        m_pTransform->SetAttribute("gpu-id", m_gpuId);
-        
-        return true;
-    }
     
     //-------------------------------------------------------------------------
     
-    RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, uint container, 
-        NvDsSRCallbackFunc clientListener)
-        : SinkBintr(name)
+    RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
+        uint codec, uint container, uint bitRate, uint interval, NvDsSRCallbackFunc clientListener)
+        : EncodeSinkBintr(name, codec, container, bitRate, interval)
         , m_outdir(outdir)
         , m_pContext(NULL)
     {
         LOG_FUNC();
         
+        m_pRecordBinQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "record-bin-queue");
+
         switch (container)
         {
         case DSL_CONTAINER_MP4 :
@@ -729,7 +726,8 @@ namespace DSL
         
         m_initParams.defaultDuration = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC;
         m_initParams.videoCacheSize = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC;
-
+        
+        AddChild(m_pRecordBinQueue);
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -764,8 +762,19 @@ namespace DSL
             
         AddChild(m_pRecordBin);
 
-        if (!m_pQueue->LinkToSink(m_pRecordBin))
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser))
         {
+            return false;
+        }
+        GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
+        GstPad* sinkPad = gst_element_get_static_pad(m_pRecordBin->GetGstElement(), "sink");
+        
+        if (gst_pad_link(srcPad, sinkPad) != GST_PAD_LINK_OK)
+        {
+            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" << m_name << "'");
             return false;
         }
         m_isLinked = true;
@@ -781,7 +790,16 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
             return;
         }
+        GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
+        GstPad* sinkPad = gst_element_get_static_pad(m_pRecordBin->GetGstElement(), "sink");
+        
+        gst_pad_unlink(srcPad, sinkPad);
+
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
         m_pQueue->UnlinkFromSink();
+        
         RemoveChild(m_pRecordBin);
         
         m_pRecordBin = nullptr;
@@ -906,8 +924,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_isWindowCapable = false;
-
         m_pUdpSink = DSL_ELEMENT_NEW("udpsink", "rtsp-sink-bin");
         m_pTransform = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "rtsp-sink-bin-transform");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "rtsp-sink-bin-caps-filter");

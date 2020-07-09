@@ -424,7 +424,7 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[fi
             THEN( "The list size is updated correctly" ) 
             {
                 uint retCodec(0), retContainer(0);
-                REQUIRE( dsl_sink_file_video_formats_get(fileSinkName.c_str(), &retCodec, &retContainer) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_encode_video_formats_get(fileSinkName.c_str(), &retCodec, &retContainer) == DSL_RESULT_SUCCESS );
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container );
                 REQUIRE( dsl_component_list_size() == 1 );
@@ -531,7 +531,7 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
         uint currBitrate(0);
         uint currInterval(0);
     
-        REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
         REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
@@ -540,11 +540,11 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
             uint newBitrate(2500000);
             uint newInterval(10);
             
-            REQUIRE( dsl_sink_file_encoder_settings_set(fileSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
+            REQUIRE( dsl_sink_encode_settings_set(fileSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
 
             THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
             {
-                REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
 
@@ -574,9 +574,9 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[fi
 
             THEN( "The File Sink encoder settings APIs fail correctly")
             {
-                REQUIRE( dsl_sink_file_encoder_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
+                REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
                     DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_sink_file_encoder_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
+                REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
                     DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -593,6 +593,9 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
 
         dsl_sink_record_client_listner_cb client_listener;
 
@@ -601,7 +604,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         WHEN( "A new Record Sink is created" ) 
         {
             REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-                container, client_listener) == DSL_RESULT_SUCCESS );
+                codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -626,12 +629,15 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
 
         dsl_sink_record_client_listner_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            container, client_listener) == DSL_RESULT_SUCCESS );
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "A new Record Sink is deleted" ) 

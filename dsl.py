@@ -59,6 +59,7 @@ DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
+DSL_SINK_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -1523,37 +1524,49 @@ def dsl_sink_file_new(name, filepath, codec, mutex, bitrate, interval):
     return int(result)
 
 ##
-## dsl_sink_file_video_formats_get()
+## dsl_sink_record_new()
 ##
-_dsl.dsl_sink_file_video_formats_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_file_video_formats_get.restype = c_uint
-def dsl_sink_file_video_formats_get(name):
+_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_SINK_RECORD_CLIENT_LISTNER]
+_dsl.dsl_sink_record_new.restype = c_uint
+def dsl_sink_record_new(name, outdir, codec, mutex, bitrate, interval, client_listener):
+    global _dsl
+    client_cb = DSL_SINK_RECORD_CLIENT_LISTNER(client_listener)
+    callbacks.append(checker_cb)
+    result =_dsl.dsl_sink_record_new(name, outdir, codec, mutex, bitrate, interval, client_cb)
+    return int(result)
+
+##
+## dsl_sink_encode_video_formats_get()
+##
+_dsl.dsl_sink_encode_video_formats_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_encode_video_formats_get.restype = c_uint
+def dsl_sink_encode_video_formats_get(name):
     global _dsl
     codec = c_uint(0)
     container = c_uint(0)
-    result = _dsl.dsl_sink_file_video_formats_get(name, DSL_UINT_P(codec), DSL_UINT_P(container))
+    result = _dsl.dsl_sink_encode_video_formats_get(name, DSL_UINT_P(codec), DSL_UINT_P(container))
     return int(result), codec.value, container.value 
 
 ##
-## dsl_sink_file_encoder_settings_get()
+## dsl_sink_encode_settings_get()
 ##
-_dsl.dsl_sink_file_encoder_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_file_encoder_settings_get.restype = c_uint
-def dsl_sink_file_encoder_settings_get(name):
+_dsl.dsl_sink_encode_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_encode_settings_get.restype = c_uint
+def dsl_sink_encode_settings_get(name):
     global _dsl
     bitrate = c_uint(0)
     interval = c_uint(0)
-    result = _dsl.dsl_sink_file_encoder_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
+    result = _dsl.dsl_sink_encode_settings_get(name, DSL_UINT_P(bitrate), DSL_UINT_P(interval))
     return int(result), bitrate.value, interval.value 
 
 ##
-## dsl_sink_file_encoder_settings_set()
+## dsl_sink_encode_settings_set()
 ##
-_dsl.dsl_sink_file_encoder_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_sink_file_encoder_settings_set.restype = c_uint
-def dsl_sink_file_encoder_settings_set(name, bitrate, interval):
+_dsl.dsl_sink_encode_settings_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_encode_settings_set.restype = c_uint
+def dsl_sink_encode_settings_set(name, bitrate, interval):
     global _dsl
-    result = _dsl.dsl_sink_file_encoder_settings_set(name, bitrate, interval)
+    result = _dsl.dsl_sink_encode_settings_set(name, bitrate, interval)
     return int(result)
 
 ##

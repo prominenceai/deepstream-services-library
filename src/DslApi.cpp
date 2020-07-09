@@ -1648,38 +1648,38 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
         cstrPath.c_str(), codec, container, bitrate, interval);
 }     
 
-DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
+DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
     uint* codec, uint* container)
 {    
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkFileVideoFormatsGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkEncodeVideoFormatsGet(cstrName.c_str(), 
         codec, container);
 }
 
-DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
+DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* bitrate, uint* interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkFileEncoderSettingsGet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkEncodeSettingsGet(cstrName.c_str(), 
         bitrate, interval);
 }    
 
-DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint bitrate, uint interval)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkFileEncoderSettingsSet(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkEncodeSettingsSet(cstrName.c_str(), 
         bitrate, interval);
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
-     uint container, dsl_sink_record_client_listner_cb client_listener)
+     uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1687,7 +1687,7 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir,
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
     return DSL::Services::GetServices()->SinkRecordNew(cstrName.c_str(), 
-        cstrOutdir.c_str(), container, client_listener);
+        cstrOutdir.c_str(), codec, container, bitrate, interval, client_listener);
 }     
 
 DslReturnType dsl_sink_record_session_start(const wchar_t* name, 

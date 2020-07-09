@@ -1919,45 +1919,18 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
      uint codec, uint container, uint bitrate, uint interval);
 
 /**
- * @brief gets the current codec and video media container formats
- * @param[in] name unique name of the Sink to query
- * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
- * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
-    uint* codec, uint* container);
-
-/**
- * @brief gets the current bit-rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to query
- * @param[out] bitrate current Encoder bit-rate in bits/sec for the named File Sink
- * @param[out] interval current Encoder iframe interval value
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
-    uint* bitrate, uint* interval);
-
-/**
- * @brief sets new bit_rate and interval settings for the named File Sink
- * @param[in] name unique name of the File Sink to update
- * @param[in] bitrate new Encoder bit-rate in bits/sec for the named File Sink
- * @param[in] interval new Encoder iframe interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
-    uint bitrate, uint interval);
-
-/**
  * @brief creates a new, uniquely named File Record component
  * @param[in] name unique component name for the new Record Sink
  * @param[in] outdir absolute or relative path to the recording output dir.
+ * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] bitrate in bits per second - H264 and H265 only
+ * @param[in] interval iframe interval to encode at
  * @param[in] client_listener client callback for end-of-sesssion notifications.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
-    uint container, dsl_sink_record_client_listner_cb client_listener);
+DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
+    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink
@@ -1980,8 +1953,8 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name, uint* session,
  * @param[in] session unique id for the session to stop
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-    DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
-        uint session);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
+    uint session);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -2021,6 +1994,36 @@ DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, u
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief gets the current codec and video media container formats
+ * @param[in] name unique name of the Sink to query
+ * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
+    uint* codec, uint* container);
+
+/**
+ * @brief gets the current bit-rate and interval settings for the named File Sink
+ * @param[in] name unique name of the File Sink to query
+ * @param[out] bitrate current Encoder bit-rate in bits/sec for the named File Sink
+ * @param[out] interval current Encoder iframe interval value
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
+    uint* bitrate, uint* interval);
+
+/**
+ * @brief sets new bit_rate and interval settings for the named File Sink
+ * @param[in] name unique name of the File Sink to update
+ * @param[in] bitrate new Encoder bit-rate in bits/sec for the named File Sink
+ * @param[in] interval new Encoder iframe interval value to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
+    uint bitrate, uint interval);
 
 /**
  * @brief creates a new, uniquely named RTSP Sink component
