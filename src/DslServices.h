@@ -81,6 +81,9 @@ namespace DSL {
 
         DslReturnType OdeActionPrintNew(const char* name);
         
+        DslReturnType OdeActionRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
+
         DslReturnType OdeActionRedactNew(const char* name);
 
         DslReturnType OdeActionSinkAddNew(const char* name, 
@@ -372,11 +375,31 @@ namespace DSL {
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
             
-        DslReturnType SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container);
+        DslReturnType SinkRecordNew(const char* name, const char* outdir, 
+            uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener);
+            
+        DslReturnType SinkRecordSessionStart(const char* name, 
+            uint* session, uint start, uint duration, void* clientData);
 
-        DslReturnType SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval);
+        DslReturnType SinkRecordSessionStop(const char* name, uint session);
 
-        DslReturnType SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval);
+        DslReturnType SinkRecordCacheSizeGet(const char* name, uint* cacheSize);
+            
+        DslReturnType SinkRecordCacheSizeSet(const char* name, uint cacheSize);
+        
+        DslReturnType SinkRecordDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SinkRecordDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType SinkRecordIsOnGet(const char* name, boolean* isOn);
+
+        DslReturnType SinkRecordResetDoneGet(const char* name, boolean* resetDone);
+
+        DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
+
+        DslReturnType SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval);
+
+        DslReturnType SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval);
 
         DslReturnType SinkRtspNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bit_rate, uint interval);

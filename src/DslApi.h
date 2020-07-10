@@ -334,6 +334,9 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 
+#define DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC                         30
+#define DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC                      30
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -414,6 +417,13 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* 
  * @param[in] user_data opaque pointer to client's user data
  */
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
+
+/**
+ * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
+ * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
+ * @param[in] user_data opaque pointer to client's user data provide on end-of-session
+ */
+typedef void* (*dsl_sink_record_client_listner_cb)(void* info, void* user_data);
 
 /**
  * @brief Creates a uniquely named ODE Callback Action
@@ -532,7 +542,7 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_print_new(const wchar_t* name);
-
+    
 /**
  * @brief Creates a uniquely named Redact Object ODE Action, that blacks out an 
  * Object's background redacting the rectangle area
@@ -562,6 +572,19 @@ DslReturnType dsl_ode_action_sink_add_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* sink);
+
+/**
+ * @brief Creates a uniquely named Start Record Sink ODE Action
+ * @param[in] name unique name for the Print ODE Action 
+ * @param[in] record_sink unique name of the Record Sink to start recording
+ * @param[in] start start time before current time in seconds
+ * should be less the Record Sink's cache size
+ * @param[in] duration duration of the recording in seconds
+ * @param[in] client_data opaque pointer to client data
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
 
 /**
  * @brief Creates a uniquely named Add Source Action that adds
@@ -1896,13 +1919,106 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
      uint codec, uint container, uint bitrate, uint interval);
 
 /**
+ * @brief creates a new, uniquely named File Record component
+ * @param[in] name unique component name for the new Record Sink
+ * @param[in] outdir absolute or relative path to the recording output dir.
+ * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
+ * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] bitrate in bits per second - H264 and H265 only
+ * @param[in] interval iframe interval to encode at
+ * @param[in] client_listener client callback for end-of-sesssion notifications.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
+    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
+     
+/**
+ * @brief starts a new recording session for the named Record Sink
+ * @param[in] name unique of the Record Sink to start the session
+ * @param[out] session unique id for the new session on successful start
+ * @param[in] start start time in seconds before the current time
+ * should be less that the video cache size
+ * @param[in] duration in seconds from the current time to record.
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client listener function provided on Sink creation
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_session_start(const wchar_t* name, uint* session,
+    uint start, uint duration, void* client_data);
+
+/**
+ * @brief stops a current recording in session
+ * @param[in] name unique of the Record Sink to stop
+ * should be less that the video cache size
+ * @param[in] session unique id for the session to stop
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
+    uint session);
+
+/**
+ * @brief returns the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * @param[in] name name of the Record Sink to query
+ * @param[out] cache_size current cache size setting
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size);
+
+/**
+ * @brief sets the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * @param[in] name name of the Record Sink to query
+ * @param[in] cache_size new cache size setting to use on Pipeline play
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_size);
+
+/**
+ * @brief returns the dimensions, width and height, used for the video recordings
+ * @param[in] name name of the Record Sink to query
+ * @param[out] width current width of the video recording in pixels
+ * @param[out] height current height of the video recording in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the dimensions, width and height, for the video recordings created
+ * values of zero indicate no-transcodes
+ * @param[in] name name of the Record Sink to update
+ * @param[in] width width to set the video recording in pixels
+ * @param[in] height height to set the video in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief returns the current recording state of the Record Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] is_on true if the Record Sink is currently recording a session, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on);
+
+/**
+ * @brief returns the current recording state of the Record Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] is_on true if Reset has been done, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done);
+
+/**
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query
  * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
  * @param[out] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
+DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name,
     uint* codec, uint* container);
 
 /**
@@ -1912,7 +2028,7 @@ DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
  * @param[out] interval current Encoder iframe interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
+DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* bitrate, uint* interval);
 
 /**
@@ -1922,7 +2038,7 @@ DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
  * @param[in] interval new Encoder iframe interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
 
 /**

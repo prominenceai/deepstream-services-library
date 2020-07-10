@@ -723,7 +723,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a shared Display ODE Action can play", "[new]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a shared Display ODE Action can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Types, and Display ODE Action" ) 
     {
@@ -828,6 +828,123 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"osd", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Record ODE Action can play", "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Types, and Display ODE Action" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        
+        std::wstring trackerName(L"ktl-tracker");
+        uint trackerW(480);
+        uint trackerH(272);
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+        
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring osdName(L"osd");
+        boolean clockEnabled(false);
+
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        uint container(DSL_CONTAINER_MKV);
+
+        std::wstring pipelineName(L"test-pipeline");
+
+        std::wstring odeHandlerName(L"ode-handler");
+        
+        std::wstring bicycleOccurrenceName(L"Bicycle");
+        uint bicycleClassId(1);
+        
+        uint limit(1);
+        std::wstring recordActionName(L"start-record-action");
+        std::wstring printActionName(L"print-action");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_action_print_new(printActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_sink_record_start_new(recordActionName.c_str(), 
+            recordSinkName.c_str(), 2, 5, NULL) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* actions[] = {L"start-record-action", L"print-action", NULL};
+
+        REQUIRE( dsl_ode_trigger_action_add_many(bicycleOccurrenceName.c_str(), actions) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), bicycleOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, NULL) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler",
+            L"ode-handler", L"osd", L"overlay-sink", L"record-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

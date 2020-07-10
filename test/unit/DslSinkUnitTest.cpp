@@ -41,7 +41,7 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
+                // gpuid ?
             }
         }
     }
@@ -114,7 +114,6 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetDisplayId() == 0 );
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }
@@ -342,7 +341,7 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->IsWindowCapable() == true );
+                // gpuid ?
             }
         }
     }
@@ -528,7 +527,6 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[FileSin
                 pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container);
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }
@@ -613,7 +611,6 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[FileSink
                 pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container);
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }
@@ -698,7 +695,6 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[FileSink
                 pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container);
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }
@@ -830,6 +826,161 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[FileSinkBintr]" )
     }
 }
 
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[RecordSinkBintr]" )
+{
+    GIVEN( "Attributes for a new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        WHEN( "The DSL_CONTAINER_MP4 RecordSinkBintr is created" )
+        {
+            DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+                outdir.c_str(), codec, container, bitrate, interval, clientListener);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                uint width(0), height(0);
+                pSinkBintr->GetDimensions(&width, &height);
+                REQUIRE( width == 0 );
+                REQUIRE( height == 0 );
+                
+                std::string retOutdir = pSinkBintr->GetOutdir();
+                REQUIRE( outdir == retOutdir );
+                
+                REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+                
+                // The following should produce warning messages as there is no record-bin context 
+                // prior to linking. Unfortunately, this requires visual verification.
+                REQUIRE( pSinkBintr->GotKeyFrame() == false );
+                REQUIRE( pSinkBintr->IsOn() == false );
+                REQUIRE( pSinkBintr->ResetDone() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "When RecordSinkBintr's Parameters Set/Get ",  "[RecordSinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, clientListener);
+
+        WHEN( "The Video Cache Size is set" )
+        {
+            REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+            
+            uint newCacheSize(20);
+            REQUIRE( pSinkBintr->SetCacheSize(newCacheSize) == true );
+
+            THEN( "The correct cache size value is returned" )
+            {
+                REQUIRE( pSinkBintr->GetCacheSize() == newCacheSize );
+            }
+        }
+
+        WHEN( "The Video Recording Dimensions are set" )
+        {
+            uint newWidth(1024), newHeight(780), retWidth(99), retHeight(99);
+            pSinkBintr->GetDimensions(&retWidth, &retHeight);
+            REQUIRE( retWidth == 0 );
+            REQUIRE( retHeight == 0 );
+            REQUIRE( pSinkBintr->SetDimensions(newWidth, newHeight) == true );
+
+            THEN( "The correct cache size value is returned" )
+            {
+                pSinkBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == retHeight );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs", "[RecordSinkBintr]" )
+{
+    GIVEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MKV);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, clientListener);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H265 RecordSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+
+                // Once, linked will not generate warning messages.
+                REQUIRE( pSinkBintr->GotKeyFrame() == false );
+                REQUIRE( pSinkBintr->IsOn() == false );
+
+                // initialized to true on context init.
+                REQUIRE( pSinkBintr->ResetDone() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elementrs", "[RecordSinkBintr]" )
+{
+    GIVEN( "A DSL_CONTAINER_MP4 RecordSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, clientListener);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CONTAINER_MP4 RecordSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CONTAINER_MP4 RecordSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
@@ -854,7 +1005,6 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }
@@ -943,7 +1093,6 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
                 REQUIRE( retUdpPort == udpPort);
                 REQUIRE( retRtspPort == rtspPort);
                 REQUIRE( retCodec == codec );
-                REQUIRE( pSinkBintr->IsWindowCapable() == false );
             }
         }
     }

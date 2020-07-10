@@ -938,5 +938,34 @@ namespace DSL
         }
     }
     
+    // ********************************************************************
+
+    RecordStartOdeAction::RecordStartOdeAction(const char* name, 
+        const char* recordSink, uint start, uint duration, void* clientData)
+        : OdeAction(name)
+        , m_recordSink(recordSink)
+        , m_start(start)
+        , m_duration(duration)
+        , m_clientData(clientData)
+        , m_session(0)
+    {
+        LOG_FUNC();
+    }
+
+    RecordStartOdeAction::~RecordStartOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RecordStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->SinkRecordSessionStart(m_recordSink.c_str(), 
+                &m_session, m_start, m_duration, m_clientData);
+        }
+    }
 }    
     

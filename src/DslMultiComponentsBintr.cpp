@@ -158,7 +158,6 @@ namespace DSL
             imap.second->SetId(id++);
             if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
             {
-                
                 LOG_ERROR("MultiComponentsBintr '" << GetName() 
                     << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;

@@ -133,6 +133,11 @@ namespace DSL
     #define DSL_ODE_ACTION_AREA_REMOVE_NEW(name, trigger, area) \
         std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
+    #define DSL_ODE_ACTION_RECORD_START_PTR std::shared_ptr<RecordStartOdeAction>
+    #define DSL_ODE_ACTION_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
+        std::shared_ptr<RecordStartOdeAction>(new RecordStartOdeAction(name, recordSink, start, duration, clientData))
+        
+        
     // ********************************************************************
 
     class OdeAction : public Base
@@ -1247,6 +1252,70 @@ namespace DSL
          * @brief ODE Area to remove from the ODE Trigger on ODE occurrence
          */
         std::string m_area;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class RecordStartOdeAction
+     * @brief Start Video Record ODE Action class
+     */
+    class RecordStartOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Start Record ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordStartOdeAction(const char* name, 
+            const char* recordSink, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief dtor for the Start Record ODE Action class
+         */
+        ~RecordStartOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Starting a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Sink to start the recording session
+         */ 
+        std::string m_recordSink;
+
+        /**
+         * @brief Start time before current time in seconds
+         */
+        uint m_start;
+
+        /**
+         * @brief Duration for recording in seconds
+         */
+        uint m_duration;
+        
+        /**
+         * @brief client Data for client listening for recording session complete/stopped
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief unique recording session id aquired on Start Record
+         */
+        uint m_session;
     };
 }
 
