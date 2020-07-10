@@ -1545,6 +1545,92 @@ def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, clien
     callbacks.append(checker_cb)
     result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, checker_cb)
     return int(result)
+    
+##
+## dsl_sink_record_session_start()
+##
+_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint]
+_dsl.dsl_sink_record_session_start.restype = c_uint
+def dsl_sink_record_session_start(name, start, duration, client_data):
+    global _dsl
+    session = c_uint(0)
+    result = _dsl.dsl_sink_record_session_start(name, DSL_UINT_P(session), start, duration, client_data)
+    return int(result), session.value 
+
+##
+## dsl_sink_record_session_stop()
+##
+_dsl.dsl_sink_record_session_stop.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_record_session_stop.restype = c_uint
+def dsl_sink_record_session_stop(name, session):
+    global _dsl
+    result = _dsl.dsl_sink_record_session_stop(name, session)
+    return int(result)
+
+##
+## dsl_sink_record_cache_size_get()
+##
+_dsl.dsl_sink_record_cache_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_record_cache_size_get.restype = c_uint
+def dsl_sink_record_cache_size_get(name):
+    global _dsl
+    cache_size = c_uint(0)
+    result = _dsl.dsl_sink_record_cache_size_get(name, DSL_UINT_P(cache_size))
+    return int(result), cache_size.value 
+
+##
+## dsl_sink_record_cache_size_set()
+##
+_dsl.dsl_sink_record_cache_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_record_cache_size_set.restype = c_uint
+def dsl_sink_record_cache_size_set(name, cache_size):
+    global _dsl
+    result = _dsl.dsl_sink_record_cache_size_set(name, cache_size)
+    return int(result)
+
+##
+## dsl_sink_record_dimensions_get()
+##
+_dsl.dsl_sink_record_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_record_dimensions_get.restype = c_uint
+def dsl_sink_record_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_sink_record_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_sink_record_dimensions_set()
+##
+_dsl.dsl_sink_record_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_record_dimensions_set.restype = c_uint
+def dsl_sink_record_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_sink_record_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_sink_record_is_on_get()
+##
+_dsl.dsl_sink_record_is_on_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_record_is_on_get.restype = c_uint
+def dsl_sink_record_is_on_get(name):
+    global _dsl
+    is_on = c_uint(0)
+    result = _dsl.dsl_sink_record_is_on_get(name, DSL_BOOL_P(is_on))
+    return int(result), is_on.value 
+
+##
+## dsl_sink_record_reset_done_get()
+##
+_dsl.dsl_sink_record_reset_done_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_record_reset_done_get.restype = c_uint
+def dsl_sink_record_reset_done_get(name):
+    global _dsl
+    reset_done = c_uint(0)
+    result = _dsl.dsl_sink_record_reset_done_get(name, DSL_BOOL_P(reset_done))
+    return int(result), reset_done.value 
 
 ##
 ## dsl_sink_encode_video_formats_get()

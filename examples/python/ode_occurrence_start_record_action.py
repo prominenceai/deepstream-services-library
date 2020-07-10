@@ -75,10 +75,16 @@ def state_change_listener(old_state, new_state, client_data):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 ## 
-# Function to be called on every change of Pipeline state
+# Function to be called on recording complete
 ## 
 def record_complete_listener(session_info, client_data):
     print(' ***  Recording Complete  *** ')
+    
+    retval, is_on = dsl_sink_record_is_on_get('record-sink')
+    print('        is_on flag = ', is_on)
+    
+    retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
+    print('        reset_done flag = ', reset_done)
     
     # reset the Trigger so that a new session can be started.
     print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
@@ -101,6 +107,17 @@ def main(args):
         # Setting the bit rate to 12 Mbps for 1080p ??? 
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
             bitrate=12000000, interval=0, client_listener=record_complete_listener)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
+        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
+        
+        # Update the cache size to 5 seconds.
+        retval = dsl_sink_record_cache_size_set('record-sink', 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
