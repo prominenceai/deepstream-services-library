@@ -804,6 +804,7 @@ namespace DSL
         
         m_pRecordBin = nullptr;
         NvDsSRDestroy(m_pContext);
+        m_pContext = NULL;
         
         m_isLinked = false;
     }
@@ -903,6 +904,45 @@ namespace DSL
             return false;
         }
         return (NvDsSRStop(m_pContext, session) == NVDSSR_STATUS_OK);
+    }
+    
+    bool RecordSinkBintr::GotKeyFrame()
+    {
+        LOG_FUNC();
+        
+        if (!m_pContext or !IsLinked())
+        {
+            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
+                << "' is not currently Linked");
+            return false;
+        }
+        return m_pContext->gotKeyFrame;
+    }
+    
+    bool RecordSinkBintr::IsOn()
+    {
+        LOG_FUNC();
+        
+        if (!m_pContext or !IsLinked())
+        {
+            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
+                << "' is not currently Linked");
+            return false;
+        }
+        return m_pContext->recordOn;
+    }
+    
+    bool RecordSinkBintr::ResetDone()
+    {
+        LOG_FUNC();
+        
+        if (!m_pContext or !IsLinked())
+        {
+            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
+                << "' is not currently Linked");
+            return false;
+        }
+        return m_pContext->resetDone;
     }
     
 

@@ -4486,6 +4486,52 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
 
+    DslReturnType Services::SinkRecordIsOnGet(const char* name, boolean* isOn)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            *isOn = recordSinkBintr->IsOn();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting is-recording-on flag");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::SinkRecordResetDoneGet(const char* name, boolean* resetDone)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            *resetDone = recordSinkBintr->ResetDone();
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting reset done flag");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+
     DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
     {
         LOG_FUNC();

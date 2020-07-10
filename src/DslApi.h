@@ -1996,6 +1996,22 @@ DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, u
 DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
+ * @brief returns the current recording state of the Record Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] is_on true if the Record Sink is currently recording a session, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on);
+
+/**
+ * @brief returns the current recording state of the Record Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] is_on true if Reset has been done, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done);
+
+/**
  * @brief gets the current codec and video media container formats
  * @param[in] name unique name of the Sink to query
  * @param[out] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4

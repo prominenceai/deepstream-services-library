@@ -450,6 +450,23 @@ namespace DSL
          */
         bool StopSession(uint session);
 
+        /**
+         * @brief Queries the Record Bin context to check the Key Frame
+         * @return true if the Bin has the Key Frame ???
+         */
+        bool GotKeyFrame();
+        
+        /**
+         * @brief Queires the Record Bin context to check if the recording is on
+         * @return true if recording is currently on
+         */
+        bool IsOn();
+        
+        /**
+         * @brief Queries the Record Bin context to check if reset has been
+         * @return true if reset has been done.
+         */
+        bool ResetDone();
 
     private:
 

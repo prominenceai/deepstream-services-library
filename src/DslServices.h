@@ -391,6 +391,10 @@ namespace DSL {
 
         DslReturnType SinkRecordDimensionsSet(const char* name, uint width, uint height);
 
+        DslReturnType SinkRecordIsOnGet(const char* name, boolean* isOn);
+
+        DslReturnType SinkRecordResetDoneGet(const char* name, boolean* resetDone);
+
         DslReturnType SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container);
 
         DslReturnType SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval);

@@ -855,6 +855,59 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Rec
                 REQUIRE( outdir == retOutdir );
                 
                 REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+                
+                // The following should produce warning messages as there is no record-bin context 
+                // prior to linking. Unfortunately, this requires visual verification.
+                REQUIRE( pSinkBintr->GotKeyFrame() == false );
+                REQUIRE( pSinkBintr->IsOn() == false );
+                REQUIRE( pSinkBintr->ResetDone() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "When RecordSinkBintr's Parameters Set/Get ",  "[RecordSinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        NvDsSRCallbackFunc clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, clientListener);
+
+        WHEN( "The Video Cache Size is set" )
+        {
+            REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+            
+            uint newCacheSize(20);
+            REQUIRE( pSinkBintr->SetCacheSize(newCacheSize) == true );
+
+            THEN( "The correct cache size value is returned" )
+            {
+                REQUIRE( pSinkBintr->GetCacheSize() == newCacheSize );
+            }
+        }
+
+        WHEN( "The Video Recording Dimensions are set" )
+        {
+            uint newWidth(1024), newHeight(780), retWidth(99), retHeight(99);
+            pSinkBintr->GetDimensions(&retWidth, &retHeight);
+            REQUIRE( retWidth == 0 );
+            REQUIRE( retHeight == 0 );
+            REQUIRE( pSinkBintr->SetDimensions(newWidth, newHeight) == true );
+
+            THEN( "The correct cache size value is returned" )
+            {
+                pSinkBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == retHeight );
             }
         }
     }
@@ -885,6 +938,13 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs",
             THEN( "The DSL_CODEC_H265 RecordSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == true );
+
+                // Once, linked will not generate warning messages.
+                REQUIRE( pSinkBintr->GotKeyFrame() == false );
+                REQUIRE( pSinkBintr->IsOn() == false );
+
+                // initialized to true on context init.
+                REQUIRE( pSinkBintr->ResetDone() == true );
             }
         }
     }

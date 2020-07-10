@@ -1739,6 +1739,23 @@ DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, ui
 
     return DSL::Services::GetServices()->SinkRecordDimensionsSet(cstrName.c_str(), width, height);
 }
+
+DslReturnType dsl_sink_record_is_on_get(const wchar_t* name, boolean* is_on)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordIsOnGet(cstrName.c_str(), is_on);
+}
+
+DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset_done)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordResetDoneGet(cstrName.c_str(), reset_done);
+}
+
    
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
