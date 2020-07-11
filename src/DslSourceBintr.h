@@ -472,6 +472,14 @@ namespace DSL
         void UnlinkAll();
 
         bool SetUri(const char* uri);
+        
+        /**
+         * @brief call to query the RTSP Source if it has a TapBntr
+         * @return true if the Source has a Child TapBintr
+         */
+        bool HasTapBintr();
+        
+        bool HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps);
 
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 
@@ -483,23 +491,46 @@ namespace DSL
          @brief 
          */
         uint m_rtpProtocols;
-        
+
+
         /**
-         @brief
+         * @brief H.264 or H.265 RTP Depay for the RtspSourceBintr
          */
-        DSL_ELEMENT_PTR m_pDepayload;
+        DSL_ELEMENT_PTR m_pDepay;
+
+        /**
+         * @brief H.264 or H.265 RTP Parser for the RtspSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pParser;
         
         /**
-         @brief
+         * @brief Pre-decode queue - option tee for Tapping off the pre-decoded stream
+         */
+        DSL_ELEMENT_PTR m_pPreDecodeQueue;
+
+        /**
+         * @brief
+         */
+        DSL_ELEMENT_PTR m_pPreDecodeTee;
+
+        /**
+         * @brief
          */
         DSL_ELEMENT_PTR m_pDecodeBin;
         
-        /**
-         @brief
-         */
-        DSL_ELEMENT_PTR m_pDecodeQueue;
     };
 
+    /**
+     * @brief 
+     * @param pBin
+     * @param num
+     * @param caps
+     * @param pSource
+     * @return 
+     */
+    static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *caps,
+        gpointer pSource);
+        
     /**
      * @brief 
      * @param[in] pBin

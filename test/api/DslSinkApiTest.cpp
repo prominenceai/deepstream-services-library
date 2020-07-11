@@ -575,9 +575,9 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[fi
             THEN( "The File Sink encoder settings APIs fail correctly")
             {
                 REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
                 REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );

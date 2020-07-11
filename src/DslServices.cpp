@@ -136,7 +136,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RecordSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
     } \
 }while(0); 
 
@@ -4588,7 +4588,7 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
             if (m_components[name]->IsLinked())
             {
@@ -6144,6 +6144,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_CODEC_VALUE_INVALID] = L"DSL_RESULT_SINK_CODEC_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
