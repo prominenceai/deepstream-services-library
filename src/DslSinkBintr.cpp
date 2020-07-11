@@ -698,8 +698,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pRecordBinQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "record-bin-queue");
-
         switch (container)
         {
         case DSL_CONTAINER_MP4 :
@@ -713,7 +711,7 @@ namespace DSL
             throw;
         }
         
-        // Set single callback listener. Unique clients must identifed using client data provided on Start session
+        // Set single callback listener. Unique clients are identifed using client_data provided on Start session
         m_initParams.callback = clientListener;
         
         // Set both width and height params to zero = no-transcode
@@ -726,8 +724,6 @@ namespace DSL
         
         m_initParams.defaultDuration = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC;
         m_initParams.videoCacheSize = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC;
-        
-        AddChild(m_pRecordBinQueue);
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -787,7 +783,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("RecordSinkBintr '" << m_name << "' is not linked");
             return;
         }
         GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
