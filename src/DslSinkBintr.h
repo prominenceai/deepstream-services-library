@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -400,18 +399,16 @@ namespace DSL
         bool SetOutdir(const char* outdir);
 
         /**
-         * @brief Gets the Smart Record initialization parameters used by this SmartFileSinkBint
+         * @brief Gets the current cache size used by this RecordSinkBint
          * @return size of the video cache in seconds 
          * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
          */
         uint GetCacheSize();
         
         /**
-         * @brief Sets the Smart Record initialization parameters used by this SmartFileSinkBint
+         * @brief Sets the current cache size used by this RecordSinkBint
          * @param[in] videoCacheSize size of video cache in seconds 
          * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
-         * @param[in] defaultDuration default video recording duration.
-         * default = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC
          */
         bool SetCacheSize(uint videoCacheSize);
         
@@ -429,7 +426,7 @@ namespace DSL
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
+         * @return false if the RecordSink is currently linked. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
         
@@ -484,13 +481,13 @@ namespace DSL
          * @brief SR context initialization parameters, provided by client
          */
         NvDsSRInitParams m_initParams;
-        
+
+        /**
+         * @brief Node to wrap NVIDIA's Record Bin
+         */
         DSL_NODETR_PTR m_pRecordBin;
-        
-        DSL_ELEMENT_PTR m_pRecordBinQueue;
     };
 
-    
     //-------------------------------------------------------------------------
 
     class RtspSinkBintr : public SinkBintr
