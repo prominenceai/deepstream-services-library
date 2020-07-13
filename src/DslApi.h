@@ -288,6 +288,18 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_AREA_IN_USE                                  0x00100004
 #define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
 
+#define DSL_RESULT_DISPLAY_TYPE_RESULT                              0x00100000
+#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00100001
+#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND                      0x00100002
+#define DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION                     0x00100003
+#define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00100004
+#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100005
+#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100006
+#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100007
+#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x00100008
+#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x00100009
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000A
+
 /**
  *
  */
@@ -425,6 +437,111 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] user_data opaque pointer to client's user data provide on end-of-session
  */
 typedef void* (*dsl_sink_record_client_listner_cb)(void* info, void* user_data);
+
+/**
+ * @brief creates a uniquely named RGBA Display Color
+ * @param[in] name unique name for the RGBA Color
+ * @param[in] red red level for the RGB color [0..1]
+ * @param[in] blue blue level for the RGB color [0..1]
+ * @param[in] green green level for the RGB color [0..1]
+ * @param[in] alpha alpha level for the RGB color [0..1]
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
+    double red, double green, double blue, double alpha);
+
+/**
+ * @brief creates a uniquely named RGBA Display Font
+ * @param[in] name standard, unique string name of the actual font type
+ * @param[in] size size of the font
+ * @param[in] color name of the RGBA Color for the RGBA font
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, uint size, const wchar_t* color);
+
+/**
+ * @brief creates a uniquely named RGBA Display Text
+ * @param[in] name unique name of the RGBA Text
+ * @param[in] text text string to display
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display dext
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief creates a uniquely named RGBA Display Line
+ * @param[in] name unique name for the RGBA LIne
+ * @param[in] x1 starting x positional offest
+ * @param[in] y1 starting y positional offest
+ * @param[in] x2 ending x positional offest
+ * @param[in] y2 ending y positional offest
+ * @param[in] width width of the line in pixels
+ * @param[in] color RGBA Color for thIS RGBA Line
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name, 
+    uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color);
+
+/**
+ * @brief creates a uniquely named RGBA Rectangle
+ * @param[in] name unique name for the RGBA Rectangle
+ * @param[in] left left positional offest
+ * @param[in] top positional offest
+ * @param[in] width width of the rectangle in Pixels
+ * @param[in] height height of the rectangle in Pixels
+ * @param[in] border_width width of the rectangle border in pixels
+ * @param[in] color RGBA Color for thIS RGBA Line
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Circle background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
+    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief creates a uniquely named RGBA Circle
+ * @param[in] name unique name for the RGBA Circle
+ * @param[in] x_center X positional offset to center of Circle
+ * @param[in] y_center y positional offset to center of Circle
+ * @param[in] radius radius of the RGBA Circle in pixels 
+ * @param[in] color RGBA Color for the RGBA Circle
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Circle background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
+    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief deletes a uniquely named Display Type of any type
+ * @param[in] name unique name for the Display Type to delete
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated array of Display Types of any type
+ * @param[in] names Null ternimated array of unique names to delete
+ * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_DISPLAY_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all Display Types currently in memory
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_delete_all();
+
+/**
+ * @brief Returns the size of the list of Display Types
+ * @return the number of Display Types in the list
+ */
+uint dsl_display_type_list_size();
 
 /**
  * @brief Creates a uniquely named ODE Callback Action
