@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
 
-
 #define RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(actions, name) do \
 { \
     if (actions.find(name) == actions.end()) \
@@ -199,6 +198,25 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+
+#define RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(types, name) do \
+{ \
+    if (types.find(name) == types.end()) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' was not found"); \
+        return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(types, name, displayType) do \
+{ \
+    if (!types[name]->IsType(typeid(displayType)))\
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not the correct type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
 #define INIT_STRUCT(type, name) struct type name; INIT_MEMORY(name) 
@@ -291,6 +309,9 @@ namespace DSL
             
             // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services(doGstDeinit);
+            
+            // Initialize private containers
+            m_pInstatnce->InitDefaultDisplayTypes();
             m_pInstatnce->InitToStringMaps();
         }
         return m_pInstatnce;
@@ -328,6 +349,269 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
+    DslReturnType Services::DisplayTypeRgbaColorNew(const char* name, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Color name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE;
+            }
+            m_displayTypes[name] = DSL_RGBA_COLOR_NEW(name, 
+                red, green, blue, alpha);
+
+            LOG_INFO("New RGBA Color '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaFontNew(const char* name, 
+        uint size, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Font name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_FONT_NEW(name, size, pColor);
+
+            LOG_INFO("New RGBA Color '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaTextNew(const char* name, const char* text, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            DSL_RGBA_COLOR_PTR pbgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            
+            m_displayTypes[name] = DSL_RGBA_TEXT_NEW(name,
+                text, xOffset, yOffset, pFont, hasBgColor, pbgColor);
+
+            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaLineNew(const char* name, 
+        uint x1, uint y1, uint x2, uint y2, uint width, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Line name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_LINE_NEW(name, x1, y1, x2, y2, width, pColor);
+
+            LOG_INFO("New RGBA Line '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Line '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
+        uint borderWidth, const char* color, bool hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            DSL_RGBA_COLOR_PTR pBgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_RECTANGLE_NEW(name, 
+                left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor);
+
+            LOG_INFO("New RGBA Rectangle '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Rectangle '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
+        const char* color, bool hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            DSL_RGBA_COLOR_PTR pBgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_CIRCLE_NEW(name, 
+                xCenter, yCenter, radius, pColor, hasBgColor, pBgColor);
+
+            LOG_INFO("New RGBA Circle '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Circle '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::DisplayTypeDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            
+            m_displayTypes.erase(name);
+            
+            LOG_INFO("Display Type '" << name << "' deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Type '" << name << "' threw exception on delete");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::DisplayTypeDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            m_displayTypes.clear();
+            
+            LOG_INFO("All Display Types deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Types threw exception on delete all");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::DisplayTypeListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_displayTypes.size();
+    }
+            
     DslReturnType Services::OdeActionCallbackNew(const char* name,
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
     {
@@ -6042,6 +6326,22 @@ namespace DSL
         LOG_INFO("State = " << state << " = " << cstrState);
         return m_stateValueToString[state].c_str();
     }
+    
+    void Services::InitDefaultDisplayTypes()
+    {
+        LOG_FUNC();
+        
+        m_displayTypes["DSL_BLACK_100"] = DSL_RGBA_COLOR_NEW("DSL_BLACK_100", 0.0, 0.0, 0.0, 1.0);
+        m_displayTypes["DSL_BLACK_050"] = DSL_RGBA_COLOR_NEW("DSL_BLACK_100", 0.0, 0.0, 0.0, 5.0);
+        m_displayTypes["DSL_WHITE_100"] = DSL_RGBA_COLOR_NEW("DSL_WHITE_100", 1.0, 1.0, 1.0, 1.0);
+        m_displayTypes["DSL_WHITE_050"] = DSL_RGBA_COLOR_NEW("DSL_WHITE_100", 1.0, 1.0, 1.0, 0.5);
+        m_displayTypes["DSL_RED_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 1.0, 0.0, 0.0, 1.0);
+        m_displayTypes["DSL_RED_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 1.0, 0.0, 0.0, 0.5);
+        m_displayTypes["DSL_GREEN_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 1.0, 0.0, 1.0);
+        m_displayTypes["DSL_GREEN_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 1.0, 0.0, 0.5);
+        m_displayTypes["DSL_BLUE_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 0.0, 1.0, 1.0);
+        m_displayTypes["DSL_BLUE_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 0.0, 1.0, 0.5);
+    }
 
     void Services::InitToStringMaps()
     {
@@ -6221,6 +6521,16 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_STOP] = L"DSL_RESULT_PIPELINE_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 

@@ -69,6 +69,107 @@ DSL_SINK_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
 callbacks = []
 
 ##
+## dsl_display_type_rgba_color_new()
+##
+_dsl.dsl_display_type_rgba_color_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_display_type_rgba_color_new.restype = c_uint
+def dsl_display_type_rgba_color_new(name, red, green, blue, alpha):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_color_new(name, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_display_type_rgba_font_new()
+##
+_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_font_new.restype = c_uint
+def dsl_display_type_rgba_font_new(name, size, color):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_font_new(name, size, color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_text_new()
+##
+_dsl.dsl_display_type_rgba_text_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_text_new.restype = c_uint
+def dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_text_new(name, text, x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_line_new()
+##
+_dsl.dsl_display_type_rgba_line_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_line_new.restype = c_uint
+def dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_line_new(name, x1, y1, x2, y2, width, color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_rectangle_new()
+##
+_dsl.dsl_display_type_rgba_rectangle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_rectangle_new.restype = c_uint
+def dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_circle_new()
+##
+_dsl.dsl_display_type_rgba_circle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_circle_new.restype = c_uint
+def dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_delete()
+##
+_dsl.dsl_display_type_delete.argtypes = [c_wchar_p]
+_dsl.dsl_display_type_delete.restype = c_uint
+def dsl_display_type_delete(name):
+    global _dsl
+    result =_dsl.dsl_display_type_delete(name)
+    return int(result)
+
+##
+## dsl_display_type_delete_many()
+##
+#_dsl.dsl_display_type_delete_many.argtypes = [??]
+_dsl.dsl_display_type_delete_many.restype = c_uint
+def dsl_display_type_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_display_type_delete_many(arr)
+    return int(result)
+
+##
+## dsl_display_type_delete_all()
+##
+_dsl.dsl_display_type_delete_all.argtypes = []
+_dsl.dsl_display_type_delete_all.restype = c_uint
+def dsl_display_type_delete_all():
+    global _dsl
+    result =_dsl.dsl_display_type_delete_all()
+    return int(result)
+
+##
+## dsl_display_type_list_size()
+##
+_dsl.dsl_display_type_list_size.restype = c_uint
+def dsl_display_type_list_size():
+    global _dsl
+    result =_dsl.dsl_display_type_list_size()
+    return int(result)
+
+##
 ## dsl_ode_action_callback_new()
 ##
 _dsl.dsl_ode_action_callback_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]

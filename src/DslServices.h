@@ -52,6 +52,30 @@ namespace DSL {
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/ 
+        DslReturnType DisplayTypeRgbaColorNew(const char* name, 
+            double red, double green, double blue, double alpha);
+
+        DslReturnType DisplayTypeRgbaFontNew(const char* name, 
+            uint size, const char* color);
+            
+        DslReturnType DisplayTypeRgbaTextNew(const char* name, const char* text, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeRgbaLineNew(const char* name, 
+            uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
+            
+        DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
+            uint borderWidth, const char* color, bool hasBgColor, const char* bgColor);
+    
+        DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
+            const char* color, bool hasBgColor, const char* bgColor);
+    
+        DslReturnType DisplayTypeDelete(const char* name);
+        
+        DslReturnType DisplayTypeDeleteAll();
+        
+        uint DisplayTypeListSize();
+         
         DslReturnType OdeActionCallbackNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
 
@@ -596,6 +620,11 @@ namespace DSL {
          * @returns the current total number of all sinks in use
          */
         uint GetNumSinksInUse();
+
+        /**
+         * @brief private helper function to initialize the m_displayTypes map with all default types.
+         */
+        void InitDefaultDisplayTypes();
         
         /**
          * @brief called during construction to intialize all const-to-string maps
@@ -642,6 +671,11 @@ namespace DSL {
          * and updated as the first call to DSL.
          */
         uint m_sinkNumInUseMax;
+        
+        /**
+         * @brief map of all default and custom RGBA colors
+         */
+        std::map<std::string, DSL_BASE_PTR> m_displayTypes;
         
         /**
          * @brief map of all ODE Actions created by the client, key=name

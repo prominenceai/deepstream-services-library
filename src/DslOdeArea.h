@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslBase.h"
 #include "DslApi.h"
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -101,6 +102,8 @@ namespace DSL
          * @brief Area rectangle parameters for object detection 
          */
         NvOSD_RectParams m_rectParams;
+        
+        DSL_RGBA_COLOR_PTR m_pColor;
         
         /**
          * @brief Display the area (add display meta) if true

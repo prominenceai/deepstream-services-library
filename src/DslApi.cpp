@@ -28,6 +28,117 @@ THE SOFTWARE.
 // Single GST debug catagory initialization
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
+DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
+    double red, double green, double blue, double alpha)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaColorNew(cstrName.c_str(), 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, uint size, const wchar_t* color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaFontNew(cstrName.c_str(), 
+        size, cstrColor.c_str());
+}
+
+DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrText(text);
+    std::string cstrText(wstrText.begin(), wstrText.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaTextNew(cstrName.c_str(), cstrText.c_str(),
+        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
+DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name, 
+    uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaLineNew(cstrName.c_str(), 
+        x1, y1, x2, y2, width, cstrColor.c_str());
+}
+    
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
+    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
+        left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+    
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
+    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(cstrName.c_str(), 
+        x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+    
+DslReturnType dsl_display_type_delete(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_display_type_delete_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+
+        DslReturnType retval = DSL::Services::GetServices()->DisplayTypeDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_display_type_delete_all()
+{
+    return DSL::Services::GetServices()->DisplayTypeDeleteAll();
+}
+
+uint dsl_display_type_list_size()
+{
+    return DSL::Services::GetServices()->DisplayTypeListSize();
+}
+
 DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_hanlder, void* client_data)
 {
