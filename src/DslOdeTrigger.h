@@ -35,6 +35,10 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_TRIGGER_PTR std::shared_ptr<OdeTrigger>
+    
+    #define DSL_ODE_TRIGGER_ALWAYS_PTR std::shared_ptr<AlwaysOdeTrigger>
+    #define DSL_ODE_TRIGGER_ALWAYS_NEW(name, when) \
+        std::shared_ptr<AlwaysOdeTrigger>(new AlwaysOdeTrigger(name, when))
 
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit) \
@@ -89,7 +93,7 @@ namespace DSL
          * @return true if Occurrence, false otherwise
          */
         virtual bool CheckForOccurrence(GstBuffer* pBuffer, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta){return false;};
 
         /**
          * @brief Function called to pre process the current frame data prior to checking for Occurrences
@@ -386,6 +390,40 @@ namespace DSL
 
     };
     
+    class AlwaysOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        AlwaysOdeTrigger(const char* name, uint when);
+        
+        ~AlwaysOdeTrigger();
+
+        /**
+         * @brief Function called to pre-process the current frame data
+         * This trigger will not look for any occurrences
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre-processing
+         */
+        void PreProcessFrame(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta);
+
+        /**
+         * @brief Function to post-process the frame for an Absence Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        
+    private:
+    
+        /**
+         * When to Trigger, pre-occurrence-checking, Post-occurrence-checking, or both
+         */
+        uint m_when;
+    
+    };
+
+
     class OccurrenceOdeTrigger : public OdeTrigger
     {
     public:

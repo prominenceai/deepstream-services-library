@@ -101,6 +101,8 @@ namespace DSL {
 
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
+        DslReturnType OdeActionOverlayFrameNew(const char* name, const char* displayType);
+
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
         DslReturnType OdeActionPrintNew(const char* name);
@@ -168,6 +170,8 @@ namespace DSL {
         DslReturnType OdeAreaDeleteAll();
         
         uint OdeAreaListSize();
+        
+        DslReturnType OdeTriggerAlwaysNew(const char* name, uint when);
         
         DslReturnType OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit);
         

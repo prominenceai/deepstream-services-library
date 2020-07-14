@@ -110,9 +110,26 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # One more Action used to display all Object detection summations for each frame. Use the classId
+        # Create a new  Action used to display all Object detection summations for each frame. Use the classId
         # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=10, offsetY=50, offsetY_with_classId=True)
+        retval = dsl_ode_action_display_new('display-action', offsetX=15, offsetY=50, offsetY_with_classId=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New RGBA Rectangle to use as a background for summation display. Using the default black with alpha=1.0
+        retval = dsl_display_type_rgba_rectangle_new('black-rectangle', left=10, top=45, width=190, height=110, 
+            border_width=0, color='DSL_BLACK_100', has_bg_color=True, bg_color='DSL_BLACK_100')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new Action to display the black rectangle as a background for the summantion display
+        retval = dsl_ode_action_overlay_frame_new('overlay-black-rectangle', 'black-rectangle')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_PRE_CHECK_FOR_OCCURRENCES)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-black-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -197,6 +214,7 @@ def main(args):
             'vehicle-area-overlap',
             'person-area-overlap', 
             'bicycle-first-occurrence',
+            'always-trigger',
             'Vehicles:',
             'Bicycles:',
             'Pedestrians:',

@@ -210,10 +210,20 @@ THE SOFTWARE.
 
 #define RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(types, name, displayType) do \
 { \
-    if (!types[name]->IsType(typeid(displayType)))\
+    if (!types[name]->IsType(typeid(displayType))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not the correct type"); \
         return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(types, name) do \
+{ \
+    if (types[name]->IsType(typeid(RgbaColor)) or \
+        types[name]->IsType(typeid(RgbaFont))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is base type and can not be displayed"); \
+        return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
     } \
 }while(0); 
 
@@ -897,6 +907,36 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionOverlayFrameNew(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, m_displayTypes[displayType]);
+
+            LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Overlay Frame Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {
         LOG_FUNC();
@@ -1569,6 +1609,38 @@ namespace DSL
         return m_odeAreas.size();
     }
         
+    DslReturnType Services::OdeTriggerAlwaysNew(const char* name, uint when)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            if (when > DSL_POST_CHECK_FOR_OCCURRENCES)
+            {   
+                LOG_ERROR("Invalid 'when' parameter for ODE Trigger name '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ALWAYS_NEW(name, when);
+            
+            LOG_INFO("New Always ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Always ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Always ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit)
     {
         LOG_FUNC();
@@ -6421,6 +6493,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";
@@ -6525,6 +6598,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE";

@@ -77,6 +77,10 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
         
+    #define DSL_ODE_ACTION_OVERLAY_FRAME_PTR std::shared_ptr<OverlayFrameOdeAction>
+    #define DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, displayType) \
+        std::shared_ptr<OverlayFrameOdeAction>(new OverlayFrameOdeAction(name, displayType))
+        
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -645,6 +649,44 @@ namespace DSL
     
     };
         
+    // ********************************************************************
+
+    /**
+     * @class OverlayFrameOdeAction
+     * @brief Frame Overlay ODE Action class
+     */
+    class OverlayFrameOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the OverlayFrame ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] shared pointer to the 
+         */
+        OverlayFrameOdeAction(const char* name, DSL_BASE_PTR pDisplayType);
+        
+        /**
+         * @brief dtor for the OverlayFrame ODE Action class
+         */
+        ~OverlayFrameOdeAction();
+        
+        /**
+         * @brief Handles the ODE by overlaying the pFrameMeta with the named Display Type
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+        DSL_BASE_PTR m_pDisplayType;
+    
+    };
     // ********************************************************************
 
     /**
