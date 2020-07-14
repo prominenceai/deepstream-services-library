@@ -237,6 +237,17 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
+DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrType(display_type);
+    std::string cstrType(wstrType.begin(), wstrType.end());
+
+    return DSL::Services::GetServices()->OdeActionOverlayFrameNew(cstrName.c_str(), 
+        cstrType.c_str());
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     std::wstring wstrName(name);
@@ -547,6 +558,14 @@ DslReturnType dsl_ode_area_delete_all()
 uint dsl_ode_area_list_size()
 {
     return DSL::Services::GetServices()->OdeAreaListSize();
+}
+
+DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerAlwaysNew(cstrName.c_str(), when);
 }
 
 DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit)

@@ -33,14 +33,17 @@ SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
         std::wstring colorName(L"my-color");
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
+        REQUIRE( dsl_display_type_list_size() == 0 );
         WHEN( "A new RGBA Color is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
                 red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_display_type_list_size() == 1 );
             
             THEN( "The Action can be deleted" ) 
             {
                 REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Color is created" ) 
@@ -54,6 +57,7 @@ SCENARIO( "A new RGBA Color can be created and deleted", "[display-types-api]" )
                     red, green, blue, alpha) == DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(colorName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -81,6 +85,7 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
             {
                 REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Font is created" ) 
@@ -95,6 +100,7 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
 
                 REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -129,6 +135,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
             {
                 REQUIRE( dsl_display_type_delete(textName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Text is created" ) 
@@ -143,6 +150,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
 
                 REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -171,6 +179,7 @@ SCENARIO( "A new RGBA Line can be created and deleted", "[display-types-api]" )
             {
                 REQUIRE( dsl_display_type_delete(lineName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Line is created" ) 
@@ -185,6 +194,7 @@ SCENARIO( "A new RGBA Line can be created and deleted", "[display-types-api]" )
 
                 REQUIRE( dsl_display_type_delete(lineName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -213,6 +223,7 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
             {
                 REQUIRE( dsl_display_type_delete(rectangleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Rectangle is created" ) 
@@ -227,6 +238,7 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
 
                 REQUIRE( dsl_display_type_delete(rectangleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -255,6 +267,7 @@ SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" 
             {
                 REQUIRE( dsl_display_type_delete(circleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new RGBA Circle is created" ) 
@@ -269,6 +282,7 @@ SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" 
 
                 REQUIRE( dsl_display_type_delete(circleName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }

@@ -36,6 +36,9 @@ DSL_CAPTURE_TYPE_FRAME = 1
 DSL_ODE_TRIGGER_LIMIT_NONE = 0
 DSL_ODE_TRIGGER_LIMIT_ONE = 1
 
+DSL_ODE_PRE_OCCURRENCE_CHECK = 0
+DSL_ODE_POST_OCCURRENCE_CHECK = 1
+
 # Any Source/Class == INT32_MAX
 DSL_ODE_ANY_SOURCE = int('7FFFFFFF',16)
 DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
@@ -269,6 +272,16 @@ _dsl.dsl_ode_action_log_new.restype = c_uint
 def dsl_ode_action_log_new(name):
     global _dsl
     result =_dsl.dsl_ode_action_log_new(name)
+    return int(result)
+
+##
+## dsl_ode_action_overlay_frame_new()
+##
+_dsl.dsl_ode_action_overlay_frame_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_overlay_frame_new.restype = c_uint
+def dsl_ode_action_overlay_frame_new(name, display_type):
+    global _dsl
+    result =_dsl.dsl_ode_action_overlay_frame_new(name, display_type)
     return int(result)
 
 ##
@@ -563,6 +576,16 @@ _dsl.dsl_ode_area_list_size.restype = c_uint
 def dsl_ode_area_list_size():
     global _dsl
     result =_dsl.dsl_ode_area_list_size()
+    return int(result)
+
+##
+## dsl_ode_trigger_always_new()
+##
+_dsl.dsl_ode_trigger_always_new.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_always_new.restype = c_uint
+def dsl_ode_trigger_always_new(name, when):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_always_new(name, when)
     return int(result)
 
 ##

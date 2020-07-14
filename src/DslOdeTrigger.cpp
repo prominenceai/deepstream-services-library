@@ -391,6 +391,47 @@ namespace DSL
     }    
     
     // *****************************************************************************
+    AlwaysOdeTrigger::AlwaysOdeTrigger(const char* name, uint when)
+        : OdeTrigger(name, DSL_ODE_ANY_CLASS, 0)
+        , m_when(when)
+    {
+        LOG_FUNC();
+    }
+
+    AlwaysOdeTrigger::~AlwaysOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    void AlwaysOdeTrigger::PreProcessFrame(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_enabled and m_when == DSL_ODE_PRE_OCCURRENCE_CHECK)
+        {
+            for (const auto &imap: m_pOdeActions)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+            }
+        }
+    }
+
+    uint AlwaysOdeTrigger::PostProcessFrame(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_enabled and m_when == DSL_ODE_POST_OCCURRENCE_CHECK)
+        {
+            for (const auto &imap: m_pOdeActions)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    // *****************************************************************************
 
     OccurrenceOdeTrigger::OccurrenceOdeTrigger(const char* name, uint classId, uint limit)
         : OdeTrigger(name, classId, limit)

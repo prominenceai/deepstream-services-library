@@ -263,6 +263,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
+#define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
 
 /**
  * ODE Action API Return Values
@@ -293,12 +294,13 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND                      0x00100002
 #define DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION                     0x00100003
 #define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00100004
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100005
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100006
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100007
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x00100008
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x00100009
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000A
+#define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00100005
+#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100006
+#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100007
+#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100008
+#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x00100009
+#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000A
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000B
 
 /**
  *
@@ -333,6 +335,11 @@ THE SOFTWARE.
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
+// Trigger-Always 'when' constants, pre/post check-for-occurrence
+#define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
+#define DSL_ODE_POST_OCCURRENCE_CHECK                               1
+
+// Source and Class Trigger filter constants for no-filter
 #define DSL_ODE_ANY_SOURCE                                          INT32_MAX
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 
@@ -647,6 +654,16 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
+ * @brief Creates a uniquely named Frame Overlay ODE Action to overlay the Frame meta with
+ * a uniquely named Display Type 
+ * @param[in] name unique name for the Frame Overlay ODE Action 
+ * @param[in] display_type unique name of the Display Type to overlay on ODE occurrence
+ * Note: the Display Type must exist prior to constructing the Action.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type);
+
+/**
  * @brief Creates a uniquely named Pause ODE Action
  * @param[in] name unique name for the Pause ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
@@ -932,6 +949,18 @@ DslReturnType dsl_ode_area_delete_all();
  * @return the number of ODE Actions in the list
  */
 uint dsl_ode_area_list_size();
+
+/**
+ * @brief Frame-Meta trigger that triggers for every Frame metadata, always. 
+ * Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect.
+ * The Source ID default == ANY_SOURCE and can be update to specificy a single source id
+ * Although always triggered, the client selects whether to Trigger an ODE occurrence
+ * before (pre) or after (post) processing all Object metadata for all other Triggers.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] when DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when);
 
 /**
  * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 

@@ -536,6 +536,54 @@ namespace DSL
 
     // ********************************************************************
 
+    OverlayFrameOdeAction::OverlayFrameOdeAction(const char* name, DSL_BASE_PTR pDisplayType)
+        : OdeAction(name)
+        , m_pDisplayType(pDisplayType)
+    {
+        LOG_FUNC();
+    }
+
+    OverlayFrameOdeAction::~OverlayFrameOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void OverlayFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+            
+            if (m_pDisplayType->IsType(typeid(RgbaText)))
+            {
+                DSL_RGBA_TEXT_PTR pText = std::dynamic_pointer_cast<RgbaText>(m_pDisplayType);
+                pDisplayMeta->text_params[pDisplayMeta->num_labels++] = *pText;
+            }
+            if (m_pDisplayType->IsType(typeid(RgbaLine)))
+            {
+                DSL_RGBA_LINE_PTR pLine = std::dynamic_pointer_cast<RgbaLine>(m_pDisplayType);
+                pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *pLine;
+            }
+            if (m_pDisplayType->IsType(typeid(RgbaRectangle)))
+            {
+                DSL_RGBA_RECTANGLE_PTR pRectangle = std::dynamic_pointer_cast<RgbaRectangle>(m_pDisplayType);
+                pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *pRectangle;
+            }
+            if (m_pDisplayType->IsType(typeid(RgbaCircle)))
+            {
+                DSL_RGBA_CIRCLE_PTR pCircle = std::dynamic_pointer_cast<RgbaCircle>(m_pDisplayType);
+                pDisplayMeta->circle_params[pDisplayMeta->num_circles++] = *pCircle;
+            }
+            
+            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+        }
+    }
+
+    // ********************************************************************
+
     PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
         : OdeAction(name)
         , m_pipeline(pipeline)
