@@ -280,6 +280,52 @@ SCENARIO( "A new Absence Trigger can be created and deleted correctly", "[ode-tr
     }
 }    
 
+SCENARIO( "A new Always Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Always Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"always");
+        uint when(DSL_ODE_POST_OCCURRENCE_CHECK);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_always_new(odeTriggerName.c_str(), when) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_always_new(odeTriggerName.c_str(), when) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_always_new(odeTriggerName.c_str(), when) 
+                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+        WHEN( "When an Invalid 'when' parameter is provided" )         
+        {
+            when += 100;
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_always_new(odeTriggerName.c_str(), when+100) 
+                    == DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new Summation Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Summation Trigger" ) 

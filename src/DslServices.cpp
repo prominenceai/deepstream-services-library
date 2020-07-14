@@ -1622,7 +1622,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            if (when > DSL_POST_CHECK_FOR_OCCURRENCES)
+            if (when > DSL_ODE_POST_OCCURRENCE_CHECK)
             {   
                 LOG_ERROR("Invalid 'when' parameter for ODE Trigger name '" << name << "'");
                 return DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID;

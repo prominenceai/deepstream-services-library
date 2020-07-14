@@ -335,9 +335,11 @@ THE SOFTWARE.
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
-#define DSL_PRE_CHECK_FOR_OCCURRENCES                               0
-#define DSL_POST_CHECK_FOR_OCCURRENCES                              1
+// Trigger-Always 'when' constants, pre/post check-for-occurrence
+#define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
+#define DSL_ODE_POST_OCCURRENCE_CHECK                               1
 
+// Source and Class Trigger filter constants for no-filter
 #define DSL_ODE_ANY_SOURCE                                          INT32_MAX
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 

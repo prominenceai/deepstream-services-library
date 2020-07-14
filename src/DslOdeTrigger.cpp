@@ -406,7 +406,7 @@ namespace DSL
     void AlwaysOdeTrigger::PreProcessFrame(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (m_enabled and m_when == DSL_PRE_CHECK_FOR_OCCURRENCES)
+        if (m_enabled and m_when == DSL_ODE_PRE_OCCURRENCE_CHECK)
         {
             for (const auto &imap: m_pOdeActions)
             {
@@ -419,7 +419,7 @@ namespace DSL
     uint AlwaysOdeTrigger::PostProcessFrame(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (m_enabled and m_when == DSL_POST_CHECK_FOR_OCCURRENCES)
+        if (m_enabled and m_when == DSL_ODE_POST_OCCURRENCE_CHECK)
         {
             for (const auto &imap: m_pOdeActions)
             {
