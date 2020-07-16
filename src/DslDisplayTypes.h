@@ -47,6 +47,10 @@ namespace DSL
     #define DSL_RGBA_LINE_NEW(name, x1, y1, x2, y2, width, color) \
         std::shared_ptr<RgbaLine>(new RgbaLine(name, x1, y1, x2, y2, width, color))
 
+    #define DSL_RGBA_ARROW_PTR std::shared_ptr<RgbaArrow>
+    #define DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, color) \
+        std::shared_ptr<RgbaArrow>(new RgbaArrow(name, x1, y1, x2, y2, width, head, color))
+
     #define DSL_RGBA_RECTANGLE_PTR std::shared_ptr<RgbaRectangle>
     #define DSL_RGBA_RECTANGLE_NEW(name, left, top, width, height, borderWidth, color, hasBgColor, bgColor) \
         std::shared_ptr<RgbaRectangle>(new RgbaRectangle(name, left, top, width, height, borderWidth, color, hasBgColor, bgColor))
@@ -177,6 +181,36 @@ namespace DSL
     
     // ********************************************************************
 
+    class RgbaArrow : public Base, public NvOSD_ArrowParams
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Line
+         * @param[in] name unique name for the RGBA Arrow
+         * @param[in] x1 starting x positional offest
+         * @param[in] y1 starting y positional offest
+         * @param[in] x2 ending x positional offest
+         * @param[in] y2 ending y positional offest
+         * @param[in] width width of the line in pixels
+         * @param[in] head position of arrow head START_HEAD, END_HEAD, BOTH_HEAD
+         * @param[in] color RGBA Color for thIS RGBA Line
+         */
+        RgbaArrow(const char* name, uint x1, uint y1, uint x2, uint y2, 
+            uint width, uint head, DSL_RGBA_COLOR_PTR color)
+            : Base(name)
+            , NvOSD_ArrowParams{x1, y1, x2, y2, width, (NvOSD_Arrow_Head_Direction)head, *color}
+        {
+            LOG_FUNC();
+        }
+
+        ~RgbaArrow()
+        {
+            LOG_FUNC();
+        }
+    };
+    // ********************************************************************
+
     class RgbaRectangle : public Base, public NvOSD_RectParams
     {
     public:
@@ -227,7 +261,7 @@ namespace DSL
         RgbaCircle(const char* name, uint x_center, uint y_center, uint radius,
             DSL_RGBA_COLOR_PTR color, bool hasBgColor, DSL_RGBA_COLOR_PTR bgColor)
             : Base(name)
-            , NvOSD_CircleParams{x_center, y_center, radius, *color, 1, *bgColor}
+            , NvOSD_CircleParams{x_center, y_center, radius, *color, hasBgColor, *bgColor}
         {
             LOG_FUNC();
         }
@@ -237,7 +271,7 @@ namespace DSL
             LOG_FUNC();
         }
     };
-    
+
 }
 #endif // _DSL_DISPLAY_TYPES_H
     

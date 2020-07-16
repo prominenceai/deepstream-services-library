@@ -64,6 +64,9 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaLineNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
             
+        DslReturnType DisplayTypeRgbaArrowNew(const char* name, 
+            uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color);
+            
         DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
             uint borderWidth, const char* color, bool hasBgColor, const char* bgColor);
     

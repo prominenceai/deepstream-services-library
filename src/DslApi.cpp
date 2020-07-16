@@ -79,6 +79,18 @@ DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name,
         x1, y1, x2, y2, width, cstrColor.c_str());
 }
     
+DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
+    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaArrowNew(cstrName.c_str(), 
+        x1, y1, x2, y2, width, head, cstrColor.c_str());
+}
+    
 DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
     uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
 {

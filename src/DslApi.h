@@ -300,8 +300,10 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100008
 #define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100009
 #define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0010000A
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000B
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000C
+#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0010000B
+#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0010000C
+#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
 
 /**
  *
@@ -343,6 +345,11 @@ THE SOFTWARE.
 // Source and Class Trigger filter constants for no-filter
 #define DSL_ODE_ANY_SOURCE                                          INT32_MAX
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
+
+// Must match NvOSD_Arrow_Head_Direction
+#define DSL_ARROW_START_HEAD                                        0
+#define DSL_ARROW_END_HEAD                                          1
+#define DSL_ARROW_BOTH_HEAD                                         2
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -507,6 +514,21 @@ DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t*
  */
 DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name, 
     uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color);
+
+/**
+ * @brief creates a uniquely named RGBA Display Arrow
+ * @param[in] name unique name for the RGBA Arrow
+ * @param[in] x1 starting x positional offest
+ * @param[in] y1 starting y positional offest
+ * @param[in] x2 ending x positional offest
+ * @param[in] y2 ending y positional offest
+ * @param[in] width width of the Arrow in pixels
+ * @param[in] head DSL_ARROW_START_HEAD, DSL_ARROW_END_HEAD, DSL_ARROW_BOTH_HEAD
+ * @param[in] color RGBA Color for thIS RGBA Line
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
+    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color);
 
 /**
  * @brief creates a uniquely named RGBA Rectangle

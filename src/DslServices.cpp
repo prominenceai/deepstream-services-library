@@ -495,6 +495,45 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::DisplayTypeRgbaArrowNew(const char* name, 
+        uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Arrow name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE;
+            }
+
+            if (head > DSL_ARROW_BOTH_HEAD)
+            {
+                LOG_ERROR("RGBA Head Type Invalid for RGBA Arrow'" << name << "'");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID;
+            }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, pColor);
+
+            LOG_INFO("New RGBA Arrow '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Arrow '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
         uint borderWidth, const char* color, bool hasBgColor, const char* bgColor)
     {
@@ -6597,9 +6636,12 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 
-} // namespace 
+} // namespace
+ 

@@ -275,7 +275,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Set Streammux dimensions, as the record sink does not work well with the defaults
+        # IMPORTANT *******
+        # Set Streammux dimensions, as the record sink does not work well with the defaults of 1920 x 1080
+        # Hope this is issue is resolved in the GA release of Deepstream 5.0
         retval = dsl_pipeline_streammux_dimensions_set('pipeline', WINDOW_WIDTH, WINDOW_HEIGHT)
 
         # Add the XWindow event handler functions defined above
