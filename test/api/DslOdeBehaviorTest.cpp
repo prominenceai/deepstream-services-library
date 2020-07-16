@@ -545,6 +545,18 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
         uint textOffsetX(10);
         uint textOffsetY(20);
         
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-14");
+        uint size(14);
+
+        std::wstring fullBlack(L"full-black");
+        REQUIRE( dsl_display_type_rgba_color_new(fullBlack.c_str(), 
+            0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
+
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -559,8 +571,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
         
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
-        // Single display action shared by all ODT Occurrence Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true) == DSL_RESULT_SUCCESS );
+        // Single display action shared by all ODE Occurrence Types
+        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
+            fontName.c_str(), false, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all occurrences
         REQUIRE( dsl_ode_trigger_occurrence_new(carOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
@@ -603,6 +616,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -659,6 +674,17 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
         std::wstring displayActionName(L"display-action");
         uint textOffsetX(10);
         uint textOffsetY(20);
+
+        std::wstring fullBlack(L"full-black");
+        REQUIRE( dsl_display_type_rgba_color_new(fullBlack.c_str(), 
+            0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
+
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-14");
+        uint size(14);
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -675,7 +701,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Single display action shared by all ODT Occurrence Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
+            fontName.c_str(), false, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all occurrences
         REQUIRE( dsl_ode_trigger_summation_new(carOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
@@ -718,6 +745,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -781,6 +810,25 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         
         std::wstring areaName(L"area");
         
+        std::wstring lightRed(L"light-red");
+        REQUIRE( dsl_display_type_rgba_color_new(lightRed.c_str(), 
+            0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
+
+        std::wstring fullWhite(L"full-white");
+        REQUIRE( dsl_display_type_rgba_color_new(fullWhite.c_str(), 
+            1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
+
+        std::wstring fullBlack(L"full-black");
+        REQUIRE( dsl_display_type_rgba_color_new(fullBlack.c_str(), 
+            1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
+
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-14");
+        uint size(14);
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fullWhite.c_str()) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
@@ -798,7 +846,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         // Set Area critera, and The fill action for ODE occurrence caused by overlap
         REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_fill_object_new(fillActionName.c_str(), 0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_fill_object_new(fillActionName.c_str(), lightRed.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria
@@ -806,7 +854,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_ode_trigger_area_add(personOccurrenceName.c_str(), areaName.c_str()) == DSL_RESULT_SUCCESS );
 
         // Single display action shared by all ODT Summation Types
-        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
+            fontName.c_str(), true, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all Summation types and add common Display action
         REQUIRE( dsl_ode_trigger_summation_new(carSummationName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
@@ -851,6 +900,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }

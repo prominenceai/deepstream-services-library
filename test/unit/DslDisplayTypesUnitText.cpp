@@ -56,7 +56,8 @@ SCENARIO( "A RGBA Font is constructed correctly", "[DisplayTypes]" )
     GIVEN( "Attrubutes for a new RGBA Font" )
     {
 
-        std::string fontName  = "arial";
+        std::string fontName  = "arial-10";
+        std::string font  = "arial";
         uint size(10);
         std::string colorName  = "my-custom-color";
         
@@ -66,12 +67,13 @@ SCENARIO( "A RGBA Font is constructed correctly", "[DisplayTypes]" )
         
         WHEN( "The RGBA Font is created" )
         {
-            DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), size, pColor);
+            DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), font.c_str(), size, pColor);
             
             THEN( "Its member variables are initialized correctly" )
             {
                 REQUIRE( pFont->GetName() == fontName );
-                REQUIRE( pFont->font_name == pFont->GetName().c_str() );
+                REQUIRE( pFont->font_name == NULL );
+                REQUIRE( pFont->m_fontName == font );
                 REQUIRE( pFont->font_size == size );
                 REQUIRE( pFont->font_color.red == red );
                 REQUIRE( pFont->font_color.blue == blue );
@@ -90,14 +92,15 @@ SCENARIO( "A RGBA Text is constructed correctly", "[DisplayTypes]" )
         std::string textName("my-custom-text");
         int xOffset(123), yOffset(456);
         std::string text("this is my custom display text");
-        std::string fontName("arial");
+        std::string fontName("arial-10");
+        std::string font("arial");
         uint size(10);
         std::string colorName("my-custom-color");
         
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
         DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
-        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), size, pColor);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), font.c_str(), size, pColor);
         
         WHEN( "The RGBA Text is created" )
         {
@@ -107,7 +110,8 @@ SCENARIO( "A RGBA Text is constructed correctly", "[DisplayTypes]" )
             THEN( "Its member variables are initialized correctly" )
             {
                 REQUIRE( pText->GetName() == textName );
-                REQUIRE( pText->display_text == pText->m_text.c_str() );
+                REQUIRE( pText->display_text == NULL );
+                REQUIRE( pText->m_text == text );
                 REQUIRE( pText->font_params.font_size == size );
                 REQUIRE( pText->font_params.font_color.red == red );
                 REQUIRE( pText->font_params.font_color.blue == blue );

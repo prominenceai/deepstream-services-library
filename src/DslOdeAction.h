@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
-//#include "DslOdeOccurrence.h"
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -50,24 +50,25 @@ namespace DSL
         std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction(name, outdir))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
-        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor) \
+        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, \
+            offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor))
         
     #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
-    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, red, green, blue, alpha) \
-        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, color) \
+        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, color))
 
     #define DSL_ODE_ACTION_FILL_FRAME_PTR std::shared_ptr<FillFrameOdeAction>
-    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, color) \
+        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, color))
 
     #define DSL_ODE_ACTION_FILL_OBJECT_PTR std::shared_ptr<FillObjectOdeAction>
-    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, color) \
+        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, color))
 
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
@@ -341,7 +342,8 @@ namespace DSL
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
          * @param[in] offsetYWithClassId adds an additional offset based on ODE class Id if set true
          */
-        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId);
+        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId,
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
          * @brief dtor for the Display ODE Action class
@@ -371,6 +373,22 @@ namespace DSL
          * @brief Vertical Y-offset for the ODE occurrence data to display
          */
         uint m_offsetY;
+        
+        /**
+         * @brief Font type to use for the displayed occurrence data.
+         */
+        DSL_RGBA_FONT_PTR m_pFont;
+        
+        /**
+         * true if the Display text has a background color, false otherwise.
+         */
+        bool m_hasBgColor;
+        
+        /**
+         * @brief the background color to use for the display text if hasBgColor.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+        
         /**
          * @brief Adds an additional offset based on ODE class Id if set true
          */
@@ -457,58 +475,6 @@ namespace DSL
     
     };
         
-    // ********************************************************************
-
-    /**
-     * @class FillAreaOdeAction
-     * @brief Fill ODE Action class
-     */
-    class FillAreaOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the ODE Fill Area Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] name unique name for the ODE Area to fill
-         * @param[in] red red level for the rectangle background color [0..1]
-         * @param[in] blue blue level for the rectangle background color [0..1]
-         * @param[in] green green level for the rectangle background color [0..1]
-         * @param[in] alpha alpha level for the rectangle background color [0..1]
-         */
-        FillAreaOdeAction(const char* name, const char* area, 
-            double red, double green, double blue, double alpha);
-        
-        /**
-         * @brief dtor for the ODE Display Action class
-         */
-        ~FillAreaOdeAction();
-        
-        /**
-         * @brief Handles the ODE occurrence by filling in a named ODE Area
-         * with a set of RGBA color values. The filled area applies to the current frame only.
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-            
-    private:
-    
-        /**
-         * @brief Unique name of the ODE Area to Fill
-         */
-        std::string m_odeArea;
-        
-        /**
-         * @brief Background color used to Fill the object
-         */
-        NvOSD_RectParams m_rectangleParams;
-    
-    };
 
     // ********************************************************************
 
@@ -523,12 +489,9 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] red red level for the rectangle background color [0..1]
-         * @param[in] blue blue level for the rectangle background color [0..1]
-         * @param[in] green green level for the rectangle background color [0..1]
-         * @param[in] alpha alpha level for the rectangle background color [0..1]
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
          */
-        FillFrameOdeAction(const char* name, double red, double green, double blue, double alpha);
+        FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -552,7 +515,7 @@ namespace DSL
         /**
          * @brief Background color used to Fill the object
          */
-        NvOSD_RectParams m_rectangleParams;
+        DSL_RGBA_COLOR_PTR m_pColor;
     
     };
 
@@ -569,12 +532,9 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Object Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] red red level for the object background color [0..1]
-         * @param[in] blue blue level for the object background color [0..1]
-         * @param[in] green green level for the object background color [0..1]
-         * @param[in] alpha alpha level for the object background color [0..1]
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Object
          */
-        FillObjectOdeAction(const char* name, double red, double green, double blue, double alpha);
+        FillObjectOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -598,7 +558,7 @@ namespace DSL
         /**
          * @brief Background color used to Fill the object
          */
-        NvOSD_ColorParams m_backgroundColor;
+        DSL_RGBA_COLOR_PTR m_pColor;
     
     };
     // ********************************************************************

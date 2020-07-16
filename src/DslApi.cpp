@@ -38,14 +38,16 @@ DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name,
         red, green, blue, alpha);
 }
 
-DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, uint size, const wchar_t* color)
+DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, const wchar_t* font, uint size, const wchar_t* color)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaFontNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->DisplayTypeRgbaFontNew(cstrName.c_str(), cstrFont.c_str(),
         size, cstrColor.c_str());
 }
 
@@ -168,14 +170,18 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
     return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), cstrOutdir.c_str());
 }
 
-DslReturnType dsl_ode_action_display_new(const wchar_t* name,
-    uint offsetX, uint offsetY, boolean offsetY_with_classId)
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
+    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
-        offsetX, offsetY, offsetY_with_classId);
+        offsetX, offsetY, offsetY_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler)
@@ -197,36 +203,26 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
     return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
 }
 
-DslReturnType dsl_ode_action_fill_area_new(const wchar_t* name,
-    const wchar_t* area, double red, double green, double blue, double alpha)
+DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrArea(area);
-    std::string cstrArea(wstrArea.begin(), wstrArea.end());
-
-    return DSL::Services::GetServices()->OdeActionFillAreaNew(cstrName.c_str(),
-        cstrArea.c_str(), red, green, blue, alpha);
-}
-
-DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name,
-    double red, double green, double blue, double alpha)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
     return DSL::Services::GetServices()->OdeActionFillFrameNew(cstrName.c_str(),
-        red, green, blue, alpha);
+        cstrColor.c_str());
 }
 
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name,
-    double red, double green, double blue, double alpha)
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
     return DSL::Services::GetServices()->OdeActionFillObjectNew(cstrName.c_str(),
-        red, green, blue, alpha);
+        cstrColor.c_str());
 }
 
 DslReturnType dsl_ode_action_log_new(const wchar_t* name)
@@ -601,13 +597,14 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
 }
 
 DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
-    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data)
+    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, 
+    dsl_ode_post_process_frame_cb client_post_processor, void* client_data)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeTriggerCustomNew(cstrName.c_str(), 
-        class_id, limit, client_checker, client_data);
+        class_id, limit, client_checker, client_post_processor, client_data);
 }
     
 DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, 
@@ -2615,6 +2612,7 @@ void dsl_delete_all()
     dsl_ode_trigger_delete_all();
     dsl_ode_area_delete_all();
     dsl_ode_action_delete_all();
+    dsl_display_type_delete_all();
 }
 
 

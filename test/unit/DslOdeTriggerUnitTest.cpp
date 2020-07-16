@@ -649,6 +649,12 @@ static boolean ode_check_for_occurrence_cb(void* buffer,
     return true;
 }
 
+static boolean ode_post_process_frame_cb(void* buffer,
+    void* frame_meta, void* client_data)
+{    
+    return true;
+}
+
 SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new CustomOdeTrigger with client occurrence checker" ) 
@@ -660,7 +666,8 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_CUSTOM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_CUSTOM_NEW(odeTriggerName.c_str(), classId, limit, ode_check_for_occurrence_cb, NULL);
+            DSL_ODE_TRIGGER_CUSTOM_NEW(odeTriggerName.c_str(), classId, limit, ode_check_for_occurrence_cb, 
+                ode_post_process_frame_cb, NULL);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());

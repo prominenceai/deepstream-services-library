@@ -98,7 +98,7 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
         # New Rectangle Area to be filled on Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_area_new('indicator', left=10, top=60, width=34, height=34, display=True)
+                retval = dsl_ode_area_new('indicator', left=10, top=60, width=34, height=34, display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
         

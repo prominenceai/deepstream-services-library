@@ -36,8 +36,8 @@ namespace DSL
         std::shared_ptr<RgbaColor>(new RgbaColor(name, red, green, blue, alpha))
 
     #define DSL_RGBA_FONT_PTR std::shared_ptr<RgbaFont>
-    #define DSL_RGBA_FONT_NEW(name, size, color) \
-        std::shared_ptr<RgbaFont>(new RgbaFont(name, size, color))
+    #define DSL_RGBA_FONT_NEW(name, font, size, color) \
+        std::shared_ptr<RgbaFont>(new RgbaFont(name, font, size, color))
 
     #define DSL_RGBA_TEXT_PTR std::shared_ptr<RgbaText>
     #define DSL_RGBA_TEXT_NEW(name, text, x_offset, y_offset, font, hasBgColor, bgColor) \
@@ -94,9 +94,10 @@ namespace DSL
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
-        RgbaFont(const char* name, uint size, DSL_RGBA_COLOR_PTR color)
+        RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color)
             : Base(name)
-            , NvOSD_FontParams{const_cast<char*>(GetCStrName()), size, *color}
+            , m_fontName(font)
+            , NvOSD_FontParams{NULL, size, *color}
         {
             LOG_FUNC();
         }
@@ -105,6 +106,8 @@ namespace DSL
         {
             LOG_FUNC();
         }
+        
+        std::string m_fontName;
     };
     
     // ********************************************************************
@@ -131,7 +134,6 @@ namespace DSL
                 *font, hasBgColor, *bgColor}
         {
             LOG_FUNC();
-            display_text = const_cast<char*>(m_text.c_str());    
         }
 
         ~RgbaText()
@@ -225,7 +227,7 @@ namespace DSL
         RgbaCircle(const char* name, uint x_center, uint y_center, uint radius,
             DSL_RGBA_COLOR_PTR color, bool hasBgColor, DSL_RGBA_COLOR_PTR bgColor)
             : Base(name)
-            , NvOSD_CircleParams{x_center, y_center, radius, *color, hasBgColor, *bgColor}
+            , NvOSD_CircleParams{x_center, y_center, radius, *color, 1, *bgColor}
         {
             LOG_FUNC();
         }

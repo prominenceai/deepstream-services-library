@@ -67,7 +67,8 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
 {
     GIVEN( "Attributes for a new RGBA Font" ) 
     {
-        std::wstring fontName(L"arial");
+        std::wstring fontName(L"arial-20");
+        std::wstring font(L"arial");
         uint size(20);
 
         std::wstring colorName(L"my-color");
@@ -78,7 +79,7 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
 
         WHEN( "A new RGBA Font is created" ) 
         {
-            REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), 
+            REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
                 size, colorName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The RGBA Font can be deleted" ) 
@@ -90,12 +91,12 @@ SCENARIO( "A new RGBA Font can be created and deleted", "[display-types-api]" )
         }
         WHEN( "A new RGBA Font is created" ) 
         {
-            REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), 
+            REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
                 size, colorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second RGBA Font of the same name fails to create" ) 
             {
-                REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), 
+                REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
                     size, colorName.c_str()) == DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE );
 
                 REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
@@ -114,7 +115,8 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
         std::wstring text(L"this is text to display");
         uint xOffset(100), yOffset(100);
 
-        std::wstring fontName(L"arial");
+        std::wstring fontName(L"arial-20");
+        std::wstring font(L"arial");
         uint size(20);
 
         std::wstring colorName(L"my-color");
@@ -123,7 +125,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
         REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), 
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, colorName.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RGBA Text is created" ) 

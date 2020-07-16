@@ -219,12 +219,28 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
     GIVEN( "Attributes for a new Display ODE Action" ) 
     {
         std::wstring actionName(L"display-action");
-        boolean offsetY_with_classId(true);
+        
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-20");
+        uint size(20);
+
+        std::wstring fontColorName(L"my-font-color");
+        std::wstring bgColorName(L"my-bg-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+        REQUIRE( dsl_display_type_rgba_color_new(fontColorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fontColorName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(bgColorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 
-                10, 10, offsetY_with_classId) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 10, 10, true, 
+                fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Display Action can be deleted" ) 
             {
@@ -234,13 +250,13 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
         }
         WHEN( "A new Display Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 
-                10, 10, offsetY_with_classId) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 10, 10, true, 
+                fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Display Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 
-                    10, 10, offsetY_with_classId) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 10, 10, true, 
+                    fontName.c_str(), true, bgColorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -254,10 +270,16 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
     GIVEN( "Attributes for a new Fill Frame ODE Action" ) 
     {
         std::wstring actionName(L"fill-frame-action");
+        
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Fill Frame Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Fill Frame Action can be deleted" ) 
             {
@@ -267,11 +289,11 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
         }
         WHEN( "A new Fill Frame Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Fill Frame Action of the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -286,9 +308,15 @@ SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-actio
     {
         std::wstring actionName(L"fill-object-action");
 
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
         WHEN( "A new Fill Object Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Fill Object Action can be deleted" ) 
             {
@@ -298,11 +326,11 @@ SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-actio
         }
         WHEN( "A new Fill Object Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Fill Object Action of the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), 0.0, 0.0, 0.0, 0.0) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

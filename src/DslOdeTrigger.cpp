@@ -637,9 +637,11 @@ namespace DSL
     // *****************************************************************************
 
     CustomOdeTrigger::CustomOdeTrigger(const char* name, 
-        uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, void* clientData)
+        uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
+        dsl_ode_post_process_frame_cb clientPostProcessor, void* clientData)
         : OdeTrigger(name, classId, limit)
         , m_clientChecker(clientChecker)
+        , m_clientPostProcessor(clientPostProcessor)
         , m_clientData(clientData)
     {
         LOG_FUNC();
@@ -653,7 +655,8 @@ namespace DSL
     bool CustomOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        // conditional execution
+        if (!m_enabled or !m_clientChecker or !checkForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -682,6 +685,40 @@ namespace DSL
             pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, pObjectMeta);
         }
         return true;
+    }
+    
+    uint CustomOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        // conditional execution
+        if (!m_enabled or m_clientPostProcessor == NULL)
+        {
+            return false;
+        }
+        try
+        {
+            if (!m_clientPostProcessor(pBuffer, pFrameMeta, m_clientData))
+            {
+                return 0;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custon ODE Trigger '" << GetName() << "' threw exception calling client callback");
+            return false;
+        }
+
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, NULL);
+        }
+        return 1;
     }
 
     // *****************************************************************************

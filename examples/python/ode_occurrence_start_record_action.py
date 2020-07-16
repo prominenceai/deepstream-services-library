@@ -32,13 +32,18 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+TILER_WIDTH = 1280
+TILER_HEIGHT = 720
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -89,6 +94,23 @@ def record_complete_listener(session_info, client_data):
     # reset the Trigger so that a new session can be started.
     print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
 
+## 
+# Custom check-for-occurrence (NOP) callback added to the Custome trigger.
+## 
+def check_for_occurrence(buffer, object_meta, frame_meta, client_data):
+    
+    return False
+
+## 
+# Custom post-process-frame callback added to the Custome trigger.
+## 
+def post_process_frame(buffer, frame_meta, client_data):
+    
+    # check the state of the Record Sink
+    retval, is_on = dsl_sink_record_is_on_get('record-sink')
+    
+    # if on... returning true will execute all of the Trigger's Actions
+    return is_on
 
 def main(args):
 
@@ -122,9 +144,55 @@ def main(args):
             break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Create new RGBA color types
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new Text type object that will be used to show the recording in progress
+        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', x_offset=10, y_offset=30, 
+            font='impact-20-white', has_bg_color=True, bg_color='opaque-black')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.
+        retval = dsl_display_type_rgba_circle_new('red-led', x_center=94, y_center=52, radius=8, 
+            color='full-red', has_bg_color=True, bg_color='full-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new Action to display the "recording in-progress" text
+        retval = dsl_ode_action_overlay_frame_new('rec-text-overlay', 'rec-text')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        # Create a new Action to display the "recording in-progress" text
+        retval = dsl_ode_action_overlay_frame_new('red-led-overlay', 'red-led')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_custom_new('rec-on-trigger', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE,
+            client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('rec-on-trigger', actions=[
+            'rec-text-overlay',
+            'red-led-overlay',
+            None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
-        retval = dsl_ode_action_fill_frame_new('red-flash-action', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -148,8 +216,11 @@ def main(args):
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger',
-            actions=['red-flash-action', 'bicycle-capture-action', 'start-record-action', None])
+        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
+            'red-flash-action', 
+            'bicycle-capture-action', 
+            'start-record-action', 
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
     
@@ -158,7 +229,10 @@ def main(args):
         retval = dsl_ode_handler_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add('ode-handler', 'bicycle-occurrence-trigger')
+        retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
+            'bicycle-occurrence-trigger',
+            'rec-on-trigger', 
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
     
@@ -181,7 +255,7 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
@@ -191,7 +265,7 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -200,6 +274,9 @@ def main(args):
             ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-handler', 'on-screen-display', 'window-sink', 'record-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Set Streammux dimensions, as the record sink does not work well with the defaults
+        retval = dsl_pipeline_streammux_dimensions_set('pipeline', WINDOW_WIDTH, WINDOW_HEIGHT)
 
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)

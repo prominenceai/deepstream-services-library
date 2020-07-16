@@ -293,14 +293,15 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00100001
 #define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND                      0x00100002
 #define DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION                     0x00100003
-#define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00100004
-#define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00100005
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100006
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100007
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100008
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x00100009
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000A
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000B
+#define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00100004
+#define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00100005
+#define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00100006
+#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100007
+#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100008
+#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100009
+#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0010000A
+#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000B
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000C
 
 /**
  *
@@ -389,6 +390,18 @@ typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* t
 typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
     void* frame_meta, void* object_meta, void* client_data);
 
+/**
+ * @brief callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
+ * registered, the function will be called on every frame AFTER all Check-For-Occurrence calls have been handles
+ * The client, determining that criteria is met for ODE occurrence,  returns true to invoke all ODE acctions owned by the Custom Trigger
+ * @param[in] pointer to a frame_meta structure that triggered the ODE event
+ * @param[in] pointer to a object_meta structure that triggered the ODE event
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
+    void* frame_meta, void* client_data);
+
 
 /**
  * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
@@ -459,12 +472,13 @@ DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name,
 
 /**
  * @brief creates a uniquely named RGBA Display Font
- * @param[in] name standard, unique string name of the actual font type
+ * @param[in] name unique name for the RGBA Font
+ * @param[in] fount standard, unique string name of the actual font type (eg. 'arial')
  * @param[in] size size of the font
  * @param[in] color name of the RGBA Color for the RGBA font
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, uint size, const wchar_t* color);
+DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, const wchar_t* font, uint size, const wchar_t* color);
 
 /**
  * @brief creates a uniquely named RGBA Display Text
@@ -579,28 +593,17 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
 /**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
- * @param[out] offsetX offset in the X direction for the OSD clock in pixels
- * @param[out] offsetY offset in the Y direction for the OSD clock in pixels
- * @param[out] offsetY_with_classId adds an additional offset based on ODE class Id if set true
- * The setting allows multiple ODE Triggers with difference class Ids to share the same Display action
+ * @param[in] offsetX offset in the X direction for the Display text
+ * @param[in] offsetY offset in the Y direction for the Display text
+ * @param[in] offsetY_with_classId adds an additional offset based on ODE class Id if set true
+ * The setting allows multiple ODE Triggers with different class Ids to share the same Display action
+ * @param[in] font RGBA Font type to use for the Display text
+ * @param[in] has_bg_color if true, displays the background color for the Display Text
+ * @param[in] bg_color color to use for the Display Text background color, if has_bg_color
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, boolean offsetY_with_classId);
-
-/**
- * @brief Creates a uniquely named Fill Area ODE Action, that fills an ODE Area
- * with a give RGBA color value
- * @param[in] name unique name for the Fill Area ODE Action
- * @param[in] area unique name for the ODE Area to Fill
- * @param[in] red red value for the RGBA background color [1..0]
- * @param[in] green green value for the RGBA background color [1..0]
- * @param[in] blue blue value for the RGBA background color [1..0]
- * @param[in] alpha alpha value for the RGBA background color [1..0]
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_fill_area_new(const wchar_t* name, const wchar_t* area,
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
+    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
@@ -612,8 +615,7 @@ DslReturnType dsl_ode_action_fill_area_new(const wchar_t* name, const wchar_t* a
  * @param[in] alpha alpha value for the RGBA background color [1..0]
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name,
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color);
 
 /**
  * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
@@ -625,8 +627,7 @@ DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name,
  * @param[in] alpha alpha value for the RGBA background color [1..0]
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name,
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
@@ -1010,12 +1011,15 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] client_checker client custom callback function to Check for the occurrence
- * of an ODE.
+ * of an ODE. Set this parameter to NULL to omit object checking/
+ * @param[in] client_post_processor client custom callback function to Check for the occurrence
+ * of an ODE after all objects have be checked. Set to NULL to omit post processing of Frame metadata
  * @param[in] client_data opaque client data returned to the client on callback
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
-    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
+    uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, 
+    dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
 /**
  * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
