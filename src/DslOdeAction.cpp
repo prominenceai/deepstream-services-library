@@ -507,6 +507,7 @@ namespace DSL
                 // need to allocate storage for actual text, then copy.
                 pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
                 pText->m_text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+                pDisplayMeta->text_params[pDisplayMeta->num_labels++] = *pText;
             }
             if (m_pDisplayType->IsType(typeid(RgbaLine)))
             {

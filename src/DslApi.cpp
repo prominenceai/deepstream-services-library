@@ -256,6 +256,17 @@ DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_
         cstrType.c_str());
 }
 
+DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrType(display_type);
+    std::string cstrType(wstrType.begin(), wstrType.end());
+
+    return DSL::Services::GetServices()->OdeActionOverlayFrameNew(cstrName.c_str(), 
+        cstrType.c_str());
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     std::wstring wstrName(name);

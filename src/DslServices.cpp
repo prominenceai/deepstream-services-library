@@ -983,6 +983,36 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionOverlayFrameNew(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, m_displayTypes[displayType]);
+
+            LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Overlay Frame Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {
         LOG_FUNC();

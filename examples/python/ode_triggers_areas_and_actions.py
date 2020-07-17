@@ -180,7 +180,7 @@ def main(args):
         retval = dsl_ode_action_overlay_frame_new('overlay-black-rectangle', 'black-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        # Create a new Action to display the black rectangle as a background for the summantion display
+        # Create a new Action to display the opaque black rectangle as a dropped shadow for the summantion display
         retval = dsl_ode_action_overlay_frame_new('overlay-black-shadow', 'black-shadow')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -209,6 +209,10 @@ def main(args):
             'overlay-blue-line',
             'overlay-blue-text',
             None])
+        retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-black-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
         
