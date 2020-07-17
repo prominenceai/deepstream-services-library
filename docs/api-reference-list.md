@@ -238,7 +238,21 @@
 * [dsl_demuxer_batch_meta_handler_add](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_add).
 * [dsl_demuxer_batch_meta_handler_remove](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_remove).
 
-### On-Screen Display (OSD);
+### Display Type:
+* [Overview](/docs/api-display-type.md)
+* [dsl_display_type_rgba_color_new](#dsl_display_type_rgba_color_new)
+* [dsl_display_type_rgba_font_new](#dsl_display_type_rgba_font_new)
+* [dsl_display_type_rgba_text_new](#dsl_display_type_rgba_text_new)
+* [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new)
+* [dsl_display_type_rgba_arrow_new](#dsl_display_type_rgba_arrow_new)
+* [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
+* [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
+* [dsl_display_type_delete](#dsl_display_type_delete)
+* [dsl_display_type_delete_many](#dsl_display_type_delete_many)
+* [dsl_display_type_delete_all](#dsl_display_type_delete_all)
+* [dsl_display_type_list_size](#dsl_display_type_list_size)
+
+### On-Screen Display (OSD):
 * [Overview](/docs/api-osd.md)
 * [dsl_osd_new](/docs/api-osd.md#dsl_osd_new)
 * [dsl_osd_clock_enabled_get](/docs/api-osd.md#dsl_osd_clock_enabled_get)
