@@ -57,8 +57,9 @@ namespace DSL
         std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, classId, limit))
         
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
-    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientData) \
-        std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, classId, limit, clientChecker, clientData))
+    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientPostProcessor, clientData) \
+        std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
+            classId, limit, clientChecker, clientPostProcessor, clientData))
 
     #define DSL_ODE_TRIGGER_MINIMUM_PTR std::shared_ptr<MinimumOdeTrigger>
     #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum) \
@@ -549,7 +550,8 @@ namespace DSL
     public:
     
         CustomOdeTrigger(const char* name, 
-            uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, void* clientData);
+            uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
+            dsl_ode_post_process_frame_cb clientPostProcessor, void* clientData);
         
         ~CustomOdeTrigger();
 
@@ -562,8 +564,16 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
+
         bool CheckForOccurrence(GstBuffer* pBuffer,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        /**
+         * @brief Function to call the client provided callback to post process the frame 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
         
     private:
     
@@ -571,6 +581,11 @@ namespace DSL
          * @brief client provided Check for Occurrence callback
          */
         dsl_ode_check_for_occurrence_cb m_clientChecker;
+        
+        /**
+         * @brief client provided Post-Process Frame callback
+         */
+        dsl_ode_post_process_frame_cb m_clientPostProcessor;
         
         /**
          * @brief client data to be returned to the client on callback

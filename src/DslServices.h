@@ -55,7 +55,7 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaColorNew(const char* name, 
             double red, double green, double blue, double alpha);
 
-        DslReturnType DisplayTypeRgbaFontNew(const char* name, 
+        DslReturnType DisplayTypeRgbaFontNew(const char* name, const char* font,
             uint size, const char* color);
             
         DslReturnType DisplayTypeRgbaTextNew(const char* name, const char* text, 
@@ -63,6 +63,9 @@ namespace DSL {
 
         DslReturnType DisplayTypeRgbaLineNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, const char* color);
+            
+        DslReturnType DisplayTypeRgbaArrowNew(const char* name, 
+            uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color);
             
         DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
             uint borderWidth, const char* color, bool hasBgColor, const char* bgColor);
@@ -83,19 +86,14 @@ namespace DSL {
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
         
-        DslReturnType OdeActionDisplayNew(const char* name,
-            uint offsetX, uint offsetY, bool offsetY_with_classId);
+        DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
+            boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
         
-        DslReturnType OdeActionFillAreaNew(const char* name,
-            const char* area, double red, double green, double blue, double alpha);
+        DslReturnType OdeActionFillFrameNew(const char* name, const char* color);
 
-        DslReturnType OdeActionFillFrameNew(const char* name,
-            double red, double green, double blue, double alpha);
-
-        DslReturnType OdeActionFillObjectNew(const char* name,
-            double red, double green, double blue, double alpha);
+        DslReturnType OdeActionFillObjectNew(const char* name, const char* color);
 
         DslReturnType OdeActionHandlerDisableNew(const char* name, const char* handler);
 
@@ -182,7 +180,8 @@ namespace DSL {
         DslReturnType OdeTriggerSummationNew(const char* name, uint classId, uint limit);
 
         DslReturnType OdeTriggerCustomNew(const char* name, 
-            uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data);
+            uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
+            dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
         DslReturnType OdeTriggerMinimumNew(const char* name, uint classId, uint limit, uint minimum);
         
@@ -625,9 +624,6 @@ namespace DSL {
          */
         uint GetNumSinksInUse();
 
-        /**
-         * @brief private helper function to initialize the m_displayTypes map with all default types.
-         */
         void InitDefaultDisplayTypes();
         
         /**

@@ -249,12 +249,15 @@ namespace DSL
 
     // ********************************************************************
 
-    DisplayOdeAction::DisplayOdeAction(const char* name, 
-        uint offsetX, uint offsetY, bool offsetYWithClassId)
+    DisplayOdeAction::DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId, 
+        DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_offsetYWithClassId(offsetYWithClassId)
+        , m_pFont(pFont)
+        , m_hasBgColor(hasBgColor)
+        , m_pBgColor(pBgColor)
     {
         LOG_FUNC();
     }
@@ -274,13 +277,12 @@ namespace DSL
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
             NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-            pDisplayMeta->num_labels = 1;
 
-            NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[0];
+            NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
-            std::string test = pTrigger->GetName() + " = " + std::to_string(pTrigger->m_occurrences);
-            test.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+            std::string text = pTrigger->GetName() + " = " + std::to_string(pTrigger->m_occurrences);
+            text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
 
             // Setup X and Y display offsets
             pTextParams->x_offset = m_offsetX;
@@ -289,23 +291,18 @@ namespace DSL
             // Typically set if action is shared by multiple ODE Triggers/ClassId's 
             if (m_offsetYWithClassId)
             {
-                pTextParams->y_offset += pTrigger->m_classId * 30 + 2;
+                pTextParams->y_offset += pTrigger->m_classId * 2 * m_pFont->font_size + 2;
             }
 
             // Font, font-size, font-color
-            pTextParams->font_params.font_name = (gchar *) "Serif";
-            pTextParams->font_params.font_size = 10;
-            pTextParams->font_params.font_color.red = 1.0;
-            pTextParams->font_params.font_color.green = 1.0;
-            pTextParams->font_params.font_color.blue = 1.0;
-            pTextParams->font_params.font_color.alpha = 1.0;
+            pTextParams->font_params = *m_pFont;
+            pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+            
 
             // Text background color
-            pTextParams->set_bg_clr = 1;
-            pTextParams->text_bg_clr.red = 0.0;
-            pTextParams->text_bg_clr.green = 0.0;
-            pTextParams->text_bg_clr.blue = 0.0;
-            pTextParams->text_bg_clr.alpha = 1.0;
+            pTextParams->set_bg_clr = m_hasBgColor;
+            pTextParams->text_bg_clr = *m_pBgColor;
             
             nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
@@ -313,72 +310,11 @@ namespace DSL
 
     // ********************************************************************
 
-    FillAreaOdeAction::FillAreaOdeAction(const char* name, const char* area, 
-        double red, double green, double blue, double alpha)
+    FillFrameOdeAction::FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
-        , m_odeArea(area)
-        , m_rectangleParams{0}
+        , m_pColor(pColor)
     {
         LOG_FUNC();
-        
-        m_rectangleParams.has_bg_color = 1;
-        m_rectangleParams.bg_color.red = red;
-        m_rectangleParams.bg_color.green = green;
-        m_rectangleParams.bg_color.blue = blue;
-        m_rectangleParams.bg_color.alpha = alpha;
-        
-    }
-
-    FillAreaOdeAction::~FillAreaOdeAction()
-    {
-        LOG_FUNC();
-
-    }
-
-    void FillAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (m_enabled)
-        {
-            boolean display;
-            
-            // Service will log error if Area is not found
-            uint left(0), top(0), width(0), height(0);
-            uint retval = Services::GetServices()->OdeAreaGet(m_odeArea.c_str(), 
-                &left, &top, &width, &height, &display);
-            m_rectangleParams.left = left;
-            m_rectangleParams.top = top;
-            m_rectangleParams.width = width;
-            m_rectangleParams.height = height;
-                
-            if ((retval != DSL_RESULT_SUCCESS) or (!display))
-            {
-                return;
-            }
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-            
-            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = m_rectangleParams;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
-    }
-
-    // ********************************************************************
-
-    FillFrameOdeAction::FillFrameOdeAction(const char* name, double red, double green, double blue, double alpha)
-        : OdeAction(name)
-        , m_rectangleParams{0}
-    {
-        LOG_FUNC();
-        
-        m_rectangleParams.left = 0;
-        m_rectangleParams.left = 0;
-        m_rectangleParams.has_bg_color = 1;
-        m_rectangleParams.bg_color.red = red;
-        m_rectangleParams.bg_color.green = green;
-        m_rectangleParams.bg_color.blue = blue;
-        m_rectangleParams.bg_color.alpha = alpha;
         
     }
 
@@ -395,10 +331,17 @@ namespace DSL
         {
             NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
             NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+
+            NvOSD_RectParams rectParams{0};
+            rectParams.left = 0;
+            rectParams.top = 0;
+            rectParams.width = pFrameMeta->source_frame_width;
+            rectParams.height = pFrameMeta->source_frame_height;
+            rectParams.border_width = 0;
+            rectParams.has_bg_color = true;
+            rectParams.bg_color = *m_pColor;
             
-            m_rectangleParams.width = pFrameMeta->source_frame_width;
-            m_rectangleParams.height = pFrameMeta->source_frame_height;
-            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = m_rectangleParams;
+            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = rectParams;
             
             nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
@@ -406,15 +349,11 @@ namespace DSL
 
     // ********************************************************************
 
-    FillObjectOdeAction::FillObjectOdeAction(const char* name, double red, double green, double blue, double alpha)
+    FillObjectOdeAction::FillObjectOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
+        , m_pColor(pColor)
     {
         LOG_FUNC();
-
-        m_backgroundColor.red = red;
-        m_backgroundColor.green = green;
-        m_backgroundColor.blue = blue;
-        m_backgroundColor.alpha = alpha;
     }
 
     FillObjectOdeAction::~FillObjectOdeAction()
@@ -428,8 +367,8 @@ namespace DSL
     {
         if (m_enabled and pObjectMeta)
         {
-            pObjectMeta->rect_params.has_bg_color = 1;
-            pObjectMeta->rect_params.bg_color = m_backgroundColor;
+            pObjectMeta->rect_params.has_bg_color = true;
+            pObjectMeta->rect_params.bg_color = *m_pColor;
         }
     }
 
@@ -560,6 +499,14 @@ namespace DSL
             if (m_pDisplayType->IsType(typeid(RgbaText)))
             {
                 DSL_RGBA_TEXT_PTR pText = std::dynamic_pointer_cast<RgbaText>(m_pDisplayType);
+                NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+
+                // copy over our text params, display_text currently == NULL
+                *pTextParams = *pText;
+                
+                // need to allocate storage for actual text, then copy.
+                pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+                pText->m_text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
                 pDisplayMeta->text_params[pDisplayMeta->num_labels++] = *pText;
             }
             if (m_pDisplayType->IsType(typeid(RgbaLine)))

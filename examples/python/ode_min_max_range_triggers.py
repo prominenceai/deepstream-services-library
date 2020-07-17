@@ -32,7 +32,7 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -42,6 +42,11 @@ PGIE_CLASS_ID_ROADSIGN = 3
 
 MIN_OBJECTS = 3
 MAX_OBJECTS = 8
+
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -97,36 +102,81 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
-        # New Rectangle Area to be filled on Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_area_new('indicator', left=10, top=60, width=34, height=34, display=True)
+        # New RGBA color types to be used for our object count indicator
+        retval = dsl_display_type_rgba_color_new('full-yellow', red=1.0, green=1.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+        retval = dsl_display_type_rgba_color_new('full-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('full-green', red=.0, green=1.0, blue=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # An opaque red RGBA color to fill the full frame as a secondary indication of Max Objects exceeded
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create all Fill-Area, Fill-Frame, Display and Hide Actions
+        # Next, create all Fill-Area, Fill-Frame Actions for our object count indicators
+            
+
+        ind_left=10
+        ind_top=60
+        ind_width=33
+        ind_height=ind_width
         
-        # New Action to fill the entire frame with a light shade of red - indicating object summation above maximum
-        retval = dsl_ode_action_fill_area_new('fill-area-red', 'indicator', red=1.0, blue=0.0, green=0.0, alpha=1.0)
+        # Three new RGBA Rectangles, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
+        retval = dsl_display_type_rgba_rectangle_new('yellow-rectangle', 
+            left=ind_left, top=ind_top, width=ind_width, height=ind_height, border_width=0, 
+            color='full-yellow', has_bg_color=True, bg_color='full-yellow')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_rectangle_new('red-rectangle', 
+            left=ind_left, top=ind_top, width=ind_width, height=ind_height, border_width=0, 
+            color='full-red', has_bg_color=True, bg_color='full-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_rectangle_new('green-rectangle', 
+            left=ind_left, top=ind_top, width=ind_width, height=ind_height, border_width=0, 
+            color='full-green', has_bg_color=True, bg_color='full-green')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action to fill the entire frame with a light shade of yellow - indicating object summation below minimium
-        retval = dsl_ode_action_fill_area_new('fill-area-yellow', 'indicator', red=1.0, blue=0.0, green=1.0, alpha=1.0)
+        # Three new Overlay Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
+        retval = dsl_ode_action_overlay_frame_new('overlay-yellow-rectangle', display_type='yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        # New Action to fill the indicator with a full shade of green - indicating object summation with in range
-        retval = dsl_ode_action_fill_area_new('fill-area-geen', 'indicator', red=0.0, blue=0.0, green=1.0, alpha=1.0)
+        retval = dsl_ode_action_overlay_frame_new('overlay-red-rectangle', display_type='red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+        retval = dsl_ode_action_overlay_frame_new('overlay-green-rectangle', display_type='green-rectangle')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Action to fill the entire frame with a light shade of red - a secondary indication of object summation above maximum
-        retval = dsl_ode_action_fill_frame_new('shade-frame-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        retval = dsl_ode_action_fill_frame_new('shade-frame-red', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action used to display all Object detection summations for each frame. 
-        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False)
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Next, new colors, fonts, rectangles and display action for displaying our object counts on the screen 
+
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_new('full-black', red=0.0, green=0.0, blue=0.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_font_new('arial-16-white', font='arial', size=16, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new  Action used to display all Object counts for each frame. Use the classId
+        # to add an additional vertical offset so the one action can be shared accross classId's
+        retval = dsl_ode_action_display_new('display-action', offsetX=45, offsetY=90, offsetY_with_classId=True,
+            font='arial-16-white', has_bg_color=True, bg_color='full-black')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -139,31 +189,31 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create Maximum, Minimum and Range Triggers, while adding their corresponding Fill colors
 
+        # New Minimum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_minimum_new('minimum-objects', 
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('minimum-objects', action='overlay-yellow-rectangle')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Maximum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
         retval = dsl_ode_trigger_maximum_new('maximum-objects', 
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, maximum=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('maximum-objects', actions=
-            ['shade-frame-red', 'fill-area-red', None])
+            ['shade-frame-red', 'overlay-red-rectangle', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Minimum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_minimum_new('minimum-objects', 
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('minimum-objects', action='fill-area-yellow')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New Range of occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
         retval = dsl_ode_trigger_range_new('range-of-objects', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
             lower=MIN_OBJECTS, upper=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('range-of-objects', action='fill-area-geen')
+        retval = dsl_ode_trigger_action_add('range-of-objects', action='overlay-green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -223,7 +273,7 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
@@ -233,7 +283,7 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

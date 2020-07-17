@@ -4,6 +4,11 @@ _dsl = CDLL('./dsl-lib.so')
 
 DSL_RETURN_SUCCESS = 0
 
+DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT = 4000000
+DSL_DEFAULT_STREAMMUX_WIDTH = 1920
+DSL_DEFAULT_STREAMMUX_HEIGHT = 1080
+
+
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
 
@@ -62,6 +67,7 @@ DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
+DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_SINK_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
 
 ##
@@ -84,11 +90,11 @@ def dsl_display_type_rgba_color_new(name, red, green, blue, alpha):
 ##
 ## dsl_display_type_rgba_font_new()
 ##
-_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, c_uint, c_wchar_p]
+_dsl.dsl_display_type_rgba_font_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
 _dsl.dsl_display_type_rgba_font_new.restype = c_uint
-def dsl_display_type_rgba_font_new(name, size, color):
+def dsl_display_type_rgba_font_new(name, font, size, color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_font_new(name, size, color)
+    result =_dsl.dsl_display_type_rgba_font_new(name, font, size, color)
     return int(result)
 
 ##
@@ -207,41 +213,31 @@ def dsl_ode_action_capture_object_new(name, outdir):
 ##
 ## dsl_ode_action_display_new()
 ##
-_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool]
+_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
-def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId):
+def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId)
-    return int(result)
-
-##
-## dsl_ode_action_fill_area_new()
-##
-_dsl.dsl_ode_action_fill_area_new.argtypes = [c_wchar_p, c_wchar_p, c_double, c_double, c_double, c_double]
-_dsl.dsl_ode_action_fill_area_new.restype = c_uint
-def dsl_ode_action_fill_area_new(name, area, red, green, blue, alpha):
-    global _dsl
-    result =_dsl.dsl_ode_action_fill_area_new(name, area, red, green, blue, alpha)
+    result =_dsl.dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId, font, has_bg_color, bg_color)
     return int(result)
 
 ##
 ## dsl_ode_action_fill_frame_new()
 ##
-_dsl.dsl_ode_action_fill_frame_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_frame_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_fill_frame_new.restype = c_uint
-def dsl_ode_action_fill_frame_new(name, red, green, blue, alpha):
+def dsl_ode_action_fill_frame_new(name, color):
     global _dsl
-    result =_dsl.dsl_ode_action_fill_frame_new(name, red, green, blue, alpha)
+    result =_dsl.dsl_ode_action_fill_frame_new(name, color)
     return int(result)
 
 ##
 ## dsl_ode_action_fill_object_new()
 ##
-_dsl.dsl_ode_action_fill_object_new.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
+_dsl.dsl_ode_action_fill_object_new.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_ode_action_fill_object_new.restype = c_uint
-def dsl_ode_action_fill_object_new(name, red, green, blue, alpha):
+def dsl_ode_action_fill_object_new(name, color):
     global _dsl
-    result =_dsl.dsl_ode_action_fill_object_new(name, red, green, blue, alpha)
+    result =_dsl.dsl_ode_action_fill_object_new(name, color)
     return int(result)
 
 ##
@@ -601,13 +597,16 @@ def dsl_ode_trigger_absence_new(name, class_id, limit):
 ##
 ## dsl_ode_trigger_custom_new()
 ##
-_dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_uint, c_uint, DSL_ODE_CHECK_FOR_OCCURRENCE, c_void_p]
+_dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_uint, c_uint, 
+    DSL_ODE_CHECK_FOR_OCCURRENCE, DSL_ODE_POST_PROCESS_FRAME, c_void_p]
 _dsl.dsl_ode_trigger_custom_new.restype = c_uint
-def dsl_ode_trigger_custom_new(name, class_id, limit, client_checker, client_data):
+def dsl_ode_trigger_custom_new(name, class_id, limit, client_checker, client_post_processor, client_data):
     global _dsl
     checker_cb = DSL_ODE_CHECK_FOR_OCCURRENCE(client_checker)
+    processor_cb = DSL_ODE_POST_PROCESS_FRAME(client_post_processor)
     callbacks.append(checker_cb)
-    result = _dsl.dsl_ode_trigger_custom_new(name, class_id, limit, checker_cb, client_data)
+    callbacks.append(processor_cb)
+    result = _dsl.dsl_ode_trigger_custom_new(name, class_id, limit, checker_cb, processor_cb, client_data)
     return int(result)
 
 ##

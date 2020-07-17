@@ -33,7 +33,7 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -105,7 +105,14 @@ def check_for_occurrence(buffer, frame_data, object_data, client_data):
     
     # return false, actions will NOT be invoked for this Trigger
     return False
+
+## 
+# Custom post-process-frame callback (NOP) added to the Custome trigger.
+## 
+def post_process_frame(buffer, frame_meta, client_data):
     
+    return False
+
 
 ## 
 # Function called by a Callback ODE Action to handle an ODE occurrence 
@@ -142,8 +149,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        # Create a new RGBA color type
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate occurrence
-        retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
+        retval = dsl_ode_action_fill_object_new('red-fill-action', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -155,7 +167,7 @@ def main(args):
         
         # New Custom Trigger, filtering on the Vehical Class Id, with no limit on the number of occurrences
         retval = dsl_ode_trigger_custom_new('custom-trigger', class_id=PGIE_CLASS_ID_VEHICLE, limit=0,
-            client_checker=check_for_occurrence, client_data=trigger_count)
+            client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=trigger_count)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Add the red-fill and shared-print actions to be called when the "check-for-occurrence" returns true

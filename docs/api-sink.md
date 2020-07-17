@@ -1,8 +1,9 @@
 # Sink API
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, among other components, to reach a state of Ready. DSL supports six types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports seven types of Sinks:
 * Overlay Sink - renders/overlays video on a Parent display
 * Window Sink - renders/overlays video on a Parent XWindow
 * File Sink - encodes video to a media container file
+* Record Sink - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering. 
 * Image Sink - transforms frame buffer data into jpeg image files
 * RTSP Sink - streams encoded video on a specifed port
 * Fake Sink - consumes/drops all data 
@@ -22,6 +23,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_overlay_new](#dsl_sink_overlay_new)
 * [dsl_sink_window_new](#dsl_sink_window_new)
 * [dsl_sink_file_new](#dsl_sink_file_new)
+* [dsl_sink_record_new](#dsl_sink_record_new)
 * [dsl_sink_image_new](#dsl_sink_file_new)
 * [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
@@ -35,9 +37,9 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_window_offsets_set](#dsl_sink_window_offsets_set)
 * [dsl_sink_window_dimensions_get](#dsl_sink_window_dimensions_get)
 * [dsl_sink_window_dimensions_set](#dsl_sink_window_dimensions_set)
-* [dsl_sink_file_video_formats_get](#dsl_sink_file_video_formats_get)
-* [dsl_sink_file_encoder_settings_get](#dsl_sink_file_encoder_settings_get)
-* [dsl_sink_file_encoder_settings_set](#dsl_sink_file_encoder_settings_set)
+* [dsl_sink_encode_video_formats_get](#dsl_sink_file_video_formats_get)
+* [dsl_sink_encode_settings_get](#dsl_sink_file_encoder_settings_get)
+* [dsl_sink_encodee_settings_set](#dsl_sink_file_encoder_settings_set)
 * [dsl_sink_image_outdir_get](#dsl_sink_image_outdir_get)
 * [dsl_sink_image_outdir_set](#dsl_sink_image_outdir_set)
 * [dsl_sink_image_frame_capture_interval_get](#dsl_sink_image_frame_capture_interval_get)
@@ -163,6 +165,33 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
 ```
 
+### *dsl_sink_record_new*
+```C++
+DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
+    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
+```
+The constructor creates a uniquely named Record Sink. Construction will fail if the name is currently in use. There are three Codec formats - `H.264`, `H.265`, and `MPEG` - and two video container types - `MPEG4` and `MK4` - supported.
+
+Note: the Sink name is used as the filename prefix, followed by session id and NTP time. 
+
+**Parameters**
+* `name` - [in] unique name for the Record Sink to create.
+* `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
+* `codec` - [in] on of the [Codec Types](#codec-types) defined above
+* `container` - [in] on of the [Video Container Types](#video-container-types) defined above
+* `bitrate` - [in] bitrate at which to code the video
+* `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame
+* `client_listener` - [in] client callback funtion to be called when the recording is complete or stoped.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_new('my-record-sink', 
+    './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 20000000, 0, my_client_record_complete_cb)
+```
+
 <br>
 
 ### *dsl_sink_image_new*
@@ -230,7 +259,6 @@ The constructor creates a uniquely named Fake Sink. Construction will fail if th
 ```Python
  retVal = dsl_sink_fake_new('my-fake-sink')
 ```
-
 
 <br>
 
@@ -416,14 +444,14 @@ retval = dsl_sink_window_dimensions_set('my-window-sink', 1280, 720)
 
 <br>
 
-### *dsl_sink_file_video_formats_get*
-This service returns the current video codec and container formats for the uniquely named File Sink.
+### *dsl_sink_encode_video_formats_get*
+This service returns the current video codec and container formats for the uniquely named Enocde Sink
 ```C++
-DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name, 
+DslReturnType dsl_sink_encode_video_formats_get(const wchar_t* name, 
     uint* codec, uint* container);
 ```
 **Parameters**
-* `name` - [in] unique name of the File Sink to query.
+* `name` - [in] unique name of the Encode Sink to query.
 * `codec` - [out] the current [Codec Type](#Codec Types) setting in use.
 * `container` - [out] the current [Video Container Type](#Video Container Types) setting in use.
 
@@ -432,19 +460,19 @@ DslReturnType dsl_sink_file_video_formats_get(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval, codec, container = dsl_sink_file_video_formats_get('my-window-sink')
+retval, codec, container = dsl_sink_encode_video_formats_get('my-record-sink')
 ```
 
 <br>
 
-### *dsl_sink_file_encoder_settings_get*
-This service returns the current bitrate and interval settings for the uniquely named File Sink.
+### *dsl_sink_encode_settings_get*
+This service returns the current bitrate and interval settings for the uniquely named Encode Sink.
 ```C++
-DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name, 
+DslReturnType dsl_sink_file_encode_settings_get(const wchar_t* name, 
     uint* bitrate, uint* interval);
 ```
 **Parameters**
-* `name` - [in] unique name of the File Sink to query.
+* `name` - [in] unique name of the Encode Sink to query.
 * `bitrate` - [out] current bitrate at which to code the video
 * `interval` - [out] current frame interval at which to code the video. 0 equals code every frame
 
@@ -453,19 +481,19 @@ DslReturnType dsl_sink_file_encoder_settings_get(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval, bitrate, interval = dsl_sink_file_encoder_settings_get('my-file-sink')
+retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
 ```
 
 <br>
 
-### *dsl_sink_file_encoder_settings_set*
-This service sets the bitrate and interval settings for the uniquely named File Sink. The service will fail if the File Sink is currently `in-use`.
+### *dsl_sink_encode_settings_set*
+This service sets the bitrate and interval settings for the uniquely named Encode Sink. The service will fail if the Encode Sink is currently `in-use`.
 ```C++
 DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name, 
     uint bitrate, uint interval);
 ```
 **Parameters**
-* `name` - [in] unique name of the File Sink to update.
+* `name` - [in] unique name of the Encode Sink to update.
 * `bitrate` - [in] new bitrate at which to code the video
 * `interval` - [in] new frame interval at which to code the video. Set to 0 to code every frame
 
@@ -474,7 +502,7 @@ DslReturnType dsl_sink_file_encoder_settings_set(const wchar_t* name,
 
 **Python Example**
 ```Python
-retval = dsl_sink_file_encoder_settings_set('my-file-sink', 2000000, 1)
+retval = dsl_sink_encode_settings_set('my-file-sink', 2000000, 1)
 ```
 
 <br>

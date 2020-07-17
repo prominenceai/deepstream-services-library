@@ -138,6 +138,7 @@
 ### ODE Trigger:
 * [Overview](/docs/api-ode-trigger.md)
 * [dsl_ode_trigger_absence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_absence_new)
+* [dsl_ode_trigger_always_new](/docs/api-ode-trigger.md#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_occurrence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_summation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_summation_new)
 * [dsl_ode_trigger_intersection_new](/docs/api-ode-trigger.md#dsl_ode_trigger_intersection_new)
@@ -187,18 +188,19 @@
 * [dsl_ode_action_callback_new](/docs/api-ode-action.md#dsl_ode_action_callback_new)
 * [dsl_ode_action_capture_frame_new](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](/docs/api-ode-action.md#dsl_ode_action_capture_object_new)
-* [dsl_ode_action_capture_kitti_new](/docs/api-ode-action.md#dsl_ode_action_kitti_new)
 * [dsl_ode_action_display_new](/docs/api-ode-action.md#dsl_ode_action_display_new)
 * [dsl_ode_action_dump_new](/docs/api-ode-action.md#dsl_ode_action_dump_new)
 * [dsl_ode_action_fill_new](/docs/api-ode-action.md#dsl_ode_action_fill_new)
 * [dsl_ode_action_handler_disable_new](/docs/api-ode-action.md#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](/docs/api-ode-action.md#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](/docs/api-ode-action.md#dsl_ode_action_log_new)
+* [dsl_ode_action_overlay_frame_new](/docs/api-ode-action.md#dsl_ode_action_overlay_frame_new)
 * [dsl_ode_action_pause_new](/docs/api-ode-action.md#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](/docs/api-ode-action.md#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](/docs/api-ode-action.md#dsl_ode_action_redact_new)
 * [dsl_ode_action_sink_add_new](/docs/api-ode-action.md#dsl_ode_action_sink_add_new)
 * [dsl_ode_action_sink_remove_new](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new)
+* [dsl_ode_action_sink_record_start_new](/docs/api-ode-action.md#dsl_ode_action_sink_record_start_new)
 * [dsl_ode_action_source_add_new](/docs/api-ode-action.md#dsl_ode_action_source_add_new)
 * [dsl_ode_action_source_remove_new](/docs/api-ode-action.md#dsl_ode_action_source_remove_new)
 * [dsl_ode_action_trigger_reset_new](/docs/api-ode-action.md#dsl_ode_action_trigger_reset_new)
@@ -238,7 +240,21 @@
 * [dsl_demuxer_batch_meta_handler_add](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_add).
 * [dsl_demuxer_batch_meta_handler_remove](/docs/api-tiler.md#dsl_demuxer_batch_meta_handler_remove).
 
-### On-Screen Display (OSD);
+### Display Type:
+* [Overview](/docs/api-display-type.md)
+* [dsl_display_type_rgba_color_new](#dsl_display_type_rgba_color_new)
+* [dsl_display_type_rgba_font_new](#dsl_display_type_rgba_font_new)
+* [dsl_display_type_rgba_text_new](#dsl_display_type_rgba_text_new)
+* [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new)
+* [dsl_display_type_rgba_arrow_new](#dsl_display_type_rgba_arrow_new)
+* [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
+* [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
+* [dsl_display_type_delete](#dsl_display_type_delete)
+* [dsl_display_type_delete_many](#dsl_display_type_delete_many)
+* [dsl_display_type_delete_all](#dsl_display_type_delete_all)
+* [dsl_display_type_list_size](#dsl_display_type_list_size)
+
+### On-Screen Display (OSD):
 * [Overview](/docs/api-osd.md)
 * [dsl_osd_new](/docs/api-osd.md#dsl_osd_new)
 * [dsl_osd_clock_enabled_get](/docs/api-osd.md#dsl_osd_clock_enabled_get)

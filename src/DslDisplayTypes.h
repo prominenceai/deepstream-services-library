@@ -36,8 +36,8 @@ namespace DSL
         std::shared_ptr<RgbaColor>(new RgbaColor(name, red, green, blue, alpha))
 
     #define DSL_RGBA_FONT_PTR std::shared_ptr<RgbaFont>
-    #define DSL_RGBA_FONT_NEW(name, size, color) \
-        std::shared_ptr<RgbaFont>(new RgbaFont(name, size, color))
+    #define DSL_RGBA_FONT_NEW(name, font, size, color) \
+        std::shared_ptr<RgbaFont>(new RgbaFont(name, font, size, color))
 
     #define DSL_RGBA_TEXT_PTR std::shared_ptr<RgbaText>
     #define DSL_RGBA_TEXT_NEW(name, text, x_offset, y_offset, font, hasBgColor, bgColor) \
@@ -46,6 +46,10 @@ namespace DSL
     #define DSL_RGBA_LINE_PTR std::shared_ptr<RgbaLine>
     #define DSL_RGBA_LINE_NEW(name, x1, y1, x2, y2, width, color) \
         std::shared_ptr<RgbaLine>(new RgbaLine(name, x1, y1, x2, y2, width, color))
+
+    #define DSL_RGBA_ARROW_PTR std::shared_ptr<RgbaArrow>
+    #define DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, color) \
+        std::shared_ptr<RgbaArrow>(new RgbaArrow(name, x1, y1, x2, y2, width, head, color))
 
     #define DSL_RGBA_RECTANGLE_PTR std::shared_ptr<RgbaRectangle>
     #define DSL_RGBA_RECTANGLE_NEW(name, left, top, width, height, borderWidth, color, hasBgColor, bgColor) \
@@ -94,9 +98,10 @@ namespace DSL
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
-        RgbaFont(const char* name, uint size, DSL_RGBA_COLOR_PTR color)
+        RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color)
             : Base(name)
-            , NvOSD_FontParams{const_cast<char*>(GetCStrName()), size, *color}
+            , m_fontName(font)
+            , NvOSD_FontParams{NULL, size, *color}
         {
             LOG_FUNC();
         }
@@ -105,6 +110,8 @@ namespace DSL
         {
             LOG_FUNC();
         }
+        
+        std::string m_fontName;
     };
     
     // ********************************************************************
@@ -131,7 +138,6 @@ namespace DSL
                 *font, hasBgColor, *bgColor}
         {
             LOG_FUNC();
-            display_text = const_cast<char*>(m_text.c_str());    
         }
 
         ~RgbaText()
@@ -173,6 +179,36 @@ namespace DSL
         }
     };
     
+    // ********************************************************************
+
+    class RgbaArrow : public Base, public NvOSD_ArrowParams
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Line
+         * @param[in] name unique name for the RGBA Arrow
+         * @param[in] x1 starting x positional offest
+         * @param[in] y1 starting y positional offest
+         * @param[in] x2 ending x positional offest
+         * @param[in] y2 ending y positional offest
+         * @param[in] width width of the line in pixels
+         * @param[in] head position of arrow head START_HEAD, END_HEAD, BOTH_HEAD
+         * @param[in] color RGBA Color for thIS RGBA Line
+         */
+        RgbaArrow(const char* name, uint x1, uint y1, uint x2, uint y2, 
+            uint width, uint head, DSL_RGBA_COLOR_PTR color)
+            : Base(name)
+            , NvOSD_ArrowParams{x1, y1, x2, y2, width, (NvOSD_Arrow_Head_Direction)head, *color}
+        {
+            LOG_FUNC();
+        }
+
+        ~RgbaArrow()
+        {
+            LOG_FUNC();
+        }
+    };
     // ********************************************************************
 
     class RgbaRectangle : public Base, public NvOSD_RectParams
@@ -235,7 +271,7 @@ namespace DSL
             LOG_FUNC();
         }
     };
-    
+
 }
 #endif // _DSL_DISPLAY_TYPES_H
     

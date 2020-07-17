@@ -2,7 +2,7 @@
 Object Detection Event (ODE) Actions implement a custom `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. The relationship of ODE Trigger to ODE Actions is many-tomany. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
+Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
 
 #### Actions on Actions
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
@@ -17,14 +17,14 @@ Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See
 Action can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
 
 #### Actions on Pipelines
-There are a number of Actions that dynamically the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new), and 
+There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new), and 
 
 #### ODE Action Construction and Destruction
 ODE Actions are created by calling one of type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE`. Once created, all Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete),
 [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail with a result of `DSL_RESULT_ODE_ACTION_IN_USE`
 
 #### Adding/Removing Actions
-ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-traigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-traigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-traigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-traigger#dsl_ode_trigger_action_remove_all).
+ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger#dsl_ode_trigger_action_remove_all).
 
 
 ## ODE Action API
@@ -44,11 +44,13 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
+* [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
 * [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new)
 * [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new)
+* [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new)
 * [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new)
 * [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new)
 * [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new)
@@ -461,7 +463,29 @@ $ export GST_DEBUG=1,DSL:4
 retval = dsl_ode_action_log_new('my-gstreamer-log-action')
 ```
 
+
 <br>
+
+### *dsl_ode_action_overlay_frame_new*
+```C++
+DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type);
+```
+The constructor creates a uniquely named **Frame Overlay** ODE Action. When invoked, this Action will Overlay a video Frame with a [Display Type](/docs/api-display-type.md) for [On-Screen Display](/docs/api-osd.md). The Display Type must exist prior to creating this Action.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `display_type` - [in] the unique name for the Display Type to overlay.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_overlay_frame_new('my-overlay-action', 'my-user-prompt')
+```
+
+<br>
+
 
 ### *dsl_ode_action_pause_new*
 ```C++
@@ -675,6 +699,7 @@ retval = dsl_ode_action_trigger_reset_new('my-enable-trigger-action', 'my-trigge
 <br>
 
 ---
+
 ## Destructors
 ### *dsl_ode_action_delete*
 ```C++
@@ -729,6 +754,7 @@ retval = dsl_ode_action_delete_all()
 ```
 
 <br>
+---
 
 ## Methods
 ### *dsl_ode_action_enabled_get*
@@ -785,7 +811,6 @@ This service returns the size of the ODE Action container, i.e. the number of Ac
 size = dsl_ode_action_list_size()
 ```
 
-
 <br>
 ---
 
@@ -799,7 +824,7 @@ size = dsl_ode_action_list_size()
 * [Tiler](/docs/api-tiler.md)
 * [ODE Handler](/docs/api-ode-handler.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
-* **ODE-Action**
+* **ODE Action**
 * [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)

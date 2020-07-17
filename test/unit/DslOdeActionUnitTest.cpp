@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
+#include "DslDisplayTypes.h"
 
 using namespace DSL;
 
@@ -218,12 +219,16 @@ SCENARIO( "A new FillObjectOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new FillObjectOdeAction" ) 
     {
         std::string actionName("ode-action");
-        float red(1), green(1), blue(1), alpha(1);
+
+        std::string colorName("my-custom-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
 
         WHEN( "A new FillObjectOdeAction is created" )
         {
             DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
-                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), red, green, blue, alpha);
+                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -243,13 +248,17 @@ SCENARIO( "A FillObjectOdeAction handles an ODE Occurence correctly", "[OdeActio
         uint limit(1);
         
         std::string actionName = "ode-action";
-        float red(0.222), green(0.333), blue(0.444), alpha(0.555);
+
+        std::string colorName("my-custom-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
-            DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), red, green, blue, alpha);
+            DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
 
         WHEN( "A new ODE is created" )
         {

@@ -33,7 +33,7 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Tracker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -91,10 +91,15 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
             
+        # Create a new RGBA color type
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate 
         # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
         # the Person and Car class Ids.
-        retval = dsl_ode_action_fill_object_new('red-fill-action', red=1.0, green=0.0, blue=0.0, alpha = 0.20)
+        retval = dsl_ode_action_fill_object_new('red-fill-action', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 

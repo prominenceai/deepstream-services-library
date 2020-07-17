@@ -321,7 +321,6 @@ namespace DSL
             m_pInstatnce = new Services(doGstDeinit);
             
             // Initialize private containers
-            m_pInstatnce->InitDefaultDisplayTypes();
             m_pInstatnce->InitToStringMaps();
         }
         return m_pInstatnce;
@@ -387,7 +386,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::DisplayTypeRgbaFontNew(const char* name, 
+    DslReturnType Services::DisplayTypeRgbaFontNew(const char* name, const char* font,
         uint size, const char* color)
     {
         LOG_FUNC();
@@ -408,7 +407,7 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
             
-            m_displayTypes[name] = DSL_RGBA_FONT_NEW(name, size, pColor);
+            m_displayTypes[name] = DSL_RGBA_FONT_NEW(name, font, size, pColor);
 
             LOG_INFO("New RGBA Color '" << name << "' created successfully");
 
@@ -492,6 +491,45 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New RGBA Line '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaArrowNew(const char* name, 
+        uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Arrow name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE;
+            }
+
+            if (head > DSL_ARROW_BOTH_HEAD)
+            {
+                LOG_ERROR("RGBA Head Type Invalid for RGBA Arrow'" << name << "'");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID;
+            }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, pColor);
+
+            LOG_INFO("New RGBA Arrow '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Arrow '" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
@@ -583,6 +621,11 @@ namespace DSL
         {
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
             
+            if (m_displayTypes[name].use_count() > 1)
+            {
+                LOG_INFO("Display Type '" << name << "' is in use");
+                return DSL_RESULT_DISPLAY_TYPE_IN_USE;
+            }
             m_displayTypes.erase(name);
             
             LOG_INFO("Display Type '" << name << "' deleted successfully");
@@ -602,6 +645,14 @@ namespace DSL
 
         try
         {
+            for (auto const& imap: m_displayTypes)
+            {
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("Display Type '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_DISPLAY_TYPE_IN_USE;
+                }
+            }
             m_displayTypes.clear();
             
             LOG_INFO("All Display Types deleted successfully");
@@ -719,7 +770,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId)
+    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
+        boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -732,8 +784,20 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+
+            DSL_RGBA_COLOR_PTR pBgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
-                offsetX, offsetY, offsetYWithClassId);
+                offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor);
             LOG_INFO("New Display ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -745,8 +809,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillAreaNew(const char* name,
-        const char* area, double red, double green, double blue, double alpha)
+    DslReturnType Services::OdeActionFillFrameNew(const char* name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -759,36 +822,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_AREA_NEW(name, area,
-                red, green, blue, alpha);
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
-            LOG_INFO("New ODE Fill Area Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Fill Area Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OdeActionFillFrameNew(const char* name,
-        double red, double green, double blue, double alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name,
-                red, green, blue, alpha);
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor);
 
             LOG_INFO("New ODE Fill Frame Action '" << name << "' created successfully");
 
@@ -801,8 +842,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillObjectNew(const char* name,
-        double red, double green, double blue, double alpha)
+    DslReturnType Services::OdeActionFillObjectNew(const char* name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -815,8 +855,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name,
-                red, green, blue, alpha);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor);
 
             LOG_INFO("New ODE Fill Object Action '" << name << "' created successfully");
 
@@ -903,6 +949,36 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New ODE Log Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeActionOverlayFrameNew(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, m_displayTypes[displayType]);
+
+            LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Overlay Frame Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -1746,7 +1822,8 @@ namespace DSL
     }
     
     DslReturnType Services::OdeTriggerCustomNew(const char* name, 
-        uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data)
+        uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
+        dsl_ode_post_process_frame_cb client_post_processor, void* client_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1765,7 +1842,8 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, client_checker, client_data);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, 
+                classId, limit, client_checker, client_post_processor, client_data);
             
             LOG_INFO("New Custom ODE Trigger '" << name << "' created successfully");
 
@@ -6399,22 +6477,6 @@ namespace DSL
         return m_stateValueToString[state].c_str();
     }
     
-    void Services::InitDefaultDisplayTypes()
-    {
-        LOG_FUNC();
-        
-        m_displayTypes["DSL_BLACK_100"] = DSL_RGBA_COLOR_NEW("DSL_BLACK_100", 0.0, 0.0, 0.0, 1.0);
-        m_displayTypes["DSL_BLACK_050"] = DSL_RGBA_COLOR_NEW("DSL_BLACK_100", 0.0, 0.0, 0.0, 5.0);
-        m_displayTypes["DSL_WHITE_100"] = DSL_RGBA_COLOR_NEW("DSL_WHITE_100", 1.0, 1.0, 1.0, 1.0);
-        m_displayTypes["DSL_WHITE_050"] = DSL_RGBA_COLOR_NEW("DSL_WHITE_100", 1.0, 1.0, 1.0, 0.5);
-        m_displayTypes["DSL_RED_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 1.0, 0.0, 0.0, 1.0);
-        m_displayTypes["DSL_RED_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 1.0, 0.0, 0.0, 0.5);
-        m_displayTypes["DSL_GREEN_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 1.0, 0.0, 1.0);
-        m_displayTypes["DSL_GREEN_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 1.0, 0.0, 0.5);
-        m_displayTypes["DSL_BLUE_100"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 0.0, 1.0, 1.0);
-        m_displayTypes["DSL_BLUE_050"] = DSL_RGBA_COLOR_NEW("DSL_RED_100", 0.0, 0.0, 1.0, 0.5);
-    }
-
     void Services::InitToStringMaps()
     {
         LOG_FUNC();
@@ -6595,6 +6657,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_IN_USE] = L"DSL_RESULT_DISPLAY_TYPE_IN_USE";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE";
@@ -6603,9 +6666,12 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 
-} // namespace 
+} // namespace
+ 
