@@ -771,8 +771,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         uint trackerH(272);
 
         std::wstring tilerName(L"tiler");
-        uint width(1280);
-        uint height(720);
+        uint tilerWidth(1280);
+        uint tilerHeight(720);
         
         std::wstring overlaySinkName(L"overlay-sink");
         uint overlayId(1);
@@ -808,8 +808,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         std::wstring printActionName(L"print-action");
         std::wstring fillActionName(L"fill-action");
         
-        std::wstring areaName(L"area");
-        
         std::wstring lightRed(L"light-red");
         REQUIRE( dsl_display_type_rgba_color_new(lightRed.c_str(), 
             0.2, 0.0, 0.0, 0.5) == DSL_RESULT_SUCCESS );
@@ -818,6 +816,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_display_type_rgba_color_new(fullWhite.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
 
+        std::wstring lightWhite(L"light-white");
+        REQUIRE( dsl_display_type_rgba_color_new(lightWhite.c_str(), 
+            1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
+
         std::wstring fullBlack(L"full-black");
         REQUIRE( dsl_display_type_rgba_color_new(fullBlack.c_str(), 
             1.0, 1.0, 1.0, 1.0) == DSL_RESULT_SUCCESS );
@@ -825,6 +827,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         std::wstring font(L"arial");
         std::wstring fontName(L"arial-14");
         uint size(14);
+
+        std::wstring areaName(L"area");
+        std::wstring areaRectangleName(L"area-rectangle");
+        uint left(500), top(0), width(10), height(1080);
+        uint border_width(0);
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, fullWhite.c_str()) == DSL_RESULT_SUCCESS );
@@ -839,7 +846,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), tilerWidth, tilerHeight) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -850,7 +857,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria
-        REQUIRE( dsl_ode_area_new(areaName.c_str(), 500, 0, 10, 1080, true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
+            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_area_new(areaName.c_str(), areaRectangleName.c_str(), true) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(personOccurrenceName.c_str(), areaName.c_str()) == DSL_RESULT_SUCCESS );
 
         // Single display action shared by all ODT Summation Types

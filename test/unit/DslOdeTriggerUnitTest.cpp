@@ -466,6 +466,17 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         std::string odeActionName("ode-action");
         std::string odeAreaName("ode-area");
 
+        std::string rectangleName  = "my-rectangle";
+        uint left(12), top(34), width(56), height(78);
+        uint borderWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW(rectangleName.c_str(), 
+            left, top, width, height, borderWidth, pColor, true, pColor);
+
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
 
@@ -473,7 +484,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
         DSL_ODE_AREA_PTR pOdeArea =
-            DSL_ODE_AREA_NEW(odeAreaName.c_str(), 0, 0, 1, 1, false);
+            DSL_ODE_AREA_NEW(odeAreaName.c_str(), pRectangle, false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
         REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );        
@@ -495,7 +506,10 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
 
         WHEN( "The Area is set so that the Object's top left corner overlaps" )
         {
-            pOdeArea->SetArea(0, 0, 201, 101, false);    
+            pRectangle->left = 0; 
+            pRectangle->top = 0; 
+            pRectangle->width = 201;
+            pRectangle->height = 101;    
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
@@ -504,7 +518,10 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         }
         WHEN( "The Area is set so that the Object's top right corner overlaps" )
         {
-            pOdeArea->SetArea(400, 0, 100, 100, false);    
+            pRectangle->left = 400; 
+            pRectangle->top = 0; 
+            pRectangle->width = 100;
+            pRectangle->height = 100;    
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
@@ -513,7 +530,10 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         }
         WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
         {
-            pOdeArea->SetArea(0, 199, 201, 100, false);    
+            pRectangle->left = 0; 
+            pRectangle->top = 199; 
+            pRectangle->width = 201;
+            pRectangle->height = 100;    
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
@@ -522,7 +542,10 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         }
         WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
         {
-            pOdeArea->SetArea(400, 200, 100, 100, false);    
+            pRectangle->left = 400; 
+            pRectangle->top = 200; 
+            pRectangle->width = 100;
+            pRectangle->height = 100;    
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
@@ -531,7 +554,10 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         }
         WHEN( "The Area is set so that the Object does not overlap" )
         {
-            pOdeArea->SetArea(0, 0, 10, 10, false);    
+            pRectangle->left = 0; 
+            pRectangle->top = 0; 
+            pRectangle->width = 10;
+            pRectangle->height = 10;    
             
             THEN( "The OdeTrigger is NOT detected because of the minimum criteria" )
             {

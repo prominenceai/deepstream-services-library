@@ -60,7 +60,6 @@ SCENARIO( "The ODE Actions container is updated correctly on Delete ODE Action",
         std::wstring actionName1(L"action-1");
         std::wstring actionName2(L"action-2");
         std::wstring actionName3(L"action-3");
-        uint left(0), top(0), width(100), height(100);
         boolean display(true);
         
         REQUIRE( dsl_ode_action_list_size() == 0 );

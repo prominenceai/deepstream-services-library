@@ -1510,7 +1510,7 @@ namespace DSL
     }
     
     DslReturnType Services::OdeAreaNew(const char* name, 
-        uint left, uint top, uint width, uint height, boolean display)
+        const char* rectangle, boolean display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1523,8 +1523,13 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
             
-            m_odeAreas[name] = DSL_ODE_AREA_NEW(name, left, top, width, height, display);
+            DSL_RGBA_RECTANGLE_PTR pRectangle = 
+                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_NEW(name, pRectangle, display);
          
             LOG_INFO("New ODE Area '" << name << "' created successfully");
 
@@ -1533,115 +1538,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE ODE Area '" << name << "' threw exception on creation");
-            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
-        }
-    }                
-    
-    DslReturnType Services::OdeAreaGet(const char* name, 
-        uint* left, uint* top, uint* width, uint* height, boolean* display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            pOdeArea->GetArea(left, top, width, height, (bool*)display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE AREA '" << name << "' threw exception getting Area");
-            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaSet(const char* name, 
-        uint left, uint top, uint width, uint height, boolean display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            // TODO: validate the values for in-range
-            pOdeArea->SetArea(left, top, width, height, display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Area '" << name << "' threw exception setting Area criteria");
-            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaColorGet(const char* name, 
-        double* red, double* green, double* blue, double* alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            pOdeArea->GetColor(red, green, blue, alpha);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Area '" << name << "' threw exception getting Area Color");
-            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaColorSet(const char* name, 
-        double red, double green, double blue, double alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-                
-            LOG_INFO("Setting Area '" << name << "to: red = " << red << " green = " 
-                << green << " blue = " << blue << " alpha = " << alpha);
-                
-            if ((red > 1.0) or (green > 1.0) or (blue > 1.0) or (alpha > 1.0))
-            {
-                LOG_ERROR("Invalid color value for ODE Area '" << name << "'");
-                return DSL_RESULT_ODE_AREA_SET_FAILED;
-            }
-            
-            DSL_ODE_AREA_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            pOdeArea->SetColor(red, green, blue, alpha);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Area '" << name << "' threw exception setting Color");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                

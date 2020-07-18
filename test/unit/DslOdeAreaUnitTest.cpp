@@ -32,96 +32,33 @@ SCENARIO( "A new OdeArea is created correctly", "[OdeArea]" )
     GIVEN( "Attributes for a new OdeArea" ) 
     {
         std::string odeAreaName("ode-area");
-        uint left(123), top(321), width(444), height(555);
         bool display(true);
 
+        std::string rectangleName  = "my-rectangle";
+        uint left(12), top(34), width(56), height(78);
+        uint borderWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW(rectangleName.c_str(), 
+            left, top, width, height, borderWidth, pColor, true, pColor);
+       
+ 
         WHEN( "A new OdeArea is created" )
         {
             DSL_ODE_AREA_PTR pOdeArea = 
-                DSL_ODE_AREA_NEW(odeAreaName.c_str(), left, top, width, height, display);
+                DSL_ODE_AREA_NEW(odeAreaName.c_str(), pRectangle, display);
 
             THEN( "The OdeArea's memebers are setup and returned correctly" )
             {
                 std::string retName = pOdeArea->GetCStrName();
                 REQUIRE( odeAreaName == retName );
 
-                uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
-                bool retDisplay;
-                pOdeArea->GetArea(&retLeft, &retTop, &retWidth, &retHeight, &retDisplay);
-                REQUIRE( retLeft == left );
-                REQUIRE( retTop == top );
-                REQUIRE( retWidth == width );
-                REQUIRE( retHeight == height );
-
-                double retRed(0), retGreen(0), retBlue(0), retAlpha(0);
-                pOdeArea->GetColor(&retRed, &retGreen, &retBlue, &retAlpha);
-                REQUIRE( retRed == 1.0 );
-                REQUIRE( retGreen == 1.0 );
-                REQUIRE( retBlue == 1.0 );
-                REQUIRE( retAlpha == 0.2 );
             }
         }
     }
 }
 
-SCENARIO( "An OdeArea's rectangle area can be Set/Get", "[OdeArea]" )
-{
-    GIVEN( "Attributes for a new OdeArea" ) 
-    {
-        std::string odeAreaName("ode-area");
-        uint left(123), top(321), width(444), height(555);
-        bool display(true);
-
-        DSL_ODE_AREA_PTR pOdeArea = 
-            DSL_ODE_AREA_NEW(odeAreaName.c_str(), left, top, width, height, display);
-
-        WHEN( "An OdeArea's rectangle area is Set" )
-        {
-            uint newLeft(111), newTop(222), newWidth(333), newHeight(444);
-            bool newDisplay(false);
-            pOdeArea->SetArea(newLeft, newTop, newWidth, newHeight, newDisplay);
-
-            THEN( "The correct values are returned on get" )
-            {
-                uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
-                bool retDisplay;
-                pOdeArea->GetArea(&retLeft, &retTop, &retWidth, &retHeight, &retDisplay);
-                REQUIRE( retLeft == newLeft );
-                REQUIRE( retTop == newTop );
-                REQUIRE( retWidth == newWidth );
-                REQUIRE( retHeight == newHeight );
-                REQUIRE( retDisplay == newDisplay );
-            }
-        }
-    }
-}
-
-SCENARIO( "An OdeArea's background color can be Set/Get", "[OdeArea]" )
-{
-    GIVEN( "Attributes for a new OdeArea" ) 
-    {
-        std::string odeAreaName("ode-area");
-        uint left(123), top(321), width(444), height(555);
-        bool display(true);
-
-        DSL_ODE_AREA_PTR pOdeArea = 
-            DSL_ODE_AREA_NEW(odeAreaName.c_str(), left, top, width, height, display);
-
-        WHEN( "An OdeArea's rectangle area is Set" )
-        {
-            double newRed(0.3), newGreen(0.4), newBlue(0.5), newAlpha(0.6);
-            bool newDisplay(false);
-            pOdeArea->SetColor(newRed, newGreen, newBlue, newAlpha);
-
-            THEN( "The correct values are returned on get" )
-            {
-                double retRed(0), retGreen(0), retBlue(0), retAlpha(0);
-                pOdeArea->GetColor(&retRed, &retGreen, &retBlue, &retAlpha);
-                REQUIRE( retRed == newRed );
-                REQUIRE( retGreen == newGreen );
-                REQUIRE( retBlue == newBlue );
-                REQUIRE( retAlpha == newAlpha );
-            }
-        }
-    }
-}

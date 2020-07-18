@@ -493,53 +493,15 @@ uint dsl_ode_action_list_size()
 }
 
 DslReturnType dsl_ode_area_new(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display)
+    const wchar_t* rectangle, boolean display)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrRectangle(rectangle);
+    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
 
     return DSL::Services::GetServices()->OdeAreaNew(cstrName.c_str(), 
-        left, top, width, height, display);
-}
-
-DslReturnType dsl_ode_area_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height, boolean* display)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeAreaGet(cstrName.c_str(), 
-        left, top, width, height, display);
-}
-    
-DslReturnType dsl_ode_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeAreaSet(cstrName.c_str(), 
-        left, top, width, height, display);
-}
-
-DslReturnType dsl_ode_area_color_get(const wchar_t* name, 
-    double* red, double* green, double* blue, double* alpha)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeAreaColorGet(cstrName.c_str(), 
-        red, green, blue, alpha);
-}
-    
-DslReturnType dsl_ode_area_color_set(const wchar_t* name, 
-    double red, double green, double blue, double alpha)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeAreaColorSet(cstrName.c_str(), 
-        red, green, blue, alpha);
+        cstrRectangle.c_str(), display);
 }
 
 DslReturnType dsl_ode_area_delete(const wchar_t* name)

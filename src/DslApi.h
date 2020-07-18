@@ -894,62 +894,12 @@ uint dsl_ode_action_list_size();
 /**
  * @brief Creates a uniquely named ODE Area
  * @param[in] name unique name of the ODE area to create
- * @param[in] left left param for area rectangle in pixels
- * @param[in] top top param for area rectangle in pixels
- * @param[in] width width param for area rectangle in pixels
- * @param[in] height height param for area rectangle in pixels
+ * @param[in] rectangle name of an RGBA Display Rectangle
+ * @param[in] display set to true to display (overlay) the rectangle on each frame
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_new(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
-
-/**
- * @brief Gets the current rectangle params for the named ODE Area.
- * @param[in] name unique name of the ODE area to query
- * @param[out] left left param for area rectangle in pixels
- * @param[out] top top param for area rectangle in pixels
- * @param[out] width width param for area rectangle in pixels
- * @param[out] height height param for area rectangle in pixels
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
- */
-DslReturnType dsl_ode_area_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height, boolean *display);
-
-/**
- * @brief Sets the current rectangle params for the named ODE Area. 
- * @param[in] name unique name of the ODE area to update
- * @param[in] left left param for area rectangle in pixels
- * @param[in] top top param for area rectangle in pixels
- * @param[in] width width param for area rectangle in pixels
- * @param[in] height height param for area rectangle in pixels
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
- */
-DslReturnType dsl_ode_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
-
-/**
- * @brief Gets the current detection area background color values
- * @param[in] name unique name of the ODE area to query
- * @param[out] red red level for the area background color [0..1]
- * @param[out] blue blue level for the area background color [0..1]
- * @param[out] green green level for the area background color [0..1]
- * @param[out] alpha alpha level for the area background color [0..1]
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_AREA_RESULT otherwise.
- */
-DslReturnType dsl_ode_area_color_get(const wchar_t* name, 
-    double* red, double* green, double* blue, double* alpha);
-
-/**
- * @brief Sets the current detection area background color values
- * @param[in] name unique name of the ODE area to update
- * @param[in] red red level for the area background color [0..1]
- * @param[in] blue blue level for the area background color [0..1]
- * @param[in] green green level for the area background color [0..1]
- * @param[in] alpha alpha level for the area background color [0..1]
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_area_color_set(const wchar_t* name, 
-    double red, double green, double blue, double alpha);
+    const wchar_t* rectangle, boolean display);
 
 /**
  * @brief Deletes an ODE Area
