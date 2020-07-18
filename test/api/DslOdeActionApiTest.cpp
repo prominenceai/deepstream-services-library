@@ -208,6 +208,7 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
             {
                 REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
                     invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
@@ -246,6 +247,9 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
             }
         }
         WHEN( "A new Display Action is created" ) 
@@ -260,6 +264,8 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -285,6 +291,8 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new Fill Frame Action is created" ) 
@@ -297,6 +305,8 @@ SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -322,6 +332,8 @@ SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-actio
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
         WHEN( "A new Fill Object Action is created" ) 
@@ -334,6 +346,8 @@ SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-actio
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }

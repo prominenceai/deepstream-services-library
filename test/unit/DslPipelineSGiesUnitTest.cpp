@@ -56,8 +56,8 @@ SCENARIO( "A SecondaryGieBintr can be added to a PipelineSGiesBintr", "[Pipeline
 
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
         uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
@@ -94,8 +94,8 @@ SCENARIO( "A SecondaryGieBintr can be removed from a PipelineSGiesBintr", "[Pipe
 
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
 
         uint interval(1);
@@ -134,8 +134,8 @@ SCENARIO( "A SecondaryGieBintr can only be added to a PipelineSGiesBintr once", 
 
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
 
         uint interval(1);
 
@@ -168,8 +168,8 @@ SCENARIO( "A PipelineSGiesBintr can not LinkAll without setting the PrimaryGieId
 
         std::string primaryGieName = "primary-gie";
         std::string secondaryGieName = "secondary-gie";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
 
         uint interval(1);
 
@@ -202,11 +202,11 @@ SCENARIO( "A PipelineSGiesBintr can not LinkAll without setting the Batch Size f
 
         std::string primaryGieName = "primary-gie";
         std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
 
         std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
@@ -244,11 +244,11 @@ SCENARIO( "A PipelineSGiesBintr with its PrimaryGieId and Batch Size set can Lin
 
         std::string primaryGieName = "primary-gie";
         std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
 
         std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
@@ -286,11 +286,11 @@ SCENARIO( "A PipelineSGiesBintr Linked with a SecondaryGieBintr can UnlinkAll", 
 
         std::string primaryGieName = "primary-gie";
         std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
 
         std::string secondaryGieName = "secondary-gie";
-        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string sgieInferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string sgieModelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(1);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
@@ -331,13 +331,13 @@ SCENARIO( "A PipelineSGiesBintr with several SecondaryGieBintrs can LinkAll", "[
 
         std::string primaryGieName = "primary-gie";
         std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
 
         std::string secondaryGieName1 = "secondary-gie-1";
         std::string secondaryGieName2 = "secondary-gie-2";
         std::string secondaryGieName3 = "secondary-gie-3";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(0);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
@@ -389,13 +389,13 @@ SCENARIO( "A PipelineSGiesBintr with several SecondaryGieBintrs can UnlinkAll", 
 
         std::string primaryGieName = "primary-gie";
         std::string pgieInferConfigFile = "./test/configs/config_infer_primary_nano.txt";
-        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::string pgieModelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine";
 
         std::string secondaryGieName1 = "secondary-gie-1";
         std::string secondaryGieName2 = "secondary-gie-2";
         std::string secondaryGieName3 = "secondary-gie-3";
-        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor.txt";
-        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel";
+        std::string inferConfigFile = "./test/configs/config_infer_secondary_carcolor_nano.txt";
+        std::string modelEngineFile = "./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine";
         uint interval(0);
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 

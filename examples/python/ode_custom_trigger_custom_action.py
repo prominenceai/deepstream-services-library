@@ -33,7 +33,7 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0

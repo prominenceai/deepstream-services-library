@@ -34,7 +34,7 @@ rtsp_uri = 'rtsp://raspberrypi.local:8554/'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
 
 ## 
 # Function to be called on XWindow Delete event

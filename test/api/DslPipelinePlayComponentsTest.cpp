@@ -280,7 +280,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -348,7 +348,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -421,7 +421,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -797,7 +797,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -805,7 +805,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         
         std::wstring secondaryGieName1(L"secondary-gie");
         std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -852,7 +852,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-
+            
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 bool currIsClockEnabled(false);
@@ -870,105 +870,103 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
     }
 }
 
-//SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, Overlay Sink, and Tiled Display can play", "[pipeline-play]" )
-//{
-//    GIVEN( "A Pipeline, URI source, Primary GIE, Overlay Sink, and Tiled Display" ) 
-//    {
-//        std::wstring sourceName1(L"uri-source");
-//        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-//        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-//        uint intrDecode(false);
-//        uint dropFrameInterval(0);
-//
-//        std::wstring primaryGieName(L"primary-gie");
-//        std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-//        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
-//
-//        std::wstring trackerName(L"ktl-tracker");
-//        uint trackerW(480);
-//        uint trackerH(272);
-//        
-//        std::wstring secondaryGieName1(L"secondary-gie1");
-//        std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-//        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
-//        
-//        // Note new model is not saved for car color with DS 5.0 ??????
-//        // need to let it generate a new engine by loading the previous?
-//        std::wstring secondaryGieName2(L"secondary-gie2");
-//        std::wstring sgieInferConfigFile2(L"./test/configs/config_infer_secondary_carmake_nano.txt");
-//        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b1_gpu0_fp16.engine");
-//        
-//        std::wstring secondaryGieName3(L"secondary-gie3");
-//        std::wstring sgieInferConfigFile3(L"./test/configs/config_infer_secondary_vehicletypes_nano.txt");
-//        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b1_gpu0_fp16.engine");
-//        
-//        std::wstring tilerName(L"tiler");
-//        uint width(1280);
-//        uint height(720);
-//
-//        std::wstring onScreenDisplayName(L"on-screen-display");
-//        bool isClockEnabled(false);
-//
-//        std::wstring overlaySinkName(L"overlay-sink");
-//        uint overlayId(1);
-//        uint displayId(0);
-//        uint depth(0);
-//        uint offsetX(100);
-//        uint offsetY(140);
-//        uint sinkW(1280);
-//        uint sinkH(720);
-//
-//        std::wstring pipelineName(L"test-pipeline");
-//        
-//        REQUIRE( dsl_component_list_size() == 0 );
-//
-//        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-//            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
-//            pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
-//        
-//        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
-//            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_gie_secondary_new(secondaryGieName2.c_str(), sgieInferConfigFile2.c_str(), 
-//            sgieModelEngineFile2.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_gie_secondary_new(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
-//            sgieModelEngineFile3.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
-//        
-//        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
-//            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-//        
-//        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"ktl-tracker", 
-//            L"secondary-gie1", L"secondary-gie2", L"secondary-gie3", L"tiler", L"on-screen-display", L"overlay-sink", NULL};
-//        
-//        WHEN( "When the Pipeline is Assembled" ) 
-//        {
-//            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//        
-//            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-//
-//            THEN( "Pipeline is Able to LinkAll and Play" )
-//            {
-//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_pipeline_list_size() == 0 );
-//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_component_list_size() == 0 );
-//            }
-//        }
-//    }
-//}
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, Overlay Sink, and Tiled Display can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Primary GIE, Overlay Sink, and Tiled Display" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+        std::wstring trackerName(L"ktl-tracker");
+        uint trackerW(480);
+        uint trackerH(272);
+        
+        std::wstring secondaryGieName1(L"secondary-gie1");
+        std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+        
+        std::wstring secondaryGieName2(L"secondary-gie2");
+        std::wstring sgieInferConfigFile2(L"./test/configs/config_infer_secondary_carmake_nano.txt");
+        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+        
+        std::wstring secondaryGieName3(L"secondary-gie3");
+        std::wstring sgieInferConfigFile3(L"./test/configs/config_infer_secondary_vehicletypes_nano.txt");
+        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
+        
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring onScreenDisplayName(L"on-screen-display");
+        bool isClockEnabled(false);
+
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), pgieInferConfigFile.c_str(), 
+            pgieModelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
+            sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName2.c_str(), sgieInferConfigFile2.c_str(), 
+            sgieModelEngineFile2.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_secondary_new(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
+            sgieModelEngineFile3.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source",L"primary-gie", L"ktl-tracker", 
+            L"secondary-gie1", L"secondary-gie2", L"secondary-gie3", L"tiler", L"on-screen-display", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play", "[pipeline-play]" )
 {
@@ -1181,7 +1179,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b2_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring demuxerName(L"demuxer");
 
@@ -1277,7 +1275,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring tilerName1(L"tiler1");
         std::wstring tilerName2(L"tiler2");
@@ -1550,7 +1548,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -1609,3 +1607,4 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
         }
     }
 }
+

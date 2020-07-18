@@ -40,7 +40,7 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can pl
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -119,7 +119,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -207,7 +207,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -312,7 +312,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -412,7 +412,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -505,7 +505,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -635,7 +635,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -764,7 +764,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -907,7 +907,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
     }
 }
 
-SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Record ODE Action can play", "[new]" )
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Record ODE Action can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Four Summation ODE Types, and Display ODE Action" ) 
     {
@@ -919,7 +919,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
