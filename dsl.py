@@ -485,62 +485,11 @@ def dsl_ode_action_list_size():
 ##
 ## dsl_ode_area_new()
 ##
-_dsl.dsl_ode_area_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
+_dsl.dsl_ode_area_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_area_new.restype = c_uint
-def dsl_ode_area_new(name, left, top, width, height, display):
+def dsl_ode_area_new(name, rectangle, display):
     global _dsl
-    result =_dsl.dsl_ode_area_new(name, left, top, width, height, display)
-    return int(result)
-
-##
-## dsl_ode_area_get()
-##
-_dsl.dsl_ode_area_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_ode_area_get.restype = c_uint
-def dsl_ode_area_get(name):
-    global _dsl
-    left = c_uint(0)
-    top = c_uint(0)
-    width = c_uint(0)
-    height = c_uint(0)
-    display = c_bool(0)
-    result = _dsl.dsl_ode_area_get(name, DSL_UINT_P(left), 
-        DSL_UINT_P(top), DSL_UINT_P(width), DSL_UINT_P(height), DSL_BOOL_P(display))
-    return int(result), left.value, top.value, width.value, height.value, display.value 
-
-##
-## dsl_ode_area_set()
-##
-_dsl.dsl_ode_area_set.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
-_dsl.dsl_ode_area_set.restype = c_uint
-def dsl_ode_area_set(name, left, top, width, height, display):
-    global _dsl
-    result =_dsl.dsl_ode_area_set(name, left, top, width, height, display)
-    return int(result)
-
-##
-## dsl_ode_area_color_get()
-##
-_dsl.dsl_ode_area_color_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_ode_area_color_get.restype = c_uint
-def dsl_ode_area_color_get(name):
-    global _dsl
-    red = c_double(0)
-    green = c_double(0)
-    blue = c_double(0)
-    alpha = c_double(0)
-    result = _dsl.dsl_ode_area_color_get(name, 
-        DSL_DOUBLE_P(red), DSL_DOUBLE_P(green), DSL_DOUBLE_P(blue), DSL_DOUBLE_P(alpha))
-    return int(result), red.value, green.value, blue.value, alpha.value 
-
-##
-## dsl_ode_area_color_set()
-##
-_dsl.dsl_ode_area_color_set.argtypes = [c_wchar_p, c_double, c_double, c_double, c_double]
-_dsl.dsl_ode_area_color_set.restype = c_uint
-def dsl_ode_area_color_set(name, red, green, blue, alpha):
-    global _dsl
-    result =_dsl.dsl_ode_area_color_set(name, red, green, blue, alpha)
+    result =_dsl.dsl_ode_area_new(name, rectangle, display)
     return int(result)
 
 ##

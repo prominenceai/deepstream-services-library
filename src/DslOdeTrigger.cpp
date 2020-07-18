@@ -281,32 +281,12 @@ namespace DSL
         // Reset the occurrences from the last frame. 
         m_occurrences = 0;
 
+        // Call on each of the Trigger's Areas to (optionally) display their Rectangle
         for (const auto &imap: m_pOdeAreas)
         {
-            // If an Area is set to display, create a rectange and color representation
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-            if (pOdeArea->m_display)
-            {
-                // If this is the first time seeing a frame for the reported Source Id.
-                if (pOdeArea->m_frameNumPerSource.find(pFrameMeta->source_id) == pOdeArea->m_frameNumPerSource.end())
-                {
-                    // Initial the frame number for the new source
-                    pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] = 0;
-                }
-                
-                // If the last frame number for the reported source is less than the current frame
-                if (pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] < pFrameMeta->frame_num)
-                {
-                    // Update the frame number so we only add the rectangle once
-                    pOdeArea->m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
-                    
-                    NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-                    NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-                    
-                    pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = pOdeArea->m_rectParams;
-                    nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-                }
-            }
+
+            pOdeArea->OverlayFrame(pBuffer, pFrameMeta);
         }
     }
 
@@ -364,7 +344,7 @@ namespace DSL
             for (const auto &imap: m_pOdeAreas)
             {
                 DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-                if (doesOverlap(pObjectMeta->rect_params, pOdeArea->m_rectParams))
+                if (doesOverlap(pObjectMeta->rect_params, *pOdeArea->m_pRectangle))
                 {
                     return true;
                 }

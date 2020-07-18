@@ -28,76 +28,44 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    OdeArea::OdeArea(const char* name, 
-        uint left, uint top, uint width, uint height, bool display)
+    OdeArea::OdeArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display)
         : Base(name)
-        , m_rectParams{0}
+        , m_pRectangle(pRectangle)
         , m_display(display)
     {
         LOG_FUNC();
         
-        m_rectParams.left = left;
-        m_rectParams.top = top;
-        m_rectParams.width = width;
-        m_rectParams.height = height;
-        
-        // default area background color
-        m_rectParams.has_bg_color = true;
-        m_rectParams.bg_color.red = 1.0;
-        m_rectParams.bg_color.green = 1.0;
-        m_rectParams.bg_color.blue = 1.0;
-        m_rectParams.bg_color.alpha = 0.2;
-
-        g_mutex_init(&m_propertyMutex);
     }
     
     OdeArea::~OdeArea()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_propertyMutex);
     }
         
-    void OdeArea::GetArea(uint* left, uint* top, uint* width, uint* height, bool* display)
+    void OdeArea::OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
     {
         LOG_FUNC();
         
-        *left = m_rectParams.left;
-        *top = m_rectParams.top;
-        *width = m_rectParams.width;
-        *height = m_rectParams.height;
-        *display = m_display;
-    }
-    
-    void OdeArea::SetArea(uint left, uint top, uint width, uint height, bool display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        if (!m_display)
+        {
+            return;
+        }
         
-        m_rectParams.left = left;
-        m_rectParams.top = top;
-        m_rectParams.width = width;
-        m_rectParams.height = height;
-        m_display = display;
-    }
-    
-    void OdeArea::GetColor(double* red, double* green, double* blue, double* alpha)
-    {
-        LOG_FUNC();
+        // If this is the first time seeing a frame for the reported Source Id.
+        if (m_frameNumPerSource.find(pFrameMeta->source_id) == m_frameNumPerSource.end())
+        {
+            // Initial the frame number for the new source
+            m_frameNumPerSource[pFrameMeta->source_id] = 0;
+        }
         
-        *red = m_rectParams.bg_color.red;
-        *green = m_rectParams.bg_color.green;
-        *blue = m_rectParams.bg_color.blue;
-        *alpha = m_rectParams.bg_color.alpha;
-    }
-
-    void OdeArea::SetColor(double red, double green, double blue, double alpha)
-    {
-        LOG_FUNC();
-        
-        m_rectParams.bg_color.red = red;
-        m_rectParams.bg_color.green = green;
-        m_rectParams.bg_color.blue = blue;
-        m_rectParams.bg_color.alpha = alpha;
+        // If the last frame number for the reported source is less than the current frame
+        if (m_frameNumPerSource[pFrameMeta->source_id] < pFrameMeta->frame_num)
+        {
+            // Update the frame number so we only add the rectangle once
+            m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
+            
+            m_pRectangle->OverlayFrame(pBuffer, pFrameMeta);
+            
+        }
     }
 }

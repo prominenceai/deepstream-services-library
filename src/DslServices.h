@@ -151,19 +151,7 @@ namespace DSL {
         uint OdeActionListSize();
 
         DslReturnType OdeAreaNew(const char* name, 
-            uint left, uint top, uint width, uint height, boolean display);
-
-        DslReturnType OdeAreaGet(const char* name, 
-            uint* left, uint* top, uint* width, uint* height, boolean* display);
-
-        DslReturnType OdeAreaSet(const char* name, 
-            uint left, uint top, uint width, uint height, boolean display);
-
-        DslReturnType OdeAreaColorGet(const char* name, 
-            double* red, double* green, double* blue, double* alpha);
-
-        DslReturnType OdeAreaColorSet(const char* name, 
-            double red, double green, double blue, double alpha);
+            const char* rectangle, boolean display);
 
         DslReturnType OdeAreaDelete(const char* name);
         

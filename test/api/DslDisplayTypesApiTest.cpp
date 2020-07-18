@@ -150,7 +150,7 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
                 REQUIRE( dsl_display_type_rgba_text_new(textName.c_str(), text.c_str(), 
                     xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE );
 
-                REQUIRE( dsl_display_type_delete(fontName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete(textName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
@@ -264,7 +264,7 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
 {
     GIVEN( "Attributes for a new RGBA Rectangle" ) 
     {
-        std::wstring rectangleName(L"display-text");
+        std::wstring rectangleName(L"rectangle");
         uint left(100), top(100), width(123), height(456);
         uint border_width(3);
 
