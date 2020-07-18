@@ -79,36 +79,143 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+## 
+# Function to create all required RGBA Color Types
+## 
+def create_colors():
+    retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha = 0.2)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_color_new('full-grey', red=0.5, green=0.5, blue=0.5, alpha = 1.0)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, green=0.0, blue=0.0, alpha = 0.2)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_color_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_color_new('full-blue', red=0.0, green=0.0, blue=1.0, alpha = 1.0)
+
+    return retval
+
+## 
+# Function to create all required RGBA Color Types
+## 
+def create_fonts():
+
+    retval = dsl_display_type_rgba_font_new('arial-15-white', font='arial', size=15, color='full-white')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_display_type_rgba_font_new('arial-20-blue', font='arial', size=20, color='full-blue')
+    return retval
+    
+## 
+# Function to create all required RGBA Display Types
+## 
+def create_text_and_shapes():
+
+    # New RGBA Rectangle to use as a background for summation display. Using the full black with alpha=1.0
+    retval = dsl_display_type_rgba_rectangle_new('grey-rectangle', left=10, top=45, width=190, height=110, 
+        border_width=0, color='full-grey', has_bg_color=True, bg_color='full-grey')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # A second RGBA Rectangle to use as a dropped shadow for summation display. Using the opaque black
+    retval = dsl_display_type_rgba_rectangle_new('black-shadow', left=16, top=51, width=190, height=110, 
+        border_width=0, color='opaque-black', has_bg_color=True, bg_color='opaque-black')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # A new RGBA Circle to be used as a custom arrow head.
+    retval = dsl_display_type_rgba_circle_new('blue-circle', x_center=530, y_center=50, radius=5, 
+        color='full-blue', has_bg_color=True, bg_color='full-blue')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_display_type_rgba_line_new('blue-line', x1=530, y1=50, x2=730, y2=50, width=2, color='full-blue')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    retval = dsl_display_type_rgba_text_new('blue-text', 'Shared Trigger Area', x_offset=733, y_offset=30, 
+        font='arial-20-blue', has_bg_color=False, bg_color='full-blue')
+
+    return retval
+    
+## 
+# Function to create all overlay actions and add them to a new Always Trigger
+## 
+def create_overlay_actions_and_always_trigger():
+
+    # Create a new Action to display the black rectangle as a background for the summantion display
+    retval = dsl_ode_action_overlay_frame_new('overlay-grey-rectangle', 'grey-rectangle')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    # Create a new Action to display the opaque black rectangle as a dropped shadow for the summantion display
+    retval = dsl_ode_action_overlay_frame_new('overlay-black-shadow', 'black-shadow')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+
+    # Create a new Action to display the blue circle arrow head
+    retval = dsl_ode_action_overlay_frame_new('overlay-blue-circle', 'blue-circle')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    # Create a new Action to display the blue annotation line
+    retval = dsl_ode_action_overlay_frame_new('overlay-blue-line', 'blue-line')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    # Create a new Action to display the blue text to annotate the shared area
+    retval = dsl_ode_action_overlay_frame_new('overlay-blue-text', 'blue-text')
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+
+    # Create an Always triger to overlay our Display Types on every frame
+    retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
+        'overlay-black-shadow', 
+        'overlay-grey-rectangle', 
+        'overlay-blue-circle',
+        'overlay-blue-line',
+        'overlay-blue-text',
+        None])
+
+    return retval
+
+
+## 
+# 
+## 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha = 0.2)
+        # create all required RGBA colors
+        retval = create_colors();    
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('full-black', red=0.0, green=0.0, blue=0.0, alpha = 1.0)
+        
+        # create all required RGBA fonts
+        retval = create_fonts();    
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, green=0.0, blue=0.0, alpha = 0.2)
+
+        # create all required text and shapes for frame overlay
+        retval = create_text_and_shapes();    
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_new('full-blue', red=0.0, green=0.0, blue=1.0, alpha = 1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create new RGBA font type2
-        retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_font_new('arial-20-blue', font='arial', size=20, color='full-blue')
+
+        # create actions to overly the shapes and an Always Trigger to overlay on every frame
+        retval = create_overlay_actions_and_always_trigger();
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -145,76 +252,11 @@ def main(args):
             
         # Create a new  Action used to display all Object detection summations for each frame. Use the classId
         # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=15, offsetY=50, offsetY_with_classId=True,
-            font='arial-14-white', has_bg_color=True, bg_color='full-black')
+        retval = dsl_ode_action_display_new('display-action', offsetX=24, offsetY=55, offsetY_with_classId=True,
+            font='arial-15-white', has_bg_color=False, bg_color='full-grey')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New RGBA Rectangle to use as a background for summation display. Using the full black with alpha=1.0
-        retval = dsl_display_type_rgba_rectangle_new('black-rectangle', left=10, top=45, width=190, height=110, 
-            border_width=0, color='full-black', has_bg_color=True, bg_color='full-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # A second RGBA Rectangle to use as a dropped shadow for summation display. Using the opaque black
-        retval = dsl_display_type_rgba_rectangle_new('black-shadow', left=16, top=51, width=190, height=110, 
-            border_width=0, color='opaque-black', has_bg_color=True, bg_color='opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # A new RGBA Circle to be used as a custom arrow head.
-        retval = dsl_display_type_rgba_circle_new('blue-circle', x_center=530, y_center=50, radius=5, 
-            color='full-blue', has_bg_color=True, bg_color='full-blue')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_line_new('blue-line', x1=530, y1=50, x2=730, y2=50, width=2, color='full-blue')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_display_type_rgba_text_new('blue-text', 'Shared Trigger Area', x_offset=733, y_offset=30, 
-            font='arial-20-blue', has_bg_color=False, bg_color='full-blue')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a new Action to display the black rectangle as a background for the summantion display
-        retval = dsl_ode_action_overlay_frame_new('overlay-black-rectangle', 'black-rectangle')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Create a new Action to display the opaque black rectangle as a dropped shadow for the summantion display
-        retval = dsl_ode_action_overlay_frame_new('overlay-black-shadow', 'black-shadow')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a new Action to display the blue circle arrow head
-        retval = dsl_ode_action_overlay_frame_new('overlay-blue-circle', 'blue-circle')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Create a new Action to display the blue annotation line
-        retval = dsl_ode_action_overlay_frame_new('overlay-blue-line', 'blue-line')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Create a new Action to display the blue text to annotate the shared area
-        retval = dsl_ode_action_overlay_frame_new('overlay-blue-text', 'blue-text')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-
-        retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
-            'overlay-black-shadow', 
-            'overlay-black-rectangle', 
-            'overlay-blue-circle',
-            'overlay-blue-line',
-            'overlay-blue-text',
-            None])
-        retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-black-rectangle')
-        if retval != DSL_RETURN_SUCCESS:
-            break
         
         # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
         # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence

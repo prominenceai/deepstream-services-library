@@ -73,6 +73,8 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
+        DslReturnType DisplayTypeOverlayFrame(const char* name, void* pBuffer, void* pFrameMeta);
+        
         DslReturnType DisplayTypeDelete(const char* name);
         
         DslReturnType DisplayTypeDeleteAll();

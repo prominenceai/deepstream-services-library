@@ -31,8 +31,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
-
-#define MAX_DISPLAY_LEN 64
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -475,7 +474,7 @@ namespace DSL
 
     // ********************************************************************
 
-    OverlayFrameOdeAction::OverlayFrameOdeAction(const char* name, DSL_BASE_PTR pDisplayType)
+    OverlayFrameOdeAction::OverlayFrameOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
         , m_pDisplayType(pDisplayType)
     {
@@ -492,40 +491,7 @@ namespace DSL
     {
         if (m_enabled)
         {
-            // Ignore the return value, errors will be logged 
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-            
-            if (m_pDisplayType->IsType(typeid(RgbaText)))
-            {
-                DSL_RGBA_TEXT_PTR pText = std::dynamic_pointer_cast<RgbaText>(m_pDisplayType);
-                NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
-
-                // copy over our text params, display_text currently == NULL
-                *pTextParams = *pText;
-                
-                // need to allocate storage for actual text, then copy.
-                pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-                pText->m_text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
-                pDisplayMeta->text_params[pDisplayMeta->num_labels++] = *pText;
-            }
-            if (m_pDisplayType->IsType(typeid(RgbaLine)))
-            {
-                DSL_RGBA_LINE_PTR pLine = std::dynamic_pointer_cast<RgbaLine>(m_pDisplayType);
-                pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *pLine;
-            }
-            if (m_pDisplayType->IsType(typeid(RgbaRectangle)))
-            {
-                DSL_RGBA_RECTANGLE_PTR pRectangle = std::dynamic_pointer_cast<RgbaRectangle>(m_pDisplayType);
-                pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *pRectangle;
-            }
-            if (m_pDisplayType->IsType(typeid(RgbaCircle)))
-            {
-                DSL_RGBA_CIRCLE_PTR pCircle = std::dynamic_pointer_cast<RgbaCircle>(m_pDisplayType);
-                pDisplayMeta->circle_params[pDisplayMeta->num_circles++] = *pCircle;
-            }
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
+            m_pDisplayType->OverlayFrame(pBuffer, pFrameMeta);
         }
     }
 

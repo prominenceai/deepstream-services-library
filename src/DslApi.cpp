@@ -118,6 +118,14 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
     return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(cstrName.c_str(), 
         x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
+
+DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->DisplayTypeOverlayFrame(cstrName.c_str(), buffer, frame_meta);
+}
     
 DslReturnType dsl_display_type_delete(const wchar_t* name)
 {

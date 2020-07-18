@@ -611,6 +611,30 @@ namespace DSL
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
+    
+    DslReturnType Services::DisplayTypeOverlayFrame(const char* name, void* pBuffer, void* pFrameMeta)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            
+            DSL_DISPLAY_TYPE_PTR pDisplayType = 
+                std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
+
+            pDisplayType->OverlayFrame((GstBuffer*)pBuffer, (NvDsFrameMeta*)pFrameMeta);
+            
+            LOG_INFO("Display Type '" << name << "' deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Type '" << name << "' threw exception on delete");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
             
     DslReturnType Services::DisplayTypeDelete(const char* name)
     {
@@ -645,14 +669,7 @@ namespace DSL
 
         try
         {
-            for (auto const& imap: m_displayTypes)
-            {
-                if (imap.second.use_count() > 1)
-                {
-                    LOG_ERROR("Display Type '" << imap.second->GetName() << "' is currently in use");
-                    return DSL_RESULT_DISPLAY_TYPE_IN_USE;
-                }
-            }
+            // Don't check for in-use on deleting all. 
             m_displayTypes.clear();
             
             LOG_INFO("All Display Types deleted successfully");
@@ -970,7 +987,9 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
             RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
             
-            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, m_displayTypes[displayType]);
+            DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, pDisplayType);
 
             LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
 
