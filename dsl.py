@@ -138,6 +138,16 @@ def dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, ha
     return int(result)
 
 ##
+## dsl_display_type_overlay_frame()
+##
+_dsl.dsl_display_type_overlay_frame.argtypes = [c_wchar_p, c_void_p, c_void_p]
+_dsl.dsl_display_type_overlay_frame.restype = c_uint
+def dsl_display_type_overlay_frame(name, buffer, frame_meta):
+    global _dsl
+    result =_dsl.dsl_display_type_overlay_frame(name, buffer, frame_meta)
+    return int(result)
+
+##
 ## dsl_display_type_delete()
 ##
 _dsl.dsl_display_type_delete.argtypes = [c_wchar_p]

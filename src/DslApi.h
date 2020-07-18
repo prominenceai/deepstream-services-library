@@ -560,6 +560,15 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
  */
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
     const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief Adds a named Display Type to a frames's meta data overlaying the text/shape
+ * @param name unique name of the Display Type to overlay
+ * @param frame_meta opaque pointer to the batched buffer that holds the Frame meta data
+ * @param frame_meta opaque pointer to a Frame's meta data to add the Display Type
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta);
     
 /**
  * @brief deletes a uniquely named Display Type of any type

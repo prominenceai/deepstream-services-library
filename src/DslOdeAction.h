@@ -624,7 +624,7 @@ namespace DSL
          * @param[in] name unique name for the ODE Action
          * @param[in] shared pointer to the 
          */
-        OverlayFrameOdeAction(const char* name, DSL_BASE_PTR pDisplayType);
+        OverlayFrameOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType);
         
         /**
          * @brief dtor for the OverlayFrame ODE Action class
@@ -644,7 +644,7 @@ namespace DSL
 
     private:
     
-        DSL_BASE_PTR m_pDisplayType;
+        DSL_DISPLAY_TYPE_PTR m_pDisplayType;
     
     };
     // ********************************************************************
