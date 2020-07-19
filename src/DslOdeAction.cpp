@@ -309,6 +309,63 @@ namespace DSL
 
     // ********************************************************************
 
+    FillSurroundingsOdeAction::FillSurroundingsOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
+        : OdeAction(name)
+        , m_pColor(pColor)
+    {
+        LOG_FUNC();
+    }
+
+    FillSurroundingsOdeAction::~FillSurroundingsOdeAction()
+    {
+        LOG_FUNC();
+
+    }
+
+    void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled and pObjectMeta)
+        {
+            
+            uint x1(roundf(pObjectMeta->rect_params.left));
+            uint y1(roundf(pObjectMeta->rect_params.top));
+            uint x2(x1+roundf(pObjectMeta->rect_params.width)); 
+            uint y2(y1+roundf(pObjectMeta->rect_params.height)); 
+            uint rWidth = roundf(pObjectMeta->rect_params.width);
+            
+            std::string leftRectName("left-rect");
+            
+            DSL_RGBA_RECTANGLE_PTR pLeftRect = DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
+                0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+                
+            pLeftRect->OverlayFrame(pBuffer, pFrameMeta);
+
+            std::string rightRectName("right-rect");
+            
+            DSL_RGBA_RECTANGLE_PTR pRightRect = DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
+                x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+    
+            pRightRect->OverlayFrame(pBuffer, pFrameMeta);
+
+            std::string topRectName("top-rect");
+            
+            DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
+                x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
+                
+            pTopRect->OverlayFrame(pBuffer, pFrameMeta);
+
+            std::string bottomRectName("bottom-rect");
+            
+            DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
+                x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+                
+            pBottomRect->OverlayFrame(pBuffer, pFrameMeta);
+        }
+    }
+
+    // ********************************************************************
+
     FillFrameOdeAction::FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
         , m_pColor(pColor)

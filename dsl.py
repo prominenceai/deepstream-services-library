@@ -251,6 +251,16 @@ def dsl_ode_action_fill_object_new(name, color):
     return int(result)
 
 ##
+## dsl_ode_action_fill_surroundings_new()
+##
+_dsl.dsl_ode_action_fill_surroundings_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_fill_surroundings_new.restype = c_uint
+def dsl_ode_action_fill_surroundings_new(name, color):
+    global _dsl
+    result =_dsl.dsl_ode_action_fill_surroundings_new(name, color)
+    return int(result)
+
+##
 ## dsl_ode_action_handler_disable_new()
 ##
 _dsl.dsl_ode_action_handler_disable_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -626,6 +636,26 @@ _dsl.dsl_ode_trigger_range_new.restype = c_uint
 def dsl_ode_trigger_range_new(name, class_id, limit, lower, upper):
     global _dsl
     result =_dsl.dsl_ode_trigger_range_new(name, class_id, limit, lower, upper)
+    return int(result)
+
+##
+## dsl_ode_trigger_smallest_new()
+##
+_dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_smallest_new.restype = c_uint
+def dsl_ode_trigger_smallest_new(name, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_smallest_new(name, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_largest_new()
+##
+_dsl.dsl_ode_trigger_largest_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_largest_new.restype = c_uint
+def dsl_ode_trigger_largest_new(name, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_largest_new(name, class_id, limit)
     return int(result)
 
 ##

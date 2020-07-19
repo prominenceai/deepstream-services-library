@@ -93,6 +93,8 @@ namespace DSL {
         
         DslReturnType OdeActionLogNew(const char* name);
         
+        DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
+        
         DslReturnType OdeActionFillFrameNew(const char* name, const char* color);
 
         DslReturnType OdeActionFillObjectNew(const char* name, const char* color);
@@ -180,6 +182,10 @@ namespace DSL {
         DslReturnType OdeTriggerRangeNew(const char* name, 
             uint classId, uint limit, uint lower, uint upper);
         
+        DslReturnType OdeTriggerSmallestNew(const char* name, uint classId, uint limit);
+
+        DslReturnType OdeTriggerLargestNew(const char* name, uint classId, uint limit);
+
         DslReturnType OdeTriggerReset(const char* name);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);

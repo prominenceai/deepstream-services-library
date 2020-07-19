@@ -73,6 +73,15 @@ namespace DSL
     #define DSL_ODE_TRIGGER_RANGE_NEW(name, classId, limit, lower, upper) \
         std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, classId, limit, lower, upper))
 
+    #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
+    #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, classId, limit) \
+        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, classId, limit))
+
+    #define DSL_ODE_TRIGGER_LARGEST_PTR std::shared_ptr<LargestOdeTrigger>
+    #define DSL_ODE_TRIGGER_LARGEST_NEW(name, classId, limit) \
+        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, classId, limit))
+
+
     class OdeTrigger : public Base
     {
     public: 
@@ -707,6 +716,81 @@ namespace DSL
     
     };
 
+    class SmallestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        SmallestOdeTrigger(const char* name, uint classId, uint limit);
+        
+        ~SmallestOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Smallest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data
+         * Each object occurrence that matches the min criteria will be added
+         * to list to be checked for Smallest object on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
+    
+    };
+
+    class LargestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        LargestOdeTrigger(const char* name, uint classId, uint limit);
+        
+        ~LargestOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Largest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data
+         * Each object occurrence that matches the min criteria will be added
+         * to list to be checked for Largest object on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
+    
+    };
 }
 
 #endif // _DSL_ODE_H

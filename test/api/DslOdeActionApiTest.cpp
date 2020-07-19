@@ -352,6 +352,47 @@ SCENARIO( "A new Fill Object ODE Action can be created and deleted", "[ode-actio
     }
 }
 
+SCENARIO( "A new Fill Surroundings ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Fill Surroundings ODE Action" ) 
+    {
+        std::wstring actionName(L"fill-frame-action");
+        
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Fill Surroundings Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_surroundings_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Fill Frame Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Fill Frame Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_fill_surroundings_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Fill Frame Action of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_fill_surroundings_new(actionName.c_str(), colorName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Handler Disable ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Handler Disable ODE Action" ) 

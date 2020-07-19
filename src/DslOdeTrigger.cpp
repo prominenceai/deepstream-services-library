@@ -843,4 +843,134 @@ namespace DSL
         return m_occurrences;
    }
 
+    // *****************************************************************************
+    
+    SmallestOdeTrigger::SmallestOdeTrigger(const char* name, uint classId, uint limit)
+        : OdeTrigger(name, classId, limit)
+    {
+        LOG_FUNC();
+    }
+
+    SmallestOdeTrigger::~SmallestOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool SmallestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrenceMetaList.push_back(pObjectMeta);
+        
+        return true;
+    }
+
+    uint SmallestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least one object for a Minimum event
+        if (m_enabled and m_occurrenceMetaList.size())
+        {
+            // Once occurrence to return and increment the accumulative Trigger count
+            m_occurrences = 1;
+            m_triggered++;
+            // update the total event count static variable
+            s_eventCount++;
+
+            uint smallestArea = UINT32_MAX;
+            NvDsObjectMeta* smallestObject(NULL);
+            
+            // iterate through the list of object occurrences that passed all min criteria
+            for (const auto &ivec: m_occurrenceMetaList) 
+            {
+                uint rectArea = ivec->rect_params.width * ivec->rect_params.width;
+                if (rectArea < smallestArea) 
+                { 
+                    smallestArea = rectArea;
+                    smallestObject = ivec;    
+                }
+            }
+            for (const auto &imap: m_pOdeActions)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                
+                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, smallestObject);
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaList.clear();
+        return m_occurrences;
+   }
+
+    // *****************************************************************************
+    
+    LargestOdeTrigger::LargestOdeTrigger(const char* name, uint classId, uint limit)
+        : OdeTrigger(name, classId, limit)
+    {
+        LOG_FUNC();
+    }
+
+    LargestOdeTrigger::~LargestOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool LargestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrenceMetaList.push_back(pObjectMeta);
+        
+        return true;
+    }
+
+    uint LargestOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least one object for a Minimum event
+        if (m_enabled and m_occurrenceMetaList.size())
+        {
+            // Once occurrence to return and increment the accumulative Trigger count
+            m_occurrences = 1;
+            m_triggered++;
+            // update the total event count static variable
+            s_eventCount++;
+
+            uint largestArea = 0;
+            NvDsObjectMeta* largestObject(NULL);
+            
+            // iterate through the list of object occurrences that passed all min criteria
+            for (const auto &ivec: m_occurrenceMetaList) 
+            {
+                uint rectArea = ivec->rect_params.width * ivec->rect_params.width;
+                if (rectArea > largestArea) 
+                { 
+                    largestArea = rectArea;
+                    largestObject = ivec;    
+                }
+            }
+            for (const auto &imap: m_pOdeActions)
+            {
+                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                
+                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pFrameMeta, largestObject);
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaList.clear();
+        return m_occurrences;
+   }
+
 }

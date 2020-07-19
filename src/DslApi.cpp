@@ -223,6 +223,17 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
     return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
 }
 
+DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->OdeActionFillSurroundingsNew(cstrName.c_str(),
+        cstrColor.c_str());
+}
+
 DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color)
 {
     std::wstring wstrName(name);
@@ -617,6 +628,22 @@ DslReturnType dsl_ode_trigger_range_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeTriggerRangeNew(cstrName.c_str(), 
         class_id, limit, lower, upper);
+}
+
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerSmallestNew(cstrName.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, uint class_id, uint limit)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLargestNew(cstrName.c_str(), class_id, limit);
 }
 
 DslReturnType dsl_ode_trigger_reset(const wchar_t* name)

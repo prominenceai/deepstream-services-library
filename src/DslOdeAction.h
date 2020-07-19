@@ -59,16 +59,20 @@ namespace DSL
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
-    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, color) \
-        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, color))
+    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
+        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, pColor))
 
     #define DSL_ODE_ACTION_FILL_FRAME_PTR std::shared_ptr<FillFrameOdeAction>
-    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, color) \
-        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, color))
+    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor) \
+        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, pColor))
 
     #define DSL_ODE_ACTION_FILL_OBJECT_PTR std::shared_ptr<FillObjectOdeAction>
-    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, color) \
-        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, color))
+    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor) \
+        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, pColor))
+
+    #define DSL_ODE_ACTION_FILL_SURROUNDINGS_PTR std::shared_ptr<FillSurroundingsOdeAction>
+    #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
+        std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
@@ -561,6 +565,50 @@ namespace DSL
         DSL_RGBA_COLOR_PTR m_pColor;
     
     };
+
+    // ********************************************************************
+
+    /**
+     * @class FillSurroundingOdeAction
+     * @brief Fill Surroundings ODE Action class
+     */
+    class FillSurroundingsOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Surroundings Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Object
+         */
+        FillSurroundingsOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~FillSurroundingsOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by Filling the object's surrounding 
+         * using four adjacent rectangles. 
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Background color used to Fill everything but the object
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+    
+    };
+
     // ********************************************************************
 
     /**
@@ -609,6 +657,7 @@ namespace DSL
     
     };
         
+
     // ********************************************************************
 
     /**
@@ -647,6 +696,7 @@ namespace DSL
         DSL_DISPLAY_TYPE_PTR m_pDisplayType;
     
     };
+
     // ********************************************************************
 
     /**
