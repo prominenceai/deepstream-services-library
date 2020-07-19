@@ -653,13 +653,19 @@ DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* 
  * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
  * Background with RGBA color values
  * @param[in] name unique name for the Fill Object ODE Action
- * @param[in] red red value for the RGBA background color [1..0]
- * @param[in] green green value for the RGBA background color [1..0]
- * @param[in] blue blue value for the RGBA background color [1..0]
- * @param[in] alpha alpha value for the RGBA background color [1..0]
+ * @param[in] color nane of a RGBA color that must exist prior to creating the Action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
+
+/**
+ * @brief Creates a uniquely named Fill Surroundings ODE Action, that fills the entire
+ * frame area surroudning an Object's rectangle
+ * @param[in] name unique name for the Fill Frame ODE Action
+ * @param[in] color nane of a RGBA color that must exist prior to creating the Action
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
@@ -971,7 +977,6 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, ui
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
- 
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_id, uint limit);
 
 /**
@@ -1039,6 +1044,27 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, 
     uint class_id, uint limit, uint lower, uint upper);
+
+/**
+ * @brief Smallest trigger that checks for the occurrence of Objects within a frame
+ * and if at least one is found, Triggers on the Object with smallest rectangle area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, uint class_id, uint limit);
+
+/**
+ * @brief Largest trigger that checks for the occurrence of Objects within a frame
+ * and if at least one is found, Triggers on the Object with larget rectangle area.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, uint class_id, uint limit);
+
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0

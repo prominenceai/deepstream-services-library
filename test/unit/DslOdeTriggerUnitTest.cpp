@@ -837,3 +837,103 @@ SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
         }
     }
 }
+
+SCENARIO( "A SmallestOdeTrigger handles an ODE Occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new SmallestOdeTrigger" ) 
+    {
+        std::string odeTriggerName("smallest");
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_SMALLEST_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_SMALLEST_NEW(odeTriggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.rect_params.left = 0;
+        objectMeta1.rect_params.top = 0;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.rect_params.left = 0;
+        objectMeta2.rect_params.top = 0;
+        objectMeta2.rect_params.width = 99;
+        objectMeta2.rect_params.height = 100;
+        
+        
+        WHEN( "Two objects occur" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "An ODE occurrence is detected with the largets reported" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}
+SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new LargestOdeTrigger" ) 
+    {
+        std::string odeTriggerName("smallest");
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("print-action");
+
+        DSL_ODE_TRIGGER_LARGEST_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_LARGEST_NEW(odeTriggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.rect_params.left = 0;
+        objectMeta1.rect_params.top = 0;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.rect_params.left = 0;
+        objectMeta2.rect_params.top = 0;
+        objectMeta2.rect_params.width = 99;
+        objectMeta2.rect_params.height = 100;
+        
+        WHEN( "Two objects occur" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            
+            THEN( "An ODE occurrence is detected with the smallest reported" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}

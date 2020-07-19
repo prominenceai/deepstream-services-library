@@ -214,6 +214,31 @@ SCENARIO( "A HandlerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
     }
 }
 
+SCENARIO( "A new FillSurroundingsOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new FillSurroundingsOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+
+        std::string colorName("my-custom-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+
+        WHEN( "A new FillSurroundingsOdeAction is created" )
+        {
+            DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
+                DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pBgColor);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new FillObjectOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new FillObjectOdeAction" ) 

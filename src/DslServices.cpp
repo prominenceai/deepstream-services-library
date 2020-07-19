@@ -826,6 +826,39 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionFillSurroundingsNew(const char* name, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor);
+
+            LOG_INFO("New ODE Fill Surroundings Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Fill Surroundings Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionFillFrameNew(const char* name, const char* color)
     {
         LOG_FUNC();
@@ -1853,6 +1886,58 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Range ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerSmallestNew(const char* name, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_SMALLEST_NEW(name, classId, limit);
+            
+            LOG_INFO("New Smallest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Smallest ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerLargestNew(const char* name, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_LARGEST_NEW(name, classId, limit);
+            
+            LOG_INFO("New Largest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Largest ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

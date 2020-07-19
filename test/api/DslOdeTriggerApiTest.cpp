@@ -468,3 +468,73 @@ SCENARIO( "A new Maximum Trigger can be created and deleted correctly", "[ode-tr
     }
 }    
 
+SCENARIO( "A new Smallest Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Smallest Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"smallest");
+        uint class_id(0);
+        uint limit(0);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_smallest_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_smallest_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_smallest_new(odeTriggerName.c_str(), class_id, limit) 
+                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new Largest Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Largest Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"largest");
+        uint class_id(0);
+        uint limit(0);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_largest_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_largest_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_largest_new(odeTriggerName.c_str(), class_id, limit) 
+                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
