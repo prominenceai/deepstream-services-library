@@ -1,7 +1,7 @@
 # Display Type API
-Display Types are used to display Text and Shapes when using an [On-Screen Display](/docs/api-osd.md) Component. The Display Types are overlaid by adding metadata to a Video frame with an [Overlay Frame ODE Action](/docs/api-ode-action#dsl_ode_action_overlay_frame_new), added two one or more [ODE Triggers](/docs/api-ode-trigger.md). 
+Display Types are used to display Text and Shapes when using an [On-Screen Display](/docs/api-osd.md) Component. The Display Types are overlaid by adding metadata to a Frame's Display-Meta prior to the On-Screen Display. 
 
-There are two base types used to specify colors and fonts when creating derived types for actual display. The Base Types are used when updating an [On-Screen Display's](/docs/api-osd.md) Clock settings as well.
+There are two base types used to specify colors and fonts when creating derived types for actual display.
 
 ### Base Types
 * **RGBA Color** - red, green, blue, and alpha levels between 0.0 and 1.0
@@ -14,8 +14,55 @@ There are two base types used to specify colors and fonts when creating derived 
 * **RGBA Rectangle** - with coordinates, dimensions, border-width, and RGBA Colors for the border and background (optional).
 * **RGBA Circle** - with coordinates, radius, and RGBA Colors for the border and background (optional)
 
-#### ODE Action Construction and Destruction
-Display Types are created by calling one of type specific [constructors](#display-type-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE`. Once created, all Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete),
+### Adding Display Types
+
+#### For static display on every frame:
+To overlay static Display types over every frame, use an [Overlay Frame ODE Action](/docs/api-ode-action#dsl_ode_action_overlay_frame_new), added to an [Always ODE Trigger](/docs/api-ode-trigger.md). 
+
+Using Python for example
+```Python
+# new RGBA color Display Type
+retval = dsl_display_type_rgba_color_new('full-blue', red=0.0, green=0.0, blue=1.0, alpha=1.0)
+
+# new RGBA font using our new color
+retval = dsl_display_type_rgba_font_new('arial-20-blue', font='arial', size=20, color='full-blue')
+
+# new RGBA display text
+retval = dsl_display_type_rgba_text_new('display-text', text='My Home Security', x_offset=733, y_offset=5, 
+    font='arial-20-blue', has_bg_color=False, bg_color='full-blue')
+
+# Create an Action that will display the text by adding the metadata to the Frame's display meta
+retval = dsl_ode_action_overlay_frame_new('overlay-display-text', display_type='display-text')
+
+# new Always triger to overlay our display text on every frame
+retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+
+# finally, add the Overlay-Frame Action to our Always Trigger.
+retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-display-text')
+```
+#### For static display on specific frames:
+Text or shapes can be used to indicate the occurrence of specific detection events. 
+
+Using Python for example
+```Python
+# new RGBA color Display Type
+retval = dsl_display_type_rgba_color_new('full-yellow', red=1.0, green=1.0, blue=0.0, alpha=1.0)
+
+# new RGBA display rectangle
+retval = dsl_display_type_rgba_rectangle_new('warning-rectangle', left=10, top=10, width=50, height=50, 
+    border_width=0, color='full-yellow', has_bg_color=True, bg_color='full-yellow')
+
+# Create an Action that will display the warning by adding the metadata to the Frame's display meta
+retval = dsl_ode_action_overlay_frame_new('overlay-warning', display_type='warning-rectangle')
+
+# new Maximum Objects triger to invoke our 'overlay-warning' action when to many objects are detected
+retval = dsl_ode_trigger_maximum_new('max-trigger', class_id=PGIE_CLASS_ID_PERSON, limit=0, maximum=10)
+
+# finally, add the Overlay-Frame Action to our Max Objects Trigger.
+retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
+```
+#### Display Types Construction and Destruction
+Display Types are created by calling one of the type specific [constructors](#display-type-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE`. Once created, all Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete),
 [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all). Attempting to delete a Display Type in-use by an ODE Action will fail with a result of `DSL_RESULT_ODE_DISPLAY_TYPE_IN_USE`
 
 #### Display Types and the ODE Overlay Frame Action
