@@ -1563,6 +1563,28 @@ def dsl_tiler_new(name, width, height):
     return int(result)
 
 ##
+## dsl_tiler_tiles_get()
+##
+_dsl.dsl_tiler_tiles_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tiler_tiles_get.restype = c_uint
+def dsl_tiler_tiles_get(name):
+    global _dsl
+    columns = c_uint(0)
+    rows = c_uint(0)
+    result = _dsl.dsl_tiler_tiles_get(name, DSL_UINT_P(columns), DSL_UINT_P(rows))
+    return int(result), columns.value, rows.value 
+
+##
+## dsl_tiler_tiles_set()
+##
+_dsl.dsl_tiler_tiles_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tiler_tiles_set.restype = c_uint
+def dsl_tiler_tiles_set(name, columns, rows):
+    global _dsl
+    result =_dsl.dsl_tiler_tiles_set(name, columns, rows)
+    return int(result)
+
+##
 ## dsl_tiler_dimensions_get()
 ##
 _dsl.dsl_tiler_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
