@@ -1231,19 +1231,19 @@ SCENARIO( "A TriggerEnableOdeAction handles an ODE Occurence correctly", "[OdeAc
     }
 }
 
-SCENARIO( "A new RecordStartOdeAction is created correctly", "[OdeAction]" )
+SCENARIO( "A new RecordSinkStartOdeAction is created correctly", "[OdeAction]" )
 {
-    GIVEN( "Attributes for a new RecordStartOdeAction" ) 
+    GIVEN( "Attributes for a new RecordSinkStartOdeAction" ) 
     {
         std::string actionName("action");
         std::string recordSink("record-sink");
         
-        dsl_sink_record_client_listner_cb client_listener;
+        dsl_record_client_listner_cb client_listener;
 
-        WHEN( "A new RecordStartOdeAction is created" )
+        WHEN( "A new RecordSinkStartOdeAction is created" )
         {
-            DSL_ODE_ACTION_RECORD_START_PTR pAction = 
-                DSL_ODE_ACTION_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
+            DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
+                DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1254,9 +1254,9 @@ SCENARIO( "A new RecordStartOdeAction is created correctly", "[OdeAction]" )
     }
 }
 
-SCENARIO( "A RecordStartOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
-    GIVEN( "A new RecordStartOdeAction" ) 
+    GIVEN( "A new RecordSinkStartOdeAction" ) 
     {
         std::string triggerName("first-occurence");
         uint classId(1);
@@ -1265,13 +1265,69 @@ SCENARIO( "A RecordStartOdeAction handles an ODE Occurence correctly", "[OdeActi
         std::string actionName("action");
         std::string recordSink("record-sink");
         
-        dsl_sink_record_client_listner_cb client_listener;
+        dsl_record_client_listner_cb client_listener;
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_RECORD_START_PTR pAction = 
-            DSL_ODE_ACTION_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
+        DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
+            DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta = {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action will produce an error message as the Record Sink does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RecordTapStartOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new RecordSinkStartOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string recordTap("record-tap");
+        
+        dsl_record_client_listner_cb client_listener;
+
+        WHEN( "A new RecordTapStartOdeAction is created" )
+        {
+            DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
+                DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new RecordTapStartOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string recordTap("record-tap");
+        
+        dsl_record_client_listner_cb client_listener;
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
+            DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
 
         WHEN( "A new ODE is created" )
         {

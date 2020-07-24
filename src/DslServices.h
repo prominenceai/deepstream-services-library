@@ -109,9 +109,6 @@ namespace DSL {
 
         DslReturnType OdeActionPrintNew(const char* name);
         
-        DslReturnType OdeActionRecordStartNew(const char* name,
-            const char* recordSink, uint start, uint duration, void* clientData);
-
         DslReturnType OdeActionRedactNew(const char* name);
 
         DslReturnType OdeActionSinkAddNew(const char* name, 
@@ -120,11 +117,17 @@ namespace DSL {
         DslReturnType OdeActionSinkRemoveNew(const char* name, 
             const char* pipeline, const char* sink);
 
+        DslReturnType OdeActionSinkRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
+
         DslReturnType OdeActionSourceAddNew(const char* name, 
             const char* pipeline, const char* source);
 
         DslReturnType OdeActionSourceRemoveNew(const char* name, 
             const char* pipeline, const char* source);
+
+        DslReturnType OdeActionTapRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
 
         DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
 
@@ -262,6 +265,10 @@ namespace DSL {
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
     
+        DslReturnType SourceRtspTapAdd(const char* name, const char* tap);
+    
+        DslReturnType SourceRtspTapRemove(const char* name);
+    
         DslReturnType SourcePause(const char* name);
 
         DslReturnType SourceResume(const char* name);
@@ -275,6 +282,26 @@ namespace DSL {
         boolean SourceNumInUseMaxSet(uint max);
         
         DslReturnType DewarperNew(const char* name, const char* configFile);
+        
+        DslReturnType TapRecordNew(const char* name, const char* outdir, 
+            uint container, dsl_record_client_listner_cb clientListener);
+            
+        DslReturnType TapRecordSessionStart(const char* name, 
+            uint* session, uint start, uint duration, void* clientData);
+
+        DslReturnType TapRecordSessionStop(const char* name, uint session);
+
+        DslReturnType TapRecordCacheSizeGet(const char* name, uint* cacheSize);
+            
+        DslReturnType TapRecordCacheSizeSet(const char* name, uint cacheSize);
+        
+        DslReturnType TapRecordDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType TapRecordDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType TapRecordIsOnGet(const char* name, boolean* isOn);
+
+        DslReturnType TapRecordResetDoneGet(const char* name, boolean* resetDone);
 
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
@@ -399,7 +426,7 @@ namespace DSL {
             uint codec, uint muxer, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener);
+            uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listner_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint* session, uint start, uint duration, void* clientData);

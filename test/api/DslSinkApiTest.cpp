@@ -597,7 +597,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         uint bitrate(2000000);
         uint interval(0);
 
-        dsl_sink_record_client_listner_cb client_listener;
+        dsl_record_client_listner_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -611,7 +611,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
                 uint ret_cache_size(0);
                 uint ret_width(0), ret_height(0);
                 REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_cache_size == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
                 REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 0 );
                 REQUIRE( ret_height == 0 );
@@ -633,7 +633,7 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
         uint bitrate(2000000);
         uint interval(0);
 
-        dsl_sink_record_client_listner_cb client_listener;
+        dsl_record_client_listner_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),

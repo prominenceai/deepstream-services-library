@@ -69,7 +69,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000C
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000D
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000D
+#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000E
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
 
 /**
  * Dewarper API Return Values
@@ -175,12 +177,13 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
 #define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
 #define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0005
-#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0006
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0007
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0008
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0005
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0006
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0007
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0008
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000A
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000B
 
 /**
  * Tile API Return Values
@@ -305,6 +308,18 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
 #define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
 
+/**
+ * Tap API Return Values
+ */
+#define DSL_RESULT_TAP_RESULT                                       0x00200000
+#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00200001
+#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00200002
+#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00200003
+#define DSL_RESULT_TAP_IN_USE                                       0x00200004
+#define DSL_RESULT_TAP_SET_FAILED                                   0x00200005
+#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00200006
+#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00200007
+#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00200008
 
 /**
  *
@@ -363,8 +378,8 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 
-#define DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC                         30
-#define DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC                      30
+#define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
+#define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
 
 EXTERN_C_BEGIN
 
@@ -464,7 +479,7 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
  * @param[in] user_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_sink_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -781,6 +796,19 @@ DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source);
+
+/**
+ * @brief Creates a uniquely named Start Record Tap ODE Action
+ * @param[in] name unique name for the Start Record Tap Action 
+ * @param[in] record_tap unique name of the Record Tap to start recording
+ * @param[in] start start time before current time in seconds
+ * should be less the Record Taps's cache size
+ * @param[in] duration duration of the recording in seconds
+ * @param[in] client_data opaque pointer to client data
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
 
 /**
  * @brief Creates a uniquely named Add Area ODE Action that adds
@@ -1423,6 +1451,21 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 
 /**
+ * @brief Adds a named Tap to a named RTSP source
+ * @param[in] name name of the source object to update
+ * @param[in] tap name of the Tap to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
+
+/**
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param[in] name name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
+
+/**
  * @brief pauses a single Source object if the Source is 
  * currently in a state of in-use and Playing..
  * @param[in] name the name of Source component to pause
@@ -1476,6 +1519,96 @@ boolean dsl_source_num_in_use_max_set(uint max);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
 DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
+
+/**
+ * @brief creates a new, uniquely named Record Tap component
+ * @param[in] name unique component name for the new Record Tap
+ * @param[in] outdir absolute or relative path to the recording output dir.
+ * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] client_listener client callback for end-of-sesssion notifications.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
+    uint container, dsl_record_client_listner_cb client_listener);
+     
+/**
+ * @brief starts a new recording session for the named Record Tap
+ * @param[in] name unique of the Record Tap to start the session
+ * @param[out] session unique id for the new session on successful start
+ * @param[in] start start time in seconds before the current time
+ * should be less that the video cache size
+ * @param[in] duration in seconds from the current time to record.
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client listener function provided on Tap creation
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
+    uint start, uint duration, void* client_data);
+
+/**
+ * @brief stops a current recording in session
+ * @param[in] name unique of the Record Tap to stop
+ * @param[in] session unique id for the session to stop
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, 
+    uint session);
+
+/**
+ * @brief returns the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * @param[in] name name of the Record Tap to query
+ * @param[out] cache_size current cache size setting
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size);
+
+/**
+ * @brief sets the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * @param[in] name name of the Record Tap to update
+ * @param[in] cache_size new cache size setting to use on Pipeline play
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size);
+
+/**
+ * @brief returns the dimensions, width and height, used for the video recordings
+ * @param[in] name name of the Record Tap to query
+ * @param[out] width current width of the video recording in pixels
+ * @param[out] height current height of the video recording in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the dimensions, width and height, for the video recordings created
+ * values of zero indicate no-transcodes
+ * @param[in] name name of the Record Tap to update
+ * @param[in] width width to set the video recording in pixels
+ * @param[in] height height to set the video in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief returns the current recording state of the Record Tap
+ * @param[in] name name of the Record Tap to query
+ * @param[out] is_on true if the Record Tap is currently recording a session, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
+
+/**
+ * @brief returns the current state of the Record Tap reset done flag
+ * @param[in] name name of the Record Tap to query
+ * @param[out] is_on true if Reset has been done, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
+
 
 /**
  * @brief creates a new, uniquely named Primary GIE object
@@ -2089,7 +2222,7 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
+    uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink
@@ -2118,7 +2251,7 @@ DslReturnType dsl_sink_record_session_stop(const wchar_t* name,
 /**
  * @brief returns the video recording cache size in units of seconds
  * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Sink to query
  * @param[out] cache_size current cache size setting
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
@@ -2128,7 +2261,7 @@ DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_si
 /**
  * @brief sets the video recording cache size in units of seconds
  * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Sink to query
  * @param[in] cache_size new cache size setting to use on Pipeline play
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT

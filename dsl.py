@@ -68,7 +68,7 @@ DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_SINK_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
+DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -360,7 +360,6 @@ def dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, cli
     result =_dsl.dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data)
     return int(result)
 
-
 ##
 ## dsl_ode_action_source_add_new()
 ##
@@ -379,6 +378,16 @@ _dsl.dsl_ode_action_source_remove_new.restype = c_uint
 def dsl_ode_action_source_remove_new(name, pipeline, source):
     global _dsl
     result =_dsl.dsl_ode_action_source_remove_new(name, pipeline, source)
+    return int(result)
+
+##
+## dsl_ode_action_tap_record_start_new()
+##
+_dsl.dsl_ode_action_tap_record_start_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_void_p]
+_dsl.dsl_ode_action_tap_record_start_new.restype = c_uint
+def dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, client_data):
+    global _dsl
+    result =_dsl.dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, client_data)
     return int(result)
 
 ##
@@ -1072,6 +1081,26 @@ def dsl_source_decode_dewarper_remove(name):
     return int(result)
 
 ##
+## dsl_source_rtsp_tap_add()
+##
+_dsl.dsl_source_rtsp_tap_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_rtsp_tap_add.restype = c_uint
+def dsl_source_rtsp_tap_add(name, tap):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_tap_add(name, tap)
+    return int(result)
+
+##
+## dsl_source_rtsp_tap_remove()
+##
+_dsl.dsl_source_rtsp_tap_remove.argtypes = [c_wchar_p]
+_dsl.dsl_source_rtsp_tap_remove.restype = c_uint
+def dsl_source_rtsp_tap_remove(name):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_tap_remove(name)
+    return int(result)
+
+##
 ## dsl_source_is_live()
 ##
 _dsl.dsl_source_is_live.argtypes = [c_wchar_p]
@@ -1117,6 +1146,104 @@ def dsl_dewarper_new(name, config_file):
     global _dsl
     result = _dsl.dsl_dewarper_new(name, config_file)
     return int(result)
+    
+##
+## dsl_tap_record_new()
+##
+_dsl.dsl_tap_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, DSL_RECORD_CLIENT_LISTNER]
+_dsl.dsl_tap_record_new.restype = c_uint
+def dsl_tap_record_new(name, outdir, container, client_listener):
+    global _dsl
+    listener_cb = DSL_RECORD_CLIENT_LISTNER(client_listener)
+    callbacks.append(listener_cb)
+    result =_dsl.dsl_tap_record_new(name, outdir, container, listener_cb)
+    return int(result)
+    
+##
+## dsl_tap_record_session_start()
+##
+_dsl.dsl_tap_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint]
+_dsl.dsl_tap_record_session_start.restype = c_uint
+def dsl_tap_record_session_start(name, start, duration, client_data):
+    global _dsl
+    session = c_uint(0)
+    result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, client_data)
+    return int(result), session.value 
+
+##
+## dsl_tap_record_session_stop()
+##
+_dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tap_record_session_stop.restype = c_uint
+def dsl_tap_record_session_stop(name, session):
+    global _dsl
+    result = _dsl.dsl_tap_record_session_stop(name, session)
+    return int(result)
+
+##
+## dsl_tap_record_cache_size_get()
+##
+_dsl.dsl_tap_record_cache_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_tap_record_cache_size_get.restype = c_uint
+def dsl_tap_record_cache_size_get(name):
+    global _dsl
+    cache_size = c_uint(0)
+    result = _dsl.dsl_tap_record_cache_size_get(name, DSL_UINT_P(cache_size))
+    return int(result), cache_size.value 
+
+##
+## dsl_tap_record_cache_size_set()
+##
+_dsl.dsl_tap_record_cache_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tap_record_cache_size_set.restype = c_uint
+def dsl_tap_record_cache_size_set(name, cache_size):
+    global _dsl
+    result = _dsl.dsl_tap_record_cache_size_set(name, cache_size)
+    return int(result)
+
+##
+## dsl_tap_record_dimensions_get()
+##
+_dsl.dsl_tap_record_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tap_record_dimensions_get.restype = c_uint
+def dsl_tap_record_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tap_record_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_tap_record_dimensions_set()
+##
+_dsl.dsl_tap_record_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tap_record_dimensions_set.restype = c_uint
+def dsl_tap_record_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_tap_record_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_tap_record_is_on_get()
+##
+_dsl.dsl_tap_record_is_on_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tap_record_is_on_get.restype = c_uint
+def dsl_tap_record_is_on_get(name):
+    global _dsl
+    is_on = c_uint(0)
+    result = _dsl.dsl_tap_record_is_on_get(name, DSL_BOOL_P(is_on))
+    return int(result), is_on.value 
+
+##
+## dsl_tap_record_reset_done_get()
+##
+_dsl.dsl_tap_record_reset_done_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tap_record_reset_done_get.restype = c_uint
+def dsl_tap_record_reset_done_get(name):
+    global _dsl
+    reset_done = c_uint(0)
+    result = _dsl.dsl_tap_record_reset_done_get(name, DSL_BOOL_P(reset_done))
+    return int(result), reset_done.value 
 
 ##
 ## dsl_gie_primary_new()
@@ -1671,11 +1798,11 @@ def dsl_sink_file_new(name, filepath, codec, container, bitrate, interval):
 ##
 ## dsl_sink_record_new()
 ##
-_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_SINK_RECORD_CLIENT_LISTNER]
+_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
 _dsl.dsl_sink_record_new.restype = c_uint
 def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, client_listener):
     global _dsl
-    checker_cb = DSL_SINK_RECORD_CLIENT_LISTNER(client_listener)
+    listener_cb = DSL_RECORD_CLIENT_LISTNER(client_listener)
     callbacks.append(checker_cb)
     result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, checker_cb)
     return int(result)

@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslElementr.h"
 #include "DslDewarperBintr.h"
+#include "DslTapBintr.h"
 
 namespace DSL
 {
@@ -474,12 +475,24 @@ namespace DSL
         bool SetUri(const char* uri);
         
         /**
+         * @brief adds a TapBintr to the RTSP Source - one at most
+         * @return true if the Source was able to add the Child TapBintr
+         */
+        bool AddTapBintr(DSL_BASE_PTR pTapBintr);
+
+        /**
+         * @brief Removes a TapBintr from the RTSP Source - if it currently has one
+         * @return true if the Source was able to remove the Child TapBintr
+         */
+        bool RemoveTapBintr();
+        
+        /**
          * @brief call to query the RTSP Source if it has a TapBntr
          * @return true if the Source has a Child TapBintr
          */
         bool HasTapBintr();
         
-        bool HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps);
+        bool HandleSelectStream(GstElement* pBin, uint num, GstCaps* pCaps);
 
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 
@@ -488,10 +501,14 @@ namespace DSL
     private:
 
         /**
-         @brief 
+         @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
         uint m_rtpProtocols;
-
+        
+        /**
+         * @brief optional child TapBintr, tapped in pre-decode
+         */ 
+        DSL_TAP_PTR m_pTapBintr;
 
         /**
          * @brief H.264 or H.265 RTP Depay for the RtspSourceBintr
@@ -504,12 +521,12 @@ namespace DSL
         DSL_ELEMENT_PTR m_pParser;
         
         /**
-         * @brief Pre-decode queue - option tee for Tapping off the pre-decoded stream
+         * @brief Pre-decode queue 
          */
         DSL_ELEMENT_PTR m_pPreDecodeQueue;
 
         /**
-         * @brief
+         * @brief Pre-decode tee - optional to tap off pre-decode strame for TapBintr
          */
         DSL_ELEMENT_PTR m_pPreDecodeTee;
 

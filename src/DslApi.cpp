@@ -294,18 +294,6 @@ DslReturnType dsl_ode_action_print_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionPrintNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
-    const wchar_t* record_sink, uint start, uint duration, void* client_data)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrSink(record_sink);
-    std::string cstrSink(wstrSink.begin(), wstrSink.end());
-
-    return DSL::Services::GetServices()->OdeActionRecordStartNew(cstrName.c_str(), 
-        cstrSink.c_str(), start, duration, client_data);
-}
-
 DslReturnType dsl_ode_action_redact_new(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -342,6 +330,18 @@ DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
         cstrPipeline.c_str(), cstrSink.c_str());
 }
 
+DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSink(record_sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->OdeActionSinkRecordStartNew(cstrName.c_str(), 
+        cstrSink.c_str(), start, duration, client_data);
+}
+
 DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source)
 {
@@ -368,6 +368,18 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionSourceRemoveNew(cstrName.c_str(),
         cstrPipeline.c_str(), cstrSource.c_str());
+}
+
+DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
+    const wchar_t* record_tap, uint start, uint duration, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTap(record_tap);
+    std::string cstrTap(wstrTap.begin(), wstrTap.end());
+
+    return DSL::Services::GetServices()->OdeActionTapRecordStartNew(cstrName.c_str(), 
+        cstrTap.c_str(), start, duration, client_data);
 }
 
 DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
@@ -1058,6 +1070,24 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
 }
 
+DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTap(tap);
+    std::string cstrTap(wstrTap.begin(), wstrTap.end());
+
+    return DSL::Services::GetServices()->SourceRtspTapAdd(cstrName.c_str(), cstrTap.c_str());
+}
+
+DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspTapRemove(cstrName.c_str());
+}
+
 DslReturnType dsl_source_pause(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -1105,6 +1135,84 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
 
     return DSL::Services::GetServices()->DewarperNew(cstrName.c_str(), cstrConfig.c_str());
+}
+
+DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
+     uint container, dsl_record_client_listner_cb client_listener)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->TapRecordNew(cstrName.c_str(), 
+        cstrOutdir.c_str(), container, client_listener);
+}     
+
+DslReturnType dsl_tap_record_session_start(const wchar_t* name, 
+     uint* session, uint start, uint duration,void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordSessionStart(cstrName.c_str(), 
+        session, start, duration, client_data);
+}     
+
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, uint session)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str(), session);
+}
+
+DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordCacheSizeGet(cstrName.c_str(), cache_size);
+}
+
+DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordCacheSizeSet(cstrName.c_str(), cache_size);
+}
+ 
+DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordDimensionsSet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordIsOnGet(cstrName.c_str(), is_on);
+}
+
+DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordResetDoneGet(cstrName.c_str(), reset_done);
 }
 
 DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -1815,7 +1923,7 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
-     uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener)
+     uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1891,7 +1999,6 @@ DslReturnType dsl_sink_record_reset_done_get(const wchar_t* name, boolean* reset
 
     return DSL::Services::GetServices()->SinkRecordResetDoneGet(cstrName.c_str(), reset_done);
 }
-
    
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)

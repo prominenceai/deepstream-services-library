@@ -142,9 +142,13 @@ namespace DSL
     #define DSL_ODE_ACTION_AREA_REMOVE_NEW(name, trigger, area) \
         std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
-    #define DSL_ODE_ACTION_RECORD_START_PTR std::shared_ptr<RecordStartOdeAction>
-    #define DSL_ODE_ACTION_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
-        std::shared_ptr<RecordStartOdeAction>(new RecordStartOdeAction(name, recordSink, start, duration, clientData))
+    #define DSL_ODE_ACTION_SINK_RECORD_START_PTR std::shared_ptr<RecordSinkStartOdeAction>
+    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
+        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, recordSink, start, duration, clientData))
+        
+    #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
+    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
+        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
         
         
     // ********************************************************************
@@ -1309,27 +1313,27 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class RecordStartOdeAction
-     * @brief Start Video Record ODE Action class
+     * @class RecordSinkStartOdeAction
+     * @brief Start Record Sink ODE Action class
      */
-    class RecordStartOdeAction : public OdeAction
+    class RecordSinkStartOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Start Record ODE Action class
+         * @brief ctor for the Start Record Sink ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] recordSink Record Sink component name to Start on ODE
          * @param[in] start time before current time in secs
          * @param[in] duration for recording unless stopped before completion
          */
-        RecordStartOdeAction(const char* name, 
+        RecordSinkStartOdeAction(const char* name, 
             const char* recordSink, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
          */
-        ~RecordStartOdeAction();
+        ~RecordSinkStartOdeAction();
 
         /**
          * @brief Handles the ODE occurrence by Starting a Video Recording Session
@@ -1348,6 +1352,70 @@ namespace DSL
          * @brief Record Sink to start the recording session
          */ 
         std::string m_recordSink;
+
+        /**
+         * @brief Start time before current time in seconds
+         */
+        uint m_start;
+
+        /**
+         * @brief Duration for recording in seconds
+         */
+        uint m_duration;
+        
+        /**
+         * @brief client Data for client listening for recording session complete/stopped
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief unique recording session id aquired on Start Record
+         */
+        uint m_session;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class RecordTapOdeAction
+     * @brief Start Record Tap ODE Action class
+     */
+    class RecordTapStartOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Start Record Tap ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordTapStartOdeAction(const char* name, 
+            const char* tapSink, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief dtor for the Start Record ODE Action class
+         */
+        ~RecordTapStartOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Starting a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Tap to start the recording session
+         */ 
+        std::string m_recordTap;
 
         /**
          * @brief Start time before current time in seconds
