@@ -169,6 +169,7 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+// All Bintr's that can be added as a "branch" to a "Tee"
 #define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
@@ -181,7 +182,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+        return DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH; \
     } \
 }while(0); 
 
@@ -195,6 +196,15 @@ THE SOFTWARE.
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(RecordTapBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Tap"); \
+        return DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP; \
     } \
 }while(0); 
 
@@ -596,7 +606,7 @@ namespace DSL
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
             DSL_RGBA_COLOR_PTR pBgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
             
             m_displayTypes[name] = DSL_RGBA_CIRCLE_NEW(name, 
                 xCenter, yCenter, radius, pColor, hasBgColor, pBgColor);
@@ -1088,34 +1098,6 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionRecordStartNew(const char* name,
-        const char* recordSink, uint start, uint duration, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure event name uniqueness 
-            if (m_odeActions.find(name) != m_odeActions.end())
-            {   
-                LOG_ERROR("ODE Action name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-            }
-            m_odeActions[name] = DSL_ODE_ACTION_RECORD_START_NEW(name,
-                recordSink, start, duration, clientData);
-
-            LOG_INFO("New ODE Record Start Action '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Record Start Action '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::OdeActionRedactNew(const char* name)
     {
         LOG_FUNC();
@@ -1196,6 +1178,34 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionSinkRecordStartNew(const char* name,
+        const char* recordSink, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_START_NEW(name,
+                recordSink, start, duration, clientData);
+
+            LOG_INFO("New ODE Record Sink Start Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Record Start Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionSourceAddNew(const char* name, 
         const char* pipeline, const char* source)
     {
@@ -1246,6 +1256,34 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Source Remove ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionTapRecordStartNew(const char* name,
+        const char* recordTap, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_START_NEW(name,
+                recordTap, start, duration, clientData);
+
+            LOG_INFO("New ODE Record Tap Start Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Record Tap Start Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -2849,6 +2887,64 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SourceRtspTapAdd(const char* name, const char* tap)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
+            RETURN_IF_COMPONENT_IS_NOT_TAP(m_components, tap);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+         
+            DSL_TAP_PTR pTapBintr = 
+                std::dynamic_pointer_cast<TapBintr>(m_components[tap]);
+         
+            if (!pSourceBintr->AddTapBintr(pTapBintr))
+            {
+                LOG_ERROR("Failed to add Tap '" << tap << "' to RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Tap");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceRtspTapRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->RemoveTapBintr())
+            {
+                LOG_ERROR("Failed to remove Tap from RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_TAP_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception removing Tap");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
     DslReturnType Services::SourcePause(const char* name)
     {
         LOG_FUNC();
@@ -3015,6 +3111,259 @@ namespace DSL
         {
             LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
             return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
+        dsl_record_client_listner_cb clientListener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            struct stat info;
+
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Tap name '" << name << "' is not unique");
+                return DSL_RESULT_TAP_NAME_NOT_UNIQUE;
+            }
+            // ensure outdir exists
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Tape '" << name << "'");
+                return DSL_RESULT_TAP_FILE_PATH_NOT_FOUND;
+            }
+
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for File Tap '" << name << "'");
+                return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
+            }
+
+            m_components[name] = DSL_RECORD_TAP_NEW(name, outdir, 
+                container, (NvDsSRCallbackFunc)clientListener);
+            
+            LOG_INFO("New Record Tap '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Record Tap '" << name << "' threw exception on create");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordSessionStart(const char* name, 
+        uint* session, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->StartSession(session, start, duration, clientData))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to Start Session");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap'" << name << "' threw an exception Starting Session");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordSessionStop(const char* name, uint session)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->StopSession(session))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap'" << name << "' threw an exception setting Stoping Session");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordCacheSizeGet(const char* name, uint* cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *cacheSize = pRecordTapBintr->GetCacheSize();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting Cache Size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordCacheSizeSet(const char* name, uint cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pRecordTapBintr->SetCacheSize(cacheSize))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to set cache size");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception setting cache size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::TapRecordDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            pRecordTapBintr->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pRecordTapBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to set dimensions");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordIsOnGet(const char* name, boolean* isOn)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            *isOn = pRecordTapBintr->IsOn();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting is-recording-on flag");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordResetDoneGet(const char* name, boolean* resetDone)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            *resetDone = pRecordTapBintr->ResetDone();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting reset done flag");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
     
@@ -4771,7 +5120,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
-        uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener)
+        uint bitrate, uint interval, dsl_record_client_listner_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4795,12 +5144,12 @@ namespace DSL
 
             if (codec > DSL_CODEC_MPEG4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
 
@@ -4813,7 +5162,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Image Sink '" << name << "' threw exception on create");
+            LOG_ERROR("New Record Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -4841,7 +5190,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            LOG_ERROR("Record Sink'" << name << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -4868,7 +5217,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            LOG_ERROR("Record Sink'" << name << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -4893,7 +5242,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -4914,14 +5263,14 @@ namespace DSL
             // TODO verify args before calling
             if (!recordSinkBintr->SetCacheSize(cacheSize))
             {
-                LOG_ERROR("Record Sink '" << name << "' failed to get dimensions");
+                LOG_ERROR("Record Sink '" << name << "' failed to set cache size");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting s");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -6581,6 +6930,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_CODEC_PARSER_INVALID] = L"DSL_RESULT_SOURCE_CODEC_PARSER_INVALID";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_TAP_ADD_FAILED] = L"DSL_RESULT_SOURCE_TAP_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_TAP_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_TAP_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
@@ -6681,6 +7032,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TEE_NAME_BAD_FORMAT] = L"DSL_RESULT_TEE_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_TEE_THREW_EXCEPTION] = L"DSL_RESULT_TEE_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD] = L"DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD";
+        m_returnValueToString[DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH] = L"DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_ADD_FAILED] = L"DSL_RESULT_TEE_BRANCH_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_REMOVE_FAILED] = L"DSL_RESULT_TEE_BRANCH_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_HANDLER_ADD_FAILED] = L"DSL_RESULT_TEE_HANDLER_ADD_FAILED";
@@ -6739,6 +7091,14 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_UNIQUE] = L"DSL_RESULT_TAP_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_FOUND] = L"DSL_RESULT_TAP_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_TAP_THREW_EXCEPTION] = L"DSL_RESULT_TAP_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_TAP_IN_USE] = L"DSL_RESULT_TAP_IN_USE";
+        m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 

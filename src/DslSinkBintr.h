@@ -401,14 +401,14 @@ namespace DSL
         /**
          * @brief Gets the current cache size used by this RecordSinkBint
          * @return size of the video cache in seconds 
-         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */
         uint GetCacheSize();
         
         /**
          * @brief Sets the current cache size used by this RecordSinkBint
          * @param[in] videoCacheSize size of video cache in seconds 
-         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */
         bool SetCacheSize(uint videoCacheSize);
         

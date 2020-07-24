@@ -958,7 +958,7 @@ namespace DSL
     
     // ********************************************************************
 
-    RecordStartOdeAction::RecordStartOdeAction(const char* name, 
+    RecordSinkStartOdeAction::RecordSinkStartOdeAction(const char* name, 
         const char* recordSink, uint start, uint duration, void* clientData)
         : OdeAction(name)
         , m_recordSink(recordSink)
@@ -970,12 +970,12 @@ namespace DSL
         LOG_FUNC();
     }
 
-    RecordStartOdeAction::~RecordStartOdeAction()
+    RecordSinkStartOdeAction::~RecordSinkStartOdeAction()
     {
         LOG_FUNC();
     }
     
-    void RecordStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -985,5 +985,34 @@ namespace DSL
                 &m_session, m_start, m_duration, m_clientData);
         }
     }
-}    
+
+    // ********************************************************************
+
+    RecordTapStartOdeAction::RecordTapStartOdeAction(const char* name, 
+        const char* recordTap, uint start, uint duration, void* clientData)
+        : OdeAction(name)
+        , m_recordTap(recordTap)
+        , m_start(start)
+        , m_duration(duration)
+        , m_clientData(clientData)
+        , m_session(0)
+    {
+        LOG_FUNC();
+    }
+
+    RecordTapStartOdeAction::~RecordTapStartOdeAction()
+    {
+        LOG_FUNC();
+    }
     
+    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->TapRecordSessionStart(m_recordTap.c_str(), 
+                &m_session, m_start, m_duration, m_clientData);
+        }
+    }
+}    

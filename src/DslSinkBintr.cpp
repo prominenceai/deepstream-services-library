@@ -722,8 +722,8 @@ namespace DSL
         m_initParams.fileNamePrefix = const_cast<gchar*>(GetCStrName());
         m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
         
-        m_initParams.defaultDuration = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC;
-        m_initParams.videoCacheSize = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC;
+        m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
+        m_initParams.videoCacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
     }
     
     RecordSinkBintr::~RecordSinkBintr()
