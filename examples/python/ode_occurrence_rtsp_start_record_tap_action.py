@@ -127,7 +127,6 @@ def main(args):
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Record-Tap that will buffer encoded video while waiting for the ODE trigger/action, defined below, 
         # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 12 Mbps for 1080p ??? 
         retval = dsl_tap_record_new('record-tap', outdir="./", container=DSL_CONTAINER_MKV, 
             client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:
