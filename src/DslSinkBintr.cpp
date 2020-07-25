@@ -193,7 +193,10 @@ namespace DSL
             LOG_ERROR("FakeSinkBintr '" << m_name << "' is already linked");
             return false;
         }
-        // Single element, nothing to link
+        if (!m_pQueue->LinkToSink(m_pFakeSink))
+        {
+            return false;
+        }
         m_isLinked = true;
         return true;
     }
@@ -207,6 +210,7 @@ namespace DSL
             LOG_ERROR("FakeSinkBintr '" << m_name << "' is not linked");
             return;
         }
+        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
     
