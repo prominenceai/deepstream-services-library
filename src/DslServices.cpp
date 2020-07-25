@@ -2901,6 +2901,13 @@ namespace DSL
 
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            if (pSourceBintr->IsLinked())
+            {
+                LOG_ERROR("Can not add Tap '" << tap << "' to RTSP Source '" << name << 
+                    "' as the Source is in a linked state");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
          
             DSL_TAP_PTR pTapBintr = 
                 std::dynamic_pointer_cast<TapBintr>(m_components[tap]);
@@ -2932,6 +2939,13 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
          
+            if (pSourceBintr->IsLinked())
+            {
+                LOG_ERROR("Can not remove Tap from RTSP Source '" << name << 
+                    "' as the Source is in a linked state");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
+
             if (!pSourceBintr->RemoveTapBintr())
             {
                 LOG_ERROR("Failed to remove Tap from RTSP Source '" << name << "'");
