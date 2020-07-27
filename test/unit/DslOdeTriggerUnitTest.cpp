@@ -483,8 +483,8 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        DSL_ODE_AREA_PTR pOdeArea =
-            DSL_ODE_AREA_NEW(odeAreaName.c_str(), pRectangle, false);
+        DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+            DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pRectangle, false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
         REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );        

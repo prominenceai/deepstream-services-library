@@ -135,7 +135,7 @@ def main(args):
         # Create an Area that defines a vertical rectangle to the right of the sidewalk and left of the street
         # This area's background will be displayed shaded a default color of white. The Area will be added
         # To the 'person-occurrence' Trigger as criteria for ODE occurrence
-        retval = dsl_ode_area_new('person-criteria-area', left=520, top=0, width=40, height=1089, display=True)
+        retval = dsl_ode_area_inclusion_new('person-criteria-area', left=520, top=0, width=40, height=1089, display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

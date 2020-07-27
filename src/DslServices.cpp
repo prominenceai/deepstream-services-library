@@ -1580,7 +1580,7 @@ namespace DSL
         return m_odeActions.size();
     }
     
-    DslReturnType Services::OdeAreaNew(const char* name, 
+    DslReturnType Services::OdeAreaInclusionNew(const char* name, 
         const char* rectangle, boolean display)
     {
         LOG_FUNC();
@@ -1600,19 +1600,52 @@ namespace DSL
             DSL_RGBA_RECTANGLE_PTR pRectangle = 
                 std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
             
-            m_odeAreas[name] = DSL_ODE_AREA_NEW(name, pRectangle, display);
+            m_odeAreas[name] = DSL_ODE_AREA_INCLUSION_NEW(name, pRectangle, display);
          
-            LOG_INFO("New ODE Area '" << name << "' created successfully");
+            LOG_INFO("New ODE Inclusion Area '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE ODE Area '" << name << "' threw exception on creation");
+            LOG_ERROR("ODE Inclusion Area '" << name << "' threw exception on creation");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
 
+    DslReturnType Services::OdeAreaExclusionNew(const char* name, 
+        const char* rectangle, boolean display)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure ODE Area name uniqueness 
+            if (m_odeAreas.find(name) != m_odeAreas.end())
+            {   
+                LOG_ERROR("ODE Area name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
+            }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
+            
+            DSL_RGBA_RECTANGLE_PTR pRectangle = 
+                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_EXCLUSION_NEW(name, pRectangle, display);
+         
+            LOG_INFO("New ODE Exclusion Area '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Exclusion Area '" << name << "' threw exception on creation");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
+    }                
+    
     DslReturnType Services::OdeAreaDelete(const char* name)
     {
         LOG_FUNC();

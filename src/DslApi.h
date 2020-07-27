@@ -926,13 +926,23 @@ DslReturnType dsl_ode_action_delete_all();
 uint dsl_ode_action_list_size();
 
 /**
- * @brief Creates a uniquely named ODE Area
+ * @brief Creates a uniquely named ODE Inclusion Area
  * @param[in] name unique name of the ODE area to create
  * @param[in] rectangle name of an RGBA Display Rectangle
  * @param[in] display set to true to display (overlay) the rectangle on each frame
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
-DslReturnType dsl_ode_area_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
+    const wchar_t* rectangle, boolean display);
+
+/**
+ * @brief Creates a uniquely named ODE Inclusion Area
+ * @param[in] name unique name of the ODE area to create
+ * @param[in] rectangle name of an RGBA Display Rectangle
+ * @param[in] display set to true to display (overlay) the rectangle on each frame
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
     const wchar_t* rectangle, boolean display);
 
 /**
