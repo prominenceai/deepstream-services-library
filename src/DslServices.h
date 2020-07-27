@@ -155,7 +155,10 @@ namespace DSL {
         
         uint OdeActionListSize();
 
-        DslReturnType OdeAreaNew(const char* name, 
+        DslReturnType OdeAreaInclusionNew(const char* name, 
+            const char* rectangle, boolean display);
+
+        DslReturnType OdeAreaExclusionNew(const char* name, 
             const char* rectangle, boolean display);
 
         DslReturnType OdeAreaDelete(const char* name);

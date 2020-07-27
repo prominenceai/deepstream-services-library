@@ -515,7 +515,7 @@ uint dsl_ode_action_list_size()
     return DSL::Services::GetServices()->OdeActionListSize();
 }
 
-DslReturnType dsl_ode_area_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
     const wchar_t* rectangle, boolean display)
 {
     std::wstring wstrName(name);
@@ -523,7 +523,19 @@ DslReturnType dsl_ode_area_new(const wchar_t* name,
     std::wstring wstrRectangle(rectangle);
     std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
 
-    return DSL::Services::GetServices()->OdeAreaNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeAreaInclusionNew(cstrName.c_str(), 
+        cstrRectangle.c_str(), display);
+}
+
+DslReturnType dsl_ode_area_exlusion_new(const wchar_t* name, 
+    const wchar_t* rectangle, boolean display)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrRectangle(rectangle);
+    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
+
+    return DSL::Services::GetServices()->OdeAreaExclusionNew(cstrName.c_str(), 
         cstrRectangle.c_str(), display);
 }
 

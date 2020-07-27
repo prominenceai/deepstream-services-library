@@ -27,11 +27,11 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A new OdeArea is created correctly", "[OdeArea]" )
+SCENARIO( "A new OdeInclusionArea is created correctly", "[OdeArea]" )
 {
-    GIVEN( "Attributes for a new OdeArea" ) 
+    GIVEN( "Attributes for a new OdeInclusionArea" ) 
     {
-        std::string odeAreaName("ode-area");
+        std::string odeAreaName("ode-inclusion-area");
         bool display(true);
 
         std::string rectangleName  = "my-rectangle";
@@ -47,12 +47,47 @@ SCENARIO( "A new OdeArea is created correctly", "[OdeArea]" )
             left, top, width, height, borderWidth, pColor, true, pColor);
        
  
-        WHEN( "A new OdeArea is created" )
+        WHEN( "A new OdeInclusionArea is created" )
         {
-            DSL_ODE_AREA_PTR pOdeArea = 
-                DSL_ODE_AREA_NEW(odeAreaName.c_str(), pRectangle, display);
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea = 
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pRectangle, display);
 
-            THEN( "The OdeArea's memebers are setup and returned correctly" )
+            THEN( "The OdeInclusionArea's memebers are setup and returned correctly" )
+            {
+                std::string retName = pOdeArea->GetCStrName();
+                REQUIRE( odeAreaName == retName );
+
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OdeExclusionArea is created correctly", "[OdeArea]" )
+{
+    GIVEN( "Attributes for a new OdeExclusionArea" ) 
+    {
+        std::string odeAreaName("ode-exclusion-area");
+        bool display(true);
+
+        std::string rectangleName  = "my-rectangle";
+        uint left(12), top(34), width(56), height(78);
+        uint borderWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW(rectangleName.c_str(), 
+            left, top, width, height, borderWidth, pColor, true, pColor);
+       
+ 
+        WHEN( "A new OdeExclusionArea is created" )
+        {
+            DSL_ODE_AREA_EXCLUSION_PTR pOdeArea = 
+                DSL_ODE_AREA_EXCLUSION_NEW(odeAreaName.c_str(), pRectangle, display);
+
+            THEN( "The OdeExclusionArea's memebers are setup and returned correctly" )
             {
                 std::string retName = pOdeArea->GetCStrName();
                 REQUIRE( odeAreaName == retName );

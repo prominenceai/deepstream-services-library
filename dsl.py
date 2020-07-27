@@ -502,13 +502,23 @@ def dsl_ode_action_list_size():
     return int(result)
 
 ##
-## dsl_ode_area_new()
+## dsl_ode_area_inclusion_new()
 ##
-_dsl.dsl_ode_area_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
-_dsl.dsl_ode_area_new.restype = c_uint
-def dsl_ode_area_new(name, rectangle, display):
+_dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_inclusion_new.restype = c_uint
+def dsl_ode_area_inclusion_new(name, rectangle, display):
     global _dsl
-    result =_dsl.dsl_ode_area_new(name, rectangle, display)
+    result =_dsl.dsl_ode_area_inclusion_new(name, rectangle, display)
+    return int(result)
+
+##
+## dsl_ode_area_exclusion_new()
+##
+_dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_exclusion_new.restype = c_uint
+def dsl_ode_area_exclusion_new(name, rectangle, display):
+    global _dsl
+    result =_dsl.dsl_ode_area_exclusion_new(name, rectangle, display)
     return int(result)
 
 ##

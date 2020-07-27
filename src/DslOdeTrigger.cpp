@@ -346,7 +346,9 @@ namespace DSL
                 DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
                 if (doesOverlap(pObjectMeta->rect_params, *pOdeArea->m_pRectangle))
                 {
-                    return true;
+                    return (imap.second->IsType(typeid(OdeInclusionArea))) 
+                        ? true
+                        : false;
                 }
             }
             return false;

@@ -36,8 +36,14 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_AREA_PTR std::shared_ptr<OdeArea>
-    #define DSL_ODE_AREA_NEW(name, pRectangle, display) \
-        std::shared_ptr<OdeArea>(new OdeArea(name, pRectangle, display))
+
+    #define DSL_ODE_AREA_INCLUSION_PTR std::shared_ptr<OdeInclusionArea>
+    #define DSL_ODE_AREA_INCLUSION_NEW(name, pRectangle, display) \
+        std::shared_ptr<OdeInclusionArea>(new OdeInclusionArea(name, pRectangle, display))
+
+    #define DSL_ODE_AREA_EXCLUSION_PTR std::shared_ptr<OdeExclusionArea>
+    #define DSL_ODE_AREA_EXCLUSION_NEW(name, pRectangle, display) \
+        std::shared_ptr<OdeExclusionArea>(new OdeExclusionArea(name, pRectangle, display))
 
     class OdeArea : public Base
     {
@@ -80,10 +86,43 @@ namespace DSL
          * once-per-frame-per-source
          */
         std::map<uint, uint64_t> m_frameNumPerSource;
-    
+    };
+
+    class OdeInclusionArea : public OdeArea
+    {
+    public: 
+
+        /**
+         * @brief ctor for the OdeInclusionArea
+         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
+         * @param[in] display if true, the area will be displayed by adding meta data
+         */
+        OdeInclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display);
+
+        /**
+         * @brief dtor for the InclusionOdeArea
+         */
+        ~OdeInclusionArea();
         
     };
 
+    class OdeExclusionArea : public OdeArea
+    {
+    public: 
+
+        /**
+         * @brief ctor for the OdeExclusionArea
+         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
+         * @param[in] display if true, the area will be displayed by adding meta data
+         */
+        OdeExclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display);
+
+        /**
+         * @brief dtor for the InclusionOdeArea
+         */
+        ~OdeExclusionArea();
+        
+    };
 }
 
 #endif //_DSL_ODE_AREA_H

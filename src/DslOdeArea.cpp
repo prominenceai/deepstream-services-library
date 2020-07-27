@@ -68,4 +68,29 @@ namespace DSL
             
         }
     }
+    
+    OdeInclusionArea::OdeInclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display)
+        : OdeArea(name, pRectangle, display)
+    {
+        LOG_FUNC();
+        
+    }
+    
+    OdeInclusionArea::~OdeInclusionArea()
+    {
+        LOG_FUNC();
+    }
+    
+    OdeExclusionArea::OdeExclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display)
+        : OdeArea(name, pRectangle, display)
+    {
+        LOG_FUNC();
+        
+    }
+    
+    OdeExclusionArea::~OdeExclusionArea()
+    {
+        LOG_FUNC();
+    }
+    
 }

@@ -860,7 +860,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
             border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_area_new(areaName.c_str(), areaRectangleName.c_str(), true) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), areaRectangleName.c_str(), true) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(personOccurrenceName.c_str(), areaName.c_str()) == DSL_RESULT_SUCCESS );
 
         // Single display action shared by all ODT Summation Types
