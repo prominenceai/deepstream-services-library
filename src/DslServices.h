@@ -73,7 +73,16 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
-        DslReturnType DisplayTypeOverlayFrame(const char* name, void* pBuffer, void* pFrameMeta);
+        DslReturnType DisplayTypeSourceNameNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeSourceDimensionsNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeSourceFrameRateNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeOverlayFrame(const char* name, void* pBatchMeta, void* pFrameMeta);
         
         DslReturnType DisplayTypeDelete(const char* name);
         
@@ -271,6 +280,12 @@ namespace DSL {
         DslReturnType SourceRtspTapAdd(const char* name, const char* tap);
     
         DslReturnType SourceRtspTapRemove(const char* name);
+        
+        DslReturnType SourceNameGet(uint sourceId, const char** name);
+    
+        DslReturnType _sourceNameSet(uint sourceId, const char* name);
+    
+        DslReturnType _sourceNameErase(uint sourceId);
     
         DslReturnType SourcePause(const char* name);
 
@@ -727,6 +742,11 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+        
+        /**
+         * @brief map of all source ids to source names
+         */
+        std::map <uint, std::string> m_sourceNames;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

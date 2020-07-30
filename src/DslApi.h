@@ -60,18 +60,19 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
-#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
-#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
-#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
-#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
-#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
-#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000B
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000C
-#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000D
-#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000E
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
+#define DSL_RESULT_SOURCE_NOT_FOUND                                 0x00020004
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020005
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
+#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 
 /**
  * Dewarper API Return Values
@@ -575,6 +576,45 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
  */
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
     const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief creates a uniquely named Source Name Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief creates a uniquely named Source Dimensions Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief creates a uniquely named Source Frame Rate Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
  * @brief Adds a named Display Type to a frames's meta data overlaying the text/shape
@@ -1476,6 +1516,14 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 
 /**
+ * @brief returns the name of a Source component from a unqiue Source Id
+ * @param[in] source_id unique Source Id to check for
+ * @param[out] name the name of Source component if found
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
+
+/**
  * @brief pauses a single Source object if the Source is 
  * currently in a state of in-use and Playing..
  * @param[in] name the name of Source component to pause
@@ -1653,15 +1701,6 @@ DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name,
     uint pad, dsl_batch_meta_handler_cb handler);
     
 /**
- * @brief Enbles/disables the bbox output to kitti file for the named the GIE
- * @param[in] name name of the Primary GIE to update
- * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
-
-/**
  * @brief creates a new, uniquely named Secondary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
@@ -1803,15 +1842,6 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
-
-/**
- * @brief Enbles/disables the bbox output to kitti file for the named the Tracker
- * @param[in] name name of the Tracker to update
- * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
- */
-DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
 
 /**
  * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj

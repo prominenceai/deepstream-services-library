@@ -42,6 +42,7 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("gpu-id", m_gpuId);
         m_pTracker->SetAttribute("ll-lib-file", llLibFileName);
+        m_pTracker->SetAttribute("enable-batch-process", true);
 
         AddChild(m_pTracker);
 

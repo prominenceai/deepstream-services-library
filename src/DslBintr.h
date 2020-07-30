@@ -308,18 +308,6 @@ namespace DSL
             return false;
         }
         
-        /**
-         * @brief Enables/disables kitti ouput to file on every batch
-         * @param enabled set to true to enable output to file, false to disable
-         * @param file absolute or relative file path to write to
-         * @return true if successful, false otherwise.
-         */
-        bool SetKittiOutputEnabled(bool enabled, const char* file)
-        {
-            LOG_FUNC();
-            
-            return m_pSrcPadProbe->SetKittiOutputEnabled(enabled, file);
-        }
         
         /**
          * @brief Gets the current GPU ID used by this Bintr

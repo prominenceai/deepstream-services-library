@@ -138,6 +138,36 @@ def dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, ha
     return int(result)
 
 ##
+## dsl_display_type_source_name_new()
+##
+_dsl.dsl_display_type_source_name_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_name_new.restype = c_uint
+def dsl_display_type_source_name_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_source_name_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_source_dimensions_new()
+##
+_dsl.dsl_display_type_source_dimensions_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_dimensions_new.restype = c_uint
+def dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_source_frame_rate_new()
+##
+_dsl.dsl_display_type_source_frame_rate_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_frame_rate_new.restype = c_uint
+def dsl_display_type_source_frame_rate_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_source_frame_rate_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_display_type_overlay_frame()
 ##
 _dsl.dsl_display_type_overlay_frame.argtypes = [c_wchar_p, c_void_p, c_void_p]
@@ -1026,6 +1056,17 @@ def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, dro
     return int(result)
 
 ##
+## dsl_source_name_get()
+##
+_dsl.dsl_source_name_get.argtypes = [c_uint, POINTER(c_wchar_p)]
+_dsl.dsl_source_name_get.restype = c_uint
+def dsl_source_name_get(source_id):
+    global _dsl
+    name = c_wchar_p(0)
+    result = _dsl.dsl_source_name_get(source_id, DSL_WCHAR_PP(name))
+    return int(result), name.value 
+
+##
 ## dsl_source_dimensions_get()
 ##
 _dsl.dsl_source_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
@@ -1288,16 +1329,6 @@ def dsl_gie_primary_batch_meta_handler_remove(name, pad):
     return int(result)
 
 ##
-## dsl_gie_primary_kitti_output_enabled_set()
-##
-_dsl.dsl_gie_primary_kitti_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_gie_primary_kitti_output_enabled_set.restype = c_uint
-def dsl_gie_primary_kitti_output_enabled_set(name, enabled, path):
-    global _dsl
-    result = _dsl.dsl_gie_primary_kitti_output_enabled_set(name, enabled, path)
-    return int(result)
-
-##
 ## dsl_gie_secondary_new()
 ##
 _dsl.dsl_gie_secondary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
@@ -1421,16 +1452,6 @@ _dsl.dsl_tracker_batch_meta_handler_remove.restype = c_uint
 def dsl_tracker_batch_meta_handler_remove(name, pad):
     global _dsl
     result = _dsl.dsl_tracker_batch_meta_handler_remove(name, pad)
-    return int(result)
-
-##
-## dsl_tracker_kitti_output_enabled_set()
-##
-_dsl.dsl_tracker_kitti_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_tracker_kitti_output_enabled_set.restype = c_uint
-def dsl_tracker_kitti_output_enabled_set(name, enabled, path):
-    global _dsl
-    result = _dsl.dsl_tracker_kitti_output_enabled_set(name, enabled, path)
     return int(result)
 
 ##

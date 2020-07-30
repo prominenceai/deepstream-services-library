@@ -67,7 +67,7 @@ namespace DSL
          * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
          * @param[in] display if true, the area will be displayed by adding meta data
          */
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        void OverlayFrame(NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
         
        /**
          * @brief Area rectangle parameters for object detection and display

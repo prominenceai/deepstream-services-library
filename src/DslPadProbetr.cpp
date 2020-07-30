@@ -29,23 +29,10 @@ namespace DSL
 {
     PadProbetr::PadProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement)
         : m_name(name)
-        , m_kittiOutputEnabled(false)
+        , m_factoryName(factoryName)
+        , m_pParentGstElement(parentElement->GetGstElement())
+        , m_padProbeId(0)
     {
-        GstPad* pStaticPad = gst_element_get_static_pad(parentElement->GetGstElement(), factoryName);
-        if (!pStaticPad)
-        {
-            LOG_ERROR("Failed to get Static Pad for PadProbetr '" << name << "'");
-            throw;
-        }
-        
-        GstPadProbeType probeType = (GstPadProbeType)(GST_PAD_PROBE_TYPE_BLOCK | GST_PAD_PROBE_TYPE_BUFFER);
-        
-        // Src Pad Probe notified on Buffer ready
-        m_padProbeId = gst_pad_add_probe(pStaticPad, probeType,
-            PadProbeCB, this, NULL);
-
-        gst_object_unref(pStaticPad);
-        
         g_mutex_init(&m_padProbeMutex);
     }
 
@@ -66,6 +53,25 @@ namespace DSL
             LOG_ERROR("Client Meta Batch Handler is already a child of PadProbetr '" << m_name << "'");
             return false;
         }
+        
+        if (!m_padProbeId)
+        {
+            GstPad* pStaticPad = gst_element_get_static_pad(m_pParentGstElement, m_factoryName.c_str());
+            if (!pStaticPad)
+            {
+                LOG_ERROR("Failed to get Static Pad for PadProbetr '" << m_name << "'");
+                return false;
+            }
+        
+            GstPadProbeType probeType = (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER);
+            
+            // Src Pad Probe notified on Buffer ready
+            m_padProbeId = gst_pad_add_probe(pStaticPad, probeType,
+                PadProbeCB, this, NULL);
+
+            gst_object_unref(pStaticPad);
+        }
+        
         m_pClientBatchMetaHandlers[pClientBatchMetaHandler] = pClientUserData;
 
         return true;
@@ -92,45 +98,13 @@ namespace DSL
         return (m_pClientBatchMetaHandlers.find(pClientBatchMetaHandler) != m_pClientBatchMetaHandlers.end());
     }
 
-    bool PadProbetr::SetKittiOutputEnabled(bool enabled, const char* path)
-    {
-        LOG_FUNC();
-        
-        if (enabled)
-        {
-            struct stat info;
-            if( stat(path, &info) != 0 )
-            {
-                LOG_ERROR("Unable to access path '" << path << "' for PadProbetr '" << m_name << "'");
-                return false;
-            }
-            else if(info.st_mode & S_IFDIR)
-            {
-                LOG_INFO("Enabling Kitti output to path '" << path << "' for PadProbet '" << m_name << "'");
-                m_kittiOutputPath.assign(path);
-            }
-            else
-            {
-                LOG_ERROR("Unable to access path '" << path << "' for GieBintr '" << m_name << "'");
-                return false;
-            }
-        }
-        else
-        {
-            LOG_INFO("Disabling Kitti output for PadProbetr '" << m_name << "'");
-            m_kittiOutputPath.clear();
-        }
-        m_kittiOutputEnabled = enabled;
-        return true;
-    }
-
     GstPadProbeReturn PadProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
         
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
         {
-            if (m_pClientBatchMetaHandlers.size() or m_kittiOutputEnabled)
+            if (m_pClientBatchMetaHandlers.size())
             {
                 GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
                 if (!pBuffer)
@@ -147,11 +121,6 @@ namespace DSL
                         RemoveBatchMetaHandler(imap.first);
                     }
                 }
-                if (m_kittiOutputEnabled)
-                {
-                    
-                }
-                // TODO if write output
             }
         }
         return GST_PAD_PROBE_PASS;

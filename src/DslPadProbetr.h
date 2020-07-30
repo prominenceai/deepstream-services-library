@@ -90,20 +90,22 @@ namespace DSL
         GstPadProbeReturn HandlePadProbe(
             GstPad* pPad, GstPadProbeInfo* pInfo);
 
-        /**
-         * @brief Enables/disables bounding-box date output in Kitti format
-         * @param enabled true if date should be written to file, false to disable
-         * @param path relative or absolute dir path specification
-         * @return true if success, false otherwise.
-         */
-        bool SetKittiOutputEnabled(bool enabled, const char* path);
-
     private:
     
         /**
          * @brief unique name for this PadProbetr
          */
         std::string m_name;
+        
+        /**
+         * @brief factory name for this PadProbetr
+         */
+        std::string m_factoryName;
+        
+        /**
+         * @brief pointer to parent bintr's GST object
+         */
+        GstElement* m_pParentGstElement;
 
         /**
          * @brief mutex fo the Pad Probe handler
@@ -120,15 +122,6 @@ namespace DSL
          */
         std::map<dsl_batch_meta_handler_cb, void*> m_pClientBatchMetaHandlers;
 
-        /**
-         * true if kitti file output is currently enabled.
-         */
-        bool m_kittiOutputEnabled;
-        
-        /**
-         * @brief absolute or relative pathspec to the Kitti output dir used by this PadProbetr
-         */
-        std::string m_kittiOutputPath;
     };
     
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 

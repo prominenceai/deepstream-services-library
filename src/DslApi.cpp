@@ -119,6 +119,48 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
         x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceNameNew(cstrName.c_str(),
+        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
+DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(cstrName.c_str(),
+        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
+DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+    std::wstring wstrBgColor(bg_color);
+    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(cstrName.c_str(),
+        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
 DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta)
 {
     std::wstring wstrName(name);
@@ -527,7 +569,7 @@ DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name,
         cstrRectangle.c_str(), display);
 }
 
-DslReturnType dsl_ode_area_exlusion_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
     const wchar_t* rectangle, boolean display)
 {
     std::wstring wstrName(name);
@@ -1100,6 +1142,24 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceRtspTapRemove(cstrName.c_str());
 }
 
+DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name)
+{
+    
+    const char* cName;
+    static std::string cstrName;
+    static std::wstring wcstrName;
+    
+    uint retval = DSL::Services::GetServices()->SourceNameGet(source_id, &cName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrName.assign(cName);
+        wcstrName.assign(cstrName.begin(), cstrName.end());
+        *name = wcstrName.c_str();
+    }
+    return retval;
+}
+
+
 DslReturnType dsl_source_pause(const wchar_t* name)
 {
     std::wstring wstrName(name);
@@ -1239,16 +1299,6 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
     
     return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), interval);
-}
-
-DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFile(file);
-    std::string cstrFile(wstrFile.begin(), wstrFile.end());
-
-    return DSL::Services::GetServices()->PrimaryGieKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
 }
 
 DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
@@ -1422,16 +1472,6 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pa
     return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
 }
 
-DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFile(file);
-    std::string cstrFile(wstrFile.begin(), wstrFile.end());
-
-    return DSL::Services::GetServices()->TrackerKittiOutputEnabledSet(cstrName.c_str(), enabled, cstrFile.c_str());
-}
-    
 DslReturnType dsl_ode_handler_new(const wchar_t* name)
 {
     std::wstring wstrName(name);

@@ -42,7 +42,7 @@ namespace DSL
         LOG_FUNC();
     }
         
-    void OdeArea::OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta)
+    void OdeArea::OverlayFrame(NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta)
     {
         LOG_FUNC();
         
@@ -64,7 +64,7 @@ namespace DSL
             // Update the frame number so we only add the rectangle once
             m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
             
-            m_pRectangle->OverlayFrame(pBuffer, pFrameMeta);
+            m_pRectangle->OverlayFrame(pBatchMeta, pFrameMeta);
             
         }
     }
