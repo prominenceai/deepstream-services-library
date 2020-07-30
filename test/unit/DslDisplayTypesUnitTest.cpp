@@ -283,3 +283,123 @@ SCENARIO( "A RGBA Circle is constructed correctly", "[DisplayTypes]" )
     }
 }
 
+SCENARIO( "A Source Name is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attrubutes for a new Source Name Display Type" )
+    {
+
+        std::string displayName("source-name");
+        int xOffset(123), yOffset(456);
+        std::string fontName("arial-10");
+        std::string font("arial");
+        uint size(10);
+        std::string colorName("my-custom-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), font.c_str(), size, pColor);
+        
+        WHEN( "The Source Name Display is created" )
+        {
+            DSL_SOURCE_NAME_PTR pDisplayType = DSL_SOURCE_NAME_NEW(displayName.c_str(),
+                xOffset, yOffset, pFont, true, pColor);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pDisplayType->GetName() == displayName );
+                REQUIRE( pDisplayType->display_text == NULL );
+                REQUIRE( pDisplayType->font_params.font_size == size );
+                REQUIRE( pDisplayType->font_params.font_color.red == red );
+                REQUIRE( pDisplayType->font_params.font_color.blue == blue );
+                REQUIRE( pDisplayType->font_params.font_color.green == green );
+                REQUIRE( pDisplayType->font_params.font_color.alpha == alpha );
+                REQUIRE( pDisplayType->set_bg_clr == (int)true );
+                REQUIRE( pDisplayType->text_bg_clr.red == red );
+                REQUIRE( pDisplayType->text_bg_clr.blue == blue );
+                REQUIRE( pDisplayType->text_bg_clr.green == green );
+                REQUIRE( pDisplayType->text_bg_clr.alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Dimensions Display is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attrubutes for a new Source Dimensions Display Type" )
+    {
+        std::string displayName("source-dimensions");
+        int xOffset(123), yOffset(456);
+        std::string fontName("arial-10");
+        std::string font("arial");
+        uint size(10);
+        std::string colorName("my-custom-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), font.c_str(), size, pColor);
+        
+        WHEN( "The Source Dimensions Display is created" )
+        {
+            DSL_SOURCE_DIMENSIONS_PTR pDisplayType = DSL_SOURCE_DIMENSIONS_NEW(displayName.c_str(),
+                xOffset, yOffset, pFont, true, pColor);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pDisplayType->GetName() == displayName );
+                REQUIRE( pDisplayType->display_text == NULL );
+                REQUIRE( pDisplayType->font_params.font_size == size );
+                REQUIRE( pDisplayType->font_params.font_color.red == red );
+                REQUIRE( pDisplayType->font_params.font_color.blue == blue );
+                REQUIRE( pDisplayType->font_params.font_color.green == green );
+                REQUIRE( pDisplayType->font_params.font_color.alpha == alpha );
+                REQUIRE( pDisplayType->set_bg_clr == (int)true );
+                REQUIRE( pDisplayType->text_bg_clr.red == red );
+                REQUIRE( pDisplayType->text_bg_clr.blue == blue );
+                REQUIRE( pDisplayType->text_bg_clr.green == green );
+                REQUIRE( pDisplayType->text_bg_clr.alpha == alpha );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Frame Rate Display is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attrubutes for a new Source Frame Rate Display Type" )
+    {
+        std::string displayName("source-dimensions");
+        int xOffset(123), yOffset(456);
+        std::string fontName("arial-10");
+        std::string font("arial");
+        uint size(10);
+        std::string colorName("my-custom-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        DSL_RGBA_FONT_PTR pFont = DSL_RGBA_FONT_NEW(fontName.c_str(), font.c_str(), size, pColor);
+        
+        WHEN( "The Source Frame Rate Display is created" )
+        {
+            DSL_SOURCE_FRAME_RATE_PTR pDisplayType = DSL_SOURCE_FRAME_RATE_NEW(displayName.c_str(),
+                xOffset, yOffset, pFont, true, pColor);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pDisplayType->GetName() == displayName );
+                REQUIRE( pDisplayType->display_text == NULL );
+                REQUIRE( pDisplayType->font_params.font_size == size );
+                REQUIRE( pDisplayType->font_params.font_color.red == red );
+                REQUIRE( pDisplayType->font_params.font_color.blue == blue );
+                REQUIRE( pDisplayType->font_params.font_color.green == green );
+                REQUIRE( pDisplayType->font_params.font_color.alpha == alpha );
+                REQUIRE( pDisplayType->set_bg_clr == (int)true );
+                REQUIRE( pDisplayType->text_bg_clr.red == red );
+                REQUIRE( pDisplayType->text_bg_clr.blue == blue );
+                REQUIRE( pDisplayType->text_bg_clr.green == green );
+                REQUIRE( pDisplayType->text_bg_clr.alpha == alpha );
+            }
+        }
+    }
+}

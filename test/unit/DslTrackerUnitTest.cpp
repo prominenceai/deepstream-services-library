@@ -244,49 +244,5 @@ SCENARIO( "Adding or removing a Batch Meta Handler will fail with an Invalid Pad
     }
 }
 
-SCENARIO( "A Tracker can enable and disable Kitti output to file", "[TrackerBintr]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::string trackerName("ktl-tracker");
-        uint initWidth(200);
-        uint initHeight(100);
-        
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
-
-        WHEN( "The Tracker is called to enable Kitti output" )
-        {
-            REQUIRE( pTrackerBintr->SetKittiOutputEnabled(true, "./") == true );
-
-            THEN( "The Kitti output can be disable" )
-            {
-                REQUIRE( pTrackerBintr->SetKittiOutputEnabled(false, "") == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Tracker fails to enable Kitti output on bad path", "[TrackerBintr]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::string trackerName("ktl-tracker");
-        uint initWidth(200);
-        uint initHeight(100);
-
-        WHEN( "A new Tracker is created" )
-        {
-            DSL_KTL_TRACKER_PTR pTrackerBintr = 
-                DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
-
-            THEN( "If fails to enable Kitti output given a bad path" )
-            {
-                REQUIRE( pTrackerBintr->SetKittiOutputEnabled(true, "./this/is/a/bad/path") == false );
-            }
-        }
-    }
-}
-
 
 

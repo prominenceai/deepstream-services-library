@@ -430,27 +430,3 @@ SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker
     }
 }
 
-SCENARIO( "A Tracker can Enable and Disable Kitti output", "[tracker-api]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::wstring trackerName(L"ktl-tracker");
-        uint width(480);
-        uint height(272);
-
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "The Tracker's Kitti output is enabled" )
-        {
-            REQUIRE( dsl_tracker_kitti_output_enabled_set(trackerName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
-
-            THEN( "The Kitti output can then be disabled" )
-            {
-                REQUIRE( dsl_tracker_kitti_output_enabled_set(trackerName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-

@@ -64,10 +64,10 @@ namespace DSL
             m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
         }
         
-        g_object_set (m_pInferEngine->GetGstObject(),
-            "raw-output-generated-callback", OnRawOutputGeneratedCB,
-            "raw-output-generated-userdata", this,
-            NULL);
+//        g_object_set (m_pInferEngine->GetGstObject(),
+//            "raw-output-generated-callback", OnRawOutputGeneratedCB,
+//            "raw-output-generated-userdata", this,
+//            NULL);
     }    
     
     GieBintr::~GieBintr()

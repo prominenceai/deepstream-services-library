@@ -383,32 +383,6 @@ SCENARIO( "A Primary GIE fails to Enable raw layer info output given a bad path"
     }
 }
 
-SCENARIO( "A Primary GIE can Enable and Disable Kitti output",  "[gie-api]" )
-{
-    GIVEN( "A new Primary GIE in memory" ) 
-    {
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
-        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "The Primary GIE's Kitti output is enabled" )
-        {
-            REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
-
-            THEN( "The Kitti output can then be disabled" )
-            {
-                REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
 SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Files",  "[gie-api]" )
 {
     GIVEN( "A new Secondary GIE in memory" ) 

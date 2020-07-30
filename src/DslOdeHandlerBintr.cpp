@@ -169,10 +169,10 @@ namespace DSL
     
     bool OdeHandlerBintr::HandlePadBuffer(GstBuffer* pBuffer)
     {
-        NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         // For each frame in the batched meta data
-        for (NvDsMetaList* pFrameMetaList = batchMeta->frame_meta_list; pFrameMetaList != NULL; pFrameMetaList = pFrameMetaList->next)
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; pFrameMetaList != NULL; pFrameMetaList = pFrameMetaList->next)
         {
             // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
@@ -182,7 +182,7 @@ namespace DSL
                 for (const auto &imap: m_pOdeTriggers)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PreProcessFrame(pBuffer, pFrameMeta);
+                    pOdeTrigger->PreProcessFrame(pBuffer, pBatchMeta, pFrameMeta);
                 }
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
@@ -195,7 +195,7 @@ namespace DSL
                         for (const auto &imap: m_pOdeTriggers)
                         {
                             DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                            pOdeTrigger->CheckForOccurrence(pBuffer, pFrameMeta, pObjectMeta);
+                            pOdeTrigger->CheckForOccurrence(pBuffer, pBatchMeta, pFrameMeta, pObjectMeta);
                         }
                     }
                 }
@@ -205,7 +205,7 @@ namespace DSL
                 for (const auto &imap: m_pOdeTriggers)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PostProcessFrame(pBuffer, pFrameMeta);
+                    pOdeTrigger->PostProcessFrame(pBuffer, pBatchMeta, pFrameMeta);
                 }
             }
         }

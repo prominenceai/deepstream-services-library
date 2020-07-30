@@ -622,7 +622,130 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::DisplayTypeOverlayFrame(const char* name, void* pBuffer, void* pFrameMeta)
+    DslReturnType Services::DisplayTypeSourceNameNew(const char* name,
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            DSL_RGBA_COLOR_PTR pbgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            
+            m_displayTypes[name] = DSL_SOURCE_NAME_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+
+            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceDimensionsNew(const char* name, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            DSL_RGBA_COLOR_PTR pbgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            
+            m_displayTypes[name] = DSL_SOURCE_DIMENSIONS_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+
+            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceFrameRateNew(const char* name, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            DSL_RGBA_COLOR_PTR pbgColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            
+            m_displayTypes[name] = DSL_SOURCE_FRAME_RATE_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+
+            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeOverlayFrame(const char* name, void* pBatchMeta, void* pFrameMeta)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -634,7 +757,7 @@ namespace DSL
             DSL_DISPLAY_TYPE_PTR pDisplayType = 
                 std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
 
-            pDisplayType->OverlayFrame((GstBuffer*)pBuffer, (NvDsFrameMeta*)pFrameMeta);
+            pDisplayType->OverlayFrame((NvDsBatchMeta*)pBatchMeta, (NvDsFrameMeta*)pFrameMeta);
             
             LOG_INFO("Display Type '" << name << "' deleted successfully");
             return DSL_RESULT_SUCCESS;
@@ -2992,6 +3115,45 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
+    
+    DslReturnType Services::SourceNameGet(uint sourceId, const char** name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        {
+            *name = m_sourceNames[sourceId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        *name = NULL;
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
+    DslReturnType Services::_sourceNameSet(uint sourceId, const char* name)
+    {
+        LOG_FUNC();
+        
+        // called internally, do not lock mutex
+        
+        m_sourceNames[sourceId] = name;
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::_sourceNameErase(uint sourceId)
+    {
+        LOG_FUNC();
+
+        // called internally, do not lock mutex
+        
+        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        {
+            m_sourceNames.erase(sourceId);
+            return DSL_RESULT_SUCCESS;
+        }
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
     DslReturnType Services::SourcePause(const char* name)
     {
         LOG_FUNC();
@@ -3529,33 +3691,6 @@ namespace DSL
         }
     }
 
-    DslReturnType  Services::PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled,
-        const char* file)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
-
-            if (!pPrimaryGieBintr->SetKittiOutputEnabled(enabled, file))
-            {
-                LOG_ERROR("Invalid Kitti file path " << file << "for Primary GIE '" << name << "'");
-                return DSL_RESULT_GIE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception setting Kitti output enabled");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
-        }
-    }
         
     DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, const char* inferOnGieName, uint interval)
@@ -3980,33 +4115,6 @@ namespace DSL
         }
     }
    
-    DslReturnType  Services::TrackerKittiOutputEnabledSet(const char* name, boolean enabled,
-        const char* file)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
-            
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
-
-            if (!pTrackerBintr->SetKittiOutputEnabled(enabled, file))
-            {
-                LOG_ERROR("Invalid Kitti file path " << file << "for Tracker '" << name << "'");
-                return DSL_RESULT_TRACKER_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Tracker '" << name << "' threw an exception setting Kitti output enabled");
-            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
-        }
-    }
         
     DslReturnType Services::TeeDemuxerNew(const char* name)
     {
