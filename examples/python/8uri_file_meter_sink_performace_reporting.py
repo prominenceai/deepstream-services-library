@@ -48,10 +48,10 @@ def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         
-        #if we're able to pause the Pipeline (i.e. it's not already paused)
+        # if we're able to pause the Pipeline (i.e. it's not already paused)
         if dsl_pipeline_pause('pipeline') == DSL_RETURN_SUCCESS:
         
-            #then disable the sink meter from reporting metrics
+            # then disable the sink meter from reporting metrics
             dsl_sink_meter_enabled_set('meter-sink', False)
             
     elif key_string.upper() == 'R':
@@ -59,7 +59,7 @@ def xwindow_key_event_handler(key_string, client_data):
         # if we're able to Resume the Pipeline 
         if dsl_pipeline_play('pipeline') == DSL_RETURN_SUCCESS:
 
-            #then re-enable the sink meter to start reporting metrics again
+            # then re-enable the sink meter to start reporting metrics again
             dsl_sink_meter_enabled_set('meter-sink', True)
 
     elif key_string.upper() == 'Q' or key_string == '':
@@ -99,7 +99,6 @@ def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
     print('\n')
     return True
         
-        
 
 def main(args):
 
@@ -108,8 +107,9 @@ def main(args):
     
         #
         # New Meter-Sink that will measure the Pipeline's throughput. Our client callback will handle writing the 
-        # Ave Session FPS and Interval FPS measurements to the console. The Key-handler callback will 
-        # disable the meter when pausing the Pipeline, and re-enable when the Pipeline is resumed
+        # Avg Session FPS and Avg Interval FPS measurements to the console. The Key-released-handler callback (above)
+        # will disable the meter when pausing the Pipeline, and re-enable measurements when the Pipeline is resumed
+        # Note: Session averages are reset each time a Meter is disabled and then re-enable.
         retval = dsl_sink_meter_new('meter-sink', interval=1, client_handler=meter_sink_handler, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break

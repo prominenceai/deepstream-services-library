@@ -49,7 +49,7 @@ namespace DSL
         
         m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_queue");
         m_pVidPreConv = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "osd_vid_pre_conv");
-//        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
+        m_pConvQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "osd_conv_queue");
         m_pOsd = DSL_ELEMENT_NEW(NVDS_ELEM_OSD, "nvosd0");
 
         m_pVidPreConv->SetAttribute("gpu-id", m_gpuId);
@@ -67,7 +67,7 @@ namespace DSL
         
         AddChild(m_pQueue);
         AddChild(m_pVidPreConv);
-//        AddChild(m_pConvQueue);
+        AddChild(m_pConvQueue);
         AddChild(m_pOsd);
 
         m_pQueue->AddGhostPadToParent("sink");
@@ -97,9 +97,8 @@ namespace DSL
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pVidPreConv) or
-//            !m_pVidPreConv->LinkToSink(m_pConvQueue) or
-//            !m_pConvQueue->LinkToSink(m_pOsd))
-            !m_pVidPreConv->LinkToSink(m_pOsd))
+            !m_pVidPreConv->LinkToSink(m_pConvQueue) or
+            !m_pConvQueue->LinkToSink(m_pOsd))
         {
             return false;
         }
@@ -118,7 +117,7 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_pVidPreConv->UnlinkFromSink();
-//        m_pConvQueue->UnlinkFromSink();
+        m_pConvQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 

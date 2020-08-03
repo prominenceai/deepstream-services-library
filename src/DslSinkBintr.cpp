@@ -339,10 +339,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (IsLinked())
+        if (IsLinked() and m_enabled)
         {
             LOG_ERROR("Unable to set Interval for MeterSinkBintr '" << GetName() 
-                << "' as it's currently Linked");
+                << "' as it's currently linked and enabled. Disable or stop Pipeline first");
             return false;
         }
         
@@ -409,38 +409,41 @@ namespace DSL
 
         for (auto const &ivec: m_sourceMeters)
         {
-            double sessionTime =             
-                (double)(ivec->m_timeStamp.tv_sec*1000 + ivec->m_timeStamp.tv_usec/1000) - 
-                (double)(ivec->m_sessionStartTime.tv_sec*1000 + ivec->m_sessionStartTime.tv_usec/1000);
-            double intervalTime =             
-                (double)(ivec->m_timeStamp.tv_sec * 1000 + ivec->m_timeStamp.tv_usec/1000) - 
-                (double)(ivec->m_intervalStartTime.tv_sec * 1000 + ivec->m_intervalStartTime.tv_usec/1000);
-                
-            double sessionAvgFps = (double)ivec->m_sessionFrameCount / (sessionTime / 1000);
-            double intervalAvgFps = (double)ivec->m_intervalFrameCount / (intervalTime / 1000);
+            double sessionAvgFps(0.0), intervalAvgFps(0.0);
+            if (ivec->m_timeStamp.tv_sec)
+            {
+                // convert both secconds and micro-seconds to milli-seconds and add to greate single number
+                uint64_t sessionTime =             
+                    (uint64_t)(ivec->m_timeStamp.tv_sec*1000 + ivec->m_timeStamp.tv_usec/1000) - 
+                    (uint64_t)(ivec->m_sessionStartTime.tv_sec*1000 + ivec->m_sessionStartTime.tv_usec/1000);
+                uint64_t intervalTime =             
+                    (uint64_t)(ivec->m_timeStamp.tv_sec * 1000 + ivec->m_timeStamp.tv_usec/1000) - 
+                    (uint64_t)(ivec->m_intervalStartTime.tv_sec * 1000 + ivec->m_intervalStartTime.tv_usec/1000);
+                    
+                sessionAvgFps = (double)ivec->m_sessionFrameCount / ((double)sessionTime / 1000);
+                intervalAvgFps = (double)ivec->m_intervalFrameCount / ((double)intervalTime / 1000);
+            }
             
             LOG_INFO("Performance metrics for Source Id = " << ivec->m_sourceId);
             LOG_INFO("   Session Avg FPS = " << sessionAvgFps);
             LOG_INFO("   Interval Avg FPS = " << intervalAvgFps);
             
-            if (isnan(sessionAvgFps))
-            {
-                sessionAvgFps = 0;
-            }
             sessionAverages.push_back(sessionAvgFps);
-
-            if (isnan(intervalAvgFps))
-            {
-                intervalAvgFps = 0;
-            }
             intervalAverages.push_back(intervalAvgFps);
 
             ivec->m_intervalReset = true;
         }
         
-        m_clientHandler((double*)&sessionAverages[0], (double*)&intervalAverages[0], (uint)m_sourceMeters.size(), m_clientData);
-        
-        return true;
+        try
+        {
+            return m_clientHandler((double*)&sessionAverages[0], (double*)&intervalAverages[0], 
+                (uint)m_sourceMeters.size(), m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("MeterSinkBintr '" << GetName() << "' threw exception calling client callback... disabling!");
+            return false;
+        }
     }
     
     //-------------------------------------------------------------------------

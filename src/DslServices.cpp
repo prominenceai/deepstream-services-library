@@ -299,6 +299,11 @@ const wchar_t* dsl_version_get()
     return DSL_VERSION;
 }
 
+// Single GST debug catagory initialization
+GST_DEBUG_CATEGORY(GST_CAT_DSL);
+
+GQuark _dsmeta_quark;
+
 namespace DSL
 {
     // Initialize the Services's single instance pointer
@@ -326,6 +331,8 @@ namespace DSL
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
+            
+            _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             
             // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services(doGstDeinit);

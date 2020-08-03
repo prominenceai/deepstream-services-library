@@ -25,9 +25,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslServices.h"
 
-// Single GST debug catagory initialization
-GST_DEBUG_CATEGORY(GST_CAT_DSL);
-
 DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
 {

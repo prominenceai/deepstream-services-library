@@ -1831,6 +1831,27 @@ def dsl_sink_meter_enabled_set(name, enabled):
     return int(result)
 
 ##
+## dsl_sink_meter_interval_get()
+##
+_dsl.dsl_sink_meter_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_meter_interval_get.restype = c_uint
+def dsl_sink_meter_interval_get(name):
+    global _dsl
+    interval = c_uint(0)
+    result =_dsl.dsl_sink_meter_interval_get(name, DSL_BOOL_P(interval))
+    return int(result), interval.value
+
+##
+## dsl_sink_meter_interval_set()
+##
+_dsl.dsl_sink_meter_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_meter_interval_set.restype = c_uint
+def dsl_sink_meter_interval_set(name, interval):
+    global _dsl
+    result =_dsl.dsl_sink_meter_interval_set(name, interval)
+    return int(result)
+
+##
 ## dsl_sink_overlay_new()
 ##
 _dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
