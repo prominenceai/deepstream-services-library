@@ -70,22 +70,113 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[FakeSinkBintr]" )
     }
 }
 
-SCENARIO( "A Linked FakeSinkBintr can UnlinkAll Child Elementrs", "[FakeSinkBintr]" )
+SCENARIO( "A new MeterSinkBintr is created correctly",  "[MeterSinkBintr]" )
 {
-    GIVEN( "A FakeSinkBintr in a linked state" ) 
+    GIVEN( "Attributes for a new Meter Sink" ) 
     {
-        std::string sinkName("fake-sink");
+        std::string sinkName("meter-sink");
+        uint interval(1);
+        uint batchSize(8);
+        dsl_sink_meter_client_handler_cb clientHandler;
 
-        DSL_FAKE_SINK_PTR pSinkBintr = 
-            DSL_FAKE_SINK_NEW(sinkName.c_str());
+        WHEN( "The MeterSinkBintr is created " )
+        {
+            DSL_METER_SINK_PTR pSinkBintr = 
+                DSL_METER_SINK_NEW(sinkName.c_str(), interval, clientHandler, NULL);
+                
+            pSinkBintr->SetBatchSize(batchSize);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetEnabled() == true );
+                REQUIRE( pSinkBintr->GetInterval() == interval );
+                REQUIRE( pSinkBintr->GetBatchSize() == batchSize );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MeterSinkBintr can Get/Set attributes correctly",  "[MeterSinkBintr]" )
+{
+    GIVEN( "Attributes for a new Meter Sink" ) 
+    {
+        std::string sinkName("meter-sink");
+        uint interval(1);
+        uint batchSize(8);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        DSL_METER_SINK_PTR pSinkBintr = 
+            DSL_METER_SINK_NEW(sinkName.c_str(), interval, clientHandler, NULL);
+
+        WHEN( "The MeterSinkBintr's enabled setting is disabled " )
+        {
+            pSinkBintr->SetEnabled(false);
+            
+            THEN( "The correct attribute value is returned" )
+            {
+                REQUIRE( pSinkBintr->GetEnabled() == false );
+            }
+        }
+        WHEN( "The MeterSinkBintr's reporting interval is updated " )
+        {
+            pSinkBintr->SetInterval(123);
+            
+            THEN( "The correct attribute value is returned" )
+            {
+                REQUIRE( pSinkBintr->GetInterval() == 123 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MeterSinkBintr can LinkAll Child Elementrs", "[MeterSinkBintr]" )
+{
+    GIVEN( "A new MeterSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("meter-sink");
+        uint interval(1);
+        uint batchSize(8);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        DSL_METER_SINK_PTR pSinkBintr = 
+            DSL_METER_SINK_NEW(sinkName.c_str(), interval, clientHandler, NULL);
+            
+        pSinkBintr->SetBatchSize(batchSize);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new MeterSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The MeterSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+SCENARIO( "A Linked MeterSinkBintr can UnlinkAll Child Elementrs", "[MeterSinkBintr]" )
+{
+    GIVEN( "A MeterSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("meter-sink");
+        uint interval(1);
+        uint batchSize(8);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        DSL_METER_SINK_PTR pSinkBintr = 
+            DSL_METER_SINK_NEW(sinkName.c_str(), interval, clientHandler, NULL);
+            
+        pSinkBintr->SetBatchSize(batchSize);
 
         REQUIRE( pSinkBintr->LinkAll() == true );
 
-        WHEN( "A FakeSinkBintr is Unlinked" )
+        WHEN( "A MeterSinkBintr is Unlinked" )
         {
             pSinkBintr->UnlinkAll();
 
-            THEN( "The FakeSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The MeterSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }

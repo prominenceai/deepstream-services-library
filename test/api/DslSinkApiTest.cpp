@@ -33,7 +33,7 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[fa
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new Overlay Sink is created" ) 
+        WHEN( "A new Fake Sink is created" ) 
         {
             REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -56,12 +56,129 @@ SCENARIO( "The Components container is updated correctly on Fink Sink delete", "
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A new Overlay Sink is deleted" ) 
+        WHEN( "A new Fake Sink is deleted" ) 
         {
             REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size updated correctly" )
             {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Components container is updated correctly on new Meter Sink", "[meter-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"meter-sink";
+        uint interval(123);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Meter Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_meter_new(sinkName.c_str(), interval, clientHandler, NULL) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                boolean enabled(false);
+                REQUIRE( dsl_sink_meter_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == boolean(true) );
+                uint retInterval(0);
+                REQUIRE( dsl_sink_meter_interval_get(sinkName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retInterval == interval  );
+                REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "An invalid interval is specified " ) 
+        {
+            REQUIRE( dsl_sink_meter_new(sinkName.c_str(), 0, clientHandler, NULL) == DSL_RESULT_SINK_METER_INVALID_INTERVAL );
+
+            THEN( "The Sin component fails to create" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on Meter Sink delete", "[meter-sink-api]" )
+{
+    GIVEN( "A Meter Sink Component" ) 
+    {
+        std::wstring sinkName = L"meter-sink";
+        uint interval(123);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_meter_new(sinkName.c_str(), interval, clientHandler, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Meter Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Meter Sink's properties can be Set, with the correct values returned on Get", "[meter-sink-api]" )
+{
+    GIVEN( "A Meter Sink Component" ) 
+    {
+        std::wstring sinkName = L"meter-sink";
+        uint interval(123);
+        dsl_sink_meter_client_handler_cb clientHandler;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_meter_new(sinkName.c_str(), interval, clientHandler, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Meter Sink's enabled setting is set to False" ) 
+        {
+            boolean enabled(false);
+            REQUIRE( dsl_sink_meter_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct setting is returned on get" )
+            {
+                boolean retEnabled(false);
+                REQUIRE( dsl_sink_meter_enabled_get(sinkName.c_str(), &retEnabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( enabled == retEnabled );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Meter Sink's interval setting is updated" ) 
+        {
+            uint newInterval(88);
+            REQUIRE( dsl_sink_meter_interval_set(sinkName.c_str(), newInterval) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct setting is returned on get" )
+            {
+                uint retInterval(0);
+                REQUIRE( dsl_sink_meter_interval_get(sinkName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retInterval == newInterval  );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid interval is used as a new interval setting" ) 
+        {
+            REQUIRE( dsl_sink_meter_interval_set(sinkName.c_str(), 0) == DSL_RESULT_SINK_METER_INVALID_INTERVAL );
+            
+            THEN( "The interval setting is now updated" )
+            {
+                uint retInterval(0);
+                REQUIRE( dsl_sink_meter_interval_get(sinkName.c_str(), &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retInterval == interval  );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }

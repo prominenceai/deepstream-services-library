@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(10000)
 
 SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display can play", "[pipeline-play]" )
 {
@@ -1660,6 +1660,63 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and MeterSink can play", "[new]" )
+{
+    GIVEN( "A Pipeline, URI source, Tiled Display, and Meter Sink" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0); 
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring meterSinkName(L"meter-sink");
+        uint interval(1);
+        dsl_sink_meter_client_handler_cb client_handler;
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_meter_new(meterSinkName.c_str(), interval, client_handler, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source", L"tiler", L"meter-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipelineName.c_str(), &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 

@@ -434,6 +434,17 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
+        DslReturnType SinkMeterNew(const char* name, uint interval, 
+            dsl_sink_meter_client_handler_cb clientHandler, void* clientData);
+
+        DslReturnType SinkMeterEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkMeterEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SinkMeterIntervalGet(const char* name, uint* interval);
+
+        DslReturnType SinkMeterIntervalSet(const char* name, uint interval);
+
         DslReturnType SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
             uint depth, uint offsetX, uint offsetY, uint width, uint height);
                 

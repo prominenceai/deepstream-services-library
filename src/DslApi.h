@@ -118,6 +118,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000E
+#define DSL_RESULT_SINK_METER_INVALID_INTERVAL                      0x0004000F
 
 /**
  * OSD API Return Values
@@ -481,6 +482,17 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] user_data opaque pointer to client's user data provide on end-of-session
  */
 typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
+
+/**
+ * @brief callback typedef for a client to hanlde new Pipeline performance data
+ * ,calcaulated by the Meter Sink, at an intervel specified by the client.
+ * @param[in] fps_list array of frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] list_size size of both fps and avg_fps measurements, one Pipeline Source
+ * @param[in] avg_fps_list array of average frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] client_data opaque pointer to client's user data provide on end-of-session
+ */
+typedef boolean (*dsl_sink_meter_client_handler_cb)(double* fps_list, double* avg_fps_list, 
+    uint list_size, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -2206,10 +2218,54 @@ DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named Fake Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @param[in] name unique component name for the new Fake Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
+
+/**
+ * @brief creates a new, uniquely named Fake Sink component
+ * @param[in] name unique component name for the new Meter Sink
+ * @param[in] interval interval at which to report performance measurements
+ * @param[in] client_handler client callback function, called at "interval" with 
+ * performance measurements for each source
+ * @param[in] client_data opaque pointer to client date return w callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_meter_new(const wchar_t* name, uint interval,
+    dsl_sink_meter_client_handler_cb client_handler, void* client_data);
+
+/**
+ * @brief gets the current enabled setting for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] enabled true if the Sink is enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_meter_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the current enabled setting for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to update
+ * @param[in] enabled set to true to eanbled the Sink, false to disabled
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_meter_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief gets the current reporting interval for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval the current reporting interval in seconds
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_meter_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief sets the current reportings for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval new reporting interval in seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_meter_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief creates a new, uniquely named Ovelay Sink component

@@ -69,6 +69,7 @@ DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
+DSL_SINK_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -1794,6 +1795,39 @@ _dsl.dsl_sink_fake_new.restype = c_uint
 def dsl_sink_fake_new(name):
     global _dsl
     result =_dsl.dsl_sink_fake_new(name)
+    return int(result)
+
+##
+## dsl_sink_meter_new()
+##
+_dsl.dsl_sink_meter_new.argtypes = [c_wchar_p, c_uint, DSL_SINK_METER_CLIENT_HANDLER, c_void_p]
+_dsl.dsl_sink_meter_new.restype = c_uint
+def dsl_sink_meter_new(name, interval, client_handler, client_data):
+    global _dsl
+    client_handler_cb = DSL_SINK_METER_CLIENT_HANDLER(client_handler)
+    callbacks.append(client_handler_cb)
+    result =_dsl.dsl_sink_meter_new(name, interval, client_handler_cb, client_data)
+    return int(result)
+
+##
+## dsl_sink_meter_enabled_get()
+##
+_dsl.dsl_sink_meter_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_meter_enabled_get.restype = c_uint
+def dsl_sink_meter_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_sink_meter_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sink_meter_enabled_set()
+##
+_dsl.dsl_sink_meter_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_meter_enabled_set.restype = c_uint
+def dsl_sink_meter_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_sink_meter_enabled_set(name, enabled)
     return int(result)
 
 ##

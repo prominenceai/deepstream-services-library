@@ -161,11 +161,12 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
     {
         LOG_FUNC();
         
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
+        m_pFakeSink->SetAttribute("enable-last-sample", false);
         m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("max-lateness", -1);
         m_pFakeSink->SetAttribute("async", m_async);
@@ -213,6 +214,234 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
+
+    //-------------------------------------------------------------------------
+
+    MeterSinkBintr::MeterSinkBintr(const char* name, uint interval, 
+        dsl_sink_meter_client_handler_cb clientHandler, void* clientData)
+        : FakeSinkBintr(name)
+        , m_interval(interval)
+        , m_clientHandler(clientHandler)
+        , m_clientData(clientData)
+        , m_enabled(false)
+        , m_timerId(0)
+    {
+        LOG_FUNC();
+        
+        g_mutex_init(&m_meterMutex);
+
+        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("meter-sink-pad-probe", "sink", m_pQueue);
+
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+    
+    MeterSinkBintr::~MeterSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (m_timerId)
+        {
+            g_source_remove(m_timerId);
+        }
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+        g_mutex_clear(&m_meterMutex);
+    }
+
+    bool MeterSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        for (int sourceId=0; sourceId < m_batchSize; sourceId++)
+        {
+            m_sourceMeters.push_back(DSL_SOURCE_METER_NEW(sourceId));
+        }
+        return FakeSinkBintr::LinkAll();
+    }
+    
+    void MeterSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("MeterSinkBintr '" << m_name << "' is not linked");
+            return;
+        }
+        m_sourceMeters.clear();
+        FakeSinkBintr::UnlinkAll();
+    }
+
+    bool MeterSinkBintr::GetEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_enabled;
+    }
+    
+    bool MeterSinkBintr::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        
+        if (m_enabled == enabled)
+        {
+            LOG_ERROR("Can't set Meter Enabled to the same value of " 
+                << enabled << " for MeterSinkBintr '" << GetName() << "' ");
+            return false;
+        }
+        m_enabled = enabled;
+        
+        if (enabled)
+        {
+            LOG_INFO("Enabling performance measurements for MeterSinkBintr '" << GetName() << "'");
+            LOG_INFO("Setting interval timer to " << m_interval*1000);
+
+            // ok to add timer at anytime as it wont run until the G Main Loop is started
+            m_timerId = g_timeout_add(m_interval*1000, MeterIntervalTimeoutHandler, this);
+
+            return AddBatchMetaHandler(DSL_PAD_SINK, MeterBatchMetaHandler, this);
+                
+        }
+        LOG_INFO("Disabling performance measurements for MeterSinkBintr '" << GetName() << "'");
+        
+        if (!m_timerId or !g_source_remove(m_timerId))
+        {
+            LOG_ERROR("Interval-timer shutdown failed for MeterSinkBintr '" << GetName() << "' ");
+            return false;
+        }
+        m_timerId = 0;
+        
+        // if we've been linked and have Source Meters, reset each.
+        for (auto const &ivec: m_sourceMeters)
+        {
+            ivec->m_sessionReset = true;
+            ivec->m_intervalReset = true;
+        }
+        return RemoveBatchMetaHandler(DSL_PAD_SINK, MeterBatchMetaHandler);
+    }
+    
+    uint MeterSinkBintr::GetInterval()
+    {
+        LOG_FUNC();
+        
+        return m_interval;
+    }
+    
+    bool MeterSinkBintr::SetInterval(uint interval)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Interval for MeterSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        
+        m_interval = interval;
+        return true;
+    }
+
+    bool MeterSinkBintr::HandleBatchMeta(GstBuffer* pBuffer)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+
+        try
+        {
+            for (NvDsMetaList* pFrame = pBatchMeta->frame_meta_list; pFrame; pFrame = pFrame->next)
+            {
+                NvDsFrameMeta *pFrameMeta = (NvDsFrameMeta*) pFrame->data;
+                DSL_SOURCE_METER_PTR pSourceMeter = m_sourceMeters[pFrameMeta->pad_index];
+                
+                // timestamp the SourceMeter for the current source/pad_index
+                gettimeofday(&pSourceMeter->m_timeStamp, NULL);
+                
+                // if the start of a new session 
+                if (pSourceMeter->m_sessionReset)
+                {
+                    pSourceMeter->m_sessionStartTime = pSourceMeter->m_timeStamp;
+                    pSourceMeter->m_sessionFrameCount = 0;
+                    pSourceMeter->m_sessionReset = false;
+                }
+                else
+                {
+                    pSourceMeter->m_sessionFrameCount++;
+                }
+                // if the start of a new interval 
+                if (pSourceMeter->m_intervalReset)
+                {
+                    pSourceMeter->m_intervalStartTime = pSourceMeter->m_timeStamp;
+                    pSourceMeter->m_intervalFrameCount = 0;
+                    pSourceMeter->m_intervalReset = false;
+                }
+                else
+                {
+                    pSourceMeter->m_intervalFrameCount++;
+                }
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("MeterSinkBintr '" << GetName() << "' threw an exception processing Batch Meta");
+            return false;
+        }
+        return true;
+    }
+    
+    int MeterSinkBintr::HandleIntervalTimeout()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        
+        // TODO Handle dewarper serfaces
+        
+        std::vector<double> sessionAverages;
+        std::vector<double> intervalAverages;
+
+        for (auto const &ivec: m_sourceMeters)
+        {
+            double sessionTime =             
+                (double)(ivec->m_timeStamp.tv_sec*1000 + ivec->m_timeStamp.tv_usec/1000) - 
+                (double)(ivec->m_sessionStartTime.tv_sec*1000 + ivec->m_sessionStartTime.tv_usec/1000);
+            double intervalTime =             
+                (double)(ivec->m_timeStamp.tv_sec * 1000 + ivec->m_timeStamp.tv_usec/1000) - 
+                (double)(ivec->m_intervalStartTime.tv_sec * 1000 + ivec->m_intervalStartTime.tv_usec/1000);
+                
+            double sessionAvgFps = (double)ivec->m_sessionFrameCount / (sessionTime / 1000);
+            double intervalAvgFps = (double)ivec->m_intervalFrameCount / (intervalTime / 1000);
+            
+            LOG_INFO("Performance metrics for Source Id = " << ivec->m_sourceId);
+            LOG_INFO("   Session Avg FPS = " << sessionAvgFps);
+            LOG_INFO("   Interval Avg FPS = " << intervalAvgFps);
+            
+            if (isnan(sessionAvgFps))
+            {
+                sessionAvgFps = 0;
+            }
+            sessionAverages.push_back(sessionAvgFps);
+
+            if (isnan(intervalAvgFps))
+            {
+                intervalAvgFps = 0;
+            }
+            intervalAverages.push_back(intervalAvgFps);
+
+            ivec->m_intervalReset = true;
+        }
+        
+        m_clientHandler((double*)&sessionAverages[0], (double*)&intervalAverages[0], (uint)m_sourceMeters.size(), m_clientData);
+        
+        return true;
+    }
     
     //-------------------------------------------------------------------------
 
@@ -221,7 +450,7 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
         , m_overlayId(overlayId)
         , m_displayId(displayId)
         , m_depth(depth)
@@ -250,11 +479,6 @@ namespace DSL
     OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
-    
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
     }
 
     bool OverlaySinkBintr::LinkAll()
@@ -374,7 +598,7 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -389,6 +613,8 @@ namespace DSL
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
+        m_pEglGles->SetAttribute("enable-last-sample", false);
+        
         m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("max-lateness", -1);
         m_pEglGles->SetAttribute("async", m_async);
@@ -401,7 +627,7 @@ namespace DSL
     WindowSinkBintr::~WindowSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -645,7 +871,7 @@ namespace DSL
     FileSinkBintr::~FileSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -733,7 +959,7 @@ namespace DSL
     RecordSinkBintr::~RecordSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -1037,7 +1263,7 @@ namespace DSL
     RtspSinkBintr::~RtspSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -1158,6 +1384,10 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
         g_mutex_clear(&m_captureMutex);
     }
 
@@ -1468,6 +1698,18 @@ namespace DSL
         gst_buffer_unmap(pBuffer, &inMapInfo);
         
         return true;
+    }
+    
+    static boolean MeterBatchMetaHandler(void* batch_meta, void* user_data)
+    {
+        return static_cast<MeterSinkBintr*>(user_data)->
+            HandleBatchMeta((GstBuffer*)batch_meta);
+    }
+    
+    static int MeterIntervalTimeoutHandler(void* user_data)
+    {
+        return static_cast<MeterSinkBintr*>(user_data)->
+            HandleIntervalTimeout();
     }
     
     static boolean FrameCaptureHandler(void* batch_meta, void* user_data)
