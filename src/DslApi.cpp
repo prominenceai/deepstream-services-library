@@ -25,9 +25,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslServices.h"
 
-// Single GST debug catagory initialization
-GST_DEBUG_CATEGORY(GST_CAT_DSL);
-
 DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
 {
@@ -1910,6 +1907,48 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
+}
+
+DslReturnType dsl_sink_meter_new(const wchar_t* name, uint interval,
+    dsl_sink_meter_client_handler_cb client_handler, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMeterNew(cstrName.c_str(),
+        interval, client_handler, client_data);
+}
+
+DslReturnType dsl_sink_meter_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMeterEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_sink_meter_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMeterEnabledSet(cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_sink_meter_interval_get(const wchar_t* name, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMeterIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_sink_meter_interval_set(const wchar_t* name, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkMeterIntervalSet(cstrName.c_str(), interval);
 }
 
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,

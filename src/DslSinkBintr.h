@@ -41,6 +41,15 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
+    #define DSL_SOURCE_METER_PTR std::shared_ptr<SourceMeter>
+    #define DSL_SOURCE_METER_NEW(sourceId) \
+        std::shared_ptr<SourceMeter>(new SourceMeter(sourceId))
+
+    #define DSL_METER_SINK_PTR std::shared_ptr<MeterSinkBintr>
+    #define DSL_METER_SINK_NEW(name, interval, clientListener, clientData) \
+        std::shared_ptr<MeterSinkBintr>( \
+        new MeterSinkBintr(name, interval, clientListener, clientData))
+
     #define DSL_IMAGE_SINK_PTR std::shared_ptr<ImageSinkBintr>
     #define DSL_IMAGE_SINK_NEW(name, outdir) \
         std::shared_ptr<ImageSinkBintr>( \
@@ -72,7 +81,7 @@ namespace DSL
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitRate, interval))
-
+        
         
     class SinkBintr : public Bintr
     {
@@ -132,6 +141,131 @@ namespace DSL
          * @brief Fake Sink element for the Sink Bintr.
          */
         DSL_ELEMENT_PTR m_pFakeSink;
+    };
+
+
+    //-------------------------------------------------------------------------
+
+    struct SourceMeter
+    {
+        SourceMeter(uint sourceId)
+            : m_sourceId(sourceId)
+            , m_sessionReset(true)
+            , m_intervalReset(true)
+            , m_timeStamp{0}
+            , m_sessionStartTime{0}
+            , m_intervalStartTime{0}
+            , m_intervalFrameCount(0)
+            , m_sessionFrameCount(0)
+            {};
+            
+        int m_sourceId;
+        bool m_sessionReset;
+        bool m_intervalReset;
+        struct timeval m_timeStamp;
+        struct timeval m_sessionStartTime;
+        struct timeval m_intervalStartTime;
+        uint m_intervalFrameCount;
+        uint m_sessionFrameCount;
+    };
+
+    class MeterSinkBintr : public FakeSinkBintr
+    {
+    public: 
+    
+        MeterSinkBintr(const char* name, uint interval, 
+            dsl_sink_meter_client_handler_cb clientHandler, void* clientData);
+
+        ~MeterSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current state of the Enable setting for this Bintr
+         * @return true if currently enabled, false if disabled
+         */
+        bool GetEnabled();
+        
+        /**
+         * @brief Sets the current state of the Enable setting for this Bintr
+         * @param[in] enabled set to true to enable, false to disable
+         * @return true if successful, false otherwise
+         */
+        bool SetEnabled(bool enabled);
+        
+         /**
+         * @brief gets the current reporting interval for the MeterSinkBintr
+         * @return the current reporting interval in units of seconds
+         */
+        uint GetInterval();
+
+        /**
+         * @brief sets the current reporting interval for the MeterSinkBintr
+         * @param[in] interval the new reporting interval to use
+         * @return true if successful, false otherwise
+         */
+        bool SetInterval(uint interval);
+        
+        /**
+         * @brief Batch meta handler to calculate performance measurements
+         * @param[in] pBuffer
+         * @return true to continue, false to self deregister
+         */
+        bool HandleBatchMeta(GstBuffer* pBuffer);
+        
+        /**
+         * @brief 
+         * @return non-zero (true) to continue, 0 (false) otherwise 
+         */
+        int HandleIntervalTimeout();
+
+    private:
+
+        /**
+         * @brief current state of the Meter Sink, enabled by default.
+         */
+        uint m_enabled;
+        
+        /**
+         * @brief measurement reporting interval in seconds.
+         */
+        uint m_interval;
+        
+        /**
+         * @brief gnome timer Id for peformance calculation interval timer
+         */
+        uint m_timerId;
+        
+        /**
+         * @brief client callback funtion, called on reporting interval
+         */
+        dsl_sink_meter_client_handler_cb m_clientHandler;
+        
+        /**
+         * @brief opaue pointer to client data, returned on callback
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief mutex to prevent callback reentry
+         */
+        GMutex m_meterMutex;
+        
+        /**
+         * @brief vector of all current source meters, equal to batch size
+         */
+        std::vector<DSL_SOURCE_METER_PTR> m_sourceMeters;
+
     };
 
     //-------------------------------------------------------------------------
@@ -715,6 +849,10 @@ namespace DSL
     };
 
     
+    static boolean MeterBatchMetaHandler(void* batch_meta, void* user_data);
+    
+    static int MeterIntervalTimeoutHandler(void* user_data);
+
     static boolean FrameCaptureHandler(void* batch_meta, void* user_data);
     
     static boolean ObjectCaptureHandler(void* batch_meta, void* user_data);

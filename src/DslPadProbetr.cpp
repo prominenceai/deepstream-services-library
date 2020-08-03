@@ -123,7 +123,7 @@ namespace DSL
                 }
             }
         }
-        return GST_PAD_PROBE_PASS;
+        return GST_PAD_PROBE_OK;
     }
 
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 

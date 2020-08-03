@@ -299,6 +299,11 @@ const wchar_t* dsl_version_get()
     return DSL_VERSION;
 }
 
+// Single GST debug catagory initialization
+GST_DEBUG_CATEGORY(GST_CAT_DSL);
+
+GQuark _dsmeta_quark;
+
 namespace DSL
 {
     // Initialize the Services's single instance pointer
@@ -326,6 +331,8 @@ namespace DSL
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
+            
+            _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             
             // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services(doGstDeinit);
@@ -5183,6 +5190,147 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkMeterNew(const char* name, uint interval, 
+        dsl_sink_meter_client_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (!interval)
+            {
+                LOG_ERROR("Meter Sink '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_SINK_METER_INVALID_INTERVAL;
+            }
+            m_components[name] = DSL_METER_SINK_NEW(name, 
+                interval, clientHandler, clientData);
+
+            LOG_INFO("New Meter Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Meter Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMeterEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
+
+            DSL_METER_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
+
+            *enabled = sinkBintr->GetEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting enabled setting");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMeterEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
+
+            DSL_METER_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetEnabled(enabled))
+            {
+                LOG_ERROR("Meter Sink '" << name << "' failed to set enabled setting");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception setting enabled setting");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMeterIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
+
+            DSL_METER_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
+
+            *interval = sinkBintr->GetInterval();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting reporting interval");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMeterIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
+            
+            if (!interval)
+            {
+                LOG_ERROR("Meter Sink '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_SINK_METER_INVALID_INTERVAL;
+            }
+
+            DSL_METER_SINK_PTR sinkBintr = 
+                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
+
+            if (!sinkBintr->SetInterval(interval))
+            {
+                LOG_ERROR("Meter Sink '" << name << "' failed to set reporting interval");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Sink '" << name << "' threw an exception setting reporting interval");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
@@ -7157,6 +7305,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_METER_INVALID_INTERVAL] = L"DSL_RESULT_SINK_METER_INVALID_INTERVAL";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
