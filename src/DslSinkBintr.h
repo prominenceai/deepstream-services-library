@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
+#include "DslSourceMeter.h"
 
 #include <gst-nvdssr.h>
 
@@ -146,29 +147,7 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    struct SourceMeter
-    {
-        SourceMeter(uint sourceId)
-            : m_sourceId(sourceId)
-            , m_sessionReset(true)
-            , m_intervalReset(true)
-            , m_timeStamp{0}
-            , m_sessionStartTime{0}
-            , m_intervalStartTime{0}
-            , m_intervalFrameCount(0)
-            , m_sessionFrameCount(0)
-            {};
-            
-        int m_sourceId;
-        bool m_sessionReset;
-        bool m_intervalReset;
-        struct timeval m_timeStamp;
-        struct timeval m_sessionStartTime;
-        struct timeval m_intervalStartTime;
-        uint m_intervalFrameCount;
-        uint m_sessionFrameCount;
-    };
-
+ 
     class MeterSinkBintr : public FakeSinkBintr
     {
     public: 

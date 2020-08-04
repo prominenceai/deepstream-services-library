@@ -173,9 +173,11 @@ THE SOFTWARE.
 #define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(MeterSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(BranchBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
@@ -189,9 +191,11 @@ THE SOFTWARE.
 #define RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(MeterSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \

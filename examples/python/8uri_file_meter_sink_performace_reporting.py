@@ -94,8 +94,8 @@ def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
 
     print('--------------------------------------------------------')
     for source in range(source_count):
-        print('Source: ', source, 'Avg FPS: session  : ', session_avgs[source])
-        print('                    interval : ', interval_avgs[source])
+        print('Source: ', source, ' | Avg FPS : session: ', "%.4f" % session_avgs[source],
+         ' interval: ', "%.4f" % interval_avgs[source])
     print('\n')
     return True
         
@@ -113,7 +113,7 @@ def main(args):
         retval = dsl_sink_meter_new('meter-sink', interval=1, client_handler=meter_sink_handler, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         #
         # Create the remaining Pipeline components
         # ... starting with eight URI File Sources
@@ -133,6 +133,10 @@ def main(args):
         retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        #----------------------------------------------------------------------------------------------------
+        # Create one of each Tracker Types, KTL and IOU, to test with each. We will only add one
+        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
 
         # New KTL Tracker, setting max width and height of input frame
         retval = dsl_tracker_ktl_new('ktl-tracker', 480, 288)
@@ -154,15 +158,42 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        #----------------------------------------------------------------------------------------------------
+        # Create one of each Render Sink Types, Overlay and Window, to test with each. We will only add one
+        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
+        
+        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Add all the components to our pipeline
+
+        #----------------------------------------------------------------------------------------------------
+        # Pipeline assembly
+        #
+        # Since we are splitting our Pipeline just befor the Tiler, create a branch for the Tiler
+        # On-Screen Display, and Window sink for rendering our Tiled stream
+        # Note: *** change 'overlay-sink' to 'window-sink' to try both. Window Sink => higher CPU load
+        retval = dsl_branch_new_component_add_many('tiler-osd-render-branch', 
+            components=['tiler', 'on-screen-display', 'overlay-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Next, create the Splitter Tee and add our Meter-sink as one branch and the Tiler-OSD-WIndow branch as the other
+        retval = dsl_tee_splitter_new_branch_add_many('pre-tiler-tee', branches=[
+            'meter-sink', 'tiler-osd-render-branch', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Pipeline (trunk) with our Sources, Tracker, and Pre-Tiler  as last component
+        # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6', 'Camera 7', 'Camera 8',
-            'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'meter-sink', 'window-sink', None])
+            ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  'Camera 8', 'Camera 7',
+            'primary-gie', 'iou-tracker' ,'pre-tiler-tee' , None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

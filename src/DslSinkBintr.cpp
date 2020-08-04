@@ -307,8 +307,14 @@ namespace DSL
             // ok to add timer at anytime as it wont run until the G Main Loop is started
             m_timerId = g_timeout_add(m_interval*1000, MeterIntervalTimeoutHandler, this);
 
+            // if have Source Meters, i.e we are currently linked, reset each.
+            for (auto const &ivec: m_sourceMeters)
+            {
+                ivec->SessionReset();
+                ivec->IntervalReset();
+            }
+
             return AddBatchMetaHandler(DSL_PAD_SINK, MeterBatchMetaHandler, this);
-                
         }
         LOG_INFO("Disabling performance measurements for MeterSinkBintr '" << GetName() << "'");
         
@@ -319,12 +325,6 @@ namespace DSL
         }
         m_timerId = 0;
         
-        // if we've been linked and have Source Meters, reset each.
-        for (auto const &ivec: m_sourceMeters)
-        {
-            ivec->m_sessionReset = true;
-            ivec->m_intervalReset = true;
-        }
         return RemoveBatchMetaHandler(DSL_PAD_SINK, MeterBatchMetaHandler);
     }
     
@@ -363,31 +363,9 @@ namespace DSL
                 NvDsFrameMeta *pFrameMeta = (NvDsFrameMeta*) pFrame->data;
                 DSL_SOURCE_METER_PTR pSourceMeter = m_sourceMeters[pFrameMeta->pad_index];
                 
-                // timestamp the SourceMeter for the current source/pad_index
-                gettimeofday(&pSourceMeter->m_timeStamp, NULL);
-                
-                // if the start of a new session 
-                if (pSourceMeter->m_sessionReset)
-                {
-                    pSourceMeter->m_sessionStartTime = pSourceMeter->m_timeStamp;
-                    pSourceMeter->m_sessionFrameCount = 0;
-                    pSourceMeter->m_sessionReset = false;
-                }
-                else
-                {
-                    pSourceMeter->m_sessionFrameCount++;
-                }
-                // if the start of a new interval 
-                if (pSourceMeter->m_intervalReset)
-                {
-                    pSourceMeter->m_intervalStartTime = pSourceMeter->m_timeStamp;
-                    pSourceMeter->m_intervalFrameCount = 0;
-                    pSourceMeter->m_intervalReset = false;
-                }
-                else
-                {
-                    pSourceMeter->m_intervalFrameCount++;
-                }
+                pSourceMeter->Timestamp();
+                // increment the frame counters, calculations will be made based on last timestamp and frame counts.
+                pSourceMeter->IncrementFrameCounts();
             }
         }
         catch(...)
@@ -409,29 +387,10 @@ namespace DSL
 
         for (auto const &ivec: m_sourceMeters)
         {
-            double sessionAvgFps(0.0), intervalAvgFps(0.0);
-            if (ivec->m_timeStamp.tv_sec)
-            {
-                // convert both secconds and micro-seconds to milli-seconds and add to greate single number
-                uint64_t sessionTime =             
-                    (uint64_t)(ivec->m_timeStamp.tv_sec*1000 + ivec->m_timeStamp.tv_usec/1000) - 
-                    (uint64_t)(ivec->m_sessionStartTime.tv_sec*1000 + ivec->m_sessionStartTime.tv_usec/1000);
-                uint64_t intervalTime =             
-                    (uint64_t)(ivec->m_timeStamp.tv_sec * 1000 + ivec->m_timeStamp.tv_usec/1000) - 
-                    (uint64_t)(ivec->m_intervalStartTime.tv_sec * 1000 + ivec->m_intervalStartTime.tv_usec/1000);
-                    
-                sessionAvgFps = (double)ivec->m_sessionFrameCount / ((double)sessionTime / 1000);
-                intervalAvgFps = (double)ivec->m_intervalFrameCount / ((double)intervalTime / 1000);
-            }
-            
-            LOG_INFO("Performance metrics for Source Id = " << ivec->m_sourceId);
-            LOG_INFO("   Session Avg FPS = " << sessionAvgFps);
-            LOG_INFO("   Interval Avg FPS = " << intervalAvgFps);
-            
-            sessionAverages.push_back(sessionAvgFps);
-            intervalAverages.push_back(intervalAvgFps);
+            sessionAverages.push_back(ivec->GetSessionFpsAvg());
+            intervalAverages.push_back(ivec->GetIntervalFpsAvg());
 
-            ivec->m_intervalReset = true;
+            ivec->IntervalReset();
         }
         
         try
