@@ -362,7 +362,7 @@ namespace DSL
             {
                 NvDsFrameMeta *pFrameMeta = (NvDsFrameMeta*) pFrame->data;
                 DSL_SOURCE_METER_PTR pSourceMeter = m_sourceMeters[pFrameMeta->pad_index];
-                
+
                 pSourceMeter->Timestamp();
                 // increment the frame counters, calculations will be made based on last timestamp and frame counts.
                 pSourceMeter->IncrementFrameCounts();

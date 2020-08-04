@@ -144,10 +144,8 @@ namespace DSL
         DSL_ELEMENT_PTR m_pFakeSink;
     };
 
-
     //-------------------------------------------------------------------------
 
- 
     class MeterSinkBintr : public FakeSinkBintr
     {
     public: 

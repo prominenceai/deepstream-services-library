@@ -113,7 +113,6 @@ def main(args):
         retval = dsl_sink_meter_new('meter-sink', interval=1, client_handler=meter_sink_handler, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
         #
         # Create the remaining Pipeline components
         # ... starting with eight URI File Sources
