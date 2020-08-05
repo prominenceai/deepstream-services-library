@@ -89,7 +89,7 @@ namespace DSL
 
         ~DisplayType();
         
-        virtual void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        virtual void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -151,7 +151,7 @@ namespace DSL
 
         ~RgbaText();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         std::string m_text;
         
@@ -180,7 +180,7 @@ namespace DSL
 
         ~RgbaLine();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -205,7 +205,7 @@ namespace DSL
 
         ~RgbaArrow();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -231,7 +231,7 @@ namespace DSL
 
         ~RgbaRectangle();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -255,7 +255,7 @@ namespace DSL
 
         ~RgbaCircle();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -278,7 +278,7 @@ namespace DSL
 
         ~SourceDimensions();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };
@@ -303,7 +303,7 @@ namespace DSL
 
         ~SourceFrameRate();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };
@@ -328,7 +328,7 @@ namespace DSL
 
         ~SourceName();
 
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         DSL_RGBA_FONT_PTR m_pFont;
     };

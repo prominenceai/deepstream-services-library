@@ -97,6 +97,34 @@ SCENARIO( "A Tiled Tiler's tiles can be updated",  "[TilerBintr]" )
     }
 }
 
+
+SCENARIO( "A TilerBintr can Get and Set its Show Source setting",  "[TilerBintr]" )
+{
+    GIVEN( "A new TilerBintr in memory" ) 
+    {
+        std::string tilerName = "tiled-display";
+        uint width(1280);
+        uint height(720);
+        uint batchSize(4);
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), width, height);
+
+        REQUIRE( pTilerBintr->GetShowSource() == -1 );
+        REQUIRE( pTilerBintr->SetBatchSize(batchSize) );
+        
+        WHEN( "The TilerBintr's  Show Source setting is set" )
+        {
+            REQUIRE( pTilerBintr->SetShowSource(batchSize-1) == true );
+
+            THEN( "The correct GPU ID is returned on get" )
+            {
+                REQUIRE( pTilerBintr->GetShowSource() == batchSize-1 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A TilerBintr can Get and Set its GPU ID",  "[TilerBintr]" )
 {
     GIVEN( "A new TilerBintr in memory" ) 

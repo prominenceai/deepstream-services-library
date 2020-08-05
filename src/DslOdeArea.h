@@ -63,11 +63,11 @@ namespace DSL
         
         
         /**
-         * @brief Adds metadata for the RGBA rectangle to pFrameMeta to overlay the Area for display
-         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
-         * @param[in] display if true, the area will be displayed by adding meta data
+         * @brief Adds metadata for the RGBA rectangle to pDisplayMeta to overlay the Area for display
+         * @param[in] pDisplayMeta display metadata to add the Area to
+         * @param[in] pFrameMeta the Frame metadata for the current Frame
          */
-        void OverlayFrame(NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
         
        /**
          * @brief Area rectangle parameters for object detection and display

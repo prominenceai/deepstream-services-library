@@ -173,24 +173,24 @@ def create_text_and_shapes():
 def create_overlay_actions_and_always_trigger():
 
     # Create a new Action to display the black rectangle as a background for the summantion display
-    retval = dsl_ode_action_overlay_frame_new('overlay-grey-rectangle', 'grey-rectangle')
+    retval = dsl_ode_action_display_meta_add_new('add-grey-rectangle', 'grey-rectangle')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the opaque black rectangle as a dropped shadow for the summantion display
-    retval = dsl_ode_action_overlay_frame_new('overlay-black-shadow', 'black-shadow')
+    retval = dsl_ode_action_display_meta_add_new('add-black-shadow', 'black-shadow')
     if retval != DSL_RETURN_SUCCESS:
         return retval
 
     # Create a new Action to display the blue circle arrow head
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-circle', 'blue-circle')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-circle', 'blue-circle')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the blue annotation line
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-line', 'blue-line')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-line', 'blue-line')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the blue text to annotate the shared area
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-text', 'blue-text')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-text', 'blue-text')
     if retval != DSL_RETURN_SUCCESS:
         return retval
 
@@ -199,11 +199,11 @@ def create_overlay_actions_and_always_trigger():
     if retval != DSL_RETURN_SUCCESS:
         return retval
     retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
-        'overlay-black-shadow', 
-        'overlay-grey-rectangle', 
-        'overlay-blue-circle',
-        'overlay-blue-line',
-        'overlay-blue-text',
+        'add-black-shadow', 
+        'add-grey-rectangle', 
+        'add-blue-circle',
+        'add-blue-line',
+        'add-blue-text',
         None])
 
     return retval
@@ -378,7 +378,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
+        # New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break

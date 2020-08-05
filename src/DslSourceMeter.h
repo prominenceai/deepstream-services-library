@@ -46,8 +46,8 @@ namespace DSL
             , m_timeStamp{0}
             , m_sessionStartTime{0}
             , m_intervalStartTime{0}
-            , m_intervalFrameCount(0)
             , m_sessionFrameCount(0)
+            , m_intervalFrameCount(0)
             {};
 
         /**
@@ -66,7 +66,7 @@ namespace DSL
         }
         
         /**
-         * @brief Increments both frame counters. Should be call on each buffer
+         * @brief Increments both frame counters. must be called on each buffer
          */
         void IncrementFrameCounts()
         {

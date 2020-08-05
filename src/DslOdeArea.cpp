@@ -42,7 +42,7 @@ namespace DSL
         LOG_FUNC();
     }
         
-    void OdeArea::OverlayFrame(NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta)
+    void OdeArea::AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
         LOG_FUNC();
         
@@ -64,8 +64,7 @@ namespace DSL
             // Update the frame number so we only add the rectangle once
             m_frameNumPerSource[pFrameMeta->source_id] = pFrameMeta->frame_num;
             
-            m_pRectangle->OverlayFrame(pBatchMeta, pFrameMeta);
-            
+            m_pRectangle->AddMeta(pDisplayMeta, pFrameMeta);
         }
     }
     
@@ -73,7 +72,6 @@ namespace DSL
         : OdeArea(name, pRectangle, display)
     {
         LOG_FUNC();
-        
     }
     
     OdeInclusionArea::~OdeInclusionArea()
@@ -85,7 +83,6 @@ namespace DSL
         : OdeArea(name, pRectangle, display)
     {
         LOG_FUNC();
-        
     }
     
     OdeExclusionArea::~OdeExclusionArea()

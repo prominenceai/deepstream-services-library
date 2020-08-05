@@ -104,7 +104,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        virtual bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, 
+        virtual bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta){return false;};
 
         /**
@@ -113,7 +113,7 @@ namespace DSL
          * @param[in] pBatchMeta aquired from pBuffer containing the Frame meta
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre processing
          */
-        virtual void PreProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        virtual void PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta);
         
         /**
@@ -123,7 +123,7 @@ namespace DSL
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for post processing
          * @return the number of ODE Occurrences triggered on post process
          */
-        virtual uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        virtual uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta){return m_occurrences;};
 
         /**
@@ -419,7 +419,7 @@ namespace DSL
          * This trigger will not look for any occurrences
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre-processing
          */
-        void PreProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        void PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta);
 
         /**
@@ -428,7 +428,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
     private:
     
@@ -456,7 +456,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -478,7 +478,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -487,7 +487,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -508,7 +508,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -517,7 +517,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -538,7 +538,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -547,7 +547,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -580,7 +580,7 @@ namespace DSL
          * @return true if Occurrence, false otherwise
          */
 
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         /**
          * @brief Function to call the client provided callback to post process the frame 
@@ -588,7 +588,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
     private:
     
@@ -624,7 +624,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -634,7 +634,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -660,7 +660,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, 
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -670,7 +670,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -696,7 +696,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, 
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -706,7 +706,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -737,7 +737,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, 
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -747,7 +747,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -775,7 +775,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta, 
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -785,7 +785,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsBatchMeta* pBatchMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     

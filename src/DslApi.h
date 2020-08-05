@@ -333,6 +333,8 @@ THE SOFTWARE.
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
 
+#define DSL_TILER_SHOW_ALL_SOURCES                                  NULL
+
 #define DSL_CODEC_H264                                              0
 #define DSL_CODEC_H265                                              1
 #define DSL_CODEC_MPEG4                                             2
@@ -486,13 +488,13 @@ typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
 /**
  * @brief callback typedef for a client to hanlde new Pipeline performance data
  * ,calcaulated by the Meter Sink, at an intervel specified by the client.
- * @param[in] fps_list array of frames-per-second measurements, one per source, specified by list_size 
- * @param[in] list_size size of both fps and avg_fps measurements, one Pipeline Source
- * @param[in] avg_fps_list array of average frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] session_fps_averages array of frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] interval_fps_averages array of average frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] source_count count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef boolean (*dsl_sink_meter_client_handler_cb)(double* fps_list, double* avg_fps_list, 
-    uint list_size, void* client_data);
+typedef boolean (*dsl_sink_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages, 
+    uint source_count, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -629,13 +631,14 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, uint x
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
- * @brief Adds a named Display Type to a frames's meta data overlaying the text/shape
+ * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
+ * is responsible for aquiring the display metadata for the current frame.
  * @param name unique name of the Display Type to overlay
- * @param frame_meta opaque pointer to the batched buffer that holds the Frame meta data
+ * @param display_meta opaque pointer to the aquired display meta to to add the Display Type to
  * @param frame_meta opaque pointer to a Frame's meta data to add the Display Type
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta);
+DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* buffer, void* frame_meta);
     
 /**
  * @brief deletes a uniquely named Display Type of any type
@@ -760,14 +763,14 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Frame Overlay ODE Action to overlay the Frame meta with
- * a uniquely named Display Type 
- * @param[in] name unique name for the Frame Overlay ODE Action 
+ * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
+ * using a uniquely named Display Type 
+ * @param[in] name unique name for the Add Display Metadata ODE Action 
  * @param[in] display_type unique name of the Display Type to overlay on ODE occurrence
  * Note: the Display Type must exist prior to constructing the Action.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type);
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -2194,6 +2197,24 @@ DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
+
+/** 
+ * @brief Gets the current Show Source setting for the named Tiler
+ * @param[in] name unique name of the Tiler to query
+ * @param[out] source name of the current source show. 
+ * A value of DSL_TILER_ALL_SOURCES (equal to NULL) indicates all sources are shown
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** source);
+
+/** 
+ * @brief Sets the current Show Source setting for the named Tiler
+ * @param[in] name unique name of the Tiler to update
+ * @param[out] source unique name of the source to show,
+ * Use the value of DSL_TILER_ALL_SOURCES (equal to NULL) indicates all sources are shown
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* source);
 
 /**
  * @brief Adds a batch meta handler callback function to be called to process each frame buffer.

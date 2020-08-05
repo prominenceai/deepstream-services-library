@@ -82,7 +82,7 @@ namespace DSL {
         DslReturnType DisplayTypeSourceFrameRateNew(const char* name, 
             uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
 
-        DslReturnType DisplayTypeOverlayFrame(const char* name, void* pBatchMeta, void* pFrameMeta);
+        DslReturnType DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta);
         
         DslReturnType DisplayTypeDelete(const char* name);
         
@@ -112,7 +112,7 @@ namespace DSL {
 
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
-        DslReturnType OdeActionOverlayFrameNew(const char* name, const char* displayType);
+        DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);
 
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
@@ -387,6 +387,10 @@ namespace DSL {
         DslReturnType TilerTilesGet(const char* name, uint* cols, uint* rows);
 
         DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
+
+        DslReturnType TilerSourceShowGet(const char* name, const char** source);
+
+        DslReturnType TilerSourceShowSet(const char* name, const char* source);
 
         DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
 

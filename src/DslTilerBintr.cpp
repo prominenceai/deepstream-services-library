@@ -139,13 +139,6 @@ namespace DSL
     bool TilerBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
-        
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to set Dimensions for TilerBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
 
         m_width = width;
         m_height = height;
@@ -154,6 +147,33 @@ namespace DSL
         m_pTiler->SetAttribute("height", m_height);
         
         return true;
+    }
+
+    int TilerBintr::GetShowSource()
+    {
+        LOG_FUNC();
+        
+        int sourceId;
+        m_pTiler->GetAttribute("show-source", &sourceId);
+        
+        return sourceId;
+    }
+
+    bool TilerBintr::SetShowSource(int sourceId)
+    {
+        LOG_FUNC();
+
+        if (sourceId < -1 or sourceId >= (int)m_batchSize)
+        {
+            LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
+            return false;
+        }
+        m_pTiler->SetAttribute("show-source", sourceId);
+        
+        // ensure update occured
+        uint newSourceId;
+        m_pTiler->GetAttribute("show-source", &newSourceId);
+        return (sourceId == newSourceId);
     }
 
     bool TilerBintr::SetGpuId(uint gpuId)

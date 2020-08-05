@@ -145,13 +145,13 @@ def main(args):
             break
 
         # Three new Overlay Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_action_overlay_frame_new('overlay-yellow-rectangle', display_type='yellow-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-yellow-rectangle', display_type='yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_overlay_frame_new('overlay-red-rectangle', display_type='red-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-red-rectangle', display_type='red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_overlay_frame_new('overlay-green-rectangle', display_type='green-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-green-rectangle', display_type='green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -194,7 +194,7 @@ def main(args):
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('minimum-objects', action='overlay-yellow-rectangle')
+        retval = dsl_ode_trigger_action_add('minimum-objects', action='add-yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -204,7 +204,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('maximum-objects', actions=
-            ['shade-frame-red', 'overlay-red-rectangle', None])
+            ['shade-frame-red', 'add-red-rectangle', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -213,7 +213,7 @@ def main(args):
             lower=MIN_OBJECTS, upper=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('range-of-objects', action='overlay-green-rectangle')
+        retval = dsl_ode_trigger_action_add('range-of-objects', action='add-green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 

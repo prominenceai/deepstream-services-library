@@ -48,6 +48,8 @@ DSL_ODE_POST_OCCURRENCE_CHECK = 1
 DSL_ODE_ANY_SOURCE = int('7FFFFFFF',16)
 DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
 
+DSL_TILER_SHOW_ALL_SOURCES = None
+
 ##
 ## Pointer Typedefs
 ##
@@ -169,13 +171,13 @@ def dsl_display_type_source_frame_rate_new(name, x_offset, y_offset, font, has_b
     return int(result)
 
 ##
-## dsl_display_type_overlay_frame()
+## dsl_display_type_meta_add()
 ##
-_dsl.dsl_display_type_overlay_frame.argtypes = [c_wchar_p, c_void_p, c_void_p]
-_dsl.dsl_display_type_overlay_frame.restype = c_uint
-def dsl_display_type_overlay_frame(name, buffer, frame_meta):
+_dsl.dsl_display_type_meta_add.argtypes = [c_wchar_p, c_void_p, c_void_p]
+_dsl.dsl_display_type_meta_add.restype = c_uint
+def dsl_display_type_meta_add(name, display_meta, frame_meta):
     global _dsl
-    result =_dsl.dsl_display_type_overlay_frame(name, buffer, frame_meta)
+    result =_dsl.dsl_display_type_meta_add(name, display_meta, frame_meta)
     return int(result)
 
 ##
@@ -322,13 +324,13 @@ def dsl_ode_action_log_new(name):
     return int(result)
 
 ##
-## dsl_ode_action_overlay_frame_new()
+## dsl_ode_action_display_meta_add_new()
 ##
-_dsl.dsl_ode_action_overlay_frame_new.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_overlay_frame_new.restype = c_uint
-def dsl_ode_action_overlay_frame_new(name, display_type):
+_dsl.dsl_ode_action_display_meta_add_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_display_meta_add_new.restype = c_uint
+def dsl_ode_action_display_meta_add_new(name, display_type):
     global _dsl
-    result =_dsl.dsl_ode_action_overlay_frame_new(name, display_type)
+    result =_dsl.dsl_ode_action_display_meta_add_new(name, display_type)
     return int(result)
 
 ##
@@ -1763,6 +1765,27 @@ _dsl.dsl_tiler_dimensions_set.restype = c_uint
 def dsl_tiler_dimensions_set(name, width, height):
     global _dsl
     result = _dsl.dsl_tiler_dimensions_set(name, width, height)
+    return int(result)
+
+##
+## dsl_tiler_source_show_get()
+##
+_dsl.dsl_tiler_source_show_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tiler_source_show_get.restype = c_uint
+def dsl_tiler_source_show_get(name):
+    global _dsl
+    source = c_wchar_p(0)
+    result = _dsl.dsl_tiler_source_show_get(name, DSL_WCHAR_PP(source))
+    return int(result), source.value 
+
+##
+## dsl_tiler_source_show_set()
+##
+_dsl.dsl_tiler_source_show_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tiler_source_show_set.restype = c_uint
+def dsl_tiler_source_show_set(name, source):
+    global _dsl
+    result = _dsl.dsl_tiler_source_show_set(name, source)
     return int(result)
 
 ##

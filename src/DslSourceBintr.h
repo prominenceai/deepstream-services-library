@@ -80,19 +80,6 @@ namespace DSL
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
-         * @brief returns the current, sensor Id as managed by the Parent pipeline
-         * @return -1 when source Id is not assigned, i.e. source is not currently in use
-         * Unique source Id [0...MAX] when the source is in use.
-         */
-        int GetSourceId();
-        
-        /**
-         * @brief Sets the unique sensor id for this Source bintr
-         * @param id value to assign [0...MAX]
-         */
-        void SetSourceId(int id);
-        
-        /**
          * @brief returns the Live state of this Streaming Source
          * @return true if the Source is Live, false otherwise.
          */
@@ -129,7 +116,7 @@ namespace DSL
         bool UnlinkFromSink();
 
     public:
-        
+    
         /**
          * @brief True if the source is live and cannot be paused without losing data, False otherwise.
          */
