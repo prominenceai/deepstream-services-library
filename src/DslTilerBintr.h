@@ -98,6 +98,20 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
+         * @brief Gets the current show-source setting for the TilerBintr
+         * @return the current show-source setting, -1 equals all sources/tiles shown
+         */
+        int GetShowSource();
+        
+        /**
+         * @brief Sets the current show-source setting for the TilerBintr
+         * @param[in] the new show-source setting to use, -1 means show all sources/tiles
+         * Note: sourceId must be less than current batch-size, which is 0 until Pipeline is linked/played
+         * @return true if set value is successful, false otherwise.
+         */
+        bool SetShowSource(int sourceId);
+        
+        /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */

@@ -756,7 +756,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::DisplayTypeOverlayFrame(const char* name, void* pBatchMeta, void* pFrameMeta)
+    DslReturnType Services::DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -768,7 +768,7 @@ namespace DSL
             DSL_DISPLAY_TYPE_PTR pDisplayType = 
                 std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
 
-            pDisplayType->OverlayFrame((NvDsBatchMeta*)pBatchMeta, (NvDsFrameMeta*)pFrameMeta);
+            pDisplayType->AddMeta((NvDsDisplayMeta*)pDisplayMeta, (NvDsFrameMeta*)pFrameMeta);
             
             LOG_INFO("Display Type '" << name << "' deleted successfully");
             return DSL_RESULT_SUCCESS;
@@ -1147,7 +1147,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionOverlayFrameNew(const char* name, const char* displayType)
+    DslReturnType Services::OdeActionDisplayMetaAddNew(const char* name, const char* displayType)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1166,7 +1166,7 @@ namespace DSL
             
             DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
             
-            m_odeActions[name] = DSL_ODE_ACTION_OVERLAY_FRAME_NEW(name, pDisplayType);
+            m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, pDisplayType);
 
             LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
 
@@ -4498,6 +4498,88 @@ namespace DSL
                 LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
                 return DSL_RESULT_TILER_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowGet(const char* name, const char** source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            int sourceId = tilerBintr->GetShowSource();
+            
+            if (sourceId == -1)
+            {
+                *source = NULL;
+                return DSL_RESULT_SUCCESS;
+            }
+            if (m_sourceNames.find(sourceId) == m_sourceNames.end())
+            {
+                *source = NULL;
+                LOG_ERROR("Tiler '" << name << "' failed to get Source name from Id");
+                return DSL_RESULT_SOURCE_NAME_NOT_FOUND;
+            }
+            *source = m_sourceNames[sourceId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowSet(const char* name, const char* source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->IsLinked())
+            {
+                LOG_ERROR("Tiler '" << name << "' must be in a linked state to show a specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+
+            int sourceId = -1;
+            
+            if (source)
+            {
+                RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+                RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+
+                DSL_SOURCE_PTR pSourceBintr = 
+                    std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+                    
+                sourceId = pSourceBintr->GetId();
+            }
+            if (!pTilerBintr->SetShowSource(sourceId))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to show specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)

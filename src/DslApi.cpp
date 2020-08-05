@@ -158,12 +158,12 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name,
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
-DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta)
+DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* display_meta, void* frame_meta)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->DisplayTypeOverlayFrame(cstrName.c_str(), buffer, frame_meta);
+    return DSL::Services::GetServices()->DisplayTypeMetaAdd(cstrName.c_str(), display_meta, frame_meta);
 }
     
 DslReturnType dsl_display_type_delete(const wchar_t* name)
@@ -303,14 +303,14 @@ DslReturnType dsl_ode_action_log_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionLogNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type)
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrType(display_type);
     std::string cstrType(wstrType.begin(), wstrType.end());
 
-    return DSL::Services::GetServices()->OdeActionOverlayFrameNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionDisplayMetaAddNew(cstrName.c_str(), 
         cstrType.c_str());
 }
 
@@ -1882,6 +1882,48 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows)
 
     return DSL::Services::GetServices()->TilerTilesSet(cstrName.c_str(), cols, rows);
 }
+
+DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** source)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cSource;
+    static std::string cstrSource;
+    static std::wstring wcstrSource;
+    
+    uint retval = DSL::Services::GetServices()->TilerSourceShowGet(cstrName.c_str(), &cSource);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        if (cSource == NULL)
+        {
+            *source = NULL;
+        }
+        else
+        {
+            cstrSource.assign(cSource);
+            wcstrSource.assign(cstrSource.begin(), cstrSource.end());
+            *source = wcstrSource.c_str();
+        }
+    }
+    return retval;
+}
+
+DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* source)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+        return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), cstrSource.c_str());
+    }
+    return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), NULL);
+}
+
 
 DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
     dsl_batch_meta_handler_cb handler, void* user_data)

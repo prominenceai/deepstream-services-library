@@ -178,11 +178,14 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta != NULL)
             {
+                // Acquire new Display meta for this frame, with each Trigger/Action(s) adding meta as needed
+                NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
+                
                 // Preprocess the frame
                 for (const auto &imap: m_pOdeTriggers)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PreProcessFrame(pBuffer, pBatchMeta, pFrameMeta);
+                    pOdeTrigger->PreProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
                 }
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
@@ -195,7 +198,7 @@ namespace DSL
                         for (const auto &imap: m_pOdeTriggers)
                         {
                             DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                            pOdeTrigger->CheckForOccurrence(pBuffer, pBatchMeta, pFrameMeta, pObjectMeta);
+                            pOdeTrigger->CheckForOccurrence(pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
                         }
                     }
                 }
@@ -205,8 +208,11 @@ namespace DSL
                 for (const auto &imap: m_pOdeTriggers)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                    pOdeTrigger->PostProcessFrame(pBuffer, pBatchMeta, pFrameMeta);
+                    pOdeTrigger->PostProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
                 }
+                
+                // Add the updated display data to the frame
+                nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
             }
         }
         return true;

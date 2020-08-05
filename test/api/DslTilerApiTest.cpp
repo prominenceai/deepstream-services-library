@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslApi.h"
+#include "Dsl.h"
 
 SCENARIO( "The Components container is updated correctly on new Tiled Display", "[tiler-api]" )
 {
@@ -73,7 +74,7 @@ SCENARIO( "The Components container is updated correctly on Tiled Display delete
     }
 }
 
-SCENARIO( "An Tiled Display in use can't be deleted", "[tiler-api]" )
+SCENARIO( "A Tiled Display in use can't be deleted", "[tiler-api]" )
 {
     GIVEN( "A new Tiled Display and new pPipeline" ) 
     {
@@ -104,7 +105,7 @@ SCENARIO( "An Tiled Display in use can't be deleted", "[tiler-api]" )
     }
 }
 
-SCENARIO( "An Tiled Display, once removed from a Pipeline, can be deleted", "[tiler-api]" )
+SCENARIO( "A Tiled Display, once removed from a Pipeline, can be deleted", "[tiler-api]" )
 {
     GIVEN( "A new pPipeline with a child Tiled Display" ) 
     {
@@ -343,3 +344,56 @@ SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api
         }
     }
 }
+
+SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
+{
+    GIVEN( "A new pPipeline with a new Tiled Display" ) 
+    {
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Tiler's Tiles are Set " ) 
+        {
+            uint newCols(3), newRows(2), retCols(0), retRows(0);
+            REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), newRows, newCols) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), &retRows, &retCols) == DSL_RESULT_SUCCESS);
+                REQUIRE( retRows == newRows );
+                REQUIRE( retCols == newCols );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Tiler's Dimensions are Set " ) 
+        {
+            uint newWidth(640), newHeight(360), retWidth(0), retHeight(0);
+            REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), newWidth, newHeight) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                REQUIRE( dsl_tiler_dimensions_get(tilerName.c_str(), &retWidth, &retHeight) == DSL_RESULT_SUCCESS);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == newHeight );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "Setting A Tiler's Show Source when the Tiler is in a non-linked state" ) 
+        {
+            std::wstring anySourceName(L"any-source-name");
+            
+            REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), anySourceName.c_str()) == DSL_RESULT_TILER_SET_FAILED);
+            THEN( "The Set will fail and the current Show Source is unchanged" ) 
+            {
+                const wchar_t* retSource;
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), &retSource) == DSL_RESULT_SUCCESS);
+                REQUIRE( retSource == NULL );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

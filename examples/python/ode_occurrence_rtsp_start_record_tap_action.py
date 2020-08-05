@@ -170,11 +170,11 @@ def main(args):
             break
             
         # Create a new Action to display the "recording in-progress" text
-        retval = dsl_ode_action_overlay_frame_new('rec-text-overlay', 'rec-text')
+        retval = dsl_ode_action_display_meta_add_new('rec-text-overlay', 'rec-text')
         if retval != DSL_RETURN_SUCCESS:
             break
         # Create a new Action to display the "recording in-progress" LED
-        retval = dsl_ode_action_overlay_frame_new('red-led-overlay', 'red-led')
+        retval = dsl_ode_action_display_meta_add_new('red-led-overlay', 'red-led')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_custom_new('rec-on-trigger', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE,

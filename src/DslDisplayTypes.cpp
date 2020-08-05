@@ -42,7 +42,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisplayType::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void DisplayType::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
         LOG_ERROR("Base Display Type can not be overlaid");
@@ -95,11 +95,10 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaText::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaText::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
         NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
@@ -112,8 +111,6 @@ namespace DSL
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
         m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
         
     // ********************************************************************
@@ -131,15 +128,11 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaLine::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaLine::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
-
         pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *this;
-        
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
     
     // ********************************************************************
@@ -158,15 +151,11 @@ namespace DSL
     }
 
 
-    void RgbaArrow::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaArrow::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
-
         pDisplayMeta->arrow_params[pDisplayMeta->num_arrows++] = *this;
-        
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
 
     // ********************************************************************
@@ -185,16 +174,11 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaRectangle::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaRectangle::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        // Ignore the return value, errors will be logged 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
-
         pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *this;
-        
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
     
     // ********************************************************************
@@ -212,15 +196,11 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void RgbaCircle::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void RgbaCircle::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
-
         pDisplayMeta->circle_params[pDisplayMeta->num_circles++] = *this;
-        
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
 
     // ********************************************************************
@@ -240,11 +220,10 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceDimensions::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceDimensions::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
         NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
@@ -260,8 +239,6 @@ namespace DSL
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
         m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
 
     // ********************************************************************
@@ -281,11 +258,10 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceFrameRate::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceFrameRate::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
         NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
@@ -301,8 +277,6 @@ namespace DSL
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
         m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-
-        nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
     }
     
     // ********************************************************************
@@ -322,11 +296,10 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void SourceName::OverlayFrame(NvDsBatchMeta* pBatchMeta, NvDsFrameMeta* pFrameMeta) 
+    void SourceName::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
     {
         LOG_FUNC();
 
-        NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(pBatchMeta);
         NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
 
         // copy over our text params, display_text currently == NULL
@@ -345,8 +318,6 @@ namespace DSL
             // Font, font-size, font-color
             pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
         
     }
