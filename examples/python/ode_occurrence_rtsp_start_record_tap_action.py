@@ -225,7 +225,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         # New RTSP Live Camera Source
-        retval = dsl_source_rtsp_new('rtsp-source', rtsp_uri, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, False, 0)
+        retval = dsl_source_rtsp_new('rtsp-source', rtsp_uri, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, False, 0, 100)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -577,11 +577,12 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
+        uint latency(100);
 
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(
-                sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval);
+                sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -618,9 +619,10 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(true);
         uint dropFrameInterval(2);
+        uint latency(100);
         
         DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(
-            sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval);
+            sourceName.c_str(), uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency);
 
         uint GPUID0(0);
         uint GPUID1(1);

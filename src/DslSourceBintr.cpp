@@ -795,12 +795,16 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
     {
         LOG_FUNC();
         
+        // Set RTSP latency
+        m_latency = latency;
+        LOG_DEBUG("Setting latency to '" << latency << "' for RtspSourceBintr '" << m_name << "'");
+
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
         m_pPreDecodeQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "pre-decode-queue");

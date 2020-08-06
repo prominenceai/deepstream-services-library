@@ -2868,7 +2868,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri, 
-        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2882,7 +2882,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval);
+                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency);
 
             LOG_INFO("New RTSP Source '" << name << "' created successfully");
 

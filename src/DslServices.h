@@ -263,7 +263,7 @@ namespace DSL {
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, 
-            uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
