@@ -228,9 +228,10 @@ _dsl.dsl_ode_action_callback_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENC
 _dsl.dsl_ode_action_callback_new.restype = c_uint
 def dsl_ode_action_callback_new(name, client_handler, client_data):
     global _dsl
-    handler_cb = DSL_ODE_HANDLE_OCCURRENCE(client_handler)
-    callbacks.append(handler_cb)
-    result = _dsl.dsl_ode_action_callback_new(name, handler_cb, client_data)
+    c_client_handler = DSL_ODE_HANDLE_OCCURRENCE(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_ode_action_callback_new(name, c_client_handler, c_client_data)
     return int(result)
     
 ##
@@ -390,7 +391,8 @@ _dsl.dsl_ode_action_sink_record_start_new.argtypes = [c_wchar_p, c_wchar_p, c_ui
 _dsl.dsl_ode_action_sink_record_start_new.restype = c_uint
 def dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data):
     global _dsl
-    result =_dsl.dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result =_dsl.dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, c_client_data)
     return int(result)
 
 ##
@@ -420,7 +422,8 @@ _dsl.dsl_ode_action_tap_record_start_new.argtypes = [c_wchar_p, c_wchar_p, c_uin
 _dsl.dsl_ode_action_tap_record_start_new.restype = c_uint
 def dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, client_data):
     global _dsl
-    result =_dsl.dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result =_dsl.dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, c_client_data)
     return int(result)
 
 ##
@@ -1208,20 +1211,21 @@ _dsl.dsl_tap_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, DSL_RECORD_CLI
 _dsl.dsl_tap_record_new.restype = c_uint
 def dsl_tap_record_new(name, outdir, container, client_listener):
     global _dsl
-    listener_cb = DSL_RECORD_CLIENT_LISTNER(client_listener)
-    callbacks.append(listener_cb)
-    result =_dsl.dsl_tap_record_new(name, outdir, container, listener_cb)
+    c_client_listener = DSL_RECORD_CLIENT_LISTNER(client_listener)
+    callbacks.append(c_client_listener)
+    result =_dsl.dsl_tap_record_new(name, outdir, container, c_client_listener)
     return int(result)
     
 ##
 ## dsl_tap_record_session_start()
 ##
-_dsl.dsl_tap_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint]
+_dsl.dsl_tap_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint, c_uint, c_void_p]
 _dsl.dsl_tap_record_session_start.restype = c_uint
 def dsl_tap_record_session_start(name, start, duration, client_data):
     global _dsl
     session = c_uint(0)
-    result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
     return int(result), session.value 
 
 ##
@@ -1314,21 +1318,23 @@ def dsl_gie_primary_new(name, infer_config_file, model_engine_file, interval):
 ##
 _dsl.dsl_gie_primary_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_gie_primary_batch_meta_handler_add.restype = c_uint
-def dsl_gie_primary_batch_meta_handler_add(name, pad, handler, user_data):
+def dsl_gie_primary_batch_meta_handler_add(name, pad, client_handler, client_data):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    callbacks.append(meta_handler)
-    result = _dsl.dsl_gie_primary_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_gie_primary_batch_meta_handler_add(name, pad, c_client_handler, c_client_data)
     return int(result)
 
 ##
 ## dsl_gie_primary_batch_meta_handler_remove()
 ##
-_dsl.dsl_gie_primary_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_gie_primary_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER]
 _dsl.dsl_gie_primary_batch_meta_handler_remove.restype = c_uint
-def dsl_gie_primary_batch_meta_handler_remove(name, pad):
+def dsl_gie_primary_batch_meta_handler_remove(name, pad, client_handler):
     global _dsl
-    result = _dsl.dsl_gie_primary_batch_meta_handler_remove(name, pad)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    result = _dsl.dsl_gie_primary_batch_meta_handler_remove(name, pad, c_client_handler)
     return int(result)
 
 ##
@@ -1440,21 +1446,23 @@ def dsl_tracker_max_dimensions_set(name, max_width, max_height):
 ##
 _dsl.dsl_tracker_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_tracker_batch_meta_handler_add.restype = c_uint
-def dsl_tracker_batch_meta_handler_add(name, pad, handler, user_data):
+def dsl_tracker_batch_meta_handler_add(name, pad, client_handler, client_data):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    callbacks.append(meta_handler)
-    result = _dsl.dsl_tracker_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_tracker_batch_meta_handler_add(name, pad, c_client_handler, c_client_data)
     return int(result)
 
 ##
 ## dsl_tracker_batch_meta_handler_remove()
 ##
-_dsl.dsl_tracker_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tracker_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER]
 _dsl.dsl_tracker_batch_meta_handler_remove.restype = c_uint
-def dsl_tracker_batch_meta_handler_remove(name, pad):
+def dsl_tracker_batch_meta_handler_remove(name, pad, client_handler):
     global _dsl
-    result = _dsl.dsl_tracker_batch_meta_handler_remove(name, pad)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    result = _dsl.dsl_tracker_batch_meta_handler_remove(name, pad, c_client_handler)
     return int(result)
 
 ##
@@ -1585,20 +1593,22 @@ def dsl_osd_crop_settings_set(name, left, top, width, height):
 ##
 _dsl.dsl_osd_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_osd_batch_meta_handler_add.restype = c_uint
-def dsl_osd_batch_meta_handler_add(name, pad, handler, user_data):
+def dsl_osd_batch_meta_handler_add(name, pad, client_handler, client_data):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    callbacks.append(meta_handler)
-    result = _dsl.dsl_osd_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_osd_batch_meta_handler_add(name, pad, c_client_handler, c_client_data)
     return int(result)
 ##
 ## dsl_osd_batch_meta_handler_remove()
 ##
 _dsl.dsl_osd_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
 _dsl.dsl_osd_batch_meta_handler_remove.restype = c_uint
-def dsl_osd_batch_meta_handler_remove(name, pad):
+def dsl_osd_batch_meta_handler_remove(name, pad, client_handler):
     global _dsl
-    result = _dsl.dsl_osd_batch_meta_handler_remove(name, pad)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    result = _dsl.dsl_osd_batch_meta_handler_remove(name, pad, c_client_handler)
     return int(result)
 
 ##
@@ -1695,22 +1705,23 @@ def dsl_tee_branch_remove_many(tee, branches):
 ##
 _dsl.dsl_tee_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_tee_batch_meta_handler_add.restype = c_uint
-def dsl_tee_batch_meta_handler_add(name, handler, user_data):
+def dsl_tee_batch_meta_handler_add(name, client_handler, client_data):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    callbacks.append(meta_handler)
-    result = _dsl.dsl_tee_batch_meta_handler_add(name, meta_handler, user_data)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_tee_batch_meta_handler_add(name, pad, c_client_handler, c_client_data)
     return int(result)
 
 ##
 ## dsl_tee_batch_meta_handler_remove()
 ##
-_dsl.dsl_tee_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_batch_meta_handler_remove.argtypes = [c_wchar_p, DSL_META_BATCH_HANDLER]
 _dsl.dsl_tee_batch_meta_handler_remove.restype = c_uint
-def dsl_tee_batch_meta_handler_remove(name, handler):
+def dsl_tee_batch_meta_handler_remove(name, client_handler):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    result = _dsl.dsl_tee_batch_meta_handler_remove(name, meta_handler)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    result = _dsl.dsl_tee_batch_meta_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
@@ -1793,21 +1804,23 @@ def dsl_tiler_source_show_set(name, source):
 ##
 _dsl.dsl_tiler_batch_meta_handler_add.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER, c_void_p]
 _dsl.dsl_tiler_batch_meta_handler_add.restype = c_uint
-def dsl_tiler_batch_meta_handler_add(name, pad, handler, user_data):
+def dsl_tiler_batch_meta_handler_add(name, pad, client_handler, client_data):
     global _dsl
-    meta_handler = DSL_META_BATCH_HANDLER(handler)
-    callbacks.append(meta_handler)
-    result = _dsl.dsl_tiler_batch_meta_handler_add(name, pad, meta_handler, user_data)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_tiler_batch_meta_handler_add(name, pad, c_client_handler, c_client_data)
     return int(result)
 
 ##
 ## dsl_tiler_batch_meta_handler_remove()
 ##
-_dsl.dsl_tiler_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tiler_batch_meta_handler_remove.argtypes = [c_wchar_p, c_uint, DSL_META_BATCH_HANDLER]
 _dsl.dsl_tiler_batch_meta_handler_remove.restype = c_uint
-def dsl_tiler_batch_meta_handler_remove(name, pad):
+def dsl_tiler_batch_meta_handler_remove(name, pad, client_handler):
     global _dsl
-    result = _dsl.dsl_tiler_batch_meta_handler_remove(name, pad)
+    c_client_handler = DSL_META_BATCH_HANDLER(client_handler)
+    result = _dsl.dsl_tiler_batch_meta_handler_remove(name, pad, c_client_handler)
     return int(result)
 
 ##
@@ -1829,7 +1842,8 @@ def dsl_sink_meter_new(name, interval, client_handler, client_data):
     global _dsl
     client_handler_cb = DSL_SINK_METER_CLIENT_HANDLER(client_handler)
     callbacks.append(client_handler_cb)
-    result =_dsl.dsl_sink_meter_new(name, interval, client_handler_cb, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result =_dsl.dsl_sink_meter_new(name, interval, client_handler_cb, c_client_data)
     return int(result)
 
 ##
@@ -1911,20 +1925,21 @@ _dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uin
 _dsl.dsl_sink_record_new.restype = c_uint
 def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, client_listener):
     global _dsl
-    listener_cb = DSL_RECORD_CLIENT_LISTNER(client_listener)
-    callbacks.append(checker_cb)
-    result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, checker_cb)
+    c_client_listener = DSL_RECORD_CLIENT_LISTNER(client_listener)
+    callbacks.append(c_client_listener)
+    result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, c_client_listener)
     return int(result)
     
 ##
 ## dsl_sink_record_session_start()
 ##
-_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint]
+_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint, c_uint, c_void_p]
 _dsl.dsl_sink_record_session_start.restype = c_uint
 def dsl_sink_record_session_start(name, start, duration, client_data):
     global _dsl
     session = c_uint(0)
-    result = _dsl.dsl_sink_record_session_start(name, DSL_UINT_P(session), start, duration, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_sink_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
     return int(result), session.value 
 
 ##
@@ -2665,11 +2680,12 @@ def dsl_pipeline_dump_to_dot_with_ts(pipeline, filename):
 ##
 _dsl.dsl_pipeline_state_change_listener_add.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_pipeline_state_change_listener_add.restype = c_uint
-def dsl_pipeline_state_change_listener_add(name, listener, user_data):
+def dsl_pipeline_state_change_listener_add(name, client_listener, client_data):
     global _dsl
-    client_listener = DSL_STATE_CHANGE_LISTENER(listener)
-    callbacks.append(client_listener)
-    result = _dsl.dsl_pipeline_state_change_listener_add(name, client_listener, user_data)
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_state_change_listener_add(name, c_client_listener, c_client_data)
     return int(result)
     
 ##
@@ -2677,10 +2693,10 @@ def dsl_pipeline_state_change_listener_add(name, listener, user_data):
 ##
 _dsl.dsl_pipeline_state_change_listener_remove.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER]
 _dsl.dsl_pipeline_state_change_listener_remove.restype = c_uint
-def dsl_pipeline_state_change_listener_remove(name, listener):
+def dsl_pipeline_state_change_listener_remove(name, client_listener):
     global _dsl
-    client_listener = DSL_STATE_CHANGE_LISTENER(listener)
-    result = _dsl.dsl_pipeline_state_change_listener_remove(name, client_listener)
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_pipeline_state_change_listener_remove(name, c_client_listener)
     return int(result)
 
 ##
@@ -2688,11 +2704,12 @@ def dsl_pipeline_state_change_listener_remove(name, listener):
 ##
 _dsl.dsl_pipeline_eos_listener_add.argtypes = [c_wchar_p, DSL_EOS_LISTENER, c_void_p]
 _dsl.dsl_pipeline_eos_listener_add.restype = c_uint
-def dsl_pipeline_eos_listener_add(name, listener, user_data):
+def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     global _dsl
-    client_listener = DSL_EOS_LISTENER(listener)
-    callbacks.append(client_listener)
-    result = _dsl.dsl_pipeline_eos_listener_add(name, client_listener, user_data)
+    c_client_listener = DSL_EOS_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_eos_listener_add(name, c_client_listener, c_client_data)
     return int(result)
     
 ##
@@ -2711,11 +2728,12 @@ def dsl_pipeline_eos_listener_remove(name, listener):
 ##
 _dsl.dsl_pipeline_xwindow_key_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER, c_void_p]
 _dsl.dsl_pipeline_xwindow_key_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_key_event_handler_add(name, handler, user_data):
+def dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, client_data):
     global _dsl
-    client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(handler)
-    callbacks.append(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, user_data)
+    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_xwindow_key_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
 ##
@@ -2734,11 +2752,12 @@ def dsl_pipeline_xwindow_key_event_handler_remove(name, handler):
 ##
 _dsl.dsl_pipeline_xwindow_button_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER, c_void_p]
 _dsl.dsl_pipeline_xwindow_button_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_button_event_handler_add(name, handler, user_data):
+def dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, client_data):
     global _dsl
-    client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(handler)
-    callbacks.append(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, user_data)
+    c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_xwindow_button_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
 ##
@@ -2757,11 +2776,12 @@ def dsl_pipeline_xwindow_button_event_handler_remove(name, handler):
 ##
 _dsl.dsl_pipeline_xwindow_delete_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_DELETE_EVENT_HANDLER, c_void_p]
 _dsl.dsl_pipeline_xwindow_delete_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_delete_event_handler_add(name, handler, user_data):
+def dsl_pipeline_xwindow_delete_event_handler_add(name, client_handler, client_data):
     global _dsl
-    client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(handler)
-    callbacks.append(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_add(name, client_handler, user_data)
+    c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
 ##
@@ -2769,10 +2789,10 @@ def dsl_pipeline_xwindow_delete_event_handler_add(name, handler, user_data):
 ##
 _dsl.dsl_pipeline_xwindow_delete_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_DELETE_EVENT_HANDLER]
 _dsl.dsl_pipeline_xwindow_delete_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_delete_event_handler_remove(name, handler):
+def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
     global _dsl
-    client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(handler)
-    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler)
+    c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
