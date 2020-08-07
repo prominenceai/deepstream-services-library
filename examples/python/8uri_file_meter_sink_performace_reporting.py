@@ -86,17 +86,42 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-        
+
+##
+# To be used as client_data with our Meter Sink, and passed to our client_calback
+##
+class ReportData:
+  def __init__(self, header_interval):
+    self.m_report_count = 0
+    self.m_header_interval = header_interval
+    
 ## 
 # Meter Sink client callback funtion
 ## 
 def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
 
-    print('--------------------------------------------------------')
+    # cast the C void* client_data back to a py_object pointer and deref
+    report_data = cast(client_data, POINTER(py_object)).contents.value
+
+    # Print header on interval
+    if (report_data.m_report_count % report_data.m_header_interval == 0):
+        header = ""
+        for source in range(source_count):
+            subheader = f"FPS {source} (AVG)"
+            header += "{:<15}".format(subheader)
+        print()
+        print(header)
+
+    # Print FPS counters
+    counters = ""
     for source in range(source_count):
-        print('Source: ', source, ' | Avg FPS : session: ', "%.4f" % session_avgs[source],
-         ' interval: ', "%.4f" % interval_avgs[source])
-    print('\n')
+        counter = "{:.2f} ({:.2f})".format(interval_avgs[source], session_avgs[source])
+        counters += "{:<15}".format(counter)
+    print(counters)
+
+    # Increment reporting count
+    report_data.m_report_count += 1
+    
     return True
         
 
@@ -110,7 +135,10 @@ def main(args):
         # Avg Session FPS and Avg Interval FPS measurements to the console. The Key-released-handler callback (above)
         # will disable the meter when pausing the Pipeline, and re-enable measurements when the Pipeline is resumed
         # Note: Session averages are reset each time a Meter is disabled and then re-enable.
-        retval = dsl_sink_meter_new('meter-sink', interval=1, client_handler=meter_sink_handler, client_data=None)
+
+        report_data = ReportData(header_interval=12)
+        
+        retval = dsl_sink_meter_new('meter-sink', interval=1, client_handler=meter_sink_handler, client_data=report_data)
         if retval != DSL_RETURN_SUCCESS:
             break
         #
