@@ -172,7 +172,7 @@ retval = dsl_source_uri_new('dsl_source_uri_new', '../../test/streams/sample_108
 ### *dsl_source_rtsp_new*
 ```C++
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
 ```
 
 This service creates a new, uniquely named URI Source component

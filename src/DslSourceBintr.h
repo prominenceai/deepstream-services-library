@@ -57,8 +57,8 @@ namespace DSL
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency))
 
     /**
      * @class SourceBintr
@@ -444,7 +444,7 @@ namespace DSL
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol,
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency);
 
         ~RtspSourceBintr();
 

@@ -1047,7 +1047,7 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
 }
 
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri,
-    uint protocol, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval)
+    uint protocol, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1055,7 +1055,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
-        protocol, cudadec_mem_type, intra_decode, dropFrameInterval);
+        protocol, cudadec_mem_type, intra_decode, dropFrameInterval, latency);
 }
 
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)

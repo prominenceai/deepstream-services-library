@@ -1456,11 +1456,13 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolea
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] 
+ * @param[in] intra_decode
+ * @param[in] drop_frame_interval
+ * @param[in] latency in milliseconds
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
 
 /**
  * @brief returns the frame rate of the name source as a fraction

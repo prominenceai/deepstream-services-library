@@ -1054,11 +1054,11 @@ def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_
 ##
 ## dsl_source_rtsp_new()
 ##
-_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_rtsp_new.restype = c_uint
-def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval):
+def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency):
     global _dsl
-    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval)
+    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency)
     return int(result)
 
 ##
