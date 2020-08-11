@@ -29,6 +29,10 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    #define DSL_SOURCE_METER_PTR std::shared_ptr<SourceMeter>
+    #define DSL_SOURCE_METER_NEW(name) \
+        std::shared_ptr<SourceMeter>(new SourceMeter(name))
+
     /**
      * @class SourceMeter
      * @brief Implements a Meter to measure FPS over two seperate epics, one session, the other interval.

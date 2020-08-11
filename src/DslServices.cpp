@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
-#include "DslOdeHandlerBintr.h"
+#include "DslPadProbeHandler.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
@@ -173,7 +173,6 @@ THE SOFTWARE.
 #define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(MeterSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -191,7 +190,6 @@ THE SOFTWARE.
 #define RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(MeterSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -240,6 +238,16 @@ THE SOFTWARE.
         return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
     } \
 }while(0); 
+
+#define RETURN_IF_PPH_NAME_NOT_FOUND(handlers, name) do \
+{ \
+    if (handlers.find(name) == handlers.end()) \
+    { \
+        LOG_ERROR("Pad Probe Handler name '" << name << "' was not found"); \
+        return DSL_RESULT_PPH_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
@@ -2301,7 +2309,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, double* minConfidence)
+    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, float* minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2323,7 +2331,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, double minConfidence)
+    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, float minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2345,7 +2353,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2367,7 +2375,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, float min_width, float min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2391,7 +2399,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height)
+    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, float* max_width, float* max_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2413,7 +2421,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height)
+    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, float max_width, float max_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2768,6 +2776,363 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         return m_odeTriggers.size();
+    }
+
+    DslReturnType Services::PphCustomNew(const char* name,
+        dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Custom Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData);
+
+            LOG_INFO("New Custom Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custom Pad Prove handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphMeterNew(const char* name, uint interval, 
+        dsl_pph_meter_client_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            LOG_INFO("services handler address " << clientHandler);
+            
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Meter Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            if (!interval)
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_METER_NEW(name, 
+                interval, clientHandler, clientData);
+
+            LOG_INFO("New Meter Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Meter Pad Prove handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+
+    DslReturnType Services::PphMeterIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+
+            DSL_PPH_METER_PTR pMeter = 
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+
+            *interval = pMeter->GetInterval();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting reporting interval");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphMeterIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            
+            if (!interval)
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
+            }
+
+            DSL_PPH_METER_PTR pMeter = 
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+
+            if (!pMeter->SetInterval(interval))
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set reporting interval");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Pad Probe Handler '" << name << "' threw an exception setting reporting interval");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphOdeNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("ODE Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_ODE_NEW(name);
+            
+            LOG_INFO("New ODE Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Pad Probe Handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphOdeTriggerAdd(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+
+            // Can't add Events if they're In use by another Handler
+            if (m_odeTriggers[trigger]->IsInUse())
+            {
+                LOG_ERROR("Unable to add ODE Trigger '" << trigger 
+                    << "' as it is currently in use");
+                return DSL_RESULT_ODE_TRIGGER_IN_USE;
+            }
+
+            DSL_PPH_ODE_PTR pOde = 
+                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+
+            if (!pOde->AddChild(m_odeTriggers[trigger]))
+            {
+                LOG_ERROR("ODE Pad Probe Handler '" << name
+                    << "' failed to add ODE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << trigger 
+                << "' was added to ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name
+                << "' threw exception adding ODE Trigger '" << trigger << "'");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphOdeTriggerRemove(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+
+            if (!m_odeTriggers[trigger]->IsParent(m_padProbeHandlers[name]))
+            {
+                LOG_ERROR("ODE Trigger '" << trigger << 
+                    "' is not in use by ODE Pad Probe Handler '" << name << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE;
+            }
+            
+            if (!m_padProbeHandlers[name]->RemoveChild(m_odeTriggers[trigger]))
+            {
+                LOG_ERROR("ODE Pad Probe Handler '" << name
+                    << "' failed to remove ODE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << trigger 
+                << "' was removed from ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception removing ODE Trigger");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphOdeTriggerRemoveAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            
+            m_padProbeHandlers[name]->RemoveAllChildren();
+
+            LOG_INFO("All ODE Triggers removed from ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception removing All ODE Triggers");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+   DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
+   {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+
+            *enabled = m_padProbeHandlers[name]->GetEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name
+                << "' threw exception getting the Enabled state");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+   DslReturnType Services::PphEnabledSet(const char* name, boolean enabled)
+   {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+
+            if (!m_padProbeHandlers[name]->SetEnabled(enabled))
+            {
+                LOG_ERROR("Pad Probe Handler '" << name
+                    << "' failed to set enabled state");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name
+                << "' threw exception setting the Enabled state");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            
+            if (m_padProbeHandlers[name]->IsInUse())
+            {
+                LOG_INFO("Pad Probe Handler '" << name << "' is in use");
+                return DSL_RESULT_PPH_IS_IN_USE;
+            }
+            m_padProbeHandlers.erase(name);
+
+            LOG_INFO("Pad Probe Handler '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name << "' threw an exception on deletion");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            for (auto const& imap: m_padProbeHandlers)
+            {
+                if (imap.second->IsInUse())
+                {
+                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_PPH_IS_IN_USE;
+                }
+            }
+            m_padProbeHandlers.clear();
+
+            LOG_INFO("All Pad Probe Handlers deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler threw an exception on delete all");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::PphListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_padProbeHandlers.size();
     }
     
     DslReturnType Services::SourceCsiNew(const char* name,
@@ -3636,73 +4001,71 @@ namespace DSL
         }
     }
 
-
-    DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::PrimaryGiePphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            if (pad > DSL_PAD_SRC)
-            {
-                LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
-                return DSL_RESULT_GIE_PAD_TYPE_INVALID;
-            }
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Primary GIE '" << name << "' failed to add a Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryGie '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Primary GIE '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::PrimaryGieBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::PrimaryGiePphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
             if (pad > DSL_PAD_SRC)
             {
                 LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
-                return DSL_RESULT_GIE_PAD_TYPE_INVALID;
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
 
-            if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad, handler))
+            // call on the Handler to remove itself from the PrimaryGie
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
             {
-                LOG_ERROR("Primary GIE '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Primary GIE '" << name << "'");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
     }
 
-        
     DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, const char* inferOnGieName, uint interval)
     {
@@ -4060,72 +4423,70 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TrackerPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
-            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
-
-            if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tracker '" << name << "' failed to add Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Tracker '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tracker '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::TrackerPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
-            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
-
-            if (!pTrackerBintr->RemoveBatchMetaHandler(pad, handler))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tracker '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the Tracker
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
                 return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            LOG_ERROR("Tracker '" << name << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
-   
         
     DslReturnType Services::TeeDemuxerNew(const char* name)
     {
@@ -4316,8 +4677,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TeeBatchMetaHandlerAdd(const char* name, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TeePphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4326,26 +4686,24 @@ namespace DSL
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
-
-            if (!pTeeBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, userData))
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Tee '" << name << "' failed to add Batch Meta Handler");
-                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+                LOG_ERROR("Tracker '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_TEE_HANDLER_ADD_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tee '" << name << "' threw an exception adding Batch Meta Handler");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::TeeBatchMetaHandlerRemove(const char* name, 
-        dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::TeePphRemove(const char* name, const char* handler) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4355,20 +4713,19 @@ namespace DSL
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
-
-            if (!pTeeBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Tee '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
                 return DSL_RESULT_TEE_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tee '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Tee '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
@@ -4589,260 +4946,74 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TilerPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
-            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TILER_PTR pTilerBintr = 
-                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
-
-            if (!pTilerBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tiler '" << name << "' failed to add Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
             }
+            LOG_INFO("Pad Probe Handler '" << handler << "' added to Tiler '" << name << "' successfully");
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::TilerBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::TilerPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
-            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TILER_PTR pTilerBintr = 
-                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
-
-            if (!pTilerBintr->RemoveBatchMetaHandler(pad, handler))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tiler '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the Tiler
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tiler '" << name << "'");
                 return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
             }
+            LOG_INFO("Pad Probe Handler '" << handler << "' removed from Tiler '" << name << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Tiler '" << name << "' threw an exception removing ODE Handle");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
     }
-   
-    DslReturnType Services::OdeHandlerNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        try
-        {   
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("ODE Handler name '" << name << "' is not unique");
-                return DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = std::shared_ptr<Bintr>(new OdeHandlerBintr(name));
-            
-            LOG_INFO("New OdeHandler '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Handler '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-    
-   DslReturnType Services::OdeHandlerEnabledGet(const char* handler, boolean* enabled)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            *enabled = pOdeHandlerBintr->GetEnabled();
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("OdeHandler '" << handler
-                << "' threw exception getting the Enabled state");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-
-   DslReturnType Services::OdeHandlerEnabledSet(const char* handler, boolean enabled)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            if (!pOdeHandlerBintr->SetEnabled(enabled))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to set enabled state");
-                return DSL_RESULT_ODE_HANDLER_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler
-                << "' threw exception setting the Enabled state");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-
-   DslReturnType Services::OdeHandlerTriggerAdd(const char* handler, const char* trigger)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            // Can't add Events if they're In use by another OdeHandler
-            if (m_odeTriggers[trigger]->IsInUse())
-            {
-                LOG_ERROR("Unable to add ODE Trigger '" << trigger 
-                    << "' as it is currently in use");
-                return DSL_RESULT_ODE_TRIGGER_IN_USE;
-            }
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            if (!pOdeHandlerBintr->AddChild(m_odeTriggers[trigger]))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to add ODE Trigger '" << trigger << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED;
-            }
-            LOG_INFO("ODE Trigger '" << trigger 
-                << "' was added to ODE Handler '" << handler << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler
-                << "' threw exception adding ODE Trigger '" << trigger << "'");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-
-
-    DslReturnType Services::OdeHandlerTriggerRemove(const char* handler, const char* trigger)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
-
-            if (!m_odeTriggers[trigger]->IsParent(m_components[handler]))
-            {
-                LOG_ERROR("ODE Trigger '" << trigger << 
-                    "' is not in use by ODE Handler '" << handler << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE;
-            }
-            
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-                
-            if (!pOdeHandlerBintr->RemoveChild(m_odeTriggers[trigger]))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to remove ODE Trigger '" << trigger << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED;
-            }
-            LOG_INFO("ODE Trigger '" << trigger 
-                << "' was removed from OdeHandler '" << handler << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing ODE Trigger");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::OdeHandlerTriggerRemoveAll(const char* handler)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-            
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            pOdeHandlerBintr->RemoveAllChildren();
-
-            LOG_INFO("All ODE Triggers removed from ODE Handler '" << handler << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing All ODE Triggers");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::OfvNew(const char* name)
     {
         LOG_FUNC();
@@ -5132,120 +5303,67 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-
-            DSL_OSD_PTR osdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            osdBintr->GetCropSettings(left, top, width, height);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception getting crop settings");
-            return DSL_RESULT_OSD_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-
-            DSL_OSD_PTR osdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            // TODO verify args before calling
-            if (!osdBintr->SetCropSettings(left, top, width, height))
-            {
-                LOG_ERROR("OSD '" << name << "' failed to set crop settings");
-                return DSL_RESULT_OSD_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception setting crop settings");
-            return DSL_RESULT_OSD_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::OsdPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
             if (pad > DSL_PAD_SRC)
             {
                 LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
-                return DSL_RESULT_OSD_PAD_TYPE_INVALID;
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR pOsdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            if (!pOsdBintr->AddBatchMetaHandler(pad, handler, userData))
+            // call on the Handler to add itself to the Osd as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
             {
-                LOG_ERROR("OSD '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("OSD '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_OSD_HANDLER_ADD_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::OsdBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::OsdPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
             if (pad > DSL_PAD_SRC)
             {
                 LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
-                return DSL_RESULT_OSD_PAD_TYPE_INVALID;
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            DSL_OSD_PTR pOsdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            if (!pOsdBintr->RemoveBatchMetaHandler(pad, handler))
+            // call on the Handler to remove itself from the Osd
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
             {
-                LOG_ERROR("OSD '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of OSD '" << name << "'");
                 return DSL_RESULT_OSD_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Osd '" << name << "' threw an exception removing ODE Handle");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
     }
@@ -5272,147 +5390,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SinkMeterNew(const char* name, uint interval, 
-        dsl_sink_meter_client_handler_cb clientHandler, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Sink name '" << name << "' is not unique");
-                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-            }
-            if (!interval)
-            {
-                LOG_ERROR("Meter Sink '" << name << "' failed to set property, interval must be greater than 0");
-                return DSL_RESULT_SINK_METER_INVALID_INTERVAL;
-            }
-            m_components[name] = DSL_METER_SINK_NEW(name, 
-                interval, clientHandler, clientData);
-
-            LOG_INFO("New Meter Sink '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Meter Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkMeterEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
-
-            DSL_METER_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
-
-            *enabled = sinkBintr->GetEnabled();
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting enabled setting");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkMeterEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
-
-            DSL_METER_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetEnabled(enabled))
-            {
-                LOG_ERROR("Meter Sink '" << name << "' failed to set enabled setting");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting enabled setting");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkMeterIntervalGet(const char* name, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
-
-            DSL_METER_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
-
-            *interval = sinkBintr->GetInterval();
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting reporting interval");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkMeterIntervalSet(const char* name, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, MeterSinkBintr);
-            
-            if (!interval)
-            {
-                LOG_ERROR("Meter Sink '" << name << "' failed to set property, interval must be greater than 0");
-                return DSL_RESULT_SINK_METER_INVALID_INTERVAL;
-            }
-
-            DSL_METER_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<MeterSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetInterval(interval))
-            {
-                LOG_ERROR("Meter Sink '" << name << "' failed to set reporting interval");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting reporting interval");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -5961,304 +5938,55 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkImageNew(const char* name, const char* outdir)
+    DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Sink name '" << name << "' is not unique");
-                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-            }
-            // ensure outdir exists
-            struct stat info;
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
-                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+                LOG_ERROR("SINK '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_SINK_HANDLER_ADD_FAILED;
             }
-            m_components[name] = DSL_IMAGE_SINK_NEW(name, outdir);
-
-            LOG_INFO("New Image Sink '" << name << "' created successfully");
-
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Image Sink '" << name << "' threw exception on create");
+            LOG_ERROR("SInk '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
-    
-    DslReturnType Services::SinkImageOutdirGet(const char* name, const char** outdir)
+   
+    DslReturnType Services::SinkPphRemove(const char* name, const char* handler) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TrackerBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *outdir = sinkBintr->GetOutdir();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir get");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageOutdirSet(const char* name, const char* outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            // ensure outdir exists
-            struct stat info;
-            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
-                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
-            }
-            
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetOutdir(outdir))
-            {
-                LOG_ERROR("Failed to set outdir '" << outdir << "' for Image Sink '" << name << "'");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir set");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-
-    DslReturnType Services::SinkImageFrameCaptureIntervalGet(const char* name, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *interval = sinkBintr->GetFrameCaptureInterval();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture interval");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureIntervalSet(const char* name, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetFrameCaptureInterval(interval))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture interval");
-                return DSL_RESULT_SINK_SET_FAILED;
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture interval");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *enabled = sinkBintr->GetFrameCaptureEnabled();
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetFrameCaptureEnabled(enabled))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture enabled");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *enabled = sinkBintr->GetObjectCaptureEnabled();
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Object Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetObjectCaptureEnabled(enabled))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Object Capture enabled");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Object Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureClassAdd(const char* name, 
-        uint classId, boolean fullFrame, uint captureLimit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->AddObjectCaptureClass(classId, fullFrame, captureLimit))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to add Object Capture Class");
-                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception adding Object Capture Class");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SinkImageObjectCaptureClassRemove(const char* name, uint classId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->RemoveObjectCaptureClass(classId))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to remove Object Capture Class");
-                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Redaction Class");
+            LOG_ERROR("Tracker '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -7339,18 +7067,16 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TRACKER_PAD_TYPE_INVALID] = L"DSL_RESULT_TRACKER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER] = L"DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT] = L"DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_IS_IN_USE] = L"DSL_RESULT_ODE_HANDLER_IS_IN_USE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_SET_FAILED] = L"DSL_RESULT_ODE_HANDLER_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER] = L"DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_NOT_UNIQUE] = L"DSL_RESULT_PPH_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_NOT_FOUND] = L"DSL_RESULT_PPH_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_BAD_FORMAT] = L"DSL_RESULT_PPH_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_PPH_THREW_EXCEPTION] = L"DSL_RESULT_PPH_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_PPH_IS_IN_USE] = L"DSL_RESULT_PPH_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_PPH_SET_FAILED] = L"DSL_RESULT_PPH_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED] = L"DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED] = L"DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE] = L"DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_PPH_METER_INVALID_INTERVAL] = L"DSL_RESULT_PPH_METER_INVALID_INTERVAL";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION";
@@ -7391,7 +7117,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_SINK_METER_INVALID_INTERVAL] = L"DSL_RESULT_SINK_METER_INVALID_INTERVAL";
+        m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SINK_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";

@@ -309,8 +309,7 @@ namespace DSL
         
         if (Services::GetServices()->SourceNameGet(pFrameMeta->source_id, &name) == DSL_RESULT_SUCCESS)
         {
-//            std::string nameString(name);
-            std::string nameString(std::to_string(pFrameMeta->source_id));
+            std::string nameString(name);
             // need to allocate storage for actual text, then copy.
             display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             nameString.copy(display_text, MAX_DISPLAY_LEN, 0);

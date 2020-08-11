@@ -74,7 +74,6 @@ DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
-
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -824,7 +823,7 @@ def dsl_ode_trigger_dimensions_min_get(name):
 ##
 ## dsl_ode_trigger_dimensions_min_set()
 ##
-_dsl.dsl_ode_trigger_dimensions_min_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_dimensions_min_set.argtypes = [c_wchar_p, c_float, c_float]
 _dsl.dsl_ode_trigger_dimensions_min_set.restype = c_uint
 def dsl_ode_trigger_dimensions_min_set(name, min_width, min_height):
     global _dsl
@@ -846,7 +845,7 @@ def dsl_ode_trigger_dimensions_max_get(name):
 ##
 ## dsl_ode_trigger_dimensions_max_set()
 ##
-_dsl.dsl_ode_trigger_dimensions_max_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_dimensions_max_set.argtypes = [c_wchar_p, c_float, c_float]
 _dsl.dsl_ode_trigger_dimensions_max_set.restype = c_uint
 def dsl_ode_trigger_dimensions_max_set(name, max_width, max_height):
     global _dsl
@@ -1076,7 +1075,6 @@ _dsl.dsl_pph_meter_new.restype = c_uint
 def dsl_pph_meter_new(name, interval, client_handler, client_data):
     global _dsl
     client_handler_cb = DSL_PPH_METER_CLIENT_HANDLER(client_handler)
-    print("***********", client_handler_cb)
     callbacks.append(client_handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     result =_dsl.dsl_pph_meter_new(name, interval, client_handler_cb, c_client_data)

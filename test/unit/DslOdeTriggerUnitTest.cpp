@@ -47,11 +47,11 @@ SCENARIO( "A new OdeTrigger is created correctly", "[OdeTrigger]" )
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
                 REQUIRE( pOdeTrigger->GetSourceId() == DSL_ODE_ANY_SOURCE );
-                uint minWidth(123), minHeight(123);
+                float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
                 REQUIRE( minHeight == 0 );
-                uint maxWidth(123), maxHeight(123);
+                float maxWidth(123), maxHeight(123);
                 pOdeTrigger->GetMaxDimensions(&maxWidth, &maxHeight);
                 REQUIRE( maxWidth == 0 );
                 REQUIRE( maxHeight == 0 );

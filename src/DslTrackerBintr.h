@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
-#include "DslPadProbetr.h"
+#include "DslPadProbeHandler.h"
 
 namespace DSL
 {

@@ -40,8 +40,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = 1280
-TILER_HEIGHT = 720
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
@@ -226,10 +226,10 @@ def main(args):
     
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New ODE Handler for our Trigger
-        retval = dsl_ode_handler_new('ode-handler')
+        retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
             'bicycle-occurrence-trigger',
             'rec-on-trigger', 
             None])
@@ -259,6 +259,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
  
+        # add our ODE Pad Probe Handle to the Sink Pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+ 
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
@@ -271,7 +276,7 @@ def main(args):
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-handler', 'on-screen-display', 'window-sink', 'record-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', 'record-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

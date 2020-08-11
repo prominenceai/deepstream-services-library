@@ -107,13 +107,13 @@ def main(args):
         # the Sink for rendering.
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.8, green=1.0, alpha=0.7)
+        retval = dsl_display_type_rgba_color_new('flash-white', red=1.0, blue=1.0, green=1.0, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
             return retval
         
         # Create a Fill-Area Action to simulate a 'camera-flash' as a visual indicator that an Object Image Capture 
         # has occurred. This Action will be shared between all Triggers created for image capture
-        retval = dsl_ode_action_fill_frame_new('camera-flash-action', 'opaque-red')
+        retval = dsl_ode_action_fill_frame_new('camera-flash-action', 'flash-white')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -261,18 +261,17 @@ def main(args):
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
- 
+
+        # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
  
-        # Add our ODE Pad Probe Handler to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='ode-handler', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:

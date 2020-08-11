@@ -118,7 +118,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000E
-#define DSL_RESULT_SINK_METER_INVALID_INTERVAL                      0x0004000F
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000F
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040010
 
 /**
  * OSD API Return Values
@@ -237,19 +238,20 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
 /**
- * ODE Handler API Return Values
+ * Pad Probe Handler API Return Values
  */
-#define DSL_RESULT_ODE_HANDLER_RESULT                               0x000D0000
-#define DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE                      0x000D0001
-#define DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND                       0x000D0002
-#define DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT                      0x000D0003
-#define DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION                      0x000D0004
-#define DSL_RESULT_ODE_HANDLER_IS_IN_USE                            0x000D0005
-#define DSL_RESULT_ODE_HANDLER_SET_FAILED                           0x000D0006
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED                   0x000D0007
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED                0x000D0008
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE                   0x000D0009
-#define DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER         0x000D000A
+#define DSL_RESULT_PPH_RESULT                                       0x000D0000
+#define DSL_RESULT_PPH_NAME_NOT_UNIQUE                              0x000D0001
+#define DSL_RESULT_PPH_NAME_NOT_FOUND                               0x000D0002
+#define DSL_RESULT_PPH_NAME_BAD_FORMAT                              0x000D0003
+#define DSL_RESULT_PPH_THREW_EXCEPTION                              0x000D0004
+#define DSL_RESULT_PPH_IS_IN_USE                                    0x000D0005
+#define DSL_RESULT_PPH_SET_FAILED                                   0x000D0006
+#define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
+#define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
+#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
+#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x0004000A
+#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x0004000B
 
 /**
  * ODE Trigger API Return Values
@@ -429,14 +431,24 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
 
-
 /**
- * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
- * the function will be called when the component receives a batch meta buffer.
- * @param[in] batch_meta pointer to a Batch Meta structure to process
- * @param[in] user_data opaque pointer to client's user data
+ * @brief callback typedef for a client to hanlde new Pipeline performance data
+ * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
+ * @param[in] session_fps_averages array of frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] interval_fps_averages array of average frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] source_count count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
+ * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
+typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages, 
+    uint source_count, void* client_data);
+    
+/**
+ * @brief callback typedef for a client pad probe handler function. Once added to a Component, 
+ * the function will be called when the component receives a pad probe buffer ready.
+ * @param[in] buffer pointer to a stream buffer to process
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef boolean (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -484,17 +496,6 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] user_data opaque pointer to client's user data provide on end-of-session
  */
 typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
-
-/**
- * @brief callback typedef for a client to hanlde new Pipeline performance data
- * ,calcaulated by the Meter Sink, at an intervel specified by the client.
- * @param[in] session_fps_averages array of frames-per-second measurements, one per source, specified by list_size 
- * @param[in] interval_fps_averages array of average frames-per-second measurements, one per source, specified by list_size 
- * @param[in] source_count count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
- * @param[in] client_data opaque pointer to client's user data provide on end-of-session
- */
-typedef boolean (*dsl_sink_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages, 
-    uint source_count, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -739,9 +740,9 @@ DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wc
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
- * a namded ODE Handler
+ * a namded Handler
  * @param[in] name unique name for the Fill Backtround ODE Action
- * @param[in] handler unique name of the ODE Handler to disable
+ * @param[in] handler unique name of the Handler to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
@@ -1223,7 +1224,7 @@ DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
  * @param[out] min_confidence current minimum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence);
 
 /**
  * @brief Sets the enabled setting for the ODE Trigger
@@ -1232,7 +1233,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* mi
  * @param[in] min_confidence minimum confidence to trigger an ODE occurrnce
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
@@ -1242,7 +1243,7 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the ODE Trigger
@@ -1252,7 +1253,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height);
 
 /**
  * @brief Gets the current maximum rectangle width and height values for the ODE Trigger
@@ -1262,7 +1263,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_w
  * @param[out] max_height returns the current maximun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height);
 
 /**
  * @brief Sets the current maximum rectangle width and height values for the ODE Trigger
@@ -1272,7 +1273,7 @@ DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_
  * @param[in] max_height the new maximun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height);
 
 /**
  * @brief Gets the current Inferrence-Done-Only setting for the named trigger
@@ -1391,30 +1392,159 @@ DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_
 DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 
 /**
- * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
+ * @brief Deletes a uniquely named Trigger. The call will fail if the event is currently in use
  * @brief[in] name unique name of the event to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated list of Events. The call will fail if any of the events are currently in use
+ * @brief Deletes a Null terminated list of Triggers. The call will fail if any of the events are currently in use
  * @brief[in] names Null terminaed list of event names to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names);
 
 /**
- * @brief Deletes all Events. The call will fail if any of the events are currently in use
+ * @brief Deletes all Triggers. The call will fail if any of the events are currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_all();
 
 /**
- * @brief Returns the size of the list of Events
- * @return the number of Events in the list
+ * @brief Returns the size of the list of Triggers
+ * @return the number of Triggers in the list
  */
 uint dsl_ode_trigger_list_size();
+
+/**
+ * @brief creates a new, uniquely named Handler component
+ * @param[in] name unique name for the new Handler
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Trigger to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] trigger unique name of the Trigger to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_add(const wchar_t* handler, const wchar_t* trigger);
+
+/**
+ * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
+
+/**
+ * @brief Removes a named ODE Trigger from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] odeType unique name of the Trigger to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
+
+/**
+ * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
+
+/**
+ * @brief Removes all ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* handler);
+
+/**
+ * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer
+ * @param[in] name unique component name for the new Custom Handler
+ * @param[in] client_handler client callback function, called with each buffer that flows over the pad
+ * @param[in] client_data opaque pointer to client date returned with the callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_custom_new(const wchar_t* name,
+     dsl_pph_custom_client_handler_cb client_handler, void* client_data);
+     
+/**
+ * @brief creates a new, uniquely named Meter pad-probe-handler to calcaulate performance measurements
+ * @param[in] name unique component name for the new Meter
+ * @param[in] interval interval at which to report performance measurements
+ * @param[in] client_handler client callback function, called at "interval" with 
+ * performance measurements for each source
+ * @param[in] client_data opaque pointer to client date returned with the callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
+    dsl_pph_meter_client_handler_cb client_handler, void* client_data);
+/**
+ * @brief gets the current reporting interval for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval the current reporting interval in seconds
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief sets the current reportings for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval new reporting interval in seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief gets the current enabled setting for the named Pad Probe Handler
+ * @param[in] name unique name of the Handler to query
+ * @param[out] enabled true if the Handler is enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the Pad Probe Handler's enabled setting
+ * @param[in] name unique name of the pad-probe-handler to update
+ * @param[out] enabled set true to enable, if in a disabled state, 
+ * false to disable if currently in an enbled state. 
+ * Attempts to reset to the same/current state will fail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_enabled_set(const wchar_t* name, boolean enabled);
+
+
+/**
+ * @brief Deletes a uniquely named Pad Probe Handler. The call will fail if the Handler is currently in use
+ * @brief[in] name unique name of the Handler to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of Pad Probe Handlers. 
+ * The call will fail if any of the Handlers are currently in use
+ * @brief[in] names Null terminaed list of Handler names to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all Pad Probe Handlers. The call will fail if any of the Handlers are currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete_all();
+
+/**
+ * @brief Returns the size of the list of Pad Probe HandlerS
+ * @return the number of Handlers in the list
+ */
+uint dsl_pph_list_size();
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -1697,26 +1827,24 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
     const wchar_t* model_engine_file, uint interval);
 
 /**
- * @brief Adds a batch meta handler callback function to be called to process each buffer.
- * A Primary GIE can multiple Sink and Source batch meta handlers
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a batch meta handler callback function from the Primary GIE
+ * @brief Removes a pad-probe-handler from the Primary GIE
  * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
-    
+DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+
 /**
  * @brief creates a new, uniquely named Secondary GIE object
  * @param[in] name unique name for the new GIE object
@@ -1832,27 +1960,6 @@ DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width
 DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
 
 /**
- * @brief Add a batch meta handler callback function to be called to process each frame buffer.
- * A Tracker can have multiple Sink and Source batch meta handlers
- * @param[in] name unique name of the Tracker to update
- * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
-
-/**
- * @brief Removes a batch meta handler callback function from the Tracker
- * @param[in] name unique name of the Tracker to update
- * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
-
-/**
  * @brief sets the config file to use by named IOU Tracker object
  * @param[in] name unique name of the Tracker to Update
  * @param[in] config_file absolute or relative pathspec to the new config file to use
@@ -1861,75 +1968,31 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name,
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
 
 /**
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * A Primary GIE can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ */
+DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from the Primary GIE
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ */
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+
+/**
  * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj
  * @param[in] name unique name for the new OFV
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OFD_RESULT otherwise
  */
 DslReturnType dsl_ofv_new(const wchar_t* name);
 
-/**
- * @brief creates a new, uniquely named ODE Handler component
- * @param[in] name unique name for the new ODE Handler
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_new(const wchar_t* name);
-
-/**
- * @brief Gets the ODE Handler's current reporting enabled setting
- * @param[in] name unique name of the ODE Handler to query
- * @param[out] enabled true if Reporting is current enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the ODE Handler's reporting enabled setting
- * @param[in] name unique name of the ODE Handler to update
- * @param[out] enabled set true to enable reporting, if in a disabled state, 
- * false to disable if currently in an enbled state. 
- * Attempts to reset to the same/current state will fail
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Adds a named ODE Trigger to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] odeType unique name of the Event to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_add(const wchar_t* handler, const wchar_t* trigger);
-
-/**
- * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] triggers Null terminated list of Event names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
-
-/**
- * @brief Removes a named ODE Trigger from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] odeType unique name of the Event to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
-
-/**
- * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] triggers Null terminated list of Event names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
-
-/**
- * @brief Removes all ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove_all(const wchar_t* handler);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -2035,27 +2098,24 @@ DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* t
  */
 DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
 
-
 /**
- * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * An On-Screen-Display can have multiple Sink and Source batch-meta-handlers
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * An On-Screen-Display can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the OSD to update
+ * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a batch meta handler callback function from the OSD
+ * @brief Removes a pad-probe-handler from the OSD
  * @param[in] name unique name of the OSD to update
+ * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_osd_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
@@ -2136,24 +2196,21 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* tee);
 DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count);
 
 /**
- * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
- * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
- * @param[in] name unique name of the Demuxer to update
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler callback function to process each frame buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a batch meta handler callback function from a named Demuxer
- * @param[in] name unique name of the Demuxer to update
- * @param[in] handler callback function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @brief Removes a pad probe handler callback function from a named Tee
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler unique name of the pad probe handler to had
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
  */
-DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name, 
-    dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief creates a new, uniquely named Display component
@@ -2219,25 +2276,25 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** sou
 DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* source);
 
 /**
- * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * A Tiled Display can have multiple Sink and Source batch meta handlers
+ * @brief Adds a pad-probe-handler to either the Sink or Source pad of the named Tiler
+ * A Tiled Display can have multiple Sink and Source pad probe handlers
  * @param[in] name unique name of the Tiled Display to update
+ * @param[in] handler unique name of the Batch Meta Handler to add
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
+
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tiler_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a batch meta handler callback function from the Tiled Display
+ * @brief Removes a pad-probe-handler to either the Sink or Source pad of the named Tiler
  * @param[in] name unique name of the Tiled Dislplay to update
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_tiler_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Fake Sink component
@@ -2245,50 +2302,6 @@ DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
-
-/**
- * @brief creates a new, uniquely named Fake Sink component
- * @param[in] name unique component name for the new Meter Sink
- * @param[in] interval interval at which to report performance measurements
- * @param[in] client_handler client callback function, called at "interval" with 
- * performance measurements for each source
- * @param[in] client_data opaque pointer to client date return w callback
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_meter_new(const wchar_t* name, uint interval,
-    dsl_sink_meter_client_handler_cb client_handler, void* client_data);
-
-/**
- * @brief gets the current enabled setting for the named Meter Sink
- * @param[in] name unique name of the Meter Sink to query
- * @param[out] enabled true if the Sink is enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_meter_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief sets the current enabled setting for the named Meter Sink
- * @param[in] name unique name of the Meter Sink to update
- * @param[in] enabled set to true to eanbled the Sink, false to disabled
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_meter_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief gets the current reporting interval for the named Meter Sink
- * @param[in] name unique name of the Meter Sink to query
- * @param[out] interval the current reporting interval in seconds
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_meter_interval_get(const wchar_t* name, uint* interval);
-
-/**
- * @brief sets the current reportings for the named Meter Sink
- * @param[in] name unique name of the Meter Sink to query
- * @param[out] interval new reporting interval in seconds.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_meter_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
@@ -2497,98 +2510,21 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
 
 /**
- * @brief creates a new, uniquely named Image Sink component
- * @param[in] name unique component name for the new Image Sink
- * @param[in] outdir absolute or relative path to the image output directory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler callback function to process each frame buffer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief gets the current output directory in use by the named Image Sink.
- * @param[in] name name of the Image Sink to query
- * @param[out] outdir pathspec for the current impage file output directory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief Removes a pad probe handler callback function from a named Sink
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler unique name of the pad probe handler to had
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
  */
-DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir);
-
-/**
- * @brief sets the current output directory for a named Image Sink to use.
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to update
- * @param[in] outdir relative or absolute pathspec for the file output directory to use.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir);
-
-/**
- * @brief gets the current frame interval to trasform and save images
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to query
- * @param[out] interval the current frame capture interval. 0 = on every frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval);
-
-/**
- * @brief sets the current frame interval to trasform and save images
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to update
- * @param[in] interval the bew frame capture interval to use. 0 = on every frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval);
-
-/**
- * @brief Gets the current state of an Image Sink's Frame capture
- * @param[in] name name of the Image Sink to query
- * @param[out] enabled true if Frame capture is enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current state of an Image Sink's Frame capture
- * @param[in] name name of the Image Sink to query
- * @param[in] enabled set to true to enable Frame capture, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Gets the current state of an Image Sink's Object capture
- * @param[in] name name of the Image Sink to query
- * @param[out] enabled true if Object capture is enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current state of an Image Sink's Object capture
- * @param[in] name name of the Image Sink to query
- * @param[in] enabled set to true to enable Object capture, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Adds a new Object Capture Class to a named Image Sink
- * @param[in] name unique name of the Image Sink to update
- * @param[in] class_id id of the Object Capture Class to add
- * @param[in] full_frame if set to true, will capture full frame on object detection, bbox dimensions otherwise
- * @param[in] capture_limit maximum number of objects to capture (transform and save to file) for a specific Class
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint class_id, 
-    boolean full_frame, uint capture_limit);
-    
-/**
- * @brief Removes an Object Capture Class from a named Image Sink
- * @param[in] name unique name of the Image Sink to update
- * @param[in] class_id id of the Object Capture Class to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint class_id);
+DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief returns the number of Sinks currently in use by 

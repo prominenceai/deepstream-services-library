@@ -211,13 +211,13 @@ namespace DSL
          * @brief Gets the Minimuum Inference Confidence to trigger the event
          * @return the current Minimum Confidence value in use [0..1.0]
          */
-        double GetMinConfidence();
+        float GetMinConfidence();
         
         /**
          * @brief Sets the Minumum Inference Confidence to trigger the event
          * @param minConfidence new Minumum Confidence value to use
          */
-        void SetMinConfidence(double minConfidence);
+        void SetMinConfidence(float minConfidence);
         
         /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event
@@ -225,7 +225,7 @@ namespace DSL
          * @param[out] minWidth current minimum width value in use
          * @param[out] minHeight current minimum height value in use
          */
-        void GetMinDimensions(uint* minWidth, uint* minHeight);
+        void GetMinDimensions(float* minWidth, float* minHeight);
 
         /**
          * @brief Sets new Minimum rectangle width and height to trigger the event
@@ -233,7 +233,7 @@ namespace DSL
          * @param[in] minWidth current minimum width value in use
          * @param[in] minHeight current minimum height value in use
          */
-        void SetMinDimensions(uint minWidth, uint minHeight);
+        void SetMinDimensions(float minWidth, float minHeight);
         
         /**
          * @brief Gets the current Maximum rectangle width and height to trigger the event
@@ -241,7 +241,7 @@ namespace DSL
          * @param[out] maxWidth current maximim width value in use
          * @param[out] maxHeight current maximim height value in use
          */
-        void GetMaxDimensions(uint* maxWidth, uint* maxHeight);
+        void GetMaxDimensions(float* maxWidth, float* maxHeight);
 
         /**
          * @brief Sets new Maximum rectangle width and height to trigger the event
@@ -249,7 +249,7 @@ namespace DSL
          * @param[in] maxWidth current maximim width value in use
          * @param[in] maxHeight current maximim height value in use
          */
-        void SetMaxDimensions(uint maxWidth, uint maxHeight);
+        void SetMaxDimensions(float maxWidth, float maxHeight);
         
         /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
@@ -371,22 +371,22 @@ namespace DSL
         /**
          * @brief Minimum rectangle width to trigger an ODE occurrence
          */
-        uint m_minWidth;
+        float m_minWidth;
 
         /**
          * @brief Minimum rectangle height to trigger an ODE occurrence
          */
-        uint m_minHeight;
+        float m_minHeight;
 
         /**
          * @brief Maximum rectangle width to trigger an ODE occurrence
          */
-        uint m_maxWidth;
+        float m_maxWidth;
 
         /**
          * @brief Maximum rectangle height to trigger an ODE occurrence
          */
-        uint m_maxHeight;
+        float m_maxHeight;
 
         /**
          * @brief Minimum frame count numerator to trigger an ODE occurrence
