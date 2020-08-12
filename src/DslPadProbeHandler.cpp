@@ -225,7 +225,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_clientData = this;
         g_mutex_init(&m_meterMutex);
 
         LOG_INFO("meter pph handler address " << m_clientHandler);

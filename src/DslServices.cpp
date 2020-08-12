@@ -2813,8 +2813,6 @@ namespace DSL
 
         try
         {
-            LOG_INFO("services handler address " << clientHandler);
-            
             // ensure handler name uniqueness 
             if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
             {   
