@@ -273,192 +273,91 @@ SCENARIO( "An OSD's Clock Font can be updated", "[osd-api]" )
 //    }
 //}
 
-SCENARIO( "An OSD's crop settings can be updated", "[osd-api]" )
-{
-    GIVEN( "A new OSD in memory" ) 
-    {
-        std::wstring osdName(L"on-screen-display");
-        boolean enabled(true);
-        uint preLeft(123), preTop(123), preWidth(123), preHeight(123);
-        uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "The OSD's crop settings are Set" ) 
-        {
-            REQUIRE( dsl_osd_crop_settings_set(osdName.c_str(), preLeft, preTop, preWidth, preHeight) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The correct values are returned on Get" )
-            {
-                REQUIRE( dsl_osd_crop_settings_get(osdName.c_str(), &retLeft, &retTop, &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
-                REQUIRE( preLeft == retLeft);
-                REQUIRE( preTop == retTop);
-                REQUIRE( preWidth == retWidth);
-                REQUIRE( preHeight == retHeight);
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-
-
-static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
 }
-static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
 }
     
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a OSD", "[osd-api]" )
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a OSD", "[osd-api]" )
 {
-    GIVEN( "A new pPipeline with a new OSD" ) 
+    GIVEN( "A new OSD and a Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring osdName(L"on-screen-display");
+        std::wstring customPpmName(L"custom-ppm");
 
         REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            osdName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Sink Pad Batch Meta Handler is added to the OSD" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Primary OSD" ) 
+        {
+            REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a OSD", "[osd-api]" )
+{
+    GIVEN( "A new OSD and a Custom PPH" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the OSD" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-    }
-}
-
-SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a OSD", "[osd-api]" )
-{
-    GIVEN( "A new pPipeline with a new OSD" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring osdName(L"on-screen-display");
-
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            osdName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Batch Meta Handler is added to the OSD" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Primary OSD" ) 
         {
-            // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_OSD_HANDLER_REMOVE_FAILED );
-
-            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_osd_pph_add(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_osd_pph_remove(osdName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
-
-SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to the OSD twice", "[osd-api]" )
-{
-    GIVEN( "A new pPipeline with a new OSD" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring osdName(L"on-screen-display");
-
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            osdName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Sink Pad Meta Batch Handler is added to the OSD " ) 
-        {
-            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
-            {
-                REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "The same Source Pad Meta Batch Handler can not be added to the OSD twice", "[osd-api]" )
-{
-    GIVEN( "A new pPipeline with a new OSD" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring osdName(L"on-screen-display");
-
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            osdName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Meta Batch Handler is added to the OSD " ) 
-        {
-            REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Sink Pad Meta Batch Handler can not be added" ) 
-            {
-                REQUIRE( dsl_osd_batch_meta_handler_add(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_OSD_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_osd_batch_meta_handler_remove(osdName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An invalid On-Screen Display is caught by all Set and Get API calls", "[osd-api]" )
-{
-    GIVEN( "A new Fake Sink as incorrect Source Type" ) 
-    {
-        std::wstring fakeSinkName(L"fake-sink");
-            
-        WHEN( "The On-Screen Display Get-Set API called with a Fake sink" )
-        {
-            
-            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
-
-            THEN( "The On-Screen Display APIs fail correctly")
-            {
-                REQUIRE ( dsl_osd_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                REQUIRE ( dsl_osd_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
 

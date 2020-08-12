@@ -28,6 +28,9 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
+from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
@@ -35,20 +38,10 @@ primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
-PGIE_CLASS_ID_PERSON = 2
-PGIE_CLASS_ID_ROADSIGN = 3
-
-STREAMMUX_WIDTH = 1280
-STREAMMUX_HEIGHT = 720
-#TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-#TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
-TILER_WIDTH = STREAMMUX_WIDTH
-TILER_HEIGHT = STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -83,71 +76,18 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and a Start Record Action
-        # to control a Record Sink.  A callback function, called on completion of the recording session, will
-        # reset the Trigger allowing a new session to be started on next occurrence.
-        # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Action to fill an object's surroundings with an opaque color
-        retval = dsl_ode_action_fill_surroundings_new('fill-surroundings', 'opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_largest_new('largest-trigger', 
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('largest-trigger', action='fill-surroundings')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a Hide-Area Action to hide all Display Text and Rectangle
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', 
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('occurrence-trigger', action='hide-both')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-    
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
-        retval = dsl_pph_ode_new('ode-handler')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'largest-trigger',
-            'occurrence-trigger', 
-            None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-    
-        ############################################################################################
-        #
-        # Create the remaining Pipeline components
-        
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -161,29 +101,30 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
  
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
+        
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
-            
+
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
@@ -212,9 +153,8 @@ def main(args):
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    # Cleanup all DSL/GST resources
-    dsl_delete_all()
-    
+    dsl_pipeline_delete_all()
+    dsl_component_delete_all()
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-    

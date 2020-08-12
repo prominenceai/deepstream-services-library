@@ -242,7 +242,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerEnabledSet(m_handler.c_str(), false);
+            Services::GetServices()->PphEnabledSet(m_handler.c_str(), false);
         }
     }
 

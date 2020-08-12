@@ -50,7 +50,7 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can pl
         uint width(1280);
         uint height(720);
         
-        std::wstring odeHandlerName(L"ode-handler");
+        std::wstring odePphName(L"ode-handler");
 
         std::wstring overlaySinkName(L"overlay-sink");
         uint overlayId(1);
@@ -75,12 +75,14 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can pl
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -98,6 +100,8 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Types can pl
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -140,9 +144,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
+        std::wstring odePphName(L"ode-handler");
         
-        std::wstring odeTypeName(L"occurrence");
+        std::wstring odeTriggerName(L"occurrence");
         uint classId(0);
         uint limit(10);
         std::wstring odeActionName(L"print");
@@ -159,16 +163,19 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeTypeName.c_str(), classId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), classId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_print_new(odeActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(odeTypeName.c_str(), odeActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), odeTypeName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(odeTriggerName.c_str(), odeActionName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -186,6 +193,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -228,8 +237,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring odeCarOccurrenceName(L"car-occurrence");
         uint carClassId(0);
         std::wstring odePersonOccurrenceName(L"person-occurrence");
@@ -241,6 +248,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         
         std::wstring osdName(L"osd");
         boolean clockEnabled(false);
+
+        std::wstring odePphName(L"ode-handler");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -254,7 +263,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(odeCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
@@ -265,15 +276,15 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         REQUIRE( dsl_ode_trigger_action_add(odeCarOccurrenceName.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(odePersonOccurrenceName.c_str(), odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), odeCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"osd", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -291,6 +302,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -333,8 +346,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring firstCarOccurrenceName(L"first-car-occurrence");
         uint carClassId(0);
         std::wstring firstPersonOccurrenceName(L"first-person-occurrence");
@@ -343,6 +354,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
         uint limit(1);
         std::wstring captureActionName(L"capture-action");
         std::wstring outdir(L"./");
+
+        std::wstring odePphName(L"ode-handler");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -356,7 +369,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(firstCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
@@ -367,13 +382,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
         REQUIRE( dsl_ode_trigger_action_add(firstCarOccurrenceName.c_str(), captureActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(firstPersonOccurrenceName.c_str(), captureActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), firstCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -391,6 +406,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -433,13 +450,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring firstPersonOccurrenceName(L"first-person-occurrence");
         uint personClassId(2);
         
         uint limit(1);
         std::wstring pauseActionName(L"pause-action");
+
+        std::wstring odePphName(L"ode-handler");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -453,7 +470,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
         
@@ -461,12 +480,12 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
         
         REQUIRE( dsl_ode_trigger_action_add(firstPersonOccurrenceName.c_str(), pauseActionName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), firstPersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -484,6 +503,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -529,8 +550,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring carOccurrenceName(L"Car");
         uint carClassId(0);
         std::wstring bicycleOccurrenceName(L"Bicycle");
@@ -550,9 +569,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
         uint size(14);
 
         std::wstring fullBlack(L"full-black");
+
+        std::wstring odePphName(L"ode-handler");
+
         REQUIRE( dsl_display_type_rgba_color_new(fullBlack.c_str(), 
             0.0, 0.0, 0.0, 1.0) == DSL_RESULT_SUCCESS );
-
 
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
@@ -569,7 +590,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         // Single display action shared by all ODE Occurrence Types
         REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
@@ -587,14 +610,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
         
-        REQUIRE( dsl_ode_handler_trigger_add_many(odeHandlerName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"osd", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -612,6 +635,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -659,8 +684,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring carOccurrenceName(L"Car");
         uint carClassId(0);
         std::wstring bicycleOccurrenceName(L"Bicycle");
@@ -683,6 +706,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
         std::wstring fontName(L"arial-14");
         uint size(14);
 
+        std::wstring odePphName(L"ode-handler");
+
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -698,7 +723,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         // Single display action shared by all ODT Occurrence Types
         REQUIRE( dsl_ode_action_display_new(displayActionName.c_str(), textOffsetX, textOffsetX, true,
@@ -716,14 +743,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
         
-        REQUIRE( dsl_ode_handler_trigger_add_many(odeHandlerName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"osd", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -741,6 +768,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -788,8 +817,6 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring carSummationName(L"Car");
         uint carClassId(0);
         std::wstring bicycleSummationName(L"Bicycle");
@@ -833,6 +860,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         uint left(500), top(0), width(10), height(1080);
         uint border_width(0);
 
+        std::wstring odePphName(L"ode-handler");
+
         REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
             size, fullWhite.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -848,7 +877,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), tilerWidth, tilerHeight) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Set Area critera, and The fill action for ODE occurrence caused by overlap
         REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
@@ -879,14 +908,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", L"person-occurrence", NULL};
         
-        REQUIRE( dsl_ode_handler_trigger_add_many(odeHandlerName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"ode-handler", L"osd", L"overlay-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -904,6 +933,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
@@ -961,14 +992,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         std::wstring pipelineName(L"test-pipeline");
 
-        std::wstring odeHandlerName(L"ode-handler");
-        
         std::wstring bicycleOccurrenceName(L"Bicycle");
         uint bicycleClassId(1);
         
         uint limit(1);
         std::wstring recordActionName(L"start-record-action");
         std::wstring printActionName(L"print-action");
+        
+        std::wstring odePphName(L"ode-handler");
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -986,7 +1017,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_ode_action_sink_record_start_new(recordActionName.c_str(), 
             recordSinkName.c_str(), 2, 5, NULL) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_handler_new(odeHandlerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
         
@@ -994,7 +1027,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         REQUIRE( dsl_ode_trigger_action_add_many(bicycleOccurrenceName.c_str(), actions) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_handler_trigger_add(odeHandlerName.c_str(), bicycleOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), bicycleOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
         
@@ -1005,7 +1038,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
             codec, container, bitrate, interval, NULL) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler",
-            L"ode-handler", L"osd", L"overlay-sink", L"record-sink", NULL};
+            L"osd", L"overlay-sink", L"record-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1023,6 +1056,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
                 REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );

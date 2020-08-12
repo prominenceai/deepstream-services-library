@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslNodetr.h"
-#include "DslPadProbetr.h"
+#include "DslPadProbeHandler.h"
 
 namespace DSL
 {
@@ -264,45 +264,43 @@ namespace DSL
         }
         
         /**
-         * @brief Adds a Batch Meta Handler callback function to the Bintr
+         * @brief Adds a Pad Probe Handler callback function to the Bintr
          * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
-         * @param[in] pClientBatchMetaHandler callback function pointer to add
-         * @param[in] pClientUserData user data to return on callback
-         * @return false if the Bintr has an existing Batch Meta Handler for the given pad
+         * @param[in] pPadProbeHandler shared pointer to the PPH to add
+         * @return true if successful, false otherwise
          */
-        bool AddBatchMetaHandler(uint pad, dsl_batch_meta_handler_cb pClientBatchMetaHandler, 
-            void* pClientUserData)
+        bool AddPadProbeHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
         {
             LOG_FUNC();
             
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
+                return m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
             if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->AddBatchMetaHandler(pClientBatchMetaHandler, pClientUserData);
+                return m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
             LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
             return false;
         }
             
         /**
-         * @brief Removes a Batch Meta Handler callback function from the Bintr
+         * @brief Removes a Pad Probe Handler callback function from the Bintr
          * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
          * @return false if the Bintr does not have a Meta Batch Handler to remove for the give pad.
          */
-        bool RemoveBatchMetaHandler(uint pad, dsl_batch_meta_handler_cb pClientBatchMetaHandler)
+        bool RemovePadProbeHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
         {
             LOG_FUNC();
             
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->RemoveBatchMetaHandler(pClientBatchMetaHandler);
+                return m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
             if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->RemoveBatchMetaHandler(pClientBatchMetaHandler);
+                return m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
             LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
             return false;

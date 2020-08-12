@@ -765,7 +765,7 @@ DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
     return DSL::Services::GetServices()->OdeTriggerSourceIdSet(cstrName.c_str(), source_id);
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence)
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -773,7 +773,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* mi
     return DSL::Services::GetServices()->OdeTriggerConfidenceMinGet(cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence)
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -781,7 +781,7 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min
     return DSL::Services::GetServices()->OdeTriggerConfidenceMinSet(cstrName.c_str(), min_confidence);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height)
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -789,7 +789,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_
     return DSL::Services::GetServices()->OdeTriggerDimensionsMinGet(cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height)
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -797,7 +797,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_w
     return DSL::Services::GetServices()->OdeTriggerDimensionsMinSet(cstrName.c_str(), min_width, min_height);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height)
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -805,7 +805,7 @@ DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_
     return DSL::Services::GetServices()->OdeTriggerDimensionsMaxGet(cstrName.c_str(), max_width, max_height);
 }
 
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height)
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1012,6 +1012,163 @@ DslReturnType dsl_ode_trigger_delete_all()
 uint dsl_ode_trigger_list_size()
 {
     return DSL::Services::GetServices()->OdeTriggerListSize();
+}
+
+DslReturnType dsl_pph_custom_new(const wchar_t* name,
+     dsl_pph_custom_client_handler_cb client_handler, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphCustomNew(cstrName.c_str(), client_handler, client_data);
+}
+
+DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
+    dsl_pph_meter_client_handler_cb client_handler, void* client_data)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphMeterNew(cstrName.c_str(),
+        interval, client_handler, client_data);
+}
+
+DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphMeterIntervalGet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphMeterIntervalSet(cstrName.c_str(), interval);
+}
+
+DslReturnType dsl_pph_ode_new(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphOdeNew(cstrName.c_str());
+}
+
+DslReturnType dsl_pph_ode_trigger_add(const wchar_t* handler, const wchar_t* trigger)
+{
+    std::wstring wstrOdeHandler(handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
+
+    return DSL::Services::GetServices()->PphOdeTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
+}
+
+DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* handler, const wchar_t** triggers)
+{
+    std::wstring wstrOdeHandler(handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
+    {
+        std::wstring wstrOdeTrigger(*trigger);
+        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            PphOdeTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* handler, const wchar_t* trigger)
+{
+    std::wstring wstrOdeHandler(handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+    std::wstring wstrOdeTrigger(trigger);
+    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
+
+    return DSL::Services::GetServices()->PphOdeTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
+}
+
+DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers)
+{
+    std::wstring wstrOdeHandler(handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
+    {
+        std::wstring wstrOdeTrigger(*trigger);
+        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
+        DslReturnType retval = DSL::Services::GetServices()->PphOdeTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* handler)
+{
+    std::wstring wstrOdeHandler(handler);
+    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
+
+    return DSL::Services::GetServices()->PphOdeTriggerRemoveAll(cstrOdeHandler.c_str());
+}
+
+DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pph_enabled_set(const wchar_t* name, boolean enabled)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pph_delete(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_pph_delete_many(const wchar_t** names)
+{
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->PphDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pph_delete_all()
+{
+    return DSL::Services::GetServices()->PphDeleteAll();
+}
+
+uint dsl_pph_list_size()
+{
+    return DSL::Services::GetServices()->PphListSize();
 }
 
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
@@ -1298,22 +1455,26 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
         cstrEngine.c_str(), interval);
 }
 
-DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+    return DSL::Services::GetServices()->PrimaryGiePphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, uint pad,
-    dsl_batch_meta_handler_cb handler)
+DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->PrimaryGieBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
+    return DSL::Services::GetServices()->PrimaryGiePphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
@@ -1451,111 +1612,26 @@ DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint width, ui
     return DSL::Services::GetServices()->TrackerMaxDimensionsSet(cstrName.c_str(), width, height);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_tracker_pph_add(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TrackerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+    return DSL::Services::GetServices()->TrackerPphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, uint pad,
-    dsl_batch_meta_handler_cb handler)
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TrackerBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
-}
-
-DslReturnType dsl_ode_handler_new(const wchar_t* name)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeHandlerNew(cstrName.c_str());
-}
-
-DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeHandlerEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OdeHandlerEnabledSet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_ode_handler_trigger_add(const wchar_t* handler, const wchar_t* trigger)
-{
-    std::wstring wstrOdeHandler(handler);
-    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-    std::wstring wstrOdeTrigger(trigger);
-    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
-
-    return DSL::Services::GetServices()->OdeHandlerTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
-}
-
-DslReturnType dsl_ode_handler_trigger_add_many(const wchar_t* handler, const wchar_t** triggers)
-{
-    std::wstring wstrOdeHandler(handler);
-    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-
-    for (const wchar_t** trigger = triggers; *trigger; trigger++)
-    {
-        std::wstring wstrOdeTrigger(*trigger);
-        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
-        DslReturnType retval = DSL::Services::GetServices()->
-            OdeHandlerTriggerAdd(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_ode_handler_trigger_remove(const wchar_t* handler, const wchar_t* trigger)
-{
-    std::wstring wstrOdeHandler(handler);
-    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-    std::wstring wstrOdeTrigger(trigger);
-    std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
-
-    return DSL::Services::GetServices()->OdeHandlerTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
-}
-
-DslReturnType dsl_ode_handler_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers)
-{
-    std::wstring wstrOdeHandler(handler);
-    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-
-    for (const wchar_t** trigger = triggers; *trigger; trigger++)
-    {
-        std::wstring wstrOdeTrigger(*trigger);
-        std::string cstrOdeTrigger(wstrOdeTrigger.begin(), wstrOdeTrigger.end());
-        DslReturnType retval = DSL::Services::GetServices()->OdeHandlerTriggerRemove(cstrOdeHandler.c_str(), cstrOdeTrigger.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_ode_handler_trigger_remove_all(const wchar_t* handler)
-{
-    std::wstring wstrOdeHandler(handler);
-    std::string cstrOdeHandler(wstrOdeHandler.begin(), wstrOdeHandler.end());
-
-    return DSL::Services::GetServices()->OdeHandlerTriggerRemoveAll(cstrOdeHandler.c_str());
+    return DSL::Services::GetServices()->TrackerPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_ofv_new(const wchar_t* name)
@@ -1651,41 +1727,26 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double gr
     return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
 }
 
-DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height)
+DslReturnType dsl_osd_pph_add(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdCropSettingsGet(cstrName.c_str(), left, top, width, height);
-}
-
-DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdCropSettingsSet(cstrName.c_str(), left, top, width, height);
-}
-
-
-DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
+    return DSL::Services::GetServices()->OsdPphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad,
-    dsl_batch_meta_handler_cb handler)
+DslReturnType dsl_osd_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
+    return DSL::Services::GetServices()->OsdPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name)
@@ -1824,23 +1885,24 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count)
     return DSL::Services::GetServices()->TeeBranchCountGet(cstrTee.c_str(), count);
 }
 
-
-DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
-    dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeeBatchMetaHandlerAdd(cstrName.c_str(), handler, user_data);
+    return DSL::Services::GetServices()->TeePphAdd(cstrName.c_str(), cstrHandler.c_str());
 }
 
-DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name,
-    dsl_batch_meta_handler_cb handler)
+DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeeBatchMetaHandlerRemove(cstrName.c_str(), handler);
+    return DSL::Services::GetServices()->TeePphRemove(cstrName.c_str(), cstrHandler.c_str());
 }
 
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
@@ -1924,24 +1986,25 @@ DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* sour
     return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), NULL);
 }
 
-
-DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data)
+DslReturnType dsl_tiler_pph_add(const wchar_t* name, const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->TilerBatchMetaHandlerAdd(cstrName.c_str(), pad, handler, user_data);
-}
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
 
-DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, uint pad,
-    dsl_batch_meta_handler_cb handler)
+    return DSL::Services::GetServices()->TilerPphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
+}     
+
+DslReturnType dsl_tiler_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->TilerBatchMetaHandlerRemove(cstrName.c_str(), pad, handler);
-}
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+
+    return DSL::Services::GetServices()->TilerPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
+}     
 
 DslReturnType dsl_sink_fake_new(const wchar_t* name)
 {
@@ -1949,48 +2012,6 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
-}
-
-DslReturnType dsl_sink_meter_new(const wchar_t* name, uint interval,
-    dsl_sink_meter_client_handler_cb client_handler, void* client_data)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkMeterNew(cstrName.c_str(),
-        interval, client_handler, client_data);
-}
-
-DslReturnType dsl_sink_meter_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkMeterEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_sink_meter_enabled_set(const wchar_t* name, boolean enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkMeterEnabledSet(cstrName.c_str(), enabled);
-}
-    
-DslReturnType dsl_sink_meter_interval_get(const wchar_t* name, uint* interval)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkMeterIntervalGet(cstrName.c_str(), interval);
-}
-
-DslReturnType dsl_sink_meter_interval_set(const wchar_t* name, uint interval)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkMeterIntervalSet(cstrName.c_str(), interval);
 }
 
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
@@ -2175,109 +2196,25 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
         bitrate, interval);
 }
 
-DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir)
+DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOutdir(outdir);
-    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
-
-    return DSL::Services::GetServices()->SinkImageNew(cstrName.c_str(), cstrOutdir.c_str());
-}     
-
-DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    const char* cOutdir;
-    static std::string cstrOutdir;
-    static std::wstring wcstrOutdir;
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    uint retval = DSL::Services::GetServices()->SinkImageOutdirGet(cstrName.c_str(), &cOutdir);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrOutdir.assign(cOutdir);
-        wcstrOutdir.assign(cstrOutdir.begin(), cstrOutdir.end());
-        *outdir = wcstrOutdir.c_str();
-    }
-    return retval;
+    return DSL::Services::GetServices()->SinkPphAdd(cstrName.c_str(), cstrHandler.c_str());
 }
 
-DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir)
+DslReturnType dsl_sink_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrOutdir(outdir);
-    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
-
-    return DSL::Services::GetServices()->SinkImageOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
-}
-
-DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageFrameCaptureIntervalGet(cstrName.c_str(), interval);
-}
-
-DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageFrameCaptureIntervalSet(cstrName.c_str(), interval);
-}
-
-DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageFrameCaptureEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageFrameCaptureEnabledSet(cstrName.c_str(), enabled);
-}
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageObjectCaptureEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageObjectCaptureEnabledSet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint classId, 
-    boolean full_frame, uint capture_limit)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageObjectCaptureClassAdd(cstrName.c_str(), 
-        classId, full_frame, capture_limit);
-}
-
-DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint classId)
-{
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkImageObjectCaptureClassRemove(cstrName.c_str(), classId);
+    return DSL::Services::GetServices()->SinkPphRemove(cstrName.c_str(), cstrHandler.c_str());
 }
     
 uint dsl_sink_num_in_use_get()

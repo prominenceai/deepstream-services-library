@@ -188,7 +188,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create a new Action to start a new record session
         retval = dsl_ode_action_tap_record_start_new('start-record-action', 
@@ -209,11 +208,11 @@ def main(args):
             break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
-        retval = dsl_ode_handler_new('ode-handler')
+        # New ODE Pad Probe Handler for our Trigger
+        retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
             'person-occurrence-trigger',
             'rec-on-trigger', 
             None])
@@ -248,6 +247,11 @@ def main(args):
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Add the ODE Pad Probe Hanlder to the Sink Pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler')
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New OSD with clock enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True)
@@ -261,7 +265,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['rtsp-source', 'primary-gie', 'iou-tracker', 'ode-handler', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['rtsp-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

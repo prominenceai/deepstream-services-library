@@ -26,23 +26,21 @@
 
 import sys
 sys.path.insert(0, "../../")
-from dsl import *
 import time
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+from dsl import *
 
-# Filespecs for the Primary GIE and IOU Tracker
-primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+# Filespecs for the Primary GIE
+inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
-PGIE_CLASS_ID_PERSON = 2
-PGIE_CLASS_ID_ROADSIGN = 3
+# Best to keep Tiler dimensions the same as Streamux/Source
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 
-MIN_OBJECTS = 3
-MAX_OBJECTS = 8
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -75,139 +73,166 @@ def eos_event_listener(client_data):
 ## 
 def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
-    if (new_state == DSL_STATE_PLAYING):
+    if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+        
+## 
+# Meter Sink client callback funtion
+## 
+def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
+    print('Meter Sink Callback called')
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+        
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example is used to demonstrate the Use of Two Intersection Triggers, one for the Vehicle class
-        # the other for the Person class. A "fill-object" action will be used to shade the background of 
-        # the Objects intersecting.  Person intersecting with Person and Vehicle intersecting with Vehicle.
-        # 
-        # Min and Max Dimensions will set as addional criteria for the Preson and Vehicle Triggers respecively
-        
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+    
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, green=0.0, blue=0.0, alpha = 0.0)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
             
-        # Create a new RGBA color type
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        retval = dsl_display_type_source_name_new('source-name', 
+            x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        retval = dsl_display_type_source_dimensions_new('dimensions', 
+            x_offset=15, y_offset=50, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        # Create a new Action to display the Source Dimensions
+        retval = dsl_ode_action_display_meta_add_new('add-source-name', 'source-name')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        # Create a new Action to display the Source Dimensions
+        retval = dsl_ode_action_display_meta_add_new('add-dimensions', 'dimensions')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_ode_action_print_new('print-to-console')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Fill Action that will fill the Object's rectangle with a shade of red to indicate 
-        # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
-        # the Person and Car class Ids.
-        retval = dsl_ode_action_fill_object_new('red-fill-action', 'opaque-red')
+        # Create an Always triger to overlay our Display Types on every frame
+        retval = dsl_ode_trigger_always_new('always-trigger-0', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+        retval = dsl_ode_trigger_source_id_set('always-trigger-0', source_id=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Print Action to print out the ODE occurrence information to the console
-        retval = dsl_ode_action_print_new('print-action')
+        retval = dsl_ode_trigger_always_new('always-trigger-1', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+        retval = dsl_ode_trigger_source_id_set('always-trigger-1', source_id=1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action to hide both the display text and border for each detected object
-        retval = dsl_ode_action_hide_new('hide-both-action', text=True, border=True)
+        retval = dsl_ode_trigger_always_new('always-trigger-2', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+        retval = dsl_ode_trigger_source_id_set('always-trigger-2', source_id=2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Person Intersection Trigger, and set a Minumum height as criteria, add the Actions to Fill 
-        # the Object and Print the ODE occurrence info to the console.
-        retval = dsl_ode_trigger_intersection_new('person-intersection', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
+        retval = dsl_ode_trigger_always_new('always-trigger-3', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_dimensions_min_set('person-intersection', min_width=0, min_height=70)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add_many('person-intersection', actions=
-            ['red-fill-action', 'print-action', None])
+            return retval
+        retval = dsl_ode_trigger_source_id_set('always-trigger-3', source_id=3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Next, create the Vehicle Intersection Trigger, and set a Maximum height as criteria, add the Actions to Fill 
-        # the Object on ODE occurrence and Print the ODE occurrence info to the console.
-        retval = dsl_ode_trigger_intersection_new('vehicle-intersection', class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_dimensions_max_set('vehicle-intersection', max_width=0, max_height=80)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add_many('vehicle-intersection', actions=
-            ['red-fill-action', 'print-action', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Occurrence Trigger to Hide each Object's Display Text
-
-        # New ODE occurrence Trigger to hide the Display Text and Border for all vehicles
-        retval = dsl_ode_trigger_occurrence_new('every-object', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('every-object', action='hide-both-action')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        
+        retval = dsl_ode_trigger_action_add_many('always-trigger-0', actions=[
+            'add-dimensions',
+            'add-source-name',  
+            None])
+        retval = dsl_ode_trigger_action_add_many('always-trigger-1', actions=[
+            'add-dimensions',
+            'add-source-name',  
+            None])
+        retval = dsl_ode_trigger_action_add_many('always-trigger-2', actions=[
+            'add-dimensions',
+            'add-source-name',  
+            None])
+        retval = dsl_ode_trigger_action_add_many('always-trigger-3', actions=[
+            'add-dimensions',
+            'add-source-name',  
+            None])
+            
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'person-intersection',
-            'vehicle-intersection',
-            'every-object',
+#            'always-trigger-0', 
+#            'always-trigger-1', 
+#            'always-trigger-2', 
+            'always-trigger-3', 
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        
+            
+
         ############################################################################################
         #
         # Create the remaining Pipeline components
-        
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
+        # Four New URI File Sources
+        retval = dsl_source_uri_new('North Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
+        dsl_source_uri_new('South Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        dsl_source_uri_new('East Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
+        dsl_source_uri_new('West Camera', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 0)
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 4)
+        # New Primary GIE using the filespecs above, with interval and Id
+        retval = dsl_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        retval = dsl_tracker_ktl_new('ktl-tracker', 480, 288)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        # New Tiler, setting width and height, use default cols/rows set by source count
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled
-        retval = dsl_osd_new('on-screen-display', True)
+        # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New OSD with clock enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['North Camera', 'South Camera', 'East Camera', 'West Camera', 
+            'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -233,14 +258,13 @@ def main(args):
             break
 
         dsl_main_loop_run()
-        retval = DSL_RETURN_SUCCESS
         break
 
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    # Cleanup all DSL/GST resources
-    dsl_delete_all()
-    
+    dsl_pipeline_delete_all()
+    dsl_component_delete_all()
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

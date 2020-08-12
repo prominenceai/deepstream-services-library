@@ -345,11 +345,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_ode_handler_new('ode-hanlder')
+        # New ODE Pad Probe Handler to handle all ODE Triggers with their Areas and Actions    
+        retval = dsl_pph_ode_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-hanlder', triggers=[
             'vehicle-area-overlap',
             'person-area-overlap', 
             'bicycle-first-occurrence',
@@ -392,6 +392,10 @@ def main(args):
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        retval = dsl_osd_pph_add('on-screen-display', handler='ode-hanlder', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -400,7 +404,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-hanlder', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
