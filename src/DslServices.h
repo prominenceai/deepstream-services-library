@@ -142,6 +142,9 @@ namespace DSL {
         DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
 
         DslReturnType OdeActionActionEnableNew(const char* name, const char* action);
+        
+        DslReturnType OdeActionTilerShowSourceNew(const char* name, 
+            const char* tiler, uint timeout);
 
         DslReturnType OdeActionAreaAddNew(const char* name, 
             const char* trigger, const char* area);
@@ -413,9 +416,13 @@ namespace DSL {
 
         DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
 
-        DslReturnType TilerSourceShowGet(const char* name, const char** source);
+        DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
-        DslReturnType TilerSourceShowSet(const char* name, const char* source);
+        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout);
+
+        DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout);
+
+        DslReturnType TilerSourceShowAll(const char* name);
 
         DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);
 

@@ -918,8 +918,8 @@ DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_
 /**
  * @brief Creates a uniquely named Disable Action ODE Action that disables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Disable Action 
- * @param[in] trigger unique name of the ODE Trigger to disable
+ * @param[in] name unique name for the Trigger Disable Action 
+ * @param[in] action unique name of the ODE Action to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* action);
@@ -927,11 +927,22 @@ DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar
 /**
  * @brief Creates a uniquely named Enable Action ODE Action that enables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Enable Action 
- * @param[in] trigger unique name of the ODE Trigger to disable
+ * @param[in] name unique name for the Enable Action ODE  Action 
+ * @param[in] action unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* action);
+
+/**
+ * @brief Creates a uniquely named Tiler Show Source ODE Action that calls on the 
+ * named Tiler to show the Source for the specific frame on ODE occurrence
+ * @param[in] name unique name for the ODE Trigger Enable Action 
+ * @param[in] tiler unique name of the Tiler to call to show-source
+ * @param[in] timeout to pass to the Tiler on show-source
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
+    const wchar_t* tiler, uint timeout);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action
@@ -2260,20 +2271,31 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 /** 
  * @brief Gets the current Show Source setting for the named Tiler
  * @param[in] name unique name of the Tiler to query
- * @param[out] source name of the current source show. 
+ * @param[out] source name of the current source shown by the Tiler. 
  * A value of DSL_TILER_ALL_SOURCES (equal to NULL) indicates all sources are shown
+ * @param[out] current remaining timeout value, 0 if showing all sources and the timer is not running.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** source);
+DslReturnType dsl_tiler_source_show_get(const wchar_t* name, 
+    const wchar_t** source, uint* timeout);
 
 /** 
- * @brief Sets the current Show Source setting for the named Tiler
+ * @brief Shows a single source instead of all tiled sources - the default tile mode.
  * @param[in] name unique name of the Tiler to update
- * @param[out] source unique name of the source to show,
- * Use the value of DSL_TILER_ALL_SOURCES (equal to NULL) indicates all sources are shown
+ * @param[in] source unique name of the source to show,
+ * @param[in] timeout time to show the source in units of seconds, before showing all-sources again
+ * A value of 0 indicates no timeout. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* source);
+DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
+    const wchar_t* source, uint timeout);
+
+/** 
+ * @brief Shows all sources and stops the show-source timer if running.
+ * @param[in] name unique name of the Tiler to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_all(const wchar_t* name);
 
 /**
  * @brief Adds a pad-probe-handler to either the Sink or Source pad of the named Tiler

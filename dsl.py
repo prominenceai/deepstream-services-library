@@ -498,6 +498,16 @@ def dsl_ode_action_trigger_enable_new(name, trigger):
     return int(result)
 
 ##
+## dsl_ode_action_tiler_source_show_new()
+##
+_dsl.dsl_ode_action_tiler_source_show_new.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_ode_action_tiler_source_show_new.restype = c_uint
+def dsl_ode_action_tiler_source_show_new(name, tiler, timeout):
+    global _dsl
+    result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout)
+    return int(result)
+
+##
 ## dsl_ode_action_delete()
 ##
 _dsl.dsl_ode_action_delete.argtypes = [c_wchar_p]
@@ -1884,22 +1894,33 @@ def dsl_tiler_dimensions_set(name, width, height):
 ##
 ## dsl_tiler_source_show_get()
 ##
-_dsl.dsl_tiler_source_show_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tiler_source_show_get.argtypes = [c_wchar_p, POINTER(c_wchar_p), POINTER(c_uint)]
 _dsl.dsl_tiler_source_show_get.restype = c_uint
 def dsl_tiler_source_show_get(name):
     global _dsl
     source = c_wchar_p(0)
-    result = _dsl.dsl_tiler_source_show_get(name, DSL_WCHAR_PP(source))
-    return int(result), source.value 
+    timeout = c_uint(0)
+    result = _dsl.dsl_tiler_source_show_get(name, DSL_WCHAR_PP(source), DSL_UINT_P(timeout))
+    return int(result), source.value, timeout.value
 
 ##
 ## dsl_tiler_source_show_set()
 ##
-_dsl.dsl_tiler_source_show_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tiler_source_show_set.argtypes = [c_wchar_p, c_wchar_p, c_uint]
 _dsl.dsl_tiler_source_show_set.restype = c_uint
-def dsl_tiler_source_show_set(name, source):
+def dsl_tiler_source_show_set(name, source, timeout):
     global _dsl
-    result = _dsl.dsl_tiler_source_show_set(name, source)
+    result = _dsl.dsl_tiler_source_show_set(name, source, timeout)
+    return int(result)
+
+##
+## dsl_tiler_source_show_all()
+##
+_dsl.dsl_tiler_source_show_all.argtypes = [c_wchar_p]
+_dsl.dsl_tiler_source_show_all.restype = c_uint
+def dsl_tiler_source_show_all(name):
+    global _dsl
+    result = _dsl.dsl_tiler_source_show_all(name)
     return int(result)
 
 ##

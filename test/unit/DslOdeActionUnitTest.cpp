@@ -1342,3 +1342,57 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
         }
     }
 }
+
+SCENARIO( "A new TilerShowSourceOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new TilerShowSourceOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string tilerName("tiler");
+        uint timeout(2);
+
+        WHEN( "A new TilerShowSourceOdeAction is created" )
+        {
+            DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
+                DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout);
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new TilerShowSourceOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string tilerName("tiller");
+        uint timeout(2);
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
+            DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action wit will produce an error message as the Trigger does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}

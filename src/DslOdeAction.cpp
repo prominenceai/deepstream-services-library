@@ -1006,4 +1006,32 @@ namespace DSL
                 &m_session, m_start, m_duration, m_clientData);
         }
     }
+
+    // ********************************************************************
+
+    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout)
+        : OdeAction(name)
+        , m_tiler(tiler)
+        , m_timeout(timeout)
+    {
+        LOG_FUNC();
+    }
+
+    TilerShowSourceOdeAction::~TilerShowSourceOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value,
+            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout);
+        }
+    }
+
+
 }    
+
