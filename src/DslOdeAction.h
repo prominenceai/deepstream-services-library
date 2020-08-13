@@ -150,6 +150,11 @@ namespace DSL
     #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
         std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
         
+    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
+    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout) \
+        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, tiler, timeout))
+        
+        
         
     // ********************************************************************
 
@@ -1437,6 +1442,55 @@ namespace DSL
          */
         uint m_session;
     };
+
+    // ********************************************************************
+
+    /**
+     * @class TilerShowSourceOdeAction
+     * @brief Tiler Show Source ODE Action class
+     */
+    class TilerShowSourceOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Tiler Show Source ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] tiler name of the tiler to call on to show source on ODE occurrence
+         * @param[in] timeout show source timeout to pass to the Tiler, in units of seconds
+         */
+        TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout);
+        
+        /**
+         * @brief dtor for the Enable Action ODE class
+         */
+        ~TilerShowSourceOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling a named tiler to show the source for the frame
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Tiler to call to show source on ODE occurrence
+         */
+        std::string m_tiler;
+        
+        /**
+         * @brief show source timeout to pass to the Tiler in units of seconds
+         */
+        uint m_timeout;
+
+    };
+
 }
 
 #endif // _DSL_ODE_ACTION_H

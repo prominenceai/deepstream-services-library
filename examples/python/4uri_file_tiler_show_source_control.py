@@ -84,11 +84,11 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string >= '0' and key_string <= '3':
         retval, source = dsl_source_name_get(int(key_string))
         if retval == DSL_RETURN_SUCCESS:
-            dsl_tiler_source_show_set('tiler', source)
+            dsl_tiler_source_show_set('tiler', source=source, timeout=5)
             
     # A = show All sources
     elif key_string.upper() == 'A':
-        dsl_tiler_source_show_set('tiler', DSL_TILER_SHOW_ALL_SOURCES)
+        dsl_tiler_source_show_all('tiler')
     
 
 def main(args):

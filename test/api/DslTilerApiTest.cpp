@@ -334,12 +334,15 @@ SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
         {
             std::wstring anySourceName(L"any-source-name");
             
-            REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), anySourceName.c_str()) == DSL_RESULT_TILER_SET_FAILED);
+            REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), anySourceName.c_str(), 1) == DSL_RESULT_TILER_SET_FAILED);
             THEN( "The Set will fail and the current Show Source is unchanged" ) 
             {
                 const wchar_t* retSource;
-                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), &retSource) == DSL_RESULT_SUCCESS);
+                uint retTimeout;
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), &retSource, &retTimeout) == DSL_RESULT_SUCCESS);
                 REQUIRE( retSource == NULL );
+                REQUIRE( retTimeout == 0 );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }

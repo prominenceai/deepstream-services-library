@@ -110,16 +110,23 @@ SCENARIO( "A TilerBintr can Get and Set its Show Source setting",  "[TilerBintr]
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), width, height);
 
-        REQUIRE( pTilerBintr->GetShowSource() == -1 );
+        int sourceId(0);
+        uint timeout(0);
+        pTilerBintr->GetShowSource(&sourceId, &timeout);
+        REQUIRE( sourceId == -1 );
+        REQUIRE( timeout == 0 );
         REQUIRE( pTilerBintr->SetBatchSize(batchSize) );
         
         WHEN( "The TilerBintr's  Show Source setting is set" )
         {
-            REQUIRE( pTilerBintr->SetShowSource(batchSize-1) == true );
+            uint newTimeout(5);
+            REQUIRE( pTilerBintr->SetShowSource(batchSize-1, newTimeout) == true );
 
             THEN( "The correct GPU ID is returned on get" )
             {
-                REQUIRE( pTilerBintr->GetShowSource() == batchSize-1 );
+                pTilerBintr->GetShowSource(&sourceId, &timeout);
+                REQUIRE( sourceId == batchSize-1 );
+                REQUIRE( timeout == newTimeout );
             }
         }
     }

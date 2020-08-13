@@ -1482,6 +1482,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionTilerShowSourceNew(const char* name, 
+        const char* tiler, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout);
+
+            LOG_INFO("New Tiler Show Source ODE Action'" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Tiler Show Source ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionTriggerResetNew(const char* name, const char* trigger)
     {
         LOG_FUNC();
@@ -4862,7 +4889,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TilerSourceShowGet(const char* name, const char** source)
+    DslReturnType Services::TilerSourceShowGet(const char* name, 
+        const char** source, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4875,7 +4903,8 @@ namespace DSL
             DSL_TILER_PTR tilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            int sourceId = tilerBintr->GetShowSource();
+            int sourceId(-1);
+            tilerBintr->GetShowSource(&sourceId, timeout);
             
             if (sourceId == -1)
             {
@@ -4898,7 +4927,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TilerSourceShowSet(const char* name, const char* source)
+    DslReturnType Services::TilerSourceShowSet(const char* name, 
+        const char* source, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4917,19 +4947,13 @@ namespace DSL
                 return DSL_RESULT_TILER_SET_FAILED;
             }
 
-            int sourceId = -1;
-            
-            if (source)
-            {
-                RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
-                RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
 
-                DSL_SOURCE_PTR pSourceBintr = 
-                    std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
                     
-                sourceId = pSourceBintr->GetId();
-            }
-            if (!pTilerBintr->SetShowSource(sourceId))
+            if (!pTilerBintr->SetShowSource(pSourceBintr->GetId(), timeout))
             {
                 LOG_ERROR("Tiler '" << name << "' failed to show specific source");
                 return DSL_RESULT_TILER_SET_FAILED;
@@ -4939,7 +4963,67 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing a specific source");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowSet(const char* name, 
+        uint sourceId, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->IsLinked())
+            {
+                LOG_ERROR("Tiler '" << name << "' must be in a linked state to show a specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+
+            if (!pTilerBintr->SetShowSource(sourceId, timeout))
+            {
+                // Don't log error as this can happen with the ODE actions frequently
+                LOG_DEBUG("Tiler '" << name << "' failed to show specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing a specific source");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            pTilerBintr->ShowAllSources();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing all sources");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
     }

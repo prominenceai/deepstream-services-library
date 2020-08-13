@@ -504,6 +504,18 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
         cstrAction.c_str());
 }
 
+DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
+    const wchar_t* tiler, uint timeout)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTiler(tiler);
+    std::string cstrTiler(wstrTiler.begin(), wstrTiler.end());
+
+    return DSL::Services::GetServices()->OdeActionTilerShowSourceNew(cstrName.c_str(),
+        cstrTiler.c_str(), timeout);
+}
+    
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)
 {
     std::wstring wstrName(name);
@@ -1945,7 +1957,8 @@ DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows)
     return DSL::Services::GetServices()->TilerTilesSet(cstrName.c_str(), cols, rows);
 }
 
-DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** source)
+DslReturnType dsl_tiler_source_show_get(const wchar_t* name, 
+    const wchar_t** source, uint* timeout)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1954,7 +1967,7 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** sou
     static std::string cstrSource;
     static std::wstring wcstrSource;
     
-    uint retval = DSL::Services::GetServices()->TilerSourceShowGet(cstrName.c_str(), &cSource);
+    uint retval = DSL::Services::GetServices()->TilerSourceShowGet(cstrName.c_str(), &cSource, timeout);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         if (cSource == NULL)
@@ -1971,19 +1984,23 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name, const wchar_t** sou
     return retval;
 }
 
-DslReturnType dsl_tiler_source_show_set(const wchar_t* name, const wchar_t* source)
+DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
+    const wchar_t* source, uint timeout)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    if (source)
-    {
-        std::wstring wstrSource(source);
-        std::string cstrSource(wstrSource.begin(), wstrSource.end());
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
 
-        return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), cstrSource.c_str());
-    }
-    return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), NULL);
+    return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), cstrSource.c_str(), timeout);
+}
+
+DslReturnType dsl_tiler_source_show_all(const wchar_t* name)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    return DSL::Services::GetServices()->TilerSourceShowAll(cstrName.c_str());
 }
 
 DslReturnType dsl_tiler_pph_add(const wchar_t* name, const wchar_t* handler, uint pad)
