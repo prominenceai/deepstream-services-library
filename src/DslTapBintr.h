@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_SINK_BINTR_H
-#define _DSL_SINK_BINTR_H
+#ifndef _DSL_TAP_BINTR_H
+#define _DSL_TAP_BINTR_H
 
 #include "Dsl.h"
 #include "DslApi.h"
@@ -186,4 +186,4 @@ namespace DSL
     };
 
 }
-#endif // _DSL_SINK_BINTR_H
+#endif // _DSL_TAP_BINTR_H

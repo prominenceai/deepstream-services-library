@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslPipelineSourcesBintr.h"
+#include "DslServices.h"
 
 namespace DSL
 {
@@ -165,13 +166,22 @@ namespace DSL
         {
             // Must set the Unique Id first, then Link all of the ChildSources's Elementrs, then 
             // link back downstream to the StreamMux, the sink for this Child Souce 
-            imap.second->SetId(id++);
+            imap.second->SetId(id);
+            
+            // Set the name value for the current Source Id.
+            if (Services::GetServices()->_sourceNameSet(id, imap.second->GetCStrName()) != DSL_RESULT_SUCCESS)
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to Set Source name for  '" << imap.second->GetName() << "'");
+                return false;
+            }   
             if (!imap.second->LinkAll() or !imap.second->LinkToSink(m_pStreamMux))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
                 return false;
             }
+            id++;
         }
         if (!m_batchSize)
         {
@@ -205,6 +215,7 @@ namespace DSL
             }
             // unink all of the ChildSource's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
+            Services::GetServices()->_sourceNameErase(imap.second->GetId());
             imap.second->SetId(-1);
 
         }

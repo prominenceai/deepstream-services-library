@@ -145,13 +145,13 @@ def main(args):
             break
 
         # Three new Overlay Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_action_overlay_frame_new('overlay-yellow-rectangle', display_type='yellow-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-yellow-rectangle', display_type='yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_overlay_frame_new('overlay-red-rectangle', display_type='red-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-red-rectangle', display_type='red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_overlay_frame_new('overlay-green-rectangle', display_type='green-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-green-rectangle', display_type='green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -194,7 +194,7 @@ def main(args):
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('minimum-objects', action='overlay-yellow-rectangle')
+        retval = dsl_ode_trigger_action_add('minimum-objects', action='add-yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -204,7 +204,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('maximum-objects', actions=
-            ['shade-frame-red', 'overlay-red-rectangle', None])
+            ['shade-frame-red', 'add-red-rectangle', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -213,7 +213,7 @@ def main(args):
             lower=MIN_OBJECTS, upper=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('range-of-objects', action='overlay-green-rectangle')
+        retval = dsl_ode_trigger_action_add('range-of-objects', action='add-green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -239,10 +239,10 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_ode_handler_new('ode-hanlder')
+        retval = dsl_pph_ode_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-hanlder', triggers=[
             'maximum-objects',
             'minimum-objects',
             'range-of-objects',
@@ -277,6 +277,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
  
+         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
@@ -289,7 +294,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-hanlder', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

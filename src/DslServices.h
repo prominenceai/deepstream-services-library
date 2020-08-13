@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslPadProbeHandler.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
@@ -73,7 +74,16 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
-        DslReturnType DisplayTypeOverlayFrame(const char* name, void* pBuffer, void* pFrameMeta);
+        DslReturnType DisplayTypeSourceNameNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeSourceDimensionsNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeSourceFrameRateNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
+        DslReturnType DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta);
         
         DslReturnType DisplayTypeDelete(const char* name);
         
@@ -103,15 +113,12 @@ namespace DSL {
 
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
-        DslReturnType OdeActionOverlayFrameNew(const char* name, const char* displayType);
+        DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);
 
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 
         DslReturnType OdeActionPrintNew(const char* name);
         
-        DslReturnType OdeActionRecordStartNew(const char* name,
-            const char* recordSink, uint start, uint duration, void* clientData);
-
         DslReturnType OdeActionRedactNew(const char* name);
 
         DslReturnType OdeActionSinkAddNew(const char* name, 
@@ -120,15 +127,24 @@ namespace DSL {
         DslReturnType OdeActionSinkRemoveNew(const char* name, 
             const char* pipeline, const char* sink);
 
+        DslReturnType OdeActionSinkRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
+
         DslReturnType OdeActionSourceAddNew(const char* name, 
             const char* pipeline, const char* source);
 
         DslReturnType OdeActionSourceRemoveNew(const char* name, 
             const char* pipeline, const char* source);
 
+        DslReturnType OdeActionTapRecordStartNew(const char* name,
+            const char* recordSink, uint start, uint duration, void* clientData);
+
         DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
 
         DslReturnType OdeActionActionEnableNew(const char* name, const char* action);
+        
+        DslReturnType OdeActionTilerShowSourceNew(const char* name, 
+            const char* tiler, uint timeout);
 
         DslReturnType OdeActionAreaAddNew(const char* name, 
             const char* trigger, const char* area);
@@ -152,7 +168,10 @@ namespace DSL {
         
         uint OdeActionListSize();
 
-        DslReturnType OdeAreaNew(const char* name, 
+        DslReturnType OdeAreaInclusionNew(const char* name, 
+            const char* rectangle, boolean display);
+
+        DslReturnType OdeAreaExclusionNew(const char* name, 
             const char* rectangle, boolean display);
 
         DslReturnType OdeAreaDelete(const char* name);
@@ -196,21 +215,21 @@ namespace DSL {
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
         
-        DslReturnType OdeTriggerConfidenceMinGet(const char* name, double* minConfidence);
+        DslReturnType OdeTriggerConfidenceMinGet(const char* name, float* minConfidence);
         
-        DslReturnType OdeTriggerConfidenceMinSet(const char* name, double minConfidence);
+        DslReturnType OdeTriggerConfidenceMinSet(const char* name, float minConfidence);
         
         DslReturnType OdeTriggerSourceIdGet(const char* name, uint* sourceId);
         
         DslReturnType OdeTriggerSourceIdSet(const char* name, uint sourceId);
         
-        DslReturnType OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height);
+        DslReturnType OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height);
         
-        DslReturnType OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height);
+        DslReturnType OdeTriggerDimensionsMinSet(const char* name, float min_width, float min_height);
 
-        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height);
+        DslReturnType OdeTriggerDimensionsMaxGet(const char* name, float* max_width, float* max_height);
         
-        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height);
+        DslReturnType OdeTriggerDimensionsMaxSet(const char* name, float max_width, float max_height);
 
         DslReturnType OdeTriggerFrameCountMinGet(const char* name, uint* min_count_n, uint* min_count_d);
 
@@ -237,6 +256,34 @@ namespace DSL {
         DslReturnType OdeTriggerDeleteAll();
         
         uint OdeTriggerListSize();
+
+        DslReturnType PphCustomNew(const char* name,
+            dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
+
+        DslReturnType PphMeterNew(const char* name, uint interval, 
+            dsl_pph_meter_client_handler_cb clientHandler, void* clientData);
+            
+        DslReturnType PphMeterIntervalGet(const char* name, uint* interval);
+        
+        DslReturnType PphMeterIntervalSet(const char* name, uint interval);
+        
+        DslReturnType PphOdeNew(const char* name);
+
+        DslReturnType PphOdeTriggerAdd(const char* name, const char* trigger);
+
+        DslReturnType PphOdeTriggerRemove(const char* name, const char* trigger);
+
+        DslReturnType PphOdeTriggerRemoveAll(const char* name);
+
+        DslReturnType PphEnabledGet(const char* name, boolean* enabled);
+        
+        DslReturnType PphEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType PphDelete(const char* name);
+        
+        DslReturnType PphDeleteAll();
+        
+        uint PphListSize();
         
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fps_n, uint fps_d);
@@ -248,7 +295,7 @@ namespace DSL {
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, 
-            uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
@@ -261,6 +308,16 @@ namespace DSL {
         DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
+    
+        DslReturnType SourceRtspTapAdd(const char* name, const char* tap);
+    
+        DslReturnType SourceRtspTapRemove(const char* name);
+        
+        DslReturnType SourceNameGet(uint sourceId, const char** name);
+    
+        DslReturnType _sourceNameSet(uint sourceId, const char* name);
+    
+        DslReturnType _sourceNameErase(uint sourceId);
     
         DslReturnType SourcePause(const char* name);
 
@@ -275,15 +332,33 @@ namespace DSL {
         boolean SourceNumInUseMaxSet(uint max);
         
         DslReturnType DewarperNew(const char* name, const char* configFile);
+        
+        DslReturnType TapRecordNew(const char* name, const char* outdir, 
+            uint container, dsl_record_client_listner_cb clientListener);
+            
+        DslReturnType TapRecordSessionStart(const char* name, 
+            uint* session, uint start, uint duration, void* clientData);
+
+        DslReturnType TapRecordSessionStop(const char* name, uint session);
+
+        DslReturnType TapRecordCacheSizeGet(const char* name, uint* cacheSize);
+            
+        DslReturnType TapRecordCacheSizeSet(const char* name, uint cacheSize);
+        
+        DslReturnType TapRecordDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType TapRecordDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType TapRecordIsOnGet(const char* name, boolean* isOn);
+
+        DslReturnType TapRecordResetDoneGet(const char* name, boolean* resetDone);
 
         DslReturnType PrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
-        DslReturnType PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
-        
-        DslReturnType PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
+        DslReturnType PrimaryGiePphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType PrimaryGieBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
+        DslReturnType PrimaryGiePphRemove(const char* name, const char* handler, uint pad);
 
         DslReturnType SecondaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, const char* inferOnGieName, uint interval);
@@ -311,12 +386,10 @@ namespace DSL {
         
         DslReturnType TrackerMaxDimensionsSet(const char* name, uint width, uint height);
         
-        DslReturnType TrackerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
+        DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType TrackerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
+        DslReturnType TrackerPphRemove(const char* name, const char* handler, uint pad);
         
-        DslReturnType TrackerKittiOutputEnabledSet(const char* name, boolean enabled, const char* file);
-
         DslReturnType TeeDemuxerNew(const char* name);
         
         DslReturnType TeeSplitterNew(const char* name);
@@ -329,9 +402,9 @@ namespace DSL {
 
         DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
 
-        DslReturnType TeeBatchMetaHandlerAdd(const char* name, dsl_batch_meta_handler_cb handler, void* userData);
+        DslReturnType TeePphAdd(const char* name, const char* handler);
 
-        DslReturnType TeeBatchMetaHandlerRemove(const char* name, dsl_batch_meta_handler_cb handler);
+        DslReturnType TeePphRemove(const char* name, const char* handler);
         
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
@@ -343,21 +416,17 @@ namespace DSL {
 
         DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
 
-        DslReturnType TilerBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
+        DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
-        DslReturnType TilerBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
-        
-        DslReturnType OdeHandlerNew(const char* name);
+        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout);
 
-        DslReturnType OdeHandlerEnabledGet(const char* name, boolean* enabled);
-        
-        DslReturnType OdeHandlerEnabledSet(const char* name, boolean enabled);
-        
-        DslReturnType OdeHandlerTriggerAdd(const char* odeHandler, const char* trigger);
+        DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout);
 
-        DslReturnType OdeHandlerTriggerRemove(const char* odeHandler, const char* trigger);
+        DslReturnType TilerSourceShowAll(const char* name);
 
-        DslReturnType OdeHandlerTriggerRemoveAll(const char* odeHandler);
+        DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);
+
+        DslReturnType TilerPphRemove(const char* name, const char* handler, uint pad);
 
         DslReturnType OfvNew(const char* name);
 
@@ -379,13 +448,9 @@ namespace DSL {
 
         DslReturnType OsdClockColorSet(const char* name, double red, double green, double blue, double alpha);
 
-        DslReturnType OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height);
+        DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
-        DslReturnType OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height);
-
-        DslReturnType OsdBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData);
-
-        DslReturnType OsdBatchMetaHandlerRemove(const char* name, uint pad, dsl_batch_meta_handler_cb handler);
+        DslReturnType OsdPphRemove(const char* name, const char* handler, uint pad);
 
         DslReturnType SinkFakeNew(const char* name);
 
@@ -399,7 +464,7 @@ namespace DSL {
             uint codec, uint muxer, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb clientListener);
+            uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listner_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint* session, uint start, uint duration, void* clientData);
@@ -433,27 +498,9 @@ namespace DSL {
 
         DslReturnType SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval);
 
-        DslReturnType SinkImageNew(const char* name, const char* outdir);
+        DslReturnType SinkPphAdd(const char* name, const char* handler);
 
-        DslReturnType SinkImageOutdirGet(const char* name, const char** outdir);
-
-        DslReturnType SinkImageOutdirSet(const char* name, const char* outdir);
-
-        DslReturnType SinkImageFrameCaptureIntervalGet(const char* name, uint* interval);
-
-        DslReturnType SinkImageFrameCaptureIntervalSet(const char* name, uint interval);
-            
-        DslReturnType SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled);
-
-        DslReturnType SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled);
-            
-        DslReturnType SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled);
-
-        DslReturnType SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled);
-
-        DslReturnType SinkImageObjectCaptureClassAdd(const char* name, uint classId, boolean fullFrame, uint captureLimit);
-
-        DslReturnType SinkImageObjectCaptureClassRemove(const char* name, uint classId);
+        DslReturnType SinkPphRemove(const char* name, const char* handler);
 
         uint SinkNumInUseGet();
         
@@ -620,8 +667,6 @@ namespace DSL {
          */
         uint GetNumSinksInUse();
 
-        void InitDefaultDisplayTypes();
-        
         /**
          * @brief called during construction to intialize all const-to-string maps
          */
@@ -684,10 +729,15 @@ namespace DSL {
         std::map <std::string, DSL_ODE_AREA_PTR> m_odeAreas;
         
         /**
-         * @brief map of all ODE Types created by the client, key=name
+         * @brief map of all ODE Triggers created by the client, key=name
          */
         std::map <std::string, DSL_ODE_TRIGGER_PTR> m_odeTriggers;
         
+        /**
+         * @brief map of all ODE Handlers created by the client, key=name
+         */
+        std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
+
         /**
          * @brief map of all pipelines creaated by the client, key=name
          */
@@ -697,6 +747,11 @@ namespace DSL {
          * @brief map of all pipeline components creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<Bintr>> m_components;
+        
+        /**
+         * @brief map of all source ids to source names
+         */
+        std::map <uint, std::string> m_sourceNames;
     };  
 
     static gboolean MainLoopThread(gpointer arg);

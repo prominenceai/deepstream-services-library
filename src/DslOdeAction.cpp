@@ -75,7 +75,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, GstBuffer* pBuffer, 
+    void CallbackOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled)
@@ -110,7 +110,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled)
@@ -236,13 +236,13 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
             // Ignore the return value, errors will be logged 
-            Services::GetServices()->OdeHandlerEnabledSet(m_handler.c_str(), false);
+            Services::GetServices()->PphEnabledSet(m_handler.c_str(), false);
         }
     }
 
@@ -266,17 +266,13 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            
             DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
             
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
@@ -322,7 +318,7 @@ namespace DSL
 
     }
 
-    void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -339,28 +335,28 @@ namespace DSL
             DSL_RGBA_RECTANGLE_PTR pLeftRect = DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
                 0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pLeftRect->OverlayFrame(pBuffer, pFrameMeta);
+            pLeftRect->AddMeta(pDisplayMeta, pFrameMeta);
 
             std::string rightRectName("right-rect");
             
             DSL_RGBA_RECTANGLE_PTR pRightRect = DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
                 x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
     
-            pRightRect->OverlayFrame(pBuffer, pFrameMeta);
+            pRightRect->AddMeta(pDisplayMeta, pFrameMeta);
 
             std::string topRectName("top-rect");
             
             DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
                 x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
                 
-            pTopRect->OverlayFrame(pBuffer, pFrameMeta);
+            pTopRect->AddMeta(pDisplayMeta, pFrameMeta);
 
             std::string bottomRectName("bottom-rect");
             
             DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
                 x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
                 
-            pBottomRect->OverlayFrame(pBuffer, pFrameMeta);
+            pBottomRect->AddMeta(pDisplayMeta, pFrameMeta);
         }
     }
 
@@ -380,14 +376,11 @@ namespace DSL
 
     }
 
-    void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-
             NvOSD_RectParams rectParams{0};
             rectParams.left = 0;
             rectParams.top = 0;
@@ -398,8 +391,6 @@ namespace DSL
             rectParams.bg_color = *m_pColor;
             
             pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = rectParams;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
     }
 
@@ -418,7 +409,7 @@ namespace DSL
 
     }
 
-    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -443,7 +434,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -473,7 +464,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -531,24 +522,24 @@ namespace DSL
 
     // ********************************************************************
 
-    OverlayFrameOdeAction::OverlayFrameOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType)
+    AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
         , m_pDisplayType(pDisplayType)
     {
         LOG_FUNC();
     }
 
-    OverlayFrameOdeAction::~OverlayFrameOdeAction()
+    AddDisplayMetaOdeAction::~AddDisplayMetaOdeAction()
     {
         LOG_FUNC();
     }
     
-    void OverlayFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            m_pDisplayType->OverlayFrame(pBuffer, pFrameMeta);
+            m_pDisplayType->AddMeta(pDisplayMeta, pFrameMeta);
         }
     }
 
@@ -566,7 +557,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -589,7 +580,7 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -659,7 +650,7 @@ namespace DSL
 
     }
 
-    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+    void RedactOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -696,7 +687,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -721,7 +712,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -747,7 +738,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -773,7 +764,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -797,7 +788,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void ResetTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -822,7 +813,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void DisableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -846,7 +837,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void EnableTriggerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -870,7 +861,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void DisableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -894,7 +885,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void EnableActionOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -920,7 +911,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void AddAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -946,7 +937,7 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void RemoveAreaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -958,7 +949,7 @@ namespace DSL
     
     // ********************************************************************
 
-    RecordStartOdeAction::RecordStartOdeAction(const char* name, 
+    RecordSinkStartOdeAction::RecordSinkStartOdeAction(const char* name, 
         const char* recordSink, uint start, uint duration, void* clientData)
         : OdeAction(name)
         , m_recordSink(recordSink)
@@ -970,12 +961,12 @@ namespace DSL
         LOG_FUNC();
     }
 
-    RecordStartOdeAction::~RecordStartOdeAction()
+    RecordSinkStartOdeAction::~RecordSinkStartOdeAction()
     {
         LOG_FUNC();
     }
     
-    void RecordStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+    void RecordSinkStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -985,5 +976,62 @@ namespace DSL
                 &m_session, m_start, m_duration, m_clientData);
         }
     }
-}    
+
+    // ********************************************************************
+
+    RecordTapStartOdeAction::RecordTapStartOdeAction(const char* name, 
+        const char* recordTap, uint start, uint duration, void* clientData)
+        : OdeAction(name)
+        , m_recordTap(recordTap)
+        , m_start(start)
+        , m_duration(duration)
+        , m_clientData(clientData)
+        , m_session(0)
+    {
+        LOG_FUNC();
+    }
+
+    RecordTapStartOdeAction::~RecordTapStartOdeAction()
+    {
+        LOG_FUNC();
+    }
     
+    void RecordTapStartOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->TapRecordSessionStart(m_recordTap.c_str(), 
+                &m_session, m_start, m_duration, m_clientData);
+        }
+    }
+
+    // ********************************************************************
+
+    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout)
+        : OdeAction(name)
+        , m_tiler(tiler)
+        , m_timeout(timeout)
+    {
+        LOG_FUNC();
+    }
+
+    TilerShowSourceOdeAction::~TilerShowSourceOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void TilerShowSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value,
+            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout);
+        }
+    }
+
+
+}    
+

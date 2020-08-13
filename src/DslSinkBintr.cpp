@@ -58,7 +58,6 @@ namespace DSL
             AddSinkBintr(shared_from_this());
     }
 
-
     bool SinkBintr::IsParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
@@ -161,11 +160,12 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
     {
         LOG_FUNC();
         
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
+        m_pFakeSink->SetAttribute("enable-last-sample", false);
         m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("max-lateness", -1);
         m_pFakeSink->SetAttribute("async", m_async);
@@ -193,7 +193,10 @@ namespace DSL
             LOG_ERROR("FakeSinkBintr '" << m_name << "' is already linked");
             return false;
         }
-        // Single element, nothing to link
+        if (!m_pQueue->LinkToSink(m_pFakeSink))
+        {
+            return false;
+        }
         m_isLinked = true;
         return true;
     }
@@ -207,8 +210,10 @@ namespace DSL
             LOG_ERROR("FakeSinkBintr '" << m_name << "' is not linked");
             return;
         }
+        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
+
     
     //-------------------------------------------------------------------------
 
@@ -217,7 +222,7 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
         , m_overlayId(overlayId)
         , m_displayId(displayId)
         , m_depth(depth)
@@ -246,11 +251,6 @@ namespace DSL
     OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
-    
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
     }
 
     bool OverlaySinkBintr::LinkAll()
@@ -370,7 +370,7 @@ namespace DSL
         : SinkBintr(name)
         , m_sync(TRUE)
         , m_async(FALSE)
-        , m_qos(TRUE)
+        , m_qos(FALSE)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -385,6 +385,8 @@ namespace DSL
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
+        m_pEglGles->SetAttribute("enable-last-sample", false);
+        
         m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("max-lateness", -1);
         m_pEglGles->SetAttribute("async", m_async);
@@ -397,7 +399,7 @@ namespace DSL
     WindowSinkBintr::~WindowSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -641,7 +643,7 @@ namespace DSL
     FileSinkBintr::~FileSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -722,14 +724,14 @@ namespace DSL
         m_initParams.fileNamePrefix = const_cast<gchar*>(GetCStrName());
         m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
         
-        m_initParams.defaultDuration = DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC;
-        m_initParams.videoCacheSize = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC;
+        m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
+        m_initParams.videoCacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
     }
     
     RecordSinkBintr::~RecordSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -1033,7 +1035,7 @@ namespace DSL
     RtspSinkBintr::~RtspSinkBintr()
     {
         LOG_FUNC();
-    
+
         if (IsLinked())
         {    
             UnlinkAll();
@@ -1130,352 +1132,6 @@ namespace DSL
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
         }
         return true;
-    }
-    
-    //-------------------------------------------------------------------------
-
-    ImageSinkBintr::ImageSinkBintr(const char* name, const char* outdir)
-        : FakeSinkBintr(name)
-        , m_outdir(outdir)
-        , m_frameCaptureframeCount(0)
-        , m_frameCaptureInterval(0)
-        , m_isFrameCaptureEnabled(false)
-        , m_objectCaptureFrameCount(0)
-        , m_isObjectCaptureEnabled(false)
-    {
-        LOG_FUNC();
-        
-        g_mutex_init(&m_captureMutex);
-        
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("image-sink-pad-probe", "sink", m_pQueue);
-    }
-    
-    ImageSinkBintr::~ImageSinkBintr()
-    {
-        LOG_FUNC();
-        
-        g_mutex_clear(&m_captureMutex);
-    }
-
-    const char* ImageSinkBintr::GetOutdir()
-    {
-        LOG_FUNC();
-        
-        return m_outdir.c_str();
-    }
-    
-    bool ImageSinkBintr::SetOutdir(const char* outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-        
-        m_outdir.assign(outdir);
-        return true;
-    }
-
-    uint ImageSinkBintr::GetFrameCaptureInterval()
-    {
-        LOG_FUNC();
-        
-        return m_frameCaptureInterval;
-    }
-
-    bool ImageSinkBintr::SetFrameCaptureInterval(uint frameCaptureInterval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-        
-        m_frameCaptureInterval = frameCaptureInterval;
-        return true;
-    }
-
-    bool ImageSinkBintr::GetFrameCaptureEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_isFrameCaptureEnabled;
-    }
-    
-    bool ImageSinkBintr::SetFrameCaptureEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-
-        if (m_isFrameCaptureEnabled == enabled)
-        {
-            LOG_ERROR("Can't set Frame Capture Enabled to the same value of " 
-                << enabled << " for ImageSinkBintr '" << GetName() << "' ");
-            return false;
-        }
-        m_isFrameCaptureEnabled = enabled;
-        
-        if (enabled)
-        {
-            LOG_INFO("Enabling Frame Capture for ImageSinkBintr '" << GetName() << "'");
-            
-            // reset the Frame count for new capture
-            m_frameCaptureframeCount = 0;
-            return AddBatchMetaHandler(DSL_PAD_SINK, FrameCaptureHandler, this);
-        }
-        LOG_INFO("Disabling Frame Capture for ImageSinkBintr '" << GetName() << "'");
-        
-        return RemoveBatchMetaHandler(DSL_PAD_SINK, FrameCaptureHandler);
-    }
-    
-    bool ImageSinkBintr::GetObjectCaptureEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_isObjectCaptureEnabled;
-    }
-    
-    bool ImageSinkBintr::SetObjectCaptureEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-
-        if (m_isObjectCaptureEnabled == enabled)
-        {
-            LOG_ERROR("Can't set Object Capture Enabled to the same value of " 
-                << enabled << " for ImageSinkBintr '" << GetName() << "' ");
-            return false;
-        }
-        m_isObjectCaptureEnabled = enabled;
-        
-        if (enabled)
-        {
-            LOG_INFO("Enabling Object Capture for ImageSinkBintr '" << GetName() << "'");
-            
-            // reset the Frame count for new capture
-            m_objectCaptureFrameCount = 0;
-            return AddBatchMetaHandler(DSL_PAD_SINK, ObjectCaptureHandler, this);
-        }
-        LOG_INFO("Disabling Object Capture for ImageSinkBintr '" << GetName() << "'");
-        
-        return RemoveBatchMetaHandler(DSL_PAD_SINK, ObjectCaptureHandler);
-    }
-    
-    bool ImageSinkBintr::AddObjectCaptureClass(uint classId, boolean fullFrame, uint captureLimit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-
-        if (m_captureClasses.find(classId) != m_captureClasses.end())
-        {
-            LOG_ERROR("ImageSinkBintr '" << GetName() <<"' has an existing Capture Class with ID " << classId);
-            return false;
-        }
-        LOG_INFO("Adding Object Capture Class " << classId << " for ImageSinkBintr '" << GetName() << "'");
-
-        std::shared_ptr<CaptureClass> pCaptureClass = 
-            std::shared_ptr<CaptureClass>(new CaptureClass(classId, fullFrame, captureLimit));
-
-        m_captureClasses[classId] = pCaptureClass;
-        return true;
-    }
-    
-    bool ImageSinkBintr::RemoveObjectCaptureClass(uint classId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-        
-        if (m_captureClasses.find(classId) == m_captureClasses.end())
-        {
-            LOG_ERROR("ImageSinkBintr '" << GetName() <<"' does not have Capture Class with ID " << classId);
-            return false;
-        }
-        LOG_INFO("Removing Object Capture Class " << classId << " for ImageSinkBintr '" << GetName() << "'");
-
-        m_captureClasses.erase(classId);
-        return true;
-    }
-
-    static bool TransformAndSave(NvBufSurface* surface, const std::string& filespec, 
-        NvBufSurfTransformRect& src_rect, NvBufSurfTransformRect& dst_rect)
-    {
-        NvBufSurfTransformParams bufSurfTransform;
-        bufSurfTransform.src_rect = &src_rect;
-        bufSurfTransform.dst_rect = &dst_rect;
-        bufSurfTransform.transform_flag = NVBUFSURF_TRANSFORM_CROP_SRC |
-            NVBUFSURF_TRANSFORM_CROP_DST;
-        bufSurfTransform.transform_filter = NvBufSurfTransformInter_Default;
-
-        NvBufSurface *dstSurface = NULL;
-
-        NvBufSurfaceCreateParams bufSurfaceCreateParams;
-
-        // An intermediate buffer for NV12/RGBA to BGR conversion
-        bufSurfaceCreateParams.gpuId = surface->gpuId;
-        bufSurfaceCreateParams.width = dst_rect.width;
-        bufSurfaceCreateParams.height = dst_rect.height;
-        bufSurfaceCreateParams.size = 0;
-        bufSurfaceCreateParams.colorFormat = NVBUF_COLOR_FORMAT_RGBA;
-        bufSurfaceCreateParams.layout = NVBUF_LAYOUT_PITCH;
-        bufSurfaceCreateParams.memType = NVBUF_MEM_DEFAULT;
-
-        cudaError_t cudaError = cudaSetDevice(surface->gpuId);
-        cudaStream_t cudaStream;
-        cudaError = cudaStreamCreate(&cudaStream);
-
-        int retval = NvBufSurfaceCreate(&dstSurface, surface->batchSize,
-            &bufSurfaceCreateParams);	
-
-        NvBufSurfTransformConfigParams bufSurfTransformConfigParams;
-        NvBufSurfTransform_Error err;
-
-        bufSurfTransformConfigParams.compute_mode = NvBufSurfTransformCompute_Default;
-        bufSurfTransformConfigParams.gpu_id = surface->gpuId;
-        bufSurfTransformConfigParams.cuda_stream = cudaStream;
-        err = NvBufSurfTransformSetSessionParams (&bufSurfTransformConfigParams);
-
-        NvBufSurfaceMemSet(dstSurface, 0, 0, 0);
-
-        err = NvBufSurfTransform (surface, dstSurface, &bufSurfTransform);
-        if (err != NvBufSurfTransformError_Success)
-        {
-            g_print ("NvBufSurfTransform failed with error %d while converting buffer\n", err);
-        }
-
-        NvBufSurfaceMap(dstSurface, 0, 0, NVBUF_MAP_READ);
-        NvBufSurfaceSyncForCpu(dstSurface, 0, 0);
-
-        cv::Mat bgr_frame = cv::Mat(cv::Size(bufSurfaceCreateParams.width,
-            bufSurfaceCreateParams.height), CV_8UC3);
-
-        cv::Mat in_mat = cv::Mat(bufSurfaceCreateParams.height, 
-            bufSurfaceCreateParams.width, CV_8UC4, 
-            dstSurface->surfaceList[0].mappedAddr.addr[0],
-            dstSurface->surfaceList[0].pitch);
-
-        cv::cvtColor (in_mat, bgr_frame, CV_RGBA2BGR);
-
-        cv::imwrite(filespec.c_str(), bgr_frame);
-
-        NvBufSurfaceUnMap(dstSurface, 0, 0);
-        NvBufSurfaceDestroy(dstSurface);
-        cudaStreamDestroy(cudaStream);
-    }
-
-    bool ImageSinkBintr::HandleFrameCapture(GstBuffer* pBuffer)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-
-        if (++m_frameCaptureframeCount % (m_frameCaptureInterval+1))
-        {
-            return GST_PAD_PROBE_OK;
-        }
-            
-        GstMapInfo inMapInfo = {0};
-
-        if (!gst_buffer_map(pBuffer, &inMapInfo, GST_MAP_READ))
-        {
-            LOG_ERROR("ImageSinkBintr '" << GetName() << "' failed to map gst buffer");
-            gst_buffer_unmap(pBuffer, &inMapInfo);
-            return GST_PAD_PROBE_OK;
-        }
-        
-        NvBufSurface* surface = (NvBufSurface*)inMapInfo.data;  
-        
-        LOG_INFO("transforming frame surface with width "<< surface->surfaceList[0].width 
-            << " and height "<< surface->surfaceList[0].height);
-
-        std::string filespec = m_outdir + "/frame" + std::to_string(m_frameCaptureframeCount) + ".jpeg";
-
-        NvBufSurfTransformRect srcRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
-        NvBufSurfTransformRect dstRect = {0, 0, surface->surfaceList[0].width, surface->surfaceList[0].height};
-
-        bool retVal = TransformAndSave(surface, filespec, srcRect, dstRect);
-
-        gst_buffer_unmap(pBuffer, &inMapInfo);
-        
-        return retVal;
-    }
-    
-    bool ImageSinkBintr::HandleObjectCapture(GstBuffer* pBuffer)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
-
-        m_objectCaptureFrameCount++;
-        GstMapInfo inMapInfo = {0};
-
-        if (!gst_buffer_map(pBuffer, &inMapInfo, GST_MAP_READ))
-        {
-            LOG_ERROR("ImageSinkBintr '" << GetName() << "' failed to map gst buffer");
-            gst_buffer_unmap(pBuffer, &inMapInfo);
-            return GST_PAD_PROBE_OK;
-        }
-        NvBufSurface* surface = (NvBufSurface*)inMapInfo.data;  
-        NvDsBatchMeta *batch_meta = gst_buffer_get_nvds_batch_meta(pBuffer);
-        
-        // Iterate through the list of frames to access the meta data for each object
-        
-        for (NvDsMetaList* l_frame = batch_meta->frame_meta_list; l_frame != NULL; l_frame = l_frame->next)
-        {
-            NvDsFrameMeta *frame_meta = (NvDsFrameMeta *) (l_frame->data);
-
-            if (frame_meta == NULL)
-            {
-                LOG_DEBUG("NvDS Meta contained NULL frame_meta for ImageSinkBintr '" << GetName() << "'");
-                return true;
-            }
-            // unique object id, per object per frame
-            uint objectId(0);
-            for (NvDsMetaList * l_obj = frame_meta->obj_meta_list; l_obj != NULL; l_obj = l_obj->next)
-            {
-        
-                NvDsObjectMeta *obj_meta = (NvDsObjectMeta *) (l_obj->data);
-
-                NvOSD_RectParams * rect_params = &(obj_meta->rect_params);
-
-                // if the object's classId is enabled for capture 
-                if (m_captureClasses.find(obj_meta->class_id) != m_captureClasses.end())
-                {
-                    // ensue that we don't exceed the maximun number of captures for this class
-                    if (m_captureClasses[obj_meta->class_id]->m_captureLimit == 0 or
-                        m_captureClasses[obj_meta->class_id]->m_captureCount < 
-                        m_captureClasses[obj_meta->class_id]->m_captureLimit)
-                    {
-                        m_captureClasses[obj_meta->class_id]->m_captureCount++;
-                            
-                        LOG_INFO("transforming frame surface for classId " << obj_meta->class_id << " with width "
-                            << rect_params->width << " and height "<< rect_params->height);
-
-                        std::string filespec = m_outdir + "/frame_" + std::to_string(m_objectCaptureFrameCount) + 
-                            "_class_" + std::to_string(obj_meta->class_id) + "_object_" + std::to_string(++objectId) + ".jpeg";
-                        
-                        // capturing full frame or bbox rectangle only?
-                        if (m_captureClasses[obj_meta->class_id]->m_fullFrame)
-                        {
-                            NvBufSurfTransformRect srcRect = {0, 0, (uint)surface->surfaceList[0].width, surface->surfaceList[0].height};
-                            NvBufSurfTransformRect dstRect = {0, 0, (uint)surface->surfaceList[0].width, surface->surfaceList[0].height};
-                            TransformAndSave(surface, filespec, srcRect, dstRect);
-                        }
-                        else
-                        {
-                            NvBufSurfTransformRect srcRect = {(uint)rect_params->top, (uint)rect_params->left, 
-                                (uint)rect_params->width, (uint)rect_params->height};
-                            NvBufSurfTransformRect dstRect = {0, 0, (uint)rect_params->width, (uint)rect_params->height};
-                            TransformAndSave(surface, filespec, srcRect, dstRect);
-                        }
-                    }
-                }
-            }
-        }
-        gst_buffer_unmap(pBuffer, &inMapInfo);
-        
-        return true;
-    }
-    
-    static boolean FrameCaptureHandler(void* batch_meta, void* user_data)
-    {
-        return static_cast<ImageSinkBintr*>(user_data)->
-            HandleFrameCapture((GstBuffer*)batch_meta);
-    }
-    
-    static boolean ObjectCaptureHandler(void* batch_meta, void* user_data)
-    {
-        return static_cast<ImageSinkBintr*>(user_data)->
-            HandleObjectCapture((GstBuffer*)batch_meta);
     }
     
 }    

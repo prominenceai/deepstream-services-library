@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslApi.h"
+#include "Dsl.h"
 
 SCENARIO( "The Components container is updated correctly on new Tiled Display", "[tiler-api]" )
 {
@@ -73,7 +74,7 @@ SCENARIO( "The Components container is updated correctly on Tiled Display delete
     }
 }
 
-SCENARIO( "An Tiled Display in use can't be deleted", "[tiler-api]" )
+SCENARIO( "A Tiled Display in use can't be deleted", "[tiler-api]" )
 {
     GIVEN( "A new Tiled Display and new pPipeline" ) 
     {
@@ -104,7 +105,7 @@ SCENARIO( "An Tiled Display in use can't be deleted", "[tiler-api]" )
     }
 }
 
-SCENARIO( "An Tiled Display, once removed from a Pipeline, can be deleted", "[tiler-api]" )
+SCENARIO( "A Tiled Display, once removed from a Pipeline, can be deleted", "[tiler-api]" )
 {
     GIVEN( "A new pPipeline with a child Tiled Display" ) 
     {
@@ -169,148 +170,100 @@ SCENARIO( "An Tiled Display in use can't be added to a second Pipeline", "[tiler
     }
 }
 
-static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
 }
-static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
-}
-    
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Tiled Display", "[tiler-api]" )
+}    
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Display", "[tiler-api]" )
 {
-    GIVEN( "A new pPipeline with a new Tiled Display" ) 
+    GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring tilerName(L"tiler");
         uint width(1280);
         uint height(720);
 
+        std::wstring customPpmName(L"custom-ppm");
+
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            tilerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Sink Pad Batch Meta Handler is added to the Tiled Display" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tiler" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Tiler" ) 
+        {
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Tiled Display", "[tiler-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Tiled Display", "[tiler-api]" )
 {
-    GIVEN( "A new pPipeline with a new Tiled Display" ) 
+    GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
         std::wstring pipelineName(L"test-pipeline");
         std::wstring tilerName(L"tiler");
         uint width(1280);
         uint height(720);
 
+        std::wstring customPpmName(L"custom-ppm");
+
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            tilerName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Batch Meta Handler is added to the Tiled Display" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-    }
-}
-
-SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to a Tiled Display twice", "[tiler-api]" )
-{
-    GIVEN( "A new pPipeline with a new Tiled Display" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring tilerName(L"tiler");
-        uint width(1280);
-        uint height(720);
-
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            tilerName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Sink Pad Meta Batch Handler is added to the Tiled Display " ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
-            REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "The same Source Pad Meta Batch Handler can not be added to a Tiled Display twice", "[tiler-api]" )
-{
-    GIVEN( "A new pPipeline with a new Tiled Display" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring tilerName(L"tiler");
-        uint width(1280);
-        uint height(720);
-
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            tilerName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Meta Batch Handler is added to the Tiled Display " ) 
-        {
-            REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Sink Pad Meta Batch Handler can not be added again" ) 
-            {
-                REQUIRE( dsl_tiler_batch_meta_handler_add(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_tiler_batch_meta_handler_remove(tilerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
 
 SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api]" )
 {
@@ -334,12 +287,65 @@ SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api
                 REQUIRE( dsl_tiler_tiles_get(fakeSinkName.c_str(), &rows, &cols) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
                 REQUIRE( dsl_tiler_tiles_set(fakeSinkName.c_str(), 1, 1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
 
-                REQUIRE ( dsl_tiler_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                REQUIRE ( dsl_tiler_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
 }
+
+SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
+{
+    GIVEN( "A new pPipeline with a new Tiled Display" ) 
+    {
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Tiler's Tiles are Set " ) 
+        {
+            uint newCols(3), newRows(2), retCols(0), retRows(0);
+            REQUIRE( dsl_tiler_tiles_set(tilerName.c_str(), newRows, newCols) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                REQUIRE( dsl_tiler_tiles_get(tilerName.c_str(), &retRows, &retCols) == DSL_RESULT_SUCCESS);
+                REQUIRE( retRows == newRows );
+                REQUIRE( retCols == newCols );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Tiler's Dimensions are Set " ) 
+        {
+            uint newWidth(640), newHeight(360), retWidth(0), retHeight(0);
+            REQUIRE( dsl_tiler_dimensions_set(tilerName.c_str(), newWidth, newHeight) == DSL_RESULT_SUCCESS);
+            
+            THEN( "The correct values are returned on Get" ) 
+            {
+                REQUIRE( dsl_tiler_dimensions_get(tilerName.c_str(), &retWidth, &retHeight) == DSL_RESULT_SUCCESS);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == newHeight );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "Setting A Tiler's Show Source when the Tiler is in a non-linked state" ) 
+        {
+            std::wstring anySourceName(L"any-source-name");
+            
+            REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), anySourceName.c_str(), 1) == DSL_RESULT_TILER_SET_FAILED);
+            THEN( "The Set will fail and the current Show Source is unchanged" ) 
+            {
+                const wchar_t* retSource;
+                uint retTimeout;
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), &retSource, &retTimeout) == DSL_RESULT_SUCCESS);
+                REQUIRE( retSource == NULL );
+                REQUIRE( retTimeout == 0 );
+                
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+

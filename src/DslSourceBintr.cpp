@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSourceBintr.h"
 #include "DslPipelineBintr.h"
+#include <nvdsgstutils.h>
 
 #define N_DECODE_SURFACES 16
 #define N_EXTRA_SURFACES 1
@@ -390,6 +391,12 @@ namespace DSL
         std::string sourceElementName = "src-element" + GetName();
         m_pSourceElement = DSL_ELEMENT_NEW(factoryName, sourceElementName.c_str());
         
+        if (m_uri.find("rtsp") != std::string::npos)
+        {
+            // Configure the source to generate NTP sync values
+            configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
+        }
+        
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
     }
@@ -690,7 +697,7 @@ namespace DSL
     
         if (!m_isLinked)
         {
-            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("UriSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
         m_pFakeSinkQueue->UnlinkFromSource();
@@ -788,14 +795,19 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
     {
         LOG_FUNC();
         
+        // Set RTSP latency
+        m_latency = latency;
+        LOG_DEBUG("Setting latency to '" << latency << "' for RtspSourceBintr '" << m_name << "'");
+
         // New RTSP Specific Elementrs for this Source
-        m_pPreDecodeQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "decode-queue");
+        m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
+        m_pPreDecodeQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "pre-decode-queue");
         m_pDecodeBin = DSL_ELEMENT_NEW("decodebin", "decode-bin");
         m_pSourceQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "src-queue");
 
@@ -803,6 +815,9 @@ namespace DSL
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("drop-on-latency", true);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
+
+        g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
+            G_CALLBACK(RtspSourceSelectStreamCB), this);
 
         // Connect RTSP Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
@@ -814,8 +829,7 @@ namespace DSL
         g_signal_connect(m_pDecodeBin->GetGObject(), "child-added", 
             G_CALLBACK(OnChildAddedCB), this);
 
-//        g_object_set_data(G_OBJECT(m_pSourceElement->GetGObject()), "source", this);
-
+        AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
         AddChild(m_pDecodeBin);
         AddChild(m_pSourceQueue);
@@ -846,13 +860,35 @@ namespace DSL
 
         if (HasTapBintr())
         {
-        }
-        else
-        {
-            if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
+            GstPadTemplate* pPadTemplate = 
+                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pPreDecodeTee->GetGstElement()), "src_%u");
+            if (!pPadTemplate)
+            {
+                LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
+                return false;
+            }
+        
+            // The TEE for this source is linked to both the "pre-decode-queue" and the TapBintr
+
+            GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pPreDecodeTee->GetGstElement(), pPadTemplate, NULL, NULL);
+            if (!pGstRequestedSourcePad)
+            {
+                LOG_ERROR("Failed to get Tee Pad for RTSP Source '" << GetName() <<"'");
+                return false;
+            }
+            std::string padForPreDecodeName = "padForPreDecodeQueue_" + std::to_string(m_uniqueId);
+
+            m_pGstRequestedSourcePads[padForPreDecodeName] = pGstRequestedSourcePad;
+        
+            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSource(m_pPreDecodeTee) or
+                !m_pPreDecodeQueue->LinkToSource(m_pPreDecodeTee))
             {
                 return false;
             }
+        }
+        if (!m_pPreDecodeQueue->LinkToSink(m_pDecodeBin))
+        {
+            return false;
         }
         m_isLinked = true;
         
@@ -865,16 +901,25 @@ namespace DSL
 
         if (!m_isLinked)
         {
-            LOG_ERROR("CsiSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
-        m_pDecodeBin->UnlinkFromSink();
         m_pPreDecodeQueue->UnlinkFromSink();
         if (HasTapBintr())
         {
+            m_pTapBintr->UnlinkFromSource();
+            m_pTapBintr->UnlinkAll();
+            m_pPreDecodeQueue->UnlinkFromSource();
         }
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
+        
+        for (auto const& imap: m_pGstRequestedSourcePads)
+        {
+            gst_element_release_request_pad(m_pTee->GetGstElement(), imap.second);
+            gst_object_unref(imap.second);
+        }
+        
         m_isLinked = false;
     }
 
@@ -912,12 +957,39 @@ namespace DSL
         return true;
     }
 
+    bool RtspSourceBintr::AddTapBintr(DSL_BASE_PTR pTapBintr)
+    {
+        LOG_FUNC();
+        
+        if (m_pTapBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' allready has a Tap");
+            return false;
+        }
+        m_pTapBintr = std::dynamic_pointer_cast<TapBintr>(pTapBintr);
+        AddChild(pTapBintr);
+        return true;
+    }
+
+    bool RtspSourceBintr::RemoveTapBintr()
+    {
+        LOG_FUNC();
+
+        if (!m_pTapBintr)
+        {
+            LOG_ERROR("Source '" << GetName() << "' does not have a Tap");
+            return false;
+        }
+        RemoveChild(m_pTapBintr);
+        m_pTapBintr = nullptr;
+        return true;
+    }
+    
     bool RtspSourceBintr::HasTapBintr()
     {
         LOG_FUNC();
         
-        // TODO - temporary implemention  
-        return false;
+        return (m_pTapBintr != nullptr);
     }
     
     bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps)
@@ -946,7 +1018,7 @@ namespace DSL
         }
         else
         {
-            LOG_WARN("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
+            LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
             return false;
         }
         AddChild(m_pDepay);
@@ -956,7 +1028,7 @@ namespace DSL
         // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
         if (HasTapBintr())
         {
-            if (!m_pDepay->LinkToSource(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
             {
                 return false;
             }            
@@ -964,12 +1036,18 @@ namespace DSL
         // otherwise, there is no Tee and we link to the Pre-decode Queue directly
         else
         {
-            if (!m_pDepay->LinkToSource(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
             {
                 return false;
             }            
         }
-        return gst_element_sync_state_with_parent (m_pParser->GetGstElement());
+        if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
+            !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
+        {
+            LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
+            return false;
+        }
+        return true;
     }
         
     void RtspSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)

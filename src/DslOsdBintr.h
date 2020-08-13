@@ -177,22 +177,6 @@ namespace DSL
          */
         bool SetGpuId(uint gpuId);
 
-        /**
-         * @brief Sets the current crop settings
-         * @param[in] left pixels to crop from the left
-         * @param[in] top pixels to crop from the top
-         * @param[in] width width of the cropped stream in pixels
-         * @param[in] height height of the cropped stream in pixels
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetCropSettings(uint left, uint top, uint width, uint height);
-        
-        /**
-         * @brief Updates the Video Converter's crop seetings based on this
-         * OsdBintrs current seetings.
-         */
-        void UpdateCropSetting();
-
     private:
 
         boolean m_isClockEnabled;
@@ -206,11 +190,6 @@ namespace DSL
         
         NvOSD_ColorParams m_clockColor;
 
-        uint m_cropLeft;
-        uint m_cropTop;
-        uint m_cropWidth;
-        uint m_cropHeight;
-        
         /**
          @brief
          */

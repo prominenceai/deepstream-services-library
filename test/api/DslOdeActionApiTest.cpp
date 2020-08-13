@@ -844,18 +844,18 @@ SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-act
     }
 }
 
-SCENARIO( "A new Start Record ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Start Record ODE Action" ) 
+    GIVEN( "Attributes for a new Start Record Sink ODE Action" ) 
     {
         std::wstring actionName(L"start-record-action");
         std::wstring recordSinkName(L"record-sink");
 
-        WHEN( "A new Start Record Action is created" ) 
+        WHEN( "A new Start Record Sink Action is created" ) 
         {
             REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Start Record Action can be deleted" ) 
+            THEN( "The Start Record Sink Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -869,6 +869,73 @@ SCENARIO( "A new Start Record ODE Action can be created and deleted", "[ode-acti
             {
                 REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Start Record Tap ODE Action" ) 
+    {
+        std::wstring actionName(L"start-record-action");
+        std::wstring recordTapName(L"record-sink");
+
+        WHEN( "A new Start Record Sink Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Start Record Sink Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Start Record Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Start Record Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Tiler Show Source ODE Action" ) 
+    {
+        std::wstring actionName(L"tiler-show-source-action");
+        std::wstring tilerName(L"action");
+        uint timeout(2);
+
+        WHEN( "A new Tiler Source Show Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), tilerName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Tiler Show Source Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Tiler Source Show Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), 
+                tilerName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Enable Action Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), 
+                    tilerName.c_str(), timeout) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }

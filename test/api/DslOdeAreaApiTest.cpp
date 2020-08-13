@@ -50,9 +50,9 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
 
         WHEN( "Several new Actions are created" ) 
         {
-            REQUIRE( dsl_ode_area_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
@@ -88,9 +88,9 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
             border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
 
         WHEN( "A single Area is deleted" ) 
         {

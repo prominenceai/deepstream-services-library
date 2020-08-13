@@ -39,6 +39,7 @@ THE SOFTWARE.
 #include <vector>
 #include <map> 
 #include <memory> 
+#include <math.h>
 #include <fstream>
 #include <thread>
 #include <chrono>

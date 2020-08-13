@@ -47,11 +47,11 @@ SCENARIO( "A new OdeTrigger is created correctly", "[OdeTrigger]" )
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
                 REQUIRE( pOdeTrigger->GetSourceId() == DSL_ODE_ANY_SOURCE );
-                uint minWidth(123), minHeight(123);
+                float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
                 REQUIRE( minHeight == 0 );
-                uint maxWidth(123), maxHeight(123);
+                float maxWidth(123), maxHeight(123);
                 pOdeTrigger->GetMaxDimensions(&maxWidth, &maxHeight);
                 REQUIRE( maxWidth == 0 );
                 REQUIRE( maxHeight == 0 );
@@ -105,7 +105,7 @@ SCENARIO( "An OdeTrigger checks its enabled setting ", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The ODE Type is disabled and an ODE occurrence is simulated" )
@@ -114,7 +114,7 @@ SCENARIO( "An OdeTrigger checks its enabled setting ", "[OdeTrigger]" )
             
             THEN( "The ODE is NOT triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
@@ -162,7 +162,7 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The ODE Type's minimum confidence is equal to the Object's confidence" )
@@ -171,7 +171,7 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The ODE Type's minimum confidence is greater tahn the Object's confidence" )
@@ -180,7 +180,7 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is NOT triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
@@ -233,7 +233,7 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Source ID matches the filter" )
@@ -242,7 +242,7 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Source ID does not matche the filter" )
@@ -251,7 +251,7 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
             
             THEN( "The ODE is NOT triggered" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
@@ -296,7 +296,7 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is NOT detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Min Width is set below the Object's Width" )
@@ -305,7 +305,7 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Min Height is set above the Object's Height" )
@@ -314,7 +314,7 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is NOT detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Min Height is set below the Object's Height" )
@@ -323,7 +323,7 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -368,7 +368,7 @@ SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is NOT detected because of the maximum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Max Width is set above the Object's Width" )
@@ -377,7 +377,7 @@ SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is detected because of the maximum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Max Height is set below the Object's Height" )
@@ -386,7 +386,7 @@ SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is NOT detected because of the maximum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The Max Height is set above the Object's Height" )
@@ -395,7 +395,7 @@ SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]"
             
             THEN( "The OdeTrigger is detected because of the maximum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -440,7 +440,7 @@ SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
             
             THEN( "The ODE is NOT triggered because the frame's flage is false" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
         WHEN( "The ODE Type's InferOnOnly setting is disabled and an ODE occurrence is simulated" )
@@ -449,7 +449,7 @@ SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
             
             THEN( "The ODE is triggered because the criteria is not set" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -483,8 +483,8 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
             
-        DSL_ODE_AREA_PTR pOdeArea =
-            DSL_ODE_AREA_NEW(odeAreaName.c_str(), pRectangle, false);
+        DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+            DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pRectangle, false);
             
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
         REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );        
@@ -513,7 +513,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Area is set so that the Object's top right corner overlaps" )
@@ -525,7 +525,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
@@ -537,7 +537,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
@@ -549,7 +549,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             
             THEN( "The OdeTrigger is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
         WHEN( "The Area is set so that the Object does not overlap" )
@@ -561,7 +561,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             
             THEN( "The OdeTrigger is NOT detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
             }
         }
     }
@@ -612,12 +612,12 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
             objectMeta2.rect_params.width = 100;
             objectMeta2.rect_params.height = 100;
 
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "NO ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
             }
         }
         WHEN( "Two objects occur with overlap" )
@@ -632,12 +632,12 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
             objectMeta2.rect_params.width = 100;
             objectMeta2.rect_params.height = 100;
 
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "An ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
             }
         }
         WHEN( "Three objects occur, one overlaping the other two" )
@@ -657,13 +657,13 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
             objectMeta3.rect_params.width = 100;
             objectMeta3.rect_params.height = 100;
 
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "Three ODE occurrences are detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 2 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
             }
         }
     }
@@ -718,7 +718,7 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
             
             THEN( "The client's custom CheckForOccurrence is called returning true." )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
@@ -759,23 +759,23 @@ SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
         
         WHEN( "Two objects occur -- equal to the Maximum " )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "NO ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
             }
         }
         WHEN( "Three objects occur -- greater than the Maximum " )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 3 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
             }
         }
     }
@@ -816,23 +816,23 @@ SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
         
         WHEN( "Two objects occur -- less than the Maximum " )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "NO ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 2 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
             }
         }
         WHEN( "Three objects occur -- equal than the Maximum " )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
             THEN( "ODE occurrence is detected" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 0 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
             }
         }
     }
@@ -878,12 +878,12 @@ SCENARIO( "A SmallestOdeTrigger handles an ODE Occurrence correctly", "[OdeTrigg
         
         WHEN( "Two objects occur" )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "An ODE occurrence is detected with the largets reported" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
             }
         }
     }
@@ -927,12 +927,12 @@ SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigge
         
         WHEN( "Two objects occur" )
         {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
             THEN( "An ODE occurrence is detected with the smallest reported" )
             {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, &frameMeta) == 1 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
             }
         }
     }

@@ -60,16 +60,19 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
-#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
-#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
-#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
-#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
-#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
-#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000B
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000C
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000D
+#define DSL_RESULT_SOURCE_NOT_FOUND                                 0x00020004
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020005
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
+#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 
 /**
  * Dewarper API Return Values
@@ -115,6 +118,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000E
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000F
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040010
 
 /**
  * OSD API Return Values
@@ -175,12 +180,13 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
 #define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
 #define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0005
-#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0006
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0007
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0008
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0005
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0006
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0007
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0008
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000A
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000B
 
 /**
  * Tile API Return Values
@@ -232,19 +238,20 @@ THE SOFTWARE.
 #define DSL_RESULT_BRANCH_SINK_MAX_IN_USE_REACHED                   0x000B0008
 
 /**
- * ODE Handler API Return Values
+ * Pad Probe Handler API Return Values
  */
-#define DSL_RESULT_ODE_HANDLER_RESULT                               0x000D0000
-#define DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE                      0x000D0001
-#define DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND                       0x000D0002
-#define DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT                      0x000D0003
-#define DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION                      0x000D0004
-#define DSL_RESULT_ODE_HANDLER_IS_IN_USE                            0x000D0005
-#define DSL_RESULT_ODE_HANDLER_SET_FAILED                           0x000D0006
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED                   0x000D0007
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED                0x000D0008
-#define DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE                   0x000D0009
-#define DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER         0x000D000A
+#define DSL_RESULT_PPH_RESULT                                       0x000D0000
+#define DSL_RESULT_PPH_NAME_NOT_UNIQUE                              0x000D0001
+#define DSL_RESULT_PPH_NAME_NOT_FOUND                               0x000D0002
+#define DSL_RESULT_PPH_NAME_BAD_FORMAT                              0x000D0003
+#define DSL_RESULT_PPH_THREW_EXCEPTION                              0x000D0004
+#define DSL_RESULT_PPH_IS_IN_USE                                    0x000D0005
+#define DSL_RESULT_PPH_SET_FAILED                                   0x000D0006
+#define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
+#define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
+#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
+#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x0004000A
+#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x0004000B
 
 /**
  * ODE Trigger API Return Values
@@ -305,6 +312,18 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
 #define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
 
+/**
+ * Tap API Return Values
+ */
+#define DSL_RESULT_TAP_RESULT                                       0x00200000
+#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00200001
+#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00200002
+#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00200003
+#define DSL_RESULT_TAP_IN_USE                                       0x00200004
+#define DSL_RESULT_TAP_SET_FAILED                                   0x00200005
+#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00200006
+#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00200007
+#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00200008
 
 /**
  *
@@ -315,6 +334,8 @@ THE SOFTWARE.
 
 #define DSL_SOURCE_CODEC_PARSER_H264                                0
 #define DSL_SOURCE_CODEC_PARSER_H265                                1
+
+#define DSL_TILER_SHOW_ALL_SOURCES                                  NULL
 
 #define DSL_CODEC_H264                                              0
 #define DSL_CODEC_H265                                              1
@@ -363,8 +384,8 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 
-#define DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC                         30
-#define DSL_DEFAULT_SINK_VIDEO_DURATION_IN_SEC                      30
+#define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
+#define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
 
 EXTERN_C_BEGIN
 
@@ -410,14 +431,24 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
 
-
 /**
- * @brief callback typedef for a client batch meta handler function. Once added to a Component, 
- * the function will be called when the component receives a batch meta buffer.
- * @param[in] batch_meta pointer to a Batch Meta structure to process
- * @param[in] user_data opaque pointer to client's user data
+ * @brief callback typedef for a client to hanlde new Pipeline performance data
+ * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
+ * @param[in] session_fps_averages array of frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] interval_fps_averages array of average frames-per-second measurements, one per source, specified by list_size 
+ * @param[in] source_count count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
+ * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
+typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages, 
+    uint source_count, void* client_data);
+    
+/**
+ * @brief callback typedef for a client pad probe handler function. Once added to a Component, 
+ * the function will be called when the component receives a pad probe buffer ready.
+ * @param[in] buffer pointer to a stream buffer to process
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef boolean (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -464,7 +495,7 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
  * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
  * @param[in] user_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_sink_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -562,13 +593,53 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
     const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 
 /**
- * @brief Adds a named Display Type to a frames's meta data overlaying the text/shape
+ * @brief creates a uniquely named Source Name Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
+/**
+ * @brief creates a uniquely named Source Dimensions Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief creates a uniquely named Source Frame Rate Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
+ * is responsible for aquiring the display metadata for the current frame.
  * @param name unique name of the Display Type to overlay
- * @param frame_meta opaque pointer to the batched buffer that holds the Frame meta data
+ * @param display_meta opaque pointer to the aquired display meta to to add the Display Type to
  * @param frame_meta opaque pointer to a Frame's meta data to add the Display Type
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_overlay_frame(const wchar_t* name, void* buffer, void* frame_meta);
+DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* buffer, void* frame_meta);
     
 /**
  * @brief deletes a uniquely named Display Type of any type
@@ -669,9 +740,9 @@ DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wc
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
- * a namded ODE Handler
+ * a namded Handler
  * @param[in] name unique name for the Fill Backtround ODE Action
- * @param[in] handler unique name of the ODE Handler to disable
+ * @param[in] handler unique name of the Handler to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler);
@@ -693,14 +764,14 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Frame Overlay ODE Action to overlay the Frame meta with
- * a uniquely named Display Type 
- * @param[in] name unique name for the Frame Overlay ODE Action 
+ * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
+ * using a uniquely named Display Type 
+ * @param[in] name unique name for the Add Display Metadata ODE Action 
  * @param[in] display_type unique name of the Display Type to overlay on ODE occurrence
  * Note: the Display Type must exist prior to constructing the Action.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_overlay_frame_new(const wchar_t* name, const wchar_t* display_type);
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action
@@ -783,6 +854,19 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source);
 
 /**
+ * @brief Creates a uniquely named Start Record Tap ODE Action
+ * @param[in] name unique name for the Start Record Tap Action 
+ * @param[in] record_tap unique name of the Record Tap to start recording
+ * @param[in] start start time before current time in seconds
+ * should be less the Record Taps's cache size
+ * @param[in] duration duration of the recording in seconds
+ * @param[in] client_data opaque pointer to client data
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
+
+/**
  * @brief Creates a uniquely named Add Area ODE Action that adds
  * a named ODE Area to a named ODE Trigger on ODE occurrence
  * @param[in] name unique name for the Add Area ODE Action 
@@ -834,8 +918,8 @@ DslReturnType dsl_ode_action_trigger_reset_new(const wchar_t* name, const wchar_
 /**
  * @brief Creates a uniquely named Disable Action ODE Action that disables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Disable Action 
- * @param[in] trigger unique name of the ODE Trigger to disable
+ * @param[in] name unique name for the Trigger Disable Action 
+ * @param[in] action unique name of the ODE Action to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar_t* action);
@@ -843,11 +927,22 @@ DslReturnType dsl_ode_action_action_disable_new(const wchar_t* name, const wchar
 /**
  * @brief Creates a uniquely named Enable Action ODE Action that enables
  * a named ODE Action on ODE occurrence
- * @param[in] name unique name for the ODE Trigger Enable Action 
- * @param[in] trigger unique name of the ODE Trigger to disable
+ * @param[in] name unique name for the Enable Action ODE  Action 
+ * @param[in] action unique name of the ODE Trigger to disable
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_t* action);
+
+/**
+ * @brief Creates a uniquely named Tiler Show Source ODE Action that calls on the 
+ * named Tiler to show the Source for the specific frame on ODE occurrence
+ * @param[in] name unique name for the ODE Trigger Enable Action 
+ * @param[in] tiler unique name of the Tiler to call to show-source
+ * @param[in] timeout to pass to the Tiler on show-source
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
+    const wchar_t* tiler, uint timeout);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action
@@ -898,13 +993,23 @@ DslReturnType dsl_ode_action_delete_all();
 uint dsl_ode_action_list_size();
 
 /**
- * @brief Creates a uniquely named ODE Area
+ * @brief Creates a uniquely named ODE Inclusion Area
  * @param[in] name unique name of the ODE area to create
  * @param[in] rectangle name of an RGBA Display Rectangle
  * @param[in] display set to true to display (overlay) the rectangle on each frame
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
-DslReturnType dsl_ode_area_new(const wchar_t* name, 
+DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
+    const wchar_t* rectangle, boolean display);
+
+/**
+ * @brief Creates a uniquely named ODE Inclusion Area
+ * @param[in] name unique name of the ODE area to create
+ * @param[in] rectangle name of an RGBA Display Rectangle
+ * @param[in] display set to true to display (overlay) the rectangle on each frame
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
     const wchar_t* rectangle, boolean display);
 
 /**
@@ -1130,7 +1235,7 @@ DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id)
  * @param[out] min_confidence current minimum confidence criteria
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, float* min_confidence);
 
 /**
  * @brief Sets the enabled setting for the ODE Trigger
@@ -1139,7 +1244,7 @@ DslReturnType dsl_ode_trigger_confidence_min_get(const wchar_t* name, double* mi
  * @param[in] min_confidence minimum confidence to trigger an ODE occurrnce
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min_confidence);
+DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, float min_confidence);
 
 /**
  * @brief Gets the current minimum rectangle width and height values for the ODE Trigger
@@ -1149,7 +1254,7 @@ DslReturnType dsl_ode_trigger_confidence_min_set(const wchar_t* name, double min
  * @param[out] min_height returns the current minimun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_width, uint* min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, float* min_width, float* min_height);
 
 /**
  * @brief Sets the current minimum rectangle width and height values for the ODE Trigger
@@ -1159,7 +1264,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_get(const wchar_t* name, uint* min_
  * @param[in] min_height the new minimun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_width, uint min_height);
+DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, float min_width, float min_height);
 
 /**
  * @brief Gets the current maximum rectangle width and height values for the ODE Trigger
@@ -1169,7 +1274,7 @@ DslReturnType dsl_ode_trigger_dimensions_min_set(const wchar_t* name, uint min_w
  * @param[out] max_height returns the current maximun frame hight in use
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_width, uint* max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, float* max_width, float* max_height);
 
 /**
  * @brief Sets the current maximum rectangle width and height values for the ODE Trigger
@@ -1179,7 +1284,7 @@ DslReturnType dsl_ode_trigger_dimensions_max_get(const wchar_t* name, uint* max_
  * @param[in] max_height the new maximun frame hight to use
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, uint max_width, uint max_height);
+DslReturnType dsl_ode_trigger_dimensions_max_set(const wchar_t* name, float max_width, float max_height);
 
 /**
  * @brief Gets the current Inferrence-Done-Only setting for the named trigger
@@ -1298,30 +1403,159 @@ DslReturnType dsl_ode_trigger_area_remove_many(const wchar_t* name, const wchar_
 DslReturnType dsl_ode_trigger_area_remove_all(const wchar_t* name);
 
 /**
- * @brief Deletes a uniquely named Event. The call will fail if the event is currently in use
+ * @brief Deletes a uniquely named Trigger. The call will fail if the event is currently in use
  * @brief[in] name unique name of the event to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete(const wchar_t* name);
 
 /**
- * @brief Deletes a Null terminated list of Events. The call will fail if any of the events are currently in use
+ * @brief Deletes a Null terminated list of Triggers. The call will fail if any of the events are currently in use
  * @brief[in] names Null terminaed list of event names to delte
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_many(const wchar_t** names);
 
 /**
- * @brief Deletes all Events. The call will fail if any of the events are currently in use
+ * @brief Deletes all Triggers. The call will fail if any of the events are currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_delete_all();
 
 /**
- * @brief Returns the size of the list of Events
- * @return the number of Events in the list
+ * @brief Returns the size of the list of Triggers
+ * @return the number of Triggers in the list
  */
 uint dsl_ode_trigger_list_size();
+
+/**
+ * @brief creates a new, uniquely named Handler component
+ * @param[in] name unique name for the new Handler
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named ODE Trigger to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] trigger unique name of the Trigger to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_add(const wchar_t* handler, const wchar_t* trigger);
+
+/**
+ * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
+
+/**
+ * @brief Removes a named ODE Trigger from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] odeType unique name of the Trigger to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
+
+/**
+ * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
+
+/**
+ * @brief Removes all ODE Triggers from a named ODE Handler Component
+ * @param[in] handler unique name of the ODE Handler to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
+ */
+DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* handler);
+
+/**
+ * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer
+ * @param[in] name unique component name for the new Custom Handler
+ * @param[in] client_handler client callback function, called with each buffer that flows over the pad
+ * @param[in] client_data opaque pointer to client date returned with the callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_custom_new(const wchar_t* name,
+     dsl_pph_custom_client_handler_cb client_handler, void* client_data);
+     
+/**
+ * @brief creates a new, uniquely named Meter pad-probe-handler to calcaulate performance measurements
+ * @param[in] name unique component name for the new Meter
+ * @param[in] interval interval at which to report performance measurements
+ * @param[in] client_handler client callback function, called at "interval" with 
+ * performance measurements for each source
+ * @param[in] client_data opaque pointer to client date returned with the callback
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
+    dsl_pph_meter_client_handler_cb client_handler, void* client_data);
+/**
+ * @brief gets the current reporting interval for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval the current reporting interval in seconds
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief sets the current reportings for the named Meter Sink
+ * @param[in] name unique name of the Meter Sink to query
+ * @param[out] interval new reporting interval in seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief gets the current enabled setting for the named Pad Probe Handler
+ * @param[in] name unique name of the Handler to query
+ * @param[out] enabled true if the Handler is enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the Pad Probe Handler's enabled setting
+ * @param[in] name unique name of the pad-probe-handler to update
+ * @param[out] enabled set true to enable, if in a disabled state, 
+ * false to disable if currently in an enbled state. 
+ * Attempts to reset to the same/current state will fail
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_enabled_set(const wchar_t* name, boolean enabled);
+
+
+/**
+ * @brief Deletes a uniquely named Pad Probe Handler. The call will fail if the Handler is currently in use
+ * @brief[in] name unique name of the Handler to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of Pad Probe Handlers. 
+ * The call will fail if any of the Handlers are currently in use
+ * @brief[in] names Null terminaed list of Handler names to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all Pad Probe Handlers. The call will fail if any of the Handlers are currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_pph_delete_all();
+
+/**
+ * @brief Returns the size of the list of Pad Probe HandlerS
+ * @return the number of Handlers in the list
+ */
+uint dsl_pph_list_size();
 
 /**
  * @brief creates a new, uniquely named CSI Camera Source component
@@ -1363,11 +1597,13 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolea
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] 
+ * @param[in] intra_decode
+ * @param[in] drop_frame_interval
+ * @param[in] latency in milliseconds
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -1421,6 +1657,29 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
+
+/**
+ * @brief Adds a named Tap to a named RTSP source
+ * @param[in] name name of the source object to update
+ * @param[in] tap name of the Tap to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
+
+/**
+ * @brief Adds a named dewarper to a named decode source (URI, RTSP)
+ * @param[in] name name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
+
+/**
+ * @brief returns the name of a Source component from a unqiue Source Id
+ * @param[in] source_id unique Source Id to check for
+ * @param[out] name the name of Source component if found
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
 
 /**
  * @brief pauses a single Source object if the Source is 
@@ -1478,6 +1737,96 @@ boolean dsl_source_num_in_use_max_set(uint max);
 DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
 
 /**
+ * @brief creates a new, uniquely named Record Tap component
+ * @param[in] name unique component name for the new Record Tap
+ * @param[in] outdir absolute or relative path to the recording output dir.
+ * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] client_listener client callback for end-of-sesssion notifications.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
+    uint container, dsl_record_client_listner_cb client_listener);
+     
+/**
+ * @brief starts a new recording session for the named Record Tap
+ * @param[in] name unique of the Record Tap to start the session
+ * @param[out] session unique id for the new session on successful start
+ * @param[in] start start time in seconds before the current time
+ * should be less that the video cache size
+ * @param[in] duration in seconds from the current time to record.
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client listener function provided on Tap creation
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
+    uint start, uint duration, void* client_data);
+
+/**
+ * @brief stops a current recording in session
+ * @param[in] name unique of the Record Tap to stop
+ * @param[in] session unique id for the session to stop
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name, 
+    uint session);
+
+/**
+ * @brief returns the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * @param[in] name name of the Record Tap to query
+ * @param[out] cache_size current cache size setting
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size);
+
+/**
+ * @brief sets the video recording cache size in units of seconds
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * @param[in] name name of the Record Tap to update
+ * @param[in] cache_size new cache size setting to use on Pipeline play
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size);
+
+/**
+ * @brief returns the dimensions, width and height, used for the video recordings
+ * @param[in] name name of the Record Tap to query
+ * @param[out] width current width of the video recording in pixels
+ * @param[out] height current height of the video recording in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief sets the dimensions, width and height, for the video recordings created
+ * values of zero indicate no-transcodes
+ * @param[in] name name of the Record Tap to update
+ * @param[in] width width to set the video recording in pixels
+ * @param[in] height height to set the video in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ */
+DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, uint width, uint height);
+
+/**
+ * @brief returns the current recording state of the Record Tap
+ * @param[in] name name of the Record Tap to query
+ * @param[out] is_on true if the Record Tap is currently recording a session, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
+
+/**
+ * @brief returns the current state of the Record Tap reset done flag
+ * @param[in] name name of the Record Tap to query
+ * @param[out] is_on true if Reset has been done, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
+
+
+/**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
@@ -1489,34 +1838,23 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
     const wchar_t* model_engine_file, uint interval);
 
 /**
- * @brief Adds a batch meta handler callback function to be called to process each buffer.
- * A Primary GIE can multiple Sink and Source batch meta handlers
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a batch meta handler callback function from the Primary GIE
+ * @brief Removes a pad-probe-handler from the Primary GIE
  * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_gie_primary_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
-    
-/**
- * @brief Enbles/disables the bbox output to kitti file for the named the GIE
- * @param[in] name name of the Primary GIE to update
- * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
- */
-DslReturnType dsl_gie_primary_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
+DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Secondary GIE object
@@ -1633,27 +1971,6 @@ DslReturnType dsl_tracker_max_dimensions_set(const wchar_t* name, uint max_width
 DslReturnType dsl_tracker_iou_config_file_get(const wchar_t* name, const wchar_t** config_file);
 
 /**
- * @brief Add a batch meta handler callback function to be called to process each frame buffer.
- * A Tracker can have multiple Sink and Source batch meta handlers
- * @param[in] name unique name of the Tracker to update
- * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
-
-/**
- * @brief Removes a batch meta handler callback function from the Tracker
- * @param[in] name unique name of the Tracker to update
- * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
- */
-DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
-
-/**
  * @brief sets the config file to use by named IOU Tracker object
  * @param[in] name unique name of the Tracker to Update
  * @param[in] config_file absolute or relative pathspec to the new config file to use
@@ -1662,13 +1979,23 @@ DslReturnType dsl_tracker_batch_meta_handler_remove(const wchar_t* name,
 DslReturnType dsl_tracker_iou_config_file_set(const wchar_t* name, const wchar_t* config_file);
 
 /**
- * @brief Enbles/disables the bbox output to kitti file for the named the Tracker
- * @param[in] name name of the Tracker to update
- * @param[in] enabled set to true to enable bounding-box-data output to file in kitti formate
- * @param[in] path absolute or relative direcory path to write to. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * A Primary GIE can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
  */
-DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean enabled, const wchar_t* file);
+DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from the Primary GIE
+ * @param[in] name unique name of the Primary GIE to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise
+ */
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj
@@ -1677,69 +2004,6 @@ DslReturnType dsl_tracker_kitti_output_enabled_set(const wchar_t* name, boolean 
  */
 DslReturnType dsl_ofv_new(const wchar_t* name);
 
-/**
- * @brief creates a new, uniquely named ODE Handler component
- * @param[in] name unique name for the new ODE Handler
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_new(const wchar_t* name);
-
-/**
- * @brief Gets the ODE Handler's current reporting enabled setting
- * @param[in] name unique name of the ODE Handler to query
- * @param[out] enabled true if Reporting is current enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the ODE Handler's reporting enabled setting
- * @param[in] name unique name of the ODE Handler to update
- * @param[out] enabled set true to enable reporting, if in a disabled state, 
- * false to disable if currently in an enbled state. 
- * Attempts to reset to the same/current state will fail
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Adds a named ODE Trigger to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] odeType unique name of the Event to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_add(const wchar_t* handler, const wchar_t* trigger);
-
-/**
- * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] triggers Null terminated list of Event names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
-
-/**
- * @brief Removes a named ODE Trigger from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] odeType unique name of the Event to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
-
-/**
- * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @param[in] triggers Null terminated list of Event names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
-
-/**
- * @brief Removes all ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
- */
-DslReturnType dsl_ode_handler_trigger_remove_all(const wchar_t* handler);
 
 /**
  * @brief creates a new, uniquely named OSD obj
@@ -1845,27 +2109,24 @@ DslReturnType dsl_osd_crop_settings_get(const wchar_t* name, uint* left, uint* t
  */
 DslReturnType dsl_osd_crop_settings_set(const wchar_t* name, uint left, uint top, uint width, uint height);
 
-
 /**
- * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * An On-Screen-Display can have multiple Sink and Source batch-meta-handlers
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * An On-Screen-Display can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the OSD to update
+ * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a batch meta handler callback function from the OSD
+ * @brief Removes a pad-probe-handler from the OSD
  * @param[in] name unique name of the OSD to update
+ * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_osd_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
@@ -1946,24 +2207,21 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* tee);
 DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count);
 
 /**
- * @brief Adds a batch meta handler callback function to be called to process each batch-meta.
- * Batch-meta-handlers, on or more, can only be added to the single stream over the SINK PAD.
- * @param[in] name unique name of the Demuxer to update
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler callback function to process each frame buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a batch meta handler callback function from a named Demuxer
- * @param[in] name unique name of the Demuxer to update
- * @param[in] handler callback function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @brief Removes a pad probe handler callback function from a named Tee
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler unique name of the pad probe handler to had
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
  */
-DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name, 
-    dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief creates a new, uniquely named Display component
@@ -2010,31 +2268,60 @@ DslReturnType dsl_tiler_tiles_get(const wchar_t* name, uint* cols, uint* rows);
  */
 DslReturnType dsl_tiler_tiles_set(const wchar_t* name, uint cols, uint rows);
 
-/**
- * @brief Adds a batch meta handler callback function to be called to process each frame buffer.
- * A Tiled Display can have multiple Sink and Source batch meta handlers
- * @param[in] name unique name of the Tiled Display to update
- * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @param[in] handler callback function to process batch meta data
- * @param[in] user_data opaque pointer to clients user data passed in to each callback call.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
+/** 
+ * @brief Gets the current Show Source setting for the named Tiler
+ * @param[in] name unique name of the Tiler to query
+ * @param[out] source name of the current source shown by the Tiler. 
+ * A value of DSL_TILER_ALL_SOURCES (equal to NULL) indicates all sources are shown
+ * @param[out] current remaining timeout value, 0 if showing all sources and the timer is not running.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
-DslReturnType dsl_tiler_batch_meta_handler_add(const wchar_t* name, uint pad, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tiler_source_show_get(const wchar_t* name, 
+    const wchar_t** source, uint* timeout);
+
+/** 
+ * @brief Shows a single source instead of all tiled sources - the default tile mode.
+ * @param[in] name unique name of the Tiler to update
+ * @param[in] source unique name of the source to show,
+ * @param[in] timeout time to show the source in units of seconds, before showing all-sources again
+ * A value of 0 indicates no timeout. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
+    const wchar_t* source, uint timeout);
+
+/** 
+ * @brief Shows all sources and stops the show-source timer if running.
+ * @param[in] name unique name of the Tiler to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_all(const wchar_t* name);
 
 /**
- * @brief Removes a batch meta handler callback function from the Tiled Display
+ * @brief Adds a pad-probe-handler to either the Sink or Source pad of the named Tiler
+ * A Tiled Display can have multiple Sink and Source pad probe handlers
+ * @param[in] name unique name of the Tiled Display to update
+ * @param[in] handler unique name of the Batch Meta Handler to add
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
+ */
+DslReturnType dsl_tiler_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler to either the Sink or Source pad of the named Tiler
  * @param[in] name unique name of the Tiled Dislplay to update
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */
-DslReturnType dsl_tiler_batch_meta_handler_remove(const wchar_t* name, 
-    uint pad, dsl_batch_meta_handler_cb handler);
+DslReturnType dsl_tiler_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Fake Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @param[in] name unique component name for the new Fake Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 
@@ -2089,7 +2376,7 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_sink_record_client_listner_cb client_listener);
+    uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink
@@ -2118,7 +2405,7 @@ DslReturnType dsl_sink_record_session_stop(const wchar_t* name,
 /**
  * @brief returns the video recording cache size in units of seconds
  * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Sink to query
  * @param[out] cache_size current cache size setting
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
@@ -2128,7 +2415,7 @@ DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_si
 /**
  * @brief sets the video recording cache size in units of seconds
  * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Sink to query
  * @param[in] cache_size new cache size setting to use on Pipeline play
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
@@ -2245,98 +2532,21 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     uint bitrate, uint interval);
 
 /**
- * @brief creates a new, uniquely named Image Sink component
- * @param[in] name unique component name for the new Image Sink
- * @param[in] outdir absolute or relative path to the image output directory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler callback function to process each frame buffer
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
  */
-DslReturnType dsl_sink_image_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief gets the current output directory in use by the named Image Sink.
- * @param[in] name name of the Image Sink to query
- * @param[out] outdir pathspec for the current impage file output directory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief Removes a pad probe handler callback function from a named Sink
+ * @param[in] name unique name of the Tee to update
+ * @param[in] handler unique name of the pad probe handler to had
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
  */
-DslReturnType dsl_sink_image_outdir_get(const wchar_t* name, const wchar_t** outdir);
-
-/**
- * @brief sets the current output directory for a named Image Sink to use.
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to update
- * @param[in] outdir relative or absolute pathspec for the file output directory to use.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_outdir_set(const wchar_t* name, const wchar_t* outdir);
-
-/**
- * @brief gets the current frame interval to trasform and save images
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to query
- * @param[out] interval the current frame capture interval. 0 = on every frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_frame_capture_interval_get(const wchar_t* name, uint* interval);
-
-/**
- * @brief sets the current frame interval to trasform and save images
- * Note: the frame interval can be viewed as the drop frame count
- * @param[in] name name of the Image Sink to update
- * @param[in] interval the bew frame capture interval to use. 0 = on every frame
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_image_frame_capture_interval_set(const wchar_t* name, uint interval);
-
-/**
- * @brief Gets the current state of an Image Sink's Frame capture
- * @param[in] name name of the Image Sink to query
- * @param[out] enabled true if Frame capture is enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_frame_capture_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current state of an Image Sink's Frame capture
- * @param[in] name name of the Image Sink to query
- * @param[in] enabled set to true to enable Frame capture, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_frame_capture_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Gets the current state of an Image Sink's Object capture
- * @param[in] name name of the Image Sink to query
- * @param[out] enabled true if Object capture is enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current state of an Image Sink's Object capture
- * @param[in] name name of the Image Sink to query
- * @param[in] enabled set to true to enable Object capture, false to disable
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
- * @brief Adds a new Object Capture Class to a named Image Sink
- * @param[in] name unique name of the Image Sink to update
- * @param[in] class_id id of the Object Capture Class to add
- * @param[in] full_frame if set to true, will capture full frame on object detection, bbox dimensions otherwise
- * @param[in] capture_limit maximum number of objects to capture (transform and save to file) for a specific Class
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_class_add(const wchar_t* name, uint class_id, 
-    boolean full_frame, uint capture_limit);
-    
-/**
- * @brief Removes an Object Capture Class from a named Image Sink
- * @param[in] name unique name of the Image Sink to update
- * @param[in] class_id id of the Object Capture Class to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_image_object_capture_class_remove(const wchar_t* name, uint class_id);
+DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief returns the number of Sinks currently in use by 

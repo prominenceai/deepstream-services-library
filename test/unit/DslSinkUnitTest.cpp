@@ -70,29 +70,6 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[FakeSinkBintr]" )
     }
 }
 
-SCENARIO( "A Linked FakeSinkBintr can UnlinkAll Child Elementrs", "[FakeSinkBintr]" )
-{
-    GIVEN( "A FakeSinkBintr in a linked state" ) 
-    {
-        std::string sinkName("fake-sink");
-
-        DSL_FAKE_SINK_PTR pSinkBintr = 
-            DSL_FAKE_SINK_NEW(sinkName.c_str());
-
-        REQUIRE( pSinkBintr->LinkAll() == true );
-
-        WHEN( "A FakeSinkBintr is Unlinked" )
-        {
-            pSinkBintr->UnlinkAll();
-
-            THEN( "The FakeSinkBintr's IsLinked state is updated correctly" )
-            {
-                REQUIRE( pSinkBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
 SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
 {
     GIVEN( "Attributes for a new Overlay Sink" ) 
@@ -854,7 +831,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Rec
                 std::string retOutdir = pSinkBintr->GetOutdir();
                 REQUIRE( outdir == retOutdir );
                 
-                REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+                REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
                 
                 // The following should produce warning messages as there is no record-bin context 
                 // prior to linking. Unfortunately, this requires visual verification.
@@ -866,7 +843,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Rec
     }
 }
 
-SCENARIO( "When RecordSinkBintr's Parameters Set/Get ",  "[RecordSinkBintr]" )
+SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBintr]" )
 {
     GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
     {
@@ -884,7 +861,7 @@ SCENARIO( "When RecordSinkBintr's Parameters Set/Get ",  "[RecordSinkBintr]" )
 
         WHEN( "The Video Cache Size is set" )
         {
-            REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC );
+            REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
             
             uint newCacheSize(20);
             REQUIRE( pSinkBintr->SetCacheSize(newCacheSize) == true );
@@ -1184,204 +1161,6 @@ SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[RtspSinkBintr]" )
             THEN( "The correct GPU ID is returned on get" )
             {
                 REQUIRE( pRtspSinkBintr->GetGpuId() == GPUID1 );
-            }
-        }
-    }
-}
-SCENARIO( "A new ImageSinkBintr is created correctly",  "[ImageSinkBintr]" )
-{
-    GIVEN( "Attributes for a new Image Sink" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        WHEN( "The ImageSinkBintr is created " )
-        {
-            DSL_IMAGE_SINK_PTR pSinkBintr = 
-                DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-            
-            THEN( "The correct attribute values are returned" )
-            {
-                std::string retOutdir(pSinkBintr->GetOutdir());
-                REQUIRE( outdir == retOutdir );
-                REQUIRE( pSinkBintr->GetFrameCaptureInterval() == 0 );
-                REQUIRE( pSinkBintr->GetFrameCaptureEnabled() == false );
-                REQUIRE( pSinkBintr->GetObjectCaptureEnabled() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A new ImageSinkBintr can LinkAll Child Elementrs", "[ImageSinkBintr]" )
-{
-    GIVEN( "A new ImageSinkBintr in an Unlinked state" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->IsLinked() == false );
-
-        WHEN( "A new ImageSinkBintr is Linked" )
-        {
-            REQUIRE( pSinkBintr->LinkAll() == true );
-
-            THEN( "The ImageSinkBintr's IsLinked state is updated correctly" )
-            {
-                REQUIRE( pSinkBintr->IsLinked() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Linked ImageSinkBintr can UnlinkAll Child Elementrs", "[ImageSinkBintr]" )
-{
-    GIVEN( "A ImageSinkBintr in a linked state" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->LinkAll() == true );
-
-        WHEN( "A ImageSinkBintr is Unlinked" )
-        {
-            pSinkBintr->UnlinkAll();
-
-            THEN( "The ImageSinkBintr's IsLinked state is updated correctly" )
-            {
-                REQUIRE( pSinkBintr->IsLinked() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "An ImageSinkBintr's Frame Capture can be enabled and disabled", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr in memory with its Frame Capture disabled" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->GetFrameCaptureEnabled() == false );
-
-        // test negative scenario (set false when currently false)
-        REQUIRE( pSinkBintr->SetFrameCaptureEnabled(false) == false );
-
-        WHEN( "The ImageSinkBintr's Frame Capture is enabled" )
-        {
-            REQUIRE( pSinkBintr->SetFrameCaptureEnabled(true) == true );
-            
-            // test negative scenario as well (set true when currently true)
-            REQUIRE( pSinkBintr->SetFrameCaptureEnabled(true) == false );
-            
-            THEN( "The ImageSinkBintr's Frame Capture can be disabled" )
-            {
-                REQUIRE( pSinkBintr->GetFrameCaptureEnabled() == true );
-                REQUIRE( pSinkBintr->SetFrameCaptureEnabled(false) == true );
-                REQUIRE( pSinkBintr->GetFrameCaptureEnabled() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "An ImageSinkBintr's Frame Capture interval can be updated", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr in memory with its Frame interval set to default 0" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->GetFrameCaptureInterval() == 0 );
-
-        WHEN( "The ImageSinkBintr's Frame Capture interval is updated" )
-        {
-            REQUIRE( pSinkBintr->SetFrameCaptureInterval(123) == true );
-            
-            THEN( "The new Frame Capture interval is returned on get" )
-            {
-                REQUIRE( pSinkBintr->GetFrameCaptureInterval() == 123 );
-            }
-        }
-    }
-}
-
-SCENARIO( "An ImageSinkBintr's Object Capture can be enabled and disabled", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr in memory with its Object Capture disabled" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        REQUIRE( pSinkBintr->GetObjectCaptureEnabled() == false );
-
-        // test negative scenario (set false when currently false)
-        REQUIRE( pSinkBintr->SetObjectCaptureEnabled(false) == false );
-
-        WHEN( "The ImageSinkBintr's Object Capture is enabled" )
-        {
-            REQUIRE( pSinkBintr->SetObjectCaptureEnabled(true) == true );
-            
-            // test negative scenario as well (set true when currently true)
-            REQUIRE( pSinkBintr->SetObjectCaptureEnabled(true) == false );
-            
-            THEN( "The ImageSinkBintr's Object Capture can be disabled" )
-            {
-                REQUIRE( pSinkBintr->GetObjectCaptureEnabled() == true );
-                REQUIRE( pSinkBintr->SetObjectCaptureEnabled(false) == true );
-                REQUIRE( pSinkBintr->GetObjectCaptureEnabled() == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Capture Class can be added to and removed from an ImageSinkBintr", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr in memory" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-
-        WHEN( "A Capture Class is added to the ImageSinkBintr" )
-        {
-            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == true );
-            
-            THEN( "The Capture Class can then be removed" )
-            {
-                REQUIRE( pSinkBintr->RemoveObjectCaptureClass(2) == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "Invalid Capture Class calls are handled correctly by an ImageSinkBintr", "[ImageSinkBintr]" )
-{
-    GIVEN( "An ImageSinkBintr with an Capture Class" ) 
-    {
-        std::string sinkName("image-sink");
-        std::string outdir("./");
-
-        DSL_IMAGE_SINK_PTR pSinkBintr = DSL_IMAGE_SINK_NEW(sinkName.c_str(), outdir.c_str());
-        REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == true );
-
-        WHEN( "A Duplicate Capture Class fails to be added " )
-        {
-            REQUIRE( pSinkBintr->AddObjectCaptureClass(2, false, 0) == false );
-            
-            THEN( "Only the initial Capture Class can be removed successfully" )
-            {
-                REQUIRE( pSinkBintr->RemoveObjectCaptureClass(2) == true );
-                REQUIRE( pSinkBintr->RemoveObjectCaptureClass(2) == false );
             }
         }
     }

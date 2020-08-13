@@ -98,6 +98,31 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
+         * @brief Gets the current show-source setting for the TilerBintr
+         * @return the current show-source setting, -1 equals all sources/tiles shown
+         */
+        void GetShowSource(int* sourceId, uint* timeout);
+        
+        /**
+         * @brief Sets the current show-source setting for the TilerBintr to a single source
+         * @param[in] the new show-source setting to use
+         * Note: sourceId must be less than current batch-size, which is 0 until the Pipeline is linked/played
+         * @return true if set value is successful, false otherwise.
+         */
+        bool SetShowSource(int sourceId, uint timeout);
+        
+        /**
+         * @brief Handler routine for show-source timer experation
+         */
+        int HandleShowSourceTimer();
+        
+        /**
+         * @brief Sets the show source setting to -1 showing all sources
+         * The show-source timeout, if running, will be canceled on call 
+         */
+        void ShowAllSources();
+        
+        /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */
@@ -134,7 +159,31 @@ namespace DSL
          * @brief Tiler Elementr as Source for this TilerBintr
          */
         DSL_ELEMENT_PTR  m_pTiler;
+        
+        /**
+         * @brief mutex to prevent callback reentry
+         */
+        GMutex m_showSourceMutex;
+        
+        /**
+         * @brief current show-source id, -1 == show-a;-sources
+         */
+        int m_showSourceId;
+        
+        /**
+         * @brief show-source count down counter value. 0 == time expired
+         */
+        uint m_showSourceCounter;
+
+        /**
+         * @brief show-source timer-id, non-zero == currently running
+         */
+        uint m_showSourceTimerId;
     };
+
+    //----------------------------------------------------------------------------------------------
+
+    static int ShowSourceTimerHandler(void* user_data);
 }
 
 #endif // _DSL_TILER_BINTR_H

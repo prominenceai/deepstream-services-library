@@ -155,21 +155,6 @@ namespace DSL
         return AddChild(pTilerBintr);
     }
 
-    bool BranchBintr::AddOdeHandlerBintr(DSL_BASE_PTR pOdeHandlerBintr)
-    {
-        LOG_FUNC();
-        
-        if (m_pOdeHandlerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting ODE Handler '" 
-                << m_pOdeHandlerBintr->GetName());
-            return false;
-        }
-        m_pOdeHandlerBintr = std::dynamic_pointer_cast<OdeHandlerBintr>(pOdeHandlerBintr);
-        
-        return AddChild(pOdeHandlerBintr);
-    }
-
     bool BranchBintr::AddOsdBintr(DSL_BASE_PTR pOsdBintr)
     {
         LOG_FUNC();
@@ -323,20 +308,6 @@ namespace DSL
             m_linkedComponents.push_back(m_pOfvBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Optical Flow Detector '" << 
                 m_pOfvBintr->GetName() << "' successfully");
-        }
-
-        if (m_pOdeHandlerBintr)
-        {
-            // Link All ODE Handler Elementrs and add as the next component in the Branch
-            m_pOdeHandlerBintr->SetBatchSize(m_batchSize);
-            if (!m_pOdeHandlerBintr->LinkAll() or
-                (m_linkedComponents.size() and !m_linkedComponents.back()->LinkToSink(m_pOdeHandlerBintr)))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pOdeHandlerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up ODE Handler '" << 
-                m_pOdeHandlerBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer

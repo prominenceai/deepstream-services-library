@@ -255,148 +255,99 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
     }
 }
 
-static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
 }
-static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
 }
     
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Tracker", "[tracker-api]" )
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tracker", "[tracker-api]" )
 {
-    GIVEN( "A new pPipeline with a new Tracker" ) 
+    GIVEN( "A new Tracker and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring trackerName(L"ktl-tracker");
         uint width(480);
         uint height(272);
 
+        std::wstring customPpmName(L"custom-ppm");
+
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Sink Pad Batch Meta Handler is added to the Tracker" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
+        {
+            REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Tracker", "[tracker-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tracker", "[tracker-api]" )
 {
-    GIVEN( "A new pPipeline with a new Tracker" ) 
+    GIVEN( "A new Tracker and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring trackerName(L"ktl-tracker");
         uint width(480);
         uint height(272);
 
+        std::wstring customPpmName(L"custom-ppm");
+
         REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            trackerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Source Pad Batch Meta Handler is added to the Tracker" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-    }
-}
-
-SCENARIO( "A second Sink Pad Meta Batch Handler can not be added to a Tracker", "[tracker-api]" )
-{
-    GIVEN( "A new pPipeline with a new Tracker" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring trackerName(L"ktl-tracker");
-        uint width(480);
-        uint height(272);
-
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            trackerName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Sink Pad Meta Batch Handler is added to the Tracker " ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
-                
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_add(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tracker_pph_remove(trackerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A Source Pad Meta Batch Handler can not be added to a Tracker twice", "[tracker-api]" )
-{
-    GIVEN( "A new pPipeline with a new Tracker" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring trackerName(L"ktl-tracker");
-        uint width(480);
-        uint height(272);
-
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_list_size() == 1 );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            trackerName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Meta Batch Handler is added to the Tracker " ) 
-        {
-            REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Sink Pad Meta Batch Handler can not be added again" ) 
-            {
-                REQUIRE ( dsl_tracker_batch_meta_handler_add(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
-                
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(trackerName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
 
 SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker-api]" )
 {
@@ -417,38 +368,8 @@ SCENARIO( "An invalid Tracker is caught by all Set and Get API calls", "[tracker
                 REQUIRE( dsl_tracker_max_dimensions_get(fakeSinkName.c_str(), &width, &height) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
                 REQUIRE( dsl_tracker_max_dimensions_set(fakeSinkName.c_str(), 500, 300) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER);
 
-                REQUIRE ( dsl_tracker_batch_meta_handler_add(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER );
-                REQUIRE ( dsl_tracker_batch_meta_handler_remove(fakeSinkName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER );
-                
-//                REQUIRE ( dsl_tracker_iou_config_file_get(fakeSinkName.c_str(), &config) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-//                REQUIRE ( dsl_tracker_iou_config_file_set(fakeSinkName.c_str(), config) == DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE );
-
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Tracker can Enable and Disable Kitti output", "[tracker-api]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::wstring trackerName(L"ktl-tracker");
-        uint width(480);
-        uint height(272);
-
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "The Tracker's Kitti output is enabled" )
-        {
-            REQUIRE( dsl_tracker_kitti_output_enabled_set(trackerName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
-
-            THEN( "The Kitti output can then be disabled" )
-            {
-                REQUIRE( dsl_tracker_kitti_output_enabled_set(trackerName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }

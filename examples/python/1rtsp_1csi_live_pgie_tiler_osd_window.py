@@ -34,7 +34,7 @@ rtsp_uri = 'rtsp://raspberrypi.local:8554/'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
 # Function to be called on XWindow Delete event
@@ -49,7 +49,7 @@ def main(args):
     while True:
 
         # New RTSP Live Camera Source
-        retval = dsl_source_rtsp_new('rtsp-source', rtsp_uri, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, False, 1)
+        retval = dsl_source_rtsp_new('rtsp-source', rtsp_uri, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, False, 1, 100)
         if retval != DSL_RETURN_SUCCESS:
             break
 

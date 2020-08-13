@@ -158,14 +158,14 @@ SCENARIO( "An ODE Trigger's minimum dimensions can be set/get", "[ode-trigger-ap
 
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
-        uint min_width(1), min_height(1);
+        float min_width(1), min_height(1);
         REQUIRE( dsl_ode_trigger_dimensions_min_get(odeTriggerName.c_str(), &min_width, &min_height) == DSL_RESULT_SUCCESS );
         REQUIRE( min_width == 0 );
         REQUIRE( min_height == 0 );
 
         WHEN( "When the Trigger's min dimensions are updated" )         
         {
-            uint new_min_width(300), new_min_height(200);
+            float new_min_width(300), new_min_height(200);
             REQUIRE( dsl_ode_trigger_dimensions_min_set(odeTriggerName.c_str(), new_min_width, new_min_height) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct value is returned on get" ) 
@@ -190,7 +190,7 @@ SCENARIO( "An ODE Trigger's maximum dimensions can be set/get", "[ode-trigger-ap
 
         REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
 
-        uint max_width(1), max_height(1);
+        float max_width(1), max_height(1);
         REQUIRE( dsl_ode_trigger_dimensions_max_get(odeTriggerName.c_str(), &max_width, &max_height) == DSL_RESULT_SUCCESS );
         REQUIRE( max_width == 0 );
         REQUIRE( max_height == 0 );

@@ -125,7 +125,7 @@ namespace DSL
         
         /**
          * @brief sets the batch size for this Bintr
-         * @param the new batchSize to use
+         * @param[in] batchSize the new batch size to use
          */
         bool SetBatchSize(uint batchSize);
         

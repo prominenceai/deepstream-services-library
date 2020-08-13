@@ -63,6 +63,18 @@ namespace DSL
     #define DSL_RGBA_CIRCLE_NEW(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor) \
         std::shared_ptr<RgbaCircle>(new RgbaCircle(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor))
 
+    #define DSL_SOURCE_DIMENSIONS_PTR std::shared_ptr<SourceDimensions>
+    #define DSL_SOURCE_DIMENSIONS_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceDimensions>(new SourceDimensions(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+
+    #define DSL_SOURCE_FRAME_RATE_PTR std::shared_ptr<SourceFrameRate>
+    #define DSL_SOURCE_FRAME_RATE_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceFrameRate>(new SourceFrameRate(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+
+    #define DSL_SOURCE_NAME_PTR std::shared_ptr<SourceName>
+    #define DSL_SOURCE_NAME_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceName>(new SourceName(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+
     // ********************************************************************
 
     class DisplayType : public Base
@@ -73,22 +85,11 @@ namespace DSL
          * @brief ctor for the virtual DisplayType
          * @param[in] name unique name for the RGBA Color
          */
-        DisplayType(const char* name)
-            : Base(name)
-        {
-            LOG_FUNC();
-        }
+        DisplayType(const char* name);
 
-        ~DisplayType()
-        {
-            LOG_FUNC();
-        }
+        ~DisplayType();
         
-        virtual void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
-            LOG_ERROR("Base Display Type can not be overlaid");
-        }
+        virtual void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -105,17 +106,9 @@ namespace DSL
          * @param[in] green green level for the RGB color [0..1]
          * @param[in] alpha alpha level for the RGB color [0..1]
          */
-        RgbaColor(const char* name, double red, double green, double blue, double alpha)
-            : DisplayType(name)
-            , NvOSD_ColorParams{red, green, blue, alpha}
-        {
-            LOG_FUNC();
-        }
+        RgbaColor(const char* name, double red, double green, double blue, double alpha);
 
-        ~RgbaColor()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaColor();
     };
     
     // ********************************************************************
@@ -130,18 +123,9 @@ namespace DSL
          * @param[in] size size of the font
          * @param[in] color RGBA Color for the RGBA font
          */
-        RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color)
-            : DisplayType(name)
-            , m_fontName(font)
-            , NvOSD_FontParams{NULL, size, *color}
-        {
-            LOG_FUNC();
-        }
+        RgbaFont(const char* name, const char* font, uint size, DSL_RGBA_COLOR_PTR color);
 
-        ~RgbaFont()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaFont();
         
         std::string m_fontName;
     };
@@ -163,43 +147,11 @@ namespace DSL
          * @param[in] pBgColor RGBA Color for the Text background if set
          */
         RgbaText(const char* name, const char* text, uint x_offset, uint y_offset, 
-            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-            : DisplayType(name)
-            , m_text(text)
-            , m_pFont(pFont)
-            , NvOSD_TextParams{NULL, x_offset, y_offset, 
-                *pFont, hasBgColor, *pBgColor}
-        {
-            LOG_FUNC();
-        }
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
 
-        ~RgbaText()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaText();
 
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
-
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-            
-            NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
-
-            // copy over our text params, display_text currently == NULL
-            *pTextParams = *this;
-            
-            // need to allocate storage for actual text, then copy.
-            display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_text.copy(display_text, MAX_DISPLAY_LEN, 0);
-            
-            // Font, font-size, font-color
-            pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
-
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
         std::string m_text;
         
@@ -224,29 +176,11 @@ namespace DSL
          * @param[in] color RGBA Color for thIS RGBA Line
          */
         RgbaLine(const char* name, uint x1, uint y1, uint x2, uint y2, 
-            uint width, DSL_RGBA_COLOR_PTR pColor)
-            : DisplayType(name)
-            , NvOSD_LineParams{x1, y1, x2, y2, width, *pColor}
-        {
-            LOG_FUNC();
-        }
+            uint width, DSL_RGBA_COLOR_PTR pColor);
 
-        ~RgbaLine()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaLine();
 
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
-
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-
-            pDisplayMeta->line_params[pDisplayMeta->num_lines++] = *this;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -267,30 +201,11 @@ namespace DSL
          * @param[in] pColor RGBA Color for thIS RGBA Line
          */
         RgbaArrow(const char* name, uint x1, uint y1, uint x2, uint y2, 
-            uint width, uint head, DSL_RGBA_COLOR_PTR pColor)
-            : DisplayType(name)
-            , NvOSD_ArrowParams{x1, y1, x2, y2, width, (NvOSD_Arrow_Head_Direction)head, *pColor}
-        {
-            LOG_FUNC();
-        }
+            uint width, uint head, DSL_RGBA_COLOR_PTR pColor);
 
-        ~RgbaArrow()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaArrow();
 
-
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
-
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-
-            pDisplayMeta->arrow_params[pDisplayMeta->num_arrows++] = *this;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
 
     // ********************************************************************
@@ -312,31 +227,11 @@ namespace DSL
          * @param[in] pBgColor RGBA Color for the Circle background if set
          */
         RgbaRectangle(const char* name, uint left, uint top, uint width, uint height, 
-            uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-            : DisplayType(name)
-            , NvOSD_RectParams{(float)left, (float)top, (float)width, (float)height, 
-                borderWidth, *pColor, hasBgColor, 0, *pBgColor}
-        {
-            LOG_FUNC();
-        }
+            uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
 
-        ~RgbaRectangle()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaRectangle();
 
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
-
-            // Ignore the return value, errors will be logged 
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
-
-            pDisplayMeta->rect_params[pDisplayMeta->num_rects++] = *this;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
     
     // ********************************************************************
@@ -356,30 +251,86 @@ namespace DSL
          * @param[in] pBgColor RGBA Color for the Circle background if set
          */
         RgbaCircle(const char* name, uint x_center, uint y_center, uint radius,
-            DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
-            : DisplayType(name)
-            , NvOSD_CircleParams{x_center, y_center, radius, *pColor, hasBgColor, *pBgColor}
-        {
-            LOG_FUNC();
-        }
+            DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
 
-        ~RgbaCircle()
-        {
-            LOG_FUNC();
-        }
+        ~RgbaCircle();
 
-        void OverlayFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta) 
-        {
-            LOG_FUNC();
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+    };
 
-            // Ignore the return value, errors will be logged 
-            NvDsBatchMeta* batchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
-            NvDsDisplayMeta* pDisplayMeta = nvds_acquire_display_meta_from_pool(batchMeta);
+    // ********************************************************************
 
-            pDisplayMeta->circle_params[pDisplayMeta->num_circles++] = *this;
-            
-            nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
-        }
+    class SourceDimensions : public DisplayType, public NvOSD_TextParams
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Text
+         * @param[in] name unique name of the SourceDimensions Display
+         * @param[in] x_offset starting x positional offset
+         * @param[in] y_offset starting y positional offset
+         * @param[in] font RGBA font to use for the display dext
+         * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+         * @param[in] pBgColor RGBA Color for the Text background if set
+         */
+        SourceDimensions(const char* name, uint x_offset, uint y_offset, 
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+
+        ~SourceDimensions();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+        DSL_RGBA_FONT_PTR m_pFont;
+    };
+
+    // ********************************************************************
+
+    class SourceFrameRate : public DisplayType, public NvOSD_TextParams
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Text
+         * @param[in] name unique name of the SourceFrameRate Display
+         * @param[in] x_offset starting x positional offset
+         * @param[in] y_offset starting y positional offset
+         * @param[in] font RGBA font to use for the display dext
+         * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+         * @param[in] pBgColor RGBA Color for the Text background if set
+         */
+        SourceFrameRate(const char* name, uint x_offset, uint y_offset, 
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+
+        ~SourceFrameRate();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+        DSL_RGBA_FONT_PTR m_pFont;
+    };
+
+    // ********************************************************************
+
+    class SourceName : public DisplayType, public NvOSD_TextParams
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Text
+         * @param[in] name unique name of the SourceName Display
+         * @param[in] x_offset starting x positional offset
+         * @param[in] y_offset starting y positional offset
+         * @param[in] font RGBA font to use for the display dext
+         * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+         * @param[in] pBgColor RGBA Color for the Text background if set
+         */
+        SourceName(const char* name, uint x_offset, uint y_offset, 
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+
+        ~SourceName();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+        DSL_RGBA_FONT_PTR m_pFont;
     };
 
 }

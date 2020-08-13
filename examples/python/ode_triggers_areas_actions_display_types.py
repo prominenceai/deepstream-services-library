@@ -42,8 +42,10 @@ PGIE_CLASS_ID_ROADSIGN = 3
 
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+#WINDOW_WIDTH = 1280
+#WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -171,24 +173,24 @@ def create_text_and_shapes():
 def create_overlay_actions_and_always_trigger():
 
     # Create a new Action to display the black rectangle as a background for the summantion display
-    retval = dsl_ode_action_overlay_frame_new('overlay-grey-rectangle', 'grey-rectangle')
+    retval = dsl_ode_action_display_meta_add_new('add-grey-rectangle', 'grey-rectangle')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the opaque black rectangle as a dropped shadow for the summantion display
-    retval = dsl_ode_action_overlay_frame_new('overlay-black-shadow', 'black-shadow')
+    retval = dsl_ode_action_display_meta_add_new('add-black-shadow', 'black-shadow')
     if retval != DSL_RETURN_SUCCESS:
         return retval
 
     # Create a new Action to display the blue circle arrow head
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-circle', 'blue-circle')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-circle', 'blue-circle')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the blue annotation line
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-line', 'blue-line')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-line', 'blue-line')
     if retval != DSL_RETURN_SUCCESS:
         return retval
     # Create a new Action to display the blue text to annotate the shared area
-    retval = dsl_ode_action_overlay_frame_new('overlay-blue-text', 'blue-text')
+    retval = dsl_ode_action_display_meta_add_new('add-blue-text', 'blue-text')
     if retval != DSL_RETURN_SUCCESS:
         return retval
 
@@ -197,11 +199,11 @@ def create_overlay_actions_and_always_trigger():
     if retval != DSL_RETURN_SUCCESS:
         return retval
     retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
-        'overlay-black-shadow', 
-        'overlay-grey-rectangle', 
-        'overlay-blue-circle',
-        'overlay-blue-line',
-        'overlay-blue-text',
+        'add-black-shadow', 
+        'add-grey-rectangle', 
+        'add-blue-circle',
+        'add-blue-line',
+        'add-blue-text',
         None])
 
     return retval
@@ -238,14 +240,14 @@ def main(args):
         # will be for the Person class alone...  and defines a vertical rectangle to 
         # the left of the pedestrian sidewalk. The pixel values are relative to the
         # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_new('person-area', 'person-rectangle', display=True)
+        retval = dsl_ode_area_inclusion_new('person-area', 'person-rectangle', display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # The second area will be shared by both Person and Vehicle classes... and defines
         # a vertical area/rectangle to the right of the sidewalk and left of the street
         # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_new('shared-area', 'shared-rectangle', display=True)
+        retval = dsl_ode_area_inclusion_new('shared-area', 'shared-rectangle', display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -343,11 +345,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_ode_handler_new('ode-hanlder')
+        # New ODE Pad Probe Handler to handle all ODE Triggers with their Areas and Actions    
+        retval = dsl_pph_ode_new('ode-hanlder')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-hanlder', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-hanlder', triggers=[
             'vehicle-area-overlap',
             'person-area-overlap', 
             'bicycle-first-occurrence',
@@ -376,7 +378,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
+        # New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -390,6 +392,10 @@ def main(args):
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        retval = dsl_osd_pph_add('on-screen-display', handler='ode-hanlder', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -398,7 +404,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-hanlder', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
