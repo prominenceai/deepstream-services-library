@@ -50,6 +50,8 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_decode_drop_farme_interval_set](#dsl_source_decode_drop_farme_interval_set)
 * [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](#dsl_source_decode_dewarper_remove)
+* [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
+* [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -57,23 +59,22 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
 ```C++
-#define DSL_RESULT_SUCCESS                                          0x00000000
-
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
-#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
-#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
-#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
-#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
-#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
-#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
-#define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
-#define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
+#define DSL_RESULT_SOURCE_NOT_FOUND                                 0x00020004
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020005
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
+#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 ```
 
 ## Cuda Decode Memory Types
@@ -184,6 +185,7 @@ This service creates a new, uniquely named URI Source component
 * `protocol` - [in] one of the [RTP Protocols](#rtp-protocols) define above
 * `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined above
 * `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
+* `latency` [in] source latency setting in milliseconds
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -520,6 +522,46 @@ retval = dsl_source_uri_dewarper_remove('my-uri-source')
 
 <br>
 
+### *dsl_source_rtsp_tap_add*
+```C++
+DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
+```
+This service adds a named Tap to a named RTSP source
+**Parameters**
+ * `name` [in] name of the source object to update
+ * `tap` [in] name of the Tap to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_tap_add('my-rtsp-source', 'my-record-tap')
+```
+
+<br>
+
+### *dsl_source_rtsp_tap_remove*
+```C++
+DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
+```
+
+Removes a Tap component from an RTSP Source component. The call will fail if the RTSP source is without a Tap component.  
+
+**Parameters**
+ * `name` [in] name of the source object to update
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_tap_remove('my-rtsp-source')
+```
+
+<br>
+
+
 ### *dsl_source_num_in_use_get*
 ```C++
 uint dsl_source_num_in_use_get();
@@ -571,17 +613,18 @@ retval = dsl_source_num_in_use_max_set(24)
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * **Source**
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
