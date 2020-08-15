@@ -5,7 +5,7 @@ ODE Triggers use settable criteria to parse the frame and detected-object metada
 Triggers are created by calling one of the Type specific constructors defined below. Triggers are deleted by calling [dsl_ode_trigger_delete](#dsl_ode_trigger_delete), [dsl_ode_trigger_delete_many](#dsl_ode_trigger_delete_many), or [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all).
 
 #### Adding and Removing Triggers
-The relationship between ODE Handlers and ODE Triggers is one-to-many. A Trigger must be removed from a Handler before it can be used by another. Triggers are added to a handler by calling [dsl_ode_handler_trigger_add](docs/api-ode-handler.md#dsl_ode_handler_trigger_add) and [dsl_ode_handler_trigger_add_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_add_many), and removed with [dsl_ode_handler_trigger_remove](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove), [dsl_ode_handler_trigger_remove_many](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_many), and [dsl_ode_handler_trigger_remove_all](docs/api-ode-handler.md#dsl_ode_handler_trigger_remove_all).
+The relationship between ODE Pad Prop Handlers and ODE Triggers is one-to-many. A Trigger must be removed from a Handler before it can be used by another. Triggers are added to a handler by calling [dsl_pph_ode_trigger_add](docs/api-pph.md#dsl_pph_ode_trigger_add) and [dsl_pph_ode_trigger_add_many](docs/api-pph.md#dsl_pph_ode_trigger_add_many), and removed with [dsl_pph_ode_trigger_remove](docs/api-pph.md#dsl_pph_ode_trigger_remove), [dsl_pph_ode_trigger_remove_many](docs/api-pph.md#dsl_pph_ode_trigger_remove_many), and [dsl_pph_ode_trigger_remove_all](docs/api-pph.md#dsl_pph_ode_trigger_remove_all).
 
 #### Adding and Removing Actions
 Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_add_many), and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](#dsl_ode_trigger_action_remove_all).
@@ -19,6 +19,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * To use GIE Confidence as criteria, see the following NVIDIA [page](https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20) for the required DS 4.02 patch instructions to populate the confidence values in the object's meta data structure.
 
 **Constructors:**
+* [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
@@ -26,6 +27,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_minimum_new](#dsl_ode_trigger_minimum_new)
 * [dsl_ode_trigger_maximum_new](#dsl_ode_trigger_maximum_new)
 * [dsl_ode_trigger_range_new](#dsl_ode_trigger_range_new)
+* [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
+* [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
 * [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
 
 **Destructors:**
@@ -110,6 +113,31 @@ Defines a Callback typedef for a Custom ODE Trigger. Once registered, the functi
 ---
 
 ## Constructors
+### *dsl_ode_trigger_absence_new* 
+```C++
+DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when);
+```
+
+The constructor creates an Always trigger that triggers and ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect. The Source ID default == ANY_SOURCE and can be update to specificy a single source id. Although always triggered, the client selects when to Trigger an ODE occurrence for each frame. before (pre) or after (post) processing of all Object metadata by all other Triggers.
+
+Always triggers are helpful for adding [Display Types](/dsoc/api-display-types.md) -- text, lines, rectangles, etc. -- to each frame for one or all sources. 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `when` - [in] either DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this operation can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_always_new('my-always-trigger', DSL_PRE_CHECK_FOR_OCCURRENCES)
+```
+
+<br>
+
 ### *dsl_ode_trigger_absence_new* 
 ```C++
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
@@ -289,6 +317,52 @@ This constructor creates a uniquely named Range of Occurrences Trigger that chec
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_range_new('my-range-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maximum)
+```
+
+<br>
+
+### *dsl_ode_trigger_smallest_new*
+```C++
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, uint class_id, uint limit);
+```
+This constructor creates a uniquely named smallest trigger that checks for the occurrence of Objects within a frame, and if at least one is found, Triggers on the Object with smallest rectangle area.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_smallest_new('my-range-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
+### *dsl_ode_trigger_largest_new*
+```C++
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, uint class_id, uint limit);
+```
+This constructor creates a uniquely named Largest trigger that checks for the occurrence of Objects within a frame, and if at least one is found, Triggers on the Object with largest rectangle area.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_largest_new('my-range-trigger', DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
@@ -927,14 +1001,15 @@ size = dsl_ode_trigger_list_size()
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* **ODE-Trigger**
-* [ODE Action](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* **ODE-Trigger**
+* [ODE Action](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Types](/docs/api-display-types.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
