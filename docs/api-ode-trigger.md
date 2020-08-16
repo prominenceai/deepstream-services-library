@@ -18,6 +18,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 * To use GIE Confidence as criteria, see the following NVIDIA [page](https://forums.developer.nvidia.com/t/nvinfer-is-not-populating-confidence-field-in-nvdsobjectmeta-ds-4-0/79319/20) for the required DS 4.02 patch instructions to populate the confidence values in the object's meta data structure.
 
+### ODE Trigger API
 **Constructors:**
 * [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
@@ -80,6 +81,7 @@ The following return codes are used by the ODE Trigger API
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
+#define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
 ```
 
 ---
@@ -118,7 +120,7 @@ Defines a Callback typedef for a Custom ODE Trigger. Once registered, the functi
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when);
 ```
 
-The constructor creates an Always trigger that triggers and ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect. The Source ID default == ANY_SOURCE and can be update to specificy a single source id. Although always triggered, the client selects when to Trigger an ODE occurrence for each frame. before (pre) or after (post) processing of all Object metadata by all other Triggers.
+The constructor creates an Always trigger that triggers and ODE occurrece on every new frame. Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect. The Source ID default == ANY_SOURCE and can be update to specificy a single source id. Although always triggered, the client selects when to Trigger an ODE occurrence for each frame; before (pre) or after (post) processing of all Object metadata by all other Triggers.
 
 Always triggers are helpful for adding [Display Types](/dsoc/api-display-types.md) -- text, lines, rectangles, etc. -- to each frame for one or all sources. 
 
@@ -998,6 +1000,7 @@ size = dsl_ode_trigger_list_size()
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
