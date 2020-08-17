@@ -318,6 +318,7 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * **Branch**
 * [Component](/docs/api-component.md)
 
