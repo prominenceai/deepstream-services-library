@@ -17,8 +17,8 @@ Pipelines with a Tracker component requirie a [Primary GIE](/docs/api-gie.md) co
 * [dsl_tracker_max_dimensions_set](#dsl_tracker_max_dimensions_set)
 * [dsl_tracker_iou_config_file_get](#dsl_tracker_iou_config_file_get)
 * [dsl_tracker_iou_config_file_set](#dsl_tracker_iou_config_file_set)
-* [dsl_tracker_meta_batch_handler_add](#dsl_tracker_meta_batch_handler_add)
-* [dsl_tracker_meta_batch_handler_remove](#dsl_tracker_meta_batch_handler_remove)
+* [dsl_tracker_pph_add](#dsl_tracker_pph_add)
+* [dsl_tracker_pph_remove](#dsl_tracker_pph_remove)
 
 <br>
 
@@ -168,84 +168,44 @@ retval = dsl_tracker_iou_config_file_set('my-iou-tracker', './test/configs/iou_c
 
 <br>
 
-### *dsl_tracker_meta_batch_handler_add*
+### *dsl_tracker_pph_add*
 ```C++
-DslReturnType dsl_tracker_meta_batch_handler_add(const wchar_t* name, 
-    dsl_meta_batch_handler_cb handler, void* user_data);
+DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to either the `sink-pad` (on input to the Tracker) or `src-pad` (on output from the Tracker). Once added, the handler will be called to handle batch-meta data for each meta buffer. A Tracker can have more than one `sink-pad` and `src-pad` batch meta handler, and each handler can be added to more than one Tracker. Adding the same handler function to the same `sink` or `src` pad more than once will fail. 
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named of a Tracker.
 
 **Parameters**
-* `name` - [in] unique name for the Tracker to update.
-* `handler` - [in] unique meta batch handler (callback function) to add
-* `user_data` - [in] opaque pointer to callers userdata, provided on callback
+* `name` - [in] unique name of the Tracker to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-* Example using Nvidia's pyds lib to handle batch-meta data
-
 ```Python
-##
-# Callback function to handle batch-meta data
-##
-def tracker_batch_meta_handler_cb(buffer, user_data):
-
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break    
-
-        # Handle the frame_meta data, typically more than just printing to console
-        
-        print("Frame Number is ", frame_meta.frame_num)
-        print("Source id is ", frame_meta.source_id)
-        print("Batch id is ", frame_meta.batch_id)
-        print("Source Frame Width ", frame_meta.source_frame_width)
-        print("Source Frame Height ", frame_meta.source_frame_height)
-        print("Num object meta ", frame_meta.num_obj_meta)
-
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
-
-##
-# Create a new tracker component and add the batch-meta handler function above to the Source (output) Pad.
-##
-retval = dsl_tracker_ktl_new('my-ktl-tracker', 480, 270)
-retval += dsl_tracker_batch_meta_handler_add('my-ktl-tracker', 
-    DSL_PAD_SRC, tracker_batch_meta_handler_cb, None)
-
-if retval != DSL_RESULT_SUCCESS:
-    # Tracker setup failed
+retval = dsl_tracker_pph_add('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
 
-### *dsl_tracker_meta_batch_handler_remove*
+### *dsl_tracker_pph_remove*
 ```C++
-DslReturnType dsl_tracker_meta_batch_handler_remove(const wchar_t* name, 
-    dsl_meta_batch_handler_cb handler);
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tracker with [dsl_tracker_batch_meta_handler_add](#dsl_tracker_batch_meta_handler_add). 
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named On-Screen Display. The service will fail if the named handler is not owned by the Tiler
 
 **Parameters**
-* `name` - [in] unique name for the Tracker to update.
-* `handler` - [in] unique meta batch handler (callback function) to remove
+* `name` - [in] unique name of the On-Screen Display to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_tracker_batch_meta_handler_remove('my-ktl-tracker', 
-    DSL_PAD_SRC, tracker_batch_meta_handler_cb)
+retval = dsl_tracker_pph_remove('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
@@ -256,16 +216,18 @@ retval = dsl_tracker_batch_meta_handler_remove('my-ktl-tracker',
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * **Tracker**
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
-* [branch](/docs/api-branch.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
