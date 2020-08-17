@@ -243,7 +243,7 @@ This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or 
 * Example using Nvidia's pyds lib to handle batch-meta data
 
 ```Python
-retval = dsl_tiler_pph_add('my-tiler', 'my-pph-handler', `DSL_PAD_SIK`)
+retval = dsl_tiler_pph_add('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
@@ -264,7 +264,7 @@ This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sin
 
 **Python Example**
 ```Python
-retval = dsl_tiler_pph_remove('my-tiler', 'my-pph-handler', `DSL_PAD_SIK`)
+retval = dsl_tiler_pph_remove('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
