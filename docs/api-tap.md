@@ -283,6 +283,7 @@ retval, reset_done = dsl_tap_record_reset_done_get('my-record-tap')
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
