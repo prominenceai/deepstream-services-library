@@ -625,6 +625,7 @@ retval = dsl_source_num_in_use_max_set(24)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 
