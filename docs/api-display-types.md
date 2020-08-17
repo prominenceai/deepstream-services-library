@@ -1,4 +1,4 @@
-## Display Types API
+## Display Type API
 Display Types are used to add Display metadata to a Frame's metadata to be displayed downstream by an [On-Screen Display](/docs/api-osd.md). Display Types, once created, can be added to an [ODE Action](/docs/api-ode-action.md) in turn added to one or more [ODE Triggers](/docs/api-ode-trigger.md).  Each Trigger, on ODE occurrence, invokes the action to add the Display metadata to the current Frame metadata that triggerd the event.
 
 Further control of the Display Types can be achieved by enabling/disabling the Action or Trigger in a Client callback function when other events occur.  The start and end of a recording session for example. 
@@ -33,7 +33,7 @@ RGBA Rectangles are used to define [ODE Areas](/docs/api-ode-area.md) of criteri
 
 ---
 
-### Display Types API
+### Display Type API
 
 **Constructors:**
 * [dsl_display_type_rgba_color_new](#dsl_display_type_rgba_color_new)
@@ -48,7 +48,7 @@ RGBA Rectangles are used to define [ODE Areas](/docs/api-ode-area.md) of criteri
 
 **Destructors:**
 * [dsl_display_type_delete](#dsl_display_type_delete)
-* [dsl_display_type_delete_many](#dsl_display_type_delete_many)
+* [dsl_display_type_delete_many](#dsl_display_type_delete_many) 
 * [dsl_display_type_delete_all](#dsl_display_type_delete_all)
 * [dsl_display_type_delete_all](#dsl_display_type_delete_all)
 
