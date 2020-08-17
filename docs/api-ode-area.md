@@ -192,5 +192,6 @@ size = dsl_ode_area_list_size()
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Action](/docs/api-ode-action.md)
 * **ODE-Area**
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
