@@ -15,8 +15,12 @@ GIEs are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeli
 Primary and Secondary GIEs are deleted by calling [dsl_component_delete](#dsl_component_delete) or [dsl_component_delete_many](#dsl_component_delete_many)
 
 ## Primary and Secondary GIE API
+**Constructors**
 * [dsl_gie_primary_new](#dsl_gie_primary_new)
 * [dsl_gie_secondary_new](#dsl_gie_secondary_new)
+
+
+**Methods**
 * [dsl_gie_infer_config_file_get](#dsl_gie_infer_config_file_get)
 * [dsl_gie_infer_config_file_set](#dsl_gie_infer_config_file_set)
 * [dsl_gie_model_engine_file_get](#dsl_gie_model_engine_file_get)
@@ -24,7 +28,9 @@ Primary and Secondary GIEs are deleted by calling [dsl_component_delete](#dsl_co
 * [dsl_gie_enable_raw_ouput](#dsl_gie_enable_raw_ouput)
 * [dsl_gie_disable_raw_output](#dsl_gie_enable_raw_ouput)
 * [dsl_gie_interval_get](#dsl_gie_interval_get)
-* [dsl_gie_primary_interval_set](#dsl_gie_prmary_interval_set)
+* [dsl_gie_interval_set](#dsl_gie_interval_set)
+* [dsl_gie_primary_pph_add](#dsl_gie_primary_pph_add)
+* [dsl_gie_primary_pph_remove](#dsl_gie_primary_pph_remove)
 * [dsl_gie_secondary_infer_on_get](#dsl_gie_secondary_infer_on_get)
 * [dsl_gie_secondary_infer_on_set](#dsl_gie_secondary_infer_on_set)
 * [dsl_gie_num_in_use_get](#dsl_gie_num_in_use_get)
@@ -243,6 +249,51 @@ retval = dsl_gie_interval_set('my-pgie', 2)
 
 <br>
 
+### *dsl_gie_primary_pph_add*
+```C++
+DslReturnType dsl_gie_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Primary GIE.
+
+**Parameters**
+* `name` - [in] unique name of the Primary GIE to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+* Example using Nvidia's pyds lib to handle batch-meta data
+
+```Python
+retval = dsl_gie_primary_pph_add('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
+```
+
+<br>
+
+### *dsl_gie_primary_pph_remove*
+```C++
+DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Primary GIE. The service will fail if the named handler is not owned by the Primary GIE
+
+**Parameters**
+* `name` - [in] unique name of the Primary GIE to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_gie_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
+```
+
+<br>
+
+
 ### *dsl_gie_num_in_use_get*
 ```C++
 uint dsl_gie_num_in_use_get();
@@ -296,16 +347,18 @@ retval = dsl_gie_num_in_use_max_set(36)
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * **Primary and Seconday GIE**
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [Tracker](/docs/api-tracker.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Types](/docs/api-display-types.md)
 * [branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
