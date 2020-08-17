@@ -39,11 +39,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_framerate get](#dsl_source_framerate_get)
 * [dsl_source_is_live](#dsl_source_is_live)
 * [dsl_source_pause](#dsl_source_pause)
-* [dsl_source_play](#dsl_source_play)
-* [dsl_source_osd_add](#dsl_source_osd_add)
-* [dsl_source_osd_remove](#dsl_source_osd_remove)
-* [dsl_source_sink_add](#dsl_source_sink_add)
-* [dsl_source_sink_remove](#dsl_source_sink_remove)
+* [dsl_source_resume](#dsl_source_resume)
 * [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
 * [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
 * [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
@@ -265,28 +261,6 @@ retval, is_live = dsl_source_is_live('my-uri-source')
 
 <br>
 
-### *dsl_source_play*
-```C++
-DslReturnType dsl_source_play(const wchar_t* source);
-```
-Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
-state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
-
-<br>
-
-**Parameters**
-* `source` - unique name of the Source to play
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_play('my-source')
-```
-
-<br>
-
 ### *dsl_source_pause*
 ```C++
 DslReturnType dsl_source_pause(const wchar_t* source);
@@ -306,104 +280,28 @@ retval = dsl_source_play('my-source')
 
 <br>
 
-### *dsl_source_state_is*
+### *dsl_source_resume*
 ```C++
-DslReturnType dsl_source_state_is(const wchar_t* source, uint* state);
+DslReturnType dsl_source_resume(const wchar_t* source);
 ```
-Returns a Source component's current state as defined by the [DSL_STATE](#DSL_STATE) values.
+Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
+state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
+
+<br>
 
 **Parameters**
-* `source` - [in] unique name of the Source to query
-* `state` - [out] one of the [DSL_STATE](#DSL_STATE) values.
+* `source` - unique name of the Source to play
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, state = dsl_source_state_is('my-source')
+retval = dsl_source_resume('my-source')
 ```
 
 <br>
 
-### *dsl_source_osd_add*
-```C++
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* osd);
-```
-This service adds a previously constructed [On-Screen Display (OSD)](/docs/osd-sink.md) component to a named source. The relationshie of Source to child OSD is one to one. The add service will fail if either of the Source or OSD objects is currently `in-use`. When using a Demuxer, each source can have at most one OSD. Adding Sources with an OSD to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `osd` - [in] unique name of the OSD to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_osd_add('my-uri-source', 'my-osd')
-```
-
-<br>
-
-### *dsl_source_osd_remove*
-```C++
-DslReturnType dsl_source_osd_remove(const wchar_t* source);
-```
-This service removes a one and only [OSD](/docs/api-osd.md) component from a named source component. The remove service will fail if the Source (and therefore the OSD) component is currently `in-use`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_osd_remove('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_sink_add*
-```C++
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
-```
-This service adds a previously constructed [Sink](/docs/api-sink.md) component to a named source. The relationshie of Source to child Sink is one to many. The add service will fail if either of the Source or Sink objects is currently `in-use`. When using a Demuxer, each source must have at least one Sink. Adding Sources with Sinks to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `sink` - [in] unique name of the Sink to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_sink_add('my-uri-source', 'my-window-sink')
-```
-
-<br>
-
-### *dsl_source_sink_remove*
-```C++
-DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
-```
-This service removes a named [Sink](/docs/api-sink.md) component from a named source component. The remove service will fail if the Source (and therefore the Sink) object is currently `in-use`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `sink` - [in] unique name of the Sink to remove
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_sink_remove('my-uri-source', 'my-window-sink')
-```
-
-<br>
 
 ### *dsl_source_decode_uri_get*
 ```C++
