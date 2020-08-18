@@ -6,7 +6,7 @@
 * [dsl_main_loop_quit](/docs/overview.md#main-loop-context)
 * [dsl_return_value_to_string](/docs/overview.md#service-return-codes)
 
-### Callback Tyedefs:
+### Callback Types:
 * [dsl_ode_handle_occurrence_cb](/docs/api-ode-action.md#dsl_ode_handle_occurrence_cb)
 * [dsl_ode_check_for_occurrence_cb](/docs/api-ode-trigger.md#dsl_ode_check_for_occurrence_cb)
 * [dsl_ode_post_process_frame_cb](/docs/api-ode-trigger.md#dsl_ode_post_process_frame_cb)
