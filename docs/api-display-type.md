@@ -1,48 +1,146 @@
-# Display Type API
-Display Types are used to display Text and Shapes when using an [On-Screen Display](/docs/api-osd.md) Component. The Display Types are overlaid by adding metadata to a Video frame with an [Overlay Frame ODE Action](/docs/api-ode-action#dsl_ode_action_overlay_frame_new), added two one or more [ODE Triggers](/docs/api-ode-trigger.md). 
-
-There are two base types used to specify colors and fonts when creating derived types for actual display. The Base Types are used when updating an [On-Screen Display's](/docs/api-osd.md) Clock settings as well.
-
-### Base Types
-* **RGBA Color** - red, green, blue, and alpha levels between 0.0 and 1.0
-* **RGBA Font** - derived from any standard font with size and RGBA Color.
-
-### Derived  Types
-* **RGBA Text** - derived from an RGBA Font with an optional RGBA background Color
-* **RGBA Line** - with start and end coordinates, linewidth, and RGBA Color
-* **RGBA Arrow** - same parameters as RGBA Line with and additional parameter for the arrowhead style.
-* **RGBA Rectangle** - with coordinates, dimensions, border-width, and RGBA Colors for the border and background (optional).
-* **RGBA Circle** - with coordinates, radius, and RGBA Colors for the border and background (optional)
-
-#### ODE Action Construction and Destruction
-Display Types are created by calling one of type specific [constructors](#display-type-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE`. Once created, all Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete),
-[dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all). Attempting to delete a Display Type in-use by an ODE Action will fail with a result of `DSL_RESULT_ODE_DISPLAY_TYPE_IN_USE`
-
-#### Display Types and the ODE Overlay Frame Action
-A Derived Display Type (Text, Line, Arrow, Rectangle, Circle) is added to a Frame Overlay Action when the action is created by calling [dsl_ode_action_overlay_frame_new](docs/api-ode-action#dsl_ode_action_overlay_frame_new). The ODE Action will overlay the Display Type by adding it to the Frame's Metadata when the Action is invoked on ODE occurrence. Use an [ODE Always Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_always_new) to overlay Display Types on each and every frame.
-
 ## Display Type API
+Display Types are used to add Display metadata to a Frame's metadata to be displayed downstream by an [On-Screen Display](/docs/api-osd.md). Display Types, once created, can be added to an [ODE Action](/docs/api-ode-action.md) in turn added to one or more [ODE Triggers](/docs/api-ode-trigger.md).  Each Trigger, on ODE occurrence, invokes the action to add the Display metadata to the current Frame metadata that triggerd the event.
+
+Further control of the Display Types can be achieved by enabling/disabling the Action or Trigger in a Client callback function when other events occur.  The start and end of a recording session for example. 
+
+#### Construction and Destruction
+There are two base types used when creating other complete types for actual display. 
+* RGBA Color
+* RGBA Font
+
+There are four types for displaying text and shapes. 
+* RGBA Line
+* RGBA Arrow
+* RGBA Rectangle
+* RGBA Circle
+
+And three types for displaying source information specific to each frame. 
+* Source Number
+* Source Name
+* Source Dimensions
+
+Display Types are created by calling their type specific constructor. 
+
+Display Typess are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete), [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all).
+
+#### Adding to an ODE Action. 
+Display Types are added to a Display Action when the action is created by calling [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new).
+
+Note: Adding a Base Display Type to an ODE Action will fail. 
+
+#### Adding Rectangles to ODE Areas.
+RGBA Rectangles are used to define [ODE Areas](/docs/api-ode-area.md) of criteria, either inclussion or exclusion, for one or more [ODE Triggers](/docs/api-ode-trigger.md). Rectangles are added when the ODE Area is created by calling [dsl_ode_area_new](/docs/api-ode-area.md#dsl_ode_area_new).
+
+### Using Display Types
+
+#### For static display on every frame:
+To add static Display types to every frame, use a Display Meta Action -- [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) -- added to an [Always ODE Trigger](/docs/api-ode-trigger.md). 
+
+Using Python for example
+```Python
+# new RGBA color Display Type
+retval = dsl_display_type_rgba_color_new('full-blue', red=0.0, green=0.0, blue=1.0, alpha=1.0)
+
+# new RGBA font using our new color
+retval = dsl_display_type_rgba_font_new('arial-20-blue', font='arial', size=20, color='full-blue')
+
+# new RGBA display text
+retval = dsl_display_type_rgba_text_new('display-text', text='My Home Security', x_offset=733, y_offset=5, 
+    font='arial-20-blue', has_bg_color=False, bg_color=None)
+
+# Create an Action that will add the display text as metadata to the Frame's metadata
+retval = dsl_ode_action_display_meta_add_new('add-display-text', display_type='display-text')
+
+# new Always triger to add our display text on every frame, always
+retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+
+# finally, add the "Add Display Meta" Action to our Always Trigger.
+retval = dsl_ode_trigger_action_add('always-trigger', action='overlay-display-text')
+```
+
+#### For static display on specific frames:
+Text or shapes can be used to indicate the occurrence of specific detection events. 
+
+Using Python for example
+```Python
+# new RGBA color Display Type
+retval = dsl_display_type_rgba_color_new('full-yellow', red=1.0, green=1.0, blue=0.0, alpha=1.0)
+
+# new RGBA display rectangle
+retval = dsl_display_type_rgba_rectangle_new('warning-rectangle', left=10, top=10, width=50, height=50, 
+    border_width=0, color='full-yellow', has_bg_color=True, bg_color='full-yellow')
+
+# Create an Action that will add the Rectangle to the Frame's metadata
+retval = dsl_ode_action_display_meta_add_new('add-warning', display_type='warning-rectangle')
+
+# new Maximum Objects triger to invoke our 'add-warning' action when to many objects are detected
+retval = dsl_ode_trigger_maximum_new('max-trigger', class_id=PGIE_CLASS_ID_PERSON, limit=0, maximum=10)
+
+# finally, add the "Add Display Meta" Action to our Max Objects Trigger.
+retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
+```
+
+#### For dynamic display using a Custom ODE Action:
+
+```Python
+# Callback function added to a Custom ODE Action which is added to a specific ODE Trigger
+def handle_ode_occurrence(event_id, trigger, display_meta, frame_meta, object_meta, client_data):
+
+    # cast the opaque client data back to a python object and dereference
+    my_app_data = cast(client_data, POINTER(py_object)).contents.value
+
+    # cast the opaque object_meta to a 
+    py_object_meta = cast(object_meta, POINTER(py_object)).contents.value
+
+    # create an Arrow to point to our object that triggered the event
+    if (dsl_display_type_rgba_arrow_new('object-pointer`, 
+        x1=py_object_meta->rect_params.left - 100,
+        y1=py_object_meta->rect_params.top - 10,
+        x2=py_object_meta->rect_params.left - 5,
+        y2=py_object_meta->rect_params.top - 5,
+        width=2,
+        head=DSL_ARROW_END_HEAD,
+        color='full-red') != DSL_RESULT_SUCCESS):
+        
+        # failed to create
+        return
+        
+    dsl_display_type_meta_add('object-pointer', display_meta, frame_meta)
+    
+    dsl_display_type_delete('object-pointer')
+    
+    return
+        
+
+```
+
+---
+
+### Display Type API
+
 **Constructors:**
 * [dsl_display_type_rgba_color_new](#dsl_display_type_rgba_color_new)
 * [dsl_display_type_rgba_font_new](#dsl_display_type_rgba_font_new)
-* [dsl_display_type_rgba_text_new](#dsl_display_type_rgba_text_new)
-* [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new)
+* [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new) 
 * [dsl_display_type_rgba_arrow_new](#dsl_display_type_rgba_arrow_new)
 * [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
 * [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
-
+* [dsl_display_type_source_number_new](#dsl_display_type_source_number_new)
+* [dsl_display_type_source_name_new](#dsl_display_type_source_name_new)
+* [dsl_display_type_source_dimensions_new](#dsl_display_type_source_dimensions_new)
 
 **Destructors:**
 * [dsl_display_type_delete](#dsl_display_type_delete)
-* [dsl_display_type_delete_many](#dsl_display_type_delete_many)
+* [dsl_display_type_delete_many](#dsl_display_type_delete_many) 
 * [dsl_display_type_delete_all](#dsl_display_type_delete_all)
 
 **Methods:**
 * [dsl_display_type_list_size](#dsl_display_type_list_size)
+* [dsl_display_type_meta_add](#dsl_display_type_meta_add)
 
 ---
 ## Return Values
-The following return codes are used by the Display Types API
+The following return codes are used by the Display Type API
 ```C++
 #define DSL_RESULT_DISPLAY_TYPE_RESULT                              0x00100000
 #define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00100001
@@ -62,187 +160,264 @@ The following return codes are used by the Display Types API
 ```
 
 ---
+
 ## Constructors
-### *dsl_display_type_rgba_color_new*
+### *dsl_display_type_rgba_color_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name, 
     double red, double green, double blue, double alpha);
 ```
-The constructor creates a uniquely named **RGBA Color** Display type. This is a Base type and is used as input when creating other Derived Display Types.
+The constructor creates an RGBA Color Display Type. The RGBA Color is a base type used to create other RGBA types that can be added as display metadata to a frame's metadata.
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Display Color
-* `red` - [in] red level for the RGBA color [0..1]
-* `green` - [in] green level for the RGBA color [0..1]
-* `blue` - [in] blue level for the RGBA color [0..1]
-* `alpha` - [in] alpha level for the RGBA color [0..1]
-
+* `name` - [in] unique name for the Display Type to create.
+* ` red` - [in]red level for the RGB color [0..1]
+* ` blue` - [in] blue level for the RGB color [0..1]
+* `green` - [in] green level for the RGB color [0..1]
+* `alpha` - [in] alpha level for the RGB color [0..1]
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-while', 1.0, 1.0, 1.0, 1.0)
+retval = dsl_display_type_rgba_color_new('full-red', 1.0, 0.0, 0.0, 1.0)
 ```
 
 <br>
 
-### *dsl_display_type_rgba_font_new*
+### *dsl_display_type_rgba_font_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, 
-  const wchar_t* font, uint size, const wchar_t* color);
+    const wchar_t* font, uint size, const wchar_t* color);
 ```
-The constructor creates a uniquely named **RGBA Font** Display type. This is a Base type and is used as input when creating other Derived Display Types.
+The constructor creates an RGBA Font Display Type. The RGBA Font is a base type used to create other RGBA types that can be added as display metadata to a frame's metadata.
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Display Font
-* `font` - [in] standard name of the actual font type (eg. 'arial')
-* `size` - [in] size of the Font
-* `color` - [in] name of an RGBA Display Color for the Font type 
-
+* `name` - [in] unique name for the Display Type to create.
+* `fount` - [in] standard, unique string name of the actual font type (eg. 'arial')
+* `size` - [in] size of the font
+* `color` - [in] name of the RGBA Color for the RGBA font
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-while', 1.0, 1.0, 1.0, 1.0)
-retval = dsl_display_type_rgba_font_new('arial-white-16', 'arial', 16, 'full-while')
+retval = dsl_display_type_rgba_font_new('red-arial-18', 'arial', 18, 'full-red')
 ```
 
-### *dsl_display_type_rgba_text_new*
+<br>
+
+### *dsl_display_type_rgba_text_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
-```    
-The constructor creates a uniquely named **RGBA Text** Display type.
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);    
+```
+The constructor creates an RGBA Text Display Type. The RGBA Text can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Display Text
-* `text` - [in] actual text for display
+* `name` - [in] unique name for the Display Type to create.
+* `text` - [in] text string to display
 * `x_offset` - [in] starting x positional offset
 * `y_offset` - [in] starting y positional offset
-* `font` - [in] name of an RGB Font Type to use for the Display Text
-* `has_bg_color` - [in] set to true if the Text is to Display a background RGBA Color
-* `bg_color` - [in] name of an RGBA Display Color for the Text background
+* `font` [in] - RGBA font to use for the display dext
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` [in] RGBA Color for the Text background if set
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-while', 1.0, 1.0, 1.0, 1.0)
-retval = dsl_display_type_rgba_color_new('full-black', 0.0, 0.0, 0.0, 1.0)
-retval = dsl_display_type_rgba_font_new('arial-white-16', 'arial', 16, 'full-while')
-
-retval = dsl_display_type_rgba_text_new('my-text', 
-   'Hello World!', 100, 25, 'arial-white-16, True, 'full-black')
+retval = dsl_display_type_rgba_text_new('recording-on', 'REC 0', 30, 30, 'full-red', False, None)
 ```
 
-### *dsl_display_type_rgba_line_new*
+<br>
+
+### *dsl_display_type_rgba_line_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name, 
-    uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color);
+    uint x1, uint y1, uint x2, uint y2, uint width, const wchar_t* color); 
 ```
-The constructor creates a uniquely named **RGBA Line** Display type.
+The constructor creates an RGBA Line Display Type. The RGBA Line can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Display Line
-* `x1` - [in] starting x positional offset
-* `y1` - [in] starting y positional offset
-* `x2` - [in] ending x positional offset
-* `y2` - [in] ending y positional offset
-* `width` - [in] line width in pixels
-* `color` - [in] name of an RGBA Display Color for the Display Line
-
+* `name` - [in] unique name for the Display Type to create.
+* `x1` - [in] starting x positional offest
+* `y1` - [in] starting y positional offest
+* `x2` - [in] ending x positional offest
+* `y2` - [in] ending y positional offest
+* `width` - [in] width of the line in pixels
+* `color` - [in] RGBA Color for the RGBA Line
+ 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-black', 0.0, 0.0, 0.0, 1.0)
-retval = dsl_display_type_rgba_text_new('my-line', 100, 25, 250, 25, 2, 'full-black')
+retval = dsl_display_type_rgba_line_new('dividing-line', 400, 10, 400, 700, 2, 'full-red')
 ```
 
-### *dsl_display_type_rgba_arrow_new*
+<br>
+
+### *dsl_display_type_rgba_arrow_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
-    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color);
+    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color);   
 ```
 
-The constructor creates a uniquely named **RGBA Arrow** Display type.
+The constructor creates an RGBA Arrow Display Type. The RGBA Arrow can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Display arrow
-* `x1` - [in] starting x positional offset
-* `y1` - [in] starting y positional offset
-* `x2` - [in] ending x positional offset
-* `y2` - [in] ending y positional offset
-* `width` - [in] arrow line width in pixels
-* `head` - [in] one of DSL_ARROW_START_HEAD, DSL_ARROW_END_HEAD, DSL_ARROW_BOTH_HEAD
-* `color` - [in] name of an RGBA Display Color for the Display Arrow
+* `name` - [in] unique name for the Display Type to create.
+* `x1` - [in] starting x positional offest
+* `y1` - [in] starting y positional offest
+* `x2` - [in] ending x positional offest
+* `y2` - [in] ending y positional offest
+* `width` - [in] width of the line in pixels
+* `head` - [in] one of `DSL_ARROW_START_HEAD`, `DSL_ARROW_END_HEAD`, `DSL_ARROW_BOTH_HEAD`
+* `color` - [in] RGBA Color for the RGBA Arrow
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-black', 0.0, 0.0, 0.0, 1.0)
-retval = dsl_display_type_rgba_arrow_new('my-line', 
-  100, 25, 250, 25, 2, DSL_ARROW_START_HEAD, 'full-black')
+retval = dsl_display_type_rgba_arrow_new('arrow-pointer', 220, 165, 370, 235, 1, DSL_ARROW_END_HEAD, 'full-blue')
 ```
 
-### *dsl_display_type_rgba_rectangle_new*
+<br>
+
+### *dsl_display_type_rgba_rectangle_new* 
 ```C++
- DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
     uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 ```
-The constructor creates a uniquely named **RGBA Rectangle** Display type.
+
+The constructor creates an RGBA Rectangle Display Type. The RGBA Rectangle can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Rectangle
-* `left` - [in] left x-positional offset
-* `top` - [in] top y-positional offset
-* `width` - [in] width of the rectangle in pixels
-* `height` - [in] ending y positional offset
+* `name` - [in] unique name for the Display Type to create.
+* `left` - [in] left positional offest
+* `top` - [in] positional offest
+* `width` - [in] width of the rectangle in Pixels
+* `height` - [in] height of the rectangle in Pixels
 * `border_width` - [in] width of the rectangle border in pixels
-* `color` - [in] name of an RGBA Display Color for the Rectangle border
-* `has_bg_color` - [in] set to true to to fill the Rectangle's background
-* `bg_color` - [in] name of an RGBA Display Color for the Rectangle's background color
-
+* `color` - [in] RGBA Color for thIS RGBA Line
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Circle background if set
+ 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-black', 0.0, 0.0, 0.0, 1.0)
-retval = dsl_display_type_rgba_rectangle_new('my-rectangle', 
-  100, 25, 250, 350, 2, 'full-black', True, 'full-black)
+retval = dsl_display_type_rgba_rectangle_new('black-rectangle', 240, 370, 1200, 940, 2, 'full-black', False, None)
 ```
 
-### *dsl_display_type_rgba_circle_new*
+<br>
+
+### *dsl_display_type_rgba_circle_new* 
 ```C++
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
     const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 ```
-The constructor creates a uniquely named **RGBA Circle** Display type.
+
+The constructor creates an RGBA Circle Display Type. The RGBA Circle can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
+
 
 **Parameters**
-* `name` - [in] unique name for the RGBA Circle
-* `x_center` - [in] x-positional offset to center
-* `y_center` - [in] y-positional offset to center
-* `radius` - [in] radius for the Circle
-* `color` - [in] name of an RGBA Display Color for the Cicrcle border
-* `has_bg_color` - [in] set to true to to fill the Circle's background
-* `bg_color` - [in] name of an RGBA Display Color for the Circle's background color
+* `name` - [in] unique name for the Display Type to create.
+* `x_center` - [in] X positional offset to center of Circle
+* `y_center` - [in] y positional offset to center of Circle
+* `radius` - [in] radius of the RGBA Circle in pixels 
+* `color` - [in] RGBA Color for the RGBA Circle
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Circle background if set
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_color_new('full-black', 0.0, 0.0, 0.0, 1.0)
-retval = dsl_display_type_rgba_rectangle_new('my-circle', 
-  100, 100, 25, 'full-black', True, 'full-black)
+retval = dsl_display_type_rgba_circle_new('blue-circle', 220, 220, 20, 'my-blue', True, 'my-blue')
+```
+
+<br>
+
+### *dsl_display_type_source_number_new* 
+```C++
+DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+```
+
+The constructor creates a uniquely name Source Nuumber Display Type. The Source Number can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `x_offset` - [in] starting x positional offset
+* `y_offset` - [in] starting y positional offset
+* `font` - [in] RGBA font to use for the display text
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Text background if set
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_source_number_new('display-source-number', 10, 10, 'arial-blue-14', False, None)
+```
+
+<br>
+
+### *dsl_display_type_source_name_new* 
+```C++
+DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+```
+
+The constructor creates a uniquely name Source Name Display Type. The Source Name can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `x_offset` - [in] starting x positional offset
+* `y_offset` - [in] starting y positional offset
+* `font` - [in] RGBA font to use for the display text
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Text background if set
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_source_name_new('display-source-name', 10, 10, 'arial-blue-14', False, None)
+```
+
+<br>
+
+### *dsl_display_type_source_dimensions_new* 
+```C++
+DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+```
+
+The constructor creates a uniquely name Source Dimensions Display Type. The Source Dimensions can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `x_offset` - [in] starting x positional offset
+* `y_offset` - [in] starting y positional offset
+* `font` - [in] RGBA font to use for the display text
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Text background if set
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_source_dimensions_new('display-source-dimensions', 10, 10, 'arial-blue-14', False, None)
 ```
 
 <br>
@@ -254,17 +429,17 @@ retval = dsl_display_type_rgba_rectangle_new('my-circle',
 ```C++
 DslReturnType dsl_display_type_delete(const wchar_t* name);
 ```
-This destructor deletes a single, uniquely named Display Type. The destructor will fail if the Display Type is currently `in-use` by one or more ODE Action
+This destructor deletes a single, uniquely named Display Type. The destructor will fail if the Display Type is currently `in-use` by an ODE Action
 
 **Parameters**
-* `names` - [in] unique name for the Display Types to delete
+* `name` - [in] unique name for the Display Type to delete
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_display_type_delete('my-rectangle')
+retval = dsl_display_type_delete('blue-circle')
 ```
 
 <br>
@@ -283,7 +458,7 @@ This destructor deletes multiple uniquely named Display Types. Each name is chec
 
 **Python Example**
 ```Python
-retval = dsl_display_type_delete_many(['my-line', 'my-rectangle', 'my-circle', None])
+retval = dsl_display_type_delete_many(['my-blue-circle', 'my-blue-color', None])
 ```
 
 <br>
@@ -292,7 +467,7 @@ retval = dsl_display_type_delete_many(['my-line', 'my-rectangle', 'my-circle', N
 ```C++
 DslReturnType dsl_display_type_delete_all();
 ```
-This destructor deletes all Display Types currently in memory. The destructor will fail if any of the Display Types are currently `in-use` by one or more ODE Actions. 
+This destructor deletes all Display Types currently in memory. The destructor will fail if any one of the Display Types is currently `in-use` by an ODE Action. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
@@ -308,10 +483,10 @@ retval = dsl_display_type_delete_all()
 
 ## Methods
 ### *dsl_display_type_list_size*
-```C++
+```c++
 uint dsl_display_type_list_size();
 ```
-This service returns the size of the Display Types container, i.e. the number of Types currently in memory. 
+This service returns the size of the display_type container, i.e. the number of Display Types currently in memory. 
 
 **Returns**
 * The size of the Display Types container
@@ -322,23 +497,48 @@ size = dsl_display_type_list_size()
 ```
 
 <br>
+
+### *dsl_display_type_meta_add*
+```c++
+DslReturnType dsl_display_type_meta_add(const wchar_t* name, void* display_meta, void* frame_meta);
+```
+This service, when called from a custom [Pad Probe Handler](/docs/api-pph.md), adds the named Display Type as display-meta to the frame meta for the associated buffer.
+
+**Parmeters**
+* `name` - [in] unique name for the Display Type to add
+* `display_meta` - [in] opaque pointer to the aquired display meta to to add the Display Type to
+* `frame_meta` - [in] opaque pointer to a Frame's meta data to add the Display Type.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_display_type_meta_add('blue-circle', buffer, frame_meta)
+```
+
+<br>
+
 ---
 
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [Tiler](/docs/api-tiler.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Action](/docs/api-ode-trigger.md)
-* [ODE Area](/docs/api-ode-area.md)
-* **Display Types**
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE-Trigger](/docs/api-ode-trigger.md)
+* [ODE Action](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* **Display Types**
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
+
+

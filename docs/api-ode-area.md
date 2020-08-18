@@ -1,12 +1,18 @@
 # ODE Area Services API
-Object Detection Event (ODE) Areas define rectangles with coordinates, `left` and `top`, and dimensions, `width` and `height`, that can be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to an Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
+Object Detection Event (ODE) Areas use a [Rectangle Display Type](/docs/api-display-type.md) with coordinates  (`left` and `top`) and dimensions (`width` and `height`) to be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
 
-ODE Areas can be used strictly for the purpose of adding a rectange to the display metadata using an ODE Action to Fill it [dsl_ode_action_fill_area_new](/docs/api-ode-actions.md#dsl_ode_action_fill_area_new).
+There are two types of Areas:
+* **Area of Inclusion** - at least one pixel of overlap between object and area is required to trigger ODE occurrence.
+* **Area of Exclusion** - not one pixel of overlap can occur for ODE occurrence to be triggered. 
 
-ODE Actions can be used to update a Trigger's contaner of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new). 
+The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to a Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
+
+If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence. 
+
+ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new). 
 
 #### ODE Area Construction and Destruction
-Areas are created by calling [dsl_ode_area_new](#dsl_ode_area_new)
+Areas are created by calling one of two type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new) and [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
 
 #### Adding/Removing ODE Areas
 ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add), [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and deleted with [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add)
@@ -14,22 +20,15 @@ ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/do
 ## ODE Area Services API
 
 **Constructors:**
-* [dsl_ode_area_new](#dsl_ode_area_new)
+* [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new)
+* [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
 
 **Destructors:**
 * [dsl_ode_area_delete](#dsl_ode_area_delete)
 * [dsl_ode_area_delete_many](#dsl_ode_area_delete_many)
 * [dsl_ode_area_delete_all](#dsl_ode_area_delete_all)
 
-We can’t connect to the server at www.cnn.com.
-
-If that address is correct, here are three other things you can try:
-
 **Methods:**
-* [dsl_ode_area_get](#dsl_ode_area_get)
-* [dsl_ode_area_set](#dsl_ode_area_get)
-* [dsl_ode_area_color_get](#dsl_ode_area_color_get)
-* [dsl_ode_area_color_set](#dsl_ode_area_color_set)
 * [dsl_ode_area_list_size](#dsl_ode_area_list_size)
 
 ---
@@ -37,35 +36,31 @@ If that address is correct, here are three other things you can try:
 ## Return Values
 The following return codes are used by the OSD Area API
 ```C++
-#define DSL_RESULT_ODE_AREA_RESULT                                  0x00100000
-#define DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE                         0x00100001
-#define DSL_RESULT_ODE_AREA_NAME_NOT_FOUND                          0x00100002
-#define DSL_RESULT_ODE_AREA_THREW_EXCEPTION                         0x00100003
-#define DSL_RESULT_ODE_AREA_IN_USE                                  0x00100004
-#define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
+#define DSL_RESULT_ODE_AREA_RESULT                                  0x00100000
+#define DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE                         0x00100001
+#define DSL_RESULT_ODE_AREA_NAME_NOT_FOUND                          0x00100002
+#define DSL_RESULT_ODE_AREA_THREW_EXCEPTION                         0x00100003
+#define DSL_RESULT_ODE_AREA_IN_USE                                  0x00100004
+#define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
 ```
 
 <br>
 
 ---
 
-We can’t connect to the server at www.cnn.com.
-
-If that address is correct, here are three other things you can try:
 ## Constructors
-### *dsl_ode_area_new*
+### *dsl_ode_area_inclusion_new*
 ```C++
-DslReturnType dsl_ode_area_new(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
+DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
+    const wchar_t* rectangle, boolean display);
 ```
-The constructor creates a uniquely named ODE Area with coordinates and dimensions. The Area can be displayed (requires an On-Screen Display) or left hidden. Areas are created with a default background color of white, with an alpha level of 0.25. The background color can be changed by calling [dsl_ode_area_color_set](#dsl_ode_area_color_set)
+The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Rectangle. Inclusion require at least one pixel of overlap between an Object's rectangle and the Area's rectangle is required to trigger ODE occurrence.
+
+The Rectangle can be displayed (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
 **Parameters**
-* `name` - [in] unique name for the ODE Area to create.
-* `left` - [in] left coordinate for Area rectangle in pixels.
-* `top` - [in] top coordinate for Area rectangle in pixels.
-* `wdith` - [in] width for the Area rectangle in pixels.
-* `height` - [in] height for the Area rectangle in pixels.
+* `name` - [in] unique name for the ODE Area of Inclusion to create.
+* `rectangle` - [in] unique name for the Rectangle to use for coordinates, dimensions, and optionally display
 * `display` - [in] if true, rectangle display-metadata will be added to each structure of frame metadata.
 
 **Returns**
@@ -73,7 +68,31 @@ The constructor creates a uniquely named ODE Area with coordinates and dimension
 
 **Python Example**
 ```Python
-retval = dsl_ode_area_new('my-area', 120, 30, 700, 400, True)
+retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-inclusion-rectangle', True)
+```
+
+<br>
+
+### *dsl_ode_area_exclusion_new*
+```C++
+DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
+    const wchar_t* rectangle, boolean display);
+```
+The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Rectangle. Exclusion requires that not one pixel of overlap can occur for ODE occurrence to be triggered. 
+
+The Rectangle can be displayed (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Area of Inclusion to create.
+* `rectangle` - [in] unique name for the Rectangle to use for coordinates, dimensions, and optionally display.
+* `display` - [in] if true, rectangle display-metadata will be added to each structure of frame metadata.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_area_exclusion_new('my-exclusion-area', 'my-exclusion-rectangle', True)
 ```
 
 <br>
@@ -135,102 +154,10 @@ retval = dsl_ode_area_delete_all()
 
 <br>
 
+---
+
 ## Methods
-### *dsl_ode_area_get*
-```c++
-DslReturnType dsl_ode_area_get(const wchar_t* name, 
-    uint* left, uint* top, uint* width, uint* height, boolean *display);
-```
-This service returns a named ODE Area's current rectangle coordinates, dimensions, and display setting.
 
-**Parameters**
-* `name` - [in] unique name of the ODE Area to query.
-* `left` - [out] left coordinate for Area rectangle in pixels.
-* `top` - [out] top coordinate for Area rectangle in pixels.
-* `wdith` - [out] width for the Area rectangle in pixels.
-* `height` - [out] height for the Area rectangle in pixels.
-* `display` - [out] if true, rectangle display-metadata will be added to each structure of frame metadata.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, left, top, width, height, display = dsl_ode_area_get('my-area')
-```
-
-<br>
-
-### *dsl_ode_area_set*
-```c++
-DslReturnType dsl_ode_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
-```
-This service returns a named ODE Area's current rectangle coordinates, dimensions, and display setting.
-
-**Parameters**
-* `name` - [in] unique name of the ODE Area to update.
-* `left` - [in] left coordinate param for Area rectangle in pixels.
-* `top` - [in] top coordinate param for Area rectangle in pixels.
-* `wdith` - [in] width param for the Area rectangle in pixels.
-* `height` - [in] height param for the Area rectangle in pixels.
-* `display` - [in] if true, rectangle display-metadata will be added to each structure of frame metadata.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_ode_area_set('my-area', 0, 0. 128, 1028, False)
-```
-
-### *dsl_ode_area_color_get*
-```c++
-DslReturnType dsl_ode_area_color_get(const wchar_t* name, 
-    double* red, double* green, double* blue, double* alpha);
-```
-This service returns a named ODE Area's current RGBA background color.
-
-**Parameters**
-* `name` - [in] unique name of the ODE Area to query.
-* `red` - [out] red color value for the Area's RGBA background color [0.0..1.0].
-* `green` - [out] green color value for the Area's RGBA background color [0.0..1.0].
-* `blue` - [out] blue color value for the Area's RGBA background color [0.0..1.0].
-* `alpha` - [out] alpha color value for the Area's RGBA background color [0.0..1.0].
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, left, top, width, height, display = dsl_ode_area_get('my-area')
-```
-
-<br>
-
-### *dsl_ode_area_color_set*
-```c++
-DslReturnType dsl_ode_area_set(const wchar_t* name, 
-    uint left, uint top, uint width, uint height, boolean display);
-```
-This service returns a named ODE Area's current rectangle coordinates, dimensions, and display setting.
-
-**Parameters**
-* `name` - [in] unique name of the ODE Area to update.
-* `red` - [in] red color value for the Area's RGBA background color [0.0..1.0].
-* `green` - [in] green color value for the Area's RGBA background color [0.0..1.0].
-* `blue` - [in] blue color value for the Area's RGBA background color [0.0..1.0].
-* `alpha` - [in] alpha color value for the Area's RGBA background color [0.0..1.0].
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_ode_area_set('my-area', 0, 0. 128, 1028, False)
-```
-
-<br>
 ### *dsl_ode_area_list_size*
 ```c++
 uint dsl_ode_area_list_size();
@@ -246,22 +173,25 @@ size = dsl_ode_area_list_size()
 ```
 
 <br>
+
 ---
 
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [Tiler](/docs/api-tiler.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Action](/docs/api-ode-action.md)
-* **ODE-Area**
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Action](/docs/api-ode-action.md)
+* **ODE-Area**
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

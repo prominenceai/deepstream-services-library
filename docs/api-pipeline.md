@@ -430,6 +430,26 @@ retval = dsl_pipeline_component_remove_all('my-pipeline')
 
 <br>
 
+### *dsl_pipeline_source_name_get*
+```C++
+DslReturnType dsl_pipeline_source_name_get(const wchar_t name uint source_id, const wchar_t** source);
+```
+This service returns the name of a Source component from a unqiue Source Id. The service will only return a Source that is currently `in-use` by a Pipeline in a Playing state.
+
+**Parameters**
+* `source_id` - [in] 
+* `name` - [out] unique name of the Source for the given Id. Name will be equal to Null if the source id is invalid.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, source = dsl_pipeline_source_name_get('my-source', 3)
+```
+
+<br>
+
 ### *dsl_pipeline_streammux_batch_properties_get*
 ```C++
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 

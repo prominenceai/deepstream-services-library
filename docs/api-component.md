@@ -1,5 +1,7 @@
 # Component API Reference
+The Pipeline Component API provides the common services that apply to all component types.
 
+##
 * [dsl_component_delete](#dsl_component_delete)
 * [dsl_component_delete_many](#dsl_component_delete_many)
 * [dsl_component_delete_all](#dsl_component_delete_all)
@@ -158,16 +160,19 @@ retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-os
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
+* [Branch](/docs/api-branch.md)
 * **Component**
 

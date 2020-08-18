@@ -1,5 +1,5 @@
 # Branch API Reference
-Branch components are similar to Piplines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added as a Child to a Tee, either a Demuxer or Splitter. 
+Branch components are similar to Piplines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added as a Child to a [Demuxer or Splitter Tee](/docs/api-tee.md). 
 
 #### Branch Construction and Destruction
 Branches are constructed by calling [dsl_branch_new](#dsl_branch_new) or [dsl_branch_new_many](#dsl_branch_new_many), and destructed by calling [dsl_branch_delete](#dsl_branch_delete), [dsl_branch_delete_many](#dsl_branch_delete_many), or [dsl_branch_delete_all](#dsl_branch_delete_all). Deleting a Branch will not delete its child components but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
@@ -45,6 +45,7 @@ The following return codes are used by the Pipeline API
 ```
 
 ---
+
 ## Constructors
 ### *dsl_branch_new*
 ```C++
@@ -106,7 +107,9 @@ retval = dsl_branch_new_component_add_many('my-branch', ['my-pgie', 'my-tiler', 
 ```
 
 <br
+
 ---
+
 ## Destructors
 ### *dsl_branch_delete*
 ```C++
@@ -165,6 +168,7 @@ retval = dsl_branch_delete_all()
 <br>
 
 ---
+
 ## Methods
 
 ### *dsl_branch_component_add*
@@ -302,17 +306,19 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md))
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * **Branch**
 * [Component](/docs/api-component.md)
 
