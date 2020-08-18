@@ -133,7 +133,6 @@ def handle_ode_occurrence(event_id, trigger, display_meta, frame_meta, object_me
 * [dsl_display_type_delete](#dsl_display_type_delete)
 * [dsl_display_type_delete_many](#dsl_display_type_delete_many) 
 * [dsl_display_type_delete_all](#dsl_display_type_delete_all)
-* [dsl_display_type_delete_all](#dsl_display_type_delete_all)
 
 **Methods:**
 * [dsl_display_type_list_size](#dsl_display_type_list_size)
