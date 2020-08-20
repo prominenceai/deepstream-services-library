@@ -418,7 +418,7 @@ namespace DSL {
 
         DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
-        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout);
+        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, boolean hasPrecedence);
 
         DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout);
 

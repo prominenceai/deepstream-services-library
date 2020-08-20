@@ -120,7 +120,7 @@ SCENARIO( "A TilerBintr can Get and Set its Show Source setting",  "[TilerBintr]
         WHEN( "The TilerBintr's  Show Source setting is set" )
         {
             uint newTimeout(5);
-            REQUIRE( pTilerBintr->SetShowSource(batchSize-1, newTimeout) == true );
+            REQUIRE( pTilerBintr->SetShowSource(batchSize-1, newTimeout, false) == true );
 
             THEN( "The correct GPU ID is returned on get" )
             {

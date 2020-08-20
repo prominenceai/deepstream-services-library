@@ -2285,10 +2285,11 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name,
  * @param[in] source unique name of the source to show,
  * @param[in] timeout time to show the source in units of seconds, before showing all-sources again
  * A value of 0 indicates no timeout. 
+ * @param[in] has_precedence if true will take precedence over a currently show single source. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
-    const wchar_t* source, uint timeout);
+    const wchar_t* source, uint timeout, boolean has_precedence);
 
 /** 
  * @brief Shows all sources and stops the show-source timer if running.

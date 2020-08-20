@@ -1906,11 +1906,11 @@ def dsl_tiler_source_show_get(name):
 ##
 ## dsl_tiler_source_show_set()
 ##
-_dsl.dsl_tiler_source_show_set.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_tiler_source_show_set.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_bool]
 _dsl.dsl_tiler_source_show_set.restype = c_uint
-def dsl_tiler_source_show_set(name, source, timeout):
+def dsl_tiler_source_show_set(name, source, timeout, has_precedence):
     global _dsl
-    result = _dsl.dsl_tiler_source_show_set(name, source, timeout)
+    result = _dsl.dsl_tiler_source_show_set(name, source, timeout, has_precedence)
     return int(result)
 
 ##

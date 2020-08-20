@@ -107,9 +107,11 @@ namespace DSL
          * @brief Sets the current show-source setting for the TilerBintr to a single source
          * @param[in] the new show-source setting to use
          * Note: sourceId must be less than current batch-size, which is 0 until the Pipeline is linked/played
+         * @param[in] timeout the time in seconds to show the current source
+         * @param[in] hasPrecedence if true will take precedence over a currently showing single source
          * @return true if set value is successful, false otherwise.
          */
-        bool SetShowSource(int sourceId, uint timeout);
+        bool SetShowSource(int sourceId, uint timeout, bool hasPrecedence);
         
         /**
          * @brief Handler routine for show-source timer experation
