@@ -6125,7 +6125,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Sink '" << name << "' threw an exception setting sync/sync settings");
+            LOG_ERROR("Sink '" << name << "' threw an exception setting sync/async settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
