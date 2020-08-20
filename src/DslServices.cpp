@@ -4928,7 +4928,7 @@ namespace DSL
     }
 
     DslReturnType Services::TilerSourceShowSet(const char* name, 
-        const char* source, uint timeout)
+        const char* source, uint timeout, boolean hasPrecedence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4953,7 +4953,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
                     
-            if (!pTilerBintr->SetShowSource(pSourceBintr->GetId(), timeout))
+            if (!pTilerBintr->SetShowSource(pSourceBintr->GetId(), timeout, hasPrecedence))
             {
                 LOG_ERROR("Tiler '" << name << "' failed to show specific source");
                 return DSL_RESULT_TILER_SET_FAILED;
@@ -4988,7 +4988,8 @@ namespace DSL
                 return DSL_RESULT_TILER_SET_FAILED;
             }
 
-            if (!pTilerBintr->SetShowSource(sourceId, timeout))
+            // called by automation - so set hasPrecedence to false always
+            if (!pTilerBintr->SetShowSource(sourceId, timeout, false))
             {
                 // Don't log error as this can happen with the ODE actions frequently
                 LOG_DEBUG("Tiler '" << name << "' failed to show specific source");

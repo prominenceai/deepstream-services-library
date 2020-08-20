@@ -170,7 +170,7 @@ namespace DSL
         *timeout = m_showSourceTimeout;
     }
 
-    bool TilerBintr::SetShowSource(int sourceId, uint timeout)
+    bool TilerBintr::SetShowSource(int sourceId, uint timeout, bool hasPrecedence)
     {
         // Don't log function entry/exit as this could be called frequently
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
@@ -183,11 +183,11 @@ namespace DSL
         
         if (sourceId != m_showSourceId)
         {
-            if (m_showSourceTimerId)
+            if (m_showSourceTimerId and !hasPrecedence)
             {
                 // don't log error as this may be common with ODE Triggers and Actions calling
-                LOG_INFO("Show source Timer is running for Source '" << m_showSourceId << 
-                   "' New Source '" << sourceId << "' can not be shown");
+                LOG_DEBUG("Show source Timer is running for Source '" << m_showSourceId << 
+                   "' New Source '" << sourceId << "' without precedence can not be shown");
                 return false;
             }
 

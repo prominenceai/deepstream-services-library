@@ -1985,7 +1985,7 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name,
 }
 
 DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
-    const wchar_t* source, uint timeout)
+    const wchar_t* source, uint timeout, boolean has_precedence)
 {
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1993,7 +1993,8 @@ DslReturnType dsl_tiler_source_show_set(const wchar_t* name,
     std::wstring wstrSource(source);
     std::string cstrSource(wstrSource.begin(), wstrSource.end());
 
-    return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), cstrSource.c_str(), timeout);
+    return DSL::Services::GetServices()->TilerSourceShowSet(cstrName.c_str(), 
+        cstrSource.c_str(), timeout, has_precedence);
 }
 
 DslReturnType dsl_tiler_source_show_all(const wchar_t* name)
