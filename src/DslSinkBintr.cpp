@@ -34,8 +34,10 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    SinkBintr::SinkBintr(const char* name)
+    SinkBintr::SinkBintr(const char* name, bool sync, bool async)
         : Bintr(name)
+        , m_sync(sync)
+        , m_async(async)
     {
         LOG_FUNC();
 
@@ -154,20 +156,26 @@ namespace DSL
         return Nodetr::UnlinkFromSource();
     }
 
+    void SinkBintr::GetSyncSettings(bool* sync, bool* async)
+    {
+        LOG_FUNC();
+        
+        *sync = m_sync;
+        *async = m_async;
+    }
+
     //-------------------------------------------------------------------------
 
     FakeSinkBintr::FakeSinkBintr(const char* name)
-        : SinkBintr(name)
-        , m_sync(TRUE)
-        , m_async(FALSE)
-        , m_qos(FALSE)
+        : SinkBintr(name, true, false)
+        , m_qos(false)
     {
         LOG_FUNC();
         
         m_pFakeSink = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_FAKESINK, "sink-bin-fake");
         m_pFakeSink->SetAttribute("enable-last-sample", false);
-        m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("max-lateness", -1);
+        m_pFakeSink->SetAttribute("sync", m_sync);
         m_pFakeSink->SetAttribute("async", m_async);
         m_pFakeSink->SetAttribute("qos", m_qos);
         
@@ -214,14 +222,30 @@ namespace DSL
         m_isLinked = false;
     }
 
+    bool FakeSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for OverlaySinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+        
+        m_pFakeSink->SetAttribute("sync", m_sync);
+        m_pFakeSink->SetAttribute("async", m_async);
+        
+        return true;
+    }
     
     //-------------------------------------------------------------------------
 
     OverlaySinkBintr::OverlaySinkBintr(const char* name, uint overlayId, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : SinkBintr(name)
-        , m_sync(TRUE)
-        , m_async(FALSE)
+        : SinkBintr(name, true, false) // sync, async
         , m_qos(FALSE)
         , m_overlayId(overlayId)
         , m_displayId(displayId)
@@ -240,8 +264,8 @@ namespace DSL
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         m_pOverlay->SetAttribute("overlay-w", m_width);
         m_pOverlay->SetAttribute("overlay-h", m_height);
-        m_pOverlay->SetAttribute("sync", m_sync);
         m_pOverlay->SetAttribute("max-lateness", -1);
+        m_pOverlay->SetAttribute("sync", m_sync);
         m_pOverlay->SetAttribute("async", m_async);
         m_pOverlay->SetAttribute("qos", m_qos);
         
@@ -362,15 +386,32 @@ namespace DSL
         
         return true;
     }
+
+    bool OverlaySinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for OverlaySinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+        
+        m_pOverlay->SetAttribute("sync", m_sync);
+        m_pOverlay->SetAttribute("async", m_async);
+
+        return true;
+    }
     
     //-------------------------------------------------------------------------
 
     WindowSinkBintr::WindowSinkBintr(const char* name, guint offsetX, guint offsetY, 
         guint width, guint height)
-        : SinkBintr(name)
-        , m_sync(TRUE)
-        , m_async(FALSE)
-        , m_qos(FALSE)
+        : SinkBintr(name, true, false)
+        , m_qos(false)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -387,8 +428,8 @@ namespace DSL
         m_pEglGles->SetAttribute("window-height", m_height);
         m_pEglGles->SetAttribute("enable-last-sample", false);
         
-        m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("max-lateness", -1);
+        m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("async", m_async);
         m_pEglGles->SetAttribute("qos", m_qos);
         
@@ -493,14 +534,31 @@ namespace DSL
         
         return true;
     }
+
+    bool WindowSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+        
+        m_pEglGles->SetAttribute("sync", m_sync);
+        m_pEglGles->SetAttribute("async", m_async);
+
+        return true;
+    }
     
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
         uint codec, uint container, uint bitRate, uint interval)
-        : SinkBintr(name)
-        , m_sync(TRUE)
-        , m_async(FALSE)
+        : SinkBintr(name, true, false)
         , m_codec(codec)
         , m_bitRate(bitRate)
         , m_interval(interval)
@@ -606,14 +664,12 @@ namespace DSL
         
         return true;
     }
-    
+
     //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
         uint codec, uint container, uint bitRate, uint interval)
         : EncodeSinkBintr(name, codec, container, bitRate, interval)
-        , m_sync(TRUE)
-        , m_async(FALSE)
     {
         LOG_FUNC();
         
@@ -688,6 +744,25 @@ namespace DSL
         m_pTransform->UnlinkFromSink();
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
+    }
+
+    bool FileSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+        
+        m_pFileSink->SetAttribute("sync", m_sync);
+        m_pFileSink->SetAttribute("async", m_async);
+
+        return true;
     }
     
     //-------------------------------------------------------------------------
@@ -943,17 +1018,32 @@ namespace DSL
         return m_pContext->resetDone;
     }
     
+    bool RecordSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+
+        // TODO set sync/async for file element owned by context??
+        return true;
+    }
+    
 
     //******************************************************************************************
     
     RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
          uint codec, uint bitRate, uint interval)
-        : SinkBintr(name)
+        : SinkBintr(name, false, false)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
-        , m_sync(FALSE)
-        , m_async(FALSE)
         , m_codec(codec)
         , m_bitRate(bitRate)
         , m_interval(interval)
@@ -1116,10 +1206,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Encoder Settings for FileSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -1131,6 +1221,25 @@ namespace DSL
             m_pEncoder->SetAttribute("bitrate", m_bitRate);
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
         }
+        return true;
+    }
+    
+    bool RtspSinkBintr::SetSyncSettings(bool sync, bool async)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Sync/Async Settings for FileSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_sync = sync;
+        m_async = async;
+        
+        m_pUdpSink->SetAttribute("sync", m_sync);
+        m_pUdpSink->SetAttribute("async", m_async);
+
         return true;
     }
     

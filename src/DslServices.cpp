@@ -6041,7 +6041,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("SInk '" << name << "' threw an exception adding Pad Probe Handler");
+            LOG_ERROR("Sink '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -6055,7 +6055,7 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TrackerBintr);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
             RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to remove itself from the Tee
@@ -6068,7 +6068,63 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception removing Pad Probe Handler");
+            LOG_ERROR("Sink '" << name << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            bool bSync(false), bAsync(false);
+            pSinkBintr->GetSyncSettings(&bSync, &bAsync);
+            *sync = bSync;
+            *async = bAsync;
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name << "' threw an exception getting  Sync/Async settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkSyncSettingsSet(const char* name,  boolean sync, boolean async)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetSyncSettings(sync, async))
+            {
+                LOG_ERROR("Sink '" << name << "' failed to set sync/async attributes");
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name << "' threw an exception setting sync/async settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

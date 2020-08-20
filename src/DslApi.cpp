@@ -2199,8 +2199,7 @@ DslReturnType dsl_sink_rtsp_encoder_settings_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkRtspEncoderSettingsGet(cstrName.c_str(), 
-        bitrate, interval);
+    return DSL::Services::GetServices()->SinkRtspEncoderSettingsGet(cstrName.c_str(), bitrate, interval);
 }    
 
 DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
@@ -2209,8 +2208,7 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), 
-        bitrate, interval);
+    return DSL::Services::GetServices()->SinkRtspEncoderSettingsSet(cstrName.c_str(), bitrate, interval);
 }
 
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
@@ -2232,6 +2230,22 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name,
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
     return DSL::Services::GetServices()->SinkPphRemove(cstrName.c_str(), cstrHandler.c_str());
+}
+
+DslReturnType dsl_sink_sync_settings_get(const wchar_t* name, boolean* sync, boolean* async)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncSettingsGet(cstrName.c_str(), sync, async);
+}
+    
+DslReturnType dsl_sink_sync_settings_set(const wchar_t* name, boolean sync, boolean async)
+{
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncSettingsSet(cstrName.c_str(), sync, async);
 }
     
 uint dsl_sink_num_in_use_get()

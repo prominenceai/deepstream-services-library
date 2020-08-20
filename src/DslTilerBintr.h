@@ -171,6 +171,11 @@ namespace DSL
         int m_showSourceId;
         
         /**
+         * @brief client provided timeout in seconds
+         */
+        uint m_showSourceTimeout;
+        
+        /**
          * @brief show-source count down counter value. 0 == time expired
          */
         uint m_showSourceCounter;
