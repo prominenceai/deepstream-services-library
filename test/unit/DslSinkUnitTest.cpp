@@ -41,7 +41,10 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[FakeSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                // gpuid ?
+                bool sync(false), async(false);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
             }
         }
     }
@@ -91,6 +94,10 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[OverlaySinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetDisplayId() == 0 );
+                bool sync(false), async(false);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
             }
         }
     }
@@ -318,7 +325,10 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[WindowSinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                // gpuid ?
+                bool sync(false), async(false);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
             }
         }
     }
@@ -504,6 +514,10 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr is created correctly",  "[FileSin
                 pSinkBintr->GetVideoFormats(&retCodec, &retContainer);
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container);
+                bool sync(false), async(false);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
             }
         }
     }
@@ -982,6 +996,10 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[RtspSink
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
+                bool sync(true), async(true);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == false );
+                REQUIRE( async == false );
             }
         }
     }
@@ -1070,6 +1088,10 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[RtspSink
                 REQUIRE( retUdpPort == udpPort);
                 REQUIRE( retRtspPort == rtspPort);
                 REQUIRE( retCodec == codec );
+                bool sync(false), async(false);
+                pSinkBintr->GetSyncSettings(&sync, &async);
+                REQUIRE( sync == false );
+                REQUIRE( async == false );
             }
         }
     }

@@ -36,6 +36,7 @@ namespace DSL
         , m_width(width)
         , m_height(height)
         , m_showSourceId(-1)
+        , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
         , m_showSourceTimerId(0)    
     {
@@ -166,7 +167,7 @@ namespace DSL
         LOG_FUNC();
         
         *sourceId = m_showSourceId;
-        *timeout = m_showSourceCounter;
+        *timeout = m_showSourceTimeout;
     }
 
     bool TilerBintr::SetShowSource(int sourceId, uint timeout)
@@ -191,6 +192,7 @@ namespace DSL
             }
 
             m_showSourceId = sourceId;
+            m_showSourceTimeout = timeout;
             m_pTiler->SetAttribute("show-source", m_showSourceId);
 
             m_showSourceCounter = timeout*10;
@@ -204,6 +206,7 @@ namespace DSL
             
         // otherwise it's the same source.
         
+        m_showSourceTimeout = timeout;
         m_showSourceCounter = timeout*10;
         if (!m_showSourceTimerId and m_showSourceCounter)
         {

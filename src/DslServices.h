@@ -502,6 +502,10 @@ namespace DSL {
 
         DslReturnType SinkPphRemove(const char* name, const char* handler);
 
+        DslReturnType SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async);
+
+        DslReturnType SinkSyncSettingsSet(const char* name,  boolean sync, boolean async);
+
         uint SinkNumInUseGet();
         
         uint SinkNumInUseMaxGet();

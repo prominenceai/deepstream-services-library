@@ -40,6 +40,10 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[fa
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
+                boolean sync(false), async(true);
+                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &sync, &async) == DSL_RESULT_SUCCESS );
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -67,6 +71,32 @@ SCENARIO( "The Components container is updated correctly on Fink Sink delete", "
         }
     }
 }
+
+SCENARIO( "A Fake Sink can update it Sync/Async attributes", "[fake-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"fake-sink";
+
+        REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Fake Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(sinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The Components container is updated correctly on new Overlay Sink", "[overlay-sink-api]" )
 {
@@ -126,6 +156,42 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
         }
     }
 }
+
+SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[window-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Window Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(overlaySinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(overlaySinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 
 SCENARIO( "An Overlay Sink in use can't be deleted", "[overlay-sink-api]" )
 {
@@ -297,6 +363,40 @@ SCENARIO( "The Components container is updated correctly on Window Sink delete",
         }
     }
 }
+
+SCENARIO( "A Window Sink can update its Sync/Async attributes", "[window-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Window Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(windowSinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(windowSinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 
 SCENARIO( "A Window Sink in use can't be deleted", "[window-sink-api]" )
 {

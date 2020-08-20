@@ -2534,19 +2534,37 @@ DslReturnType dsl_sink_rtsp_encoder_settings_set(const wchar_t* name,
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
- * @param[in] name unique name of the Tee to update
- * @param[in] handler callback function to process each frame buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @param[in] name unique name of the Sink to update
+ * @param[in] handler unique name of the pad probe handler to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief Removes a pad probe handler callback function from a named Sink
- * @param[in] name unique name of the Tee to update
- * @param[in] handler unique name of the pad probe handler to had
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
+ * @param[in] name unique name of the Sink to update
+ * @param[in] handler unique name of the pad probe handler to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Gets the current settings for the "sync" and "async" attributes for the named Sink
+ * @param[in] name unique name of the Sink to query
+ * @param[out] sync the current setting for the Sink's "sync" attribute
+ * @param[out] async the current setting for the Sink's "async" attribute
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_sync_settings_get(const wchar_t* name, boolean* sync, boolean* async);
+
+/**
+ * @brief Sets the "sync" and "async" attributes for the named Sink
+ * @param[in] name unique name of the Sink to update
+ * @param[in] sync the new setting for the Sink's "sync" attribute
+ * @param[in] async the current setting for the Sink's "async" attribute
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_sync_settings_set(const wchar_t* name, boolean sync, boolean async);
 
 /**
  * @brief returns the number of Sinks currently in use by 

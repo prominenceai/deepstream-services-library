@@ -79,7 +79,7 @@ namespace DSL
     {
     public: 
     
-        SinkBintr(const char* name);
+        SinkBintr(const char* name, bool sync, bool async);
 
         ~SinkBintr();
   
@@ -93,7 +93,31 @@ namespace DSL
 
         bool UnlinkFromSource();
         
+        /**
+         * @brief returns the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         */
+        void GetSyncSettings(bool* sync, bool* async);
+        
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         */
+        virtual bool SetSyncSettings(bool sync, bool async) = 0;
+        
     protected:
+
+        /**
+         * @brief Sink element's current synchronous attribute setting.
+         */
+        boolean m_sync;
+
+        /**
+         * @brief Sink element's current asynchronous attribute setting.
+         */
+        boolean m_async;
 
         /**
          * @brief Queue element as sink for all Sink Bintrs.
@@ -123,10 +147,16 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
     private:
 
-        boolean m_sync;
-        boolean m_async;
         boolean m_qos;
         
         /**
@@ -193,11 +223,17 @@ namespace DSL
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
+
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
         
     private:
 
-        boolean m_sync;
-        boolean m_async;
         boolean m_qos;
         uint m_overlayId;
         uint m_displayId;
@@ -265,11 +301,17 @@ namespace DSL
          */ 
         bool SetDimensions(uint width, uint hieght);
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
     private:
 
         boolean m_qos;
-        boolean m_sync;
-        boolean m_async;
         uint m_offsetX;
         uint m_offsetY;
         uint m_width;
@@ -315,15 +357,13 @@ namespace DSL
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
-
+        
     protected:
 
         uint m_codec;
         uint m_container;
         uint m_bitRate;
         uint m_interval;
-        boolean m_sync;
-        boolean m_async;
  
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pCapsFilter;
@@ -355,10 +395,16 @@ namespace DSL
          */
         void UnlinkAll();
 
-    private:
 
-        boolean m_sync;
-        boolean m_async;
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+        
+    private:
 
         DSL_ELEMENT_PTR m_pFileSink;
     };
@@ -466,6 +512,14 @@ namespace DSL
          */
         bool ResetDone();
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
     private:
 
         /**
@@ -535,6 +589,15 @@ namespace DSL
          */ 
         bool SetEncoderSettings(uint bitRate, uint interval);
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
+
     private:
 
         std::string m_host;
@@ -543,8 +606,6 @@ namespace DSL
         uint m_codec;
         uint m_bitRate;
         uint m_interval;
-        boolean m_sync;
-        boolean m_async;
         
         GstRTSPServer* m_pServer;
         uint m_pServerSrcId;

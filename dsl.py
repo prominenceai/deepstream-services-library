@@ -2162,6 +2162,28 @@ def dsl_sink_rtsp_encoder_settings_set(name, bitrate, interval):
     return int(result)
 
 ##
+## dsl_sink_sync_settings_get()
+##
+_dsl.dsl_sink_sync_settings_get.argtypes = [c_wchar_p, POINTER(c_bool), POINTER(c_bool)]
+_dsl.dsl_sink_sync_settings_get.restype = c_uint
+def dsl_sink_sync_settings_get(name):
+    global _dsl
+    sync = c_bool(0)
+    async = c_bool(0)
+    result = _dsl.dsl_sink_sync_settings_get(name, DSL_BOOL_P(sync), DSL_BOOL_P(async))
+    return int(result), sync.value, async.value 
+
+##
+## dsl_sink_sync_settings_set()
+##
+_dsl.dsl_sink_sync_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_sink_sync_settings_set.restype = c_uint
+def dsl_sink_sync_settings_set(name, sync, async):
+    global _dsl
+    result = _dsl.dsl_sink_sync_settings_set(name, sync, async)
+    return int(result)
+
+##
 ## dsl_sink_num_in_use_get()
 ##
 _dsl.dsl_sink_num_in_use_get.restype = c_uint
