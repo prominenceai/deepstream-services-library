@@ -37,9 +37,9 @@ namespace DSL
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
 
-    #define DSL_ODE_ACTION_CALLBACK_PTR std::shared_ptr<CallbackOdeAction>
-    #define DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<CallbackOdeAction>(new CallbackOdeAction(name, clientHandler, clientData))
+    #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
+    #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
+        std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
         
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
@@ -205,25 +205,25 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class CallbackOdeAction
-     * @brief Callback ODE Action class
+     * @class CustomOdeAction
+     * @brief Custom ODE Action class
      */
-    class CallbackOdeAction : public OdeAction
+    class CustomOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Callback ODE Action class
+         * @brief ctor for the Custom ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
          */
-        CallbackOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
+        CustomOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
         
         /**
-         * @brief dtor for the ODE Callback Action class
+         * @brief dtor for the ODE Custom Action class
          */
-        ~CallbackOdeAction();
+        ~CustomOdeAction();
 
         /**
          * @brief Handles the ODE occurrence by calling the client handler

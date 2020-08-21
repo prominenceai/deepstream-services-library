@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "The Components container is updated correctly on new Demuxer", "[demuxer-api]" )
+SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -46,7 +46,7 @@ SCENARIO( "The Components container is updated correctly on new Demuxer", "[demu
     }
 }
 
-SCENARIO( "The Components container is updated correctly on Demuxer delete", "[demuxer-api]" )
+SCENARIO( "The Components container is updated correctly on Demuxer delete", "[tee-api]" )
 {
     GIVEN( "A new Demuxer in memory" ) 
     {
@@ -75,7 +75,7 @@ static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
 }
 
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer", "[demuxer-api]" )
+SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer", "[tee-api]" )
 {
     GIVEN( "A new Demuxer and Custom PPH" ) 
     {
@@ -115,7 +115,7 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer
     }
 }
 
-SCENARIO( "A Demuxer can add and remove a Branch", "[demuxer-api]" )
+SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
 {
     GIVEN( "A Demuxer and Branch" ) 
     {
@@ -149,7 +149,7 @@ SCENARIO( "A Demuxer can add and remove a Branch", "[demuxer-api]" )
     }
 }
 
-SCENARIO( "A Demuxer can add and remove many Branches", "[demuxer-api]" )
+SCENARIO( "A Demuxer can add and remove many Branches", "[tee-api]" )
 {
     GIVEN( "A Demuxer and Branch" ) 
     {
@@ -182,6 +182,43 @@ SCENARIO( "A Demuxer can add and remove many Branches", "[demuxer-api]" )
                 REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
                 REQUIRE( count == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring teeName  = L"test-tee";
+        uint count(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_tee_demuxer_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_splitter_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_splitter_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_count_get(NULL, &count) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_remove(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }

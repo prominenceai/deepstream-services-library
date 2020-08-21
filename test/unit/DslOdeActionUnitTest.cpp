@@ -60,16 +60,16 @@ static void ode_occurrence_handler_cb(uint64_t event_id, const wchar_t* name,
     }
 }    
 
-SCENARIO( "A new CallbackOdeAction is created correctly", "[OdeAction]" )
+SCENARIO( "A new CustomOdeAction is created correctly", "[OdeAction]" )
 {
-    GIVEN( "Attributes for a new CallbackOdeAction" ) 
+    GIVEN( "Attributes for a new CustomOdeAction" ) 
     {
         std::string actionName("ode-action");
 
-        WHEN( "A new CallbackOdeAction is created" )
+        WHEN( "A new CustomOdeAction is created" )
         {
-            DSL_ODE_ACTION_CALLBACK_PTR pAction = 
-                DSL_ODE_ACTION_CALLBACK_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
+            DSL_ODE_ACTION_CUSTOM_PTR pAction = 
+                DSL_ODE_ACTION_CUSTOM_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -80,9 +80,9 @@ SCENARIO( "A new CallbackOdeAction is created correctly", "[OdeAction]" )
     }
 }
 
-SCENARIO( "A CallbackOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+SCENARIO( "A CustomOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 {
-    GIVEN( "A new CallbackOdeAction" ) 
+    GIVEN( "A new CustomOdeAction" ) 
     {
         std::string odeTypeName("first-occurence");
         uint classId(1);
@@ -93,8 +93,8 @@ SCENARIO( "A CallbackOdeAction handles an ODE Occurence correctly", "[OdeAction]
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
 
-        DSL_ODE_ACTION_CALLBACK_PTR pAction = 
-            DSL_ODE_ACTION_CALLBACK_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
+        DSL_ODE_ACTION_CUSTOM_PTR pAction = 
+            DSL_ODE_ACTION_CUSTOM_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
 
         WHEN( "A new ODE is created" )
         {

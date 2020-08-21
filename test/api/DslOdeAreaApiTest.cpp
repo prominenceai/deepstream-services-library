@@ -122,3 +122,33 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
 }
 
 
+SCENARIO( "The ODE Area API checks for NULL input parameters", "[ode-area-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring areaName  = L"test-area";
+        std::wstring otherName  = L"other";
+        
+        uint interval(0);
+        boolean enabled(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_ode_area_inclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_area_exclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_area_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

@@ -415,3 +415,46 @@ SCENARIO( "A Primary GIE can Get and Set its Interval",  "[gie-api]" )
 }
 
 
+SCENARIO( "The GIE API checks for NULL input parameters", "[gie-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring gieName  = L"test-gie";
+        std::wstring infer_config_file  = L"config-file";
+        std::wstring model_engine_file  = L"model-engine-file";
+        uint interval(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_gie_primary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_new(gieName.c_str(), infer_config_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), NULL, gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), model_engine_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_add(NULL, NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_add(gieName.c_str(), NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_remove(NULL, NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_remove(gieName.c_str(), NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_infer_config_file_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_get(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_set(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_get(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_set(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+

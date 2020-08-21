@@ -99,12 +99,12 @@ SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-a
 {
     GIVEN( "Attributes for a new Callback ODE Action" ) 
     {
-        std::wstring actionName(L"callback-action");
+        std::wstring actionName(L"custom-action");
         dsl_ode_handle_occurrence_cb client_handler;
 
         WHEN( "A new Callback ODE Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_callback_new(actionName.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_custom_new(actionName.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "The Action can be deleted" ) 
             {
@@ -114,11 +114,11 @@ SCENARIO( "A new Callback ODE Action can be created and deleted", "[ode-action-a
         }
         WHEN( "A new Callback ODE Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_callback_new(actionName.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_custom_new(actionName.c_str(), client_handler, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second callback of the same names fails to create" ) 
+            THEN( "A second custom of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_callback_new(actionName.c_str(), 
+                REQUIRE( dsl_ode_action_custom_new(actionName.c_str(), 
                     client_handler, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -938,6 +938,114 @@ SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode
                 
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring actionName  = L"test-action";
+        std::wstring otherName  = L"other";
+        
+        uint interval(0);
+        boolean enabled(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_ode_action_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_custom_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_new(actionName.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+
+                REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_frame_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_fill_object_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_object_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_fill_surroundings_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_surroundings_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_handler_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_handler_disable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_ode_action_hide_new(NULL, false, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_log_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_display_meta_add_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_meta_add_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_pause_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_pause_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_print_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_redact_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_sink_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_add_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_add_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_sink_record_start_new(NULL, NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_source_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_add_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_add_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_tap_record_start_new(NULL, NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_area_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_add_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_add_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(actionName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(actionName.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_trigger_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_disable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_enable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_enable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_reset_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_reset_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_action_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_disable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_enable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_enable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_tiler_source_show_new(NULL, NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_enabled_set(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }

@@ -177,3 +177,51 @@ SCENARIO( "A new ODE Handler can Add and Remove multiple Detection Events", "[pp
     }
 }
 
+SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring pphName  = L"test-pph";
+        std::wstring otherName  = L"other";
+        
+        uint interval(0);
+        boolean enabled(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_pph_ode_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_ode_trigger_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_add(pphName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_add_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_add_many(pphName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_remove(pphName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_remove_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_remove_many(pphName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_ode_trigger_remove_all(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_custom_new(pphName.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_meter_new(NULL, 0, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_meter_new(pphName.c_str(), 0, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_meter_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_meter_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
