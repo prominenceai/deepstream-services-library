@@ -585,3 +585,50 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
         }
     }
 }
+
+SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sourceName  = L"test-source";
+        std::wstring otherName  = L"other";
+        
+        uint cache_size(0), width(0), height(0), fps_n(0), fps_d(0), bitrate(0), interval(0), udpPort(0), rtspPort(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_decode_uri_get( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_get( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_set( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_uri_set( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_decode_dewarper_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_add( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_decode_dewarper_remove( NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_rtsp_tap_add( NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add( sourceName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_remove( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_pause( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_resume( NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

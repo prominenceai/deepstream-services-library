@@ -842,7 +842,7 @@ namespace DSL
         return m_displayTypes.size();
     }
             
-    DslReturnType Services::OdeActionCallbackNew(const char* name,
+    DslReturnType Services::OdeActionCustomNew(const char* name,
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
     {
         LOG_FUNC();
@@ -856,7 +856,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData);
+            m_odeActions[name] = DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData);
 
             LOG_INFO("New ODE Callback Action '" << name << "' created successfully");
 
@@ -7166,6 +7166,8 @@ namespace DSL
         m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE] = L"Invalid DSL_STATE Value";
 
         m_returnValueToString[DSL_RESULT_SUCCESS] = L"DSL_RESULT_SUCCESS";
+        m_returnValueToString[DSL_RESULT_INVALID_INPUT_PARAM] = L"DSL_RESULT_INVALID_INPUT_PARAM";
+        
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_FOUND] = L"DSL_RESULT_COMPONENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";

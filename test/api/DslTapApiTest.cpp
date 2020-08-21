@@ -203,3 +203,40 @@ SCENARIO( "An invalid Component is checked on Record Tap Get/Set", "[tap-api]" )
         }
     }
 }
+
+SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring tapName  = L"test-tap";
+        std::wstring otherName  = L"other";
+        
+        uint cache_size(0), width(0), height(0);
+        boolean is_on(0), reset_done(0), sync(0), async(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                
+                REQUIRE( dsl_tap_record_new(NULL, NULL,  0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_new(tapName.c_str(), NULL, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_session_start(NULL, 0, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_session_stop(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_cache_size_get(NULL, &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_cache_size_set(NULL, cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

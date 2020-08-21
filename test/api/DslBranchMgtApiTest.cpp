@@ -29,22 +29,22 @@ SCENARIO( "A single Branch is created and deleted correctly", "[branch-mgt-api]"
 {
     GIVEN( "An empty list of Branchs" ) 
     {
-        std::wstring actualName  = L"test-branch";
+        std::wstring branchName  = L"test-branch";
         
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new Branch is created" ) 
         {
 
-            REQUIRE( dsl_branch_new(actualName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_branch_new(branchName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
+                REQUIRE( dsl_component_delete(branchName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete(actualName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -69,10 +69,10 @@ SCENARIO( "Multiple Branches are created and deleted correctly", "[branch-mgt-ap
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == sampleSize - 2 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -92,10 +92,10 @@ SCENARIO( "Many Branches are created correctly", "[branch-mgt-api]" )
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 3 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
 
@@ -138,9 +138,37 @@ SCENARIO( "A non-unique Branch name fails when creating Many Branches", "[branch
                 // Only the first two were added?
                 // TODO - check for uniqueness first
                 REQUIRE( dsl_component_list_size() == 2 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }
+
+SCENARIO( "The Branch API checks for NULL input parameters", "[branch-mgt-api]" )
+{
+    GIVEN( "An empty list of Branches" ) 
+    {
+        std::wstring branchName  = L"test-branch";
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_branch_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_new_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_new_component_add_many(branchName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_component_add(branchName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_component_add_many(branchName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_component_remove(branchName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_branch_component_remove_many(branchName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+

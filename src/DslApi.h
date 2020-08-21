@@ -38,6 +38,7 @@ THE SOFTWARE.
 
 #define DSL_RESULT_SUCCESS                                          0x00000000
 #define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000001
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000002
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
@@ -668,13 +669,13 @@ DslReturnType dsl_display_type_delete_all();
 uint dsl_display_type_list_size();
 
 /**
- * @brief Creates a uniquely named ODE Callback Action
- * @param[in] name unique name for the ODE Callback Action 
+ * @brief Creates a uniquely named ODE Custom Action
+ * @param[in] name unique name for the ODE Custom Action 
  * @param[in] client_handler function to call on ODE occurrence
  * @param[in] client_data opaue pointer to client's user data, returned on callback
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_handle_occurrence_cb client_handler, void* client_data);
 
 /**
@@ -1437,42 +1438,42 @@ DslReturnType dsl_pph_ode_new(const wchar_t* name);
 
 /**
  * @brief Adds a named ODE Trigger to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] name unique name of the ODE Handler to update
  * @param[in] trigger unique name of the Trigger to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_trigger_add(const wchar_t* handler, const wchar_t* trigger);
+DslReturnType dsl_pph_ode_trigger_add(const wchar_t* name, const wchar_t* trigger);
 
 /**
  * @brief Adds a Null terminated listed of named ODE Triggers to a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] name unique name of the ODE Handler to update
  * @param[in] triggers Null terminated list of Trigger names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* handler, const wchar_t** triggers);
+DslReturnType dsl_pph_ode_trigger_add_many(const wchar_t* name, const wchar_t** triggers);
 
 /**
  * @brief Removes a named ODE Trigger from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] name unique name of the ODE Handler to update
  * @param[in] odeType unique name of the Trigger to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* handler, const wchar_t* trigger);
+DslReturnType dsl_pph_ode_trigger_remove(const wchar_t* name, const wchar_t* trigger);
 
 /**
  * @brief Removes a Null terminated listed of named ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] name unique name of the ODE Handler to update
  * @param[in] triggers Null terminated list of Trigger names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* handler, const wchar_t** triggers);
+DslReturnType dsl_pph_ode_trigger_remove_many(const wchar_t* name, const wchar_t** triggers);
 
 /**
  * @brief Removes all ODE Triggers from a named ODE Handler Component
- * @param[in] handler unique name of the ODE Handler to update
+ * @param[in] name unique name of the ODE Handler to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_HANDLER_RESULT otherwise
  */
-DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* handler);
+DslReturnType dsl_pph_ode_trigger_remove_all(const wchar_t* name);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer
@@ -2137,11 +2138,11 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
- * @param[in] tee name of the Tee to create
+ * @param[in] name name of the Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
 
 /**
@@ -2153,50 +2154,50 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
- * @param[in] tee name of the Tee to create
+ * @param[in] name name of the Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* demuxer, const wchar_t** branches);
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
- * @param[in] tee name of the Tee to update
+ * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_add(const wchar_t* tee, const wchar_t* branch);
+DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 
 /**
  * @brief adds a list of Branches to a Stream Demuxer or Splitter Tee
- * @param[in] tee name of the Tede to update
+ * @param[in] name name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_add_many(const wchar_t* tee, const wchar_t** branches);
+DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
 /**
  * @brief removes a single Branch from a Stream Demuxer or Splitter Tee
- * @param[in] tee name of the Tee to update
+ * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_remove(const wchar_t* tee, const wchar_t* branch);
+DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 
 /**
  * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee
- * @param[in] tee name of the Tee to update
+ * @param[in] name name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_remove_many(const wchar_t* tee, const wchar_t** branches);
+DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 
 /**
  * @brief removes all Branches from a Stream Demuxer or Splitter Tee
- * @param[in] tee name of the Tee to update
+ * @param[in] name name of the Tee to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_remove_all(const wchar_t* tee);
+DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 
 /**
  * @brief gets the current number of branches owned by Tee
@@ -2204,7 +2205,7 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* tee);
  * @param[out] count current number of branches 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_branch_count_get(const wchar_t* tee, uint* count);
+DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -2593,20 +2594,20 @@ boolean dsl_sink_num_in_use_max_set(uint max);
 
 /**
  * @brief deletes a Component object by name
- * @param[in] component name of the Component object to delete
+ * @param[in] name name of the Component object to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
- * @info the function checks that the component is not 
+ * @info the function checks that the name is not 
  * owned by a pipeline before deleting, and returns
  * DSL_RESULT_COMPONENT_IN_USE as failure
  */
-DslReturnType dsl_component_delete(const wchar_t* component);
+DslReturnType dsl_component_delete(const wchar_t* name);
 
 /**
  * @brief deletes a NULL terminated list of components
- * @param[in] components NULL terminated list of names to delete
+ * @param[in] names NULL terminated list of names to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
  */
-DslReturnType dsl_component_delete_many(const wchar_t** components);
+DslReturnType dsl_component_delete_many(const wchar_t** names);
 
 /**
  * @brief deletes all components in memory
@@ -2622,27 +2623,27 @@ uint dsl_component_list_size();
 
 /**
  * @brief Gets the named component's current GPU ID
- * @param[in] component name of the component to query
+ * @param[in] name name of the component to query
  * @param[out] gpuid current GPU ID setting
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
  */
-DslReturnType dsl_component_gpuid_get(const wchar_t* component, uint* gpuid);
+DslReturnType dsl_component_gpuid_get(const wchar_t* name, uint* gpuid);
 
 /**
  * @brief Sets the GPU ID for the named component
- * @param[in] component name of the component to update
+ * @param[in] name name of the component to update
  * @param[in] gpuid GPU ID value to use
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
  */
-DslReturnType dsl_component_gpuid_set(const wchar_t* component, uint gpuid);
+DslReturnType dsl_component_gpuid_set(const wchar_t* name, uint gpuid);
 
 /**
  * @brief Sets the GPU ID for a list of components
- * @param[in] a null terminated list of component names to update
+ * @param[in] names a null terminated list of component names to update
  * @param[in] gpuid GPU ID value to use
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
  */
-DslReturnType dsl_component_gpuid_set_many(const wchar_t** components, uint gpuid);
+DslReturnType dsl_component_gpuid_set_many(const wchar_t** names, uint gpuid);
 
 /**
  * @brief creates a new, uniquely named Branch
@@ -2664,7 +2665,7 @@ DslReturnType dsl_branch_new_many(const wchar_t** names);
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
-DslReturnType dsl_branch_new_component_add_many(const wchar_t* branch, 
+DslReturnType dsl_branch_new_component_add_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**
@@ -2673,7 +2674,7 @@ DslReturnType dsl_branch_new_component_add_many(const wchar_t* branch,
  * @param[in] component component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
-DslReturnType dsl_branch_component_add(const wchar_t* branch, 
+DslReturnType dsl_branch_component_add(const wchar_t* name, 
     const wchar_t* component);
 
 /**
@@ -2682,25 +2683,25 @@ DslReturnType dsl_branch_component_add(const wchar_t* branch,
  * @param[in] components NULL terminated array of component names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
-DslReturnType dsl_branch_component_add_many(const wchar_t* branch, 
+DslReturnType dsl_branch_component_add_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**
  * @brief removes a Component from a Pipeline
- * @param[in] branch name of the Branch to update
+ * @param[in] name name of the Branch to update
  * @param[in] component name of the Component to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
-DslReturnType dsl_branch_component_remove(const wchar_t* branch, 
+DslReturnType dsl_branch_component_remove(const wchar_t* name, 
     const wchar_t* component);
 
 /**
  * @brief removes a list of Components from a Branch
- * @param[in] branch name of the Branch to update
+ * @param[in] name name of the Branch to update
  * @param[in] components NULL terminated array of component names to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_BRANCH_RESULT on failure
  */
-DslReturnType dsl_branch_component_remove_many(const wchar_t* branch, 
+DslReturnType dsl_branch_component_remove_many(const wchar_t* name, 
     const wchar_t** components);
 
 /**

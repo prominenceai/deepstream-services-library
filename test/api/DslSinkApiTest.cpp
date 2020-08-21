@@ -1126,3 +1126,62 @@ SCENARIO( "Adding greater than max Sinks to all Pipelines fails", "[sink-api]" )
     }
 }
 
+SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName  = L"test-sink";
+        std::wstring otherName  = L"other";
+        
+        uint cache_size(0), width(0), height(0), codec(0), container(0), bitrate(0), interval(0), udpPort(0), rtspPort(0);
+        boolean is_on(0), reset_done(0), sync(0), async(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_file_new(sinkName.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_record_new(NULL, NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_new(sinkName.c_str(), NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_start(NULL, 0, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_stop(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_get(NULL, &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_set(NULL, cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_encode_video_formats_get(NULL, &codec, &container) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_get(NULL, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_set(NULL, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_new(sinkName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_set(NULL, bitrate, interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort, &codec ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_pph_add(NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_pph_add(sinkName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_settings_get(NULL, &sync, &async ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_settings_set(NULL, sync, async ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}

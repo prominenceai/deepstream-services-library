@@ -349,3 +349,40 @@ SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
     }
 }
 
+SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring tilerName  = L"test-tiler";
+        std::wstring otherName  = L"other";
+        
+        uint cols(0), rows(0), width(0), height(0), timeout(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                
+                REQUIRE( dsl_tiler_new(NULL, 0,  0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_tiles_get(NULL, &cols, &rows) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_tiles_set(NULL, cols, rows) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_source_show_get(NULL, NULL, &timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), NULL, &timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_source_show_set(NULL, NULL, timeout, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), NULL, timeout, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_source_show_all(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
