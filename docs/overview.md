@@ -415,7 +415,9 @@ There are several ODE Python examples provided [here](/examples/python)
 ## Display Types
 On-Screen Display Types, RGBA text and shapes, can be added to a frame's metadata to be shown by an [On-Screen Display](/docs/api-osd.md) component downstream. The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add) adds the data under control of one or more Triggers to render all types of video adornments.
 
+## Smart Recording
 
+![Record Tap](/Images/tap-record.png)
 ---
 
 
