@@ -37,56 +37,56 @@ namespace DSL
     #define DSL_ODE_TRIGGER_PTR std::shared_ptr<OdeTrigger>
     
     #define DSL_ODE_TRIGGER_ALWAYS_PTR std::shared_ptr<AlwaysOdeTrigger>
-    #define DSL_ODE_TRIGGER_ALWAYS_NEW(name, when) \
-        std::shared_ptr<AlwaysOdeTrigger>(new AlwaysOdeTrigger(name, when))
+    #define DSL_ODE_TRIGGER_ALWAYS_NEW(name, source, when) \
+        std::shared_ptr<AlwaysOdeTrigger>(new AlwaysOdeTrigger(name, source, when))
 
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit) \
-        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
+        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
-    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit) \
-        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit) \
+        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit) \
-        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit) \
+        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_SUMMATION_PTR std::shared_ptr<SummationOdeTrigger>
-    #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit) \
-        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, source, classId, limit) \
+        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, source, classId, limit))
         
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
-    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientPostProcessor, clientData) \
+    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, source, classId, limit, clientChecker, clientPostProcessor, clientData) \
         std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
-            classId, limit, clientChecker, clientPostProcessor, clientData))
+            source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
     #define DSL_ODE_TRIGGER_MINIMUM_PTR std::shared_ptr<MinimumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum) \
-        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, classId, limit, minimum))
+    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, source, classId, limit, minimum) \
+        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, source, classId, limit, minimum))
         
     #define DSL_ODE_TRIGGER_MAXIMUM_PTR std::shared_ptr<MaximumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum) \
-        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, classId, limit, maximum))
+    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum) \
+        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, source, classId, limit, maximum))
 
     #define DSL_ODE_TRIGGER_RANGE_PTR std::shared_ptr<RangeOdeTrigger>
-    #define DSL_ODE_TRIGGER_RANGE_NEW(name, classId, limit, lower, upper) \
-        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, classId, limit, lower, upper))
+    #define DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper) \
+        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, source, classId, limit, lower, upper))
 
     #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
-    #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, classId, limit) \
-        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_LARGEST_PTR std::shared_ptr<LargestOdeTrigger>
-    #define DSL_ODE_TRIGGER_LARGEST_NEW(name, classId, limit) \
-        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, source, classId, limit))
 
 
     class OdeTrigger : public Base
     {
     public: 
     
-        OdeTrigger(const char* name, uint classId, uint limit);
+        OdeTrigger(const char* name, const char* source, uint classId, uint limit);
 
         ~OdeTrigger();
 
@@ -195,17 +195,17 @@ namespace DSL
         void SetClassId(uint classId);
         
         /**
-         * @brief Get the SourceId filter used for Object detection
-         * A value of 0 indicates no filter.
-         * @return the current SourceId filter value
+         * @brief Get the Source filter used for Object detection
+         * A value of NULL indicates no filter.
+         * @return the current Source filter value
          */
-        uint GetSourceId();
+        const char* GetSource();
         
         /**
-         * @brief sets the SourceId filter for Object detection
-         * @param[in] sourceId new filter value to use
+         * @brief sets the Source filter for Object detection
+         * @param[in] source new source name as filter value to use
          */
-        void SetSourceId(uint sourceId);
+        void SetSource(const char* source);
         
         /**
          * @brief Gets the Minimuum Inference Confidence to trigger the event
@@ -353,15 +353,21 @@ namespace DSL
         uint m_occurrences; 
 
         /**
+         * @brief unique source name filter for this event
+         * NULL indicates filter is disabled
+         */
+        std::string m_source;
+        
+        /**
+         * @brief unique source id filter for this event
+         * -1 indicates not set ... updated on first use.
+         */
+        int m_sourceId;
+        
+        /**
          * @brief GIE Class Id filter for this event
          */
         uint m_classId;
-        
-        /**
-         * @brief unique source stream Id filter for this event
-         * 0 indicates filter is disabled
-         */
-        uint m_sourceId;
         
         /**
          * Mininum inference confidence to trigger an ODE occurrence [0.0..1.0]
@@ -410,7 +416,7 @@ namespace DSL
     {
     public:
     
-        AlwaysOdeTrigger(const char* name, uint when);
+        AlwaysOdeTrigger(const char* name, const char* source, uint when);
         
         ~AlwaysOdeTrigger();
 
@@ -444,7 +450,7 @@ namespace DSL
     {
     public:
     
-        OccurrenceOdeTrigger(const char* name, uint classId, uint limit);
+        OccurrenceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~OccurrenceOdeTrigger();
 
@@ -467,7 +473,7 @@ namespace DSL
     {
     public:
     
-        AbsenceOdeTrigger(const char* name, uint classId, uint limit);
+        AbsenceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~AbsenceOdeTrigger();
 
@@ -497,7 +503,7 @@ namespace DSL
     {
     public:
     
-        SummationOdeTrigger(const char* name, uint classId, uint limit);
+        SummationOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~SummationOdeTrigger();
 
@@ -527,7 +533,7 @@ namespace DSL
     {
     public:
     
-        IntersectionOdeTrigger(const char* name, uint classId, uint limit);
+        IntersectionOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~IntersectionOdeTrigger();
 
@@ -564,7 +570,7 @@ namespace DSL
     {
     public:
     
-        CustomOdeTrigger(const char* name, 
+        CustomOdeTrigger(const char* name, const char* source, 
             uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
             dsl_ode_post_process_frame_cb clientPostProcessor, void* clientData);
         
@@ -613,7 +619,7 @@ namespace DSL
     {
     public:
     
-        MinimumOdeTrigger(const char* name, uint classId, uint limit, uint minimum);
+        MinimumOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint minimum);
         
         ~MinimumOdeTrigger();
 
@@ -649,7 +655,7 @@ namespace DSL
     {
     public:
     
-        MaximumOdeTrigger(const char* name, uint classId, uint limit, uint maximum);
+        MaximumOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint maximum);
         
         ~MaximumOdeTrigger();
 
@@ -685,7 +691,7 @@ namespace DSL
     {
     public:
     
-        RangeOdeTrigger(const char* name, uint classId, uint limit, uint lower, uint upper);
+        RangeOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint lower, uint upper);
         
         ~RangeOdeTrigger();
 
@@ -726,7 +732,7 @@ namespace DSL
     {
     public:
     
-        SmallestOdeTrigger(const char* name, uint classId, uint limit);
+        SmallestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~SmallestOdeTrigger();
 
@@ -764,7 +770,7 @@ namespace DSL
     {
     public:
     
-        LargestOdeTrigger(const char* name, uint classId, uint limit);
+        LargestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~LargestOdeTrigger();
 

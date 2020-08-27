@@ -119,7 +119,7 @@ SCENARIO( "A new ODE Handler can Add and Remove a Detection Event", "[pph-api]" 
         uint limit(0);
 
         REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(triggerName.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(triggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Detection Event is added to the ODE Handler" ) 
         {
@@ -156,9 +156,9 @@ SCENARIO( "A new ODE Handler can Add and Remove multiple Detection Events", "[pp
 
         REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName1.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName2.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName3.c_str(), class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName1.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName2.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName3.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Detection Events are added to the ODE Handler" ) 
         {

@@ -194,8 +194,8 @@ def create_overlay_actions_and_always_trigger():
     if retval != DSL_RETURN_SUCCESS:
         return retval
 
-    # Create an Always triger to overlay our Display Types on every frame
-    retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+    # Create an Always triger to overlay our Display Types on every frame - single source, so no filer
+    retval = dsl_ode_trigger_always_new('always-trigger', source=None, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
     if retval != DSL_RETURN_SUCCESS:
         return retval
     retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
@@ -274,7 +274,7 @@ def main(args):
         
         # New Occurrence Trigger, filtering on the Person Class Id, with no limit on the number of occurrences
         # Add the two Areas as Occurrence (overlap) criteria and the action to Fill the background red on occurrence
-        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('person-area-overlap', source=None, class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_area_add_many('person-area-overlap', areas=['person-area', 'shared-area', None])
@@ -286,7 +286,7 @@ def main(args):
         
         # New Occurrence Trigger, filtering on the Vehicle ClassId, with no limit on the number of occurrences
         # Add the single Shared Area and the action to Fill the background red on occurrence 
-        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('vehicle-area-overlap', source=None, class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_area_add('vehicle-area-overlap', area='shared-area')
@@ -298,7 +298,7 @@ def main(args):
             
         # New Occurrence Trigger, filtering on the Bicycle ClassId, with a limit of one occurrence
         # Add the capture-frame action to the first occurrence event
-        retval = dsl_ode_trigger_occurrence_new('bicycle-first-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        retval = dsl_ode_trigger_occurrence_new('bicycle-first-occurrence', source=None, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('bicycle-first-occurrence', action='bicycle-capture')
@@ -307,19 +307,19 @@ def main(args):
             
         # New ODE Triggers for Object summation - i.e. new ODE occurrence on detection summation.
         # Each Trigger will share the same ODE Display Action
-        retval = dsl_ode_trigger_summation_new('Vehicles:', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        retval = dsl_ode_trigger_summation_new('Vehicles:', source=None, class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('Vehicles:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_summation_new('Bicycles:', class_id=PGIE_CLASS_ID_BICYCLE, limit=0)
+        retval = dsl_ode_trigger_summation_new('Bicycles:', source=None, class_id=PGIE_CLASS_ID_BICYCLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('Bicycles:', action='display-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_summation_new('Pedestrians:', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        retval = dsl_ode_trigger_summation_new('Pedestrians:', source=None, class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('Pedestrians:', action='display-action')
@@ -332,13 +332,13 @@ def main(args):
         retval = dsl_ode_action_hide_new('hide-action', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('person-every-occurrence', source=None, class_id=PGIE_CLASS_ID_PERSON, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('person-every-occurrence', action='hide-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('vehicle-every-occurrence', source=None, class_id=PGIE_CLASS_ID_VEHICLE, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('vehicle-every-occurrence', action='hide-action')
@@ -387,16 +387,16 @@ def main(args):
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
- 
+
+        retval = dsl_tiler_pph_add('tiler', handler='ode-hanlder', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_osd_pph_add('on-screen-display', handler='ode-hanlder', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:

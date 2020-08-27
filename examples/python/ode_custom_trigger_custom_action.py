@@ -166,8 +166,9 @@ def main(args):
             break
         
         # New Custom Trigger, filtering on the Vehical Class Id, with no limit on the number of occurrences
-        retval = dsl_ode_trigger_custom_new('custom-trigger', class_id=PGIE_CLASS_ID_VEHICLE, limit=0,
-            client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=trigger_count)
+        retval = dsl_ode_trigger_custom_new('custom-trigger', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_VEHICLE, limit=0, client_checker=check_for_occurrence, 
+            client_post_processor=post_process_frame, client_data=trigger_count)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Add the red-fill and shared-print actions to be called when the "check-for-occurrence" returns true
@@ -177,7 +178,8 @@ def main(args):
             break
             
         # New Occurrence Trigger, filtering on the Bicycle ClassId, with a limit of one occurrence
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('bicycle-occurrence', actions=[

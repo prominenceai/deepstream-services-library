@@ -160,7 +160,7 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Vehicle occurrence Trigger with a limit of one, with Minimum Dimensions set. 
         # The default minimum width and height values are set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', source=None,
             class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -177,7 +177,7 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Person occurrence Trigger with a limit of one, with the ODE Area created above as criteria. 
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence', source=None, 
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -197,7 +197,7 @@ def main(args):
         
         # New Bicycle occurrence Trigger with a limit of one, with Minimum Confidence set. 
         # The default minimum confidence value is set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', source=None,
             class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break

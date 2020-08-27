@@ -190,7 +190,7 @@ def main(args):
         # Next, create Maximum, Minimum and Range Triggers, while adding their corresponding Fill colors
 
         # New Minimum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_minimum_new('minimum-objects', 
+        retval = dsl_ode_trigger_minimum_new('minimum-objects', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, minimum=MIN_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -199,7 +199,7 @@ def main(args):
             break
 
         # New Maximum occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_maximum_new('maximum-objects', 
+        retval = dsl_ode_trigger_maximum_new('maximum-objects', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, maximum=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -209,8 +209,8 @@ def main(args):
             break
             
         # New Range of occurrence Trigger, with class id filter disabled, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_range_new('range-of-objects', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
-            lower=MIN_OBJECTS, upper=MAX_OBJECTS)
+        retval = dsl_ode_trigger_range_new('range-of-objects', source=DSL_ODE_ANY_SOURCE,
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, lower=MIN_OBJECTS, upper=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('range-of-objects', action='add-green-rectangle')
@@ -221,7 +221,8 @@ def main(args):
         # Next, create the Summation and Occurrence Triggers to display the Object Count and Hide each Object's Display Text
         
         # New ODE Trigger for Object summation - i.e. new ODE occurrence on detection summation for each frame.
-        retval = dsl_ode_trigger_summation_new('Objects', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_summation_new('Objects', source=DSL_ODE_ANY_SOURCE, 
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('Objects', action='display-action')
@@ -229,7 +230,8 @@ def main(args):
             break
 
         # New ODE occurrence Trigger to hide the Display Text for all detected objects
-        retval = dsl_ode_trigger_occurrence_new('every-object', class_id=DSL_ODE_ANY_CLASS, limit=0)
+        retval = dsl_ode_trigger_occurrence_new('every-object', source=DSL_ODE_ANY_SOURCE, 
+            class_id=DSL_ODE_ANY_CLASS, limit=0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('every-object', action='hide-text-action')
@@ -239,10 +241,10 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_pph_ode_new('ode-hanlder')
+        retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-hanlder', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
             'maximum-objects',
             'minimum-objects',
             'range-of-objects',

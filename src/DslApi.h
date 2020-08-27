@@ -1055,7 +1055,7 @@ uint dsl_ode_area_list_size();
  * @param[in] when DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when);
+DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);
 
 /**
  * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
@@ -1064,7 +1064,7 @@ DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, uint when);
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Absence trigger that checks for the absence of Objects within a frame
@@ -1073,7 +1073,7 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, uint class_id,
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Intersection trigger that checks for intersection of all Object detected
@@ -1083,7 +1083,7 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, uint class_id, ui
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Summation trigger that checks for and sums all objects detected within a frame
@@ -1093,7 +1093,7 @@ DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, uint class_i
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
  
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
@@ -1101,6 +1101,7 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
  * criteria: class id, min dimensions, min confidence, etc. The Client can maitain and test with
  * their own criteria, running stats etc, managed with client_data.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] client_checker client custom callback function to Check for the occurrence
@@ -1110,7 +1111,7 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, uint class_id, 
  * @param[in] client_data opaque client data returned to the client on callback
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, 
     dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
@@ -1118,58 +1119,63 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name,
  * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
  * against a specified minimum number, and generates an ODE occurence if not met
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] minimum the minimum count that must be present before triggering an ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint minimum);
 
 /**
  * @brief Maximum occurence trigger that checks for the occurrence of Objects within a frame
  * against a specified maximum number, and generates an ODE occurence if exceeded
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] maximum the maximum count allowed without triggering ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint maximum);
 
 /**
  * @brief Range occurence trigger that checks for the occurrence of Objects within a frame
  * against a range of numbers, and generates an ODE occurence if within range
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @param[in] lower the lower range for triggering ODE occurence
  * @param[in] upper the upper range for triggering ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, 
+DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint lower, uint upper);
 
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Largest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with larget rectangle area.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 
 /**
@@ -1197,6 +1203,23 @@ DslReturnType dsl_ode_trigger_enabled_get(const wchar_t* name, boolean* enabled)
 DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief Gets the current source_id filter for the ODE Trigger
+ * A value of 0 indicates filter disabled
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] source returns the current source name in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);
+
+/**
+ * @brief Sets the source_id for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] source new source name to filter on
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* source);
+
+/**
  * @brief Gets the current class_id filter for the ODE Trigger
  * @param[in] name unique name of the ODE Trigger to query
  * @param[out] class_id returns the current class_id in use
@@ -1211,23 +1234,6 @@ DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
-
-/**
- * @brief Gets the current source_id filter for the ODE Trigger
- * A value of 0 indicates filter disabled
- * @param[in] name unique name of the ODE Trigger to query
- * @param[out] sorce_id returns the current source_id in use
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id);
-
-/**
- * @brief Sets the source_id for the ODE Trigger to filter on
- * @param[in] name unique name of the ODE Trigger to update
- * @param[in] source_id new source_id to filter on
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
 
 /**
  * @brief Gets the current minimum confidence setting for the ODE Trigger

@@ -45,7 +45,7 @@ DSL_ODE_PRE_OCCURRENCE_CHECK = 0
 DSL_ODE_POST_OCCURRENCE_CHECK = 1
 
 # Any Source/Class == INT32_MAX
-DSL_ODE_ANY_SOURCE = int('7FFFFFFF',16)
+DSL_ODE_ANY_SOURCE = None
 DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
 
 DSL_TILER_SHOW_ALL_SOURCES = None
@@ -223,16 +223,16 @@ def dsl_display_type_list_size():
     return int(result)
 
 ##
-## dsl_ode_action_callback_new()
+## dsl_ode_action_custom_new()
 ##
-_dsl.dsl_ode_action_callback_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]
-_dsl.dsl_ode_action_callback_new.restype = c_uint
-def dsl_ode_action_callback_new(name, client_handler, client_data):
+_dsl.dsl_ode_action_custom_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]
+_dsl.dsl_ode_action_custom_new.restype = c_uint
+def dsl_ode_action_custom_new(name, client_handler, client_data):
     global _dsl
     c_client_handler = DSL_ODE_HANDLE_OCCURRENCE(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    result = _dsl.dsl_ode_action_callback_new(name, c_client_handler, c_client_data)
+    result = _dsl.dsl_ode_action_custom_new(name, c_client_handler, c_client_data)
     return int(result)
     
 ##
@@ -612,116 +612,116 @@ def dsl_ode_area_list_size():
 ##
 ## dsl_ode_trigger_always_new()
 ##
-_dsl.dsl_ode_trigger_always_new.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_always_new.argtypes = [c_wchar_p, c_wchar_p, c_uint]
 _dsl.dsl_ode_trigger_always_new.restype = c_uint
-def dsl_ode_trigger_always_new(name, when):
+def dsl_ode_trigger_always_new(name, source, when):
     global _dsl
-    result =_dsl.dsl_ode_trigger_always_new(name, when)
+    result =_dsl.dsl_ode_trigger_always_new(name, source, when)
     return int(result)
 
 ##
 ## dsl_ode_trigger_absence_new()
 ##
-_dsl.dsl_ode_trigger_absence_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_absence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_absence_new.restype = c_uint
-def dsl_ode_trigger_absence_new(name, class_id, limit):
+def dsl_ode_trigger_absence_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_absence_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_absence_new(name, source, class_id, limit)
     return int(result)
 
 ##
 ## dsl_ode_trigger_custom_new()
 ##
-_dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_uint, c_uint, 
+_dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, 
     DSL_ODE_CHECK_FOR_OCCURRENCE, DSL_ODE_POST_PROCESS_FRAME, c_void_p]
 _dsl.dsl_ode_trigger_custom_new.restype = c_uint
-def dsl_ode_trigger_custom_new(name, class_id, limit, client_checker, client_post_processor, client_data):
+def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, client_post_processor, client_data):
     global _dsl
     checker_cb = DSL_ODE_CHECK_FOR_OCCURRENCE(client_checker)
     processor_cb = DSL_ODE_POST_PROCESS_FRAME(client_post_processor)
     callbacks.append(checker_cb)
     callbacks.append(processor_cb)
-    result = _dsl.dsl_ode_trigger_custom_new(name, class_id, limit, checker_cb, processor_cb, client_data)
+    result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, client_data)
     return int(result)
 
 ##
 ## dsl_ode_trigger_intersection_new()
 ##
-_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_intersection_new.restype = c_uint
-def dsl_ode_trigger_intersection_new(name, class_id, limit):
+def dsl_ode_trigger_intersection_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_intersection_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_intersection_new(name, source, class_id, limit)
     return int(result)
 
 ##
 ## dsl_ode_trigger_maximum_new()
 ##
-_dsl.dsl_ode_trigger_maximum_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_maximum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_maximum_new.restype = c_uint
-def dsl_ode_trigger_maximum_new(name, class_id, limit, maximum):
+def dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_maximum_new(name, class_id, limit, maximum)
+    result =_dsl.dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum)
     return int(result)
 
 ##
 ## dsl_ode_trigger_minimum_new()
 ##
-_dsl.dsl_ode_trigger_minimum_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_minimum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_minimum_new.restype = c_uint
-def dsl_ode_trigger_minimum_new(name, class_id, limit, minimum):
+def dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_minimum_new(name, class_id, limit, minimum)
+    result =_dsl.dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum)
     return int(result)
 
 ##
 ## dsl_ode_trigger_occurrence_new()
 ##
-_dsl.dsl_ode_trigger_occurrence_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_occurrence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_occurrence_new.restype = c_uint
-def dsl_ode_trigger_occurrence_new(name, class_id, limit):
+def dsl_ode_trigger_occurrence_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_occurrence_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_occurrence_new(name, source, class_id, limit)
     return int(result)
 
 ##
 ## dsl_ode_trigger_summation_new()
 ##
-_dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_summation_new.restype = c_uint
-def dsl_ode_trigger_summation_new(name, class_id, limit):
+def dsl_ode_trigger_summation_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_summation_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_summation_new(name, source, class_id, limit)
     return int(result)
 
 ##
 ## dsl_ode_trigger_range_new()
 ##
-_dsl.dsl_ode_trigger_range_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_range_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_range_new.restype = c_uint
-def dsl_ode_trigger_range_new(name, class_id, limit, lower, upper):
+def dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper):
     global _dsl
-    result =_dsl.dsl_ode_trigger_range_new(name, class_id, limit, lower, upper)
+    result =_dsl.dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper)
     return int(result)
 
 ##
 ## dsl_ode_trigger_smallest_new()
 ##
-_dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_smallest_new.restype = c_uint
-def dsl_ode_trigger_smallest_new(name, class_id, limit):
+def dsl_ode_trigger_smallest_new(name, souce, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_smallest_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_smallest_new(name, source, class_id, limit)
     return int(result)
 
 ##
 ## dsl_ode_trigger_largest_new()
 ##
-_dsl.dsl_ode_trigger_largest_new.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_largest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
 _dsl.dsl_ode_trigger_largest_new.restype = c_uint
-def dsl_ode_trigger_largest_new(name, class_id, limit):
+def dsl_ode_trigger_largest_new(name, source, class_id, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_largest_new(name, class_id, limit)
+    result =_dsl.dsl_ode_trigger_largest_new(name, source, class_id, limit)
     return int(result)
 
 ##
@@ -756,24 +756,24 @@ def dsl_ode_trigger_enabled_set(name, enabled):
     return int(result)
 
 ##
-## dsl_ode_trigger_source_id_get()
+## dsl_ode_trigger_source_get()
 ##
-_dsl.dsl_ode_trigger_source_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_ode_trigger_source_id_get.restype = c_uint
+_dsl.dsl_ode_trigger_source_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_ode_trigger_source_get.restype = c_uint
 def dsl_ode_trigger_source_id_get(name):
     global _dsl
-    source_id = c_uint(0)
-    result =_dsl.dsl_ode_trigger_source_id_get(name, DSL_UINT_P(source_id))
-    return int(result), source_id.value
+    source = c_wchar_p(0)
+    result =_dsl.dsl_ode_trigger_source_get(name, DSL_WCHAR_P(source))
+    return int(result), source.value
 
 ##
-## dsl_ode_trigger_source_id_set()
+## dsl_ode_trigger_source_set()
 ##
-_dsl.dsl_ode_trigger_source_id_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_ode_trigger_source_id_set.restype = c_uint
-def dsl_ode_trigger_source_id_set(name, source_id):
+_dsl.dsl_ode_trigger_source_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_trigger_source_set.restype = c_uint
+def dsl_ode_trigger_source_set(name, source):
     global _dsl
-    result =_dsl.dsl_ode_trigger_source_id_set(name, source_id)
+    result =_dsl.dsl_ode_trigger_source_set(name, source)
     return int(result)
 
 ##
