@@ -467,17 +467,24 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             
-            DSL_RGBA_COLOR_PTR pbgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            
             m_displayTypes[name] = DSL_RGBA_TEXT_NEW(name,
-                text, xOffset, yOffset, pFont, hasBgColor, pbgColor);
+                text, xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
             LOG_INFO("New RGBA Text '" << name << "' created successfully");
 
@@ -580,13 +587,22 @@ namespace DSL
             
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
-            DSL_RGBA_COLOR_PTR pBgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
             
             m_displayTypes[name] = DSL_RGBA_RECTANGLE_NEW(name, 
                 left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor);
@@ -619,13 +635,22 @@ namespace DSL
             
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
 
             DSL_RGBA_COLOR_PTR pColor = 
                 std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
-            DSL_RGBA_COLOR_PTR pBgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
             
             m_displayTypes[name] = DSL_RGBA_CIRCLE_NEW(name, 
                 xCenter, yCenter, radius, pColor, hasBgColor, pBgColor);
@@ -659,17 +684,24 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             
-            DSL_RGBA_COLOR_PTR pbgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            
             m_displayTypes[name] = DSL_SOURCE_NAME_NEW(name,
-                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
             LOG_INFO("New RGBA Text '" << name << "' created successfully");
 
@@ -700,17 +732,24 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             
-            DSL_RGBA_COLOR_PTR pbgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            
             m_displayTypes[name] = DSL_SOURCE_DIMENSIONS_NEW(name,
-                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
             LOG_INFO("New RGBA Text '" << name << "' created successfully");
 
@@ -741,17 +780,24 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
 
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             
-            DSL_RGBA_COLOR_PTR pbgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            
             m_displayTypes[name] = DSL_SOURCE_FRAME_RATE_NEW(name,
-                xOffset, yOffset, pFont, hasBgColor, pbgColor);
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
             LOG_INFO("New RGBA Text '" << name << "' created successfully");
 
@@ -956,15 +1002,22 @@ namespace DSL
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
             RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
             
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
 
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
 
-            DSL_RGBA_COLOR_PTR pBgColor = 
-                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
-            
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
                 offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor);
             LOG_INFO("New Display ODE Action '" << name << "' created successfully");

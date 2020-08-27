@@ -154,7 +154,7 @@ def main(args):
 
         # New Action used to display all Object detection summations for each frame. 
         retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False,
-            font='arial-15-white', has_bg_color=False, bg_color='opaque-white')
+            font='arial-15-white', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
             

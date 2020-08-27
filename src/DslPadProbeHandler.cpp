@@ -41,6 +41,8 @@ namespace DSL
     PadProbeHandler::~PadProbeHandler()
     {
         LOG_FUNC();
+
+        RemoveAllChildren();
     }
     
     bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
@@ -116,8 +118,6 @@ namespace DSL
     OdePadProbeHandler::~OdePadProbeHandler()
     {
         LOG_FUNC();
-
-        RemoveAllChildren();
     }
     
     bool OdePadProbeHandler::HandlePadBuffer(GstBuffer* pBuffer)

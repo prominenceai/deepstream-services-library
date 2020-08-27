@@ -89,7 +89,7 @@ def create_colors():
     if retval != DSL_RETURN_SUCCESS:
         return retval
         
-    retval = dsl_display_type_rgba_color_new('opaque-yellow', red=1.0, green=1.0, blue=0.0, alpha = 0.15)
+    retval = dsl_display_type_rgba_color_new('opaque-yellow', red=1.0, green=1.0, blue=0.0, alpha = 0.1)
     if retval != DSL_RETURN_SUCCESS:
         return retval
         
@@ -153,7 +153,7 @@ def create_text_and_shapes():
         return retval
         
     retval = dsl_display_type_rgba_text_new('blue-text', 'Shared Trigger Area', x_offset=733, y_offset=30, 
-        font='arial-20-blue', has_bg_color=False, bg_color='full-blue')
+        font='arial-20-blue', has_bg_color=False, bg_color=None)
 
     # New RGBA Rectangle to use with an ODE Area as Trigger criteria, shared between Person and Vehicle Class Id's 
     retval = dsl_display_type_rgba_rectangle_new('shared-rectangle', left=500, top=0, width=60, height=1089, 
@@ -267,7 +267,7 @@ def main(args):
         # Create a new  Action used to display all Object detection summations for each frame. Use the classId
         # to add an additional vertical offset so the one action can be shared accross classId's
         retval = dsl_ode_action_display_new('display-action', offsetX=24, offsetY=55, offsetY_with_classId=True,
-            font='arial-15-white', has_bg_color=False, bg_color='full-grey')
+            font='arial-15-white', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
