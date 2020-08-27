@@ -106,7 +106,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_largest_new('largest-trigger', 
+        retval = dsl_ode_trigger_largest_new('largest-trigger', source=DSL_ODE_ANY_SOURCE,
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -118,7 +118,7 @@ def main(args):
         retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', 
+        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break

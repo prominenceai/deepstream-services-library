@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslServices.h"
 
 namespace DSL
 {
@@ -33,13 +34,14 @@ namespace DSL
     // Initialize static Event Counter
     uint64_t OdeTrigger::s_eventCount = 0;
 
-    OdeTrigger::OdeTrigger(const char* name, 
+    OdeTrigger::OdeTrigger(const char* name, const char* source, 
         uint classId, uint limit)
         : Base(name)
         , m_wName(m_name.begin(), m_name.end())
         , m_enabled(true)
+        , m_source(source)
+        , m_sourceId(-1)
         , m_classId(classId)
-        , m_sourceId(DSL_ODE_ANY_SOURCE)
         , m_triggered(0)
         , m_limit(limit)
         , m_occurrences(0)
@@ -176,19 +178,23 @@ namespace DSL
         m_classId = classId;
     }
 
-    uint OdeTrigger::GetSourceId()
+    const char* OdeTrigger::GetSource()
     {
         LOG_FUNC();
         
-        return m_sourceId;
+        if (m_source.size())
+        {
+            return m_source.c_str();
+        }
+        return NULL;
     }
     
-    void OdeTrigger::SetSourceId(uint sourceId)
+    void OdeTrigger::SetSource(const char* source)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        m_sourceId = sourceId;
+        m_source.assign(source);
     }
 
     float OdeTrigger::GetMinConfidence()
@@ -279,9 +285,16 @@ namespace DSL
             return;
         }
         // Filter on Source id if set
-        if ((m_sourceId != DSL_ODE_ANY_SOURCE) and (m_sourceId != pFrameMeta->source_id))
+        if (m_source.size())
         {
-            return;
+            if (m_sourceId == -1)
+            {
+                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
+            }
+            if (m_sourceId != pFrameMeta->source_id)
+            {
+                return;
+            }
         }
         // Reset the occurrences from the last frame. 
         m_occurrences = 0;
@@ -312,9 +325,16 @@ namespace DSL
             return false;
         }
         // Filter on Source id if set
-        if ((m_sourceId != DSL_ODE_ANY_SOURCE) and (m_sourceId != pFrameMeta->source_id))
+        if (m_source.size())
         {
-            return false;
+            if (m_sourceId == -1)
+            {
+                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
+            }
+            if (m_sourceId != pFrameMeta->source_id)
+            {
+                return false;
+            }
         }
         // Ensure that the minimum confidence has been reached
         if (pObjectMeta->confidence > 0 and pObjectMeta->confidence < m_minConfidence)
@@ -373,8 +393,8 @@ namespace DSL
     }    
     
     // *****************************************************************************
-    AlwaysOdeTrigger::AlwaysOdeTrigger(const char* name, uint when)
-        : OdeTrigger(name, DSL_ODE_ANY_CLASS, 0)
+    AlwaysOdeTrigger::AlwaysOdeTrigger(const char* name, const char* source, uint when)
+        : OdeTrigger(name, source, DSL_ODE_ANY_CLASS, 0)
         , m_when(when)
     {
         LOG_FUNC();
@@ -394,9 +414,16 @@ namespace DSL
             return;
         }
         // Filter on Source id if set
-        if ((m_sourceId != DSL_ODE_ANY_SOURCE) and (m_sourceId != pFrameMeta->source_id))
+        if (m_source.size())
         {
-            return;
+            if (m_sourceId == -1)
+            {
+                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
+            }
+            if (m_sourceId != pFrameMeta->source_id)
+            {
+                return;
+            }
         }
         for (const auto &imap: m_pOdeActions)
         {
@@ -413,9 +440,16 @@ namespace DSL
             return 0;
         }
         // Filter on Source id if set
-        if ((m_sourceId != DSL_ODE_ANY_SOURCE) and (m_sourceId != pFrameMeta->source_id))
+        if (m_source.size())
         {
-            return 0;
+            if (m_sourceId == -1)
+            {
+                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
+            }
+            if (m_sourceId != pFrameMeta->source_id)
+            {
+                return 0;
+            }
         }
         for (const auto &imap: m_pOdeActions)
         {
@@ -427,8 +461,8 @@ namespace DSL
 
     // *****************************************************************************
 
-    OccurrenceOdeTrigger::OccurrenceOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    OccurrenceOdeTrigger::OccurrenceOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }
@@ -462,8 +496,8 @@ namespace DSL
 
     // *****************************************************************************
     
-    AbsenceOdeTrigger::AbsenceOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    AbsenceOdeTrigger::AbsenceOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }
@@ -515,8 +549,8 @@ namespace DSL
 
     // *****************************************************************************
     
-    SummationOdeTrigger::SummationOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    SummationOdeTrigger::SummationOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }
@@ -561,8 +595,8 @@ namespace DSL
 
     // *****************************************************************************
     
-    IntersectionOdeTrigger::IntersectionOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    IntersectionOdeTrigger::IntersectionOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }
@@ -630,10 +664,10 @@ namespace DSL
 
     // *****************************************************************************
 
-    CustomOdeTrigger::CustomOdeTrigger(const char* name, 
+    CustomOdeTrigger::CustomOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
         dsl_ode_post_process_frame_cb clientPostProcessor, void* clientData)
-        : OdeTrigger(name, classId, limit)
+        : OdeTrigger(name, source, classId, limit)
         , m_clientChecker(clientChecker)
         , m_clientPostProcessor(clientPostProcessor)
         , m_clientData(clientData)
@@ -717,8 +751,9 @@ namespace DSL
 
     // *****************************************************************************
     
-    MinimumOdeTrigger::MinimumOdeTrigger(const char* name, uint classId, uint limit, uint minimum)
-        : OdeTrigger(name, classId, limit)
+    MinimumOdeTrigger::MinimumOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum)
+        : OdeTrigger(name, source, classId, limit)
         , m_minimum(minimum)
     {
         LOG_FUNC();
@@ -764,8 +799,9 @@ namespace DSL
 
     // *****************************************************************************
     
-    MaximumOdeTrigger::MaximumOdeTrigger(const char* name, uint classId, uint limit, uint maximum)
-        : OdeTrigger(name, classId, limit)
+    MaximumOdeTrigger::MaximumOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint maximum)
+        : OdeTrigger(name, source, classId, limit)
         , m_maximum(maximum)
     {
         LOG_FUNC();
@@ -811,8 +847,9 @@ namespace DSL
 
     // *****************************************************************************
     
-    RangeOdeTrigger::RangeOdeTrigger(const char* name, uint classId, uint limit, uint lower, uint upper)
-        : OdeTrigger(name, classId, limit)
+    RangeOdeTrigger::RangeOdeTrigger(const char* name, const char* source,
+        uint classId, uint limit, uint lower, uint upper)
+        : OdeTrigger(name, source, classId, limit)
         , m_lower(lower)
         , m_upper(upper)
     {
@@ -859,8 +896,8 @@ namespace DSL
 
     // *****************************************************************************
     
-    SmallestOdeTrigger::SmallestOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    SmallestOdeTrigger::SmallestOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }
@@ -924,8 +961,8 @@ namespace DSL
 
     // *****************************************************************************
     
-    LargestOdeTrigger::LargestOdeTrigger(const char* name, uint classId, uint limit)
-        : OdeTrigger(name, classId, limit)
+    LargestOdeTrigger::LargestOdeTrigger(const char* name, const char* source, uint classId, uint limit)
+        : OdeTrigger(name, source, classId, limit)
     {
         LOG_FUNC();
     }

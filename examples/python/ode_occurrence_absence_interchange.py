@@ -44,6 +44,11 @@ PGIE_CLASS_ID_ROADSIGN = 3
 MIN_OBJECTS = 3
 MAX_OBJECTS = 8
 
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -116,20 +121,40 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        # New RGBA Color for the 'red-flash' below
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.0, green=0.0, alpha=0.6)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Create a Fill-Area Action to simulate a 'red-flash' as a visual indicator that a new Occurrence
         # has occurred. This Action will used by the Occurrence Trigger only
-        retval = dsl_ode_action_fill_frame_new('occurrence-flash-action', red=1.0, blue=0.0, green=0.0, alpha=0.6)
+        retval = dsl_ode_action_fill_frame_new('occurrence-flash-action', 'opaque-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New RGBA Color for the 'white-flash' below
+        retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, blue=1.0, green=1.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create a Fill-Area Action to simulate a 'white-flash' as a visual indicator that a new Absence
         # has occurred. This Action will used by the Absence Trigger only
-        retval = dsl_ode_action_fill_frame_new('absence-flash-action', red=1.0, blue=1.0, green=1.0, alpha=0.3)
+        retval = dsl_ode_action_fill_frame_new('absence-flash-action', 'opaque-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New RGBA Color for the 'white-text' below
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_display_type_rgba_font_new('arial-15-white', font='arial', size=15, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
         # New Action used to display all Object detection summations for each frame. 
-        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False)
+        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False,
+            font='arial-15-white', has_bg_color=False, bg_color='opaque-white')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -150,7 +175,8 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the New Occurrence and New Absence Triggers, and add the Actions to Flash, Print and Reset the other.
-        retval = dsl_ode_trigger_occurrence_new('new-person-occurrence', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
+        retval = dsl_ode_trigger_occurrence_new('new-person-occurrence', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('new-person-occurrence', actions=
@@ -158,7 +184,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_absence_new('new-person-absence', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
+        retval = dsl_ode_trigger_absence_new('new-person-absence', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE )
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('new-person-absence', actions=
@@ -171,7 +198,8 @@ def main(args):
         
         # New ODE Trigger for Person summation - i.e. new ODE occurrence on Person summation for each frame.
         # Note: The Display-Action will use the Trigger's unique name as the label for the summation display
-        retval = dsl_ode_trigger_summation_new('Person count:', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_summation_new('Person count:', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('Person count:', action='display-action')
@@ -179,7 +207,8 @@ def main(args):
             break
 
         # New ODE occurrence Trigger to hide the Display Text and Border for all vehicles
-        retval = dsl_ode_trigger_occurrence_new('every-vehicle', class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-vehicle', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('every-vehicle', action='hide-both-action')
@@ -187,7 +216,8 @@ def main(args):
             break
 
         # New ODE occurrence Trigger to hide the Display Text and Border for all bicycles
-        retval = dsl_ode_trigger_occurrence_new('every-bicycle', class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-bicycle', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('every-bicycle', action='hide-both-action')
@@ -195,7 +225,8 @@ def main(args):
             break
 
         # New ODE occurrence Trigger to hide just the Display Text for every person, we will leave the border visible
-        retval = dsl_ode_trigger_occurrence_new('every-person', class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-person', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add('every-person', action='hide-text-action')
@@ -240,7 +271,7 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', width=TILER_WIDTH, height=TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
@@ -255,7 +286,7 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

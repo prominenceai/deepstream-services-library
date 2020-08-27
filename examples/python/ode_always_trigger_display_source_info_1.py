@@ -129,7 +129,7 @@ def main(args):
             break
 
         # Create an Always triger to overlay our Display Types on every frame
-        retval = dsl_ode_trigger_always_new('always-trigger', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
@@ -169,13 +169,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tracker_pph_add('ktl-tracker', 'ode-handler', DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
         # New Tiler, setting width and height, use default cols/rows set by source count
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+#        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 

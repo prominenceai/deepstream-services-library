@@ -87,7 +87,7 @@ SCENARIO( "A OdePadProbeHandler can add and remove an OdeTrigger", "[PadProbeHan
             DSL_PPH_ODE_NEW(odeHandlerName.c_str());
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pFirstOccurrenceTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), "", classId, limit);
 
         WHEN( "The Trigger is added to the OdePadProbeHandler" )
         {

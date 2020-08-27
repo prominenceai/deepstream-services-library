@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
+#include "DslServices.h"
 
 using namespace DSL;
 
@@ -36,17 +37,19 @@ SCENARIO( "A new OdeTrigger is created correctly", "[OdeTrigger]" )
         std::string odeTriggerName("occurence");
         uint classId(1);
         uint limit(1);
+        
+        std::string source;
 
         WHEN( "A new OdeTrigger is created" )
         {
             DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-                DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+                DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
             THEN( "The OdeTriggers's memebers are setup and returned correctly" )
             {
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
-                REQUIRE( pOdeTrigger->GetSourceId() == DSL_ODE_ANY_SOURCE );
+                REQUIRE( pOdeTrigger->GetSource() == NULL );
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
                 REQUIRE( minWidth == 0 );
@@ -73,10 +76,12 @@ SCENARIO( "An OdeTrigger checks its enabled setting ", "[OdeTrigger]" )
         uint classId(1);
         uint limit(0); // not limit
 
+        std::string source;
+
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -125,13 +130,14 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
         std::string odeTriggerName("occurence");
+        std::string source;
         uint classId(1);
         uint limit(0); // not limit
 
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -187,24 +193,26 @@ SCENARIO( "An ODE checks its minimum confidence correctly", "[OdeTrigger]" )
 }
 
 
-SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
+SCENARIO( "A OdeTrigger checks for Source Name correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
         std::string odeTriggerName("occurence");
         uint classId(1);
         uint limit(0);
-        uint sourceId(2);
+        uint sourceId(1);
+        
+        std::string source("source-1");
+        
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
             
-        // Set the minumum confidence value for detection
-        pOdeTrigger->SetSourceId(sourceId);    
-        
-        REQUIRE( pOdeTrigger->GetSourceId() == sourceId );
+        std::string retSource(pOdeTrigger->GetSource());
+        REQUIRE( retSource == source );
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -215,7 +223,6 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
         frameMeta.bInferDone = true;  
         frameMeta.frame_num = 444;
         frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 1;
 
         NvDsObjectMeta objectMeta = {0};
         objectMeta.class_id = classId; // must match ODE Type's classId
@@ -229,7 +236,8 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
         
         WHEN( "The the Source ID filter is disabled" )
         {
-            pOdeTrigger->SetSourceId(DSL_ODE_ANY_SOURCE);
+            frameMeta.source_id = 1;
+            pOdeTrigger->SetSource("");
             
             THEN( "The ODE is triggered" )
             {
@@ -238,16 +246,16 @@ SCENARIO( "A OdeTrigger checks for SourceId correctly", "[OdeTrigger]" )
         }
         WHEN( "The Source ID matches the filter" )
         {
-            pOdeTrigger->SetSourceId(1);
+            frameMeta.source_id = 1;
             
             THEN( "The ODE is triggered" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The Source ID does not matche the filter" )
+        WHEN( "The Source ID does not match the filter" )
         {
-            pOdeTrigger->SetSourceId(2);
+            frameMeta.source_id = 2;
             
             THEN( "The ODE is NOT triggered" )
             {
@@ -262,13 +270,14 @@ SCENARIO( "A OdeTrigger checks for Minimum Dimensions correctly", "[OdeTrigger]"
     GIVEN( "A new OdeTrigger with minimum criteria" ) 
     {
         std::string odeTriggerName("occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -334,13 +343,14 @@ SCENARIO( "A OdeTrigger checks for Maximum Dimensions correctly", "[OdeTrigger]"
     GIVEN( "A new OdeTrigger with maximum criteria" ) 
     {
         std::string odeTriggerName("occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -405,13 +415,14 @@ SCENARIO( "An OdeTrigger checks its InferDoneOnly setting ", "[OdeTrigger]" )
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
         std::string odeTriggerName("occurence");
+        std::string source;
         uint classId(1);
         uint limit(0); // not limit
 
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -460,6 +471,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
     GIVEN( "A new OdeTrigger with maximum criteria" ) 
     {
         std::string odeTriggerName("occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
 
@@ -478,7 +490,7 @@ SCENARIO( "A OdeTrigger checks for Area overlap correctly", "[OdeTrigger]" )
             left, top, width, height, borderWidth, pColor, true, pColor);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -572,13 +584,14 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
     GIVEN( "A new OdeTrigger with minimum criteria" ) 
     {
         std::string odeTriggerName("intersection");
+        std::string source;
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_INTERSECTION_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -686,13 +699,14 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
     GIVEN( "A new CustomOdeTrigger with client occurrence checker" ) 
     {
         std::string odeTriggerName("custom");
+        std::string source;
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_CUSTOM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_CUSTOM_NEW(odeTriggerName.c_str(), classId, limit, ode_check_for_occurrence_cb, 
+            DSL_ODE_TRIGGER_CUSTOM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, ode_check_for_occurrence_cb, 
                 ode_post_process_frame_cb, NULL);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
@@ -729,6 +743,7 @@ SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
     GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
     {
         std::string odeTriggerName("maximum");
+        std::string source;
         uint classId(1);
         uint limit(0);
         uint maximum(2);
@@ -736,7 +751,7 @@ SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_MAXIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MAXIMUM_NEW(odeTriggerName.c_str(), classId, limit, maximum);
+            DSL_ODE_TRIGGER_MAXIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -786,6 +801,7 @@ SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
     GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
     {
         std::string odeTriggerName("maximum");
+        std::string source;
         uint classId(1);
         uint limit(0);
         uint minimum(3);
@@ -793,7 +809,7 @@ SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_MINIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MINIMUM_NEW(odeTriggerName.c_str(), classId, limit, minimum);
+            DSL_ODE_TRIGGER_MINIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, minimum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -843,13 +859,14 @@ SCENARIO( "A SmallestOdeTrigger handles an ODE Occurrence correctly", "[OdeTrigg
     GIVEN( "A new SmallestOdeTrigger" ) 
     {
         std::string odeTriggerName("smallest");
+        std::string source;
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_SMALLEST_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_SMALLEST_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_SMALLEST_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -893,13 +910,14 @@ SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigge
     GIVEN( "A new LargestOdeTrigger" ) 
     {
         std::string odeTriggerName("smallest");
+        std::string source;
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("print-action");
 
         DSL_ODE_TRIGGER_LARGEST_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_LARGEST_NEW(odeTriggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_LARGEST_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());

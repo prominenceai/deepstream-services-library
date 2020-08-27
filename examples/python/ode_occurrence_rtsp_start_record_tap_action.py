@@ -177,8 +177,9 @@ def main(args):
         retval = dsl_ode_action_display_meta_add_new('red-led-overlay', 'red-led')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_custom_new('rec-on-trigger', class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE,
-            client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=None)
+        retval = dsl_ode_trigger_custom_new('rec-on-trigger', source=DSL_ODE_ANY_SOURCE, 
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, client_checker=check_for_occurrence, 
+            client_post_processor=post_process_frame, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('rec-on-trigger', actions=[
@@ -197,7 +198,8 @@ def main(args):
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the Person Occurrence Trigger. We will reset the trigger in the recording complete callback
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', class_id=PGIE_CLASS_ID_PERSON, limit=1)
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_PERSON, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
 

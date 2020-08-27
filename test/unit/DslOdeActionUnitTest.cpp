@@ -84,14 +84,15 @@ SCENARIO( "A CustomOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
 {
     GIVEN( "A new CustomOdeAction" ) 
     {
-        std::string odeTypeName("first-occurence");
+        std::string odeTriggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
 
         std::string actionName("ode-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTypeName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_CUSTOM_PTR pAction = 
             DSL_ODE_ACTION_CUSTOM_NEW(actionName.c_str(), ode_occurrence_handler_cb, NULL);
@@ -188,6 +189,7 @@ SCENARIO( "A HandlerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
     GIVEN( "A new HandlerDisableOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -195,7 +197,7 @@ SCENARIO( "A HandlerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
         std::string handlerName("handler");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
             DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), handlerName.c_str());
@@ -269,6 +271,7 @@ SCENARIO( "A FillObjectOdeAction handles an ODE Occurence correctly", "[OdeActio
     GIVEN( "A new FillObjectOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -280,7 +283,7 @@ SCENARIO( "A FillObjectOdeAction handles an ODE Occurence correctly", "[OdeActio
         DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_FILL_OBJECT_PTR pAction = 
             DSL_ODE_ACTION_FILL_OBJECT_NEW(actionName.c_str(), pColor);
@@ -352,6 +355,7 @@ SCENARIO( "A HideOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     GIVEN( "A new HideOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -359,7 +363,7 @@ SCENARIO( "A HideOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         std::string displayText("display-text");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_HIDE_PTR pAction = 
             DSL_ODE_ACTION_HIDE_NEW(actionName.c_str(), true, true);
@@ -416,13 +420,14 @@ SCENARIO( "A LogOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     GIVEN( "A new LogOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
         std::string actionName = "ode-action";
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_LOG_PTR pAction = 
             DSL_ODE_ACTION_LOG_NEW(actionName.c_str());
@@ -477,6 +482,7 @@ SCENARIO( "A PauseOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     GIVEN( "A new PauseOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -484,7 +490,7 @@ SCENARIO( "A PauseOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
         std::string pipelineName("pipeline");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PAUSE_PTR pAction = 
             DSL_ODE_ACTION_PAUSE_NEW(actionName.c_str(), pipelineName.c_str());
@@ -539,13 +545,14 @@ SCENARIO( "A PrintOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
     GIVEN( "A new PrintOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
         std::string actionName = "ode-action";
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pAction = 
             DSL_ODE_ACTION_PRINT_NEW(actionName.c_str());
@@ -599,13 +606,14 @@ SCENARIO( "A RedactOdeAction handles an ODE Occurence correctly", "[OdeAction]" 
     GIVEN( "A new RedactOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
         std::string actionName = "ode-action";
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_REDACT_PTR pAction = 
             DSL_ODE_ACTION_REDACT_NEW(actionName.c_str());
@@ -674,6 +682,7 @@ SCENARIO( "A SinkAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
     GIVEN( "A new SinkAddOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -682,7 +691,7 @@ SCENARIO( "A SinkAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
         std::string sinkName("sink");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SINK_ADD_PTR pAction = 
             DSL_ODE_ACTION_SINK_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
@@ -728,6 +737,7 @@ SCENARIO( "A SinkRemoveOdeAction handles an ODE Occurence correctly", "[OdeActio
     GIVEN( "A new SinkRemoveOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -736,7 +746,7 @@ SCENARIO( "A SinkRemoveOdeAction handles an ODE Occurence correctly", "[OdeActio
         std::string sinkName("sink");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SINK_REMOVE_PTR pAction = 
             DSL_ODE_ACTION_SINK_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sinkName.c_str());
@@ -782,6 +792,7 @@ SCENARIO( "A SourceAddOdeAction handles an ODE Occurence correctly", "[OdeAction
     GIVEN( "A new SourceAddOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -790,7 +801,7 @@ SCENARIO( "A SourceAddOdeAction handles an ODE Occurence correctly", "[OdeAction
         std::string sourceName("source");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SOURCE_ADD_PTR pAction = 
             DSL_ODE_ACTION_SOURCE_ADD_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
@@ -836,6 +847,7 @@ SCENARIO( "A SourceRemoveOdeAction handles an ODE Occurence correctly", "[OdeAct
     GIVEN( "A new SourceRemoveOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -844,7 +856,7 @@ SCENARIO( "A SourceRemoveOdeAction handles an ODE Occurence correctly", "[OdeAct
         std::string sourceName("source");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SOURCE_REMOVE_PTR pAction = 
             DSL_ODE_ACTION_SOURCE_REMOVE_NEW(actionName.c_str(), pipelineName.c_str(), sourceName.c_str());
@@ -890,6 +902,7 @@ SCENARIO( "An ActionAddOdeAction handles an ODE Occurence correctly", "[OdeActio
     GIVEN( "A new ActionAddOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -897,7 +910,7 @@ SCENARIO( "An ActionAddOdeAction handles an ODE Occurence correctly", "[OdeActio
         std::string otherActionName("other-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
             DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), triggerName.c_str(), otherActionName.c_str());
@@ -942,6 +955,7 @@ SCENARIO( "A ActionDisableOdeAction handles an ODE Occurence correctly", "[OdeAc
     GIVEN( "A new ActionDisableOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -949,7 +963,7 @@ SCENARIO( "A ActionDisableOdeAction handles an ODE Occurence correctly", "[OdeAc
         std::string otherActionName("trigger");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_ACTION_DISABLE_PTR pAction = 
             DSL_ODE_ACTION_ACTION_DISABLE_NEW(actionName.c_str(), otherActionName.c_str());
@@ -994,6 +1008,7 @@ SCENARIO( "A ActionEnableOdeAction handles an ODE Occurence correctly", "[OdeAct
     GIVEN( "A new ActionEnableOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1001,7 +1016,7 @@ SCENARIO( "A ActionEnableOdeAction handles an ODE Occurence correctly", "[OdeAct
         std::string otherActionName("trigger");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_ACTION_ENABLE_PTR pAction = 
             DSL_ODE_ACTION_ACTION_ENABLE_NEW(actionName.c_str(), otherActionName.c_str());
@@ -1047,6 +1062,7 @@ SCENARIO( "A AreaAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
     GIVEN( "A new AreaAddOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1054,7 +1070,7 @@ SCENARIO( "A AreaAddOdeAction handles an ODE Occurence correctly", "[OdeAction]"
         std::string areaName("area");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_AREA_ADD_PTR pAction = 
             DSL_ODE_ACTION_AREA_ADD_NEW(actionName.c_str(), triggerName.c_str(), areaName.c_str());
@@ -1100,6 +1116,7 @@ SCENARIO( "A TriggerResetOdeAction handles an ODE Occurence correctly", "[OdeAct
     GIVEN( "A new TriggerResetOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1107,7 +1124,7 @@ SCENARIO( "A TriggerResetOdeAction handles an ODE Occurence correctly", "[OdeAct
         std::string otherTriggerName("reset");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TRIGGER_RESET_PTR pAction = 
             DSL_ODE_ACTION_TRIGGER_RESET_NEW(actionName.c_str(), otherTriggerName.c_str());
@@ -1153,6 +1170,7 @@ SCENARIO( "A TriggerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
     GIVEN( "A new TriggerDisableOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1160,7 +1178,7 @@ SCENARIO( "A TriggerDisableOdeAction handles an ODE Occurence correctly", "[OdeA
         std::string otherTriggerName("trigger");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TRIGGER_DISABLE_PTR pAction = 
             DSL_ODE_ACTION_TRIGGER_DISABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
@@ -1205,6 +1223,7 @@ SCENARIO( "A TriggerEnableOdeAction handles an ODE Occurence correctly", "[OdeAc
     GIVEN( "A new TriggerEnableOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1212,7 +1231,7 @@ SCENARIO( "A TriggerEnableOdeAction handles an ODE Occurence correctly", "[OdeAc
         std::string otherTriggerName("trigger");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TRIGGER_ENABLE_PTR pAction = 
             DSL_ODE_ACTION_TRIGGER_ENABLE_NEW(actionName.c_str(), otherTriggerName.c_str());
@@ -1259,6 +1278,7 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
     GIVEN( "A new RecordSinkStartOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1268,7 +1288,7 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
         dsl_record_client_listner_cb client_listener;
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_SINK_RECORD_START_PTR pAction = 
             DSL_ODE_ACTION_SINK_RECORD_START_NEW(actionName.c_str(), recordSink.c_str(), 1, 1, NULL);
@@ -1315,6 +1335,7 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
     GIVEN( "A new RecordTapStartOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1324,7 +1345,7 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
         dsl_record_client_listner_cb client_listener;
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
             DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
@@ -1370,6 +1391,7 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
     GIVEN( "A new TilerShowSourceOdeAction" ) 
     {
         std::string triggerName("first-occurence");
+        std::string source;
         uint classId(1);
         uint limit(1);
         
@@ -1378,7 +1400,7 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
         uint timeout(2);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
             DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout);

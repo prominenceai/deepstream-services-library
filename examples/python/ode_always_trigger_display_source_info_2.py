@@ -128,33 +128,25 @@ def main(args):
             break
 
         # Create an Always triger to overlay our Display Types on every frame
-        retval = dsl_ode_trigger_always_new('always-trigger-0', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger-0', source='North Camera',
+            when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
-        retval = dsl_ode_trigger_source_id_set('always-trigger-0', source_id=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
-        retval = dsl_ode_trigger_always_new('always-trigger-1', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger-1', source='South Camera',
+            when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
-        retval = dsl_ode_trigger_source_id_set('always-trigger-1', source_id=1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
-        retval = dsl_ode_trigger_always_new('always-trigger-2', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger-2', source='East Camera',
+            when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
-        retval = dsl_ode_trigger_source_id_set('always-trigger-2', source_id=2)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
-        retval = dsl_ode_trigger_always_new('always-trigger-3', when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger-3', source='West Camera',
+            when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
-        retval = dsl_ode_trigger_source_id_set('always-trigger-3', source_id=3)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         retval = dsl_ode_trigger_action_add_many('always-trigger-0', actions=[
             'add-dimensions',

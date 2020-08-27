@@ -167,7 +167,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Type, and Print OD
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), classId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeTriggerName.c_str(), NULL, classId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_print_new(odeActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(odeTriggerName.c_str(), odeActionName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -267,8 +267,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(odeCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odeCarOccurrenceName.c_str(), NULL, carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
 
         // shared redaction action
         REQUIRE( dsl_ode_action_redact_new(odeRedactActionName.c_str()) == DSL_RESULT_SUCCESS );
@@ -373,8 +373,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types sharing 
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(firstCarOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(firstCarOccurrenceName.c_str(), NULL, carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_action_capture_object_new(captureActionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -474,7 +474,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, an Occurrence ODE Type, with a Pa
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(firstPersonOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_action_pause_new(pauseActionName.c_str(), pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -599,13 +599,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
             fontName.c_str(), false, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all occurrences
-        REQUIRE( dsl_ode_trigger_occurrence_new(carOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(carOccurrenceName.c_str(), NULL, carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(carOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), NULL, bicycleClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(bicycleOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_occurrence_new(roadsignOccurrenceName.c_str(), roadsignClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(roadsignOccurrenceName.c_str(), NULL, roadsignClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(roadsignOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
@@ -732,13 +732,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
             fontName.c_str(), false, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all occurrences
-        REQUIRE( dsl_ode_trigger_summation_new(carOccurrenceName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(carOccurrenceName.c_str(), NULL, carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(carOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(bicycleOccurrenceName.c_str(), NULL, bicycleClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(bicycleOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(personOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(roadsignOccurrenceName.c_str(), roadsignClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(roadsignOccurrenceName.c_str(), NULL, roadsignClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(roadsignOccurrenceName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", NULL};
@@ -880,7 +880,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Set Area critera, and The fill action for ODE occurrence caused by overlap
-        REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(personOccurrenceName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_action_fill_object_new(fillActionName.c_str(), lightRed.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
@@ -897,13 +897,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
             fontName.c_str(), true, fullBlack.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create all Summation types and add common Display action
-        REQUIRE( dsl_ode_trigger_summation_new(carSummationName.c_str(), carClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(carSummationName.c_str(), NULL, carClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(carSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(bicycleSummationName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(bicycleSummationName.c_str(), NULL, bicycleClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(bicycleSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(personSummationName.c_str(), personClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(personSummationName.c_str(), NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(personSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_summation_new(roadsignSummationName.c_str(), roadsignClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_summation_new(roadsignSummationName.c_str(), NULL, roadsignClassId, limit) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(roadsignSummationName.c_str(), displayActionName.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* odeTypes[] = {L"Car", L"Bicycle", L"Person", L"Roadsign", L"person-occurrence", NULL};
@@ -1021,7 +1021,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         
         REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), bicycleClassId, limit) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_occurrence_new(bicycleOccurrenceName.c_str(), NULL, bicycleClassId, limit) == DSL_RESULT_SUCCESS );
         
         const wchar_t* actions[] = {L"start-record-action", L"print-action", NULL};
 

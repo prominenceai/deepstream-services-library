@@ -180,30 +180,32 @@ namespace DSL {
         
         uint OdeAreaListSize();
         
-        DslReturnType OdeTriggerAlwaysNew(const char* name, uint when);
+        DslReturnType OdeTriggerAlwaysNew(const char* name, const char* source, uint when);
         
-        DslReturnType OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit);
         
-        DslReturnType OdeTriggerAbsenceNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit);
         
-        DslReturnType OdeTriggerIntersectionNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerSummationNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerSummationNew(const char* name, const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerCustomNew(const char* name, 
+        DslReturnType OdeTriggerCustomNew(const char* name, const char* source, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
             dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
-        DslReturnType OdeTriggerMinimumNew(const char* name, uint classId, uint limit, uint minimum);
+        DslReturnType OdeTriggerMinimumNew(const char* name, const char* source,
+            uint classId, uint limit, uint minimum);
         
-        DslReturnType OdeTriggerMaximumNew(const char* name, uint classId, uint limit, uint maximum);
+        DslReturnType OdeTriggerMaximumNew(const char* name, const char* source,
+            uint classId, uint limit, uint maximum);
 
-        DslReturnType OdeTriggerRangeNew(const char* name, 
+        DslReturnType OdeTriggerRangeNew(const char* name, const char* source, 
             uint classId, uint limit, uint lower, uint upper);
         
-        DslReturnType OdeTriggerSmallestNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerLargestNew(const char* name, uint classId, uint limit);
+        DslReturnType OdeTriggerLargestNew(const char* name, const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerReset(const char* name);
 
@@ -211,6 +213,10 @@ namespace DSL {
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType OdeTriggerSourceGet(const char* name, const char** source);
+        
+        DslReturnType OdeTriggerSourceSet(const char* name, const char* source);
+        
         DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
@@ -218,10 +224,6 @@ namespace DSL {
         DslReturnType OdeTriggerConfidenceMinGet(const char* name, float* minConfidence);
         
         DslReturnType OdeTriggerConfidenceMinSet(const char* name, float minConfidence);
-        
-        DslReturnType OdeTriggerSourceIdGet(const char* name, uint* sourceId);
-        
-        DslReturnType OdeTriggerSourceIdSet(const char* name, uint sourceId);
         
         DslReturnType OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height);
         
@@ -313,7 +315,9 @@ namespace DSL {
     
         DslReturnType SourceRtspTapRemove(const char* name);
         
-        DslReturnType SourceNameGet(uint sourceId, const char** name);
+        DslReturnType SourceNameGet(int sourceId, const char** name);
+
+        DslReturnType SourceIdGet(const char* name, int* sourceId);
     
         DslReturnType _sourceNameSet(uint sourceId, const char* name);
     
@@ -756,6 +760,12 @@ namespace DSL {
          * @brief map of all source ids to source names
          */
         std::map <uint, std::string> m_sourceNames;
+
+        /**
+         * @brief map of all source names to source ids
+         */
+        std::map <std::string, uint> m_sourceIds;
+        
     };  
 
     static gboolean MainLoopThread(gpointer arg);
