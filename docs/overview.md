@@ -502,84 +502,16 @@ class ComponentNames:
         self.record_tap = source + '-record-tap'
         self.ode_notify = source + '-ode-notify'
         self.start_record = source + '-start-record'
-```
-The below function creates all "1-per-source" components for a given source-name and RTSP URI.
-The new Source component is added to the named Pipeline and the Trigger is added to [ODE Pad Probe Handler](/docs/api-pph.md)
 
-```Python
-# Function to create all "1-per-source" components, and add them to the Pipeline
-# pipeline - unique name of the Pipeline to add the Source components to
-# source - unique name for the RTSP Source to create
-# uri - unique uri for the new RTSP Source
-# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to
-def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
-   
-    # New Component names based on unique source name
-    components = new ComponentNames(source)
+# Callback function to process all "record-start" notifications
+def RecordStarted(event_id, trigger,
+    buffer, frame_meta, object_meta, client_data):
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+
     
-    # For each camera, create a new RTSP Source for the specific RTSP URI
-    retval = dsl_source_rtsp_new(source, 
-        url = rtsp_uri, 
-        protocol = DSL_RTP_ALL, 
-        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
-        intra_decode = Fale, 
-        drop_frame_interval = 0, 
-        latency=100)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-
-    # New record tap created with our common RecordComplete callback function defined above
-    retval = dsl_tap_record_new(components.record_tap, 
-        outdir = './recordings/', 
-        container = DSL_CONTAINER_MKV, 
-        client_listener = RecordComplete)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-
-    # Add the new Tap to the Source directly
-    retval = dsl_source_rtsp_tap_add(source, tap=components.record_tap)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-
-    # Next, create the Person Occurrence Trigger. We will reset the trigger in the recording complete callback
-    retval = dsl_ode_trigger_occurrence_new(source_data.occurrence_trigger, 
-        source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-
-    # New (optional) Custom Action to be notified of ODE Occurrence, and pass component names as client data.
-    retval = dsl_ode_action_custom_new(source_data.ode_notify, 
-        client_handler='recording_started' client_data=components))
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-
-    # Create a new Action to start the record session for this Source, with the component names as client data
-    retval = dsl_ode_action_tap_record_start_new(components.start_record, 
-        record_tap=record_tap, start=15, duration=360, client_data=components)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-    
-    # Add the Actions to the trigger for this source. 
-    retval = dsl_trigger_action_add_many(components.occurrence_trigger, 
-        actions=[components.ode_notify, components.start_record, None])
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-    
-    # Add the new Source with its Record-Tap to the Pipeline
-    retval = dsl_pipeline_component_add(pipline, source)
-    if (retval != DSL_RESULT_SUCCESS):
-        return retval
-        
-    # Add the new Trigger to the ODE Pad Probe Handler
-    retval = dsl_pph_ode_trigger_add(ode_handler, components.occurrence_trigger)
-
-```
-
-Define the client callback function to be called on record complete. The `sesssion_info` parameter contains data for the completed record session. The `client_data` parameter returns the Component names associated with the Source that was record.
-
-
-```Python
-# Callback function to process "record-complete" notifications
+# Callback function to process all "record-complete" notifications
 def RecordComplete(session_info, client_data):
 
     # session_info is obtained using the NVIDIA python bindings
@@ -590,6 +522,79 @@ def RecordComplete(session_info, client_data):
     # reset the Trigger that started this recording so that a new session can be started.
     dsl_ode_trigger_reset(components.occurrence_trigger)
 ```
+The below function creates all "1-per-source" components for a given source-name and RTSP URI.
+The new Source component is added to the named Pipeline and the Trigger is added to [ODE Pad Probe Handler](/docs/api-pph.md)
+
+```Python
+##
+# Function to create all "1-per-source" components, and add them to the Pipeline
+# pipeline - unique name of the Pipeline to add the Source components to
+# source - unique name for the RTSP Source to create
+# uri - unique uri for the new RTSP Source
+# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to
+##
+def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
+   
+    # New Component names based on unique source name
+    components = ComponentNames(source)
+    
+    # For each camera, create a new RTSP Source for the specific RTSP URI
+    retval = dsl_source_rtsp_new(source, 
+        uri = rtsp_uri, 
+        protocol = DSL_RTP_ALL, 
+        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+        intra_decode = False, 
+        drop_frame_interval = 0, 
+        latency=100)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # New record tap created with our common RecordComplete callback function defined above
+    retval = dsl_tap_record_new(components.record_tap, 
+        outdir = './recordings/', 
+        container = DSL_CONTAINER_MKV, 
+        client_listener = RecordComplete)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Add the new Tap to the Source directly
+    retval = dsl_source_rtsp_tap_add(source, tap=components.record_tap)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Next, create the Person Occurrence Trigger. We will reset the trigger in the recording complete callback
+    retval = dsl_ode_trigger_occurrence_new(components.occurrence_trigger, 
+        source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # New (optional) Custom Action to be notified of ODE Occurrence, and pass component names as client data.
+    retval = dsl_ode_action_custom_new(components.ode_notify, 
+        client_handler=RecordStarted, client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Create a new Action to start the record session for this Source, with the component names as client data
+    retval = dsl_ode_action_tap_record_start_new(components.start_record, 
+        record_tap=components.record_tap, start=15, duration=360, client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+    
+    # Add the Actions to the trigger for this source. 
+    retval = dsl_ode_trigger_action_add_many(components.occurrence_trigger, 
+        actions=[components.ode_notify, components.start_record, None])
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+    
+    # Add the new Source with its Record-Tap to the Pipeline
+    retval = dsl_pipeline_component_add(pipeline, source)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # Add the new Trigger to the ODE Pad Probe Handler
+    return dsl_pph_ode_trigger_add(ode_handler, components.occurrence_trigger)
+
+```
 
 The main code to create all other components and assemble the Pipeline can be written as:
 
@@ -598,58 +603,58 @@ The main code to create all other components and assemble the Pipeline can be wr
 while True:
     # Create the Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL Window Sink
     retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     retval = dsl_tiler_new('tiler', width=1280, height=720)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     retval = dsl_osd_new('osd', clock_enabled=True)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     # Create a Pipeline and add the new components.
     retval = dsl_pipeline_new_component_add_many('pipeline', 
         components=['pgie', 'tracker', 'tiler', 'osd', 'window-sink', 'rtsp-sink', None]) 
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
    
     # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions
     retval = dsl_pph_ode_new('ode-handler')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
  
     # Add the ODE Handler to the Sink (input) pad of the Tiler - before the batched frames are combined/tiled
     retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     # For each of our four sources, call the funtion to create the source-specific components.
     retval = CreatePerSourceComponents('pipeline', 'src-0', src_url_0, 'ode-handler')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
     retval = CreatePerSourceComponents('pipeline', 'src-1', src_url_1, 'ode-handler')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
     retval = CreatePerSourceComponents('pipeline', 'src-2', src_url_2, 'ode-handler')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
     retval = CreatePerSourceComponents('pipeline', 'src-3', src_url_3, 'ode-handler')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
     
     # Pipeline has been successfully created, ok to play
     retval = dsl_pipeline_play('my-pipeline')
-    if (retval != DSL_RESULT_SUCCESS):
+    if (retval != DSL_RETURN_SUCCESS):
         break
 
     # join the main loop until stopped. 
