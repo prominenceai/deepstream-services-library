@@ -1048,10 +1048,10 @@ uint dsl_ode_area_list_size();
 /**
  * @brief Frame-Meta trigger that triggers for every Frame metadata, always. 
  * Note, this is a No-Limit trigger, and setting a Class ID filer will have no effect.
- * The Source ID default == ANY_SOURCE and can be update to specificy a single source id
  * Although always triggered, the client selects whether to Trigger an ODE occurrence
  * before (pre) or after (post) processing all Object metadata for all other Triggers.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] when DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
@@ -1059,7 +1059,9 @@ DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* sou
 
 /**
  * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
+ * specified source and object class_id.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -1069,6 +1071,7 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t*
 /**
  * @brief Absence trigger that checks for the absence of Objects within a frame
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -1079,6 +1082,7 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* so
  * @brief Intersection trigger that checks for intersection of all Object detected
  * and triggers an ODE occurrence for each unique overlaping pair.
  * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
@@ -1087,6 +1091,7 @@ DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_
 
 /**
  * @brief Summation trigger that checks for and sums all objects detected within a frame
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] name unique name for the ODE Trigger
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit

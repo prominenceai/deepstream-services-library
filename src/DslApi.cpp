@@ -71,16 +71,20 @@ DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t*
     RETURN_IF_PARAM_IS_NULL(text);
     RETURN_IF_PARAM_IS_NULL(font);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrText(text);
     std::string cstrText(wstrText.begin(), wstrText.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
-
-    // TODO check for and allow null bg_color
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeRgbaTextNew(cstrName.c_str(), cstrText.c_str(),
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -122,12 +126,18 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
         left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -139,12 +149,18 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(cstrName.c_str(), 
         x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -156,12 +172,18 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name,
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeSourceNameNew(cstrName.c_str(),
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -173,12 +195,18 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(cstrName.c_str(),
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -190,12 +218,18 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name,
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(cstrName.c_str(),
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -293,12 +327,18 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
-    std::wstring wstrBgColor(bg_color);
-    std::string cstrBgColor(wstrBgColor.begin(), wstrBgColor.end());
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
         offsetX, offsetY, offsetY_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
@@ -3496,6 +3536,7 @@ void dsl_delete_all()
 {
     dsl_pipeline_delete_all();
     dsl_component_delete_all();
+    dsl_pph_delete_all();
     dsl_ode_trigger_delete_all();
     dsl_ode_area_delete_all();
     dsl_ode_action_delete_all();

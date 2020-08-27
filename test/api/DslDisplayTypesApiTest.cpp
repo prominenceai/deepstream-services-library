@@ -140,6 +140,18 @@ SCENARIO( "A new RGBA Text can be created and deleted", "[display-types-api]" )
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
+        WHEN( "A new RGBA Text is created without a background color" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_text_new(textName.c_str(), text.c_str(), 
+                xOffset, yOffset, fontName.c_str(), false, NULL)== DSL_RESULT_SUCCESS );
+
+            THEN( "The RGBA Text can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(textName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
         WHEN( "A new RGBA Text is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_text_new(textName.c_str(), text.c_str(), 
@@ -286,6 +298,18 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
+        WHEN( "A new RGBA Rectangle is created without a background color" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_rectangle_new(rectangleName.c_str(), left, top, width, height, 
+                border_width, colorName.c_str(), false, NULL)== DSL_RESULT_SUCCESS );
+
+            THEN( "The RGBA Rectangle can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(rectangleName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
         WHEN( "A new RGBA Rectangle is created" ) 
         {
             REQUIRE( dsl_display_type_rgba_rectangle_new(rectangleName.c_str(), left, top, width, height, 
@@ -322,6 +346,18 @@ SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" 
         {
             REQUIRE( dsl_display_type_rgba_circle_new(circleName.c_str(), x_center, y_center,
                 radius, colorName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+            THEN( "The RGBA Circle can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(circleName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Circle is created without a background color" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_circle_new(circleName.c_str(), x_center, y_center,
+                radius, colorName.c_str(), false, NULL)== DSL_RESULT_SUCCESS );
 
             THEN( "The RGBA Circle can be deleted" ) 
             {
@@ -380,6 +416,18 @@ SCENARIO( "A new Source Name Display can be created and deleted", "[display-type
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
+        WHEN( "A new Source Name Display is created without a background color" ) 
+        {
+            REQUIRE( dsl_display_type_source_name_new(displayName.c_str(),
+                xOffset, yOffset, fontName.c_str(), false, NULL)== DSL_RESULT_SUCCESS );
+
+            THEN( "The Source Name Display can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
         WHEN( "A new Source Name Display is created" ) 
         {
             REQUIRE( dsl_display_type_source_name_new(displayName.c_str(),
@@ -422,6 +470,18 @@ SCENARIO( "A new Source Dimensions Display can be created and deleted", "[displa
         {
             REQUIRE( dsl_display_type_source_dimensions_new(displayName.c_str(),
                 xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+            THEN( "The Source Dimenions Display can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Source Dimenions Display is created without a background color" ) 
+        {
+            REQUIRE( dsl_display_type_source_dimensions_new(displayName.c_str(),
+                xOffset, yOffset, fontName.c_str(), false, NULL)== DSL_RESULT_SUCCESS );
 
             THEN( "The Source Dimenions Display can be deleted" ) 
             {
