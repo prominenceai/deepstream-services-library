@@ -166,6 +166,29 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
         x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceNumberNew(cstrName.c_str(),
+        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+}
+
 DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {

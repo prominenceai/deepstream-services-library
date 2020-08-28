@@ -312,6 +312,11 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0010000C
 #define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
 #define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
+#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x0010000F
+#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00100010
+#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00100011
+#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00100012
+
 
 /**
  * Tap API Return Values
@@ -593,6 +598,19 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
     const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 
+/**
+ * @brief creates a uniquely named Source Number Display Type
+ * @param[in] name unique name of the Display Type
+ * @param[in] x_offset starting x positional offset
+ * @param[in] y_offset starting y positional offset
+ * @param[in] font RGBA font to use for the display text
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+ * @param[in] bgColor RGBA Color for the Text background if set
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_offset, uint y_offset, 
+    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    
 /**
  * @brief creates a uniquely named Source Name Display Type
  * @param[in] name unique name of the Display Type

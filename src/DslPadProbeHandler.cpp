@@ -129,7 +129,7 @@ namespace DSL
         NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         // For each frame in the batched meta data
-        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; pFrameMetaList != NULL; pFrameMetaList = pFrameMetaList->next)
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
         {
             // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);

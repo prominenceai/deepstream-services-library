@@ -71,6 +71,10 @@ namespace DSL
     #define DSL_SOURCE_FRAME_RATE_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
         std::shared_ptr<SourceFrameRate>(new SourceFrameRate(name, x_offset, y_offset, font, hasBgColor, pBgColor))
 
+    #define DSL_SOURCE_NUMBER_PTR std::shared_ptr<SourceNumber>
+    #define DSL_SOURCE_NUMBER_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceNumber>(new SourceNumber(name, x_offset, y_offset, font, hasBgColor, pBgColor))
+
     #define DSL_SOURCE_NAME_PTR std::shared_ptr<SourceName>
     #define DSL_SOURCE_NAME_NEW(name, x_offset, y_offset, font, hasBgColor, pBgColor) \
         std::shared_ptr<SourceName>(new SourceName(name, x_offset, y_offset, font, hasBgColor, pBgColor))
@@ -310,13 +314,38 @@ namespace DSL
 
     // ********************************************************************
 
+    class SourceNumber : public DisplayType, public NvOSD_TextParams
+    {
+    public:
+
+        /**
+         * @brief ctor for Source Number Display Type
+         * @param[in] name unique name of the SourceNumber Display Type
+         * @param[in] x_offset starting x positional offset
+         * @param[in] y_offset starting y positional offset
+         * @param[in] font RGBA font to use for the display dext
+         * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+         * @param[in] pBgColor RGBA Color for the Text background if set
+         */
+        SourceNumber(const char* name, uint x_offset, uint y_offset, 
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+
+        ~SourceNumber();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+        DSL_RGBA_FONT_PTR m_pFont;
+    };
+
+    // ********************************************************************
+
     class SourceName : public DisplayType, public NvOSD_TextParams
     {
     public:
 
         /**
-         * @brief ctor for RGBA Text
-         * @param[in] name unique name of the SourceName Display
+         * @brief ctor for the Source Name
+         * @param[in] name unique name of the Source Name Display Type
          * @param[in] x_offset starting x positional offset
          * @param[in] y_offset starting y positional offset
          * @param[in] font RGBA font to use for the display dext
