@@ -105,8 +105,8 @@ namespace DSL
         *pTextParams = *this;
         
         // need to allocate storage for actual text, then copy.
-        display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        m_text.copy(display_text, MAX_DISPLAY_LEN, 0);
+        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        m_text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
         
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
@@ -233,8 +233,8 @@ namespace DSL
             std::to_string(pFrameMeta->source_frame_height);
 
         // need to allocate storage for actual text, then copy.
-        display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        text.copy(display_text, MAX_DISPLAY_LEN, 0);
+        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
         
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
@@ -271,14 +271,51 @@ namespace DSL
             std::to_string(pFrameMeta->source_frame_height);
 
         // need to allocate storage for actual text, then copy.
-        display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-        text.copy(display_text, MAX_DISPLAY_LEN, 0);
+        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
         
         // Font, font-size, font-color
         pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
         m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
     }
     
+    // ********************************************************************
+
+    SourceNumber::SourceNumber(const char* name, uint x_offset, uint y_offset, 
+        DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+        : DisplayType(name)
+        , m_pFont(pFont)
+        , NvOSD_TextParams{NULL, x_offset, y_offset, 
+            *pFont, hasBgColor, *pBgColor}
+    {
+        LOG_FUNC();
+    }
+
+    SourceNumber::~SourceNumber()
+    {
+        LOG_FUNC();
+    }
+
+    void SourceNumber::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    {
+        LOG_FUNC();
+
+        NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
+
+        // copy over our text params, display_text currently == NULL
+        *pTextParams = *this;
+        
+        std::string numberString(std::to_string(pFrameMeta->source_id));
+        // need to allocate storage for actual text, then copy.
+        pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        numberString.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
+        
+        // Font, font-size, font-color
+        pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+        m_pFont->m_fontName.copy(pTextParams->font_params.font_name, MAX_DISPLAY_LEN, 0);
+        
+    }
+
     // ********************************************************************
 
     SourceName::SourceName(const char* name, uint x_offset, uint y_offset, 
@@ -311,8 +348,8 @@ namespace DSL
         {
             std::string nameString(name);
             // need to allocate storage for actual text, then copy.
-            display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
-            nameString.copy(display_text, MAX_DISPLAY_LEN, 0);
+            pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
+            nameString.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
             
             // Font, font-size, font-color
             pTextParams->font_params.font_name = (gchar*) g_malloc0(MAX_DISPLAY_LEN);

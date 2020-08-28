@@ -666,6 +666,54 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::DisplayTypeSourceNumberNew(const char* name,
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Source Number name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_NUMBER_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Number '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New Source Number '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::DisplayTypeSourceNameNew(const char* name,
         uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
     {
@@ -677,8 +725,8 @@ namespace DSL
             // ensure type name uniqueness 
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
-                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+                LOG_ERROR("Source Name name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE;
             }
             
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -703,13 +751,13 @@ namespace DSL
             m_displayTypes[name] = DSL_SOURCE_NAME_NEW(name,
                 xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
-            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+            LOG_INFO("New Source Name '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            LOG_ERROR("New Source Name '" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
@@ -725,8 +773,8 @@ namespace DSL
             // ensure type name uniqueness 
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
-                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+                LOG_ERROR("Source Dimensions name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE;
             }
             
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -751,13 +799,13 @@ namespace DSL
             m_displayTypes[name] = DSL_SOURCE_DIMENSIONS_NEW(name,
                 xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
-            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+            LOG_INFO("New Source Dimensions '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            LOG_ERROR("New Source Dimensions '" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
@@ -773,8 +821,8 @@ namespace DSL
             // ensure type name uniqueness 
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
-                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
-                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+                LOG_ERROR("Source Frame-Rate name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE;
             }
             
             RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
@@ -799,13 +847,13 @@ namespace DSL
             m_displayTypes[name] = DSL_SOURCE_FRAME_RATE_NEW(name,
                 xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
-            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+            LOG_INFO("New Source Frame-Rate '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            LOG_ERROR("New Source Frame-Rate '" << name << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
@@ -7418,6 +7466,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_UNIQUE] = L"DSL_RESULT_TAP_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_FOUND] = L"DSL_RESULT_TAP_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_THREW_EXCEPTION] = L"DSL_RESULT_TAP_THREW_EXCEPTION";

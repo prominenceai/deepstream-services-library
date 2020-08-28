@@ -142,6 +142,16 @@ def dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, ha
     return int(result)
 
 ##
+## dsl_display_type_source_number_new()
+##
+_dsl.dsl_display_type_source_number_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_number_new.restype = c_uint
+def dsl_display_type_source_number_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_source_number_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
 ## dsl_display_type_source_name_new()
 ##
 _dsl.dsl_display_type_source_name_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]

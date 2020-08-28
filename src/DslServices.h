@@ -74,6 +74,9 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
+        DslReturnType DisplayTypeSourceNumberNew(const char* name, 
+            uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
+
         DslReturnType DisplayTypeSourceNameNew(const char* name, 
             uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor);
 

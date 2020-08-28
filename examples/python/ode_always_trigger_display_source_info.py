@@ -95,10 +95,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, green=0.0, blue=0.0, alpha = 0.0)
-        if retval != DSL_RETURN_SUCCESS:
-            return retval
-
         retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
@@ -123,11 +119,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
         
-        # For debug
-        retval = dsl_ode_action_print_new('print-to-console')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Create an Always triger to overlay our Display Types on every frame
         retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
@@ -136,7 +127,6 @@ def main(args):
         retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
             'add-dimensions',
             'add-source-name',  
-            'print-to-console',
             None])
             
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
