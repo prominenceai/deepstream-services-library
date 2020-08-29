@@ -172,16 +172,6 @@ def dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_b
     return int(result)
 
 ##
-## dsl_display_type_source_frame_rate_new()
-##
-_dsl.dsl_display_type_source_frame_rate_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_display_type_source_frame_rate_new.restype = c_uint
-def dsl_display_type_source_frame_rate_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
-    global _dsl
-    result =_dsl.dsl_display_type_source_frame_rate_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
-    return int(result)
-
-##
 ## dsl_display_type_meta_add()
 ##
 _dsl.dsl_display_type_meta_add.argtypes = [c_wchar_p, c_void_p, c_void_p]
@@ -510,11 +500,11 @@ def dsl_ode_action_trigger_enable_new(name, trigger):
 ##
 ## dsl_ode_action_tiler_source_show_new()
 ##
-_dsl.dsl_ode_action_tiler_source_show_new.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_ode_action_tiler_source_show_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_bool]
 _dsl.dsl_ode_action_tiler_source_show_new.restype = c_uint
-def dsl_ode_action_tiler_source_show_new(name, tiler, timeout):
+def dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence):
     global _dsl
-    result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout)
+    result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence)
     return int(result)
 
 ##

@@ -1584,7 +1584,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionTilerShowSourceNew(const char* name, 
-        const char* tiler, uint timeout)
+        const char* tiler, uint timeout, bool hasPrecedence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1597,7 +1597,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout);
+            m_odeActions[name] = DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence);
 
             LOG_INFO("New Tiler Show Source ODE Action'" << name << "' created successfully");
 
@@ -5045,7 +5045,7 @@ namespace DSL
     }
 
     DslReturnType Services::TilerSourceShowSet(const char* name, 
-        const char* source, uint timeout, boolean hasPrecedence)
+        const char* source, uint timeout, bool hasPrecedence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -5086,7 +5086,7 @@ namespace DSL
     }
 
     DslReturnType Services::TilerSourceShowSet(const char* name, 
-        uint sourceId, uint timeout)
+        uint sourceId, uint timeout, bool hasPrecedence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -5106,7 +5106,7 @@ namespace DSL
             }
 
             // called by automation - so set hasPrecedence to false always
-            if (!pTilerBintr->SetShowSource(sourceId, timeout, false))
+            if (!pTilerBintr->SetShowSource(sourceId, timeout, hasPrecedence))
             {
                 // Don't log error as this can happen with the ODE actions frequently
                 LOG_DEBUG("Tiler '" << name << "' failed to show specific source");

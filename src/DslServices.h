@@ -147,7 +147,7 @@ namespace DSL {
         DslReturnType OdeActionActionEnableNew(const char* name, const char* action);
         
         DslReturnType OdeActionTilerShowSourceNew(const char* name, 
-            const char* tiler, uint timeout);
+            const char* tiler, uint timeout, bool hasPrecedence);
 
         DslReturnType OdeActionAreaAddNew(const char* name, 
             const char* trigger, const char* area);
@@ -425,9 +425,10 @@ namespace DSL {
 
         DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
-        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, boolean hasPrecedence);
+        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, bool hasPrecedence);
 
-        DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout);
+        // called by the Show Source Action only. 
+        DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout, bool hasPrecedence);
 
         DslReturnType TilerSourceShowAll(const char* name);
 

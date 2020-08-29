@@ -1009,10 +1009,11 @@ namespace DSL
 
     // ********************************************************************
 
-    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout)
+    TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence)
         : OdeAction(name)
         , m_tiler(tiler)
         , m_timeout(timeout)
+        , m_hasPrecedence(hasPrecedence)
     {
         LOG_FUNC();
     }
@@ -1028,7 +1029,7 @@ namespace DSL
         if (m_enabled)
         {
             // Ignore the return value,
-            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout);
+            Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), pFrameMeta->source_id, m_timeout, m_hasPrecedence);
         }
     }
 

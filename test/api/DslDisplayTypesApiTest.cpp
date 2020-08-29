@@ -570,52 +570,52 @@ SCENARIO( "A new Source Dimensions Display can be created and deleted", "[displa
     }
 }
 
-SCENARIO( "A new Source Frame Rate Display can be created and deleted", "[display-types-api]" )
-{
-    GIVEN( "Attributes for a new Frame Rate Display" ) 
-    {
-        std::wstring displayName(L"source-frame-rate");
-        uint xOffset(100), yOffset(100);
-
-        std::wstring fontName(L"arial-20");
-        std::wstring font(L"arial");
-        uint size(20);
-
-        std::wstring colorName(L"my-color");
-        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
-
-        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
-            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
-            size, colorName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A new Source Frame Rate Display is created" ) 
-        {
-            REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
-                xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
-
-            THEN( "The Source Frame Rate Display can be deleted" ) 
-            {
-                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Source Frame Rate Display is created" ) 
-        {
-            REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
-                xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Source Frame Rate Display of the same name fails to create" ) 
-            {
-                REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
-                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE );
-
-                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_display_type_list_size() == 0 );
-            }
-        }
-    }
-}
+//SCENARIO( "A new Source Frame Rate Display can be created and deleted", "[display-types-api]" )
+//{
+//    GIVEN( "Attributes for a new Frame Rate Display" ) 
+//    {
+//        std::wstring displayName(L"source-frame-rate");
+//        uint xOffset(100), yOffset(100);
+//
+//        std::wstring fontName(L"arial-20");
+//        std::wstring font(L"arial");
+//        uint size(20);
+//
+//        std::wstring colorName(L"my-color");
+//        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+//
+//        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+//            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+//            size, colorName.c_str()) == DSL_RESULT_SUCCESS );
+//
+//        WHEN( "A new Source Frame Rate Display is created" ) 
+//        {
+//            REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
+//                xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
+//
+//            THEN( "The Source Frame Rate Display can be deleted" ) 
+//            {
+//                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_display_type_list_size() == 0 );
+//            }
+//        }
+//        WHEN( "A new Source Frame Rate Display is created" ) 
+//        {
+//            REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
+//                xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_SUCCESS );
+//            
+//            THEN( "A second Source Frame Rate Display of the same name fails to create" ) 
+//            {
+//                REQUIRE( dsl_display_type_source_frame_rate_new(displayName.c_str(),
+//                    xOffset, yOffset, fontName.c_str(), true, colorName.c_str())== DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE );
+//
+//                REQUIRE( dsl_display_type_delete(displayName.c_str()) == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_display_type_list_size() == 0 );
+//            }
+//        }
+//    }
+//}
