@@ -411,9 +411,11 @@ retval = dsl_ode_trigger_action_add_many('east-cam-1-trigger', actions=['print-a
 retval = dsl_ode_area_inclusion_new('east-cam-1-area', 'east-cam-1-rectangle', display=True)
 retval = dsl_ode_trigger_area_add('east-cam-1-trigger', 'east-cam-1-area')
 
-# Create an ODE handler to manage the Trigger, add the Trigger, and then add the handler to the Sink (input) pad of a Tiler.
+# Create an ODE handler to manage the Trigger, add the Trigger to the handler
 retval = dsl_pph_ode_new('ode-handler)
 retval = dsl_pph_ode_trigger_add('ode-handler, 'east-cam-1-trigger')
+
+#  Then add the handler to the sink (input) pad of a Tiler.
 retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
 ```
 
@@ -473,7 +475,7 @@ And three types for displaying source information specific to each frame.
 
 The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
 
-Rer
+Refer to the [Display Type API](/docs/api-display-type.md)
 
 ---
 
