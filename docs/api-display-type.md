@@ -108,8 +108,7 @@ def handle_ode_occurrence(event_id, trigger, display_meta, frame_meta, object_me
     dsl_display_type_meta_add('object-pointer', display_meta, frame_meta)
     
     dsl_display_type_delete('object-pointer')
-    
-    return
+
         
 
 ```
