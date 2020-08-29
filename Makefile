@@ -31,7 +31,7 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.06.alpha"'
+DSL_VERSION:='L"v0.07.alpha"'
 NVDS_VERSION:=5.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0

@@ -371,7 +371,7 @@ THE SOFTWARE.
 #define DSL_ODE_POST_OCCURRENCE_CHECK                               1
 
 // Source and Class Trigger filter constants for no-filter
-#define DSL_ODE_ANY_SOURCE                                          INT32_MAX
+#define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 
 // Must match NvOSD_Arrow_Head_Direction
@@ -635,19 +635,6 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offse
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
-
-/**
- * @brief creates a uniquely named Source Frame Rate Display Type
- * @param[in] name unique name of the Display Type
- * @param[in] x_offset starting x positional offset
- * @param[in] y_offset starting y positional offset
- * @param[in] font RGBA font to use for the display text
- * @param[in] hasBgColor set to true to enable bacground color, false otherwise
- * @param[in] bgColor RGBA Color for the Text background if set
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
- */
-DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, uint x_offset, uint y_offset, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
@@ -958,10 +945,11 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
  * @param[in] name unique name for the ODE Trigger Enable Action 
  * @param[in] tiler unique name of the Tiler to call to show-source
  * @param[in] timeout to pass to the Tiler on show-source
+ * @param[in] has_precedence if true will take precedence over a currently show single source. 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
-    const wchar_t* tiler, uint timeout);
+    const wchar_t* tiler, uint timeout, boolean has_precedence);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action

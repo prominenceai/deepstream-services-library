@@ -1371,11 +1371,12 @@ SCENARIO( "A new TilerShowSourceOdeAction is created correctly", "[OdeAction]" )
         std::string actionName("action");
         std::string tilerName("tiler");
         uint timeout(2);
+        bool hasPrecedence(true);
 
         WHEN( "A new TilerShowSourceOdeAction is created" )
         {
             DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
-                DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout);
+                DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout, hasPrecedence);
 
             THEN( "The Action's memebers are setup and returned correctly" )
             {
@@ -1394,6 +1395,7 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
         std::string source;
         uint classId(1);
         uint limit(1);
+        bool hasPrecedence(true);
         
         std::string actionName("action");
         std::string tilerName("tiller");
@@ -1403,7 +1405,7 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR pAction = 
-            DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout);
+            DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(actionName.c_str(), tilerName.c_str(), timeout, hasPrecedence);
 
         WHEN( "A new ODE is created" )
         {
@@ -1412,7 +1414,7 @@ SCENARIO( "A TilerShowSourceOdeAction handles an ODE Occurence correctly", "[Ode
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {
-                // NOTE:: Action wit will produce an error message as the Trigger does not exist
+                // NOTE:: Action will produce an error message as the Trigger does not exist
                 pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
             }
         }

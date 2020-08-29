@@ -151,8 +151,8 @@ namespace DSL
         std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
         
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
-    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout) \
-        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, tiler, timeout))
+    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
+        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, tiler, timeout, hasPrecedence))
         
         
         
@@ -1459,7 +1459,7 @@ namespace DSL
          * @param[in] tiler name of the tiler to call on to show source on ODE occurrence
          * @param[in] timeout show source timeout to pass to the Tiler, in units of seconds
          */
-        TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout);
+        TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence);
         
         /**
          * @brief dtor for the Enable Action ODE class
@@ -1488,6 +1488,11 @@ namespace DSL
          * @brief show source timeout to pass to the Tiler in units of seconds
          */
         uint m_timeout;
+        
+        /**
+         * @brief if true, the show source action will take precedence over a currently shown single source
+         */
+        bool m_hasPrecedence;
 
     };
 

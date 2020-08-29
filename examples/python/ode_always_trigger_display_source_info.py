@@ -53,7 +53,17 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
- 
+    
+    # if one of the unique soure Ids, show source
+    elif key_string >= '0' and key_string <= '3':
+        retval, source = dsl_source_name_get(int(key_string))
+        if retval == DSL_RETURN_SUCCESS:
+            dsl_tiler_source_show_set('tiler', source=source, timeout=5, has_precedence=True)
+            
+    # A = show All sources
+    elif key_string.upper() == 'A':
+        dsl_tiler_source_show_all('tiler')
+     
 ## 
 # Function to be called on XWindow Delete event
 ## 
@@ -99,8 +109,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        retval = dsl_display_type_source_name_new('source-name', 
+        retval = dsl_display_type_source_number_new('source-number', 
             x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        retval = dsl_display_type_source_name_new('source-name', 
+            x_offset=40, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
@@ -109,7 +124,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new Action to display the Source Dimensions
+        # Create a new Action to display the Source Number
+        retval = dsl_ode_action_display_meta_add_new('add-source-number', 'source-number')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        # Create a new Action to display the Source Name
         retval = dsl_ode_action_display_meta_add_new('add-source-name', 'source-name')
         if retval != DSL_RETURN_SUCCESS:
             return retval
@@ -127,6 +147,7 @@ def main(args):
         retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
             'add-dimensions',
             'add-source-name',  
+            'add-source-number',
             None])
             
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
@@ -159,17 +180,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tracker_pph_add('ktl-tracker', 'ode-handler', DSL_PAD_SRC)
-        if retval != DSL_RETURN_SUCCESS:
-            break
         # New Tiler, setting width and height, use default cols/rows set by source count
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
-#        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 

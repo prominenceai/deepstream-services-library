@@ -235,6 +235,8 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
         x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
+// TODO: leaving this implementation as is without including in the header file for now.
+// Needs to be completed and tested for all source types.
 DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
@@ -700,7 +702,7 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
 }
 
 DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
-    const wchar_t* tiler, uint timeout)
+    const wchar_t* tiler, uint timeout, boolean has_precedence)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(tiler);
@@ -711,7 +713,7 @@ DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name,
     std::string cstrTiler(wstrTiler.begin(), wstrTiler.end());
 
     return DSL::Services::GetServices()->OdeActionTilerShowSourceNew(cstrName.c_str(),
-        cstrTiler.c_str(), timeout);
+        cstrTiler.c_str(), timeout, has_precedence);
 }
     
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)

@@ -915,10 +915,12 @@ SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode
         std::wstring actionName(L"tiler-show-source-action");
         std::wstring tilerName(L"action");
         uint timeout(2);
+        boolean has_precedence(true);
 
         WHEN( "A new Tiler Source Show Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), tilerName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), 
+                tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_SUCCESS );
             
             THEN( "The Tiler Show Source Action can be deleted" ) 
             {
@@ -929,12 +931,12 @@ SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode
         WHEN( "A new Tiler Source Show Action is created" ) 
         {
             REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), 
-                tilerName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+                tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Enable Action Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), 
-                    tilerName.c_str(), timeout) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -1036,8 +1038,8 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_action_enable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_action_enable_new(actionName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_tiler_source_show_new(NULL, NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tiler_source_show_new(NULL, NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tiler_source_show_new(actionName.c_str(), NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_enabled_set(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
