@@ -501,7 +501,7 @@ Each Camera requires:
 ```Python
 # Defines a class of all component names associated with a single RTSP Source. 
 # Objects of this class will be used as "client_data" for all callback notifications.
-# The names are derived from the unique Source name. Duration for the recording.
+# The names are derived from the unique Source name. 
 class ComponentNames:
     def __init__(self, source):
         self.source = source
