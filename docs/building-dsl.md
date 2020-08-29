@@ -39,7 +39,7 @@ $ ./dsl-test-app
 After completion, ensure that all tests have passed before building the shared library.
 ```
 ===============================================================================
-All tests passed (2243 assertions in 340 test cases)
+All tests passed (3617 assertions in 475 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.

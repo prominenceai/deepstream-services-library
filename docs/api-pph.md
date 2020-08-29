@@ -7,8 +7,8 @@ Data flowing over a Pipeline Component’s Pads – link points between componen
 #### Custom Pad Probe Handler
 The Custom PPH allows the client to add a custom callback function to a Pipeline Component's sink or source pad. The custom callback will be called with each buffer that crosses over the Component's pad.
 
-#### Source Meter Pad Probe Handler
-The Source Meter PPH measures a Pipeline's throughput in frames-per-second. Adding the Meter to the Tiler's sink-pad -- or any pad after the Stream-muxer and before the Tiler -- will measure all sources. Adding the Meter to the Tiler's source-pad -- or any component downstream of the Tiler -- will measure the throughput of the single tiled stream.
+#### Pipeline Meter Pad Probe Handler
+The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Adding the Meter to the Tiler's sink-pad -- or any pad after the Stream-muxer and before the Tiler -- will measure all sources. Adding the Meter to the Tiler's source-pad -- or any component downstream of the Tiler -- will measure the throughput of the single tiled stream.
 
 #### Object-Detection-Event (ODE) Pad Probe Handler
 The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs pad-probe callback to handle each GST Buffer flowing over Source Pad connected to the Sink Pad of the next component; On-Screen-Display for example. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas, rectangle locations and dimensions, can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers
@@ -208,9 +208,10 @@ retval = dsl_pph_custom_new('my-custom-handler', my_client_callback, my_client_d
 
 <br>
 
-### *dsl_pph_ode_new* 
+### *dsl_pph_meter_new* 
 ```C++
-DslReturnType dsl_pph_ode_new(const wchar_t* name);
+DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
+    dsl_pph_meter_client_handler_cb client_handler, void* client_data);
 ```
 The constructor creates a uniquely named Object Detection Event (ODE) Pad Probe Handler.
 
@@ -222,7 +223,7 @@ The constructor creates a uniquely named Object Detection Event (ODE) Pad Probe 
 
 **Python Example**
 ```Python
-retval = dsl_pph_ode_new('my-ode-handler')
+retval = dsl_pph_meter_new('meter-pph', interval=1, client_handler=meter_sink_handler, client_data=report_data)
 ```
 
 <br>
