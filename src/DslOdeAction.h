@@ -673,7 +673,7 @@ namespace DSL
      * @class AddDisplayMetaOdeAction
      * @brief Add Display Meta ODE Action class
      */
-    class AddDisplayMetaOdeAction : public OdeAction
+    class AddDisplayMetaOdeAction : public OdeAction 
     {
     public:
     
@@ -690,6 +690,11 @@ namespace DSL
         ~AddDisplayMetaOdeAction();
         
         /**
+         * @brief adds an additional Display Type for adding metadata
+         */
+        void AddDisplayType(DSL_DISPLAY_TYPE_PTR pDisplayType);
+        
+        /**
          * @brief Handles the ODE by overlaying the pFrameMeta with the named Display Type
          * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
          * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
@@ -702,7 +707,7 @@ namespace DSL
 
     private:
     
-        DSL_DISPLAY_TYPE_PTR m_pDisplayType;
+        std::vector<DSL_DISPLAY_TYPE_PTR> m_pDisplayTypes;
     
     };
 

@@ -54,7 +54,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -173,21 +173,15 @@ def main(args):
             break
             
         # Create a new Action to display the "recording in-progress" text
-        retval = dsl_ode_action_display_meta_add_new('rec-text-overlay', 'rec-text')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # Create a new Action to display the "recording in-progress" text
-        retval = dsl_ode_action_display_meta_add_new('red-led-overlay', 'red-led')
+        retval = dsl_ode_action_display_meta_add_many_new('add-rec-on', display_types=
+            ['rec-text', 'red-led', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_custom_new('rec-on-trigger', source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
             limit=DSL_ODE_TRIGGER_LIMIT_NONE, client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add_many('rec-on-trigger', actions=[
-            'rec-text-overlay',
-            'red-led-overlay',
-            None])
+        retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
         if retval != DSL_RETURN_SUCCESS:
             break
 

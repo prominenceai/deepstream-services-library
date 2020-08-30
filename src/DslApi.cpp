@@ -459,6 +459,35 @@ DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wch
         cstrType.c_str());
 }
 
+DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, const wchar_t** display_types)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(display_types);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrType(*display_types);
+    std::string cstrType(wstrType.begin(), wstrType.end());
+
+    uint retval = DSL::Services::GetServices()->OdeActionDisplayMetaAddNew(cstrName.c_str(), 
+        cstrType.c_str());
+
+    for (const wchar_t** display_type = display_types+1; *display_type; display_type++)
+    {
+        wstrType.assign(*display_type);
+        cstrType.assign(wstrType.begin(), wstrType.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            OdeActionDisplayMetaAddDisplayType(cstrName.c_str(), cstrType.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+        
+}
+
 DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
