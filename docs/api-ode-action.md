@@ -5,7 +5,7 @@ Object Detection Event (ODE) Actions implement a type specific `handle-ode-occur
 Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
 
 #### Actions on Record Components
-There are two actions for starting a record session, one for the [Record-Sink](/docs/api-sink.md) [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
+There are two actions for starting a record session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
 
 #### Actions on Actions
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
@@ -342,28 +342,6 @@ The constructor creates a uniquely named **Add Many Display Meta** ODE Action. W
 ```Python
 retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action', 
     ['my-circle', 'my-rectangle', 'my-source-name', None])
-```
-
-<br>
-### *dsl_ode_action_dump_new*
-```C++
-DslReturnType dsl_ode_action_dump_new(const wchar_t* name, const wchar_t* pipeline, const wchar_t* filename);
-```
-The constructor creates a uniquely named **Dump Pipeline Graph** ODE Action. When invoked, this Action dumps a Pipeline's graph to dot file. The GStreamer Pipeline creates a topology graph on each change of state to ready, playing and paused if the debug environment variable GST_DEBUG_DUMP_DOT_DIR is set.
-
-GStreamer will add the .dot suffix and write the file to the directory specified by the environment variable. 
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `pipeline` - [in] unique name of the Pipeline to dump.
-* `filename` - [in] name to give the .dot file on dump.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_dump_new('my-pipeline-dump-action', 'my-pipeline', 'my-dumpfile')
 ```
 
 <br>
