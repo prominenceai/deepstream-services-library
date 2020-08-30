@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <nvbufsurftransform.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgproc/types_c.h"
-#include "opencv2/highgui/highgui.hpp"
+//#include <nvbufsurftransform.h>
+//#include "opencv2/imgproc/imgproc.hpp"
+//#include "opencv2/imgproc/types_c.h"
+//#include "opencv2/highgui/highgui.hpp"
 
 #include "Dsl.h"
 #include "DslServices.h"
@@ -97,10 +97,11 @@ namespace DSL
     // ********************************************************************
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, const char* outdir)
+        uint captureType, const char* outdir, bool annotate)
         : OdeAction(name)
         , m_captureType(captureType)
         , m_outdir(outdir)
+        , m_annotate(annotate)
     {
         LOG_FUNC();
     }
@@ -108,6 +109,53 @@ namespace DSL
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
+    }
+    
+    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame)
+    {
+        // rectangle params are in floats so convert
+        int left((int)pObjectMeta->rect_params.left);
+        int top((int)pObjectMeta->rect_params.top);
+        int width((int)pObjectMeta->rect_params.width); 
+        int height((int)pObjectMeta->rect_params.height);
+
+        // add the bounding-box rectange
+        cv::rectangle(bgr_frame,
+            cv::Point(left, top),
+            cv::Point(left+width, top+height),
+            cv::Scalar(0, 0, 255, 0),
+            2);
+        
+        // assemble the label based on the available information
+        std::string label(pObjectMeta->obj_label);
+        
+        if(pObjectMeta->object_id)
+        {
+            label = label + " " + std::to_string(pObjectMeta->object_id); 
+        }
+        if(pObjectMeta->confidence > 0)
+        {
+            label = label + " " + std::to_string(pObjectMeta->confidence); 
+        }
+        
+        // add a black background rectangle for the label as cv::putText does not support a background color
+        // the size of the bacground is just an approximation based on character count not their actual sizes
+        cv::rectangle(bgr_frame,
+            cv::Point(left, top-30),
+            cv::Point(left+label.size()*10+2, top-2),
+            cv::Scalar(0, 0, 0, 0),
+            cv::FILLED);
+
+        // add the label to the black background
+        cv::putText(bgr_frame, 
+            label.c_str(), 
+            cv::Point(left+2, top-12),
+            cv::FONT_HERSHEY_SIMPLEX,
+            0.5,
+            cv::Scalar(255, 255, 255, 0),
+            1);
+            
+        return bgr_frame;
     }
 
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
@@ -216,7 +264,32 @@ namespace DSL
             dstSurface->surfaceList[surfaceIndex].mappedAddr.addr[0],
             dstSurface->surfaceList[surfaceIndex].pitch);
 
-        cv::cvtColor (in_mat, bgr_frame, CV_RGBA2BGR);
+        cv::cvtColor(in_mat, bgr_frame, CV_RGBA2BGR);
+        
+        // if this is a frame capture and the client wants the image annotated.
+        if (m_captureType == DSL_CAPTURE_TYPE_FRAME and m_annotate)
+        {
+            // if object meta is available, then occurrence was triggered 
+            // on an object occurrence, so we only annotate the single object
+            if (pObjectMeta)
+            {
+                bgr_frame = AnnotateObject(pObjectMeta, bgr_frame);
+            }
+            
+            // otherwise, we iterate throught the framemeta object-list highlighting each object.
+            else
+            {
+                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
+                {
+                    // not to be confussed with pObjectMeta
+                    NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
+                    if (_pObjectMeta_ != NULL)
+                    {
+                        bgr_frame = AnnotateObject(_pObjectMeta_, bgr_frame);
+                    }
+                }
+            }
+        }
 
         cv::imwrite(filespec.c_str(), bgr_frame);
 

@@ -62,7 +62,7 @@ def xwindow_key_event_handler(key_string, client_data):
             # then re-enable the sink meter to start reporting metrics again
             dsl_sink_meter_enabled_set('meter-sink', True)
 
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 

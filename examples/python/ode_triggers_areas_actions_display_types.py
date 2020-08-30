@@ -56,7 +56,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -217,7 +217,7 @@ def main(args):
 
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./")
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./", annotate=true)
         if retval != DSL_RETURN_SUCCESS:
             break
             

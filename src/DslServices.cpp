@@ -964,7 +964,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
-        const char* outdir)
+        const char* outdir, boolean annotate)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -985,7 +985,7 @@ namespace DSL
                 LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate);
 
             LOG_INFO("New Capture Frame ODE Action '" << name << "' created successfully");
 

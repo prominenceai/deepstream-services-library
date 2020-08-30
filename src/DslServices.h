@@ -97,7 +97,7 @@ namespace DSL {
         DslReturnType OdeActionCustomNew(const char* name,
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
 
-        DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir);
+        DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
         

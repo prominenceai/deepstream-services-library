@@ -54,7 +54,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -192,7 +192,7 @@ def main(args):
             
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./")
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -209,16 +209,24 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # set the "infer-done-only" criteria so we can capture the confidence level
+        retval = dsl_ode_trigger_infer_done_only_set('bicycle-occurrence-trigger', True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_action_print_new('print')
+
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
         retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
             'red-flash-action', 
             'bicycle-capture-action', 
             'start-record-action', 
+            'print',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
-    
+            
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New ODE Handler for our Trigger
         retval = dsl_pph_ode_new('ode-handler')

@@ -320,7 +320,7 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionCustomNew(cstrName.c_str(), client_hanlder, client_data);
 }
 
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir)
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -330,7 +330,7 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), cstrOutdir.c_str());
+    return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), cstrOutdir.c_str(), annotate);
 }
 
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir)

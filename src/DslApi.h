@@ -687,9 +687,10 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
  * @brief Creates a uniquely named Capture Frame ODE Action
  * @param[in] name unique name for the Capture Frame ODE Action 
  * @param[in] outdir absolute or relative path to image capture directory 
+ * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
 
 /**
  * @brief Creates a uniquely named Capture Object ODE Action
