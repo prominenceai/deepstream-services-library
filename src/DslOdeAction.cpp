@@ -140,14 +140,18 @@ namespace DSL
 
         NvBufSurfTransformRect src_rect = {0};
         NvBufSurfTransformRect dst_rect = {0};
+        
+        int surfaceIndex = pFrameMeta->source_id;
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
-            src_rect.width = surface->surfaceList[0].width;
-            src_rect.height = surface->surfaceList[0].height;
-            dst_rect.width = surface->surfaceList[0].width;
-            dst_rect.height = surface->surfaceList[0].height;
+            // Note: the width and heigth should be the same for all streams
+            // in the batch set by the streammux, but use the index anyways.
+            src_rect.width = surface->surfaceList[surfaceIndex].width;
+            src_rect.height = surface->surfaceList[surfaceIndex].height;
+            dst_rect.width = surface->surfaceList[surfaceIndex].width;
+            dst_rect.height = surface->surfaceList[surfaceIndex].height;
         }
         else
         {
@@ -209,8 +213,8 @@ namespace DSL
 
         cv::Mat in_mat = cv::Mat(bufSurfaceCreateParams.height, 
             bufSurfaceCreateParams.width, CV_8UC4, 
-            dstSurface->surfaceList[0].mappedAddr.addr[0],
-            dstSurface->surfaceList[0].pitch);
+            dstSurface->surfaceList[surfaceIndex].mappedAddr.addr[0],
+            dstSurface->surfaceList[surfaceIndex].pitch);
 
         cv::cvtColor (in_mat, bgr_frame, CV_RGBA2BGR);
 
