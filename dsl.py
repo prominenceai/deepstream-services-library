@@ -238,11 +238,11 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
 ##
 ## dsl_ode_action_capture_frame_new()
 ##
-_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_capture_frame_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_action_capture_frame_new.restype = c_uint
-def dsl_ode_action_capture_frame_new(name, outdir):
+def dsl_ode_action_capture_frame_new(name, outdir, annotate):
     global _dsl
-    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir)
+    result =_dsl.dsl_ode_action_capture_frame_new(name, outdir, annotate)
     return int(result)
 
 ##

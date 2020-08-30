@@ -30,6 +30,11 @@ THE SOFTWARE.
 #include "DslBase.h"
 #include "DslDisplayTypes.h"
 
+#include <nvbufsurftransform.h>
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgproc/types_c.h"
+#include "opencv2/highgui/highgui.hpp"
+
 namespace DSL
 {
     /**
@@ -42,8 +47,8 @@ namespace DSL
         std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
         
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
-        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir))
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
+        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir, annotate))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
@@ -266,13 +271,15 @@ namespace DSL
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          * @param[in] outdir output directory to write captured image files
          */
-        CaptureOdeAction(const char* name, uint captureType, const char* outdir);
+        CaptureOdeAction(const char* name, uint captureType, const char* outdir, bool annotate);
         
         /**
          * @brief dtor for the Capture ODE Action class
          */
         ~CaptureOdeAction();
 
+        cv::Mat& AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame);
+        
         /**
          * @brief Handles the ODE occurrence by capturing a frame or object image to file
          * @param[in] pOdeTrigger shared pointer to ODE Type that triggered the event
@@ -283,6 +290,7 @@ namespace DSL
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
         
     protected:
     
@@ -295,6 +303,11 @@ namespace DSL
          * @brief relative or absolute path to output directory
          */ 
         std::string m_outdir;
+        
+        /**
+         * @brief annotates the image with bbox and label DSL_CAPTURE_TYPE_FRAME only
+         */
+        bool m_annotate;
 
     };
     
@@ -312,9 +325,11 @@ namespace DSL
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
+         * @param[in] annotate adds bbox and label to one or all objects in the frame.
+         * One object in the case of valid pObjectMeta on call to HandleOccurrence
          */
-        CaptureFrameOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir)
+        CaptureFrameOdeAction(const char* name, const char* outdir, bool annotate)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir, annotate)
         {};
 
     };
@@ -333,7 +348,7 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files
          */
         CaptureObjectOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
         {};
 
     };
