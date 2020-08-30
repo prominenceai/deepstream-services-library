@@ -715,6 +715,26 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint
     boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 
 /**
+ * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
+ * using a uniquely named Display Type 
+ * @param[in] name unique name for the Add Display Metadata ODE Action 
+ * @param[in] display_type unique name of the Display Type to overlay on ODE occurrence
+ * Note: the Display Type must exist prior to constructing the Action.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
+
+/**
+ * @brief Creates a uniquely named Add Many Display Metadata ODE Action to add the 
+ * metadata using multiple uniquely named Display Types 
+ * @param[in] name unique name for the Add Many Display Metadata ODE Action 
+ * @param[in] display_typess NULL terminated list of names of the Display Types to overlay on ODE occurrence
+ * Note: the Display Type must exist prior to constructing the Action.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, const wchar_t** display_types);
+
+/**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
  * frame with a give RGBA color value
  * @param[in] name unique name for the Fill Frame ODE Action
@@ -768,16 +788,6 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_log_new(const wchar_t* name);
-
-/**
- * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
- * using a uniquely named Display Type 
- * @param[in] name unique name for the Add Display Metadata ODE Action 
- * @param[in] display_type unique name of the Display Type to overlay on ODE occurrence
- * Note: the Display Type must exist prior to constructing the Action.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
 
 /**
  * @brief Creates a uniquely named Pause ODE Action

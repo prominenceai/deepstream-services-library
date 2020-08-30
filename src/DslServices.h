@@ -117,6 +117,8 @@ namespace DSL {
         DslReturnType OdeActionHideNew(const char* name, boolean text, boolean border);
         
         DslReturnType OdeActionDisplayMetaAddNew(const char* name, const char* displayType);
+        
+        DslReturnType OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType);
 
         DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
 

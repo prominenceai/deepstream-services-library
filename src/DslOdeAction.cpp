@@ -524,9 +524,10 @@ namespace DSL
 
     AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
-        , m_pDisplayType(pDisplayType)
     {
         LOG_FUNC();
+
+        m_pDisplayTypes.push_back(pDisplayType);
     }
 
     AddDisplayMetaOdeAction::~AddDisplayMetaOdeAction()
@@ -534,12 +535,23 @@ namespace DSL
         LOG_FUNC();
     }
     
+    void AddDisplayMetaOdeAction::AddDisplayType(DSL_DISPLAY_TYPE_PTR pDisplayType)
+    {
+        LOG_FUNC();
+        
+        m_pDisplayTypes.push_back(pDisplayType);
+    }
+
+    
     void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
         {
-            m_pDisplayType->AddMeta(pDisplayMeta, pFrameMeta);
+            for (const auto &ivec: m_pDisplayTypes)
+            {
+                ivec->AddMeta(pDisplayMeta, pFrameMeta);
+            }
         }
     }
 

@@ -1277,7 +1277,37 @@ namespace DSL
             
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, pDisplayType);
 
-            LOG_INFO("New ODE Overlay Frame Action '" << name << "' created successfully");
+            LOG_INFO("New Add Display Meta Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Add Display Meta Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, name, AddDisplayMetaOdeAction);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
+            
+            DSL_ODE_ACTION_DISPLAY_META_ADD_PTR pAction = 
+                std::dynamic_pointer_cast<AddDisplayMetaOdeAction>(m_odeActions[name]);
+
+            pAction->AddDisplayType(pDisplayType);
+            
+            LOG_INFO("Display Type '" << displayType << "' added to Action '" << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }

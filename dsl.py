@@ -336,6 +336,18 @@ def dsl_ode_action_display_meta_add_new(name, display_type):
     return int(result)
 
 ##
+## dsl_ode_action_display_meta_add_many_new()
+##
+#_dsl.dsl_ode_action_display_meta_add_many_new.argtypes = [c_wchar_p, ????]
+_dsl.dsl_ode_action_display_meta_add_many_new.restype = c_uint
+def dsl_ode_action_display_meta_add_many_new(name, display_types):
+    global _dsl
+    arr = (c_wchar_p * len(display_types))()
+    arr[:] = display_types
+    result =_dsl.dsl_ode_action_display_meta_add_many_new(name, arr)
+    return int(result)
+
+##
 ## dsl_ode_action_print_new()
 ##
 _dsl.dsl_ode_action_print_new.argtypes = [c_wchar_p]

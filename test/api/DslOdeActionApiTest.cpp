@@ -270,6 +270,119 @@ SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-ap
     }
 }
 
+SCENARIO( "A new Add Display Meta ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Add Display Meta ODE Action" ) 
+    {
+        std::wstring actionName(L"display-meta-action");
+        
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-20");
+        uint size(20);
+        
+
+        std::wstring fontColorName(L"my-font-color");
+        std::wstring bgColorName(L"my-bg-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        std::wstring sourceDisplay(L"source-display");
+        uint x_offset(10), y_offset(10);
+        
+        
+        REQUIRE( dsl_display_type_rgba_color_new(fontColorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fontColorName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_source_name_new(sourceDisplay.c_str(), 
+            x_offset, y_offset, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
+            
+        WHEN( "A new Add Display Meta Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_display_meta_add_new(actionName.c_str(), sourceDisplay.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Add Display Meta Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+        WHEN( "A new Add Display Meta Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_display_meta_add_new(actionName.c_str(), sourceDisplay.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Display Action of the same name fails to create" ) 
+            {
+            REQUIRE( dsl_ode_action_display_meta_add_new(actionName.c_str(), sourceDisplay.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Add Many Display Meta ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Add Many Display Meta ODE Action" ) 
+    {
+        std::wstring actionName(L"display-meta-action");
+        
+        std::wstring font(L"arial");
+        std::wstring fontName(L"arial-20");
+        uint size(20);
+        
+
+        std::wstring fontColorName(L"my-font-color");
+        std::wstring bgColorName(L"my-bg-color");
+        
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        std::wstring sourceName(L"source-name");
+        std::wstring sourceNumber(L"source-number");
+        std::wstring sourceDimensions(L"source-dimensions");
+        uint x_offset(10), y_offset(10);
+        
+        
+        REQUIRE( dsl_display_type_rgba_color_new(fontColorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_font_new(fontName.c_str(), font.c_str(),
+            size, fontColorName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_source_name_new(sourceName.c_str(), 
+            x_offset, y_offset, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_source_number_new(sourceNumber.c_str(), 
+            x_offset, y_offset+30, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_source_dimensions_new(sourceDimensions.c_str(), 
+            x_offset, y_offset+60, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Add Display Meta Action is created" ) 
+        {
+            const wchar_t* display_types[] = {L"source-name", L"source-number", L"source-dimensions", NULL};
+            REQUIRE( dsl_ode_action_display_meta_add_many_new(actionName.c_str(), display_types) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Add Display Meta Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+                
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Fill Frame ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Fill Frame ODE Action" ) 

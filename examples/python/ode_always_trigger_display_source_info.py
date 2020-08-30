@@ -51,7 +51,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
     
     # if one of the unique soure Ids, show source
@@ -63,6 +63,7 @@ def xwindow_key_event_handler(key_string, client_data):
     # A = show All sources
     elif key_string.upper() == 'A':
         dsl_tiler_source_show_all('tiler')
+
      
 ## 
 # Function to be called on XWindow Delete event
@@ -124,31 +125,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new Action to display the Source Number
-        retval = dsl_ode_action_display_meta_add_new('add-source-number', 'source-number')
+        # Create a new Action to display all the Source Info
+        retval = dsl_ode_action_display_meta_add_many_new('add-source-info', display_types=
+            ['source-number', 'source-name', 'dimensions', None])
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new Action to display the Source Name
-        retval = dsl_ode_action_display_meta_add_new('add-source-name', 'source-name')
-        if retval != DSL_RETURN_SUCCESS:
-            return retval
-            
-        # Create a new Action to display the Source Dimensions
-        retval = dsl_ode_action_display_meta_add_new('add-dimensions', 'dimensions')
-        if retval != DSL_RETURN_SUCCESS:
-            return retval
-        
-        # Create an Always triger to overlay our Display Types on every frame
+        # Create an Always triger to overlay our Display Info on every frame
         retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        retval = dsl_ode_trigger_action_add_many('always-trigger', actions=[
-            'add-dimensions',
-            'add-source-name',  
-            'add-source-number',
-            None])
+        retval = dsl_ode_trigger_action_add('always-trigger', action='add-source-info')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
             
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
