@@ -321,4 +321,3 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [Display Type](/docs/api-display-type.md)
 * **Branch**
 * [Component](/docs/api-component.md)
-
