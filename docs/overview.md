@@ -367,12 +367,12 @@ Current **ODE Triggers** supported:
 * **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence".
 
 Triggers have optional, settable criteria and filters: 
-* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS`
-* **Source** - filters on a unique Source if set
+* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* **Source** - filters on a unique Source name. Use `DSL_ODE_ANY_SOURCE` or NULL to disabled the filter
 * **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and/or maximums are met. 
 * **Confidence** - filters on an object's GIE confidence requiring a minimum value.
 * **Inference Done** - filtering on the Object's inference-done flag
-* **In-frame Areas** - filters on a specific area within the frame, with both areas of inclusion and exclusion supported.
+* **In-frame Areas** - filters on specific areas (see ODE Areas below) within the frame, with both areas of inclusion and exclusion supported.
 
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
 * **Actions on Buffers** - Capture Frames and Objects to JPEG images and save to file.
@@ -398,7 +398,8 @@ retval = dsl_ode_action_print_new('my-print-action')
 
 # Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
 # The action can be used with multiple triggers for multiple sources.
-retval = dsl_ode_action_capture_frame_new('capture-action', outdir='./')
+# Set annotate=True to add bounding box and label to object that triggered the ODE occurrence.
+retval = dsl_ode_action_capture_frame_new('capture-action', outdir='./', annotate=True)
 
 # Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
 # specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
@@ -521,8 +522,8 @@ def RecordStarted(event_id, trigger,
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
     
-    # a good place to enabled an Always Trigger that adds `REC` text to the frame
-    # or send notifictions to external clients.
+    # a good place to enabled an Always Trigger that adds `REC` text to the frame which can
+    # be disabled in the RecordComplete callback below. And/or send notifictions to external clients.
     
     # in this example we will call on the Tiler to show the source that started recording.
     dsl_tiler_source_show_set('tiler', source=components.source, timeout=duration, has_precedence=True)
@@ -641,6 +642,11 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
+    retval = dsl_sink_rtsp_new('rtsp-sink', 
+        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    
     # Create a Pipeline and add the new components.
     retval = dsl_pipeline_new_component_add_many('pipeline', 
         components=['pgie', 'tracker', 'tiler', 'osd', 'window-sink', 'rtsp-sink', None]) 
