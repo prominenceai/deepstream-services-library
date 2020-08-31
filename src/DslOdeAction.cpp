@@ -189,7 +189,7 @@ namespace DSL
         NvBufSurfTransformRect src_rect = {0};
         NvBufSurfTransformRect dst_rect = {0};
         
-        int surfaceIndex = pFrameMeta->source_id;
+        int surfaceIndex = pFrameMeta->batch_id;
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
@@ -245,7 +245,7 @@ namespace DSL
         bufSurfTransformConfigParams.cuda_stream = cudaStream;
         err = NvBufSurfTransformSetSessionParams (&bufSurfTransformConfigParams);
 
-        NvBufSurfaceMemSet(dstSurface, 0, 0, 0);
+        NvBufSurfaceMemSet(dstSurface, -1, -1, 0);
 
         err = NvBufSurfTransform (surface, dstSurface, &bufSurfTransform);
         if (err != NvBufSurfTransformError_Success)
@@ -253,8 +253,8 @@ namespace DSL
             g_print ("NvBufSurfTransform failed with error %d while converting buffer\n", err);
         }
 
-        NvBufSurfaceMap(dstSurface, 0, 0, NVBUF_MAP_READ);
-        NvBufSurfaceSyncForCpu(dstSurface, 0, 0);
+        NvBufSurfaceMap(dstSurface, -1, -1, NVBUF_MAP_READ);
+        NvBufSurfaceSyncForCpu(dstSurface, -1, -1);
 
         cv::Mat bgr_frame = cv::Mat(cv::Size(bufSurfaceCreateParams.width,
             bufSurfaceCreateParams.height), CV_8UC3);
@@ -293,7 +293,7 @@ namespace DSL
 
         cv::imwrite(filespec.c_str(), bgr_frame);
 
-        NvBufSurfaceUnMap(dstSurface, 0, 0);
+        NvBufSurfaceUnMap(dstSurface, -1, -1);
         NvBufSurfaceDestroy(dstSurface);
         cudaStreamDestroy(cudaStream);
         gst_buffer_unmap(pBuffer, &inMapInfo);
