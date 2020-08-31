@@ -561,7 +561,9 @@ namespace DSL
             {
                 LOG_INFO("    Inference   : No");
             }
-            LOG_INFO("    Id          : " << pFrameMeta->source_id);
+            LOG_INFO("    SourceId    : " << pFrameMeta->source_id);
+            LOG_INFO("    BatchId     : " << pFrameMeta->batch_id);
+            LOG_INFO("    PadIndex    : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
@@ -571,6 +573,7 @@ namespace DSL
             
             if (pObjectMeta)
             {
+                LOG_INFO("    Obj ClassId : " << pObjectMeta->class_id);
                 LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
                 LOG_INFO("    Label       : " << pObjectMeta->obj_label);
                 LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
@@ -688,7 +691,9 @@ namespace DSL
             {
                 std::cout << "    Inference   : No\n";
             }
-            std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
+            std::cout << "    SourceId    : " << pFrameMeta->source_id << "\n";
+            std::cout << "    BatchId     : " << pFrameMeta->batch_id << "\n";
+            std::cout << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
             std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
             std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
             std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
@@ -698,6 +703,7 @@ namespace DSL
 
             if (pObjectMeta)
             {
+                std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
                 std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
                 std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
                 std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
