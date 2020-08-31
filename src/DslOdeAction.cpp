@@ -189,7 +189,7 @@ namespace DSL
         NvBufSurfTransformRect src_rect = {0};
         NvBufSurfTransformRect dst_rect = {0};
         
-        int surfaceIndex = pFrameMeta->source_id;
+        int surfaceIndex = pFrameMeta->batch_id;
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
@@ -245,7 +245,7 @@ namespace DSL
         bufSurfTransformConfigParams.cuda_stream = cudaStream;
         err = NvBufSurfTransformSetSessionParams (&bufSurfTransformConfigParams);
 
-        NvBufSurfaceMemSet(dstSurface, 0, 0, 0);
+        NvBufSurfaceMemSet(dstSurface, -1, -1, 0);
 
         err = NvBufSurfTransform (surface, dstSurface, &bufSurfTransform);
         if (err != NvBufSurfTransformError_Success)
@@ -253,8 +253,8 @@ namespace DSL
             g_print ("NvBufSurfTransform failed with error %d while converting buffer\n", err);
         }
 
-        NvBufSurfaceMap(dstSurface, 0, 0, NVBUF_MAP_READ);
-        NvBufSurfaceSyncForCpu(dstSurface, 0, 0);
+        NvBufSurfaceMap(dstSurface, -1, -1, NVBUF_MAP_READ);
+        NvBufSurfaceSyncForCpu(dstSurface, -1, -1);
 
         cv::Mat bgr_frame = cv::Mat(cv::Size(bufSurfaceCreateParams.width,
             bufSurfaceCreateParams.height), CV_8UC3);
@@ -293,7 +293,7 @@ namespace DSL
 
         cv::imwrite(filespec.c_str(), bgr_frame);
 
-        NvBufSurfaceUnMap(dstSurface, 0, 0);
+        NvBufSurfaceUnMap(dstSurface, -1, -1);
         NvBufSurfaceDestroy(dstSurface);
         cudaStreamDestroy(cudaStream);
         gst_buffer_unmap(pBuffer, &inMapInfo);
@@ -561,7 +561,9 @@ namespace DSL
             {
                 LOG_INFO("    Inference   : No");
             }
-            LOG_INFO("    Id          : " << pFrameMeta->source_id);
+            LOG_INFO("    SourceId    : " << pFrameMeta->source_id);
+            LOG_INFO("    BatchId     : " << pFrameMeta->batch_id);
+            LOG_INFO("    PadIndex    : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame       : " << pFrameMeta->frame_num);
             LOG_INFO("    Width       : " << pFrameMeta->source_frame_width);
             LOG_INFO("    Heigh       : " << pFrameMeta->source_frame_height );
@@ -571,6 +573,7 @@ namespace DSL
             
             if (pObjectMeta)
             {
+                LOG_INFO("    Obj ClassId : " << pObjectMeta->class_id);
                 LOG_INFO("    Tracking Id : " << pObjectMeta->object_id);
                 LOG_INFO("    Label       : " << pObjectMeta->obj_label);
                 LOG_INFO("    Confidence  : " << pObjectMeta->confidence);
@@ -688,7 +691,9 @@ namespace DSL
             {
                 std::cout << "    Inference   : No\n";
             }
-            std::cout << "    Id          : " << pFrameMeta->source_id << "\n";
+            std::cout << "    SourceId    : " << pFrameMeta->source_id << "\n";
+            std::cout << "    BatchId     : " << pFrameMeta->batch_id << "\n";
+            std::cout << "    PadIndex    : " << pFrameMeta->pad_index << "\n";
             std::cout << "    Frame       : " << pFrameMeta->frame_num << "\n";
             std::cout << "    Width       : " << pFrameMeta->source_frame_width << "\n";
             std::cout << "    Heigh       : " << pFrameMeta->source_frame_height << "\n";
@@ -698,6 +703,7 @@ namespace DSL
 
             if (pObjectMeta)
             {
+                std::cout << "    Obj ClassId : " << pObjectMeta->class_id << "\n";
                 std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
                 std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
                 std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";

@@ -144,6 +144,7 @@ namespace DSL
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
                     pOdeTrigger->PreProcessFrame(pBuffer, pDisplayMeta, pFrameMeta);
                 }
+
                 // For each detected object in the frame.
                 for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
                 {
@@ -155,7 +156,14 @@ namespace DSL
                         for (const auto &imap: m_pChildren)
                         {
                             DSL_ODE_TRIGGER_PTR pOdeTrigger = std::dynamic_pointer_cast<OdeTrigger>(imap.second);
-                            pOdeTrigger->CheckForOccurrence(pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+                            try
+                            {
+                                pOdeTrigger->CheckForOccurrence(pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+                            }
+                            catch(...)
+                            {
+                                LOG_ERROR("Trigger '" << pOdeTrigger->GetName() << "' threw exception");
+                            }                            
                         }
                     }
                 }

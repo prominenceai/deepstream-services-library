@@ -489,7 +489,14 @@ namespace DSL
         for (const auto &imap: m_pOdeActions)
         {
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+            try
+            {
+                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Trigger '" << GetName() << "' => Action '" << pOdeAction->GetName() << "' threw exception");
+            }
         }
         return true;
     }
