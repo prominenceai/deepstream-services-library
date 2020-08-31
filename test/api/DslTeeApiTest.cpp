@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "The Components container is updated correctly on new Demuxer", "[demuxer-api]" )
+SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -46,7 +46,7 @@ SCENARIO( "The Components container is updated correctly on new Demuxer", "[demu
     }
 }
 
-SCENARIO( "The Components container is updated correctly on Demuxer delete", "[demuxer-api]" )
+SCENARIO( "The Components container is updated correctly on Demuxer delete", "[tee-api]" )
 {
     GIVEN( "A new Demuxer in memory" ) 
     {
@@ -68,62 +68,54 @@ SCENARIO( "The Components container is updated correctly on Demuxer delete", "[d
     }
 }
 
-static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
 }
-static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
 }
 
-SCENARIO( "An invalid Demuxer is caught by the Add/Remove Hanlder API calls", "[demuxer-api]" )
+SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer", "[tee-api]" )
 {
-    GIVEN( "A new Fake Sink as incorrect Demuxer" ) 
+    GIVEN( "A new Demuxer and Custom PPH" ) 
     {
-        std::wstring fakeSinkName(L"fake-sink");
-
-        WHEN( "The Demuxer Get-Set APIs are called with a Fake sink" )
-        {
-            REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS);
-
-            THEN( "The Demuxer Get-Set APIs fail correctly")
-            {
-                REQUIRE ( dsl_tee_batch_meta_handler_add(fakeSinkName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE );
-                REQUIRE ( dsl_tee_batch_meta_handler_remove(fakeSinkName.c_str(), batch_meta_handler_cb1) == DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE );
-                
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer", "[demuxer-api]" )
-{
-    GIVEN( "A new pPipeline with a new Demuxer" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring demuxerName(L"demuxer");
+        std::wstring customPpmName(L"custom-ppm");
 
         REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
 
-        WHEN( "A Sink Pad Batch Meta Handler is added to the Demuxer" ) 
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the OSD" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tee_batch_meta_handler_remove(demuxerName.c_str(), batch_meta_handler_cb1) == DSL_RESULT_TEE_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tee_pph_remove(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_TEE_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tee_batch_meta_handler_add(demuxerName.c_str(), batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_pph_add(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Meta Batch Handler can then be removed" ) 
+            THEN( "The Sink Pad Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tee_batch_meta_handler_remove(demuxerName.c_str(), batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tee_pph_remove(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
+        {
+            REQUIRE( dsl_tee_pph_add(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_tee_pph_add(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_TEE_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tee_pph_remove(demuxerName.c_str(), customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A Demuxer can add and remove a Branch", "[demuxer-api]" )
+SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
 {
     GIVEN( "A Demuxer and Branch" ) 
     {
@@ -157,7 +149,7 @@ SCENARIO( "A Demuxer can add and remove a Branch", "[demuxer-api]" )
     }
 }
 
-SCENARIO( "A Demuxer can add and remove many Branches", "[demuxer-api]" )
+SCENARIO( "A Demuxer can add and remove many Branches", "[tee-api]" )
 {
     GIVEN( "A Demuxer and Branch" ) 
     {
@@ -190,6 +182,43 @@ SCENARIO( "A Demuxer can add and remove many Branches", "[demuxer-api]" )
                 REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
                 REQUIRE( count == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring teeName  = L"test-tee";
+        uint count(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_tee_demuxer_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_splitter_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_splitter_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_remove_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_branch_count_get(NULL, &count) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_pph_remove(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }

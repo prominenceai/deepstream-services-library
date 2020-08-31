@@ -43,14 +43,6 @@ SCENARIO( "A new OsdBintr is created correctly", "[OsdBintr]" )
                 REQUIRE( pOsdBintr->GetGstObject() != NULL );
                 pOsdBintr->GetClockEnabled(&enableClock);
                 REQUIRE( enableClock == false );
-                
-                uint left(123), top(123), width(123), height(123);
-                
-                pOsdBintr->GetCropSettings(&left, &top, &width, &height);
-                REQUIRE( left == 0 );
-                REQUIRE( top == 0 );
-                REQUIRE( width == 0 );
-                REQUIRE( height == 0 );
             }
         }
     }
@@ -200,35 +192,6 @@ SCENARIO( "An OsdBintr can get and set the clock's RGB colors", "[OsdBintr]" )
         }
     }
 }
-
-SCENARIO( "An OsdBintr can get and set its crop settings", "[OsdBintr]" )
-{
-    GIVEN( "A new OsdBintr" ) 
-    {
-        std::string osdName = "osd";
-        boolean enableClock(false);
-
-        DSL_OSD_PTR pOsdBintr = DSL_OSD_NEW(osdName.c_str(), enableClock);
-
-        WHEN( "The OsdBintr's crop settings are updated" )
-        {
-            uint left(100), top(100), width(320), height(320);
-            pOsdBintr->SetCropSettings(left, top, width, height);
-            
-            THEN( "The correct values are returnd when queried" )
-            {
-                uint retLeft(0), retTop(0), retWidth(0), retHeight(0);
-                
-                pOsdBintr->GetCropSettings(&retLeft, &retTop, &retWidth, &retHeight);
-                REQUIRE( left == retLeft );
-                REQUIRE( top == retTop );
-                REQUIRE( width == retWidth );
-                REQUIRE( height == retHeight );
-            }
-        }
-    }
-}
-           
             
 SCENARIO( "A OsdBintr can Get and Set its GPU ID",  "[OsdBintr]" )
 {

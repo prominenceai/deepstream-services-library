@@ -35,6 +35,10 @@ namespace DSL
         , m_columns(0)
         , m_width(width)
         , m_height(height)
+        , m_showSourceId(-1)
+        , m_showSourceTimeout(0)
+        , m_showSourceCounter(0)
+        , m_showSourceTimerId(0)    
     {
         LOG_FUNC();
 
@@ -55,6 +59,8 @@ namespace DSL
     
         m_pSinkPadProbe = DSL_PAD_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
         m_pSrcPadProbe = DSL_PAD_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
+    
+        g_mutex_init(&m_showSourceMutex);
     }
 
     TilerBintr::~TilerBintr()
@@ -65,6 +71,13 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        if (m_showSourceTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+            
+            g_source_remove(m_showSourceTimerId);
+        }
+        g_mutex_clear(&m_showSourceMutex);
     }
 
     bool TilerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -139,13 +152,6 @@ namespace DSL
     bool TilerBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
-        
-//        if (IsInUse())
-//        {
-//            LOG_ERROR("Unable to set Dimensions for TilerBintr '" << GetName() 
-//                << "' as it's currently in use");
-//            return false;
-//        }
 
         m_width = width;
         m_height = height;
@@ -154,6 +160,90 @@ namespace DSL
         m_pTiler->SetAttribute("height", m_height);
         
         return true;
+    }
+
+    void TilerBintr::GetShowSource(int* sourceId, uint* timeout)
+    {
+        LOG_FUNC();
+        
+        *sourceId = m_showSourceId;
+        *timeout = m_showSourceTimeout;
+    }
+
+    bool TilerBintr::SetShowSource(int sourceId, uint timeout, bool hasPrecedence)
+    {
+        // Don't log function entry/exit as this could be called frequently
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+
+        if (sourceId < 0 or sourceId >= (int)m_batchSize)
+        {
+            LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
+            return false;
+        }
+        
+        if (sourceId != m_showSourceId)
+        {
+            if (m_showSourceTimerId and !hasPrecedence)
+            {
+                // don't log error as this may be common with ODE Triggers and Actions calling
+                LOG_DEBUG("Show source Timer is running for Source '" << m_showSourceId << 
+                   "' New Source '" << sourceId << "' without precedence can not be shown");
+                return false;
+            }
+
+            m_showSourceId = sourceId;
+            m_showSourceTimeout = timeout;
+            m_pTiler->SetAttribute("show-source", m_showSourceId);
+
+            m_showSourceCounter = timeout*10;
+            if (m_showSourceCounter)
+            {
+                LOG_INFO("Adding show-source timer with timeout = " << timeout << "' for TilerBintr '" << GetName());
+                m_showSourceTimerId = g_timeout_add(100, ShowSourceTimerHandler, this);
+            }
+            return true;
+        }
+            
+        // otherwise it's the same source.
+        
+        m_showSourceTimeout = timeout;
+        m_showSourceCounter = timeout*10;
+        if (!m_showSourceTimerId and m_showSourceCounter)
+        {
+            LOG_INFO("Adding show-source timer with timeout = " << timeout << "' for TilerBintr '" << GetName());
+            m_showSourceTimerId = g_timeout_add(100, ShowSourceTimerHandler, this);
+        }
+        return true;
+    }
+    
+    int TilerBintr::HandleShowSourceTimer()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+        
+        if (--m_showSourceCounter == 0)
+        {
+            // reset the timer Id, show all sources, and return false to destroy the timer
+            m_showSourceTimerId = 0;
+            m_showSourceId = -1;
+            m_pTiler->SetAttribute("show-source", m_showSourceId);
+            return false;
+        }
+        return true;
+    }
+    void TilerBintr::ShowAllSources()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+        
+        if (m_showSourceTimerId)
+        {
+            g_source_remove(m_showSourceTimerId);
+            m_showSourceTimerId = 0;
+        }
+        if (m_showSourceId != -1)
+        {
+            m_showSourceId = -1;
+            m_pTiler->SetAttribute("show-source", m_showSourceId);
+        }
     }
 
     bool TilerBintr::SetGpuId(uint gpuId)
@@ -173,5 +263,13 @@ namespace DSL
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         
         return true;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    
+    static int ShowSourceTimerHandler(void* user_data)
+    {
+        return static_cast<TilerBintr*>(user_data)->
+            HandleShowSourceTimer();
     }
 }

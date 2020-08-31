@@ -28,7 +28,12 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
-//#include "DslOdeOccurrence.h"
+#include "DslDisplayTypes.h"
+
+#include <nvbufsurftransform.h>
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgproc/types_c.h"
+#include "opencv2/highgui/highgui.hpp"
 
 namespace DSL
 {
@@ -37,37 +42,42 @@ namespace DSL
      */
     #define DSL_ODE_ACTION_PTR std::shared_ptr<OdeAction>
 
-    #define DSL_ODE_ACTION_CALLBACK_PTR std::shared_ptr<CallbackOdeAction>
-    #define DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<CallbackOdeAction>(new CallbackOdeAction(name, clientHandler, clientData))
+    #define DSL_ODE_ACTION_CUSTOM_PTR std::shared_ptr<CustomOdeAction>
+    #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
+        std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
         
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
-        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir))
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
+        std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir, annotate))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
         std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction(name, outdir))
         
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
-    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId) \
-        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, offsetX, offsetY, offsetYWithClassId))
+    #define DSL_ODE_ACTION_DISPLAY_NEW(name, offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor) \
+        std::shared_ptr<DisplayOdeAction>(new DisplayOdeAction(name, \
+            offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor))
         
     #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
-    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, red, green, blue, alpha) \
-        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
+        std::shared_ptr<FillAreaOdeAction>(new FillAreaOdeAction(name, area, pColor))
 
     #define DSL_ODE_ACTION_FILL_FRAME_PTR std::shared_ptr<FillFrameOdeAction>
-    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor) \
+        std::shared_ptr<FillFrameOdeAction>(new FillFrameOdeAction(name, pColor))
 
     #define DSL_ODE_ACTION_FILL_OBJECT_PTR std::shared_ptr<FillObjectOdeAction>
-    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, red, green, blue, alpha) \
-        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, red, green, blue, alpha))
+    #define DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor) \
+        std::shared_ptr<FillObjectOdeAction>(new FillObjectOdeAction(name, pColor))
+
+    #define DSL_ODE_ACTION_FILL_SURROUNDINGS_PTR std::shared_ptr<FillSurroundingsOdeAction>
+    #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
+        std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
     #define DSL_ODE_ACTION_HIDE_PTR std::shared_ptr<HideOdeAction>
     #define DSL_ODE_ACTION_HIDE_NEW(name, text, border) \
@@ -76,6 +86,10 @@ namespace DSL
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
+        
+    #define DSL_ODE_ACTION_DISPLAY_META_ADD_PTR std::shared_ptr<AddDisplayMetaOdeAction>
+    #define DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, displayType) \
+        std::shared_ptr<AddDisplayMetaOdeAction>(new AddDisplayMetaOdeAction(name, displayType))
         
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
@@ -133,6 +147,20 @@ namespace DSL
     #define DSL_ODE_ACTION_AREA_REMOVE_NEW(name, trigger, area) \
         std::shared_ptr<RemoveAreaOdeAction>(new RemoveAreaOdeAction(name, trigger, area))
         
+    #define DSL_ODE_ACTION_SINK_RECORD_START_PTR std::shared_ptr<RecordSinkStartOdeAction>
+    #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
+        std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, recordSink, start, duration, clientData))
+        
+    #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
+    #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
+        std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
+        
+    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
+    #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
+        std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, tiler, timeout, hasPrecedence))
+        
+        
+        
     // ********************************************************************
 
     class OdeAction : public Base
@@ -168,7 +196,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        virtual void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
         
     protected:
@@ -182,25 +210,25 @@ namespace DSL
     // ********************************************************************
 
     /**
-     * @class CallbackOdeAction
-     * @brief Callback ODE Action class
+     * @class CustomOdeAction
+     * @brief Custom ODE Action class
      */
-    class CallbackOdeAction : public OdeAction
+    class CustomOdeAction : public OdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Callback ODE Action class
+         * @brief ctor for the Custom ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] clientHandler client callback function to call on ODE
          * @param[in] clientData opaque pointer to client data t return on callback
          */
-        CallbackOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
+        CustomOdeAction(const char* name, dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
         
         /**
-         * @brief dtor for the ODE Callback Action class
+         * @brief dtor for the ODE Custom Action class
          */
-        ~CallbackOdeAction();
+        ~CustomOdeAction();
 
         /**
          * @brief Handles the ODE occurrence by calling the client handler
@@ -210,7 +238,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -243,13 +271,15 @@ namespace DSL
          * @param[in] captureType DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
          * @param[in] outdir output directory to write captured image files
          */
-        CaptureOdeAction(const char* name, uint captureType, const char* outdir);
+        CaptureOdeAction(const char* name, uint captureType, const char* outdir, bool annotate);
         
         /**
          * @brief dtor for the Capture ODE Action class
          */
         ~CaptureOdeAction();
 
+        cv::Mat& AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame);
+        
         /**
          * @brief Handles the ODE occurrence by capturing a frame or object image to file
          * @param[in] pOdeTrigger shared pointer to ODE Type that triggered the event
@@ -258,8 +288,9 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
         
     protected:
     
@@ -272,6 +303,11 @@ namespace DSL
          * @brief relative or absolute path to output directory
          */ 
         std::string m_outdir;
+        
+        /**
+         * @brief annotates the image with bbox and label DSL_CAPTURE_TYPE_FRAME only
+         */
+        bool m_annotate;
 
     };
     
@@ -289,9 +325,11 @@ namespace DSL
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
+         * @param[in] annotate adds bbox and label to one or all objects in the frame.
+         * One object in the case of valid pObjectMeta on call to HandleOccurrence
          */
-        CaptureFrameOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir)
+        CaptureFrameOdeAction(const char* name, const char* outdir, bool annotate)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir, annotate)
         {};
 
     };
@@ -310,7 +348,7 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files
          */
         CaptureObjectOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
         {};
 
     };
@@ -332,7 +370,8 @@ namespace DSL
          * @param[in] offsetX vertical Y-offset for the ODE occurrence data to display
          * @param[in] offsetYWithClassId adds an additional offset based on ODE class Id if set true
          */
-        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId);
+        DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId,
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
         
         /**
          * @brief dtor for the Display ODE Action class
@@ -348,7 +387,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -362,6 +401,22 @@ namespace DSL
          * @brief Vertical Y-offset for the ODE occurrence data to display
          */
         uint m_offsetY;
+        
+        /**
+         * @brief Font type to use for the displayed occurrence data.
+         */
+        DSL_RGBA_FONT_PTR m_pFont;
+        
+        /**
+         * true if the Display text has a background color, false otherwise.
+         */
+        bool m_hasBgColor;
+        
+        /**
+         * @brief the background color to use for the display text if hasBgColor.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+        
         /**
          * @brief Adds an additional offset based on ODE class Id if set true
          */
@@ -400,7 +455,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -441,65 +496,13 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
     
     };
         
-    // ********************************************************************
-
-    /**
-     * @class FillAreaOdeAction
-     * @brief Fill ODE Action class
-     */
-    class FillAreaOdeAction : public OdeAction
-    {
-    public:
-    
-        /**
-         * @brief ctor for the ODE Fill Area Action class
-         * @param[in] name unique name for the ODE Action
-         * @param[in] name unique name for the ODE Area to fill
-         * @param[in] red red level for the rectangle background color [0..1]
-         * @param[in] blue blue level for the rectangle background color [0..1]
-         * @param[in] green green level for the rectangle background color [0..1]
-         * @param[in] alpha alpha level for the rectangle background color [0..1]
-         */
-        FillAreaOdeAction(const char* name, const char* area, 
-            double red, double green, double blue, double alpha);
-        
-        /**
-         * @brief dtor for the ODE Display Action class
-         */
-        ~FillAreaOdeAction();
-        
-        /**
-         * @brief Handles the ODE occurrence by filling in a named ODE Area
-         * with a set of RGBA color values. The filled area applies to the current frame only.
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-            
-    private:
-    
-        /**
-         * @brief Unique name of the ODE Area to Fill
-         */
-        std::string m_odeArea;
-        
-        /**
-         * @brief Background color used to Fill the object
-         */
-        NvOSD_RectParams m_rectangleParams;
-    
-    };
 
     // ********************************************************************
 
@@ -514,12 +517,9 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] red red level for the rectangle background color [0..1]
-         * @param[in] blue blue level for the rectangle background color [0..1]
-         * @param[in] green green level for the rectangle background color [0..1]
-         * @param[in] alpha alpha level for the rectangle background color [0..1]
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
          */
-        FillFrameOdeAction(const char* name, double red, double green, double blue, double alpha);
+        FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -535,7 +535,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -543,7 +543,7 @@ namespace DSL
         /**
          * @brief Background color used to Fill the object
          */
-        NvOSD_RectParams m_rectangleParams;
+        DSL_RGBA_COLOR_PTR m_pColor;
     
     };
 
@@ -560,12 +560,9 @@ namespace DSL
         /**
          * @brief ctor for the ODE Fill Object Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] red red level for the object background color [0..1]
-         * @param[in] blue blue level for the object background color [0..1]
-         * @param[in] green green level for the object background color [0..1]
-         * @param[in] alpha alpha level for the object background color [0..1]
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Object
          */
-        FillObjectOdeAction(const char* name, double red, double green, double blue, double alpha);
+        FillObjectOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
         
         /**
          * @brief dtor for the ODE Display Action class
@@ -581,7 +578,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -589,9 +586,53 @@ namespace DSL
         /**
          * @brief Background color used to Fill the object
          */
-        NvOSD_ColorParams m_backgroundColor;
+        DSL_RGBA_COLOR_PTR m_pColor;
     
     };
+
+    // ********************************************************************
+
+    /**
+     * @class FillSurroundingOdeAction
+     * @brief Fill Surroundings ODE Action class
+     */
+    class FillSurroundingsOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Surroundings Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Object
+         */
+        FillSurroundingsOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~FillSurroundingsOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by Filling the object's surrounding 
+         * using four adjacent rectangles. 
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Background color used to Fill everything but the object
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+    
+    };
+
     // ********************************************************************
 
     /**
@@ -623,7 +664,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -640,6 +681,51 @@ namespace DSL
     
     };
         
+
+    // ********************************************************************
+
+    /**
+     * @class AddDisplayMetaOdeAction
+     * @brief Add Display Meta ODE Action class
+     */
+    class AddDisplayMetaOdeAction : public OdeAction 
+    {
+    public:
+    
+        /**
+         * @brief ctor for the AddDisplayMeta ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] shared pointer to the 
+         */
+        AddDisplayMetaOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType);
+        
+        /**
+         * @brief dtor for the AddDisplayMeta ODE Action class
+         */
+        ~AddDisplayMetaOdeAction();
+        
+        /**
+         * @brief adds an additional Display Type for adding metadata
+         */
+        void AddDisplayType(DSL_DISPLAY_TYPE_PTR pDisplayType);
+        
+        /**
+         * @brief Handles the ODE by overlaying the pFrameMeta with the named Display Type
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+        std::vector<DSL_DISPLAY_TYPE_PTR> m_pDisplayTypes;
+    
+    };
+
     // ********************************************************************
 
     /**
@@ -670,7 +756,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -709,7 +795,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
     private:
@@ -746,7 +832,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
     private:
@@ -784,7 +870,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -832,7 +918,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -880,7 +966,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -928,7 +1014,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -975,7 +1061,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1017,7 +1103,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1059,7 +1145,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pBaseTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1101,7 +1187,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1143,7 +1229,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1186,7 +1272,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1233,7 +1319,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
          * NULL if Frame level absence, total, min, max, etc. events.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer,
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -1248,6 +1334,188 @@ namespace DSL
          */
         std::string m_area;
     };
+
+    // ********************************************************************
+
+    /**
+     * @class RecordSinkStartOdeAction
+     * @brief Start Record Sink ODE Action class
+     */
+    class RecordSinkStartOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Start Record Sink ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordSinkStartOdeAction(const char* name, 
+            const char* recordSink, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief dtor for the Start Record ODE Action class
+         */
+        ~RecordSinkStartOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Starting a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Sink to start the recording session
+         */ 
+        std::string m_recordSink;
+
+        /**
+         * @brief Start time before current time in seconds
+         */
+        uint m_start;
+
+        /**
+         * @brief Duration for recording in seconds
+         */
+        uint m_duration;
+        
+        /**
+         * @brief client Data for client listening for recording session complete/stopped
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief unique recording session id aquired on Start Record
+         */
+        uint m_session;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class RecordTapOdeAction
+     * @brief Start Record Tap ODE Action class
+     */
+    class RecordTapStartOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Start Record Tap ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Start on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordTapStartOdeAction(const char* name, 
+            const char* tapSink, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief dtor for the Start Record ODE Action class
+         */
+        ~RecordTapStartOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Starting a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Tap to start the recording session
+         */ 
+        std::string m_recordTap;
+
+        /**
+         * @brief Start time before current time in seconds
+         */
+        uint m_start;
+
+        /**
+         * @brief Duration for recording in seconds
+         */
+        uint m_duration;
+        
+        /**
+         * @brief client Data for client listening for recording session complete/stopped
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief unique recording session id aquired on Start Record
+         */
+        uint m_session;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class TilerShowSourceOdeAction
+     * @brief Tiler Show Source ODE Action class
+     */
+    class TilerShowSourceOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Tiler Show Source ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] tiler name of the tiler to call on to show source on ODE occurrence
+         * @param[in] timeout show source timeout to pass to the Tiler, in units of seconds
+         */
+        TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence);
+        
+        /**
+         * @brief dtor for the Enable Action ODE class
+         */
+        ~TilerShowSourceOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling a named tiler to show the source for the frame
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Tiler to call to show source on ODE occurrence
+         */
+        std::string m_tiler;
+        
+        /**
+         * @brief show source timeout to pass to the Tiler in units of seconds
+         */
+        uint m_timeout;
+        
+        /**
+         * @brief if true, the show source action will take precedence over a currently shown single source
+         */
+        bool m_hasPrecedence;
+
+    };
+
 }
 
 #endif // _DSL_ODE_ACTION_H

@@ -29,11 +29,10 @@ THE SOFTWARE.
 #include "DslSourceBintr.h"
 #include "DslGieBintr.h"
 #include "DslTrackerBintr.h"
-#include "DslOdeHandlerBintr.h"
+#include "DslPadProbeHandler.h"
 #include "DslTilerBintr.h"
 #include "DslOsdBintr.h"
 #include "DslSinkBintr.h"
-
 
 #define RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(actions, name) do \
 { \
@@ -130,6 +129,16 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
+    } \
+}while(0); 
+
 #define RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
@@ -160,19 +169,21 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+// All Bintr's that can be added as a "branch" to a "Tee"
 #define RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(BranchBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+        return DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH; \
     } \
 }while(0); 
 
@@ -182,12 +193,61 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
     } \
 }while(0); 
+
+#define RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(RecordTapBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Tap"); \
+        return DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP; \
+    } \
+}while(0); 
+
+
+#define RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(types, name) do \
+{ \
+    if (types.find(name) == types.end()) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' was not found"); \
+        return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(types, name, displayType) do \
+{ \
+    if (!types[name]->IsType(typeid(displayType))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is not the correct type"); \
+        return DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(types, name) do \
+{ \
+    if (types[name]->IsType(typeid(RgbaColor)) or \
+        types[name]->IsType(typeid(RgbaFont))) \
+    { \
+        LOG_ERROR("Display Type '" << name << "' is base type and can not be displayed"); \
+        return DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE; \
+    } \
+}while(0); 
+
+#define RETURN_IF_PPH_NAME_NOT_FOUND(handlers, name) do \
+{ \
+    if (handlers.find(name) == handlers.end()) \
+    { \
+        LOG_ERROR("Pad Probe Handler name '" << name << "' was not found"); \
+        return DSL_RESULT_PPH_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 
 // TODO move these defines to DSL utility file
 #define INIT_MEMORY(m) memset(&m, 0, sizeof(m));
@@ -251,6 +311,11 @@ const wchar_t* dsl_version_get()
     return DSL_VERSION;
 }
 
+// Single GST debug catagory initialization
+GST_DEBUG_CATEGORY(GST_CAT_DSL);
+
+GQuark _dsmeta_quark;
+
 namespace DSL
 {
     // Initialize the Services's single instance pointer
@@ -279,8 +344,12 @@ namespace DSL
             // Safe to start logging
             LOG_INFO("Services Initialization");
             
+            _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
+            
             // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services(doGstDeinit);
+            
+            // Initialize private containers
             m_pInstatnce->InitToStringMaps();
         }
         return m_pInstatnce;
@@ -318,7 +387,556 @@ namespace DSL
         g_mutex_clear(&m_servicesMutex);
     }
     
-    DslReturnType Services::OdeActionCallbackNew(const char* name,
+    DslReturnType Services::DisplayTypeRgbaColorNew(const char* name, 
+        double red, double green, double blue, double alpha)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Color name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE;
+            }
+            m_displayTypes[name] = DSL_RGBA_COLOR_NEW(name, 
+                red, green, blue, alpha);
+
+            LOG_INFO("New RGBA Color '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaFontNew(const char* name, const char* font,
+        uint size, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Font name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_FONT_NEW(name, font, size, pColor);
+
+            LOG_INFO("New RGBA Color '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Color '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaTextNew(const char* name, const char* text, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Text name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_RGBA_TEXT_NEW(name,
+                text, xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New RGBA Text '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Text '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaLineNew(const char* name, 
+        uint x1, uint y1, uint x2, uint y2, uint width, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Line name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_LINE_NEW(name, x1, y1, x2, y2, width, pColor);
+
+            LOG_INFO("New RGBA Line '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Line '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaArrowNew(const char* name, 
+        uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Arrow name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE;
+            }
+
+            if (head > DSL_ARROW_BOTH_HEAD)
+            {
+                LOG_ERROR("RGBA Head Type Invalid for RGBA Arrow'" << name << "'");
+                return DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID;
+            }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+            
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_ARROW_NEW(name, x1, y1, x2, y2, width, head, pColor);
+
+            LOG_INFO("New RGBA Arrow '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Arrow '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
+        uint borderWidth, const char* color, bool hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+            
+            m_displayTypes[name] = DSL_RGBA_RECTANGLE_NEW(name, 
+                left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor);
+
+            LOG_INFO("New RGBA Rectangle '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Rectangle '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
+        const char* color, bool hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Rectangle name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+            
+            m_displayTypes[name] = DSL_RGBA_CIRCLE_NEW(name, 
+                xCenter, yCenter, radius, pColor, hasBgColor, pBgColor);
+
+            LOG_INFO("New RGBA Circle '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Circle '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::DisplayTypeSourceNumberNew(const char* name,
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Source Number name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_NUMBER_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Number '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New Source Number '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceNameNew(const char* name,
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Source Name name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_NAME_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Name '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Source Name '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceDimensionsNew(const char* name, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Source Dimensions name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_DIMENSIONS_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Dimensions '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Source Dimensions '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceFrameRateNew(const char* name, 
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Source Frame-Rate name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_FRAME_RATE_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Frame-Rate '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Source Frame-Rate '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeMetaAdd(const char* name, void* pDisplayMeta, void* pFrameMeta)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            
+            DSL_DISPLAY_TYPE_PTR pDisplayType = 
+                std::dynamic_pointer_cast<DisplayType>(m_displayTypes[name]);
+
+            pDisplayType->AddMeta((NvDsDisplayMeta*)pDisplayMeta, (NvDsFrameMeta*)pFrameMeta);
+            
+            LOG_INFO("Display Type '" << name << "' deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Type '" << name << "' threw exception on delete");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::DisplayTypeDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, name);
+            
+            if (m_displayTypes[name].use_count() > 1)
+            {
+                LOG_INFO("Display Type '" << name << "' is in use");
+                return DSL_RESULT_DISPLAY_TYPE_IN_USE;
+            }
+            m_displayTypes.erase(name);
+            
+            LOG_INFO("Display Type '" << name << "' deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Type '" << name << "' threw exception on delete");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::DisplayTypeDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // Don't check for in-use on deleting all. 
+            m_displayTypes.clear();
+            
+            LOG_INFO("All Display Types deleted successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Display Types threw exception on delete all");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::DisplayTypeListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_displayTypes.size();
+    }
+            
+    DslReturnType Services::OdeActionCustomNew(const char* name,
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
     {
         LOG_FUNC();
@@ -332,7 +950,7 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CALLBACK_NEW(name, clientHandler, clientData);
+            m_odeActions[name] = DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData);
 
             LOG_INFO("New ODE Callback Action '" << name << "' created successfully");
 
@@ -346,7 +964,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionCaptureFrameNew(const char* name,
-        const char* outdir)
+        const char* outdir, boolean annotate)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -367,7 +985,7 @@ namespace DSL
                 LOG_ERROR("Unable to access outdir '" << outdir << "' for Capture Action '" << name << "'");
                 return DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir);
+            m_odeActions[name] = DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate);
 
             LOG_INFO("New Capture Frame ODE Action '" << name << "' created successfully");
 
@@ -415,7 +1033,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId)
+    DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
+        boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -428,8 +1047,27 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, font, RgbaFont);
+            
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, bgColor, RgbaColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+
             m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_NEW(name, 
-                offsetX, offsetY, offsetYWithClassId);
+                offsetX, offsetY, offsetYWithClassId, pFont, hasBgColor, pBgColor);
             LOG_INFO("New Display ODE Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -441,8 +1079,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillAreaNew(const char* name,
-        const char* area, double red, double green, double blue, double alpha)
+    DslReturnType Services::OdeActionFillSurroundingsNew(const char* name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -455,22 +1092,27 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_AREA_NEW(name, area,
-                red, green, blue, alpha);
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
 
-            LOG_INFO("New ODE Fill Area Action '" << name << "' created successfully");
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor);
+
+            LOG_INFO("New ODE Fill Surroundings Action '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Fill Area Action '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Fill Surroundings Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::OdeActionFillFrameNew(const char* name,
-        double red, double green, double blue, double alpha)
+    DslReturnType Services::OdeActionFillFrameNew(const char* name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -483,8 +1125,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name,
-                red, green, blue, alpha);
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_FRAME_NEW(name, pColor);
 
             LOG_INFO("New ODE Fill Frame Action '" << name << "' created successfully");
 
@@ -497,8 +1145,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionFillObjectNew(const char* name,
-        double red, double green, double blue, double alpha)
+    DslReturnType Services::OdeActionFillObjectNew(const char* name, const char* color)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -511,8 +1158,14 @@ namespace DSL
                 LOG_ERROR("ODE Action name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
             }
-            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name,
-                red, green, blue, alpha);
+
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+                
+            m_odeActions[name] = DSL_ODE_ACTION_FILL_OBJECT_NEW(name, pColor);
 
             LOG_INFO("New ODE Fill Object Action '" << name << "' created successfully");
 
@@ -603,6 +1256,69 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionDisplayMetaAddNew(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
+            
+            m_odeActions[name] = DSL_ODE_ACTION_DISPLAY_META_ADD_NEW(name, pDisplayType);
+
+            LOG_INFO("New Add Display Meta Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Add Display Meta Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CORRECT_TYPE(m_odeActions, name, AddDisplayMetaOdeAction);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, displayType);
+            RETURN_IF_DISPLAY_TYPE_IS_BASE_TYPE(m_displayTypes, displayType);
+            
+            DSL_DISPLAY_TYPE_PTR pDisplayType = std::dynamic_pointer_cast<DisplayType>(m_displayTypes[displayType]);
+            
+            DSL_ODE_ACTION_DISPLAY_META_ADD_PTR pAction = 
+                std::dynamic_pointer_cast<AddDisplayMetaOdeAction>(m_odeActions[name]);
+
+            pAction->AddDisplayType(pDisplayType);
+            
+            LOG_INFO("Display Type '" << displayType << "' added to Action '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Overlay Frame Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
+    
     DslReturnType Services::OdeActionPauseNew(const char* name, const char* pipeline)
     {
         LOG_FUNC();
@@ -660,14 +1376,14 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure event name uniqueness 
-        if (m_odeActions.find(name) != m_odeActions.end())
-        {   
-            LOG_ERROR("ODE Action name '" << name << "' is not unique");
-            return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
             m_odeActions[name] = DSL_ODE_ACTION_REDACT_NEW(name);
 
             LOG_INFO("New ODE Redact Action '" << name << "' created successfully");
@@ -735,6 +1451,34 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionSinkRecordStartNew(const char* name,
+        const char* recordSink, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_SINK_RECORD_START_NEW(name,
+                recordSink, start, duration, clientData);
+
+            LOG_INFO("New ODE Record Sink Start Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Record Start Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionSourceAddNew(const char* name, 
         const char* pipeline, const char* source)
     {
@@ -789,6 +1533,34 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionTapRecordStartNew(const char* name,
+        const char* recordTap, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TAP_RECORD_START_NEW(name,
+                recordTap, start, duration, clientData);
+
+            LOG_INFO("New ODE Record Tap Start Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Record Tap Start Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionActionDisableNew(const char* name, const char* action)
     {
         LOG_FUNC();
@@ -837,6 +1609,33 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Action Enable ODE Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionTilerShowSourceNew(const char* name, 
+        const char* tiler, uint timeout, bool hasPrecedence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence);
+
+            LOG_INFO("New Tiler Show Source ODE Action'" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Tiler Show Source ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
     }
@@ -1021,18 +1820,27 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
-        
-        if (m_odeActions[name].use_count() > 1)
+
+        try
         {
-            LOG_INFO("ODE Action'" << name << "' is in use");
-            return DSL_RESULT_ODE_ACTION_IN_USE;
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            
+            if (m_odeActions[name].use_count() > 1)
+            {
+                LOG_INFO("ODE Action'" << name << "' is in use");
+                return DSL_RESULT_ODE_ACTION_IN_USE;
+            }
+            m_odeActions.erase(name);
+
+            LOG_INFO("ODE Action '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeActions.erase(name);
-
-        LOG_INFO("ODE Action '" << name << "' deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Action '" << name << "' threw exception on deletion");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::OdeActionDeleteAll()
@@ -1040,20 +1848,28 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_odeActions)
+        try
         {
-            // In the case of Delete all
-            if (imap.second.use_count() > 1)
+            for (auto const& imap: m_odeActions)
             {
-                LOG_ERROR("ODE Action '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_ODE_ACTION_IN_USE;
+                // In the case of Delete all
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("ODE Action '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_ODE_ACTION_IN_USE;
+                }
             }
+            m_odeActions.clear();
+
+            LOG_INFO("All ODE Actions deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeActions.clear();
-
-        LOG_INFO("All ODE Actions deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Action threw exception on delete all");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
     }
 
     uint Services::OdeActionListSize()
@@ -1064,8 +1880,8 @@ namespace DSL
         return m_odeActions.size();
     }
     
-    DslReturnType Services::OdeAreaNew(const char* name, 
-        uint left, uint top, uint width, uint height, boolean display)
+    DslReturnType Services::OdeAreaInclusionNew(const char* name, 
+        const char* rectangle, boolean display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1078,144 +1894,83 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
             
-            m_odeAreas[name] = DSL_ODE_AREA_NEW(name, left, top, width, height, display);
+            DSL_RGBA_RECTANGLE_PTR pRectangle = 
+                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_INCLUSION_NEW(name, pRectangle, display);
          
-            LOG_INFO("New ODE Area '" << name << "' created successfully");
+            LOG_INFO("New ODE Inclusion Area '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE ODE Area '" << name << "' threw exception on creation");
+            LOG_ERROR("ODE Inclusion Area '" << name << "' threw exception on creation");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
-    DslReturnType Services::OdeAreaGet(const char* name, 
-        uint* left, uint* top, uint* width, uint* height, boolean* display)
+
+    DslReturnType Services::OdeAreaExclusionNew(const char* name, 
+        const char* rectangle, boolean display)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            pOdeArea->GetArea(left, top, width, height, (bool*)display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Area criteria");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaSet(const char* name, 
-        uint left, uint top, uint width, uint height, boolean display)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            // TODO: validate the values for in-range
-            pOdeArea->SetArea(left, top, width, height, display);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Area '" << name << "' threw exception setting Area criteria");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaColorGet(const char* name, 
-        double* red, double* green, double* blue, double* alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-         
-            pOdeArea->GetColor(red, green, blue, alpha);
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting Area Color");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-            
-    DslReturnType Services::OdeAreaColorSet(const char* name, 
-        double red, double green, double blue, double alpha)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_AREA_NAME_NOT_FOUND(m_odeAreas, name);
-            
-            DSL_ODE_AREA_PTR pOdeArea = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
-                
-            LOG_INFO("Setting Area '" << name << "to: red = " << red << " green = " 
-                << green << " blue = " << blue << " alpha = " << alpha);
-                
-            if ((red > 1.0) or (green > 1.0) or (blue > 1.0) or (alpha > 1.0))
-            {
-                LOG_ERROR("Invalid color value for ODE Area '" << name << "'");
-                return DSL_RESULT_ODE_AREA_SET_FAILED;
+            // ensure ODE Area name uniqueness 
+            if (m_odeAreas.find(name) != m_odeAreas.end())
+            {   
+                LOG_ERROR("ODE Area name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
             
-            DSL_ODE_AREA_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<OdeArea>(m_odeAreas[name]);
+            DSL_RGBA_RECTANGLE_PTR pRectangle = 
+                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_EXCLUSION_NEW(name, pRectangle, display);
          
-            pOdeArea->SetColor(red, green, blue, alpha);
+            LOG_INFO("New ODE Exclusion Area '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("ODE Area '" << name << "' threw exception setting Color");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+            LOG_ERROR("ODE Exclusion Area '" << name << "' threw exception on creation");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
-
+    
     DslReturnType Services::OdeAreaDelete(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeAreas, name);
-        
-        if (m_odeAreas[name].use_count() > 1)
+
+        try
         {
-            LOG_INFO("ODE Area'" << name << "' is in use");
-            return DSL_RESULT_ODE_ACTION_IN_USE;
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeAreas, name);
+            
+            if (m_odeAreas[name].use_count() > 1)
+            {
+                LOG_INFO("ODE Area'" << name << "' is in use");
+                return DSL_RESULT_ODE_ACTION_IN_USE;
+            }
+            m_odeAreas.erase(name);
+
+            LOG_INFO("ODE Area '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeAreas.erase(name);
-
-        LOG_INFO("ODE Area '" << name << "' deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Area '" << name << "' threw exception on deletion");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::OdeAreaDeleteAll()
@@ -1223,20 +1978,28 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_odeAreas)
+        try
         {
-            // In the case of Delete all
-            if (imap.second.use_count() > 1)
+            for (auto const& imap: m_odeAreas)
             {
-                LOG_ERROR("ODE Area '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_ODE_ACTION_IN_USE;
+                // In the case of Delete all
+                if (imap.second.use_count() > 1)
+                {
+                    LOG_ERROR("ODE Area '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_ODE_ACTION_IN_USE;
+                }
             }
+            m_odeAreas.clear();
+
+            LOG_INFO("All ODE Areas deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeAreas.clear();
-
-        LOG_INFO("All ODE Areas deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Area threw exception on delete all");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
     }
 
     uint Services::OdeAreaListSize()
@@ -1247,7 +2010,7 @@ namespace DSL
         return m_odeAreas.size();
     }
         
-    DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerAlwaysNew(const char* name, const char* source, uint when)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1260,7 +2023,38 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit);
+            if (when > DSL_ODE_POST_OCCURRENCE_CHECK)
+            {   
+                LOG_ERROR("Invalid 'when' parameter for ODE Trigger name '" << name << "'");
+                return DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ALWAYS_NEW(name, source, when);
+            
+            LOG_INFO("New Always ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Always ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit);
             
             LOG_INFO("New Occurrence ODE Trigger '" << name << "' created successfully");
 
@@ -1273,7 +2067,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerAbsenceNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1286,7 +2080,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit);
             
             LOG_INFO("New Absence ODE Trigger '" << name << "' created successfully");
 
@@ -1299,7 +2093,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1312,7 +2106,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit);
             
             LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
 
@@ -1325,7 +2119,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerSummationNew(const char* name, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerSummationNew(const char* name, const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1338,7 +2132,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_SUMMATION_NEW(name, source, classId, limit);
             
             LOG_INFO("New Summation ODE Trigger '" << name << "' created successfully");
 
@@ -1351,8 +2145,9 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerCustomNew(const char* name, 
-        uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, void* client_data)
+    DslReturnType Services::OdeTriggerCustomNew(const char* name, const char* source, 
+        uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
+        dsl_ode_post_process_frame_cb client_post_processor, void* client_data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1371,7 +2166,8 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, client_checker, client_data);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_CUSTOM_NEW(name, source,
+                classId, limit, client_checker, client_post_processor, client_data);
             
             LOG_INFO("New Custom ODE Trigger '" << name << "' created successfully");
 
@@ -1384,7 +2180,7 @@ namespace DSL
         }
     }
             
-    DslReturnType Services::OdeTriggerMinimumNew(const char* name, 
+    DslReturnType Services::OdeTriggerMinimumNew(const char* name, const char* source, 
         uint classId, uint limit, uint minimum)
     {
         LOG_FUNC();
@@ -1398,7 +2194,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_MINIMUM_NEW(name, source, classId, limit, minimum);
             
             LOG_INFO("New Minimum ODE Trigger '" << name << "' created successfully");
 
@@ -1411,7 +2207,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerMaximumNew(const char* name, 
+    DslReturnType Services::OdeTriggerMaximumNew(const char* name, const char* source, 
         uint classId, uint limit, uint maximum)
     {
         LOG_FUNC();
@@ -1425,7 +2221,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum);
             
             LOG_INFO("New Maximum ODE Trigger '" << name << "' created successfully");
 
@@ -1438,7 +2234,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerRangeNew(const char* name, 
+    DslReturnType Services::OdeTriggerRangeNew(const char* name, const char* source, 
         uint classId, uint limit, uint lower, uint upper)
     {
         LOG_FUNC();
@@ -1452,7 +2248,7 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_RANGE_NEW(name, classId, limit, lower, upper);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper);
             
             LOG_INFO("New Range ODE Trigger '" << name << "' created successfully");
 
@@ -1461,6 +2257,58 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Range ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit);
+            
+            LOG_INFO("New Smallest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Smallest ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerLargestNew(const char* name, const char* source, uint classId, uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit);
+            
+            LOG_INFO("New Largest ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Largest ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -1531,6 +2379,50 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerSourceGet(const char* name, const char** source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+         
+            *source = pOdeTrigger->GetSource();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerSourceSet(const char* name, const char* source)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
+
+            pOdeTrigger->SetSource(source);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::OdeTriggerClassIdGet(const char* name, uint* classId)
     {
         LOG_FUNC();
@@ -1575,51 +2467,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerSourceIdGet(const char* name, uint* sourceId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            
-            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
-         
-            *sourceId = pOdeTrigger->GetSourceId();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting source id");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-
-    DslReturnType Services::OdeTriggerSourceIdSet(const char* name, uint sourceId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-            
-            DSL_ODE_TRIGGER_PTR pOdeTrigger = 
-                std::dynamic_pointer_cast<OdeTrigger>(m_odeTriggers[name]);
-
-            pOdeTrigger->SetSourceId(sourceId);
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
-            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
-        }
-    }                
-
-    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, double* minConfidence)
+    DslReturnType Services::OdeTriggerConfidenceMinGet(const char* name, float* minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1641,7 +2489,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, double minConfidence)
+    DslReturnType Services::OdeTriggerConfidenceMinSet(const char* name, float minConfidence)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1663,7 +2511,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, uint* min_width, uint* min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinGet(const char* name, float* min_width, float* min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1685,7 +2533,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, uint min_width, uint min_height)
+    DslReturnType Services::OdeTriggerDimensionsMinSet(const char* name, float min_width, float min_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1709,7 +2557,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, uint* max_width, uint* max_height)
+    DslReturnType Services::OdeTriggerDimensionsMaxGet(const char* name, float* max_width, float* max_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1731,7 +2579,7 @@ namespace DSL
         }
     }                
 
-    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, uint max_width, uint max_height)
+    DslReturnType Services::OdeTriggerDimensionsMaxSet(const char* name, float max_width, float max_height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2028,18 +2876,27 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
-        
-        if (m_odeTriggers[name]->IsInUse())
+
+        try
         {
-            LOG_INFO("ODE Trigger '" << name << "' is in use");
-            return DSL_RESULT_ODE_TRIGGER_IN_USE;
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            if (m_odeTriggers[name]->IsInUse())
+            {
+                LOG_INFO("ODE Trigger '" << name << "' is in use");
+                return DSL_RESULT_ODE_TRIGGER_IN_USE;
+            }
+            m_odeTriggers.erase(name);
+
+            LOG_INFO("ODE Trigger '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeTriggers.erase(name);
-
-        LOG_INFO("ODE Trigger '" << name << "' deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw an exception on deletion");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::OdeTriggerDeleteAll()
@@ -2047,20 +2904,28 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        for (auto const& imap: m_odeTriggers)
+        try
         {
-            // In the case of Delete all
-            if (imap.second->IsInUse())
+            for (auto const& imap: m_odeTriggers)
             {
-                LOG_ERROR("ODE Trigger '" << imap.second->GetName() << "' is currently in use");
-                return DSL_RESULT_ODE_TRIGGER_IN_USE;
+                // In the case of Delete all
+                if (imap.second->IsInUse())
+                {
+                    LOG_ERROR("ODE Trigger '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_ODE_TRIGGER_IN_USE;
+                }
             }
+            m_odeTriggers.clear();
+
+            LOG_INFO("All ODE Triggers deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
-        m_odeTriggers.clear();
-
-        LOG_INFO("All ODE Triggers deleted successfully");
-
-        return DSL_RESULT_SUCCESS;
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger threw an exception on delete all");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
     }
 
     uint Services::OdeTriggerListSize()
@@ -2070,6 +2935,361 @@ namespace DSL
         
         return m_odeTriggers.size();
     }
+
+    DslReturnType Services::PphCustomNew(const char* name,
+        dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Custom Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData);
+
+            LOG_INFO("New Custom Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custom Pad Prove handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphMeterNew(const char* name, uint interval, 
+        dsl_pph_meter_client_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Meter Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            if (!interval)
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_METER_NEW(name, 
+                interval, clientHandler, clientData);
+
+            LOG_INFO("New Meter Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Meter Pad Prove handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+
+    DslReturnType Services::PphMeterIntervalGet(const char* name, uint* interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+
+            DSL_PPH_METER_PTR pMeter = 
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+
+            *interval = pMeter->GetInterval();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting reporting interval");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphMeterIntervalSet(const char* name, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            
+            if (!interval)
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
+            }
+
+            DSL_PPH_METER_PTR pMeter = 
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+
+            if (!pMeter->SetInterval(interval))
+            {
+                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set reporting interval");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Meter Pad Probe Handler '" << name << "' threw an exception setting reporting interval");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphOdeNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("ODE Pad Probe Handler name '" << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_ODE_NEW(name);
+            
+            LOG_INFO("New ODE Pad Probe Handler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Pad Probe Handler '" << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphOdeTriggerAdd(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+
+            // Can't add Events if they're In use by another Handler
+            if (m_odeTriggers[trigger]->IsInUse())
+            {
+                LOG_ERROR("Unable to add ODE Trigger '" << trigger 
+                    << "' as it is currently in use");
+                return DSL_RESULT_ODE_TRIGGER_IN_USE;
+            }
+
+            DSL_PPH_ODE_PTR pOde = 
+                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+
+            if (!pOde->AddChild(m_odeTriggers[trigger]))
+            {
+                LOG_ERROR("ODE Pad Probe Handler '" << name
+                    << "' failed to add ODE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << trigger 
+                << "' was added to ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name
+                << "' threw exception adding ODE Trigger '" << trigger << "'");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphOdeTriggerRemove(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
+
+            if (!m_odeTriggers[trigger]->IsParent(m_padProbeHandlers[name]))
+            {
+                LOG_ERROR("ODE Trigger '" << trigger << 
+                    "' is not in use by ODE Pad Probe Handler '" << name << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE;
+            }
+            
+            if (!m_padProbeHandlers[name]->RemoveChild(m_odeTriggers[trigger]))
+            {
+                LOG_ERROR("ODE Pad Probe Handler '" << name
+                    << "' failed to remove ODE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED;
+            }
+            LOG_INFO("ODE Trigger '" << trigger 
+                << "' was removed from ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception removing ODE Trigger");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphOdeTriggerRemoveAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            
+            m_padProbeHandlers[name]->RemoveAllChildren();
+
+            LOG_INFO("All ODE Triggers removed from ODE Pad Probe Handler '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Pad Probe Handler '" << name 
+                << "' threw an exception removing All ODE Triggers");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+   DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
+   {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+
+            *enabled = m_padProbeHandlers[name]->GetEnabled();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name
+                << "' threw exception getting the Enabled state");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+   DslReturnType Services::PphEnabledSet(const char* name, boolean enabled)
+   {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+
+            if (!m_padProbeHandlers[name]->SetEnabled(enabled))
+            {
+                LOG_ERROR("Pad Probe Handler '" << name
+                    << "' failed to set enabled state");
+                return DSL_RESULT_PPH_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name
+                << "' threw exception setting the Enabled state");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            
+            if (m_padProbeHandlers[name]->IsInUse())
+            {
+                LOG_INFO("Pad Probe Handler '" << name << "' is in use");
+                return DSL_RESULT_PPH_IS_IN_USE;
+            }
+            m_padProbeHandlers.erase(name);
+
+            LOG_INFO("Pad Probe Handler '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler '" << name << "' threw an exception on deletion");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            for (auto const& imap: m_padProbeHandlers)
+            {
+                if (imap.second->IsInUse())
+                {
+                    LOG_ERROR("Pad Probe Handler '" << imap.second->GetName() << "' is currently in use");
+                    return DSL_RESULT_PPH_IS_IN_USE;
+                }
+            }
+            m_padProbeHandlers.clear();
+
+            LOG_INFO("All Pad Probe Handlers deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pad Probe Handler threw an exception on delete all");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::PphListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_padProbeHandlers.size();
+    }
     
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fps_n, uint fps_d)
@@ -2077,24 +3297,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Source name '" << name << "' is not unique");
-            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d);
+
+            LOG_INFO("New CSI Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("New CSI Source '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SourceUsbNew(const char* name,
@@ -2103,24 +3324,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Source name '" << name << "' is not unique");
-            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d);
+
+            LOG_INFO("New USB Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New USB Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("New USB Source '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
@@ -2129,67 +3351,69 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Source name '" << name << "' is not unique");
-            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-        }
-        std::string stringUri(uri);
-        if (stringUri.find("http") == std::string::npos)
-        {
-            if (isLive)
-            {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("URI Source'" << uri << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::string stringUri(uri);
+            if (stringUri.find("http") == std::string::npos)
+            {
+                if (isLive)
+                {
+                    LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
+                std::ifstream streamUriFile(uri);
+                if (!streamUriFile.good())
+                {
+                    LOG_ERROR("URI Source'" << uri << "' Not found");
+                    return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+                }
+            }
             m_components[name] = DSL_URI_SOURCE_NEW(
                 name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval);
+
+            LOG_INFO("New URI Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New URI Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("New URI Source '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri, 
-        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
+        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Source name '" << name << "' is not unique");
-            return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval);
+                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency);
+
+            LOG_INFO("New RTSP Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New RTSP Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        LOG_INFO("New RTSP Source '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
@@ -2206,13 +3430,14 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
             pSourceBintr->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }                
     
     DslReturnType Services::SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d)
@@ -2229,13 +3454,14 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
             pSourceBintr->GetFrameRate(fps_n, fps_d);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception getting dimensions");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
@@ -2252,13 +3478,14 @@ namespace DSL
                 std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
 
             *uri = pSourceBintr->GetUri();
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
             
 
@@ -2280,14 +3507,13 @@ namespace DSL
                 LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
-            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SourceDecodeDewarperAdd(const char* name, const char* dewarper)
@@ -2313,13 +3539,13 @@ namespace DSL
                 LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SourceDecodeDewarperRemove(const char* name)
@@ -2340,15 +3566,142 @@ namespace DSL
                 LOG_ERROR("Failed to remove Dewarper from Decode Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception removing Dewarper");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::SourceRtspTapAdd(const char* name, const char* tap)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tap);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
+            RETURN_IF_COMPONENT_IS_NOT_TAP(m_components, tap);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            if (pSourceBintr->IsLinked())
+            {
+                LOG_ERROR("Can not add Tap '" << tap << "' to RTSP Source '" << name << 
+                    "' as the Source is in a linked state");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
+         
+            DSL_TAP_PTR pTapBintr = 
+                std::dynamic_pointer_cast<TapBintr>(m_components[tap]);
+         
+            if (!pSourceBintr->AddTapBintr(pTapBintr))
+            {
+                LOG_ERROR("Failed to add Tap '" << tap << "' to RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Tap");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceRtspTapRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+         
+            if (pSourceBintr->IsLinked())
+            {
+                LOG_ERROR("Can not remove Tap from RTSP Source '" << name << 
+                    "' as the Source is in a linked state");
+                return DSL_RESULT_SOURCE_TAP_ADD_FAILED;
+            }
+
+            if (!pSourceBintr->RemoveTapBintr())
+            {
+                LOG_ERROR("Failed to remove Tap from RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_TAP_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception removing Tap");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceNameGet(int sourceId, const char** name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        {
+            *name = m_sourceNames[sourceId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        *name = NULL;
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
+    DslReturnType Services::SourceIdGet(const char* name, int* sourceId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_sourceIds.find(name) != m_sourceIds.end())
+        {
+            *sourceId = m_sourceIds[name];
+            return DSL_RESULT_SUCCESS;
+        }
+        *sourceId = -1;
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
+    DslReturnType Services::_sourceNameSet(uint sourceId, const char* name)
+    {
+        LOG_FUNC();
+        
+        // called internally, do not lock mutex
+        
+        m_sourceNames[sourceId] = name;
+        m_sourceIds[name] = sourceId;
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::_sourceNameErase(uint sourceId)
+    {
+        LOG_FUNC();
+
+        // called internally, do not lock mutex
+        
+        if (m_sourceNames.find(sourceId) != m_sourceNames.end())
+        {
+            m_sourceIds.erase(m_sourceNames[sourceId]);
+            m_sourceNames.erase(sourceId);
+            return DSL_RESULT_SUCCESS;
+        }
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
     DslReturnType Services::SourcePause(const char* name)
     {
         LOG_FUNC();
@@ -2487,34 +3840,288 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Dewarper name '" << name << "' is not unique");
-            return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
-        }
-        
-        LOG_INFO("Dewarper config file: " << configFile);
-        
-        std::ifstream ifsConfigFile(configFile);
-        if (!ifsConfigFile.good())
-        {
-            LOG_ERROR("Dewarper Config File not found");
-            return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
-        }
-
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Dewarper name '" << name << "' is not unique");
+                return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
+            }
+            
+            LOG_INFO("Dewarper config file: " << configFile);
+            
+            std::ifstream ifsConfigFile(configFile);
+            if (!ifsConfigFile.good())
+            {
+                LOG_ERROR("Dewarper Config File not found");
+                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+            }
+
             m_components[name] = DSL_DEWARPER_NEW(name, configFile);
+
+            LOG_INFO("New Dewarper '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Dewarper '" << name << "' threw exception on create");
             return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
         }
-        LOG_INFO("New Dewarper '" << name << "' created successfully");
+    }
 
-        return DSL_RESULT_SUCCESS;
+    DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
+        dsl_record_client_listner_cb clientListener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            struct stat info;
+
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Tap name '" << name << "' is not unique");
+                return DSL_RESULT_TAP_NAME_NOT_UNIQUE;
+            }
+            // ensure outdir exists
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Tape '" << name << "'");
+                return DSL_RESULT_TAP_FILE_PATH_NOT_FOUND;
+            }
+
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for File Tap '" << name << "'");
+                return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
+            }
+
+            m_components[name] = DSL_RECORD_TAP_NEW(name, outdir, 
+                container, (NvDsSRCallbackFunc)clientListener);
+            
+            LOG_INFO("New Record Tap '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Record Tap '" << name << "' threw exception on create");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordSessionStart(const char* name, 
+        uint* session, uint start, uint duration, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->StartSession(session, start, duration, clientData))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to Start Session");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap'" << name << "' threw an exception Starting Session");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordSessionStop(const char* name, uint session)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            if (!pRecordTapBintr->StopSession(session))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap'" << name << "' threw an exception setting Stoping Session");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordCacheSizeGet(const char* name, uint* cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *cacheSize = pRecordTapBintr->GetCacheSize();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting Cache Size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordCacheSizeSet(const char* name, uint cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pRecordTapBintr->SetCacheSize(cacheSize))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to set cache size");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception setting cache size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::TapRecordDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            pRecordTapBintr->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pRecordTapBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to set dimensions");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordIsOnGet(const char* name, boolean* isOn)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            *isOn = pRecordTapBintr->IsOn();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting is-recording-on flag");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordResetDoneGet(const char* name, boolean* resetDone)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            *resetDone = pRecordTapBintr->ResetDone();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name << "' threw an exception getting reset done flag");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
     }
     
     DslReturnType Services::PrimaryGieNew(const char* name, const char* inferConfigFile,
@@ -2523,186 +4130,164 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("GIE name '" << name << "' is not unique");
-            return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
-        }
-        
-        LOG_INFO("Infer config file: " << inferConfigFile);
-        
-        std::ifstream configFile(inferConfigFile);
-        if (!configFile.good())
-        {
-            LOG_ERROR("Infer Config File not found");
-            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
-        }
-        
-        std::string testPath(modelEngineFile);
-        if (testPath.size())
-        {
-            LOG_INFO("Model engine file: " << modelEngineFile);
-            
-            std::ifstream modelFile(modelEngineFile);
-            if (!modelFile.good())
-            {
-                LOG_ERROR("Model Engine File not found");
-                return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
-            }
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("GIE name '" << name << "' is not unique");
+                return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
+            }
+            
+            LOG_INFO("Infer config file: " << inferConfigFile);
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            std::string testPath(modelEngineFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Model engine file: " << modelEngineFile);
+                
+                std::ifstream modelFile(modelEngineFile);
+                if (!modelFile.good())
+                {
+                    LOG_ERROR("Model Engine File not found");
+                    return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+                }
+            }
             m_components[name] = DSL_PRIMARY_GIE_NEW(name, 
                 inferConfigFile, modelEngineFile, interval);
+            LOG_INFO("New Primary GIE '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        LOG_INFO("New Primary GIE '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
-
-    DslReturnType Services::PrimaryGieBatchMetaHandlerAdd(const char* name, uint pad, dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::PrimaryGiePphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
-            return DSL_RESULT_GIE_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            if (!pPrimaryGieBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Primary GIE '" << name << "' failed to add a Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for PrimaryGie '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Primary GIE '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_GIE_HANDLER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
-
-    DslReturnType Services::PrimaryGieBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::PrimaryGiePphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
-            return DSL_RESULT_GIE_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            if (!pPrimaryGieBintr->RemoveBatchMetaHandler(pad, handler))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Primary GIE '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Primary GIE '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the PrimaryGie
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Primary GIE '" << name << "'");
                 return DSL_RESULT_GIE_HANDLER_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Primary GIE '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType  Services::PrimaryGieKittiOutputEnabledSet(const char* name, boolean enabled,
-        const char* file)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, PrimaryGieBintr);
-            
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-                std::dynamic_pointer_cast<PrimaryGieBintr>(m_components[name]);
-
-            if (!pPrimaryGieBintr->SetKittiOutputEnabled(enabled, file))
-            {
-                LOG_ERROR("Invalid Kitti file path " << file << "for Primary GIE '" << name << "'");
-                return DSL_RESULT_GIE_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Primary GIE '" << name << "' threw an exception setting Kitti output enabled");
-            return DSL_RESULT_GIE_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-        
     DslReturnType Services::SecondaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, const char* inferOnGieName, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("GIE name '" << name << "' is not unique");
-            return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
-        }
-        
-        LOG_INFO("Infer config file: " << inferConfigFile);
-        
-        std::ifstream configFile(inferConfigFile);
-        if (!configFile.good())
-        {
-            LOG_ERROR("Infer Config File not found");
-            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
-        }
-        
-        LOG_INFO("Model engine file: " << modelEngineFile);
-        
-        std::ifstream modelFile(modelEngineFile);
-        if (!modelFile.good())
-        {
-            LOG_ERROR("Model Engine File not found");
-            return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("GIE name '" << name << "' is not unique");
+                return DSL_RESULT_GIE_NAME_NOT_UNIQUE;
+            }
+            
+            LOG_INFO("Infer config file: " << inferConfigFile);
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            LOG_INFO("Model engine file: " << modelEngineFile);
+            
+            std::string testPath(modelEngineFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Model engine file: " << modelEngineFile);
+                
+                std::ifstream modelFile(modelEngineFile);
+                if (!modelFile.good())
+                {
+                    LOG_ERROR("Model Engine File not found");
+                    return DSL_RESULT_GIE_MODEL_FILE_NOT_FOUND;
+                }
+            }
             m_components[name] = DSL_SECONDARY_GIE_NEW(name, 
                 inferConfigFile, modelEngineFile, inferOnGieName, interval);
+
+            LOG_INFO("New Secondary GIE '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Primary GIE '" << name << "' threw exception on create");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        LOG_INFO("New Secondary GIE '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieRawOutputEnabledSet(const char* name, boolean enabled,
@@ -2724,14 +4309,13 @@ namespace DSL
                 LOG_ERROR("GIE '" << name << "' failed to enable raw output");
                 return DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on raw output enabled set");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieInferConfigFileGet(const char* name, const char** inferConfigFile)
@@ -2748,14 +4332,14 @@ namespace DSL
                 std::dynamic_pointer_cast<GieBintr>(m_components[name]);
 
             *inferConfigFile = pGieBintr->GetInferConfigFile();
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieInferConfigFileSet(const char* name, const char* inferConfigFile)
@@ -2800,14 +4384,14 @@ namespace DSL
                 std::dynamic_pointer_cast<GieBintr>(m_components[name]);
 
             *inferConfigFile = pGieBintr->GetModelEngineFile();
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieModelEngineFileSet(const char* name, const char* inferConfigFile)
@@ -2828,14 +4412,14 @@ namespace DSL
                 LOG_ERROR("GIE '" << name << "' failed to set the Infer Config file");
                 return DSL_RESULT_GIE_SET_FAILED;
             }
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw exception on Infer Config file get");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieIntervalGet(const char* name, uint* interval)
@@ -2852,13 +4436,14 @@ namespace DSL
                 std::dynamic_pointer_cast<GieBintr>(m_components[name]);
 
             *interval = pGieBintr->GetInterval();
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw an exception adding Batch Meta Handler");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::GieIntervalSet(const char* name, uint interval)
@@ -2879,13 +4464,13 @@ namespace DSL
                 LOG_ERROR("GIE '" << name << "' failed to set new Interval");
                 return DSL_RESULT_GIE_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("GIE '" << name << "' threw an exception setting Interval");
             return DSL_RESULT_GIE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TrackerKtlNew(const char* name, uint width, uint height)
@@ -2893,25 +4478,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("KTL Tracker name '" << name << "' is not unique");
-            return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("KTL Tracker name '" << name << "' is not unique");
+                return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new KtlTrackerBintr(
                 name, width, height));
+            LOG_INFO("New KTL Tracker '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("KTL Tracker '" << name << "' threw exception on create");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        LOG_INFO("New KTL Tracker '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::TrackerIouNew(const char* name, const char* configFile, 
@@ -2920,33 +4505,34 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("IOU Tracker name '" << name << "' is not unique");
-            return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
-        }
-        LOG_INFO("Infer config file: " << configFile);
-        
-        std::ifstream streamConfigFile(configFile);
-        if (!streamConfigFile.good())
-        {
-            LOG_ERROR("Infer Config File not found");
-            return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("IOU Tracker name '" << name << "' is not unique");
+                return DSL_RESULT_TRACKER_NAME_NOT_UNIQUE;
+            }
+            LOG_INFO("Infer config file: " << configFile);
+            
+            std::ifstream streamConfigFile(configFile);
+            if (!streamConfigFile.good())
+            {
+                LOG_ERROR("Infer Config File not found");
+                return DSL_RESULT_GIE_CONFIG_FILE_NOT_FOUND;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new IouTrackerBintr(
                 name, configFile, width, height));
+                
+            LOG_INFO("New IOU Tracker '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("IOU Tracker '" << name << "' threw exception on create");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        LOG_INFO("New IOU Tracker '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
    
        DslReturnType Services::TrackerMaxDimensionsGet(const char* name, uint* width, uint* height)
@@ -2964,13 +4550,14 @@ namespace DSL
 
             // TODO verify args before calling
             trackerBintr->GetMaxDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception getting dimensions");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TrackerMaxDimensionsSet(const char* name, uint width, uint height)
@@ -2999,107 +4586,78 @@ namespace DSL
                 LOG_ERROR("Tracker '" << name << "' failed to set dimensions");
                 return DSL_RESULT_TRACKER_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tracker '" << name << "' threw an exception setting dimensions");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TrackerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TrackerPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
-            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
-
-            if (!pTrackerBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tracker '" << name << "' failed to add Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Tracker '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_TRACKER_HANDLER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tracker '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::TrackerBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
-            return DSL_RESULT_TRACKER_PAD_TYPE_INVALID;
-        }
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
-
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
-
-            if (!pTrackerBintr->RemoveBatchMetaHandler(pad, handler))
-            {
-                LOG_ERROR("Tracker '" << name << "' has no matching Batch Meta Handler");
-                return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Tracker '" << name << "' threw an exception removing Batch Meta Handle");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
     }
    
-    DslReturnType  Services::TrackerKittiOutputEnabledSet(const char* name, boolean enabled,
-        const char* file)    
+    DslReturnType Services::TrackerPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TRACKER(m_components, name);
-            
-            DSL_TRACKER_PTR pTrackerBintr = 
-                std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            if (!pTrackerBintr->SetKittiOutputEnabled(enabled, file))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Invalid Kitti file path " << file << "for Tracker '" << name << "'");
-                return DSL_RESULT_TRACKER_SET_FAILED;
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tracker '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
+
+            // call on the Handler to remove itself from the Tracker
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
+                return DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name << "' threw an exception setting Kitti output enabled");
+            LOG_ERROR("Tracker '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::TeeDemuxerNew(const char* name)
@@ -3107,24 +4665,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Demuxer Tee name '" << name << "' is not unique");
-            return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Demuxer Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
+            
+            LOG_INFO("New Demuxer Tee '" << name << "' created successfully");
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Demuxer Tee '" << name << "' threw exception on create");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        LOG_INFO("New Demuxer Tee '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TeeSplitterNew(const char* name)
@@ -3132,24 +4691,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
-            return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new SplitterBintr(name));
+            
+            LOG_INFO("New Splitter Tee '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Splitter Tee '" << name << "' threw exception on create");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        LOG_INFO("New Splitter Tee '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::TeeBranchAdd(const char* tee, 
@@ -3185,7 +4745,9 @@ namespace DSL
                     "' failed to add branch '" << branch << "'");
                 return DSL_RESULT_TEE_BRANCH_ADD_FAILED;
             }
-
+            LOG_INFO("Branch '" << branch 
+                << "' was added to Tee '" << tee << "' successfully");
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3193,9 +4755,6 @@ namespace DSL
                 << "' threw an exception removing branch '" << branch << "'");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        LOG_INFO("Branch '" << branch 
-            << "' was added to Tee '" << tee << "' successfully");
-        return DSL_RESULT_SUCCESS;
     }    
     
     DslReturnType Services::TeeBranchRemove(const char* tee, 
@@ -3230,6 +4789,7 @@ namespace DSL
                     "' failed to remove branch '" << branch << "'");
                 return DSL_RESULT_TEE_BRANCH_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3237,7 +4797,6 @@ namespace DSL
                 << "' threw an exception removing branch '" << branch << "'");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TeeBranchRemoveAll(const char* tee)
@@ -3252,7 +4811,10 @@ namespace DSL
 
             DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
+                
+            // TODO WHY?
 //            m_components[tee]->RemoveAll();
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3260,7 +4822,6 @@ namespace DSL
                 << "' threw an exception removing all branches");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TeeBranchCountGet(const char* tee, uint* count)
@@ -3277,6 +4838,8 @@ namespace DSL
                 std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
 
             *count = pTeeBintr->GetNumChildren();
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -3284,11 +4847,9 @@ namespace DSL
                 << "' threw an exception getting branch count");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TeeBatchMetaHandlerAdd(const char* name, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TeePphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3297,26 +4858,24 @@ namespace DSL
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
-
-            if (!pTeeBintr->AddBatchMetaHandler(DSL_PAD_SINK, handler, userData))
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Tee '" << name << "' failed to add Batch Meta Handler");
-                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+                LOG_ERROR("Tracker '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_TEE_HANDLER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tee '" << name << "' threw an exception adding Batch Meta Handler");
-            return DSL_RESULT_TILER_THREW_EXCEPTION;
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
-
-    DslReturnType Services::TeeBatchMetaHandlerRemove(const char* name, 
-        dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::TeePphRemove(const char* name, const char* handler) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3326,22 +4885,21 @@ namespace DSL
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
-
-            if (!pTeeBintr->RemoveBatchMetaHandler(DSL_PAD_SINK, handler))
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Tee '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
                 return DSL_RESULT_TEE_HANDLER_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tee '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Tee '" << name << "' threw an exception removing Pad Probe Handler");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::TilerNew(const char* name, uint width, uint height)
@@ -3349,25 +4907,26 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Tiler name '" << name << "' is not unique");
-            return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Tiler name '" << name << "' is not unique");
+                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new TilerBintr(
                 name, width, height));
+                
+            LOG_INFO("New Tiler '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Tiler'" << name << "' threw exception on create");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        LOG_INFO("New Tiler '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TilerDimensionsGet(const char* name, uint* width, uint* height)
@@ -3385,13 +4944,14 @@ namespace DSL
 
             // TODO verify args before calling
             tilerBintr->GetDimensions(width, height);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tiler '" << name << "' threw an exception getting dimensions");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TilerDimensionsSet(const char* name, uint width, uint height)
@@ -3414,13 +4974,13 @@ namespace DSL
                 LOG_ERROR("Tiler '" << name << "' failed to settin dimensions");
                 return DSL_RESULT_TILER_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tiler '" << name << "' threw an exception setting dimensions");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TilerTilesGet(const char* name, uint* cols, uint* rows)
@@ -3438,13 +4998,14 @@ namespace DSL
 
             // TODO verify args before calling
             tilerBintr->GetTiles(cols, rows);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tiler '" << name << "' threw an exception getting Tiles");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::TilerTilesSet(const char* name, uint cols, uint rows)
@@ -3466,26 +5027,59 @@ namespace DSL
                 LOG_ERROR("Tiler '" << name << "' failed to set Tiles");
                 return DSL_RESULT_TILER_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::TilerSourceShowGet(const char* name, 
+        const char** source, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (pad > DSL_PAD_SRC)
+
+        try
         {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
-            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR tilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            int sourceId(-1);
+            tilerBintr->GetShowSource(&sourceId, timeout);
+            
+            if (sourceId == -1)
+            {
+                *source = NULL;
+                return DSL_RESULT_SUCCESS;
+            }
+            if (m_sourceNames.find(sourceId) == m_sourceNames.end())
+            {
+                *source = NULL;
+                LOG_ERROR("Tiler '" << name << "' failed to get Source name from Id");
+                return DSL_RESULT_SOURCE_NAME_NOT_FOUND;
+            }
+            *source = m_sourceNames[sourceId].c_str();
+            return DSL_RESULT_SUCCESS;
         }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception setting Tiles");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowSet(const char* name, 
+        const char* source, uint timeout, bool hasPrecedence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
@@ -3494,261 +5088,186 @@ namespace DSL
             DSL_TILER_PTR pTilerBintr = 
                 std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
 
-            if (!pTilerBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (!pTilerBintr->IsLinked())
             {
-                LOG_ERROR("Tiler '" << name << "' failed to add Batch Meta Handler");
-                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+                LOG_ERROR("Tiler '" << name << "' must be in a linked state to show a specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
             }
+
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
+                    
+            if (!pTilerBintr->SetShowSource(pSourceBintr->GetId(), timeout, hasPrecedence))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to show specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing a specific source");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::TilerBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+    DslReturnType Services::TilerSourceShowSet(const char* name, 
+        uint sourceId, uint timeout, bool hasPrecedence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->IsLinked())
+            {
+                LOG_ERROR("Tiler '" << name << "' must be in a linked state to show a specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+
+            // called by automation - so set hasPrecedence to false always
+            if (!pTilerBintr->SetShowSource(sourceId, timeout, hasPrecedence))
+            {
+                // Don't log error as this can happen with the ODE actions frequently
+                LOG_DEBUG("Tiler '" << name << "' failed to show specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing a specific source");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerSourceShowAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            pTilerBintr->ShowAllSources();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing all sources");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TilerPphAdd(const char* name, const char* handler, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Tiler '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_TILER_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler << "' added to Tiler '" << name << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::TilerPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
-            return DSL_RESULT_TILER_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_TILER_PTR pTilerBintr = 
-                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
-
-            if (!pTilerBintr->RemoveBatchMetaHandler(pad, handler))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Tiler '" << name << "' has no matching Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for Tiler '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the Tiler
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tiler '" << name << "'");
                 return DSL_RESULT_TILER_HANDLER_REMOVE_FAILED;
             }
+            LOG_INFO("Pad Probe Handler '" << handler << "' removed from Tiler '" << name << "' successfully");
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Tiler '" << name << "' threw an exception removing ODE Handle");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
-    }
-   
-    DslReturnType Services::OdeHandlerNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("ODE Handler name '" << name << "' is not unique");
-            return DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE;
-        }
-        try
-        {   
-            m_components[name] = std::shared_ptr<Bintr>(new OdeHandlerBintr(name));
-        }
-        catch(...)
-        {
-            LOG_ERROR("New ODE Handler '" << name << "' threw exception on create");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-        LOG_INFO("New OdeHandler '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
-   DslReturnType Services::OdeHandlerEnabledGet(const char* handler, boolean* enabled)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-
-        try
-        {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            *enabled = pOdeHandlerBintr->GetEnabled();
-        }
-        catch(...)
-        {
-            LOG_ERROR("OdeHandler '" << handler
-                << "' threw exception getting the Enabled state");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-
-        return DSL_RESULT_SUCCESS;
     }
 
-   DslReturnType Services::OdeHandlerEnabledSet(const char* handler, boolean enabled)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-
-        try
-        {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            if (!pOdeHandlerBintr->SetEnabled(enabled))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to set enabled state");
-                return DSL_RESULT_ODE_HANDLER_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler
-                << "' threw exception setting the Enabled state");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-   DslReturnType Services::OdeHandlerTriggerAdd(const char* handler, const char* trigger)
-   {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
-
-        try
-        {
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, handler, OdeHandlerBintr);
-
-            // Can't add Events if they're In use by another OdeHandler
-            if (m_odeTriggers[trigger]->IsInUse())
-            {
-                LOG_ERROR("Unable to add ODE Trigger '" << trigger 
-                    << "' as it is currently in use");
-                return DSL_RESULT_ODE_TRIGGER_IN_USE;
-            }
-
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            if (!pOdeHandlerBintr->AddChild(m_odeTriggers[trigger]))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to add ODE Trigger '" << trigger << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler
-                << "' threw exception adding ODE Trigger '" << trigger << "'");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-        LOG_INFO("ODE Trigger '" << trigger 
-            << "' was added to ODE Handler '" << handler << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-
-    DslReturnType Services::OdeHandlerTriggerRemove(const char* handler, const char* trigger)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-        RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
-
-        try
-        {
-            if (!m_odeTriggers[trigger]->IsParent(m_components[handler]))
-            {
-                LOG_ERROR("ODE Trigger '" << trigger << 
-                    "' is not in use by ODE Handler '" << handler << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE;
-            }
-            
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-                
-            if (!pOdeHandlerBintr->RemoveChild(m_odeTriggers[trigger]))
-            {
-                LOG_ERROR("ODE Handler '" << handler
-                    << "' failed to remove ODE Trigger '" << trigger << "'");
-                return DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing ODE Trigger");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-        LOG_INFO("ODE Trigger '" << trigger 
-            << "' was removed from OdeHandler '" << handler << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::OdeHandlerTriggerRemoveAll(const char* handler)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, handler);
-
-        try
-        {
-            DSL_ODE_HANDLER_PTR pOdeHandlerBintr = 
-                std::dynamic_pointer_cast<OdeHandlerBintr>(m_components[handler]);
-
-            pOdeHandlerBintr->RemoveAllChildren();
-        }
-        catch(...)
-        {
-            LOG_ERROR("ODE Handler '" << handler 
-                << "' threw an exception removing All ODE Triggers");
-            return DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION;
-        }
-        LOG_INFO("All ODE Triggers removed from ODE Handler '" << handler << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
     DslReturnType Services::OfvNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("OFV name '" << name << "' is not unique");
-            return DSL_RESULT_OFV_NAME_NOT_UNIQUE;
-        }
         try
         {   
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("OFV name '" << name << "' is not unique");
+                return DSL_RESULT_OFV_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new OfvBintr(name));
+
+            LOG_INFO("New OFV '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New OFV '" << name << "' threw exception on create");
             return DSL_RESULT_OFV_THREW_EXCEPTION;
         }
-        LOG_INFO("New OFV '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OsdNew(const char* name, boolean isClockEnabled)
@@ -3756,25 +5275,26 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("OSD name '" << name << "' is not unique");
-            return DSL_RESULT_OSD_NAME_NOT_UNIQUE;
-        }
         try
         {   
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("OSD name '" << name << "' is not unique");
+                return DSL_RESULT_OSD_NAME_NOT_UNIQUE;
+            }
             m_components[name] = std::shared_ptr<Bintr>(new OsdBintr(
                 name, isClockEnabled));
+                    
+            LOG_INFO("New OSD '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New OSD '" << name << "' threw exception on create");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        LOG_INFO("New OSD '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OsdClockEnabledGet(const char* name, boolean* enabled)
@@ -3791,13 +5311,14 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             osdBintr->GetClockEnabled(enabled);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception getting clock enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockEnabledSet(const char* name, boolean enabled)
@@ -3826,13 +5347,13 @@ namespace DSL
                 LOG_ERROR("OSD '" << name << "' failed to set Clock enabled");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception setting Clock enabled");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
@@ -3849,13 +5370,14 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             osdBintr->GetClockOffsets(offsetX, offsetY);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception getting clock offsets");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockOffsetsSet(const char* name, uint offsetX, uint offsetY)
@@ -3884,13 +5406,13 @@ namespace DSL
                 LOG_ERROR("OSD '" << name << "' failed to set Clock offsets");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockFontGet(const char* name, const char** font, uint* size)
@@ -3907,13 +5429,14 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             osdBintr->GetClockFont(font, size);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception getting clock font");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockFontSet(const char* name, const char* font, uint size)
@@ -3942,13 +5465,13 @@ namespace DSL
                 LOG_ERROR("OSD '" << name << "' failed to set Clock font");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockColorGet(const char* name, double* red, double* green, double* blue, double* alpha)
@@ -3965,13 +5488,14 @@ namespace DSL
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
             osdBintr->GetClockColor(red, green, blue, alpha);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception getting clock font");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::OsdClockColorSet(const char* name, double red, double green, double blue, double alpha)
@@ -4000,130 +5524,78 @@ namespace DSL
                 LOG_ERROR("OSD '" << name << "' failed to set Clock RGB colors");
                 return DSL_RESULT_OSD_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::OsdCropSettingsGet(const char* name, uint* left, uint* top, uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-
-            DSL_OSD_PTR osdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            osdBintr->GetCropSettings(left, top, width, height);
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception getting crop settings");
-            return DSL_RESULT_OSD_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::OsdCropSettingsSet(const char* name, uint left, uint top, uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
-
-            DSL_OSD_PTR osdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            // TODO verify args before calling
-            if (!osdBintr->SetCropSettings(left, top, width, height))
-            {
-                LOG_ERROR("OSD '" << name << "' failed to set crop settings");
-                return DSL_RESULT_OSD_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception setting crop settings");
-            return DSL_RESULT_OSD_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::OsdBatchMetaHandlerAdd(const char* name, uint pad, 
-        dsl_batch_meta_handler_cb handler, void* userData)
+    DslReturnType Services::OsdPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
-            return DSL_RESULT_OSD_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_OSD_PTR pOsdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            if (!pOsdBintr->AddBatchMetaHandler(pad, handler, userData))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("OSD '" << name << "' already has a Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Osd as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("OSD '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_OSD_HANDLER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception adding Batch Meta Handler");
+            LOG_ERROR("OSD '" << name << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
-
-    DslReturnType Services::OsdBatchMetaHandlerRemove(const char* name, 
-        uint pad, dsl_batch_meta_handler_cb handler)
+   
+    DslReturnType Services::OsdPphRemove(const char* name, const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
-        if (pad > DSL_PAD_SRC)
-        {
-            LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
-            return DSL_RESULT_OSD_PAD_TYPE_INVALID;
-        }
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_OSD_PTR pOsdBintr = 
-                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
-
-            if (!pOsdBintr->RemoveBatchMetaHandler(pad, handler))
+            if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("OSD '" << name << "' has no Batch Meta Handler");
+                LOG_ERROR("Invalid Pad type = " << pad << " for OSD '" << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the Osd
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of OSD '" << name << "'");
                 return DSL_RESULT_OSD_HANDLER_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Batch Meta Handle");
+            LOG_ERROR("Osd '" << name << "' threw an exception removing ODE Handle");
             return DSL_RESULT_OSD_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
    
     DslReturnType Services::SinkFakeNew(const char* name)
@@ -4131,51 +5603,53 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_FAKE_SINK_NEW(name);
+
+            LOG_INFO("New Fake Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New Fake Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
-    
+
     DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_OVERLAY_SINK_NEW(
                 name, overlay_id, display_id, depth, offsetX, offsetY, width, height);
+
+            LOG_INFO("New Overlay Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New Overlay Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SinkWindowNew(const char* name, 
@@ -4184,24 +5658,25 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
             m_components[name] = DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height);
+
+            LOG_INFO("New Window Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New Window Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
@@ -4210,37 +5685,86 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
-        if (codec > DSL_CODEC_MPEG4)
-        {   
-            LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
-            return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-        }
-        if (container > DSL_CONTAINER_MKV)
-        {   
-            LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
-            return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_MPEG4)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
+            }
             m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval);
+            LOG_INFO("New File Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New File Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::SinkFileVideoFormatsGet(const char* name, uint* codec, uint* container)
+    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
+        uint bitrate, uint interval, dsl_record_client_listner_cb clientListener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            struct stat info;
+
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            // ensure outdir exists
+            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Sink '" << name << "'");
+                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+            }
+
+            if (codec > DSL_CODEC_MPEG4)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for Record Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            if (container > DSL_CONTAINER_MKV)
+            {   
+                LOG_ERROR("Invalid Container value = " << container << " for Record Sink '" << name << "'");
+                return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
+            }
+
+            m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
+                codec, container, bitrate, interval, (NvDsSRCallbackFunc)clientListener);
+            
+            LOG_INFO("New Record Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Record Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordSessionStart(const char* name, 
+        uint* session, uint start, uint duration, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4248,22 +5772,232 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
 
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
 
-            fileSinkBintr->GetVideoFormats(codec, container);
+            if (!recordSinkBintr->StartSession(session, start, duration, clientData))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to Start Session");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordSessionStop(const char* name, uint session)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            if (!recordSinkBintr->StopSession(session))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to Stop Session");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink'" << name << "' threw an exception setting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordCacheSizeGet(const char* name, uint* cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *cacheSize = recordSinkBintr->GetCacheSize();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting cache size");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordCacheSizeSet(const char* name, uint cacheSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!recordSinkBintr->SetCacheSize(cacheSize))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to set cache size");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting s");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkRecordDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            recordSinkBintr->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!recordSinkBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordIsOnGet(const char* name, boolean* isOn)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            *isOn = recordSinkBintr->IsOn();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting is-recording-on flag");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordResetDoneGet(const char* name, boolean* resetDone)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            *resetDone = recordSinkBintr->ResetDone();
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name << "' threw an exception getting reset done flag");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkEncodeVideoFormatsGet(const char* name, uint* codec, uint* container)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            encodeSinkBintr->GetVideoFormats(codec, container);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("File Sink '" << name << "' threw an exception getting Video formats");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkFileEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
+    DslReturnType Services::SinkEncodeSettingsGet(const char* name, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4271,22 +6005,23 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            fileSinkBintr->GetEncoderSettings(bitrate, interval);
+            encodeSinkBintr->GetEncoderSettings(bitrate, interval);
+            
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkFileEncoderSettingsSet(const char* name, uint bitrate, uint interval)
+    DslReturnType Services::SinkEncodeSettingsSet(const char* name, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4294,30 +6029,30 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
-            if (m_components[name]->IsInUse())
+            if (m_components[name]->IsLinked())
             {
                 LOG_ERROR("Unable to set Encoder settings for File Sink '" << name 
-                    << "' as it's currently in use");
+                    << "' as it's currently linked");
                 return DSL_RESULT_SINK_IS_IN_USE;
             }
 
-            DSL_FILE_SINK_PTR fileSinkBintr = 
-                std::dynamic_pointer_cast<FileSinkBintr>(m_components[name]);
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            if (!fileSinkBintr->SetEncoderSettings(bitrate, interval))
+            if (!encodeSinkBintr->SetEncoderSettings(bitrate, interval))
             {
-                LOG_ERROR("File Sink '" << name << "' failed to set Encoder settings");
+                LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
@@ -4326,50 +6061,53 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
-        if (codec > DSL_CODEC_H265)
-        {   
-            LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
-            return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-        }
         try
         {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
             m_components[name] = DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval);
+
+            LOG_INFO("New RTSP Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("New RTSP Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        LOG_INFO("New RTSP Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort, uint* codec)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
         try
         {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
 
             rtspSinkBintr->GetServerSettings(udpPort, rtspPort, codec);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SinkRtspEncoderSettingsGet(const char* name, uint* bitrate, uint* interval)
@@ -4386,13 +6124,14 @@ namespace DSL
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
 
             rtspSinkBintr->GetEncoderSettings(bitrate, interval);
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::SinkRtspEncoderSettingsSet(const char* name, uint bitrate, uint interval)
@@ -4420,312 +6159,122 @@ namespace DSL
                 LOG_ERROR("RTSP Sink '" << name << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("RTSP Sink '" << name << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::SinkImageNew(const char* name, const char* outdir)
+    DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        struct stat info;
-
-        // ensure component name uniqueness 
-        if (m_components.find(name) != m_components.end())
-        {   
-            LOG_ERROR("Sink name '" << name << "' is not unique");
-            return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-        }
-        // ensure outdir exists
-        if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
-        {
-            LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
-            return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
-        }
-        try
-        {
-            m_components[name] = DSL_IMAGE_SINK_NEW(name, outdir);
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Image Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        LOG_INFO("New Image Sink '" << name << "' created successfully");
-
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::SinkImageOutdirGet(const char* name, const char** outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *outdir = sinkBintr->GetOutdir();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir get");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageOutdirSet(const char* name, const char* outdir)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            // ensure outdir exists
-            struct stat info;
-            if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            // call on the Handler to add itself to the Tiler as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], DSL_PAD_SINK))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Image Sink '" << name << "'");
-                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+                LOG_ERROR("SINK '" << name << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_SINK_HANDLER_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::SinkPphRemove(const char* name, const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+            RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], DSL_PAD_SINK))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler << "' is not a child of Tracker '" << name << "'");
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkSyncSettingsGet(const char* name,  boolean* sync, boolean* async)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            bool bSync(false), bAsync(false);
+            pSinkBintr->GetSyncSettings(&bSync, &bAsync);
+            *sync = bSync;
+            *async = bAsync;
             
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name << "' threw an exception getting  Sync/Async settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
 
-            if (!sinkBintr->SetOutdir(outdir))
+    DslReturnType Services::SinkSyncSettingsSet(const char* name,  boolean sync, boolean async)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetSyncSettings(sync, async))
             {
-                LOG_ERROR("Failed to set outdir '" << outdir << "' for Image Sink '" << name << "'");
-                return DSL_RESULT_SINK_SET_FAILED;
+                LOG_ERROR("Sink '" << name << "' failed to set sync/async attributes");
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Image Sink '" << name << "' threw exception on Outdir set");
+            LOG_ERROR("Sink '" << name << "' threw an exception setting sync/async settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-
-        return DSL_RESULT_SUCCESS;
-    }
-
-
-    DslReturnType Services::SinkImageFrameCaptureIntervalGet(const char* name, uint* interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *interval = sinkBintr->GetFrameCaptureInterval();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture interval");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureIntervalSet(const char* name, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetFrameCaptureInterval(interval))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture interval");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture interval");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *enabled = sinkBintr->GetFrameCaptureEnabled();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Frame Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageFrameCaptureEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetFrameCaptureEnabled(enabled))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Frame Capture enabled");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Frame Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            *enabled = sinkBintr->GetObjectCaptureEnabled();
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception getting Object Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->SetObjectCaptureEnabled(enabled))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to set Object Capture enabled");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception setting Object Capture enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-
-    DslReturnType Services::SinkImageObjectCaptureClassAdd(const char* name, 
-        uint classId, boolean fullFrame, uint captureLimit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->AddObjectCaptureClass(classId, fullFrame, captureLimit))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to add Object Capture Class");
-                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("Image Sink '" << name << "' threw an exception adding Object Capture Class");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
-    }
-    
-    DslReturnType Services::SinkImageObjectCaptureClassRemove(const char* name, uint classId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSinkBintr);
-
-            DSL_IMAGE_SINK_PTR sinkBintr = 
-                std::dynamic_pointer_cast<ImageSinkBintr>(m_components[name]);
-
-            if (!sinkBintr->RemoveObjectCaptureClass(classId))
-            {
-                LOG_ERROR("Image Sink '" << name << "' failed to remove Object Capture Class");
-                return DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED;
-            }
-        }
-        catch(...)
-        {
-            LOG_ERROR("OSD '" << name << "' threw an exception removing Redaction Class");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-        return DSL_RESULT_SUCCESS;
     }
 
     uint Services::SinkNumInUseGet()
@@ -5748,7 +7297,7 @@ namespace DSL
         LOG_INFO("State = " << state << " = " << cstrState);
         return m_stateValueToString[state].c_str();
     }
-
+    
     void Services::InitToStringMaps()
     {
         LOG_FUNC();
@@ -5764,6 +7313,8 @@ namespace DSL
         m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE] = L"Invalid DSL_STATE Value";
 
         m_returnValueToString[DSL_RESULT_SUCCESS] = L"DSL_RESULT_SUCCESS";
+        m_returnValueToString[DSL_RESULT_INVALID_INPUT_PARAM] = L"DSL_RESULT_INVALID_INPUT_PARAM";
+        
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_NOT_FOUND] = L"DSL_RESULT_COMPONENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_COMPONENT_NAME_BAD_FORMAT] = L"DSL_RESULT_COMPONENT_NAME_BAD_FORMAT";
@@ -5784,6 +7335,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_CODEC_PARSER_INVALID] = L"DSL_RESULT_SOURCE_CODEC_PARSER_INVALID";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_TAP_ADD_FAILED] = L"DSL_RESULT_SOURCE_TAP_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_TAP_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_TAP_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
@@ -5802,18 +7355,16 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TRACKER_PAD_TYPE_INVALID] = L"DSL_RESULT_TRACKER_PAD_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER] = L"DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_HANDLER_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT] = L"DSL_RESULT_ODE_HANDLER_NAME_BAD_FORMAT";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_HANDLER_THREW_EXCEPTION";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_IS_IN_USE] = L"DSL_RESULT_ODE_HANDLER_IS_IN_USE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_SET_FAILED] = L"DSL_RESULT_ODE_HANDLER_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE] = L"DSL_RESULT_ODE_HANDLER_TRIGGER_NOT_IN_USE";
-        m_returnValueToString[DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER] = L"DSL_RESULT_ODE_HANDLER_COMPONENT_IS_NOT_ODE_HANDLER";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_NOT_UNIQUE] = L"DSL_RESULT_PPH_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_NOT_FOUND] = L"DSL_RESULT_PPH_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_PPH_NAME_BAD_FORMAT] = L"DSL_RESULT_PPH_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_PPH_THREW_EXCEPTION] = L"DSL_RESULT_PPH_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_PPH_IS_IN_USE] = L"DSL_RESULT_PPH_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_PPH_SET_FAILED] = L"DSL_RESULT_PPH_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED] = L"DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED] = L"DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE] = L"DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE";
+        m_returnValueToString[DSL_RESULT_PPH_METER_INVALID_INTERVAL] = L"DSL_RESULT_PPH_METER_INVALID_INTERVAL";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION] = L"DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION";
@@ -5827,6 +7378,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";
@@ -5850,8 +7402,11 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_CODEC_VALUE_INVALID] = L"DSL_RESULT_SINK_CODEC_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SINK_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_OSD_NAME_BAD_FORMAT] = L"DSL_RESULT_OSD_NAME_BAD_FORMAT";
@@ -5882,6 +7437,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TEE_NAME_BAD_FORMAT] = L"DSL_RESULT_TEE_NAME_BAD_FORMAT";
         m_returnValueToString[DSL_RESULT_TEE_THREW_EXCEPTION] = L"DSL_RESULT_TEE_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD] = L"DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD";
+        m_returnValueToString[DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH] = L"DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_ADD_FAILED] = L"DSL_RESULT_TEE_BRANCH_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_BRANCH_REMOVE_FAILED] = L"DSL_RESULT_TEE_BRANCH_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_TEE_HANDLER_ADD_FAILED] = L"DSL_RESULT_TEE_HANDLER_ADD_FAILED";
@@ -5926,7 +7482,34 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_STOP] = L"DSL_RESULT_PIPELINE_FAILED_TO_STOP";
         m_returnValueToString[DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACHED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED] = L"DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACHED";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_IN_USE] = L"DSL_RESULT_DISPLAY_TYPE_IN_USE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND] = L"DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE] = L"DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_UNIQUE] = L"DSL_RESULT_TAP_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_FOUND] = L"DSL_RESULT_TAP_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_TAP_THREW_EXCEPTION] = L"DSL_RESULT_TAP_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_TAP_IN_USE] = L"DSL_RESULT_TAP_IN_USE";
+        m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
 
-} // namespace 
+} // namespace
+ 

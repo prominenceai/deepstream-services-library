@@ -39,17 +39,15 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_framerate get](#dsl_source_framerate_get)
 * [dsl_source_is_live](#dsl_source_is_live)
 * [dsl_source_pause](#dsl_source_pause)
-* [dsl_source_play](#dsl_source_play)
-* [dsl_source_osd_add](#dsl_source_osd_add)
-* [dsl_source_osd_remove](#dsl_source_osd_remove)
-* [dsl_source_sink_add](#dsl_source_sink_add)
-* [dsl_source_sink_remove](#dsl_source_sink_remove)
+* [dsl_source_resume](#dsl_source_resume)
 * [dsl_source_decode_uri_get](#dsl_source_decode_uri_get)
 * [dsl_source_decode_uri_set](#dsl_source_decode_uri_set)
 * [dsl_source_decode_drop_farme_interval_get](#dsl_source_decode_drop_farme_interval_get)
 * [dsl_source_decode_drop_farme_interval_set](#dsl_source_decode_drop_farme_interval_set)
 * [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](#dsl_source_decode_dewarper_remove)
+* [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
+* [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
 * [dsl_source_num_in_use_max_get](#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set)
@@ -57,23 +55,22 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
 ```C++
-#define DSL_RESULT_SUCCESS                                          0x00000000
-
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
-#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020004
-#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020005
-#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020006
-#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020007
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020008
-#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x00020009
-#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000A
-#define DSL_RESULT_SOURCE_SINK_ADD_FAILED                           0x0002000B
-#define DSL_RESULT_SOURCE_SINK_REMOVE_FAILED                        0x0002000C
-#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000D
-#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000E
-#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x0002000F
+#define DSL_RESULT_SOURCE_NOT_FOUND                                 0x00020004
+#define DSL_RESULT_SOURCE_THREW_EXCEPTION                           0x00020005
+#define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
+#define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
+#define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
+#define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
+#define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
+#define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
+#define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 ```
 
 ## Cuda Decode Memory Types
@@ -172,7 +169,7 @@ retval = dsl_source_uri_new('dsl_source_uri_new', '../../test/streams/sample_108
 ### *dsl_source_rtsp_new*
 ```C++
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
 ```
 
 This service creates a new, uniquely named URI Source component
@@ -184,6 +181,7 @@ This service creates a new, uniquely named URI Source component
 * `protocol` - [in] one of the [RTP Protocols](#rtp-protocols) define above
 * `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined above
 * `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
+* `latency` [in] source latency setting in milliseconds
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
@@ -263,28 +261,6 @@ retval, is_live = dsl_source_is_live('my-uri-source')
 
 <br>
 
-### *dsl_source_play*
-```C++
-DslReturnType dsl_source_play(const wchar_t* source);
-```
-Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
-state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
-
-<br>
-
-**Parameters**
-* `source` - unique name of the Source to play
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_play('my-source')
-```
-
-<br>
-
 ### *dsl_source_pause*
 ```C++
 DslReturnType dsl_source_pause(const wchar_t* source);
@@ -304,104 +280,28 @@ retval = dsl_source_play('my-source')
 
 <br>
 
-### *dsl_source_state_is*
+### *dsl_source_resume*
 ```C++
-DslReturnType dsl_source_state_is(const wchar_t* source, uint* state);
+DslReturnType dsl_source_resume(const wchar_t* source);
 ```
-Returns a Source component's current state as defined by the [DSL_STATE](#DSL_STATE) values.
+Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
+state to `DSL_STATE_PLAYING`. An individual Source, once playing, can be paused by calling [dsl_source_pause](#dsl_source_pause).
+
+<br>
 
 **Parameters**
-* `source` - [in] unique name of the Source to query
-* `state` - [out] one of the [DSL_STATE](#DSL_STATE) values.
+* `source` - unique name of the Source to play
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, state = dsl_source_state_is('my-source')
+retval = dsl_source_resume('my-source')
 ```
 
 <br>
 
-### *dsl_source_osd_add*
-```C++
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* osd);
-```
-This service adds a previously constructed [On-Screen Display (OSD)](/docs/osd-sink.md) component to a named source. The relationshie of Source to child OSD is one to one. The add service will fail if either of the Source or OSD objects is currently `in-use`. When using a Demuxer, each source can have at most one OSD. Adding Sources with an OSD to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `osd` - [in] unique name of the OSD to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_osd_add('my-uri-source', 'my-osd')
-```
-
-<br>
-
-### *dsl_source_osd_remove*
-```C++
-DslReturnType dsl_source_osd_remove(const wchar_t* source);
-```
-This service removes a one and only [OSD](/docs/api-osd.md) component from a named source component. The remove service will fail if the Source (and therefore the OSD) component is currently `in-use`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_osd_remove('my-uri-source')
-```
-
-<br>
-
-### *dsl_source_sink_add*
-```C++
-DslReturnType dsl_source_sink_add(const wchar_t* source, const wchar_t* sink);
-```
-This service adds a previously constructed [Sink](/docs/api-sink.md) component to a named source. The relationshie of Source to child Sink is one to many. The add service will fail if either of the Source or Sink objects is currently `in-use`. When using a Demuxer, each source must have at least one Sink. Adding Sources with Sinks to a Pipeline with a Tiler (vs. Demuxer) will fail to Play.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `sink` - [in] unique name of the Sink to add
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_sink_add('my-uri-source', 'my-window-sink')
-```
-
-<br>
-
-### *dsl_source_sink_remove*
-```C++
-DslReturnType dsl_source_sink_remove(const wchar_t* source, const wchar_t* sink);
-```
-This service removes a named [Sink](/docs/api-sink.md) component from a named source component. The remove service will fail if the Source (and therefore the Sink) object is currently `in-use`.
-
-**Parameters**
-* `source` - [in] unique name of the Source to update
-* `sink` - [in] unique name of the Sink to remove
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_sink_remove('my-uri-source', 'my-window-sink')
-```
-
-<br>
 
 ### *dsl_source_decode_uri_get*
 ```C++
@@ -520,6 +420,46 @@ retval = dsl_source_uri_dewarper_remove('my-uri-source')
 
 <br>
 
+### *dsl_source_rtsp_tap_add*
+```C++
+DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
+```
+This service adds a named Tap to a named RTSP source
+**Parameters**
+ * `name` [in] name of the source object to update
+ * `tap` [in] name of the Tap to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_tap_add('my-rtsp-source', 'my-record-tap')
+```
+
+<br>
+
+### *dsl_source_rtsp_tap_remove*
+```C++
+DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
+```
+
+Removes a Tap component from an RTSP Source component. The call will fail if the RTSP source is without a Tap component.  
+
+**Parameters**
+ * `name` [in] name of the source object to update
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_tap_remove('my-rtsp-source')
+```
+
+<br>
+
+
 ### *dsl_source_num_in_use_get*
 ```C++
 uint dsl_source_num_in_use_get();
@@ -571,17 +511,19 @@ retval = dsl_source_num_in_use_max_set(24)
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * **Source**
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [Tiler](/docs/api-tiler.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
 

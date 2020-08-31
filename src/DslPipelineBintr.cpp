@@ -26,8 +26,6 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslPipelineBintr.h"
 
-#include <gst/gst.h>
-
 namespace DSL
 {
     PipelineBintr::PipelineBintr(const char* name)

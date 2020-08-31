@@ -35,9 +35,13 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
-            
+
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -47,7 +51,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -93,7 +97,7 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
@@ -102,13 +106,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add Nvidia's example batch meta handler to the Source Pad of the KTL Tracker
-        retval = dsl_osd_batch_meta_handler_add('on-screen-display', DSL_PAD_SINK, osd_sink_pad_buffer_probe, None)
+        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
+        
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

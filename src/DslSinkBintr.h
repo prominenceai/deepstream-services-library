@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -30,6 +29,9 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
+#include "DslSourceMeter.h"
+
+#include <gst-nvdssr.h>
 
 namespace DSL
 {
@@ -40,10 +42,10 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
-    #define DSL_IMAGE_SINK_PTR std::shared_ptr<ImageSinkBintr>
-    #define DSL_IMAGE_SINK_NEW(name, outdir) \
-        std::shared_ptr<ImageSinkBintr>( \
-        new ImageSinkBintr(name, outdir))
+    #define DSL_METER_SINK_PTR std::shared_ptr<MeterSinkBintr>
+    #define DSL_METER_SINK_NEW(name, interval, clientListener, clientData) \
+        std::shared_ptr<MeterSinkBintr>( \
+        new MeterSinkBintr(name, interval, clientListener, clientData))
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
     #define DSL_OVERLAY_SINK_NEW(name, overlayId, displayId, depth, offsetX, offsetY, width, height) \
@@ -54,23 +56,30 @@ namespace DSL
     #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
         std::shared_ptr<WindowSinkBintr>( \
         new WindowSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
     #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitRate, interval) \
         std::shared_ptr<FileSinkBintr>( \
         new FileSinkBintr(name, filepath, codec, container, bitRate, interval))
         
+    #define DSL_RECORD_SINK_PTR std::shared_ptr<RecordSinkBintr>
+    #define DSL_RECORD_SINK_NEW(name, outdir, codec, container, bitRate, interval, clientListener) \
+        std::shared_ptr<RecordSinkBintr>( \
+        new RecordSinkBintr(name, outdir, codec, container, bitRate, interval, clientListener))
+        
     #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitRate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitRate, interval))
         
-
+        
     class SinkBintr : public Bintr
     {
     public: 
     
-        SinkBintr(const char* name);
+        SinkBintr(const char* name, bool sync, bool async);
 
         ~SinkBintr();
   
@@ -80,24 +89,43 @@ namespace DSL
         
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
-        bool IsWindowCapable();
-        
         bool LinkToSource(DSL_NODETR_PTR pTee);
 
         bool UnlinkFromSource();
         
+        /**
+         * @brief returns the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         */
+        void GetSyncSettings(bool* sync, bool* async);
+        
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         */
+        virtual bool SetSyncSettings(bool sync, bool async) = 0;
+        
     protected:
+
+        /**
+         * @brief Sink element's current synchronous attribute setting.
+         */
+        boolean m_sync;
+
+        /**
+         * @brief Sink element's current asynchronous attribute setting.
+         */
+        boolean m_async;
 
         /**
          * @brief Queue element as sink for all Sink Bintrs.
          */
         DSL_ELEMENT_PTR m_pQueue;
-
-        /**
-         * @brief true if the Sink is capable of Windowed Video rendering, false otherwise
-         */
-        bool m_isWindowCapable;
     };
+
+    //-------------------------------------------------------------------------
 
     class FakeSinkBintr : public SinkBintr
     {
@@ -119,10 +147,16 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
     private:
 
-        boolean m_sync;
-        boolean m_async;
         boolean m_qos;
         
         /**
@@ -130,6 +164,8 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pFakeSink;
     };
+
+    //-------------------------------------------------------------------------
 
     class OverlaySinkBintr : public SinkBintr
     {
@@ -187,11 +223,17 @@ namespace DSL
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
+
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
         
     private:
 
-        boolean m_sync;
-        boolean m_async;
         boolean m_qos;
         uint m_overlayId;
         uint m_displayId;
@@ -204,6 +246,8 @@ namespace DSL
 
         DSL_ELEMENT_PTR m_pOverlay;
     };
+
+    //-------------------------------------------------------------------------
 
     class WindowSinkBintr : public SinkBintr
     {
@@ -257,10 +301,16 @@ namespace DSL
          */ 
         bool SetDimensions(uint width, uint hieght);
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
     private:
 
-        boolean m_sync;
-        boolean m_async;
         boolean m_qos;
         uint m_offsetX;
         uint m_offsetY;
@@ -271,26 +321,14 @@ namespace DSL
         DSL_ELEMENT_PTR m_pEglGles;
     };
 
-    class FileSinkBintr : public SinkBintr
+    //-------------------------------------------------------------------------
+
+    class EncodeSinkBintr : public SinkBintr
     {
     public: 
     
-        FileSinkBintr(const char* name, const char* filepath, 
+        EncodeSinkBintr(const char* name, 
             uint codec, uint container, uint bitRate, uint interval);
-
-        ~FileSinkBintr();
-  
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
 
         /**
          * @brief Gets the current codec and media container formats for FileSinkBintr
@@ -319,24 +357,194 @@ namespace DSL
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
-
-    private:
+        
+    protected:
 
         uint m_codec;
         uint m_container;
         uint m_bitRate;
         uint m_interval;
-        boolean m_sync;
-        boolean m_async;
  
-        DSL_ELEMENT_PTR m_pFileSink;
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pCapsFilter;
         DSL_ELEMENT_PTR m_pEncoder;
         DSL_ELEMENT_PTR m_pParser;
         DSL_ELEMENT_PTR m_pContainer;       
     };
+
+    //-------------------------------------------------------------------------
+
+    class FileSinkBintr : public EncodeSinkBintr
+    {
+    public: 
     
+        FileSinkBintr(const char* name, const char* filepath, 
+            uint codec, uint container, uint bitRate, uint interval);
+
+        ~FileSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+        
+    private:
+
+        DSL_ELEMENT_PTR m_pFileSink;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class RecordSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RecordSinkBintr(const char* name, const char* outdir, uint codec, uint container, 
+            uint bitRate, uint interval, NvDsSRCallbackFunc clientListener);
+
+        ~RecordSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current outdir in use by this Bintr
+         * @return relative or absolute pathspec as provided on construction or set call.
+         */
+        const char* GetOutdir();
+
+        /**
+         * @brief Sets the outdir to use by this Bintr
+         * @param[in] relative or absolute pathspec to the existing directory to use
+         * @return true on successfull set, false otherwise
+         */
+        bool SetOutdir(const char* outdir);
+
+        /**
+         * @brief Gets the current cache size used by this RecordSinkBint
+         * @return size of the video cache in seconds 
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+         */
+        uint GetCacheSize();
+        
+        /**
+         * @brief Sets the current cache size used by this RecordSinkBint
+         * @param[in] videoCacheSize size of video cache in seconds 
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+         */
+        bool SetCacheSize(uint videoCacheSize);
+        
+        /**
+         * @brief Gets the current width and height settings for this RecordSinkBintr
+         * Zero values indicates no transcode
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the current width and height settings for this RecordSinkBintr
+         * Zero values indicates no transcode
+         * The caller is required to provide valid width and height values
+         * @param[in] width the width value to set in pixels
+         * @param[in] height the height value to set in pixels
+         * @return false if the RecordSink is currently linked. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
+        
+        /**
+         * @brief Start recording to file
+         * @param[out] session unique Id for the new recording session, 
+         * @param[in] start seconds before the current time. Should be less than video cache size.
+         * @param[in] duration of recording in seconds from start
+         * @param[in] clientData returned on call to client callback
+         * @return true on succesful start, false otherwise
+         */
+        bool StartSession(uint* session, uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief Stop recording to file
+         * @param[in] session unique sission Id of the recording session to stop
+         * @return true on succesful start, false otherwise
+         */
+        bool StopSession(uint session);
+
+        /**
+         * @brief Queries the Record Bin context to check the Key Frame
+         * @return true if the Bin has the Key Frame ???
+         */
+        bool GotKeyFrame();
+        
+        /**
+         * @brief Queires the Record Bin context to check if the recording is on
+         * @return true if recording is currently on
+         */
+        bool IsOn();
+        
+        /**
+         * @brief Queries the Record Bin context to check if reset has been
+         * @return true if reset has been done.
+         */
+        bool ResetDone();
+
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
+    private:
+
+        /**
+         * @brief absolute or relative path 
+         */
+        std::string m_outdir;
+
+        /**
+         * @brief SR context, once created, must be passed to 
+         */
+        NvDsSRContext* m_pContext;
+        
+        /**
+         * @brief SR context initialization parameters, provided by client
+         */
+        NvDsSRInitParams m_initParams;
+
+        /**
+         * @brief Node to wrap NVIDIA's Record Bin
+         */
+        DSL_NODETR_PTR m_pRecordBin;
+    };
+
+    //-------------------------------------------------------------------------
+
     class RtspSinkBintr : public SinkBintr
     {
     public: 
@@ -381,6 +589,15 @@ namespace DSL
          */ 
         bool SetEncoderSettings(uint bitRate, uint interval);
 
+        /**
+         * @brief sets the current sync and async settings for the SinkBintr
+         * @param[in] sync current sync setting, true if set, false otherwise.
+         * @param[in] async current async setting, true if set, false otherwise.
+         * @return true is successful, false otherwise. 
+         */
+        bool SetSyncSettings(bool sync, bool async);
+
+
     private:
 
         std::string m_host;
@@ -389,8 +606,6 @@ namespace DSL
         uint m_codec;
         uint m_bitRate;
         uint m_interval;
-        boolean m_sync;
-        boolean m_async;
         
         GstRTSPServer* m_pServer;
         uint m_pServerSrcId;
@@ -404,165 +619,6 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPayloader;  
     };
     
-    class CaptureClass
-    {
-    public:
-    
-        CaptureClass(uint id, bool fullFrame, uint captureLimit)
-            : m_id(id)
-            , m_fullFrame(fullFrame)
-            , m_captureCount(0)
-            , m_captureLimit(captureLimit)
-            {}
-        
-        uint m_id;
-        bool m_fullFrame;
-        uint m_captureCount;
-        uint m_captureLimit;
-    };
-    
-    class ImageSinkBintr : public FakeSinkBintr
-    {
-    public:
-    
-        ImageSinkBintr(const char* name, const char* outdir);
-        
-        ~ImageSinkBintr();
-        
-        /**
-         * @brief Gets the current outdir in use by this Bintr
-         * @return relative or absolute pathspec as provided on construction or set call.
-         */
-        const char* GetOutdir();
-
-        /**
-         * @brief Sets the outdir to use by this Bintr
-         * @param[in] relative or absolute pathspec to the existing directory to use
-         * @return true on successfull set, false otherwise
-         */
-        bool SetOutdir(const char* outdir);
-        
-        /**
-         * @brief Gets the current interval at which to capture frames
-         * @return 0 for every frame, 1 for every other, etc.
-         */
-        uint GetFrameCaptureInterval();
-
-        /**
-         * @brief Sets the current Frame Capture interval
-         * @param frameCaptureInterval new interval value to use
-         * @return ture if successful, false otherwise
-         */
-        bool SetFrameCaptureInterval(uint frameCaptureInterval);
-        
-        /**
-         * @brief Gets the current state of the Frame Capture enabled flag
-         * @return true if enabled, false otherwise.
-         */
-        bool GetFrameCaptureEnabled();
-        
-        /**
-         * @brief Sets the current state of the Frame Capture enabled flag
-         * @param enabled set true to enable, false to disable
-         * @return true if successful, false otherwise
-         */
-        bool SetFrameCaptureEnabled(bool enabled);
-
-        /**
-         * @brief Frame callback handler for the Capture service
-         * @param pBuffer input buffer of frame data
-         * @return true to stay registered, false for self removal
-         */
-        bool HandleFrameCapture(GstBuffer* pBuffer);
-        
-        /**
-         * @brief Gets the current state of the Object Capture enabled flag
-         * @return true if enabled, false otherwise.
-         */
-        bool GetObjectCaptureEnabled();
-
-        /**
-         * @brief Sets the state of the Object Captue enabled flag
-         * @param enabled set to true to enable Object Capture, false to disable
-         * @return true if successful, false otherwise
-         */
-        bool SetObjectCaptureEnabled(bool enabled);
-        
-        /**
-         * @brief Adds an Object class to capture
-         * @param classId unique class id of the objects to capture
-         * @param fullFrame set to true to capture full-frame, false to capture image within bbox
-         * @param captureLimit max number of objects to capture for a specific class id, 0 = no limit
-         * @return true if successful, false otherwise
-         */
-        bool AddObjectCaptureClass(uint classId, boolean fullFrame, uint captureLimit);
-        
-        /**
-         * @brief Removes a previously added capture class
-         * @param classId unique classId to remove
-         * @return true if successful, false otherwise
-         */
-        bool RemoveObjectCaptureClass(uint classId);
-        
-        /**
-         * @brief Frame callback handler for the Capture service
-         * @param pBuffer input buffer of frame data
-         * @return true to stay registered, false for self removal
-         */
-        bool HandleObjectCapture(GstBuffer* pBuffer);
-        
-    private:
-    
-        /**
-         * @brief Directory to save image output to
-         */
-        std::string m_outdir;
-
-        /**
-         * @brief The current frame count for the ongoing frame capture
-         */
-        uint m_frameCaptureframeCount;
-
-        /**
-         * @brief The frame interval to tranform and save. 0 = capture every frame
-         */
-        uint m_frameCaptureInterval;
-
-        /**
-         * @brief True if frame buffer should be transformed and output.
-         */ 
-        bool m_isFrameCaptureEnabled;
-
-        /**
-         * @brief The current frame count for the ongoing frame capture
-         */
-        uint m_objectCaptureFrameCount;
-
-        /**
-         * @brief The frame interval to tranform objects and save. 0 = capture every frame
-         */
-        uint m_objectCaptureInterval;
-
-        /**
-         * @brief True if objects in frame buffer should be transformed and output.
-         */ 
-        bool m_isObjectCaptureEnabled;
-
-        /**
-         * @brief map of class Id's to capture and whether to capture full frame or bbox rectangle
-         */
-        std::map <uint, std::shared_ptr<CaptureClass>> m_captureClasses;
-        
-        /**
-         * @brief mutex for updating Image Capture params
-         */
-        GMutex m_captureMutex;
-
-    };
-    
-    static boolean FrameCaptureHandler(void* batch_meta, void* user_data);
-    
-    static boolean ObjectCaptureHandler(void* batch_meta, void* user_data);
 }
 #endif // _DSL_SINK_BINTR_H
     

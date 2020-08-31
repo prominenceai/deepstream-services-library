@@ -24,8 +24,8 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 * [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
 * [dsl_tee_branch_count_get](#dsl_tee_branch_count_get).
-* [dsl_tee_batch_meta_handler_add](#dsl_tee_batch_meta_handler_add).
-* [dsl_tee_batch_meta_handler_remove](#dsl_tee_batch_meta_handler_remove).
+* [dsl_tee_pph_add](#dsl_tee_pph_add).
+* [dsl_tee_pph_remove](#dsl_tee_pph_remove).
 
 ## Return Values
 The following return codes are used by the Tiler API
@@ -206,72 +206,63 @@ retval = dsl_tee_branch_remove_all('my-branch')
 ```
 
 
-### *dsl_tee_batch_meta_handler_add*
+### *dsl_tee_pph_add*
 ```C++
-DslReturnType dsl_tee_batch_meta_handler_add(const wchar_t* name,
-    dsl_batch_meta_handler_cb handler, void* user_data);
+DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 ```
-This function adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to the `sink-pad`, on the single input to the Tee (Demuxer or Splitter). Once added, the handler will be called to handle batch-meta data for each frame buffer. A Tee can have more than one `sink-pad` (only) batch meta handler, and each handler can be added to more than one Tee.
+This services adds a named Pad-Probe-Handler to the sink pad of the Named Tee component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Tee Component.
 
 **Parameters**
-* `name` - [in] unique name of the Demuxer or Splitter to update.
-* `handler` - [in] callback function to process batch meta data
-* `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
+ * `name` [in] unique name of the Tee to update
+ * `handler` [in] uninque name of the PPH to add
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-##
-# Create a new Demuxer and add the batch-meta handler function.
-#
-retval = dsl_tee_demuxer_new('my-demuxer')
-retval += dsl_tee_batch_meta_handler_add('my-demuxer', my_batch_meta_handler_cb, None)
-
-if retval != DSL_RESULT_SUCCESS:
-    # Demuxer setup failed
-```    
-
-<br>
-
-### *dsl_tee_batch_meta_handler_remove*
-```C++
-DslReturnType dsl_tee_batch_meta_handler_remove(const wchar_t* name, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
-```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the Tee with [dsl_tee_batch_meta_handler_add](#dsl_tee_batch_meta_handler_add). A Tee can have more than one Sink batch meta handler, and each handler can be added to more than one Tiler. Each callback added to a single pad must be unique.
-
-**Parameters**
-* `name` - [in] unique name of the Demuxer of Splitter to update.
-* `handler` - [in] callback function to remove
-
-**Returns**
-*`DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-    retval = dsl_tee_batch_meta_handler_remove('my-demuxer', my_batch_meta_handler_cb)
+retval = dsl_tee_pph_add('my-demuxer-tee', 'my-meter-pph')
 ```
 
 <br>
 
+### *dsl_tee_pph_remove*
+```C++
+DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
+```
+This services removes a named Pad-Probe-Handler from a named Tee. The services will fail if the 
+
+**Parameters**
+ * `name` [in] unique name of the Tee to update.
+ * `handler` [in] unique name of the Pad probe handler to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_pph_remove('my-demuxer-tee', 'my-meter-pph')
+```
+
+<br>
 ---
 
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * **Demuxer and Splitter**
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

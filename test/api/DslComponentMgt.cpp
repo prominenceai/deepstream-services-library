@@ -99,3 +99,27 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
     }
 }    
     
+SCENARIO( "The Component API checks for NULL input parameters", "[component-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring componentName  = L"test-component";
+        uint gpuId(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_component_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_gpuid_get(NULL, &gpuId) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_gpuid_set(NULL, gpuId) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+

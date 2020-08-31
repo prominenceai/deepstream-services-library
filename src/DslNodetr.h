@@ -230,10 +230,7 @@ namespace DSL
             return GST_ELEMENT(m_pParentGstObj);
         }
         
-        /**
-         * @brief backdoor for testing purposes only, untill GST test doubles can be used.
-         */
-        void __setGstObject__(GstObject* pGstObj)
+        void SetGstObject(GstObject* pGstObj)
         {
             LOG_FUNC();
             
@@ -245,7 +242,7 @@ namespace DSL
         /**
          * @brief Parent of this Nodetr if one exists. NULL otherwise
          */
-        GstObject * m_pParentGstObj;
+        GstObject* m_pParentGstObj;
         
         
     protected:
@@ -254,7 +251,7 @@ namespace DSL
         /**
          * @brief Gst object wrapped by the Nodetr
          */
-        GstObject * m_pGstObj;
+        GstObject* m_pGstObj;
 
         /**
          * @brief defines the relationship between a Source Nodetr
@@ -304,7 +301,7 @@ namespace DSL
             }
             else
             {
-            // Remove all child references 
+                // Remove all child references 
                 RemoveAllChildren();
 
                 LOG_DEBUG("Setting GstElement for GstNodetr '" << GetName() << "' to GST_STATE_NULL");

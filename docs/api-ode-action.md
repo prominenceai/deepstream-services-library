@@ -1,8 +1,11 @@
 # ODE Action Services API
-Object Detection Event (ODE) Actions implement a custom `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. The relationship of ODE Trigger to ODE Actions is many-tomany. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
+Object Detection Event (ODE) Actions implement a type specific `handle-ode-occurrence` function that gets invoked by an ODE Trigger on ODE Occurrence. The relationship of ODE Trigger to ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
+Several ODE Actions can be created to update the Frame and object Metadata to be used by the [On-Screen-Display](/docs/api-osd.md), the next component in the Pipeline (if added).  by See [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new), [dsl_ode_action_hide_new](#dsl_ode_action_hide_new), [dsl_ode_action_overlay_frame_new](#dsl_ode_action_overlay_frame_new), and [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
+
+#### Actions on Record Components
+There are two actions for starting a record session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
 
 #### Actions on Actions
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
@@ -14,17 +17,17 @@ Actions performed with the ODE occurrence data include  [dsl_ode_action_callback
 Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new). 
 
 #### Actions on Triggers
-Action can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
+Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
 
 #### Actions on Pipelines
-There are a number of Actions that dynamically the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new), and 
+There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new), and 
 
 #### ODE Action Construction and Destruction
 ODE Actions are created by calling one of type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name and using a duplicate name will fail with a result of `DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE`. Once created, all Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete),
 [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by a Trigger will fail with a result of `DSL_RESULT_ODE_ACTION_IN_USE`
 
 #### Adding/Removing Actions
-ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-traigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-traigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-traigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-traigger#dsl_ode_trigger_action_remove_all).
+ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger#dsl_ode_trigger_action_remove_all).
 
 
 ## ODE Action API
@@ -33,14 +36,15 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new)
 * [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
 * [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
-* [dsl_ode_action_callback_new](#dsl_ode_action_callback_new)
-* [dsl_ode_action_capture_area_new](#dsl_ode_action_capture_area_new)
+* [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
 * [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
 * [dsl_ode_action_display_new](#dsl_ode_action_display_new)
-* [dsl_ode_action_fill_area_new](#dsl_ode_action_fill_area_new)
+* [dsl_ode_action_display_meta_add_new](#dsl_ode_action_display_meta_add_new)
+* [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new)
+* [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
@@ -49,8 +53,11 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
 * [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new)
 * [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new)
+* [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new)
 * [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new)
 * [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new)
+* [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
+* [dsl_ode_action_tiler_source_show_new](#dsl_ode_action_tiler_source_show_new)
 * [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new)
 * [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new)
 * [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
@@ -187,12 +194,12 @@ retval = dsl_ode_action_area_remove_new('my-remove-area-action', 'my-trigger', '
 
 <br>
 
-### *dsl_ode_action_callback_new*
+### *dsl_ode_action_custom_new*
 ```C++
-DslReturnType dsl_ode_action_callback_new(const wchar_t* name, 
+DslReturnType dsl_ode_action_custom_new(const wchar_t* name, 
     dsl_ode_occurrence_handler_cb client_handler, void* client_data);
 ```
-The constructor creates a uniquely named **Callback** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence. 
+The constructor creates a uniquely named **Custom** ODE Action. When invoked, this Action will call the Client provided callback function with the Frame Meta and Object Meta that triggered the ODE occurrence. 
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
@@ -209,38 +216,18 @@ retval = dsl_ode_action_callback_new('my-callback-action', my_ode_callback, my_d
 
 <br>
 
-### *dsl_ode_action_capture_area_new*
-```C++
-DslReturnType dsl_ode_action_capture_area_new(const wchar_t* name, const wchar_t* area, const wchar_t* outdir);
-```
-The constructor creates a uniquely named **Area Capture** ODE Action. When invoked, this Action will capture the rectangular area defined by and ODE Area object.  to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid. 
-
-Note: The Area is not required to owned by a Trigger.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `area` - [in] unique name for the ODE Area to capture.
-* `outdir` - [in] absolute or relative path to the output directory to save the image file.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_capture_area_new('my-area-capture-action', 'my-area', './images/areas')
-```
-
-<br>
-
 ### *dsl_ode_action_capture_frame_new*
 ```C++
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
 ```
-The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
+The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labes. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
+
+The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `outdir` - [in] absolute or relative path to the output directory to save the image file to
+* `annotate` - [in] if true, the action will annotate the image with object bounding boxes and labels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -293,58 +280,48 @@ The constructor creates a uniquely named **Display Data** ODE Action. When invok
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_display_new('my-display-data-action', 10, 30, True)
+retval = dsl_ode_action_display_new('my-display-event-data-action', 10, 30, True)
 ```
 
 <br>
 
-### *dsl_ode_action_dump_new*
+### *dsl_ode_action_display_meta_add_new*
 ```C++
-DslReturnType dsl_ode_action_dump_new(const wchar_t* name, const wchar_t* pipeline, const wchar_t* filename);
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
 ```
-The constructor creates a uniquely named **Dump Pipeline Graph** ODE Action. When invoked, this Action dumps a Pipeline's graph to dot file. The GStreamer Pipeline creates a topology graph on each change of state to ready, playing and paused if the debug environment variable GST_DEBUG_DUMP_DOT_DIR is set.
-
-GStreamer will add the .dot suffix and write the file to the directory specified by the environment variable. 
+The constructor creates a uniquely named **Add Display Meta** ODE Action. When invoked, this Action will add the Display Type to the Frame Meta that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `pipeline` - [in] unique name of the Pipeline to dump.
-* `filename` - [in] name to give the .dot file on dump.
+* `display_type` - [in] unique name of the Display Type to add
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_dump_new('my-pipeline-dump-action', 'my-pipeline', 'my-dumpfile')
+retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action', 'my-circle')
 ```
 
 <br>
 
-### *dsl_ode_action_fill_area_new*
+### *dsl_ode_action_display_meta_add_many_new*
 ```C++
-DslReturnType dsl_ode_action_fill_area_new(const wchar_t* name, const wchar_t* area,
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t** display_types);
 ```
-The constructor creates a uniquely named **Fill Area** ODE Action. When invoked, this Action will fill the named Area's rectangle background color.
-
-Note: Adding a Fill ODE Action to an Absence or Summation Trigger is meaningless and will result in a Non-Action.
+The constructor creates a uniquely named **Add Many Display Meta** ODE Action. When invoked, this Action will add many Display Types to the Frame Meta that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `area` - [in] unique name for the ODE Area to fill.
-* `red` - [in] red value for the RGBA background color [0.0..1.0]
-* `green` - [in] green value for the RGBA background color [0.0..1.0]
-* `blue` - [in] blue value for the RGBA background color [0.0..1.0]
-* `alpha` - [in] alpha value for the RGBA background color [0.0..1.0]
-
+* `display_types` - [in] NULL terminated list of unique names of the Display Types to add
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_fill_area_new('my-fill-area-action', 'my-area', 1.0, 0.0, 0.0, 0.0, 0.25)
+retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action', 
+    ['my-circle', 'my-rectangle', 'my-source-name', None])
 ```
 
 <br>
@@ -358,44 +335,58 @@ The constructor creates a uniquely named **Fill Frame** ODE Action. When invoked
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `red` - [in] red value for the RGBA background color [0.0..1.0]
-* `green` - [in] green value for the RGBA background color [0.0..1.0]
-* `blue` - [in] blue value for the RGBA background color [0.0..1.0]
-* `alpha` - [in] alpha value for the RGBA background color [0.0..1.0]
+* `color` - [in] RGBA Display Type color to fill the frame with.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_fill_frame_new('my-fill-area-action', 1.0, 0.0, 0.0, 0.0, 0.25)
+retval = dsl_ode_action_fill_frame_new('my-fill-frame-action', 'opaque-red')
 ```
 
 <br>
 
 ### *dsl_ode_action_fill_object_new*
 ```C++
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
 ```
 The constructor creates a uniquely named **Fill Object** ODE Action. When invoked, this Action will fill the Object's rectangle background color by updated the Metadata that triggered the ODE occurrence.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `red` - [in] red value for the RGBA background color [0.0..1.0]
-* `green` - [in] green value for the RGBA background color [0.0..1.0]
-* `blue` - [in] blue value for the RGBA background color [0.0..1.0]
-* `alpha` - [in] alpha value for the RGBA background color [0.0..1.0]
+* `color` - [in] RGBA Color Display Type to fill the object backround with.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_fill_object_new('my-fill-area-action', 1.0, 0.0, 0.0, 0.0, 0.25)
+retval = dsl_ode_action_fill_object_new('my-fill-object-action', 'opaque-red')
 ```
 
 <br>
+
+### *dsl_ode_action_fill_surroundings_new*
+```C++
+DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color);
+```
+The constructor creates a uniquely named **Fill Surroundings** ODE Action. When invoked, this Action will file the Object's surroundings, meaning everything but the objects rectangle by updating the frame metadata on ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `color` - [in] RGBA Color Display Type to fill the object backround with.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-grey')
+```
+
+<br>
+
 
 ### *dsl_ode_action_handler_disable_new*
 ```C++
@@ -461,7 +452,9 @@ $ export GST_DEBUG=1,DSL:4
 retval = dsl_ode_action_log_new('my-gstreamer-log-action')
 ```
 
+
 <br>
+
 
 ### *dsl_ode_action_pause_new*
 ```C++
@@ -570,6 +563,30 @@ retval = dsl_ode_action_sink_remove_new('my-remove-sink-action', 'my-pipeline', 
 
 <br>
 
+### *dsl_ode_action_sink_record_start_new*
+```C++
+DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
+```
+The constructor creates a uniquely named **Start Record Sink** ODE Action. When invoked, this Action will a Record session for the named Sink. The action will produce an error log message if the Sink does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `sink` - [in] the unique name of the Record Sink to start.
+* `start` - [in] start time before current time in seconds, should be less the Record Sink's cache size.
+* `duration` - [in] duration of the recording in seconds
+* `client_data` - [in] opaque pointer to client data
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_sink_record_start_new('my-start-record-sink-action', 'my-record-sink', 15, 360, Null)
+```
+
+<br>
+
 ### *dsl_ode_action_source_add_new*
 ```C++
 DslReturnType dsl_ode_action_source_add_new(const wchar_t* name, 
@@ -613,6 +630,54 @@ retval = dsl_ode_action_source_remove_new('my-remove-source-action', 'my-pipelin
 
 <br>
 
+### *dsl_ode_action_tap_record_start_new*
+```C++
+DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
+    const wchar_t* record_sink, uint start, uint duration, void* client_data);
+```
+The constructor creates a uniquely named **Start Record Tap** ODE Action. When invoked, this Action will a Record session for the named Tap. The action will produce an error log message if the Tap does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `record_tap` - [in] the unique name of the Record Sink to start.
+* `start` - [in] start time before current time in seconds, should be less the Record Sink's cache size.
+* `duration` - [in] duration of the recording in seconds
+* `client_data` - [in] opaque pointer to client data
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_tap_record_start_new('my-start-record-tap-action', 'my-record-tap', 15, 360, Null)
+```
+
+<br>
+
+### *dsl_ode_action_tiler_source_show_new*
+```C++
+DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
+    const wchar_t* tiler, uint timeout, boolean has_precedence);
+```
+The constructor creates a uniquely named **Tiler Show Source** ODE Action. When invoked, this Action will call the named [Tiler](/docs/api-tiler.md) to show just the source (see [dsl_tiler_source_show_set](/docs/api-tiler.md#dsl_tiler_source_show_set) identified in the Frame's metadata that Triggered the ODE occurrence. The action will produce an error log message if the Tiler does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `tiler` - [in] the unique name of the Tiler to call on.
+* `timeout` - [in] time to show the single source before switching back to "all sources" i.e. the tiled view. 
+* `has_precedence` - [in] if true, will inform the Tiler that this source has precedence, even if another single source is being shown.
+
+Note: setting `has_precedence` to true when using the action with a Trigger that has the `source_id` filter set to `DSL_ODE_ANY_SOURCE` (default) can lead to excessive switching. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_tiler_source_show_new('my-show-source-action', 'my-tiler', 20, False)
+```
+
+<br>
 
 ### *dsl_ode_action_trigger_disable_new*
 ```C++
@@ -675,6 +740,7 @@ retval = dsl_ode_action_trigger_reset_new('my-enable-trigger-action', 'my-trigge
 <br>
 
 ---
+
 ## Destructors
 ### *dsl_ode_action_delete*
 ```C++
@@ -729,6 +795,7 @@ retval = dsl_ode_action_delete_all()
 ```
 
 <br>
+---
 
 ## Methods
 ### *dsl_ode_action_enabled_get*
@@ -785,7 +852,6 @@ This service returns the size of the ODE Action container, i.e. the number of Ac
 size = dsl_ode_action_list_size()
 ```
 
-
 <br>
 ---
 
@@ -793,16 +859,18 @@ size = dsl_ode_action_list_size()
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
 * [Tiler](/docs/api-tiler.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* **ODE-Action**
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* **ODE Action**
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

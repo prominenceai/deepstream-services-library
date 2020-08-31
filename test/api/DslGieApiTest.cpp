@@ -183,152 +183,103 @@ SCENARIO( "A Primary GIE, once removed from a Pipeline, can be deleted", "[gie-a
     }
 }
 
-static boolean batch_meta_handler_cb1(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
 }
-static boolean batch_meta_handler_cb2(void* batch_meta, void* user_data)
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
 }
     
-SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Primary GIE", "[gie-api]" )
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE", "[gie-api]" )
 {
-    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    GIVEN( "A new Primary GIE and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-
+        std::wstring customPpmName(L"custom-ppm");
+    
         uint interval(1);
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Sink Pad Batch Meta Handler is added to the Primary GIE" ) 
+        WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
+        {
+            REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A Source Pad Batch Meta Handler can be added and removed froma a Primary GIE", "[gie-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary GIE", "[gie-api]" )
 {
-    GIVEN( "A new pPipeline with a new Primary GIE" ) 
+    GIVEN( "A new Primary GIE and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
         std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        std::wstring customPpmName(L"custom-ppm");
 
         uint interval(1);
 
         REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
             modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Source Pad Batch Meta Handler is added to the Primary GIE" ) 
+        WHEN( "A Source Pad Probe Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_GIE_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-    }
-}
-
-SCENARIO( "The same Sink Pad Meta Batch Handler can not be added to a Primary GIE twice", "[gie-api]" )
-{
-    GIVEN( "A new pPipeline with a new Primary GIE" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
-        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-
-        uint interval(1);
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Sink Pad Meta Batch Handler is added to the Primary GIE " ) 
+        WHEN( "A Source Pad Probe Handler is added to the Primary GIE" ) 
         {
-            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SINK, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gie_primary_pph_add(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_gie_primary_pph_remove(primaryGieName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A same Source Pad Meta Batch Handler can not be added to a Primary GIE twice", "[gie-api]" )
-{
-    GIVEN( "A new Pipeline with a new Primary GIE" ) 
-    {
-        std::wstring pipelineName(L"test-pipeline");
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
-        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-
-        uint interval(1);
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-            primaryGieName.c_str()) == DSL_RESULT_SUCCESS );
-
-        WHEN( "A Source Pad Meta Batch Handler is added to the Primary GIE " ) 
-        {
-            REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The same Sink Pad Meta Batch Handler can not be added again" ) 
-            {
-                REQUIRE( dsl_gie_primary_batch_meta_handler_add(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1, NULL)
-                    == DSL_RESULT_GIE_HANDLER_ADD_FAILED );
-                
-                REQUIRE( dsl_gie_primary_batch_meta_handler_remove(primaryGieName.c_str(), DSL_PAD_SRC, batch_meta_handler_cb1) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
 
 SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",  "[gie-api]" )
 {
@@ -376,32 +327,6 @@ SCENARIO( "A Primary GIE fails to Enable raw layer info output given a bad path"
             THEN( "The raw output will fail to enale" )
             {
                 REQUIRE( dsl_gie_raw_output_enabled_set(primaryGieName.c_str(), true, badPath.c_str()) == DSL_RESULT_GIE_OUTPUT_DIR_DOES_NOT_EXIST );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Primary GIE can Enable and Disable Kitti output",  "[gie-api]" )
-{
-    GIVEN( "A new Primary GIE in memory" ) 
-    {
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile = L"./test/configs/config_infer_primary_nano.txt";
-        std::wstring modelEngineFile = L"./test/models/Primary_Detector_Nano/resnet10.caffemodel";
-        uint interval(1);
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), interval) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "The Primary GIE's Kitti output is enabled" )
-        {
-            REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), true, L"./") == DSL_RESULT_SUCCESS );
-
-            THEN( "The Kitti output can then be disabled" )
-            {
-                REQUIRE( dsl_gie_primary_kitti_output_enabled_set(primaryGieName.c_str(), false, L"") == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -489,4 +414,47 @@ SCENARIO( "A Primary GIE can Get and Set its Interval",  "[gie-api]" )
     }
 }
 
+
+SCENARIO( "The GIE API checks for NULL input parameters", "[gie-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring gieName  = L"test-gie";
+        std::wstring infer_config_file  = L"config-file";
+        std::wstring model_engine_file  = L"model-engine-file";
+        uint interval(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_gie_primary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_new(gieName.c_str(), infer_config_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), NULL, gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), model_engine_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_add(NULL, NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_add(gieName.c_str(), NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_remove(NULL, NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_primary_pph_remove(gieName.c_str(), NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gie_infer_config_file_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_get(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_infer_config_file_set(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_get(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_model_engine_file_set(gieName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_interval_get(NULL, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_gie_interval_set(NULL, interval) == DSL_RESULT_INVALID_INPUT_PARAM );                
+
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 

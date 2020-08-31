@@ -5,16 +5,20 @@
   * [Streaming Sources](#streaming-sources)
   * [Primary and Secondary Inference Engines](#primary-and-secondary-inference-engines)
   * [Multi-Object Trackers](#multi-object-trackers)
-  * [Object Detection Event Handler](#object-detection-event-handler)
   * [On-Screen Display](#on-screen-display)
   * [Multi-Source Tiler](#multi-source-tiler)
-  * [Rendering and Streaming Sinks](#rendering-and-streaming-sinks)
-  * [Pipeline Tees and Branches](#tees-and-branches)
+  * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
+  * [Tees and Branches](#tees-and-branches)
+  * [Pad Probe Handlers](#pad-probe-handlers)
+    * [Pipeline Meter](#pipeline-meter-pad-probe-handler)
+    * [Object Detection Event Handler](#object-detection-event-pad-probe-handler)
+    * [Custom Handler](#custom-pad-probe-handler)
+* [Display Types](#display-types)
+* [Smart Recording](#smart-recording)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
-* [Batch Meta Handler Callback Functions](#batch-meta-handler-callback-functions)
 * [X11 Window Support](#x11-window-support)
 * [API Reference](#api-reference)
 
@@ -24,47 +28,48 @@
 For those new to DeepStream, however, GStreamer comes with a learning curve that can be steep or lengthy for some. 
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines. Modifications made: (1) based on the results of the real-time video analysis, and: (2) by the application user through external input. An example of each:
-1. Programmatically adding additional Source inputs or Sink outputs based on the occurrence of specific detected objects.
-2. Interactively resizing stream and window dimensions for viewing control.
+1. Automatically starting a pre-cached recording session based on the occurrence of specific objects.
+2. Interactively switching the view from one rendered Source stream to another on mouse click. 
 
 The general approach to using DSL is to:
-1. Create one or more uniquely named DeepStream [Pipelines](/docs/api-pipeline.md)
-2. Create several uniquely named [Components](/docs/api-reference-list.md) with desired attributes
-3. Define and add one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) (optional)
-4. Add the Components to the Pipeline(s)
-5. Play the Pipeline(s) and start/join the main execution loop.
+1. Create several uniquely named [Components](/docs/api-reference-list.md), each with a specific task to perform. 
+2. Define one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) and/or [Pad Probe Handlers](/docs/api-pph.md)(optional).
+4. Add the Components and Callback functions to a new Pipeline.
+5. Play the Pipeline and start/join the main execution loop.
 
 Using Python3, for example, the above can be written as:
 
-```Python
-# Import the DSL APIs
-from dsl import *
-
-# New uniquely named Pipeline. The name will be used to identify
-# the Pipeline for subsequent Pipeline service requests.
-retval = dsl_pipeline_new('my-pipeline')
-```
 Create a set of Components, each with a specific function and purpose. 
 ```Python
 # new Camera Sources - setting dimensions and frames-per-second
-retval += dsl_source_csi_new('my-source', 1280, 720, 30, 1)
+retval += dsl_source_csi_new('my-source', width=1280, height=720, fps_n=30, fps_d=1)
 
-# new Primary Inference Engine - path to model engine and config file, interval 0 = infer on every frame
-retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, 0)
+# create more Source Components as needed
+# ...
+
+# new Primary Inference Engine - path to model engine and config file, interval=0 - infer on every frame
+retval += dsl_gie_primary_new('my-pgie', path_to_engine_file, path_to_config_file, interval=0)
 
 # new Multi-Source Tiler with dimensions of width and height 
-retval += dsl_tiler_new('my-tiler', 1280, 720)
+retval += dsl_tiler_new('my-tiler', width=1280, height=720)
 
-# new On-Screen Display for inference visualization - bounding boxes and labels - clocks disabled (False)
-retval += dsl_osd_new('my-osd', False)
+# new On-Screen Display for inference visualization - bounding boxes and labels - with clock enabled
+retval += dsl_osd_new('my-osd', clock_enabled=True)
 
 # new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
-retval += dsl_sink_window_new('my-window-sink', 1280, 720)
+retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
 
 if retval != DSL_RESULT_SUCCESS:
     # one of the components failed to create, handle error
 ```
 
+Add the components to a new Pipeline.
+
+```Python
+# Using a Null terminated list - in any order
+retval = dsl_pipeline_new_component_add_many('my-pipeline', components=
+    ['my-source', 'my-pgie', 'my-tiler', 'my-osd', 'my-sink', None])
+```
 Add one or more Client Callback Functions
 
 ```Python
@@ -73,31 +78,31 @@ def xwindow_delete_event_handler(client_data):
     # Quit the main loop to shut down and release all resources
     dsl_main_loop_quit()
 
+# add the callback function to the pipeline
 retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
-```
-Add the components to the Pipeline.
-```Python
-# Using a Null terminated list - in any order
-retval = dsl_pipeline_component_add_many('my-pipeline', 
-    ['my-source', 'my-pgie', 'my-tiler', 'my-osd', 'my-sink', None])
 ```
 
 Transition the Pipeline to a state of Playing and start/join the main loop
 
 ```Python
- retval = dsl_pipeline_play('my-pipeline')
- if retval != DSL_RESULT_SUCCESS:
-  # Pipeline failed to play, handle error
-  dsl_main_loop_run()
+retval = dsl_pipeline_play('my-pipeline')
+if retval != DSL_RESULT_SUCCESS:
+    # Pipeline failed to play, handle error
+  
+ # join the main loop until stopped. 
+ dsl_main_loop_run()
+ 
+ # free up all resources
+ dsl_delete_all()
  ```
 
 ## Pipeline Components
-There are eight categories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the categories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipeline. 
+There are seven categories of Components that can be added to a Pipeline, automatically assembled in the order shown below. Many of the categories support multiple types and in the cases of Sources, Secondary Inference Engines, and Sinks, multiple types can be added to a single Pipeline. 
 
 ![DSL Components](/Images/dsl-components.png)
 
 ## Streaming Sources
-Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source, among other components, before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
+Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
 There are currently four types of Source components, two live connected Camera Sources:
 * Camera Serial Interface (CSI) Source
@@ -109,20 +114,21 @@ And two decode Sources that support both live and non-live streams.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The decode Source components support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
 
-A Pipeline's Stream-Muxer has settable output dimensions with a decoded and `batched` output stream that is ready to infer on.
+A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched output stream that is ready to infer on.
+
+A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Primary and Secondary Inference Engines
 NVIDIA's GStreamer Inference Engines (GIEs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Inference Engine (PGIE) -- with a specified set of classification labels to infer-with -- and multiple Secondary Inference Engines (SGIEs) that can Infer-on the output of either the Primary or other Secondary GIEs. Although optional, a Primary Inference Engine is required when adding a Multi-Object Tracker, Secondary Inference Engines, or On-Screen-Display to a Pipeline.
 
-After creation, GIEs can be updated to:
-* Use a new model-engine, config file and/or inference interval, and for Secondary GIEs the GIE to infer on.
-* To enable/disable output of bounding-box frame and label data to text file in KITTI format for [evaluating object detection](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark).
-* To enable/disable output of raw layer information to binary file.
+After creation, GIEs can be updated to: 
+* Use a new model-engine, config file and/or inference interval 
+* Update the Primary or Secondary GIE to infer on (SGIEs only).
 
 With Primary GIEs, applications can:
-* Add/remove `batch-meta-handler` callback functions [see below](#batch-meta-handler-callback-functions)
+* Add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
 * Enable/disable raw layer-info output to binary file, one file per layer, per frame.
 
 See the [Primary and Secondary GIE API](/docs/api-gie.md) reference section for more information.
@@ -132,88 +138,12 @@ There are two types of streaming Multi-Object Tracker Components.
 1. [Kanade–Lucas–Tomasi](https://en.wikipedia.org/wiki/Kanade%E2%80%93Lucas%E2%80%93Tomasi_feature_tracker) (KTL) Feature Tracker
 2. [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) (IOU) High-Frame-Rate Tracker. 
 
-Clients of Tracker components can add/remove `batch-meta-handler` callback functions. [see below](#batch-meta-handler-callback-functions)
+Clients of Tracker components can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
 
-Tracker components are optional and a Pipeline can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more information.
-
-## Object Detection Event Handler
-The Object Detection Event (ODE) Handler manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata, produced by the Primary and Secondary GIE's, looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
-
-![ODE Services](/Images/ode-services.png)
-
-The Handler is added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. 
-
-There are currently eight types of **ODE Triggers** supported:
-* **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
-* **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
-* **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
-* **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair at most.
-* **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
-* **Maximum** - triggers when the count of detected objects in a frame exceeds a specified maximum number. Once per-frame at most.
-* **Range** - triggers when the count of detected objects falls within a specified lower and upper range. Once per-frame at most.
-* **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence" 
-
-Triggers have optional, settable criteria and filters: 
-* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS`
-* **Source Id** - filters on a unique Source Id, with a default of `DSL_ODE_ANY_SOURCE`
-* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and maximum are met. 
-* **Confidence** - filters on an object's GIE confidence requiring a minimum value.
-* **Inference Done** - filtering on the Object's inference-done flag
-
-Minimum Frames as criteria, expressed as two numbers `n out d` frames, and other forms of detection hysteresis are being considered. 
-
-**ODE Actions** can act on Triggers, on Actions and on Areas allowing for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger, using an Action, can enable a one-time Absence Trigger for the same class, and the Absence Trigger, using an Action, can reset/re-enable the Occurrence Trigger.
-
-* **Actions on Metadata** - Fill-Object, Fill-Area, Fill-Frame, Redact, Capture-Object, Capture-Area, Capture-Frame, Hide Text/Boarders
-* **Actions on ODE Data** - Print, Log, Display, Callback, 
-* **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
-* **Actions on Triggers** - Disable/Enable/Reset Triggers
-* **Actions on Areas** - Add/Remove Areas
-* **Actions on Actions** - Disable/Enable Actions
-
-Planned new actions for upcoming releases include **Start/Stop Record**, **Serialize/Deserialize**, and **Message to cloud**
-
-**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria for object occurrence/absence.
-
-A simple example using python
-
-```python
-# example assumes that all return values are checked before proceeding
-
-# Create a new Print Action to print the ODE Frame/Object details to the console
-retval = dsl_ode_action_print_new('my-print-action')
-
-# Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
-retval = dsl_ode_action_capture_frame_new('my-capture-action', outdir='./')
-
-# Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
-# specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
-retval = dsl_ode_trigger_occurrence_new('my-occurrence-trigger', class_id=0, limit=1)
-retval = dsl_ode_trigger_action_add_many('my-occurrence-trigger', actions=['my-print-action', 'my-capture-action', None])
-
-# Create a new Area as criteria for occurrence and add to our Trigger. An Object must have
-# at least one pixel of overlap before occurrence will be triggered and the Actions invoked.
-retval = dsl_ode_area_new('my-area', left=245, top=0, width=20, height=1028, display=True)
-retval = dsl_ode_trigger_area_add('my-occurrence-trigger', 'my-area')
-
-# New ODE handler to add our Trigger to, and then add the handler to the Pipeline.
-retval = dsl_ode_handler_new('my-handler)
-retval = dsl_ode_handler_trigger_add('my-handler, 'my-occurrence-trigger')
-retval = ddsl_pipeline_component_add('my-pipeline', 'my-handler')
-```
-[Issue #259](https://github.com/canammex-tech/deepstream-services-library/issues/259) has been opened to track all open items related to ODE Services.
-
-See the below API Reference sections for more information
-* [ODE Handler API Refernce](/docs/api-ode-handler.md)
-* [ODE Trigger API Refernce](/docs/api-ode-trigger.md)
-* [ODE Action API Reference](/docs/api-ode-action.md)
-* [ODE Area API Reference](/docs/api-ode-area.md)
-
-There are several ODE Python examples provided [here](/examples/python)
-
+Tracker components are optional and a Pipeline, or [Branch](#tees-and-branches) can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
 
 ## Multi-Source Tiler
-To simplify the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching any Sink component downstream.
+To support the dynamic addition and removal of Sources and Sinks, all Source components connect to the Pipeline's internal Stream-Muxer, even when there is only one. The multiplexed stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
 
 Tiler components transform the multiplexed streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler, the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
@@ -221,37 +151,40 @@ Tiler components transform the multiplexed streams into a 2D grid array of tiles
 retval = dsl_pipeline_component_add_many('my-pipeline', 
     ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink`, `window-sink` None])
 ```
-Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated after creation.
+Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
-Clients of Tiler components can add/remove `batch-meta-handler` callback functions, [see below](#batch-meta-handler-callback-functions)
+Clients of Tiler components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object within.
 
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
 On-Screen Display (OSD) components highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. ODE Actions can be used to add/update Frame and Object metadata for the OSD to display. 
 
-OSDs are optional and a Pipeline can have at most one when using a Tiler or one-per-source when using a Demuxer. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
+OSDs are optional and a Pipeline (or Branch) can have at most one when using a Tiler or one-per-source when using a Demuxer. See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
-## Rendering and Streaming Sinks
-Sinks, as the end components in the Pipeline, are used to render the Streaming media, stream encoded data as a server or to a file or capture and save frame and object images to file. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
+Clients of On-Screen Display components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
+
+## Rendering and Encoding Sinks
+Sinks, as the end components in the Pipeline, are used to render the video stream for visual display or encode the streaming video to a file or network. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
+
+Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
 
 1. Overlay Render Sink
 2. X11/EGL Window Sink
-3. Media Container File Sink
-4. Image Capture Sink
-5. RTSP Server Sink
+3. File Sink
+4. Record Sink
+5. RTSP Sink
 6. Fake Sink
 
 Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
-File Sinks support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.
-
-Image sinks capture and transform full video frames and identified objects into jpeg images and writes them to file
+The File and Record encoder Sinks support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
 RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
 
 ```Python
-retval = dsl_sink_rtsp_new('my-rtsp-sink', 5400, 8554, DSL_CODEC_H265, 200000, 0)
+retval = dsl_sink_rtsp_new('my-rtsp-sink', 
+    host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
 ```
 would use
 ```
@@ -263,97 +196,89 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 <br>
 
 ## Tees and Branches
-There are two types of Tees that can be added to a Pipeline: Demuxers and Splitters.
-1. **Demuxer** are used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
-2. **Splitter** split the stream, batched or otherwise, into multiple duplicate streams. 
+There are two types of Tees that can be added to a Pipeline: Demuxer and Splitter.
+1. **Demuxer** - used to demultiplex the single batched output from the Stream-muxer back into separate data streams.  
+2. **Splitter** - used to split the stream, batched or otherwise, into multiple duplicate streams. 
 
-Branches connect to the downstream/output pads of the Tee, either as a single component, as in the case of a Sink or another Tee, or as multiple linked components, as in the case of **Branch 1** shown below. 
+Branches connect to the downstream/output pads of the Tee, either as a single component in the case of a Sink or another Tee, or as multiple linked components as in the case of **Branch 1** shown below. 
 
 Important Notes: 
 * Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
 * Branches ***can*** be added and removed from a Tee while a Pipeline is in a state of `Playing`, but the Tee must always have one. A [Fake Sink](/docs/api-sink.md) can be used as a Fake Branch when required.
 * Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
 
-The following example illustrates how a **Pipeline** is assembled with a **Splitter**, **Demuxer**, **Tiler**, and **Branch** components. 
+The following example illustrates how a **Pipeline** is assembled with a **Splitter**, **Demuxer**, and **Branch** components. 
 
 ![Tees and Branches](/Images/tees-and-branches.png)
 
 #### Building the Pipeline Example above, 
 
-The first step is to create the two RTMP Sources - and the two File Sinks that will be used to stream the original video to file.
+The first step is to create all components for **Branch 1** and assemble - Multi-Source Tiler, On-Screen Display and X11/EGL Window Sink.
 
-![Sources and File Sinks](/Images/sources-and-file-sinks.png)
+![Tees and Branches](/Images/tees-and-branches-branch-1.png)
 
 ```Python
-# NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
+# New Tiler, On-Screen Display, and Window Sink
+retval = dsl_tiler_new('tiler', width=1920, height=540)
+retval = dsl_osd_new('osd', clock_enabled=True)
+retval = dsl_sink_window_new('window-sink', x_offset=0, y_offset=0, width=1920, height=540)
 
-# Create two live RTSP Sources
-
-retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
-retval = dsl_source_rtsp_new('src-2', rtsp_uri_2, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
-
-# Create two File Sinks for Branch 2, one for each source
-
-retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
-retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+# New Branch component to assemble Branch-1
+retval = dsl_branch_new_components_add_many('branch-1', components=['tiler', 'osd', 'window-sink', None])
 ```
 
-Next, create all components for **Branch 1**
+Next, create the Overlay Sinks which become **Branch 3** and **Branch 4** when added to the **Demuxer Tee**, which in turn becomes **Branch 2** when added to the **Splitter Tee** in the next step.
+
+![Tees and Branches](/Images/tees-and-branches-branch-2-3-4.png)
 
 ```Python
+# New Overlay Sink components to display the non-annotated demuxed video.
+retval = dsl_sink_overlay_new('sink-overlay-1', overlay_id=0, display_id=0, depth=0,
+   x_offset=20, y_offset=20, width=240, height=135
+retval = dsl_sink_overlay_new('sink-overlay-2', overlay_id=0, display_id=0, depth=0,
+   x_offset=980, y_offset=20, width=240, height=135
 
-# Create a Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL Window Sink
-
-retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
-retval = dsl_tracker_ktl_new('tracker', 480, 270)
-retval = dsl_tiler_new('tiler', 1280, 720)
-retval = dsl_osd_new('osd', True)
-retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+# New Demuxer to to demux into separate streams, one per source.
+retval = dsl_tee_demuxer_new_branch_add_many('demuxer', branches=['sink-overlay-1', 'sink-overlay-2', None])
 ```
 
-**Branch 1**, with its multiple children, requires an explicit Branch component to manage and synchronize the child components when the Pipeline changes states. Create the branch and add the components as shown below.
+Next, create the **Splitter Tee** and add **Branch-1** and the **Demuxer Tee** as **Branch 2**
 
-![branch-1 with PGIE, Tracker, Tiler, OSD, Window](/Images/branch-1-with-pgie-tracker-tiler-osd-window.png)
+![Tees and Branches](/Images/tees-and-branches-branch-1-2-3-4.png)
+
 
 ```Python
-# create a branch component for 'branch-1' and add all child components. 
-
-retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+# New Splitter to split the stream before the On-Screen Display
+retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'splitter', None])
 ```
 
-**Branch 2**, with its single multi-source **Demuxer Tee** *does not* require an explicit Branch, nor do **Branches 3 and 4** consisting of a single File Sink each. 
-
-Note: adding multiple sinks to a single branch requires a Branch component to contain them.
-
-The relationship of Demuxer-output-Branch to the upstream Source component is set by the order of addition. The first Branch added to the Demuxer is linked from the first upstream Source added to the Pipeline - a one-to-one relationship. 
-
-![branch with demuxer and sinks](/Images/branch-2-3-4.png)
+Last, create the two RTMP Decode Sources, Primary GIE, and Tracker. Then add the components and the Splitter to a new Pipeline
 
 ```Python
-# create a new Demuxer to de-multiplex the batched source streams and add the 
-# two File Sinks as Branches for the Tee.
+# For each camera, create a new RTSP Decode Source for the specific RTSP URI
+retval = dsl_source_rtsp_new('src-1', 
+    url = rtsp_uri_1, 
+    protocol = DSL_RTP_ALL, 
+    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+    intra_decode = Fale, 
+    drop_frame_interval = 0, 
+    latency=100)
 
-retval = dsl_tee_demuxer_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
-```
+retval = dsl_source_rtsp_new('src-2', 
+    url = rtsp_uri_2, 
+    protocol = DSL_RTP_ALL, 
+    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+    intra_decode = Fale, 
+    drop_frame_interval = 0, 
+    latency=100)
 
-The **Splitter Tee** is used to split/duplicate the batched stream into multiple branches for separate processing.
+retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
+retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
 
-![Splitter with Branches 1 and 2](/Images/splitter-branch-1-branch-2.png)
+retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
 
-```Python
-# Create a new splitter and add 'branch-1` and the 'demexer' as Branch 2
-
-retval = dsl_tee_splitter_new_branch_add_many('splitter', ['branch-1', 'demuxer', None])
-```
-
-Complete the assembly by creating the **Pipeline** and adding the two RTSP sources and Splitter
-
-```Python
-# finally, add the sources and splitter-tee to the pipeline
-
-retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
-
-# ready to play ...
+# ready to play
+retval = dsl_pipeline_play('pipeline')
 
 ```
 
@@ -362,43 +287,422 @@ retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'spl
 ```Python
 # NOTE: this example assumes that all return values are checked for DSL_RESULT_SUCCESS before proceeding
 
-# Create two live RTSP Sources
-retval = dsl_source_rtsp_new('src-1', rtsp_uri_1, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
-retval = dsl_source_rtsp_new('src-2', rtsp_uri_2, DSL_RTP_ALL, DSL_CUDADEC_MEMTYPE_DEVICE, True, 0)
+# New Tiler, On-Screen Display, and Window Sink
+retval = dsl_tiler_new('tiler', width=1920, height=540)
+retval = dsl_osd_new('osd', clock_enabled=True)
+retval = dsl_sink_window_new('window-sink', x_offset=0, y_offset=0, width=1920, height=540)
 
-# Create two File Sinks, one for each source
-retval = dsl_sink_file_new('file-sink1', './src-1.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
-retval = dsl_sink_file_new('file-sink2', './src-2.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+# New Branch component to assemble Branch-1
+retval = dsl_branch_new_components_add_many('branch-1', components=['tiler', 'osd', 'window-sink', None])
 
-# Create the Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL File Sink
-retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
-retval = dsl_tracker_ktl_new('tracker', 480, 270)
-retval = dsl_tiler_new('tiler', 1280, 720)
-retval = dsl_osd_new('osd', True)
-retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+# New Overlay Sink components to display the non-annotated demuxed video.
+retval = dsl_sink_overlay_new('sink-overlay-1', overlay_id=0, display_id=0, depth=0,
+   x_offset=20, y_offset=20, width=240, height=135
+retval = dsl_sink_overlay_new('sink-overlay-2', overlay_id=0, display_id=0, depth=0,
+   x_offset=980, y_offset=20, width=240, height=135
 
-# Create a branch component for 'branch-1' and add all child components. 
-retval = dsl_branch_new_component_add_many('branch-1', ['pgie', 'tiler', tracker', 'osd', 'window-sink', None])
+# New Demuxer to to demux into separate streams, one per source.
+retval = dsl_tee_demuxer_new_branch_add_many('demuxer', branches=['sink-overlay-1', 'sink-overlay-2', None])
 
-# create a new Demuxer to de-multiplex the batched source streams and add the 
-# two File Sinks as Branches for the Tee.
-retval = dsl_tee_new_branch_add_many('demuxer1', ['file-sink1', 'file-sink2', None])
+# For each camera, create a new RTSP Decode Source for the specific RTSP URI
+retval = dsl_source_rtsp_new('src-1', 
+    url = rtsp_uri_1, 
+    protocol = DSL_RTP_ALL, 
+    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+    intra_decode = Fale, 
+    drop_frame_interval = 0, 
+    latency=100)
 
-# finally, add the sources and splitter-tee to the pipeline
-retval = dsl_pipeline_new_component_add_many('pipeline', ['src-1', 'src-2', 'splitter',  None])
+retval = dsl_source_rtsp_new('src-2', 
+    url = rtsp_uri_2, 
+    protocol = DSL_RTP_ALL, 
+    cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+    intra_decode = Fale, 
+    drop_frame_interval = 0, 
+    latency=100)
+
+retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
+retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
+
+retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
+
+# ready to play
 ```
 
 See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for more information. 
 
 ---
 
+## Pad Probe Handlers
+Pipeline components are linked together using directional ["pads"](https://gstreamer.freedesktop.org/documentation/gstreamer/gstpad.html?gi-language=c) with a Source Pad from one component as the producer of data connected to the Sink Pad of the next component as the consumer. Data flowing over the component’s pads can be monitored, inspected and updated using a Pad-Probe with a specific Handler function.
+
+There are three Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Sources, Taps and Secondary GIE's.
+1. Pipeline Meter - measures the throughput for each source in the Pipeline.
+2. Object Detection Event Handler - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
+3. Custom Handler- allows the client to install a callback with custom behavior. 
+
+See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
+
+### Pipeline Meter Pad Probe Handler
+The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with new session started at any time. 
+
+### Object Detection Event Pad Probe Handler
+The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
+
+![ODE Services](/Images/ode-services.png)
+
+The Handler can be added to the Pipeline before the On-Screen-Display (OSD) component allowing Actions to update the metadata for display. All Triggers can be enabled and re-enabled at runtime, either by an ODE Action, a client callback function, or directly by the application at any time.
+
+Current **ODE Triggers** supported:
+* **Always** - triggers on every frame. Once per-frame always.
+* **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
+* **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
+* **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
+* **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
+* **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
+* **Maximum** - triggers when the count of detected objects in a frame exceeds a specified maximum number. Once per-frame at most.
+* **Range** - triggers when the count of detected objects falls within a specified lower and upper range. Once per-frame at most.
+* **Smallest** - triggers on the smallest object by area if one or more objects are detected. Once per-frame at most.
+* **Largest** - triggers on the largest object by area if one or more objects are detected. Once per-frame at most.
+* **Custom** - allows the client to provide a callback function that implements a custom "Check for Occurrence".
+
+Triggers have optional, settable criteria and filters: 
+* **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* **Source** - filters on a unique Source name. Use `DSL_ODE_ANY_SOURCE` or NULL to disabled the filter
+* **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and/or maximums are met. 
+* **Confidence** - filters on an object's GIE confidence requiring a minimum value.
+* **Inference Done** - filtering on the Object's inference-done flag
+* **In-frame Areas** - filters on specific areas (see ODE Areas below) within the frame, with both areas of inclusion and exclusion supported.
+
+**ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
+* **Actions on Buffers** - Capture Frames and Objects to JPEG images and save to file.
+* **Actions on Metadata** - Fill-Frames and Objects with a color, add Text & Shapes to a Frame, Hide Object Text & Borders.
+* **Actions on ODE Data** - Print, Log, and Display ODE occurence data on screen.
+* **Actions on Recordings** - Start a new recording session for a Record Tap or Sink 
+* **Actions on Pipelines** - Pause Pipeline, Add/Remove Source, Add/Remove Sink, Disable ODE Handler
+* **Actions on Triggers** - Disable/Enable/Reset Triggers
+* **Actions on Areas** - Add/Remove Areas
+* **Actions on Actions** - Disable/Enable Actions
+
+Actions acting on Triggers, Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when a group of objects first enters and then exits the frame or Area.
+
+**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria 
+
+A simple example using python
+
+```python
+# example assumes that all return values are checked before proceeding
+
+# Create a new Print Action to print the ODE Frame/Object details to the console
+retval = dsl_ode_action_print_new('my-print-action')
+
+# Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
+# The action can be used with multiple triggers for multiple sources.
+# Set annotate=True to add bounding box and label to object that triggered the ODE occurrence.
+retval = dsl_ode_action_capture_frame_new('capture-action', outdir='./', annotate=True)
+
+# Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
+# specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
+retval = dsl_ode_trigger_occurrence_new('east-cam-1-trigger', source='east-cam-1', class_id=0, limit=1)
+retval = dsl_ode_trigger_action_add_many('east-cam-1-trigger', actions=['print-action', 'capture-action', None])
+
+# Create an Area of inclusion using a previously defined [Rectangle Display Type](#display-types) as
+# criteria for occurrence and add the Area to the Trigger. A detected object must have at least one pixel of
+# overlap before occurrence will be triggered and the Actions invoked.
+retval = dsl_ode_area_inclusion_new('east-cam-1-area', 'east-cam-1-rectangle', display=True)
+retval = dsl_ode_trigger_area_add('east-cam-1-trigger', 'east-cam-1-area')
+
+# Create an ODE handler to manage the Trigger, add the Trigger to the handler
+retval = dsl_pph_ode_new('ode-handler)
+retval = dsl_pph_ode_trigger_add('ode-handler, 'east-cam-1-trigger')
+
+#  Then add the handler to the sink (input) pad of a Tiler.
+retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+```
+
+[Issue #259](https://github.com/canammex-tech/deepstream-services-library/issues/259) has been opened to track all open items related to ODE Services.
+
+See the below API Reference sections for more information
+* [ODE Pad Probe Handler API Reference](/docs/api-pph.md)
+* [ODE Trigger API Reference](/docs/api-ode-trigger.md)
+* [ODE Action API Reference](/docs/api-ode-action.md)
+* [ODE Area API Reference](/docs/api-ode-area.md)
+
+There are several ODE Python examples provided [here](/examples/python)
+
+### Custom Pad Probe Handler
+Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
+
+Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
+
+```Python
+retval = dsl_pph_custom_new('custom-handler', client_handler=handle_buffer, client_data=my_client_data)
+```
+The callback function can 
+```Python
+def handle_buffer(buffer, client_data)
+
+    # retrieve the batch metadata from the gst_buffer using NVIDIA's python bindings.
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    
+    # cast the opaque client data back to a python object and dereference
+    py_client_data = cast(client_data, POINTER(py_object)).contents.value
+    
+    # process/update the batch_meta as desired. 
+    # ...
+    
+    # return true to continue processing or false to self-remove
+    return true
+```
+
+--- 
+
+## Display Types
+On-Screen Display Types, RGBA text and shapes, can be added to a frame's metadata to be shown by an [On-Screen Display](/docs/api-osd.md) component downstream. 
+There are two base types used when creating other complete types for actual display. 
+* RGBA Color
+* RGBA Font
+
+There are four types for displaying text and shapes. 
+* RGBA Line
+* RGBA Arrow
+* RGBA Rectangle
+* RGBA Circle
+
+And three types for displaying source information specific to each frame. 
+* Source Number
+* Source Name
+* Source Dimensions
+
+The [Add Display Meta ODE Action](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) adds the data under control of one or more Triggers to render all types of video annotations.
+
+Refer to the [Display Type API](/docs/api-display-type.md)
+
+---
+
+## Smart Recording
+As mentioned above, there are two components that provide cached-video-recording:
+1. Record Tap - that taps into the pre-decoded stream to record the original video - added to a RTSP Source component directly.
+2. Record Sink - that encodes the decoded, inferred-on, and optionally annotated stream - added to a Pipeline or Branch downstream of a Tiler or Demuxer.
+
+Both recording components create a fixed size cache to buffer the last N seconds of the encoded video. Services are provided to start recording at a `start` point within the current cache specified in seconds before the current time. The `duration` to record is specified in units of seconds, though the recording can be stopped at any time.  A client callback is used to notify the application when recording is complete.
+
+"One-time" [ODE Triggers](/docs/api-ode-trigger.md) are defined to trigger on specific occurrences of Object Detection Events, such as a person entering a predefined [ODE Area](/docs/api-ode-area.md). Start-Record [ODE Actions]() are used to start the recording on ODE occurrence. Each "one-time" trigger can be reset in the record-complete callback function added to the Record-Tap or Sink. 
+
+The follow example illustrates a Pipeline with multiple sources, each with a Record Tap and corresponding Occurrence Trigger with a Start-Record Action
+![Record Tap](/Images/tap-record.png)
+
+#### Using Python to implement the above.
+
+Each Camera requires: 
+* RTSP Source Component - to decode the streaming source to raw video and audio
+* Record Tap - with cache to capture pre-event video
+* Occurrence Trigger - to trigger ODE occurrence on detection of an object satisfying all criteria
+* Custom Action - for notification of ODE occurrence.
+* Start Record Action - to start the recording
+
+```Python
+# Defines a class of all component names associated with a single RTSP Source. 
+# Objects of this class will be used as "client_data" for all callback notifications.
+# The names are derived from the unique Source name. 
+class ComponentNames:
+    def __init__(self, source):
+        self.source = source
+        self.record_tap = source + '-record-tap'
+        self.occurrence_trigger = source + '-occurrence-trigger'
+        self.ode_notify = source + '-ode-notify'
+        self.start_record = source + '-start-record'
+
+# Callback function to process all "record-start" notifications
+def RecordStarted(event_id, trigger,
+    buffer, frame_meta, object_meta, client_data):
+    
+    global duration
+    
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+    
+    # a good place to enabled an Always Trigger that adds `REC` text to the frame which can
+    # be disabled in the RecordComplete callback below. And/or send notifictions to external clients.
+    
+    # in this example we will call on the Tiler to show the source that started recording.
+    dsl_tiler_source_show_set('tiler', source=components.source, timeout=duration, has_precedence=True)
+
+    
+# Callback function to process all "record-complete" notifications
+def RecordComplete(session_info, client_data):
+
+    # session_info is obtained using the NVIDIA python bindings
+    
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+
+    # reset the Trigger that started this recording so that a new session can be started.
+    dsl_ode_trigger_reset(components.occurrence_trigger)
+```
+The below function creates all "1-per-source" components for a given source-name and RTSP URI.
+The new Source component is added to the named Pipeline and the Trigger is added to [ODE Pad Probe Handler](/docs/api-pph.md)
+
+```Python
+##
+# Function to create all "1-per-source" components, and add them to the Pipeline
+# pipeline - unique name of the Pipeline to add the Source components to
+# source - unique name for the RTSP Source to create
+# uri - unique uri for the new RTSP Source
+# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to
+##
+def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
+   
+    global duration
+    
+    # New Component names based on unique source name
+    components = ComponentNames(source)
+    
+    # For each camera, create a new RTSP Source for the specific RTSP URI
+    retval = dsl_source_rtsp_new(source, 
+        uri = rtsp_uri, 
+        protocol = DSL_RTP_ALL, 
+        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+        intra_decode = False, 
+        drop_frame_interval = 0, 
+        latency=100)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # New record tap created with our common RecordComplete callback function defined above
+    retval = dsl_tap_record_new(components.record_tap, 
+        outdir = './recordings/', 
+        container = DSL_CONTAINER_MKV, 
+        client_listener = RecordComplete)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Add the new Tap to the Source directly
+    retval = dsl_source_rtsp_tap_add(source, tap=components.record_tap)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Next, create the Person Occurrence Trigger. We will reset the trigger in the recording complete callback
+    retval = dsl_ode_trigger_occurrence_new(components.occurrence_trigger, 
+        source=source, class_id=PGIE_CLASS_ID_PERSON, limit=1)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # New (optional) Custom Action to be notified of ODE Occurrence, and pass component names as client data.
+    retval = dsl_ode_action_custom_new(components.ode_notify, 
+        client_handler=RecordStarted, client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+
+    # Create a new Action to start the record session for this Source, with the component names as client data
+    retval = dsl_ode_action_tap_record_start_new(components.start_record, 
+        record_tap=components.record_tap, start=15, duration=duration, client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+    
+    # Add the Actions to the trigger for this source. 
+    retval = dsl_ode_trigger_action_add_many(components.occurrence_trigger, 
+        actions=[components.ode_notify, components.start_record, None])
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+    
+    # Add the new Source with its Record-Tap to the Pipeline
+    retval = dsl_pipeline_component_add(pipeline, source)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # Add the new Trigger to the ODE Pad Probe Handler
+    return dsl_pph_ode_trigger_add(ode_handler, components.occurrence_trigger)
+
+```
+
+The main code to create all other components and assemble the Pipeline can be written as:
+
+```Python
+
+while True:
+    # Create the Primary GIE, Tracker, Multi-Source Tiler, On-Screen Display and X11/EGL Window Sink
+    retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, 0)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    retval = dsl_tiler_new('tiler', width=1280, height=720)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    retval = dsl_osd_new('osd', clock_enabled=True)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    retval = dsl_sink_rtsp_new('rtsp-sink', 
+        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    
+    # Create a Pipeline and add the new components.
+    retval = dsl_pipeline_new_component_add_many('pipeline', 
+        components=['pgie', 'tracker', 'tiler', 'osd', 'window-sink', 'rtsp-sink', None]) 
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+   
+    # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions
+    retval = dsl_pph_ode_new('ode-handler')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+ 
+    # Add the ODE Handler to the Sink (input) pad of the Tiler - before the batched frames are combined/tiled
+    retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    # For each of our four sources, call the funtion to create the source-specific components.
+    retval = CreatePerSourceComponents('pipeline', 'src-0', src_url_0, 'ode-handler')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    retval = CreatePerSourceComponents('pipeline', 'src-1', src_url_1, 'ode-handler')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    retval = CreatePerSourceComponents('pipeline', 'src-2', src_url_2, 'ode-handler')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    retval = CreatePerSourceComponents('pipeline', 'src-3', src_url_3, 'ode-handler')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    
+    # Pipeline has been successfully created, ok to play
+    retval = dsl_pipeline_play('my-pipeline')
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+
+    # join the main loop until stopped. 
+    dsl_main_loop_run()
+    break
+
+# Print out the final result
+print(dsl_return_value_to_string(retval))
+
+# free up all resources
+dsl_delete-all()
+
+```
+
+---
+
 ## DSL Initialization
-The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time, unless the calling application has already done so. 
+The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time unless the calling application has already done so. 
 
 <br>
 
 ## DSL Delete All
-All DSL and GStreammer resource should be deleted/released on code exit by calling on DSL to delete all.
+All DSL and GStreammer resources should be deleted on code exit by calling DSL to delete all.
 ```Python
 dsl_delete_all()
 ```
@@ -406,7 +710,7 @@ dsl_delete_all()
 <br>
 
 ## Main Loop Context
-After creating a Pipeline(s), creating and adding Components, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a client Callback function called from the Pipeline's context -- calls `dsl_main_loop_quit()`
+After creating all components, adding them to a Pipeline, and setting the Pipeline's state to Playing, the Application must call `dsl_main_loop_run()`. The service creates a mainloop that runs/iterates the default GLib main context to check if anything the Pipeline is watching for has happened. The main loop will be run until another thread -- typically a "client callback function" called from the Pipeline's context -- calls `dsl_main_loop_quit()`
 
 <br>
 
@@ -445,93 +749,6 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 
 <br>
 
-## Batch Meta Handler Callback Functions
-All of the `one-at-most` Pipeline Components -- Primary GIEs, Multi-Object Trackers, On-Screen Displays, and Tilers -- support the dynamic addition and removal of `batch-meta-handler` callback functions. Multiple handlers can be added to the component's Input (sink-pad) and Output (src-pad) in any Pipeline state. Batch-meta-handlers allow applications to monitor and block-on data flowing over the component's pads.
-
-Each batch-meta-handler function is called with a buffer of meta-data for each batch processed. A Pipeline's batch-size is set to the current number of Source Components upstream.
-
-Adding a batch-meta-handler to the sink-pad of an On-Screen Display component, for example, is an ideal point in the stream to monitor, process, and make decisions based on all inference and tracker results from  upstream.
-
-When using Python3, NVIDIA's [Python-bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps#python-bindings) (see pypd in the example below) are used to process the buffered batch-meta in the handler callback function. The bindings can be downloaded from [here](https://developer.nvidia.com/deepstream-download#python_bindings)
-
-```Python
-# Callback function to handle batch-meta data
-def osd_batch_meta_handler_cb(buffer, user_data):
-
-    # Using NVIDIA's pypd.so bindings to process the batch-meta-data
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break    
-
-        # parse frame_meta .....  
-        # On first occurence of some object of interest, start streaming to file.
-        
-            # add the new file sink to immediately start streaming to file.
-            dsl_pipeline_component_add('my-pipeline', 'my-file-sink')
-            
-            # optionally install a new Callback function to remove the sink
-            # on some condition observed in the batch-meta data
-            
-            # return False to self remove this handler function.
-            return False 
-
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
-
-while True:
-
-    # Create a new OSD component and add the batch-meta handler function above to the Sink Pad.
-    retval = dsl_osd_new('my-osd', False)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    retval = dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-
-    # Create a new H.264 File Sink component to be added to the Pipeline by the osd_batch_meta_handler_cb
-    retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
-    if retval != DSL_RESULT_SUCCESS:
-        break
-
-    # Create all other required components and add them to the Pipeline (see some examples above)
-    # ...
-    
-    retval = dsl_pipeline_play('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
- 
-    # Start/Join with main loop until released - blocking call
-    dsl_main_loop_run()
-    retval = DSL_RETURN_SUCCESS
-    break
-
-#print out the final result
-print(dsl_return_value_to_string(retval))
-
-# clean up all resource
-dsl_pipeline_delete_all()
-dsl_component_delete_all()
-
-```
-
-### *dsl_batch_meta_handler_cb*
-```C++
-typedef boolean (*dsl_batch_meta_handler_cb)(void* batch_meta, void* user_data);
-```
-Callback typedef for a client batch meta handler function. Once added to a Component, the function will be called when the component receives a batch meta buffer from its sink or src pad. Functions of this type are added to a component by calling the `dsl_<component-type>_batch_meta_handler_add` service, and removed with the corresponding `dsl_<component-type>_batch_meta_handler_removed` service.
-
-**Parameters**
-* `batch_meta` - [in] pointer to a buffer of batc-meta-data to process
-* `user_data` - [in] opaque pointer to client's user data, passed into the component on callback add
-
-<br>
 
 ## X11 Window Support
 DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
@@ -594,8 +811,7 @@ while True:
 print(dsl_return_value_to_string(retval))
 
 # clean up all resources
-dsl_pipeline_delete_all()
-dsl_component_delete_all()
+dsl_delete_all()
 ```
 
 <br>
@@ -610,17 +826,19 @@ dsl_component_delete_all()
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIEs](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](docs/api-ode-handler.md)
-* [ODE Trigger](docs/api-ode-trigger.md)
-* [ODE Action ](docs/api-ode-action.md)
-* [ODE Area](docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)
 * [Sink](docs/api-sink.md)
+* [Pad Probe Handler](docs/api-pph.md)
+* [ODE Trigger](docs/api-ode-trigger.md)
+* [ODE Action ](docs/api-ode-action.md)
+* [ODE Area](docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](docs/api-branch.md)
 * [Component](/docs/api-component.md)
 

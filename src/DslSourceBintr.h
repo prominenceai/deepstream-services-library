@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "DslBintr.h"
 #include "DslElementr.h"
 #include "DslDewarperBintr.h"
+#include "DslTapBintr.h"
 
 namespace DSL
 {
@@ -56,8 +57,8 @@ namespace DSL
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency))
 
     /**
      * @class SourceBintr
@@ -77,19 +78,6 @@ namespace DSL
         bool IsParent(DSL_BASE_PTR pParentBintr);
                         
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
-        
-        /**
-         * @brief returns the current, sensor Id as managed by the Parent pipeline
-         * @return -1 when source Id is not assigned, i.e. source is not currently in use
-         * Unique source Id [0...MAX] when the source is in use.
-         */
-        int GetSourceId();
-        
-        /**
-         * @brief Sets the unique sensor id for this Source bintr
-         * @param id value to assign [0...MAX]
-         */
-        void SetSourceId(int id);
         
         /**
          * @brief returns the Live state of this Streaming Source
@@ -128,7 +116,7 @@ namespace DSL
         bool UnlinkFromSink();
 
     public:
-        
+    
         /**
          * @brief True if the source is live and cannot be paused without losing data, False otherwise.
          */
@@ -456,7 +444,7 @@ namespace DSL
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol,
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency);
 
         ~RtspSourceBintr();
 
@@ -472,6 +460,26 @@ namespace DSL
         void UnlinkAll();
 
         bool SetUri(const char* uri);
+        
+        /**
+         * @brief adds a TapBintr to the RTSP Source - one at most
+         * @return true if the Source was able to add the Child TapBintr
+         */
+        bool AddTapBintr(DSL_BASE_PTR pTapBintr);
+
+        /**
+         * @brief Removes a TapBintr from the RTSP Source - if it currently has one
+         * @return true if the Source was able to remove the Child TapBintr
+         */
+        bool RemoveTapBintr();
+        
+        /**
+         * @brief call to query the RTSP Source if it has a TapBntr
+         * @return true if the Source has a Child TapBintr
+         */
+        bool HasTapBintr();
+        
+        bool HandleSelectStream(GstElement* pBin, uint num, GstCaps* pCaps);
 
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 
@@ -480,26 +488,53 @@ namespace DSL
     private:
 
         /**
-         @brief 
+         @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
         uint m_rtpProtocols;
         
         /**
-         @brief
+         * @brief optional child TapBintr, tapped in pre-decode
+         */ 
+        DSL_TAP_PTR m_pTapBintr;
+
+        /**
+         * @brief H.264 or H.265 RTP Depay for the RtspSourceBintr
          */
-        DSL_ELEMENT_PTR m_pDepayload;
+        DSL_ELEMENT_PTR m_pDepay;
+
+        /**
+         * @brief H.264 or H.265 RTP Parser for the RtspSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pParser;
         
         /**
-         @brief
+         * @brief Pre-decode queue 
+         */
+        DSL_ELEMENT_PTR m_pPreDecodeQueue;
+
+        /**
+         * @brief Pre-decode tee - optional to tap off pre-decode strame for TapBintr
+         */
+        DSL_ELEMENT_PTR m_pPreDecodeTee;
+
+        /**
+         * @brief
          */
         DSL_ELEMENT_PTR m_pDecodeBin;
         
-        /**
-         @brief
-         */
-        DSL_ELEMENT_PTR m_pDecodeQueue;
     };
 
+    /**
+     * @brief 
+     * @param pBin
+     * @param num
+     * @param caps
+     * @param pSource
+     * @return 
+     */
+    static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *caps,
+        gpointer pSource);
+        
     /**
      * @brief 
      * @param[in] pBin

@@ -32,7 +32,7 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):

@@ -25,13 +25,12 @@ Once added to a Pipeline or Branch, an OSD must be removed before it can be used
 * [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
 * [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
 * [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
-* [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add)
-* [dsl_osd_batch_meta_handler_remove](#dsl_osd_batch_meta_handler_remove)
+* [dsl_osd_pph_add](#dsl_osd_pph_add)
+* [dsl_osd_pph_remove](#dsl_osd_pph_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
 ```C++
-#define DSL_RESULT_OSD_RESULT                                       0x00050000
 #define DSL_RESULT_OSD_NAME_NOT_UNIQUE                              0x00050001
 #define DSL_RESULT_OSD_NAME_NOT_FOUND                               0x00050002
 #define DSL_RESULT_OSD_NAME_BAD_FORMAT                              0x00050003
@@ -240,86 +239,50 @@ retval = dsl_osd_clock_color_set('my-on-screen-display', 0.6, 0.0, 0.6, 1.0)
 
 <br>
 
-### *dsl_osd_batch_meta_handler_add*
-```c++
-DslReturnType dsl_osd_batch_meta_handler_add(const wchar_t* name, uint type, 
-    dsl_batch_meta_handler_cb handler, void* user_data);
+### *dsl_osd_pph_add*
+```C++
+DslReturnType dsl_osd_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This function adds a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb) to either the `sink-pad`(on input to the On-Screen Display) or `src-pad` (on ouput from the On-Screen Display). Once added, the handler will be called to handle batch-meta data for each frame buffer. An On-Screen Display can have more than one `sink-pad` and `src-pad` batch meta handler, and each handler can be added to more than one On-Screen Display.
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named On-Screen Display.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
-* `pad` - [in] to which of the two pads to add the handler; `DSL_PAD_SIK` | `DSL_PAD SRC`
-* `handler` - [in] callback function to process batch meta data
-* `user_data` [in] opaque pointer to the the caller's user data - passed back with each callback call.
+* `handler` - [in] unique name of Pad Probe Handler to add
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 * Example using Nvidia's pyds lib to handle batch-meta data
 
 ```Python
-##
-# Callback function to handle batch-meta data
-##
-def osd_batch_meta_handler_cb(buffer, user_data):
-
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
-    l_frame = batch_meta.frame_meta_list
-    while l_frame is not None:
-        try:
-            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
-        except StopIteration:
-            break    
-
-        # Handle the frame_meta data, typically more than just printing to console
-        
-        print("Frame Number is ", frame_meta.frame_num)
-        print("Source id is ", frame_meta.source_id)
-        print("Batch id is ", frame_meta.batch_id)
-        print("Source Frame Width ", frame_meta.source_frame_width)
-        print("Source Frame Height ", frame_meta.source_frame_height)
-        print("Num object meta ", frame_meta.num_obj_meta)
-
-        try:
-            l_frame=l_frame.next
-        except StopIteration:
-            break
-    return True
-
-##
-# Create a new OSD component and add the batch-meta handler function above to the Sink (input) Pad.
-##
-retval = dsl_osd_new('my-osd', False)
-retval += dsl_osd_batch_meta_handler_add('my-osd', DSL_PAD_SINK, osd_batch_meta_handler_cb, None)
-
-if retval != DSL_RESULT_SUCCESS:
-    # OSD setup failed
+retval = dsl_osd_pph_add('my-osd', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
 
-### *dsl_osd_batch_meta_handler_remove*
-```c++
-DslReturnType dsl_osd_batch_meta_handler_remove(const wchar_t* name, uint pad);
+### *dsl_osd_pph_remove*
+```C++
+DslReturnType dsl_osd_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This function removes a batch meta handler callback function of type [dsl_batch_meta_handler_cb](#dsl_batch_meta_handler_cb), previously added to the On-Screen Display with [dsl_osd_batch_meta_handler_add](#dsl_osd_batch_meta_handler_add). A On-Screen Display can have more than one Sink and Source batch meta handler, and each handler can be added to more than one On-Screen.
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named On-Screen Display. The service will fail if the named handler is not owned by the Tiler
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
-* `pad` - [in] which of the two pads to remove the handler to; DSL_PAD_SINK | DSL_PAD SRC
-* `handler` - [in] callback function to remove
+* `handler` - [in] unique name of Pad Probe Handler to remove
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-    retval = dsl_osd_batch_meta_handler_remove('my-osd',  DSL_PAD_SINK, osd_batch_meta_handler_cb)
+retval = dsl_osd_pph_remove('my-osd', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
+
 ---
 
 ## API Reference
@@ -329,13 +292,14 @@ This function removes a batch meta handler callback function of type [dsl_batch_
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [Tiler](/docs/api-tiler.md)
 * **On-Screen Display**
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)

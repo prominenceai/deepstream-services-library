@@ -32,7 +32,7 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 source_uri = '../../test/streams/sample_1080p_h265.mp4'
 
@@ -45,7 +45,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 

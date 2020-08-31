@@ -32,13 +32,22 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+STREAMMUX_WIDTH = 1280
+STREAMMUX_HEIGHT = 720
+#TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+#TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = STREAMMUX_WIDTH
+TILER_HEIGHT = STREAMMUX_HEIGHT
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -49,7 +58,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -74,16 +83,6 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-        
-## 
-# Function called on "first occurrence" of the bicycle
-## 
-def update_tiler(ode_id, trigger, buffer, frame_data, objec_data, client_data):
-    
-    print('Setting tiller dimensions in prep for new source, retval = ', 
-        dsl_return_value_to_string(dsl_tiler_dimensions_set('tiler', width=1280, height=360)))
-        
-        
 
 def main(args):
 
@@ -91,83 +90,64 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create a new set of Actions to manipulate our Pipeline on First occurrence of the Bicycle
-        
-        retval = dsl_ode_action_callback_new('update-tiler-action', client_handler=update_tiler, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_action_source_add_new('source-add-action', pipeline='pipeline', source='new-uri-source')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_action_sink_add_new('sink-add-action', pipeline='pipeline', sink='overlay-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_action_sink_remove_new('sink-remove-action', pipeline='pipeline', sink='new-uri-source')
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        # This example is used to demonstrate the use of a First Occurrence Trigger and a Start Record Action
+        # to control a Record Sink.  A callback function, called on completion of the recording session, will
+        # reset the Trigger allowing a new session to be started on next occurrence.
+        # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, we'll create two Bicycle Occurrence Triggers, one for each of our two sources
-        # We need to explicitly set the trigger's "source id-filter" to as the default value = DSL_ODE_ANY_SOURCE
-        
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger-s0', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        # Create new RGBA color types
+        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_source_id_set('bicycle-occurrence-trigger-s0', source_id=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger-s1', class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_source_id_set('bicycle-occurrence-trigger-s1', source_id=1)
+            
+        # Create a new Action to fill an object's surroundings with an opaque color
+        retval = dsl_ode_action_fill_surroundings_new('fill-surroundings', 'opaque-black')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, we'll add the actions to our two Bicycle Occurence Trigger.
-        
-        # The Source-0 Trigger will invoke the Add Source Action, followed by the Update Tiler Action
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger-s0',
-            actions=['update-tiler-action', 'source-add-action', None])
+        retval = dsl_ode_trigger_largest_new('largest-trigger', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        # The Source-1 Trigger will invoke the Add and Remove Sink Actions
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger-s1',
-            actions=['sink-add-action', None])
-#            actions=['sink-add-action', 'sink-remove-action', None])
+        retval = dsl_ode_trigger_action_add('largest-trigger', action='fill-surroundings')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a Hide-Area Action to hide all Display Text and Rectangle
+        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('occurrence-trigger', action='hide-both')
         if retval != DSL_RETURN_SUCCESS:
             break
     
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler to handle the Triggers and their Actions    
-        retval = dsl_ode_handler_new('ode-hanlder')
+        # New ODE Handler for our Trigger
+        retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-hanlder',
-            triggers=['bicycle-occurrence-trigger-s0', 'bicycle-occurrence-trigger-s1', None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
+            'largest-trigger',
+            'occurrence-trigger', 
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
-
+    
         ############################################################################################
         #
         # Create the remaining Pipeline components
         
-        # Two URI File Sources using the filespec defined above, one added prior to Playing the Pipeline
-        # The second will be added on first occurrence of a bicycle ### IMPORTANT: See batch properites below
-        retval = dsl_source_uri_new('initial-uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_source_uri_new('new-uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 4)
+        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -177,38 +157,33 @@ def main(args):
             break
 
         # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
+         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, offsetX=100, offsetY=100, width=1280, height=360)
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['initial-uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-hanlder', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        ### IMPORTANT: ###
-        
-        # we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
-        # will use the current number of Sources when set to Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', batch_size=2, batch_timeout=4000000)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
+            
+        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
+            
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:

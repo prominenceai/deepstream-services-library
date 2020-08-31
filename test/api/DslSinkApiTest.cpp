@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2020, ROBERT HOWELL
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,17 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[fa
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new Overlay Sink is created" ) 
+        WHEN( "A new Fake Sink is created" ) 
         {
             REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
+                boolean sync(false), async(true);
+                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &sync, &async) == DSL_RESULT_SUCCESS );
+                REQUIRE( sync == true );
+                REQUIRE( async == false );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -56,7 +60,7 @@ SCENARIO( "The Components container is updated correctly on Fink Sink delete", "
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A new Overlay Sink is deleted" ) 
+        WHEN( "A new Fake Sink is deleted" ) 
         {
             REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
             
@@ -67,6 +71,32 @@ SCENARIO( "The Components container is updated correctly on Fink Sink delete", "
         }
     }
 }
+
+SCENARIO( "A Fake Sink can update it Sync/Async attributes", "[fake-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sinkName = L"fake-sink";
+
+        REQUIRE( dsl_sink_fake_new(sinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Fake Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(sinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(sinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The Components container is updated correctly on new Overlay Sink", "[overlay-sink-api]" )
 {
@@ -126,6 +156,42 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
         }
     }
 }
+
+SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[window-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring overlaySinkName = L"overlay-sink";
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Window Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(overlaySinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(overlaySinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 
 SCENARIO( "An Overlay Sink in use can't be deleted", "[overlay-sink-api]" )
 {
@@ -298,6 +364,40 @@ SCENARIO( "The Components container is updated correctly on Window Sink delete",
     }
 }
 
+SCENARIO( "A Window Sink can update its Sync/Async attributes", "[window-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the Window Sink's attributes are updated from the default" ) 
+        {
+            boolean newSync(false), newAsync(true);
+            REQUIRE( dsl_sink_sync_settings_set(windowSinkName.c_str(), newSync, newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true), retAsync(false);
+                REQUIRE( dsl_sink_sync_settings_get(windowSinkName.c_str(), &retSync, &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "A Window Sink in use can't be deleted", "[window-sink-api]" )
 {
     GIVEN( "A new Window Sink and new Pipeline" ) 
@@ -424,7 +524,7 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[fi
             THEN( "The list size is updated correctly" ) 
             {
                 uint retCodec(0), retContainer(0);
-                REQUIRE( dsl_sink_file_video_formats_get(fileSinkName.c_str(), &retCodec, &retContainer) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_encode_video_formats_get(fileSinkName.c_str(), &retCodec, &retContainer) == DSL_RESULT_SUCCESS );
                 REQUIRE( retCodec == codec );
                 REQUIRE( retContainer == container );
                 REQUIRE( dsl_component_list_size() == 1 );
@@ -531,7 +631,7 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
         uint currBitrate(0);
         uint currInterval(0);
     
-        REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+        REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
         REQUIRE( currBitrate == initBitrate );
         REQUIRE( currInterval == initInterval );
 
@@ -540,11 +640,11 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[file-sink-api]" )
             uint newBitrate(2500000);
             uint newInterval(10);
             
-            REQUIRE( dsl_sink_file_encoder_settings_set(fileSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
+            REQUIRE( dsl_sink_encode_settings_set(fileSinkName.c_str(), newBitrate, newInterval) == DSL_RESULT_SUCCESS);
 
             THEN( "The FileSinkBintr's new Encoder settings are returned on Get")
             {
-                REQUIRE( dsl_sink_file_encoder_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_sink_encode_settings_get(fileSinkName.c_str(), &currBitrate, &currInterval) == DSL_RESULT_SUCCESS);
                 REQUIRE( currBitrate == newBitrate );
                 REQUIRE( currInterval == newInterval );
 
@@ -574,10 +674,10 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[fi
 
             THEN( "The File Sink encoder settings APIs fail correctly")
             {
-                REQUIRE( dsl_sink_file_encoder_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
-                REQUIRE( dsl_sink_file_encoder_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
-                    DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE);
+                REQUIRE( dsl_sink_encode_settings_get(fakeSinkName.c_str(), &currBitrate, &currInterval) == 
+                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
+                REQUIRE( dsl_sink_encode_settings_set(fakeSinkName.c_str(), newBitrate, newInterval) == 
+                    DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -586,6 +686,71 @@ SCENARIO( "An invalid File Sink is caught on Encoder settings Get and Set", "[fi
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new Record Sink", "[record-sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listner_cb client_listener;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Record Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+                codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                uint ret_cache_size(0);
+                uint ret_width(0), ret_height(0);
+                REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
+                REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == 0 );
+                REQUIRE( ret_height == 0 );
+                REQUIRE( dsl_component_list_size() == 1 );
+            }
+        }
+        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on Record Sink delete", "[record-sink-api]" )
+{
+    GIVEN( "A Record Sink Component" ) 
+    {
+        std::wstring recordSinkName(L"record-sink");
+        std::wstring outdir(L"./");
+        uint container(DSL_CONTAINER_MP4);
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        dsl_record_client_listner_cb client_listener;
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
+            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+
+        WHEN( "A new Record Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[rtsp-sink-api]" )
 {
@@ -961,216 +1126,62 @@ SCENARIO( "Adding greater than max Sinks to all Pipelines fails", "[sink-api]" )
     }
 }
 
-SCENARIO( "The Components container is updated correctly on new Image Sink", "[image-sink-api]" )
+SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-
+        std::wstring sinkName  = L"test-sink";
+        std::wstring otherName  = L"other";
+        
+        uint cache_size(0), width(0), height(0), codec(0), container(0), bitrate(0), interval(0), udpPort(0), rtspPort(0);
+        boolean is_on(0), reset_done(0), sync(0), async(0);
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new Image Sink is created" ) 
+        WHEN( "When NULL pointers are used as input" ) 
         {
-            REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-
-            THEN( "The list size is updated correctly" ) 
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_component_list_size() == 1 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}    
+                REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_file_new(sinkName.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_record_new(NULL, NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_new(sinkName.c_str(), NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_start(NULL, 0, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_stop(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_get(NULL, &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_set(NULL, cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-SCENARIO( "The Components container is updated correctly on Image Sink delete", "[image-sink-api]" )
-{
-    GIVEN( "An Image Sink Component" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
+                REQUIRE( dsl_sink_record_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-        REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-        WHEN( "A new Image Sink is deleted" ) 
-        {
-            REQUIRE( dsl_component_delete(sinkName.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The list size updated correctly" )
-            {
+                REQUIRE( dsl_sink_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_encode_video_formats_get(NULL, &codec, &container) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_get(NULL, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_set(NULL, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_new(sinkName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_set(NULL, bitrate, interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_encoder_settings_get(NULL, &bitrate, &interval ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort, &codec ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_pph_add(NULL, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_pph_add(sinkName.c_str(), NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_settings_get(NULL, &sync, &async ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_sync_settings_set(NULL, sync, async ) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
 }
-
-SCENARIO( "An Image Sink's Frame Capture Interval can be updated", "[image-sink-api]" )
-{
-    GIVEN( "An Image Sink in memory with its Frame Capture interval as default" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-        uint interval(1234);
-
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_image_frame_capture_interval_get(sinkName.c_str(), &interval) == DSL_RESULT_SUCCESS );
-        REQUIRE( interval == 0 );
-
-        WHEN( "The Image Sink's Frame Capture interval is updated" )
-        {
-            REQUIRE( dsl_sink_image_frame_capture_interval_set(sinkName.c_str(), 4321) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Image Sink's Frame Capture interval is returned on get" )
-            {
-                REQUIRE( dsl_sink_image_frame_capture_interval_get(sinkName.c_str(), &interval) == DSL_RESULT_SUCCESS );
-                REQUIRE( interval == 4321 );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An Image Sink's Output Directory can be updated", "[image-sink-api]" )
-{
-    GIVEN( "An Image Sink in memory with its Frame Capture interval as default" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-        std::wstring newOutdir = L"./test/unit";
-        std::wstring badDir = L"./bad-dir/not-found";
-
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* pRetOutdir;
-
-        REQUIRE( dsl_sink_image_outdir_get(sinkName.c_str(), &pRetOutdir) == DSL_RESULT_SUCCESS );
-        std::wstring retOutdir(pRetOutdir);
-        REQUIRE( outdir == retOutdir );
-
-        WHEN( "The Image Sink's Output Directory is updated" )
-        {
-            // Test the fail case firt
-            REQUIRE( dsl_sink_image_outdir_set(sinkName.c_str(), badDir.c_str()) == DSL_RESULT_SINK_FILE_PATH_NOT_FOUND );
-
-            REQUIRE( dsl_sink_image_outdir_set(sinkName.c_str(), newOutdir.c_str()) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Image Sink's Output Directory is returned on get" )
-            {
-                REQUIRE( dsl_sink_image_outdir_get(sinkName.c_str(), &pRetOutdir) == DSL_RESULT_SUCCESS );
-                retOutdir.assign(pRetOutdir);
-                REQUIRE( newOutdir == retOutdir );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An Image Sink's Frame Capture can be enabled and disabled", "[image-sink-api]" )
-{
-    GIVEN( "An Image Sink in memory with its Frame Capture disabled" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-        boolean enabled(1);
-
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-        REQUIRE( enabled == 0 );
-
-        // test negative scenario (set false when currently false)
-        REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
-
-        WHEN( "The Image Sink's Frame Capture is enabled" )
-        {
-            enabled = 1;
-            REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
-            
-            // test negative scenario as well (set true when currently true)
-            REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
-            
-            THEN( "The Image Sink's Frame Capture can be disabled" )
-            {
-                REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( enabled == 1 );
-                enabled = 0;
-                REQUIRE( dsl_sink_image_frame_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_sink_image_frame_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( enabled == 0 );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An Image Sink's Object Capture can be enabled and disabled", "[image-sink-api]" )
-{
-    GIVEN( "An Image Sink in memory with its Object Capture disabled" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-        boolean enabled(1);
-
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-        REQUIRE( enabled == 0 );
-
-        // test negative scenario (set false when currently false)
-        REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
-
-        WHEN( "The Image Sink's Object Capture is enabled" )
-        {
-            enabled = 1;
-            REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
-            
-            // test negative scenario as well (set true when currently true)
-            REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SINK_SET_FAILED );
-            
-            THEN( "The Image Sink's Object Capture can be disabled" )
-            {
-                REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( enabled == 1 );
-                enabled = 0;
-                REQUIRE( dsl_sink_image_object_capture_enabled_set(sinkName.c_str(), enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_sink_image_object_capture_enabled_get(sinkName.c_str(), &enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( enabled == 0 );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "An Object Capture Class can be added to and removed from an Image Sink ", "[image-sink-api]" )
-{
-    GIVEN( "An ImageSinkBintr in memory" ) 
-    {
-        std::wstring sinkName = L"image-sink";
-        std::wstring outdir = L"./";
-
-        REQUIRE( dsl_sink_image_new(sinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-        
-        uint captureClass(2);
-        boolean fullFrame(false);
-        uint maxCapture(0);
-
-        WHEN( "A Object Capture Class is added to Image Sink" )
-        {
-            REQUIRE( dsl_sink_image_object_capture_class_add(sinkName.c_str(), captureClass, fullFrame, maxCapture) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Opject Capture Class is correctly removed" )
-            {
-                REQUIRE( dsl_sink_image_object_capture_class_remove(sinkName.c_str(), captureClass) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-

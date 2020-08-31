@@ -73,7 +73,7 @@ SCENARIO( "Parent-child Binter releationship is setup on Add", "[Nodetr]" )
         WHEN( "The Parent Nodetr is called to add to Child" )
         {
             // Need to fake GstObj creation when testing the base Nodetr
-            pParentNodetr->__setGstObject__((GstObject*)0x12345678);
+            pParentNodetr->SetGstObject((GstObject*)0x12345678);
             REQUIRE( pParentNodetr->AddChild(pChildNodetr) == true );
         
             THEN( "The Parent-Child relationship is created" )
@@ -97,7 +97,7 @@ SCENARIO( "Parent-child Nodetr releationship is cleared on Remove", "[Nodetr]" )
         DSL_NODETR_PTR pChildNodetr = DSL_NODETR_NEW(childNodetrName.c_str());
 
         // Need to fake GstObj creation when testing the base Nodetr
-        pParentNodetr->__setGstObject__((GstObject*)0x12345678);
+        pParentNodetr->SetGstObject((GstObject*)0x12345678);
         REQUIRE( pParentNodetr->AddChild(pChildNodetr) == true );
 
         REQUIRE( pParentNodetr->GetNumChildren() == 1 );

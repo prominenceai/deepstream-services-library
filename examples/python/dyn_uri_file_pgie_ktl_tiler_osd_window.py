@@ -32,7 +32,7 @@ from dsl import *
 
 # Filespecs for the Primary GIE
 inferConfigFile = '../../test/configs/config_infer_primary_nano.txt'
-modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b4_gpu0_fp16.engine'
+modelEngineFile = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 MAX_SOURCE_COUNT = 4
 cur_source_count = 0
@@ -58,7 +58,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
 
     # Add a new source

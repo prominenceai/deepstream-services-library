@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslBase.h"
 #include "DslApi.h"
+#include "DslDisplayTypes.h"
 
 namespace DSL
 {
@@ -35,8 +36,14 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_AREA_PTR std::shared_ptr<OdeArea>
-    #define DSL_ODE_AREA_NEW(name, left, top, width, height, display) \
-        std::shared_ptr<OdeArea>(new OdeArea(name, left, top, width, height, display))
+
+    #define DSL_ODE_AREA_INCLUSION_PTR std::shared_ptr<OdeInclusionArea>
+    #define DSL_ODE_AREA_INCLUSION_NEW(name, pRectangle, display) \
+        std::shared_ptr<OdeInclusionArea>(new OdeInclusionArea(name, pRectangle, display))
+
+    #define DSL_ODE_AREA_EXCLUSION_PTR std::shared_ptr<OdeExclusionArea>
+    #define DSL_ODE_AREA_EXCLUSION_NEW(name, pRectangle, display) \
+        std::shared_ptr<OdeExclusionArea>(new OdeExclusionArea(name, pRectangle, display))
 
     class OdeArea : public Base
     {
@@ -44,63 +51,28 @@ namespace DSL
 
         /**
          * @brief ctor for the OdeArea
-         * @param[out] left location of the area's left side on the x-axis in pixels, from the left of the frame
-         * @param[out] top location of the area's top on the y-axis in pixels, from the top of the frame
-         * @param[out] width width of the area in pixels
-         * @param[out] height of the area in pixels
-         * @param[out] display if true, the area will be displayed by adding meta data
+         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
+         * @param[in] display if true, the area will be displayed by adding meta data
          */
-        OdeArea(const char* name, 
-            uint left, uint top, uint width, uint height, bool display);
+        OdeArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display);
 
         /**
          * @brief dtor for the OdeArea
          */
         ~OdeArea();
-
-        /**
-         * @brief Gets the current detection area 
-         * @param[out] left location of the area's left side on the x-axis in pixels, from the left of the frame
-         * @param[out] top location of the area's top on the y-axis in pixels, from the top of the frame
-         * @param[out] width width of the area in pixels
-         * @param[out] height of the area in pixels
-         * @param[out] display if true, the area will be displayed by adding meta data
-         */
-        void GetArea(uint* left, uint* top, uint* width, uint* height, bool* display);
-
-        /**
-         * @brief sets the current detection area
-         * @param[in] left location of the area's left side on the x-axis in pixels, from the left of the frame
-         * @param[in] top location of the area's top on the y-axis in pixels, from the top of the frame
-         * @param[in] width width of the area in pixels
-         * @param[in] height of the area in pixels
-         * @param[in] display if true, the area will be displayed by adding meta data
-         */
-        void SetArea(uint left, uint top, uint width, uint height, bool display);
-
-        /**
-         * @brief Gets the current detection area backtround color
-         * @param[out] red red level for the area background color [0..1]
-         * @param[out] blue blue level for the area background color [0..1]
-         * @param[out] green green level for the area background color [0..1]
-         * @param[out] alpha alpha level for the area background color [0..1]
-         */
-        void GetColor(double* red, double* green, double* blue, double* alpha);
+        
         
         /**
-         * @brief Sets the current detection area backtround color
-         * @param[in] red red level for the area background color [0..1]
-         * @param[in] blue blue level for the area background color [0..1]
-         * @param[in] green green level for the area background color [0..1]
-         * @param[in] alpha alpha level for the area background color [0..1]
+         * @brief Adds metadata for the RGBA rectangle to pDisplayMeta to overlay the Area for display
+         * @param[in] pDisplayMeta display metadata to add the Area to
+         * @param[in] pFrameMeta the Frame metadata for the current Frame
          */
-        void SetColor(double red, double green, double blue, double alpha);
-        
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
         
        /**
-         * @brief Area rectangle parameters for object detection 
+         * @brief Area rectangle parameters for object detection and display
          */
-        NvOSD_RectParams m_rectParams;
+        DSL_RGBA_RECTANGLE_PTR m_pRectangle;
         
         /**
          * @brief Display the area (add display meta) if true
@@ -108,24 +80,49 @@ namespace DSL
         bool m_display;
         
         /**
-         * @brief updated by parent Triggers for each source/frame. Allows multiple Triggers 
-         * to know if they are the first to use the shared Area for the current source/frame, 
-         * or not. If true, i.e. m_currentFrame < FrameNumber. The Trigger can do a 
-         * once-per-frame-per-source (add area as display data) and then update the variable to 
-         * m_currentFrame = FrameNumber. Other Triggers reading the value can skip doing 
-         * the same once-per-frame operations in OdeTrigger::PreProcessFrame()
+         * @brief Updated for each source/frame-number. Allows multiple Triggers to share a single Area,
+         * And although each Trigger will call OverlayFrame() the Area can check to see if the overlay
+         * has occurred for the current source/frame-number. If not, the Area can do an actual Frame-Overlay 
+         * once-per-frame-per-source
          */
         std::map<uint, uint64_t> m_frameNumPerSource;
-    
-    private:
+    };
+
+    class OdeInclusionArea : public OdeArea
+    {
+    public: 
 
         /**
-         * @brief Mutex to ensure mutual exlusion for propery get/sets
+         * @brief ctor for the OdeInclusionArea
+         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
+         * @param[in] display if true, the area will be displayed by adding meta data
          */
-        GMutex m_propertyMutex;
+        OdeInclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display);
+
+        /**
+         * @brief dtor for the InclusionOdeArea
+         */
+        ~OdeInclusionArea();
         
     };
 
+    class OdeExclusionArea : public OdeArea
+    {
+    public: 
+
+        /**
+         * @brief ctor for the OdeExclusionArea
+         * @param[in] pRectangle a shared pointer to a RGBA Rectangle Display Type.
+         * @param[in] display if true, the area will be displayed by adding meta data
+         */
+        OdeExclusionArea(const char* name, DSL_RGBA_RECTANGLE_PTR pRectangle, bool display);
+
+        /**
+         * @brief dtor for the InclusionOdeArea
+         */
+        ~OdeExclusionArea();
+        
+    };
 }
 
 #endif //_DSL_ODE_AREA_H

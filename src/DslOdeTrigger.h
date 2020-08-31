@@ -35,44 +35,58 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_ODE_TRIGGER_PTR std::shared_ptr<OdeTrigger>
+    
+    #define DSL_ODE_TRIGGER_ALWAYS_PTR std::shared_ptr<AlwaysOdeTrigger>
+    #define DSL_ODE_TRIGGER_ALWAYS_NEW(name, source, when) \
+        std::shared_ptr<AlwaysOdeTrigger>(new AlwaysOdeTrigger(name, source, when))
 
     #define DSL_ODE_TRIGGER_ABSENCE_PTR std::shared_ptr<AbsenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, classId, limit) \
-        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
+        std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
-    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, classId, limit) \
-        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit) \
+        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
-    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, classId, limit) \
-        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit) \
+        std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, source, classId, limit))
 
     #define DSL_ODE_TRIGGER_SUMMATION_PTR std::shared_ptr<SummationOdeTrigger>
-    #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, classId, limit) \
-        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, classId, limit))
+    #define DSL_ODE_TRIGGER_SUMMATION_NEW(name, source, classId, limit) \
+        std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, source, classId, limit))
         
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
-    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, classId, limit, clientChecker, clientData) \
-        std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, classId, limit, clientChecker, clientData))
+    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, source, classId, limit, clientChecker, clientPostProcessor, clientData) \
+        std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
+            source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
     #define DSL_ODE_TRIGGER_MINIMUM_PTR std::shared_ptr<MinimumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, classId, limit, minimum) \
-        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, classId, limit, minimum))
+    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, source, classId, limit, minimum) \
+        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, source, classId, limit, minimum))
         
     #define DSL_ODE_TRIGGER_MAXIMUM_PTR std::shared_ptr<MaximumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, classId, limit, maximum) \
-        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, classId, limit, maximum))
+    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum) \
+        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, source, classId, limit, maximum))
 
     #define DSL_ODE_TRIGGER_RANGE_PTR std::shared_ptr<RangeOdeTrigger>
-    #define DSL_ODE_TRIGGER_RANGE_NEW(name, classId, limit, lower, upper) \
-        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, classId, limit, lower, upper))
+    #define DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper) \
+        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, source, classId, limit, lower, upper))
+
+    #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
+    #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<SmallestOdeTrigger>(new SmallestOdeTrigger(name, source, classId, limit))
+
+    #define DSL_ODE_TRIGGER_LARGEST_PTR std::shared_ptr<LargestOdeTrigger>
+    #define DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit) \
+        std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, source, classId, limit))
+
 
     class OdeTrigger : public Base
     {
     public: 
     
-        OdeTrigger(const char* name, uint classId, uint limit);
+        OdeTrigger(const char* name, const char* source, uint classId, uint limit);
 
         ~OdeTrigger();
 
@@ -84,26 +98,32 @@ namespace DSL
         /**
          * @brief Function to check a given Object Meta data structure for the occurence of an event
          * and to invoke all Event Actions owned by the event
+         * @param[in] pBuffer pointer to the GST Buffer containing all meta
+         * @param[in] pBatchMeta aquired from pBuffer containing the Frame and Object meta
          * @param[in] pFrameMeta pointer to the containing NvDsFrameMeta data
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        virtual bool CheckForOccurrence(GstBuffer* pBuffer, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta) = 0;
+        virtual bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta){return false;};
 
         /**
          * @brief Function called to pre process the current frame data prior to checking for Occurrences
+         * @param[in] pBuffer pointer to the GST Buffer containing all meta
+         * @param[in] pBatchMeta aquired from pBuffer containing the Frame meta
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre processing
          */
-        virtual void PreProcessFrame(GstBuffer* pBuffer,
+        virtual void PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta);
         
         /**
          * @brief Function called to process all Occurrence/Absence data for the current frame
+         * @param[in] pBuffer pointer to the GST Buffer containing all meta
+         * @param[in] pBatchMeta aquired from pBuffer containing the Frame and Object meta
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for post processing
          * @return the number of ODE Occurrences triggered on post process
          */
-        virtual uint PostProcessFrame(GstBuffer* pBuffer,
+        virtual uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta){return m_occurrences;};
 
         /**
@@ -175,29 +195,29 @@ namespace DSL
         void SetClassId(uint classId);
         
         /**
-         * @brief Get the SourceId filter used for Object detection
-         * A value of 0 indicates no filter.
-         * @return the current SourceId filter value
+         * @brief Get the Source filter used for Object detection
+         * A value of NULL indicates no filter.
+         * @return the current Source filter value
          */
-        uint GetSourceId();
+        const char* GetSource();
         
         /**
-         * @brief sets the SourceId filter for Object detection
-         * @param[in] sourceId new filter value to use
+         * @brief sets the Source filter for Object detection
+         * @param[in] source new source name as filter value to use
          */
-        void SetSourceId(uint sourceId);
+        void SetSource(const char* source);
         
         /**
          * @brief Gets the Minimuum Inference Confidence to trigger the event
          * @return the current Minimum Confidence value in use [0..1.0]
          */
-        double GetMinConfidence();
+        float GetMinConfidence();
         
         /**
          * @brief Sets the Minumum Inference Confidence to trigger the event
          * @param minConfidence new Minumum Confidence value to use
          */
-        void SetMinConfidence(double minConfidence);
+        void SetMinConfidence(float minConfidence);
         
         /**
          * @brief Gets the current Minimum rectangle width and height to trigger the event
@@ -205,7 +225,7 @@ namespace DSL
          * @param[out] minWidth current minimum width value in use
          * @param[out] minHeight current minimum height value in use
          */
-        void GetMinDimensions(uint* minWidth, uint* minHeight);
+        void GetMinDimensions(float* minWidth, float* minHeight);
 
         /**
          * @brief Sets new Minimum rectangle width and height to trigger the event
@@ -213,7 +233,7 @@ namespace DSL
          * @param[in] minWidth current minimum width value in use
          * @param[in] minHeight current minimum height value in use
          */
-        void SetMinDimensions(uint minWidth, uint minHeight);
+        void SetMinDimensions(float minWidth, float minHeight);
         
         /**
          * @brief Gets the current Maximum rectangle width and height to trigger the event
@@ -221,7 +241,7 @@ namespace DSL
          * @param[out] maxWidth current maximim width value in use
          * @param[out] maxHeight current maximim height value in use
          */
-        void GetMaxDimensions(uint* maxWidth, uint* maxHeight);
+        void GetMaxDimensions(float* maxWidth, float* maxHeight);
 
         /**
          * @brief Sets new Maximum rectangle width and height to trigger the event
@@ -229,7 +249,7 @@ namespace DSL
          * @param[in] maxWidth current maximim width value in use
          * @param[in] maxHeight current maximim height value in use
          */
-        void SetMaxDimensions(uint maxWidth, uint maxHeight);
+        void SetMaxDimensions(float maxWidth, float maxHeight);
         
         /**
          * @brief Gets the current Minimum frame count to trigger the event (n of d frames)
@@ -333,15 +353,21 @@ namespace DSL
         uint m_occurrences; 
 
         /**
+         * @brief unique source name filter for this event
+         * NULL indicates filter is disabled
+         */
+        std::string m_source;
+        
+        /**
+         * @brief unique source id filter for this event
+         * -1 indicates not set ... updated on first use.
+         */
+        int m_sourceId;
+        
+        /**
          * @brief GIE Class Id filter for this event
          */
         uint m_classId;
-        
-        /**
-         * @brief unique source stream Id filter for this event
-         * 0 indicates filter is disabled
-         */
-        uint m_sourceId;
         
         /**
          * Mininum inference confidence to trigger an ODE occurrence [0.0..1.0]
@@ -351,22 +377,22 @@ namespace DSL
         /**
          * @brief Minimum rectangle width to trigger an ODE occurrence
          */
-        uint m_minWidth;
+        float m_minWidth;
 
         /**
          * @brief Minimum rectangle height to trigger an ODE occurrence
          */
-        uint m_minHeight;
+        float m_minHeight;
 
         /**
          * @brief Maximum rectangle width to trigger an ODE occurrence
          */
-        uint m_maxWidth;
+        float m_maxWidth;
 
         /**
          * @brief Maximum rectangle height to trigger an ODE occurrence
          */
-        uint m_maxHeight;
+        float m_maxHeight;
 
         /**
          * @brief Minimum frame count numerator to trigger an ODE occurrence
@@ -386,11 +412,45 @@ namespace DSL
 
     };
     
+    class AlwaysOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        AlwaysOdeTrigger(const char* name, const char* source, uint when);
+        
+        ~AlwaysOdeTrigger();
+
+        /**
+         * @brief Function called to pre-process the current frame data
+         * This trigger will not look for any occurrences
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre-processing
+         */
+        void PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta);
+
+        /**
+         * @brief Function to post-process the frame for an Absence Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        
+    private:
+    
+        /**
+         * When to Trigger, pre-occurrence-checking, Post-occurrence-checking, or both
+         */
+        uint m_when;
+    
+    };
+
+
     class OccurrenceOdeTrigger : public OdeTrigger
     {
     public:
     
-        OccurrenceOdeTrigger(const char* name, uint classId, uint limit);
+        OccurrenceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~OccurrenceOdeTrigger();
 
@@ -402,7 +462,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
         
     private:
@@ -413,7 +473,7 @@ namespace DSL
     {
     public:
     
-        AbsenceOdeTrigger(const char* name, uint classId, uint limit);
+        AbsenceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~AbsenceOdeTrigger();
 
@@ -424,7 +484,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -433,7 +493,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -443,7 +503,7 @@ namespace DSL
     {
     public:
     
-        SummationOdeTrigger(const char* name, uint classId, uint limit);
+        SummationOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~SummationOdeTrigger();
 
@@ -454,7 +514,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -463,7 +523,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -473,7 +533,7 @@ namespace DSL
     {
     public:
     
-        IntersectionOdeTrigger(const char* name, uint classId, uint limit);
+        IntersectionOdeTrigger(const char* name, const char* source, uint classId, uint limit);
         
         ~IntersectionOdeTrigger();
 
@@ -484,7 +544,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -493,7 +553,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -510,8 +570,9 @@ namespace DSL
     {
     public:
     
-        CustomOdeTrigger(const char* name, 
-            uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, void* clientData);
+        CustomOdeTrigger(const char* name, const char* source, 
+            uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
+            dsl_ode_post_process_frame_cb clientPostProcessor, void* clientData);
         
         ~CustomOdeTrigger();
 
@@ -524,8 +585,16 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        /**
+         * @brief Function to call the client provided callback to post process the frame 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
     private:
     
@@ -533,6 +602,11 @@ namespace DSL
          * @brief client provided Check for Occurrence callback
          */
         dsl_ode_check_for_occurrence_cb m_clientChecker;
+        
+        /**
+         * @brief client provided Post-Process Frame callback
+         */
+        dsl_ode_post_process_frame_cb m_clientPostProcessor;
         
         /**
          * @brief client data to be returned to the client on callback
@@ -545,7 +619,7 @@ namespace DSL
     {
     public:
     
-        MinimumOdeTrigger(const char* name, uint classId, uint limit, uint minimum);
+        MinimumOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint minimum);
         
         ~MinimumOdeTrigger();
 
@@ -556,7 +630,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -566,7 +640,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -581,7 +655,7 @@ namespace DSL
     {
     public:
     
-        MaximumOdeTrigger(const char* name, uint classId, uint limit, uint maximum);
+        MaximumOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint maximum);
         
         ~MaximumOdeTrigger();
 
@@ -592,7 +666,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -602,7 +676,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -617,7 +691,7 @@ namespace DSL
     {
     public:
     
-        RangeOdeTrigger(const char* name, uint classId, uint limit, uint lower, uint upper);
+        RangeOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint lower, uint upper);
         
         ~RangeOdeTrigger();
 
@@ -628,7 +702,7 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
-        bool CheckForOccurrence(GstBuffer* pBuffer,
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
@@ -638,7 +712,7 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -654,6 +728,81 @@ namespace DSL
     
     };
 
+    class SmallestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        SmallestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~SmallestOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Smallest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data
+         * Each object occurrence that matches the min criteria will be added
+         * to list to be checked for Smallest object on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
+    
+    };
+
+    class LargestOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        LargestOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~LargestOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Largest Object Event 
+         * if at least one object is found
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data
+         * Each object occurrence that matches the min criteria will be added
+         * to list to be checked for Largest object on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
+    
+    };
 }
 
 #endif // _DSL_ODE_H

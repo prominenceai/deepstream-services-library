@@ -33,21 +33,32 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
         std::wstring areaName1(L"area-1");
         std::wstring areaName2(L"area-2");
         std::wstring areaName3(L"area-3");
-        uint left(0), top(0), width(100), height(100);
         boolean display(true);
+
+        std::wstring areaRectangleName(L"area-rectangle");
+        uint left(0), top(0), width(100), height(100);
+        uint border_width(0);
         
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
+        std::wstring lightWhite(L"light-white");
+        REQUIRE( dsl_display_type_rgba_color_new(lightWhite.c_str(), 
+            1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
+            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+
         WHEN( "Several new Actions are created" ) 
         {
-            REQUIRE( dsl_ode_area_new(areaName1.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_new(areaName2.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_new(areaName3.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
                 REQUIRE( dsl_ode_area_list_size() == 3 );
 
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_list_size() == 0 );
             }
@@ -62,14 +73,24 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         std::wstring areaName1(L"area-1");
         std::wstring areaName2(L"area-2");
         std::wstring areaName3(L"area-3");
-        uint left(0), top(0), width(100), height(100);
         boolean display(true);
+        
+        std::wstring areaRectangleName(L"area-rectangle");
+        uint left(0), top(0), width(100), height(100);
+        uint border_width(0);
         
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
-        REQUIRE( dsl_ode_area_new(areaName1.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_new(areaName2.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_new(areaName3.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
+        std::wstring lightWhite(L"light-white");
+        REQUIRE( dsl_display_type_rgba_color_new(lightWhite.c_str(), 
+            1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
+            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
 
         WHEN( "A single Area is deleted" ) 
         {
@@ -80,6 +101,7 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
 
                 REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "Multiple Areas are deleted" ) 
@@ -93,128 +115,40 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
 
                 REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "The ODE Area's Rectangle can be updated", "[ode-area-api]" )
+
+SCENARIO( "The ODE Area API checks for NULL input parameters", "[ode-area-api]" )
 {
-    GIVEN( "An a new ODE Area" ) 
+    GIVEN( "An empty list of Components" ) 
     {
-        std::wstring areaName1(L"area-1");
-        uint left(0), top(0), width(100), height(100);
-        boolean display(true);
+        std::wstring areaName  = L"test-area";
+        std::wstring otherName  = L"other";
         
-        REQUIRE( dsl_ode_area_new(areaName1.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
+        uint interval(0);
+        boolean enabled(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "The Area's Rectangle is updated" ) 
+        WHEN( "When NULL pointers are used as input" ) 
         {
-            uint retLeft(999), retTop(999), retWidth(999), retHeight(999);
-            uint newLeft(123), newTop(123), newWidth(432), newHeight(234);
-            boolean retDisplay(true), newDisplay(false);
-
-            REQUIRE( dsl_ode_area_set(areaName1.c_str(), 
-                newLeft, newTop, newWidth, newHeight, newDisplay)  == DSL_RESULT_SUCCESS );
-            
-            THEN( "The list size and events are updated correctly" ) 
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                dsl_ode_area_get(areaName1.c_str(), &retLeft, &retTop, &retWidth, &retHeight, &retDisplay);
-                REQUIRE( retLeft == newLeft );
-                REQUIRE( retTop == newTop );
-                REQUIRE( retWidth == newWidth );
-                REQUIRE( retHeight == newHeight );
-                REQUIRE( retDisplay == newDisplay );
+                REQUIRE( dsl_ode_area_inclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_exclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_area_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
 }
-
-SCENARIO( "The ODE Area's Background Color can be updated", "[ode-area-api]" )
-{
-    GIVEN( "An a new ODE Area" ) 
-    {
-        std::wstring areaName1(L"area-1");
-        uint left(0), top(0), width(100), height(100);
-        boolean display(true);
-        
-        REQUIRE( dsl_ode_area_new(areaName1.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-
-        WHEN( "The Areas Rectangle is updated" ) 
-        {
-            double retRed(0.111), retGreen(0.222), retBlue(0.333), retAlpha(0.444);
-            double newRed(0.555), newGreen(0.666), newBlue(0.777), newAlpha(0.888);
-
-            REQUIRE( dsl_ode_area_color_set(areaName1.c_str(), newRed, newGreen, newBlue, newAlpha)  == DSL_RESULT_SUCCESS );
-            
-            THEN( "The list size and events are updated correctly" ) 
-            {
-                dsl_ode_area_color_get(areaName1.c_str(), &retRed, &retGreen, &retBlue, &retAlpha);
-                REQUIRE( retRed == newRed );
-                REQUIRE( retGreen == newGreen );
-                REQUIRE( retBlue == newBlue );
-                REQUIRE( retAlpha == newAlpha );
-                REQUIRE( retRed == newRed );
-
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "The ODE Area Color API's fail when invalid Background Color values are used", "[ode-area-api]" )
-{
-    GIVEN( "An a new ODE Area" ) 
-    {
-        std::wstring areaName1(L"area-1");
-        uint left(0), top(0), width(100), height(100);
-        boolean display(true);
-        
-        REQUIRE( dsl_ode_area_new(areaName1.c_str(), left, top, width, height, display) == DSL_RESULT_SUCCESS );
-
-        WHEN( "An invalid value is used for Red " ) 
-        {
-            double newRed(1.0001), newGreen(0.999), newBlue(0.999), newAlpha(0.999);
-
-            THEN( "Setting the Area color must fail" ) 
-            {
-                REQUIRE( dsl_ode_area_color_set(areaName1.c_str(), newRed, newGreen, newBlue, newAlpha)  == DSL_RESULT_ODE_AREA_SET_FAILED );
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-        WHEN( "An invalid value is used for Green " ) 
-        {
-            double newRed(0.999), newGreen(1.0001), newBlue(0.999), newAlpha(0.999);
-
-            THEN( "Setting the Area color must fail" ) 
-            {
-                REQUIRE( dsl_ode_area_color_set(areaName1.c_str(), newRed, newGreen, newBlue, newAlpha)  == DSL_RESULT_ODE_AREA_SET_FAILED );
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-        WHEN( "An invalid value is used for Blue " ) 
-        {
-            double newRed(0.999), newGreen(0.999), newBlue(1.0001), newAlpha(0.999);
-
-            THEN( "Setting the Area color must fail" ) 
-            {
-                REQUIRE( dsl_ode_area_color_set(areaName1.c_str(), newRed, newGreen, newBlue, newAlpha)  == DSL_RESULT_ODE_AREA_SET_FAILED );
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-        WHEN( "An invalid value is used for Alpha " ) 
-        {
-            double newRed(0.999), newGreen(0.999), newBlue(0.999), newAlpha(1.0001);
-
-            THEN( "Setting the Area color must fail" ) 
-            {
-                REQUIRE( dsl_ode_area_color_set(areaName1.c_str(), newRed, newGreen, newBlue, newAlpha)  == DSL_RESULT_ODE_AREA_SET_FAILED );
-                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-
-    }
-}
-

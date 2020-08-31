@@ -33,7 +33,7 @@ uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Tracker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
-primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b2_gpu0_fp16.engine'
+primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 tracker_config_file = '../../test/configs/iou_config.txt'
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -53,7 +53,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_main_loop_quit()
  
 ## 
@@ -107,10 +107,13 @@ def main(args):
         # the Sink for rendering.
         
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        retval = dsl_display_type_rgba_color_new('flash-white', red=1.0, blue=1.0, green=1.0, alpha=0.7)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
         
         # Create a Fill-Area Action to simulate a 'camera-flash' as a visual indicator that an Object Image Capture 
         # has occurred. This Action will be shared between all Triggers created for image capture
-        retval = dsl_ode_action_fill_frame_new('camera-flash-action', red=1.0, blue=0.8, green=1.0, alpha=0.7)
+        retval = dsl_ode_action_fill_frame_new('camera-flash-action', 'flash-white')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -135,7 +138,19 @@ def main(args):
         # Create an Area that defines a vertical rectangle to the right of the sidewalk and left of the street
         # This area's background will be displayed shaded a default color of white. The Area will be added
         # To the 'person-occurrence' Trigger as criteria for ODE occurrence
-        retval = dsl_ode_area_new('person-criteria-area', left=520, top=0, width=40, height=1089, display=True)
+
+        retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, blue=1.0, green=1.0, alpha=0.2)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        # New RGBA Rectangle to use as a background for summation display. Using the full black with alpha=1.0
+        retval = dsl_display_type_rgba_rectangle_new('white-rectangle', left=520, top=0, width=40, height=1089, 
+            border_width=0, color='opaque-white', has_bg_color=True, bg_color='opaque-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+        
+        
+        retval = dsl_ode_area_inclusion_new('person-criteria-area', rectangle='white-rectangle', display=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -145,7 +160,7 @@ def main(args):
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Vehicle occurrence Trigger with a limit of one, with Minimum Dimensions set. 
         # The default minimum width and height values are set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence', source=None,
             class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -162,7 +177,7 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New Person occurrence Trigger with a limit of one, with the ODE Area created above as criteria. 
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence', source=None, 
             class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -182,7 +197,7 @@ def main(args):
         
         # New Bicycle occurrence Trigger with a limit of one, with Minimum Confidence set. 
         # The default minimum confidence value is set to 0 = disabled on creation.
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', 
+        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence', source=None,
             class_id=PGIE_CLASS_ID_BICYCLE, limit=DSL_ODE_TRIGGER_LIMIT_ONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -210,11 +225,11 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
-        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
-        retval = dsl_ode_handler_new('ode-handler')
+        # New ODE Pad Probe Handler to handle all ODE Triggers with their Areas and Actions    
+        retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_handler_trigger_add_many('ode-handler', triggers=[
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
             'vehicle-occurrence',
             'person-occurrence',
             'bicycle-occurrence',
@@ -246,12 +261,17 @@ def main(args):
         retval = dsl_tiler_new('tiler', 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
- 
+
+        # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... .
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+ 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
@@ -259,7 +279,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'ode-handler', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

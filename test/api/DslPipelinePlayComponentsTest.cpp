@@ -85,6 +85,70 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Tiled Display ca
     }
 }
 
+SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Display can play", "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Fake Sink, and Tiled Display" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0); 
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring fakeSinkName(L"fake-sink");
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        // overlay sink for observation 
+        REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"tiler", L"fake-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipelineName.c_str(), &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Pipeline with a URI File Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
@@ -280,7 +344,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Overlay Sink, and Tile
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -348,7 +412,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -421,7 +485,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -797,7 +861,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -805,7 +869,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         
         std::wstring secondaryGieName1(L"secondary-gie");
         std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -852,7 +916,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-
+            
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 bool currIsClockEnabled(false);
@@ -882,7 +946,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring trackerName(L"ktl-tracker");
         uint trackerW(480);
@@ -890,17 +954,15 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         
         std::wstring secondaryGieName1(L"secondary-gie1");
         std::wstring sgieInferConfigFile1(L"./test/configs/config_infer_secondary_carcolor_nano.txt");
-        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring sgieModelEngineFile1(L"./test/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
-        // Note new model is not saved for car color with DS 5.0 ??????
-        // need to let it generate a new engine by loading the previous?
         std::wstring secondaryGieName2(L"secondary-gie2");
         std::wstring sgieInferConfigFile2(L"./test/configs/config_infer_secondary_carmake_nano.txt");
-        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring sgieModelEngineFile2(L"./test/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring secondaryGieName3(L"secondary-gie3");
         std::wstring sgieInferConfigFile3(L"./test/configs/config_infer_secondary_vehicletypes_nano.txt");
-        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring sgieModelEngineFile3(L"./test/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
         
         std::wstring tilerName(L"tiler");
         uint width(1280);
@@ -1181,7 +1243,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b2_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring demuxerName(L"demuxer");
 
@@ -1277,7 +1339,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 
         std::wstring primaryGieName(L"primary-gie");
         std::wstring pgieInferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
+        std::wstring pgieModelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 
         std::wstring tilerName1(L"tiler1");
         std::wstring tilerName2(L"tiler2");
@@ -1481,22 +1543,25 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //
 
 
-SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture frames", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH can play", "[new]" )
 {
-    GIVEN( "A Pipeline, URI source, Tiled Display, and Image Sink" ) 
+    GIVEN( "A Pipeline, URI source, Tiled Display, and Meter PPH" ) 
     {
         std::wstring sourceName1(L"uri-source");
         std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
         uint intrDecode(false);
-        uint dropFrameInterval(0);
+        uint dropFrameInterval(0); 
 
         std::wstring tilerName(L"tiler");
         uint width(1280);
         uint height(720);
 
-        std::wstring imageSinkName(L"image-sink");
-        std::wstring outdir(L"./");
+        std::wstring fakeSinkName(L"fake-sink");
+
+        std::wstring meterPphName(L"meter-pph");
+        uint interval(1);
+        dsl_pph_meter_client_handler_cb client_handler;
 
         std::wstring pipelineName(L"test-pipeline");
         
@@ -1505,15 +1570,15 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
         REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        // overlay sink for observation 
-        REQUIRE( dsl_sink_image_new(imageSinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_image_frame_capture_enabled_set(imageSinkName.c_str(), true) == DSL_RESULT_SUCCESS );
-
-        // new tiler for this scenario
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source", L"tiler", L"image-sink", NULL};
+        REQUIRE( dsl_pph_meter_new(meterPphName.c_str(), interval, client_handler, NULL) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), meterPphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_fake_new(fakeSinkName.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"tiler", L"fake-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1523,9 +1588,12 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
-                bool currIsClockEnabled(false);
-                
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipelineName.c_str(), &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1533,79 +1601,10 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink c
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and ImageSink can capture objects", "[pipeline-play]" )
-{
-    GIVEN( "A Pipeline, URI source, Tiled Display, and Image Sink" ) 
-    {
-        std::wstring sourceName1(L"uri-source");
-        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring primaryGieName(L"primary-gie");
-        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
-        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b1_gpu0_fp16.engine");
-        
-        std::wstring trackerName(L"ktl-tracker");
-        uint trackerW(480);
-        uint trackerH(272);
-
-        std::wstring tilerName(L"tiler");
-        uint width(1280);
-        uint height(720);
-
-        std::wstring imageSinkName(L"image-sink");
-        std::wstring outdir(L"./");
-
-        std::wstring pipelineName(L"test-pipeline");
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
-            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_image_new(imageSinkName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_image_object_capture_enabled_set(imageSinkName.c_str(), true) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_image_object_capture_class_add(imageSinkName.c_str(), 0, false, 0) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_image_object_capture_class_add(imageSinkName.c_str(), 2, false, 0) == DSL_RESULT_SUCCESS );
-
-        // new tiler for this scenario
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-        
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"image-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
-
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                bool currIsClockEnabled(false);
-                
-                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
