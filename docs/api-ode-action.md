@@ -37,7 +37,6 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
 * [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
 * [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
-* [dsl_ode_action_capture_area_new](#dsl_ode_action_capture_area_new)
 * [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
 * [dsl_ode_action_display_new](#dsl_ode_action_display_new)
@@ -45,6 +44,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new)
+* [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_hide_new](#dsl_ode_action_hide_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
@@ -216,38 +216,18 @@ retval = dsl_ode_action_callback_new('my-callback-action', my_ode_callback, my_d
 
 <br>
 
-### *dsl_ode_action_capture_area_new*
-```C++
-DslReturnType dsl_ode_action_capture_area_new(const wchar_t* name, const wchar_t* area, const wchar_t* outdir);
-```
-The constructor creates a uniquely named **Area Capture** ODE Action. When invoked, this Action will capture the rectangular area defined by and ODE Area object.  to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid. 
-
-Note: The Area is not required to owned by a Trigger.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `area` - [in] unique name for the ODE Area to capture.
-* `outdir` - [in] absolute or relative path to the output directory to save the image file.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_action_capture_area_new('my-area-capture-action', 'my-area', './images/areas')
-```
-
-<br>
-
 ### *dsl_ode_action_capture_frame_new*
 ```C++
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
 ```
-The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
+The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labes. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
+
+The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `outdir` - [in] absolute or relative path to the output directory to save the image file to
+* `annotate` - [in] if true, the action will annotate the image with object bounding boxes and labels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -369,8 +349,7 @@ retval = dsl_ode_action_fill_frame_new('my-fill-frame-action', 'opaque-red')
 
 ### *dsl_ode_action_fill_object_new*
 ```C++
-DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name
-    double red, double green, double blue, double alpha);
+DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);
 ```
 The constructor creates a uniquely named **Fill Object** ODE Action. When invoked, this Action will fill the Object's rectangle background color by updated the Metadata that triggered the ODE occurrence.
 
@@ -384,6 +363,26 @@ The constructor creates a uniquely named **Fill Object** ODE Action. When invoke
 **Python Example**
 ```Python
 retval = dsl_ode_action_fill_object_new('my-fill-object-action', 'opaque-red')
+```
+
+<br>
+
+### *dsl_ode_action_fill_surroundings_new*
+```C++
+DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color);
+```
+The constructor creates a uniquely named **Fill Surroundings** ODE Action. When invoked, this Action will file the Object's surroundings, meaning everything but the objects rectangle by updating the frame metadata on ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `color` - [in] RGBA Color Display Type to fill the object backround with.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-grey')
 ```
 
 <br>
