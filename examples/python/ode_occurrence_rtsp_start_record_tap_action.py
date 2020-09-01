@@ -30,7 +30,7 @@ import time
 from dsl import *
 
 # RTSP Source URI
-src_url_0 = 'rtsp://rjhowell44:Success44@192.168.0.14:554/Streaming/Channels/101'
+src_url_0 = 'rtsp://user:password@192.168.0.14:554/Streaming/Channels/101'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
