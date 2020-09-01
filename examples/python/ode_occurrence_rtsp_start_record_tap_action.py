@@ -129,8 +129,13 @@ def RecordingStarted(event_id, trigger,
 
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
-
     
+    # a good place to enabled an Always Trigger that adds `REC` text to the frame which can
+    # be disabled in the RecordComplete callback below. And/or send notifictions to external clients.
+    
+    # in this example we will call on the Tiler to show the source that started recording.
+    dsl_tiler_source_show_set('tiler', source=components.source, timeout=duration, has_precedence=True)
+
 ##
 # Callback function to process all "record-complete" notifications
 ##
