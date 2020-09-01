@@ -1,6 +1,7 @@
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/canammex-tech/deepstream-services-library?include_prereleases)](https://github.com/canammex-tech/deepstream-services-library/releases)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/canammex-tech/deepstream-services-library/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/canammex-tech/deepstream-services-library/blob/master/docs/overview.md)
+[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://discord.com/channels/750454524849684540/750457019260993636)
 
 # deepstream-services-library (DSL)
 
