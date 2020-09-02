@@ -23,6 +23,8 @@
 * [API Reference](#api-reference)
 
 ## Introduction
+The DeepStream Services Library (DSL) is best described as "the NVIDIA DeepStream Reference Applications reimagined as a shared library of DeepStream pipeline services".
+
 [NVIDIA’s DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) "*an extremely powerful and versatile framework*<sup id="a1">[1](#f1)</sup>" -- enables experienced software developers to "*Seamlessly Develop Complex Stream Processing Pipelines*<sup id="a2">[2](#f2)</sup>". 
 
 For those new to DeepStream, however, GStreamer comes with a learning curve that can be steep or lengthy for some. 
