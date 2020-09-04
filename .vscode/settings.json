@@ -1,3 +1,12 @@
 {
-    "C_Cpp.clang_format_fallbackStyle": "Visual Studio"
+    "C_Cpp.clang_format_fallbackStyle": "Visual Studio",
+    "python.pythonPath": "~/.virtualenvs/dsl/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": [
+        "--max-line-length",
+        "120",
+        "--ignore",
+        "E402"
+    ]
 }
