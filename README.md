@@ -58,4 +58,5 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
 * [Examples](/docs/examples.md)
   * [C/C++](/docs/examples-cpp.md)
   * [Python](/docs/examples-python.md)
+* [Using VS Code](/docs/vscode.md)
 * [Logging and Debugging](/docs/debugging-dsl.md)
