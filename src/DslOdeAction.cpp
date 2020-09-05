@@ -22,11 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-//#include <nvbufsurftransform.h>
-//#include "opencv2/imgproc/imgproc.hpp"
-//#include "opencv2/imgproc/types_c.h"
-//#include "opencv2/highgui/highgui.hpp"
-
 #include "Dsl.h"
 #include "DslServices.h"
 #include "DslOdeTrigger.h"
@@ -171,99 +166,87 @@ namespace DSL
         {
             return;
         }
-        GstMapInfo inMapInfo = {0};
-
-        if (!gst_buffer_map(pBuffer, &inMapInfo, GST_MAP_READ))
-        {
-            LOG_ERROR("ODE Capture Action '" << GetName() << "' failed to map gst buffer");
-            gst_buffer_unmap(pBuffer, &inMapInfo);
-            return;
-        }
-        NvBufSurface* surface = (NvBufSurface*)inMapInfo.data;
-
-        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
-        std::string filespec = m_outdir + "/" + pTrigger->GetName() + "-" +
-            std::to_string(pTrigger->s_eventCount) + ".jpeg";
-
-        NvBufSurfTransformRect src_rect = {0};
-        NvBufSurfTransformRect dst_rect = {0};
-        
+        // surface index is derived from the batch_id for the frame that triggered the event
         int surfaceIndex = pFrameMeta->batch_id;
+        
+        // Coordinates and dimensions for our destination surface for RGBA to BGR conversion required for JPEG
+        uint32_t left(0), top(0), width(0), height(0);
+
+        // MapInfo for the current buffer
+        DslMapInfo mapInfo(pBuffer);
+        
+        // Transforming only one frame in the batch, so create a copy of the single surface ... becoming our new source surface
+        // This creates a new mono (non-batched) surface copied from the "batched frames" using the batch id as the index
+        DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
-            // Note: the width and heigth should be the same for all streams
-            // in the batch set by the streammux, but use the index anyways.
-            src_rect.width = surface->surfaceList[surfaceIndex].width;
-            src_rect.height = surface->surfaceList[surfaceIndex].height;
-            dst_rect.width = surface->surfaceList[surfaceIndex].width;
-            dst_rect.height = surface->surfaceList[surfaceIndex].height;
+            width = srcSurface.width;
+            height = srcSurface.height;
         }
         else
         {
-            src_rect.top = pObjectMeta->rect_params.top;
-            src_rect.left = pObjectMeta->rect_params.left;
-            src_rect.width = pObjectMeta->rect_params.width; 
-            src_rect.height = pObjectMeta->rect_params.height;
-            dst_rect.width = pObjectMeta->rect_params.width; 
-            dst_rect.height = pObjectMeta->rect_params.height;
+            left = pObjectMeta->rect_params.left;
+            top = pObjectMeta->rect_params.top;
+            width = pObjectMeta->rect_params.width; 
+            height = pObjectMeta->rect_params.height;
         }
-        NvBufSurfTransformParams bufSurfTransform;
-        bufSurfTransform.src_rect = &src_rect;
-        bufSurfTransform.dst_rect = &dst_rect;
-        bufSurfTransform.transform_flag = NVBUFSURF_TRANSFORM_CROP_SRC |
-            NVBUFSURF_TRANSFORM_CROP_DST;
-        bufSurfTransform.transform_filter = NvBufSurfTransformInter_Default;
+        
+        // New "create params" for our destination surface. we only need one surface so set 
+        // memory allocation (for the array of surfaces) size to 0
+        DslSurfaceCreateParams surfaceCreateParams(srcSurface.gpuId, width, height, 0);
+        
+        // New Destination surface with a batch size of 1 for transforming the single surface 
+        DslBufferSurface dstSurface(1, surfaceCreateParams);
 
-        NvBufSurface *dstSurface = NULL;
-
-        NvBufSurfaceCreateParams bufSurfaceCreateParams;
-
-        // An intermediate buffer for NV12/RGBA to BGR conversion
-        bufSurfaceCreateParams.gpuId = surface->gpuId;
-        bufSurfaceCreateParams.width = dst_rect.width;
-        bufSurfaceCreateParams.height = dst_rect.height;
-        bufSurfaceCreateParams.size = 0;
-        bufSurfaceCreateParams.colorFormat = NVBUF_COLOR_FORMAT_RGBA;
-        bufSurfaceCreateParams.layout = NVBUF_LAYOUT_PITCH;
-        bufSurfaceCreateParams.memType = NVBUF_MEM_DEFAULT;
-
-        cudaError_t cudaError = cudaSetDevice(surface->gpuId);
-        cudaStream_t cudaStream;
-        cudaError = cudaStreamCreate(&cudaStream);
-
-        int retval = NvBufSurfaceCreate(&dstSurface, surface->batchSize,
-            &bufSurfaceCreateParams);	
-
-        NvBufSurfTransformConfigParams bufSurfTransformConfigParams;
-        NvBufSurfTransform_Error err;
-
-        bufSurfTransformConfigParams.compute_mode = NvBufSurfTransformCompute_Default;
-        bufSurfTransformConfigParams.gpu_id = surface->gpuId;
-        bufSurfTransformConfigParams.cuda_stream = cudaStream;
-        err = NvBufSurfTransformSetSessionParams (&bufSurfTransformConfigParams);
-
-        NvBufSurfaceMemSet(dstSurface, -1, -1, 0);
-
-        err = NvBufSurfTransform (surface, dstSurface, &bufSurfTransform);
-        if (err != NvBufSurfTransformError_Success)
+        // New "transform params" for the surface transform, croping or (future?) scaling
+        DslTransformParams transformParams(left, top, width, height);
+        
+        // New "Cuda stream" for the surface transform
+        DslCudaStream dslCudaStream(srcSurface.gpuId);
+        
+        // New "Transform Session" config params using the new Cuda stream
+        DslSurfaceTransformSessionParams dslTransformSessionParams(srcSurface.gpuId, dslCudaStream);
+        
+        // Set the "Transform Params" for the current tranform session
+        if (!dslTransformSessionParams.Set())
         {
-            g_print ("NvBufSurfTransform failed with error %d while converting buffer\n", err);
+            LOG_ERROR("Destination surface failed to set transform session params for Action '" << GetName() << "'");
+            return;
+        }
+        
+        // We can now transform our Mono Source surface to the first (and only) surface in the batched buffer.
+        if (!dstSurface.TransformMonoSurface(srcSurface, 0, transformParams))
+        {
+            LOG_ERROR("Destination surface failed to transform for Action '" << GetName() << "'");
+            return;
+        }
+        
+        // Map the tranformed surface for read
+        if (!dstSurface.Map())
+        {
+            LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
+            return;
+        }
+        
+        // Sync the surface for CPU access
+        if (!dstSurface.SyncForCpu())
+        {
+            LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
+            return;
         }
 
-        NvBufSurfaceMap(dstSurface, -1, -1, NVBUF_MAP_READ);
-        NvBufSurfaceSyncForCpu(dstSurface, -1, -1);
+        // New background Mat for our image
+        cv::Mat bgr_frame = cv::Mat(cv::Size(width, height), CV_8UC3);
 
-        cv::Mat bgr_frame = cv::Mat(cv::Size(bufSurfaceCreateParams.width,
-            bufSurfaceCreateParams.height), CV_8UC3);
+        // new forground Mat using the first (and only) bufer in the batch
+        cv::Mat in_mat = cv::Mat(height, width, CV_8UC4, 
+            (&dstSurface)->surfaceList[0].mappedAddr.addr[0],
+            (&dstSurface)->surfaceList[0].pitch);
 
-        cv::Mat in_mat = cv::Mat(bufSurfaceCreateParams.height, 
-            bufSurfaceCreateParams.width, CV_8UC4, 
-            dstSurface->surfaceList[surfaceIndex].mappedAddr.addr[0],
-            dstSurface->surfaceList[surfaceIndex].pitch);
-
+        // Convert the RGBA buffer to BGR
         cv::cvtColor(in_mat, bgr_frame, CV_RGBA2BGR);
         
         // if this is a frame capture and the client wants the image annotated.
@@ -290,13 +273,13 @@ namespace DSL
                 }
             }
         }
+    
+        DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+        
+        std::string filespec = m_outdir + "/" + pTrigger->GetName() + "-" +
+            std::to_string(pTrigger->s_eventCount) + ".jpeg";
 
         cv::imwrite(filespec.c_str(), bgr_frame);
-
-        NvBufSurfaceUnMap(dstSurface, -1, -1);
-        NvBufSurfaceDestroy(dstSurface);
-        cudaStreamDestroy(cudaStream);
-        gst_buffer_unmap(pBuffer, &inMapInfo);
     }
 
     // ********************************************************************

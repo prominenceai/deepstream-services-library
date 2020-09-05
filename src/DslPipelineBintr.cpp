@@ -23,6 +23,8 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslSurfaceTransform.h"
+
 #include "DslServices.h"
 #include "DslPipelineBintr.h"
 

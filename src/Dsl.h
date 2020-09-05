@@ -55,7 +55,8 @@ THE SOFTWARE.
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
 
-#include "DslMutex.h"
 #include "DslLog.h"
+#include "DslMutex.h"
+
 
 #endif // _DSL_H

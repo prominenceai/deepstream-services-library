@@ -217,7 +217,7 @@ def main(args):
 
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be save to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./", annotate=true)
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture', outdir="./", annotate=True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
