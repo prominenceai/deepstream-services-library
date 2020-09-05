@@ -79,7 +79,7 @@ namespace DSL
 
     public:
     
-        // cuda stream if created succesfully, NULL otherwise.
+        // cuda stream if created successfully, NULL otherwise.
         cudaStream_t stream;
     };
 
@@ -107,7 +107,7 @@ namespace DSL
                 LOG_ERROR("Failed to map gst buffer");
                 throw;
             }
-            // set only when succesful
+            // set only when successful
             m_pBuffer = pBuffer;
         }
 
@@ -161,7 +161,7 @@ namespace DSL
             numFilled = 1;
             batchSize = 1;
             
-            // copy the single indexed surface to 
+            // copy the single indexed surface to the new surfaceList of one
             surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
             
             // new width and height properties for the mono surface, since there's only one.
@@ -214,11 +214,11 @@ namespace DSL
         DslTransformParams(uint32_t left, uint32_t top, uint32_t width, uint32_t height)
             : NvBufSurfTransformParams{0}
             , m_srcRect{top, left, width, height} // this is the correct order for Transform (top first)
-            , m_dstRect{0, 0, width, height} // this may be too limiting
+            , m_dstRect{0, 0, width, height} // this may be too limiting, only supports cropping
         {
             LOG_FUNC();
 
-            // src and dst rectangls are setup by pointer
+            // src and dst rectangles are set up by pointer
             src_rect = &m_srcRect;
             dst_rect = &m_dstRect;
             transform_flag = NVBUFSURF_TRANSFORM_CROP_SRC | NVBUFSURF_TRANSFORM_CROP_DST;
@@ -236,12 +236,12 @@ namespace DSL
     private:
 
         /**
-         * @brief m_srcRect coordinates and dimensons of the rectange to transform within the source surface.
+         * @brief m_srcRect coordinates and dimensions of the rectangle to transform within the source surface.
          */
         NvBufSurfTransformRect m_srcRect;
 
         /**
-         * @brief m_srcRect coordinates and dimensons of the rectange to transform for the destination surface.
+         * @brief m_srcRect coordinates and dimensions of the rectangle to transform for the destination surface.
          */
         NvBufSurfTransformRect m_dstRect;
     };
@@ -259,8 +259,8 @@ namespace DSL
         /**
          * @brief ctor for the DslSurfaceCreateParams structure
          * @param gpuId GPU ID valid for multi GPU systems
-         * @param width width of the new buffer of surfaces
-         * @param height height of the new buffer of surfaces
+         * @param width width of the new surface if only 1
+         * @param height height of the new surface if only 1`
          * @param size of memory to create, width and height are ignored if set
          * set size to 0 for no addition memory allocated when batch size = 1
          */
@@ -310,7 +310,7 @@ namespace DSL
         }
         
         /**
-         * @brief function to set the the Transform Session params
+         * @brief function to set the Transform Session params
          */
         bool Set()
         {
@@ -384,7 +384,7 @@ namespace DSL
         
         /**
          * @brief function to transform a mono source surface to a surface indexed within the batch.
-         * @return true on succesful transfrom, false otherwise
+         * @return true on successful transform, false otherwise
          */
         bool TransformMonoSurface(DslMonoSurface& srcSurface, uint32_t index, DslTransformParams& transformParams)
         {
@@ -401,7 +401,7 @@ namespace DSL
         
         /**
          * @brief function to map the newly transformed batched surface buffer.
-         * @return true on succesful maping, false otherwise
+         * @return true on successful mapping, false otherwise
          */
         bool Map()
         {
@@ -414,8 +414,8 @@ namespace DSL
         }
         
         /**
-         * @brief function to syncronize a mapped, and transformed batched surface buffer, modifed by hardware, for CPU access
-         * @return true on succesful maping, false otherwise
+         * @brief function to synchronize a mapped, and transformed batched surface buffer, modified by hardware, for CPU access
+         * @return true on successful mapping, false otherwise
          */
         bool SyncForCpu()
         {
