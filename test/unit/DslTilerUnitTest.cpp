@@ -76,9 +76,10 @@ SCENARIO( "A Tiled Tiler's tiles can be updated",  "[TilerBintr]" )
         uint currRows(0);
         uint currColumns(0);
     
-        pTilerBintr->GetTiles(&currRows, &currColumns);
-        REQUIRE( currRows == 0 );
-        REQUIRE( currColumns == 0 );
+        // Tiler element defaults to 1 x 1
+        pTilerBintr->GetTiles(&currColumns, &currRows);
+        REQUIRE( currColumns == 1 );
+        REQUIRE( currRows == 1 );
 
         WHEN( "The Tiler's tile layout is Set" )
         {

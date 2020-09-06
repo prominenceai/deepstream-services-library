@@ -38,7 +38,8 @@ namespace DSL
         , m_showSourceId(-1)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
-        , m_showSourceTimerId(0)    
+        , m_showSourceTimerId(0)
+        , m_showSourceCycle(false)
     {
         LOG_FUNC();
 
@@ -135,7 +136,7 @@ namespace DSL
         m_columns = columns;
         m_rows = rows;
     
-        m_pTiler->SetAttribute("columns", m_rows);
+        m_pTiler->SetAttribute("columns", columns);
         m_pTiler->SetAttribute("rows", m_rows);
         
         return true;
@@ -175,15 +176,19 @@ namespace DSL
 
     bool TilerBintr::SetShowSource(int sourceId, uint timeout, bool hasPrecedence)
     {
-        // Don't log function entry/exit as this could be called frequently
+        // Not logging function entry/exit as this serice can be called by actions for
+        // every object in every frame.
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
 
+        // Note: batch size is 0 until Tiler is linked... calls will fail until then
         if (sourceId < 0 or sourceId >= (int)m_batchSize)
         {
             LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
             return false;
         }
-        
+
+        // call has Precendence over source cycling 
+        m_showSourceCycle = false;
         if (sourceId != m_showSourceId)
         {
             if (m_showSourceTimerId and !hasPrecedence)
@@ -198,7 +203,7 @@ namespace DSL
             m_showSourceTimeout = timeout;
             m_pTiler->SetAttribute("show-source", m_showSourceId);
 
-            m_showSourceCounter = timeout*10;
+            m_showSourceCounter = m_showSourceTimeout*10;
             if (m_showSourceCounter)
             {
                 LOG_INFO("Adding show-source timer with timeout = " << timeout << "' for TilerBintr '" << GetName());
@@ -219,20 +224,43 @@ namespace DSL
         return true;
     }
     
-    int TilerBintr::HandleShowSourceTimer()
+    bool TilerBintr::CycleAllSources(uint timeout)
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
-        if (--m_showSourceCounter == 0)
+        if (!timeout)
         {
-            // reset the timer Id, show all sources, and return false to destroy the timer
-            m_showSourceTimerId = 0;
-            m_showSourceId = -1;
-            m_pTiler->SetAttribute("show-source", m_showSourceId);
+            LOG_INFO("Timeout value can not be 0 when enabling cycle-all-sources for TilerBintr '" << GetName());
             return false;
+        }
+        if (!IsLinked())
+        {
+            LOG_INFO("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
+            return false;
+        }
+        if (m_showSourceCycle)
+        {
+            LOG_INFO("Cycle-all-sources is already enbled for TilerBintr '" << GetName());
+            return false;
+        }
+
+        m_showSourceCycle = true;
+        m_showSourceId = 0;
+        m_showSourceTimeout = timeout;
+        m_pTiler->SetAttribute("show-source", m_showSourceId);
+
+        m_showSourceCounter = m_showSourceTimeout*10;
+            
+        if (!m_showSourceTimerId and m_showSourceCounter)
+        {
+            LOG_INFO("Adding show-source timer with timeout = " << timeout << "' for TilerBintr '" << GetName());
+            m_showSourceTimerId = g_timeout_add(100, ShowSourceTimerHandler, this);
         }
         return true;
     }
+    
+    
     void TilerBintr::ShowAllSources()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
@@ -241,12 +269,45 @@ namespace DSL
         {
             g_source_remove(m_showSourceTimerId);
             m_showSourceTimerId = 0;
+            // call has Precendence over source cycling 
+            m_showSourceCycle = false;
         }
         if (m_showSourceId != -1)
         {
             m_showSourceId = -1;
             m_pTiler->SetAttribute("show-source", m_showSourceId);
         }
+    }
+
+    int TilerBintr::HandleShowSourceTimer()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+        
+        // Tiler is no longer linked return false to detroy timer
+        if (!IsLinked())
+        {
+            m_showSourceTimerId = 0;
+            m_showSourceId = -1;
+            return false;
+        }
+        if (--m_showSourceCounter == 0)
+        {
+            // if we are cycling through sources
+            if (m_showSourceCycle)
+            {
+                // reset the timeout counter, cycle to the next source, and return true to continue
+                m_showSourceCounter = m_showSourceTimeout*10;
+                m_showSourceId = (m_showSourceId+1)%m_batchSize;
+                m_pTiler->SetAttribute("show-source", m_showSourceId);
+                return true;
+            }
+            // otherwise, reset the timer Id, show all sources, and return false to destroy the timer
+            m_showSourceTimerId = 0;
+            m_showSourceId = -1;
+            m_pTiler->SetAttribute("show-source", m_showSourceId);
+            return false;
+        }
+        return true;
     }
 
     bool TilerBintr::SetGpuId(uint gpuId)

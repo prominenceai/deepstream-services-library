@@ -2658,6 +2658,15 @@ DslReturnType dsl_tiler_source_show_all(const wchar_t* name)
     return DSL::Services::GetServices()->TilerSourceShowAll(cstrName.c_str());
 }
 
+DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    return DSL::Services::GetServices()->TilerSourceShowCycle(cstrName.c_str(), timeout);
+}
+
 DslReturnType dsl_tiler_pph_add(const wchar_t* name, const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);

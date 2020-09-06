@@ -437,6 +437,8 @@ namespace DSL {
 
         DslReturnType TilerSourceShowAll(const char* name);
 
+        DslReturnType TilerSourceShowCycle(const char* name, uint timeout);
+
         DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType TilerPphRemove(const char* name, const char* handler, uint pad);

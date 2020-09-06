@@ -5187,7 +5187,6 @@ namespace DSL
                     return DSL_RESULT_SUCCESS;
                 }
                 float xRel((float)xPos/windowWidth), yRel((float)yPos/windowHeight);
-                LOG_INFO("Relative values = " << xRel << " and " << yRel);
                 sourceId = (int)(xRel*cols);
                 sourceId += ((int)(yRel*rows))*cols;
                 
@@ -5242,6 +5241,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TilerSourceShowCycle(const char* name, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->CycleAllSources(timeout))
+            {
+                    LOG_ERROR("Tiler '" << name << "' failed to select specific source");
+                    return DSL_RESULT_TILER_SET_FAILED;
+            }
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing all sources");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
     DslReturnType Services::TilerPphAdd(const char* name, const char* handler, uint pad)
     {
         LOG_FUNC();

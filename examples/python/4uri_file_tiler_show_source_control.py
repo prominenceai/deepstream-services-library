@@ -42,7 +42,7 @@ TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
-SHOW_SOURCE_TIMEOUT = 7
+SHOW_SOURCE_TIMEOUT = 2
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
@@ -90,6 +90,10 @@ def xwindow_key_event_handler(key_string, client_data):
         if retval == DSL_RETURN_SUCCESS:
             dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
             
+    # C = cycle All sources
+    elif key_string.upper() == 'C':
+        dsl_tiler_source_show_cycle('tiler', timeout=SHOW_SOURCE_TIMEOUT)
+
     # A = show All sources
     elif key_string.upper() == 'A':
         dsl_tiler_source_show_all('tiler')

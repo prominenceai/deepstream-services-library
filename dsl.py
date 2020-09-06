@@ -1933,6 +1933,16 @@ def dsl_tiler_source_show_set(name, source, timeout, has_precedence):
     return int(result)
 
 ##
+## dsl_tiler_source_show_cycle()
+##
+_dsl.dsl_tiler_source_show_cycle.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tiler_source_show_cycle.restype = c_uint
+def dsl_tiler_source_show_cycle(name, timeout):
+    global _dsl
+    result = _dsl.dsl_tiler_source_show_cycle(name, timeout)
+    return int(result)
+
+##
 ## dsl_tiler_source_show_select()
 ##
 _dsl.dsl_tiler_source_show_select.argtypes = [c_wchar_p, c_int, c_int, c_uint, c_uint, c_uint]

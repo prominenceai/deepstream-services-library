@@ -2343,6 +2343,17 @@ DslReturnType dsl_tiler_source_show_select(const wchar_t* name,
  */
 DslReturnType dsl_tiler_source_show_all(const wchar_t* name);
 
+/** 
+ * @brief Cycles through all sources showing each individually for a period of time.
+ * Note: calling any other "tiler_source_show" (other than get) disables cycling.
+ * Calling dsl_tiler_source_show_get when cycling will return the current source
+ * shown and remaining time before timeout.
+ * @param[in] name unique name of the Tiler to update
+ * @param[in] timeout time to show a source in units of seconds, before moving to the next.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout);
+
 /**
  * @brief Adds a pad-probe-handler to either the Sink or Source pad of the named Tiler
  * A Tiled Display can have multiple Sink and Source pad probe handlers
