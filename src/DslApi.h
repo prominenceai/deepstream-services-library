@@ -483,11 +483,12 @@ typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow ButtonPress events.
+ * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
  * @param[in] ypos from the top left corner of the window
  * @param[in] user_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint xpos, uint ypos, void* user_data);
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* user_data);
 
 /**
  * @brief callback typedef for a client XWindow Delete Message event handler function. Once added to a Pipeline, 
@@ -2319,6 +2320,21 @@ DslReturnType dsl_tiler_source_show_get(const wchar_t* name,
  */
 DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
     const wchar_t* source, uint timeout, boolean has_precedence);
+
+/** 
+ * @brief Shows a single source based on positional selection when the Tiler is currently showing all sources
+ * If the Tiler is currenly showing a single source, the Tiler will return to showing all
+ * @param[in] name unique name of the Tiler to update
+ * @param[in] x_pos relative to given window_width.
+ * @param[in] y_pos relative to given window_height
+ * @param[in] window_width width of the window the x and y positional coordinates are relative to
+ * @param[in] window_height height of the window the x and y positional coordinates are relative to
+ * @param[in] timeout time to show the source in units of seconds, before showing all-sources again...
+ * A value of 0 indicates no timeout. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_tiler_source_show_select(const wchar_t* name, 
+    int x_pos, int y_pos, uint window_width, uint window_height, uint timeout);
 
 /** 
  * @brief Shows all sources and stops the show-source timer if running.

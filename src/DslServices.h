@@ -432,6 +432,9 @@ namespace DSL {
         // called by the Show Source Action only. 
         DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout, bool hasPrecedence);
 
+        DslReturnType TilerSourceShowSelect(const char* name, 
+            int xPos, int yPos, uint windowWidth, uint windowHeight, uint timeout);
+
         DslReturnType TilerSourceShowAll(const char* name);
 
         DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);

@@ -622,15 +622,17 @@ namespace DSL
                 {
                     XEvent xEvent;
                     XNextEvent(m_pXDisplay, &xEvent);
+                    XButtonEvent buttonEvent = xEvent.xbutton;
                     switch (xEvent.type) 
                     {
                     case ButtonPress:
-                        LOG_INFO("Button pressed: xpos = " << xEvent.xbutton.x << ": ypos = " << xEvent.xbutton.y);
+                        LOG_INFO("Button '" << buttonEvent.button << "' pressed: xpos = " 
+                            << buttonEvent.x << ": ypos = " << buttonEvent.y);
                         
                         // iterate through the map of XWindow Button Event handlers calling each
                         for(auto const& imap: m_xWindowButtonEventHandlers)
                         {
-                            imap.first((uint)xEvent.xbutton.x, (uint)xEvent.xbutton.y, imap.second);
+                            imap.first(buttonEvent.button, buttonEvent.x, buttonEvent.y, imap.second);
                         }
                         break;
                         

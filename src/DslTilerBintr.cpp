@@ -117,23 +117,26 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void TilerBintr::GetTiles(uint* rows, uint* columns)
+    void TilerBintr::GetTiles(uint* columns, uint* rows)
     {
         LOG_FUNC();
         
-        *rows = m_rows;
+        m_pTiler->GetAttribute("columns", &m_columns);
+        m_pTiler->GetAttribute("rows", &m_rows);
+        
         *columns = m_columns;
+        *rows = m_rows;
     }
     
-    bool TilerBintr::SetTiles(uint rows, uint columns)
+    bool TilerBintr::SetTiles(uint columns, uint rows)
     {
         LOG_FUNC();
         
-        m_rows = rows;
         m_columns = columns;
+        m_rows = rows;
     
-        m_pTiler->SetAttribute("rows", m_rows);
         m_pTiler->SetAttribute("columns", m_rows);
+        m_pTiler->SetAttribute("rows", m_rows);
         
         return true;
     }
