@@ -42,6 +42,8 @@ TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
+SHOW_SOURCE_TIMEOUT = 7
+
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
@@ -68,6 +70,8 @@ def state_change_listener(old_state, new_state, client_data):
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     
+    global SHOW_SOURCE_TIMEOUT
+
     # P = pause pipline
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -84,17 +88,63 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string >= '0' and key_string <= '3':
         retval, source = dsl_source_name_get(int(key_string))
         if retval == DSL_RETURN_SUCCESS:
-            dsl_tiler_source_show_set('tiler', source=source, timeout=5, has_precedence=True)
+            dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
             
     # A = show All sources
     elif key_string.upper() == 'A':
         dsl_tiler_source_show_all('tiler')
-    
+
+## 
+# Function to be called on XWindow Button Press event
+## 
+def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
+    print('button = ', button, ' pressed at x = ', x_pos, ' y = ', y_pos)
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    timeout = cast(client_data, POINTER(py_object)).contents.value
+
+    if (button == Button1):
+        dsl_tiler_source_show_select('tiler', x_pos, y_pos, WINDOW_WIDTH, WINDOW_HEIGHT, timeout=SHOW_SOURCE_TIMEOUT)
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
+
+        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        retval = dsl_display_type_source_number_new('source-number', 
+            x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        # Create a new Action to display all the Source Info
+        retval = dsl_ode_action_display_meta_add_new('add-source-info', display_type='source-number')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        # Create an Always triger to overlay our Display Info on every frame
+        retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+
+        retval = dsl_ode_trigger_action_add('always-trigger', action='add-source-info')
+        if retval != DSL_RETURN_SUCCESS:
+            return retval
+            
+        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
+        retval = dsl_pph_ode_new('ode-handler')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='always-trigger')
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New URI File Source
         retval = dsl_source_uri_new('uri-source-1', "../../test/streams/sample_1080p_h264.mp4", False, 0, 0, 1)
@@ -119,6 +169,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # We need to explicity set the rows and columns to enable source selection via the mouse click
+        #retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with clock enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True)
         if retval != DSL_RETURN_SUCCESS:
@@ -136,12 +196,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
+        # Add the EOS listener and XWindow event handler functions defined above
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', xwindow_button_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', xwindow_delete_event_handler, None)

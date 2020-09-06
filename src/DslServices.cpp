@@ -5152,6 +5152,72 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TilerSourceShowSelect(const char* name, 
+        int xPos, int yPos, uint windowWidth, uint windowHeight, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->IsLinked())
+            {
+                LOG_ERROR("Tiler '" << name << "' must be in a linked state to show a specific source");
+                return DSL_RESULT_TILER_SET_FAILED;
+            }
+
+            int sourceId(0);
+            uint currentTimeout(0);
+            pTilerBintr->GetShowSource(&sourceId, &currentTimeout);
+            
+            // if currently showing all sources
+            if (sourceId == -1)
+            {
+                uint cols(0), rows(0);
+                pTilerBintr->GetTiles(&cols, &rows);
+                if (rows*cols == 1)
+                {
+                    // single source, noting to do
+                    return DSL_RESULT_SUCCESS;
+                }
+                float xRel((float)xPos/windowWidth), yRel((float)yPos/windowHeight);
+                LOG_INFO("Relative values = " << xRel << " and " << yRel);
+                sourceId = (int)(xRel*cols);
+                sourceId += ((int)(yRel*rows))*cols;
+                
+                if (sourceId > pTilerBintr->GetBatchSize())
+                {
+                    // clicked on empty tile, noting to do
+                    return DSL_RESULT_SUCCESS;
+                }
+
+                if (!pTilerBintr->SetShowSource(sourceId, timeout, true))
+                {
+                    LOG_ERROR("Tiler '" << name << "' failed to select specific source");
+                    return DSL_RESULT_TILER_SET_FAILED;
+                }
+            }
+            // else, showing a single source so return to all sources. 
+            else
+            {
+                pTilerBintr->ShowAllSources();
+            }
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name << "' threw an exception showing a specific source");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::TilerSourceShowAll(const char* name)
     {
         LOG_FUNC();

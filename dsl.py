@@ -50,6 +50,13 @@ DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
 
 DSL_TILER_SHOW_ALL_SOURCES = None
 
+# Copied from x.h
+Button1	= 1
+Button2	= 2
+Button3	= 3
+Button4	= 4
+Button5	= 5
+
 ##
 ## Pointer Typedefs
 ##
@@ -66,7 +73,7 @@ DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
 DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
 DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
-DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
@@ -1923,6 +1930,16 @@ _dsl.dsl_tiler_source_show_set.restype = c_uint
 def dsl_tiler_source_show_set(name, source, timeout, has_precedence):
     global _dsl
     result = _dsl.dsl_tiler_source_show_set(name, source, timeout, has_precedence)
+    return int(result)
+
+##
+## dsl_tiler_source_show_select()
+##
+_dsl.dsl_tiler_source_show_select.argtypes = [c_wchar_p, c_int, c_int, c_uint, c_uint, c_uint]
+_dsl.dsl_tiler_source_show_select.restype = c_uint
+def dsl_tiler_source_show_select(name, x_pos, y_pos, window_width, window_height, timeout):
+    global _dsl
+    result = _dsl.dsl_tiler_source_show_select(name, x_pos, y_pos, window_width,  window_height, timeout)
     return int(result)
 
 ##

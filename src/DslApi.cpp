@@ -2638,6 +2638,17 @@ DslReturnType dsl_tiler_source_show_set(const wchar_t* name,
         cstrSource.c_str(), timeout, has_precedence);
 }
 
+DslReturnType dsl_tiler_source_show_select(const wchar_t* name, 
+    int x_pos, int y_pos, uint window_width, uint window_height, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    return DSL::Services::GetServices()->TilerSourceShowSelect(cstrName.c_str(),
+        x_pos, y_pos, window_width, window_height, timeout);
+}
+
 DslReturnType dsl_tiler_source_show_all(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
