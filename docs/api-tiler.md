@@ -26,6 +26,7 @@ Multiple Sink and/or Source [Pad-Probe Handlers](/docs/api-pph/md) can be added 
 * [dsl_tiler_tiles_set](#dsl_tiler_tiles_set)
 * [dsl_tiler_source_show_get](#dsl_tiler_source_show_get)
 * [dsl_tiler_source_show_set](#dsl_tiler_source_show_set)
+* [dsl_tiler_source_show_select](#dsl_tiler_source_show_select)
 * [dsl_tiler_source_show_all](#dsl_tiler_source_show_all)
 * [dsl_tiler_pph_add](#dsl_tiler_pph_add).
 * [dsl_tiler_pph_remove](#dsl_tiler_pph_remove).
@@ -180,11 +181,11 @@ retval, current_source, timeout = dsl_tiler_source_show_get('my-tiler')
 DslReturnType dsl_tiler_source_show_set(const wchar_t* name, 
     const wchar_t* source, uint timeout, boolean has_presedence);
 ```
-This service sets the current show-source parameters for the named Tiler to show a single Source. The service will fail if the Source name is not found. The timeout parameter controls how long the single Source will be show. 
+This service sets the current show-source parameter for the named Tiler to show a single Source. The service will fail if the Source name is not found. The timeout parameter controls how long the single Source will be show. 
 
-Calling `dsl_tiler_show_source_set` with the same source name as currently show will adjust the remaining time to the newly provided timeout value.
+Calling `dsl_tiler_source_show_set` with the same source name as currently show will adjust the remaining time to the newly provided timeout value.
 
-Calling `dsl_tiler_show_source_set` with a different source name than currently show will switch to the new source, while applying the new timeout, if:
+Calling `dsl_tiler_source_show_set` with a different source name than currently show will switch to the new source, while applying the new timeout, if:
 1. the current source setting is set to `DSL_TILER_ALL_SOURCES`
 2. the `has_precedence` parameter is set to `True`
 
@@ -202,6 +203,33 @@ Note: It's advised to set the `has_precedence ` value to `False` when controllin
 **Python Example**
 ```Python
 retval = dsl_tiler_source_show_set('my-tiler', 'camera-2', 10, True)
+```
+
+<br>
+
+### *dsl_tiler_source_show_select*
+```C++
+DslReturnType dsl_tiler_source_show_select(const wchar_t* name, 
+    int x_pos, int y_pos, uint window_width, uint window_height, uint timeout);
+```
+This service sets the current show-source parameter for the named Tiler to show a single Source based on positional selection. The timeout parameter controls how long the single Source will be show. 
+
+Calling `dsl_tiler_source_show_select` when a single source is currently shown sets the tiler to show all sources.
+
+**Parameters**
+* `name` - [in] unique name for the Tiler to update.
+* `timeout` - [in] the remaining number of seconds that the current source will be shown for. A value of 0 indicates show indefinitely. 
+* `x_pos` - [in] relative to the given window_width.
+* `y_pos` - [in] relative to the given window_height
+* `window_width` - [in] width of the window the x and y positional coordinates are relative to
+* `window_height` - [in] height of the window the x and y positional coordinates are relative to
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+dsl_tiler_source_show_select('tiler', x_pos, y_pos, WINDOW_WIDTH, WINDOW_HEIGHT, SHOW_SOURCE_TIMEOUT)
 ```
 
 <br>
