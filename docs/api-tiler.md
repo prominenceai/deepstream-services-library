@@ -27,6 +27,7 @@ Multiple Sink and/or Source [Pad-Probe Handlers](/docs/api-pph/md) can be added 
 * [dsl_tiler_source_show_get](#dsl_tiler_source_show_get)
 * [dsl_tiler_source_show_set](#dsl_tiler_source_show_set)
 * [dsl_tiler_source_show_select](#dsl_tiler_source_show_select)
+* [dsl_tiler_source_show_cycle](#dsl_tiler_source_show_cycle)
 * [dsl_tiler_source_show_all](#dsl_tiler_source_show_all)
 * [dsl_tiler_pph_add](#dsl_tiler_pph_add).
 * [dsl_tiler_pph_remove](#dsl_tiler_pph_remove).
@@ -234,9 +235,29 @@ dsl_tiler_source_show_select('tiler', x_pos, y_pos, WINDOW_WIDTH, WINDOW_HEIGHT,
 
 <br>
 
+### *dsl_tiler_source_show_cycle*
+```C++
+DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout);
+```
+This service enables the named Tiler to cycle through all sources showing each one for a specifed time before showing the next. This services will fail with `DSL_RESULT_TILER_SET_FAILED` if the provided timeout is 0.
+
+**Parameters**
+* `name` - [in] unique name for the Tiler to update.
+* `timeout` - [in] time to display each source before moving to the next in units of seconds
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tiler_source_show_cycle('my-tiler', 4)
+```
+
+<br>
+
 ### *dsl_tiler_source_show_all*
 ```C++
-DslReturnType dsl_tiler_source_show_set(const wchar_t* name);
+DslReturnType dsl_tiler_source_show_all(const wchar_t* name);
 ```
 This service sets the current show-source setting for the named Tiler to `DSL_TILER_ALL_SOURCES`. The service **always** has precedence over any single source show.
 
