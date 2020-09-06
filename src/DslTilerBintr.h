@@ -125,6 +125,12 @@ namespace DSL
         void ShowAllSources();
         
         /**
+         * @brief Cycles through all sources showing each until timeout.
+         * @param[in] timeout the time in seconds to show the current source
+         */
+        bool CycleAllSources(uint timeout);
+        
+        /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */
@@ -186,6 +192,11 @@ namespace DSL
          * @brief show-source timer-id, non-zero == currently running
          */
         uint m_showSourceTimerId;
+        
+        /**
+         * @brief true if source cycling is enabled, false otherwise
+         */
+        bool m_showSourceCycle;
     };
 
     //----------------------------------------------------------------------------------------------

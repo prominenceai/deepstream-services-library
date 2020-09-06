@@ -141,6 +141,8 @@
 * [dsl_tiler_tiles_set](/docs/api-tiler.md#dsl_display_tiles_set)
 * [dsl_tiler_source_show_get](/docs/api-tiler.md#dsl_tiler_source_show_get)
 * [dsl_tiler_source_show_set](/docs/api-tiler.md#dsl_tiler_source_show_set)
+* [dsl_tiler_source_show_select](/docs/api-tiler.md#dsl_tiler_source_show_select)
+* [dsl_tiler_source_show_cycle](/docs/api-tiler.md#dsl_tiler_source_show_cycle)
 * [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all)
 * [dsl_tiler_pph_add](/docs/api-tiler.md#dsl_tiler_pph_add).
 * [dsl_tiler_pph_remove](/docs/api-tiler.md#dsl_tiler_pph_remove)

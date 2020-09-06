@@ -348,9 +348,21 @@ SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
         }
         WHEN( "Selecting A Tiler's Show Source  when the Tiler is in a non-linked state" ) 
         {
-            std::wstring anySourceName(L"any-source-name");
-            
             REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 1, 1, 100, 100, 1) == DSL_RESULT_TILER_SET_FAILED);
+            THEN( "The Set will fail and the current Show Source is unchanged" ) 
+            {
+                const wchar_t* retSource;
+                uint retTimeout;
+                REQUIRE( dsl_tiler_source_show_get(tilerName.c_str(), &retSource, &retTimeout) == DSL_RESULT_SUCCESS);
+                REQUIRE( retSource == NULL );
+                REQUIRE( retTimeout == 0 );
+                
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "Cycling A Tiler's Show Source when the Tiler is in a non-linked state" ) 
+        {
+            REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 1) == DSL_RESULT_TILER_SET_FAILED);
             THEN( "The Set will fail and the current Show Source is unchanged" ) 
             {
                 const wchar_t* retSource;
@@ -396,6 +408,8 @@ SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
                 REQUIRE( dsl_tiler_source_show_set(tilerName.c_str(), NULL, timeout, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tiler_source_show_select(NULL, 0, 0, 0, 0, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_source_show_cycle(NULL, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tiler_source_show_all(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
