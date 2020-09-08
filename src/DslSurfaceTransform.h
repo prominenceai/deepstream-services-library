@@ -73,6 +73,7 @@ namespace DSL
 
             if (stream)
             {
+                LOG_DEBUG("cudaStreamDestroy");
                 cudaStreamDestroy(stream);
             }
         }
@@ -120,6 +121,7 @@ namespace DSL
             
             if (m_pBuffer)
             {
+                LOG_DEBUG("gst_buffer_unmap");
                 gst_buffer_unmap(m_pBuffer, this);
             }
         }
@@ -329,7 +331,7 @@ namespace DSL
     
     // ---------------------------------------------------------------------------------------------------------------
     
-        /**
+    /**
      * @class DslBufferSurface
      * @brief Wrapper class for a new batched surface buffer
      */
@@ -368,10 +370,12 @@ namespace DSL
 
             if (m_isMapped)
             {
+                LOG_DEBUG("NvBufSurfaceUnMap");
                 NvBufSurfaceUnMap(m_pBufSurface, -1, -1);
             }
             if (m_pBufSurface)
             {
+                LOG_DEBUG("NvBufSurfaceDestroy");
                 NvBufSurfaceDestroy(m_pBufSurface);
             }
         }
@@ -405,11 +409,17 @@ namespace DSL
          */
         bool Map()
         {
+            LOG_FUNC();
+
             if (NvBufSurfaceMap(m_pBufSurface, -1, -1, NVBUF_MAP_READ) != NvBufSurfTransformError_Success)
             {
                 LOG_ERROR("NvBufSurfaceMap failed");
                 return false;
             }
+            
+            // Set as mapped
+            m_isMapped = true;
+
             return true;
         }
         
@@ -419,6 +429,8 @@ namespace DSL
          */
         bool SyncForCpu()
         {
+            LOG_FUNC();
+
             if (NvBufSurfaceSyncForCpu(m_pBufSurface, -1, -1) != NvBufSurfTransformError_Success)
             {
                 LOG_ERROR("NvBufSurfaceSyncForCpu failed");
