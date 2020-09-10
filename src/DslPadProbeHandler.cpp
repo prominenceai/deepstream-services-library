@@ -36,13 +36,19 @@ namespace DSL
         , m_isEnabled(false)
     {
         LOG_FUNC();
+        
+        g_mutex_init(&m_padHandlerMutex);
     }
 
     PadProbeHandler::~PadProbeHandler()
     {
         LOG_FUNC();
 
-        RemoveAllChildren();
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+            RemoveAllChildren();
+        }
+        g_mutex_clear(&m_padHandlerMutex);
     }
     
     bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
@@ -120,12 +126,14 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool OdePadProbeHandler::HandlePadBuffer(GstBuffer* pBuffer)
+    GstPadProbeReturn OdePadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
         if (!m_isEnabled)
         {
-            return true;
+            return GST_PAD_PROBE_OK;
         }
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+        
         NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
         
         // For each frame in the batched meta data
@@ -180,7 +188,7 @@ namespace DSL
                 nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
             }
         }
-        return true;
+        return GST_PAD_PROBE_OK;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -207,18 +215,24 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool CustomPadProbeHandler::HandlePadBuffer(GstBuffer* pBuffer)
+    GstPadProbeReturn CustomPadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
         try
         {
-            m_clientHandler(pBuffer, m_clientData);
+            return (GstPadProbeReturn)m_clientHandler(pBuffer, m_clientData);
         }
         catch(...)
         {
             LOG_ERROR("CustomPadProbeHandler '" << GetName() << "' threw an exception processing Pad Buffer");
-            return false;
+            return GST_PAD_PROBE_REMOVE;
         }
-        return true;
+        return GST_PAD_PROBE_OK;
     }
     
     //----------------------------------------------------------------------------------------------
@@ -232,8 +246,6 @@ namespace DSL
         , m_timerId(0)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_meterMutex);
 
         LOG_INFO("meter pph handler address " << m_clientHandler);
 
@@ -252,13 +264,12 @@ namespace DSL
         {
             g_source_remove(m_timerId);
         }
-        g_mutex_clear(&m_meterMutex);
     }
     
     bool MeterPadProbeHandler::SetEnabled(bool enabled)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         if (m_isEnabled == enabled)
         {
@@ -303,6 +314,7 @@ namespace DSL
     bool MeterPadProbeHandler::SetInterval(uint interval)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
         if (IsInUse() and m_isEnabled)
         {
@@ -315,10 +327,16 @@ namespace DSL
         return true;
     }
 
-    bool MeterPadProbeHandler::HandlePadBuffer(GstBuffer* pBuffer)
+    GstPadProbeReturn MeterPadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
         NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
 
         // Don't start the report timer until we get the first buffer
@@ -345,14 +363,14 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("MeterBatchMetaHandler '" << GetName() << "' threw an exception processing Pad Buffer");
-            return false;
+            return GST_PAD_PROBE_REMOVE;
         }
-        return true;
+        return GST_PAD_PROBE_OK;
     }
     
     int MeterPadProbeHandler::HandleIntervalTimeout()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_meterMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
         // TODO Handle dewarper serfaces
         
@@ -369,8 +387,6 @@ namespace DSL
         
         try
         {
-            LOG_INFO("handler address " << m_clientHandler);
-            LOG_INFO("client data " << m_clientData);
             return m_clientHandler((double*)&sessionAverages[0], (double*)&intervalAverages[0], 
                 (uint)m_sourceMeters.size(), m_clientData);
         }
@@ -388,16 +404,142 @@ namespace DSL
         return static_cast<MeterPadProbeHandler*>(user_data)->
             HandleIntervalTimeout();
     }
+
+    //----------------------------------------------------------------------------------------------
+
+    TimestampPadProbeHandler::TimestampPadProbeHandler(const char* name)
+        : PadProbeHandler(name)
+        , m_timestamp{0}
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+
+    TimestampPadProbeHandler::~TimestampPadProbeHandler()
+    {
+        LOG_FUNC();
+    }
+    
+    void TimestampPadProbeHandler::GetTime(struct timeval& timestamp)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        timestamp = m_timestamp;
+    }
+    
+    GstPadProbeReturn TimestampPadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        
+        gettimeofday(&m_timestamp, NULL);
+        return GST_PAD_PROBE_OK;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    EosConsumerPadProbeEventHandler::EosConsumerPadProbeEventHandler(const char* name)
+        : PadProbeHandler(name)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+
+    EosConsumerPadProbeEventHandler::~EosConsumerPadProbeEventHandler()
+    {
+        LOG_FUNC();
+    }
+    
+    GstPadProbeReturn EosConsumerPadProbeEventHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        
+        GstEvent *event = (GstEvent*)pInfo->data;
+        if (GST_EVENT_TYPE (event) == GST_EVENT_EOS)
+        {
+            return GST_PAD_PROBE_DROP;
+        }
+        return GST_PAD_PROBE_OK;
+    }
  
     //----------------------------------------------------------------------------------------------
 
-    PadProbetr::PadProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement)
+    EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
+        dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
+        : PadProbeHandler(name)
+        , m_clientHandler(clientHandler)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+        
+        m_clientData = clientData;
+
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+
+    EosHandlerPadProbeEventHandler::~EosHandlerPadProbeEventHandler()
+    {
+        LOG_FUNC();
+    }
+    
+    GstPadProbeReturn EosHandlerPadProbeEventHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    {
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+
+        GstEvent *pEvent = (GstEvent*)pInfo->data;
+        if (GST_EVENT_TYPE(pEvent) == GST_EVENT_EOS)
+        {
+            try
+            {
+                return (GstPadProbeReturn)m_clientHandler(pEvent, m_clientData);
+            }
+            catch(...)
+            {
+                LOG_ERROR("EosHandlerPadProbeEventHandler '" << GetName() << "' threw an exception processing Pad Buffer");
+                return GST_PAD_PROBE_REMOVE;
+            }
+        }
+        return GST_PAD_PROBE_OK;
+    }
+ 
+    //----------------------------------------------------------------------------------------------
+
+    PadProbetr::PadProbetr(const char* name, 
+        const char* factoryName, DSL_ELEMENT_PTR parentElement, GstPadProbeType padProbeType)
         : Base(name)
         , m_factoryName(factoryName)
         , m_pParentGstElement(parentElement->GetGstElement())
         , m_padProbeId(0)
+        , m_padProbeType(padProbeType)
         , m_pStaticPad(NULL)
     {
+        LOG_FUNC();
+        
         g_mutex_init(&m_padProbeMutex);
     }
 
@@ -431,8 +573,6 @@ namespace DSL
             return false;
         }
         
-        LOG_INFO("Adding Pad Probe Handler");
-        
         if (!m_padProbeId)
         {
             m_pStaticPad = gst_element_get_static_pad(m_pParentGstElement, m_factoryName.c_str());
@@ -441,11 +581,9 @@ namespace DSL
                 LOG_ERROR("Failed to get Static Pad for PadProbetr '" << m_name << "'");
                 return false;
             }
-        
-            GstPadProbeType probeType = (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER);
-            
+     
             // Src Pad Probe notified on Buffer ready
-            m_padProbeId = gst_pad_add_probe(m_pStaticPad, probeType,
+            m_padProbeId = gst_pad_add_probe(m_pStaticPad, m_padProbeType,
                 PadProbeCB, this, NULL);
         }
         
@@ -465,41 +603,96 @@ namespace DSL
         return RemoveChild(pPadProbeHandler);
     }
 
-    GstPadProbeReturn PadProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
+    //----------------------------------------------------------------------------------------------
+
+    PadBufferProbetr::PadBufferProbetr(const char* name, 
+        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_BUFFER)
+    {
+        LOG_FUNC();
+    }
+
+    PadBufferProbetr::~PadBufferProbetr()
+    {
+        LOG_FUNC();
+    }
+
+    GstPadProbeReturn PadBufferProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padProbeMutex);
         
-        if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
+        if ((pInfo->type & GST_PAD_PROBE_TYPE_BUFFER))
         {
-            if (m_pChildren.size())
+            if (!(GstBuffer*)pInfo->data)
             {
-                GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
-                if (!pBuffer)
+                LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
+                return GST_PAD_PROBE_OK;
+            }
+        
+            for (auto const& imap: m_pChildren)
+            {
+                DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                try
                 {
-                    LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
-                    return GST_PAD_PROBE_OK;
+                    // Remove the client on false return
+                    if (pPadProbeHandler->HandlePadData(pInfo) == GST_PAD_PROBE_REMOVE)
+                    {
+                        LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
+                        RemovePadProbeHandler(pPadProbeHandler);
+                    }
                 }
-                for (auto const& imap: m_pChildren)
+                catch(...)
                 {
-                    DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
-                    try
+                    LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
+                    RemovePadProbeHandler(pPadProbeHandler);
+                }
+            }
+            return GST_PAD_PROBE_OK;
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------------
+
+    PadEventDownStreamProbetr::PadEventDownStreamProbetr(const char* name, 
+        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_BUFFER)
+    {
+        LOG_FUNC();
+    }
+
+    PadEventDownStreamProbetr::~PadEventDownStreamProbetr()
+    {
+        LOG_FUNC();
+    }
+
+    GstPadProbeReturn PadEventDownStreamProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)   
+    {
+        if ((m_padProbeType == GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) and (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM))
+        {
+            if (!(GstEvent*)pInfo->data)
+            {
+                LOG_WARN("Unable to get Event for PadProbetr '" << m_name << "'");
+                return GST_PAD_PROBE_OK;
+            }
+            for (auto const& imap: m_pChildren)
+            {
+                DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                try
+                {
+                    // Remove the client on false return
+                    if (!pPadProbeHandler->HandlePadData(pInfo))
                     {
-                        // Remove the client on false return
-                        if (!pPadProbeHandler->HandlePadBuffer(pBuffer))
-                        {
-                            LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
-                            RemovePadProbeHandler(pPadProbeHandler);
-                        }
+                        LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
+                        RemovePadProbeHandler(pPadProbeHandler);
                     }
-                    catch(...)
-                    {
-                            LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
-                            RemovePadProbeHandler(pPadProbeHandler);
-                    }
+                }
+                catch(...)
+                {
+                    LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
+                    RemovePadProbeHandler(pPadProbeHandler);
                 }
             }
         }
-        return GST_PAD_PROBE_OK;
     }
 
     //----------------------------------------------------------------------------------------------

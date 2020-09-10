@@ -379,13 +379,21 @@ THE SOFTWARE.
 #define DSL_ARROW_END_HEAD                                          1
 #define DSL_ARROW_BOTH_HEAD                                         2
 
+// Must match GstPadProbeReturn values
+#define DSL_PAD_PROBE_DROP                                          0
+#define DSL_PAD_PROBE_OK                                            1
+#define DSL_PAD_PROBE_REMOVE                                        2
+#define DSL_PAD_PROBE_PASS                                          3
+#define DSL_PAD_PROBE_HANDLED                                       4
+
+
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
  */
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
-#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         4000000
+#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
@@ -453,8 +461,9 @@ typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages,
  * the function will be called when the component receives a pad probe buffer ready.
  * @param[in] buffer pointer to a stream buffer to process
  * @param[in] client_data opaque pointer to client's user data
+ * @return one of DSL_PAD_PROBE values defined above 
  */
-typedef boolean (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
+typedef uint (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -1628,12 +1637,14 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolea
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
  * @param[in] intra_decode
- * @param[in] drop_frame_interval
+ * @param[in] drop_frame_interval, set to 0 to decode every frame.
  * @param[in] latency in milliseconds
+ * @param[in] reconnect_interval interval at which to attemp a stream reconnect on the 
+ * event a connection is lost. Set to 0 to disable.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint reconnect_interval);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -1687,6 +1698,24 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
+
+/**
+ * @brief Gets the current Reset Interval for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[in] reconnect_interval time between successive reconnect attemps in seconds.
+ * A value of 0 indicates that reconnect managment is disabled for the named Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnect_interval_get(const wchar_t* name, uint* reconnect_interval);
+
+/**
+ * @brief Sets the current Reset Interval for the named RTSP Source
+ * @param[in] name name of the source object to updated
+ * @param[in] reconnect_interval time between successive reconnect attemps in seconds.
+ * A value of 0 indicates that reconnect managment is disabled for the named Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnect_interval_set(const wchar_t* name, uint reconnect_interval);
 
 /**
  * @brief Adds a named Tap to a named RTSP source

@@ -795,9 +795,12 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
+        , m_reconnectInterval(reconnectInterval)
+        , m_streamMgtTimerId(0)
+        , m_isInReconnect(false)
     {
         LOG_FUNC();
         
@@ -833,9 +836,20 @@ namespace DSL
         AddChild(m_pPreDecodeQueue);
         AddChild(m_pDecodeBin);
         AddChild(m_pSourceQueue);
-        
-        // Source Ghost Pad for Source Queue
+
+        // Source Ghost Pad for Source Queue as src pad to connect to streammuxer
         m_pSourceQueue->AddGhostPadToParent("src");
+        
+        // New timestamp PPH to stamp the time of the last buffer - used to monitor the RTSP connection
+        std::string handlerName = GetName() + "-timestamp-pph";
+        m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
+        
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), "src", m_pSourceQueue);
+        m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
+        
+        g_mutex_init(&m_reconnectionMutex);
+        
     }
 
     RtspSourceBintr::~RtspSourceBintr()
@@ -846,6 +860,15 @@ namespace DSL
         {
             UnlinkAll();
         }
+        if (m_streamMgtTimerId)
+        {
+            g_source_remove(m_streamMgtTimerId);
+        }
+
+        m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
+        
+        g_mutex_clear(&m_reconnectionMutex);
+        
     }
     
     bool RtspSourceBintr::LinkAll()
@@ -890,8 +913,8 @@ namespace DSL
         {
             return false;
         }
-        m_isLinked = true;
-        
+
+        // Note: we don't set the linked state until after 
         return true;
     }
 
@@ -904,6 +927,15 @@ namespace DSL
             LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        
+        if (m_streamMgtTimerId)
+        {
+            // Otherwise, we're disabling management with an interval of 0
+            g_source_remove(m_streamMgtTimerId);
+            m_streamMgtTimerId = 0;
+            LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
+        }
+        
         m_pPreDecodeQueue->UnlinkFromSink();
         if (HasTapBintr())
         {
@@ -927,7 +959,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Uri for RtspSourceBintr '" << GetName() 
                 << "' as it's currently in use");
@@ -956,6 +988,46 @@ namespace DSL
         
         return true;
     }
+    
+    uint RtspSourceBintr::GetReconnectInterval()
+    {
+        LOG_FUNC();
+        
+        return m_reconnectInterval;
+    }
+    
+    void RtspSourceBintr::SetReconnectInterval(uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        
+        if (m_reconnectInterval == interval)
+        {
+            LOG_WARN("Reconnect Interval for RTSP Source '" << GetName() << "' is already set to " << interval);
+            return;
+        }
+        m_reconnectInterval = interval;
+
+        // If we're all ready in a linked state, 
+        if (IsLinked()) 
+        {
+            // If we're setting the reconect interval from zero to non-zero.
+            if (interval)
+            {
+                // Start up stream mangement
+                m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
+                LOG_INFO("Stream management enabled for RTSP Source '" << GetName() << "'");
+            }
+            else
+            {
+                // Otherwise, we're disabling management with an interval of 0
+                g_source_remove(m_streamMgtTimerId);
+                m_streamMgtTimerId = 0;
+                LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
+            }
+        }
+    }
+    
 
     bool RtspSourceBintr::AddTapBintr(DSL_BASE_PTR pTapBintr)
     {
@@ -1091,7 +1163,7 @@ namespace DSL
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+                LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
@@ -1105,10 +1177,27 @@ namespace DSL
             gst_structure_get_uint(structure, "height", &m_height);
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
             
-            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+            // Start the Stream mangement timer.
+            if (m_reconnectInterval)
+            {
+                m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
+                LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
+            }
+
+            // Now fully linked
+            m_isLinked = true;
+
+            LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
         }
     }
-    
+
+    int RtspSourceBintr::ManageStream()
+    {
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
+        return true;
+    }
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
@@ -1153,6 +1242,12 @@ namespace DSL
     static gboolean StreamBufferSeekCB(gpointer pSource)
     {
         return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
+    }
+
+    static int RtspStreamMgtHandler(void* pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            ManageStream();
     }
 
 } // SDL namespace

@@ -57,8 +57,8 @@ namespace DSL
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval))
 
     /**
      * @class SourceBintr
@@ -444,7 +444,7 @@ namespace DSL
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol,
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency);
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval);
 
         ~RtspSourceBintr();
 
@@ -460,6 +460,18 @@ namespace DSL
         void UnlinkAll();
 
         bool SetUri(const char* uri);
+        
+        /**
+         * @brief Gets the current reconnect interval
+         * @return current interval with 0 indicating reconnection management is disabled.
+         */
+        uint GetReconnectInterval();
+        
+        /**
+         * @brief Sets the current reconnect interval
+         * @param[in] interval new interval value in units of seconds, set to 0 to diable
+         */
+        void SetReconnectInterval(uint interval);
         
         /**
          * @brief adds a TapBintr to the RTSP Source - one at most
@@ -484,7 +496,13 @@ namespace DSL
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 
         void HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad);
-
+        
+        /**
+         * @brief Called periodically to Check the status of the RTSP stream
+         * and to manage component reconnect when required
+         */
+        int ManageStream();
+        
     private:
 
         /**
@@ -522,6 +540,30 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pDecodeBin;
         
+        /**
+         * @brief Pad Probe Handler to create a timestamp for the last recieved buffer
+         */
+        DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
+
+        /**
+         * @brief interval between succesive reconnect attempts, 0 . 
+         */
+        uint m_reconnectInterval;
+        
+        /**
+         * @brief gnome timer Id for RTSP stream-status and reconnect management 
+         */
+        uint m_streamMgtTimerId;
+        
+        /**
+         * @brief true if the RTSP Source is in Reconnect, false otherwise.
+         */
+        bool m_isInReconnect;
+        
+        /**
+         * @brief mutux to guard the reconnection managment.
+         */
+        GMutex m_reconnectionMutex;
     };
 
     /**
@@ -595,6 +637,13 @@ namespace DSL
      * @return 
      */
     static gboolean StreamBufferSeekCB(gpointer pSource);
+    
+    /**
+     * @brief Timer callback handler to invoke the RTSP Source's Stream manager.
+     * @param pSource shared pointer to RTSP Source component to check/manage.
+     * @return int returns 0
+     */
+    static int RtspStreamMgtHandler(void* pSource);
 
 } // DSL
 #endif // _DSL_SOURCE_BINTR_H

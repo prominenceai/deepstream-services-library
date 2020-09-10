@@ -293,8 +293,8 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         m_pInferEngine->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("gie-sink-pad-probe", "sink", m_pQueue);
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("gie-src-pad-probe", "src", m_pInferEngine);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie-sink-pad-probe", "sink", m_pQueue);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie-src-pad-probe", "src", m_pInferEngine);
     }    
     
     PrimaryGieBintr::~PrimaryGieBintr()

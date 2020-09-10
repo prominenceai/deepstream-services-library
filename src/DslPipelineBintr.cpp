@@ -288,7 +288,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive())
+            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
             {
                 if (!SetState(GST_STATE_PAUSED))
                 {
@@ -352,7 +352,7 @@ namespace DSL
             LOG_INFO("Pipeline '" << GetName() << "' has no sources, therefore is-live = false");
             return false;
         }
-        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive();
+        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet();
     }
     
     void PipelineBintr::DumpToDot(char* filename)

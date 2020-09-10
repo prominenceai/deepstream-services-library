@@ -586,6 +586,44 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     }
 }
 
+SCENARIO( "An RTSP Source's Reconnect Interval can be retrieved and updated", "[source-api]" )
+{
+    GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
+    {
+        std::wstring rtspSourceName(L"rtsp-sink");
+        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
+        uint protocol(DSL_RTP_ALL);
+        uint memtype(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intra_decode(false);
+        uint interval;
+        uint latency(100);
+        uint reconnectInterval(0);
+        uint retReconnectInterval(123);
+        
+        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
+            intra_decode, interval, latency, reconnectInterval) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_rtsp_reconnect_interval_get(rtspSourceName.c_str(), &retReconnectInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( retReconnectInterval == reconnectInterval );
+
+        WHEN( "The RTSP Source's Reconnect Interval is updated" ) 
+        {
+            uint reconnectInterval(321);
+            uint retReconnectInterval(0);
+            REQUIRE( dsl_source_rtsp_reconnect_interval_set(rtspSourceName.c_str(), reconnectInterval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_reconnect_interval_get(rtspSourceName.c_str(), &retReconnectInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retReconnectInterval == reconnectInterval );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -605,8 +643,8 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );

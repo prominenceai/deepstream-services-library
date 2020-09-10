@@ -49,8 +49,8 @@ namespace DSL
         m_pSinkQueue->AddGhostPadToParent("sink");
         m_pOptFlowVisual->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("osd-sink-pad-probe", "sink", m_pSinkQueue);
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("osd-src-pad-probe", "src", m_pOptFlowVisual);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pSinkQueue);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOptFlowVisual);
     }    
     
     OfvBintr::~OfvBintr()

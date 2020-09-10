@@ -57,6 +57,12 @@ Button3	= 3
 Button4	= 4
 Button5	= 5
 
+DSL_PAD_PROBE_DROP    = 0
+DSL_PAD_PROBE_OK      = 1
+DSL_PAD_PROBE_REMOVE  = 2
+DSL_PAD_PROBE_PASS    = 3
+DSL_PAD_PROBE_HANDLED = 4
+
 ##
 ## Pointer Typedefs
 ##
@@ -79,7 +85,7 @@ DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
-DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
+DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 ##
 ## TODO: CTYPES callback management needs to be completed before any of

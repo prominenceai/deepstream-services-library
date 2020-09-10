@@ -1681,8 +1681,8 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
         is_live, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri,
-    uint protocol, uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency)
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
+    uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency, uint reconnect_interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -1693,7 +1693,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SourceRtspNew(cstrName.c_str(), cstrUri.c_str(), 
-        protocol, cudadec_mem_type, intra_decode, dropFrameInterval, latency);
+        protocol, cudadec_mem_type, intra_decode, dropFrameInterval, latency, reconnect_interval);
 }
 
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height)
@@ -1772,6 +1772,26 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
+}
+
+DslReturnType dsl_source_rtsp_reconnect_interval_get(const wchar_t* name, uint* reconnect_interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspReconnectIntervalGet(cstrName.c_str(), reconnect_interval);
+}
+
+DslReturnType dsl_source_rtsp_reconnect_interval_set(const wchar_t* name, uint reconnect_interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspReconnectIntervalSet(cstrName.c_str(), reconnect_interval);
 }
 
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap)

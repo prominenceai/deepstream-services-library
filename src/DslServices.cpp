@@ -3388,8 +3388,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceRtspNew(const char* name, const char* uri, 
-        uint protocol, uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
+    DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
+       uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3403,7 +3403,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency);
+                name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval);
 
             LOG_INFO("New RTSP Source '" << name << "' created successfully");
 
@@ -3571,6 +3571,52 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception removing Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceRtspReconnectIntervalGet(const char* name, uint* reconnectInterval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            *reconnectInterval = pSourceBintr->GetReconnectInterval();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Tap");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceRtspReconnectIntervalSet(const char* name, uint reconnectInterval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            pSourceBintr->SetReconnectInterval(reconnectInterval);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Tap");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
