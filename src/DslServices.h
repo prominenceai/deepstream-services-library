@@ -302,7 +302,7 @@ namespace DSL {
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval);
+            uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
@@ -316,9 +316,15 @@ namespace DSL {
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
     
-        DslReturnType SourceRtspReconnectIntervalGet(const char* name, uint* reconnectInterval);
+        DslReturnType SourceRtspTimeoutGet(const char* name, uint* reconnectInterval);
 
-        DslReturnType SourceRtspReconnectIntervalSet(const char* name, uint reconnectInterval);
+        DslReturnType SourceRtspTimeoutSet(const char* name, uint reconnectInterval);
+        
+        DslReturnType SourceRtspReconnectStatsGet(const char* name, uint* lastTime, uint*lastCount);
+        
+        DslReturnType SourceRtspReconnectStatsClear(const char* name);
+        
+        DslReturnType SourceRtspReconnectStats(const char* name);
         
         DslReturnType SourceRtspTapAdd(const char* name, const char* tap);
     

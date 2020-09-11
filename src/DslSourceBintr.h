@@ -462,16 +462,36 @@ namespace DSL
         bool SetUri(const char* uri);
         
         /**
-         * @brief Gets the current reconnect interval
-         * @return current interval with 0 indicating reconnection management is disabled.
+         * @brief Gets the current buffer timeout value controlling reconnection attemtps
+         * @return buffer timeout with 0 indicating the buffer watchdog is disbled.
          */
-        uint GetReconnectInterval();
+        uint GetBufferTimeout();
         
         /**
-         * @brief Sets the current reconnect interval
-         * @param[in] interval new interval value in units of seconds, set to 0 to diable
+         * @brief Sets the current buffer timeout to control reconnection attempts
+         * @param[in] time between su value in units of seconds, set to 0 to diable
          */
-        void SetReconnectInterval(uint interval);
+        void SetBufferTimeout(uint timeout);
+        
+        /**
+         * @brief Gets the Reconnect Statistics collected by the RTSP source 
+         * @param[out] lastTime time of the last reconnect in tv_sec
+         * @param[out] lastCount the count of reconnection since the Pipeline was first played
+         * or since the stats were last cleared by the client.
+         */
+        void GetReconnectStats(uint* lastTime, uint* lastCount);
+        
+        /**
+         * @brief Clears the Reconnect Statistics collected the RTSP source
+         */
+        void ClearReconnectStats();
+        
+        /**
+         * @brief Get the current reset stats for 
+         * @param isInReset true if the RTSP source is currently in a reset cycle
+         * @param resetCount the number of reset attempts in the current cycle
+         */
+        void GetResetStats(boolean* isInReset, uint* resetCount);
         
         /**
          * @brief adds a TapBintr to the RTSP Source - one at most
@@ -503,8 +523,18 @@ namespace DSL
          */
         int ManageStream();
         
+        /**
+         * @brief Called to reset the RTSP stream. 
+         */
+        int ResetStream();
+        
     private:
-
+    
+        /**
+         * @brief function to reset the RTSP Soure
+         */
+        void Reset();
+        
         /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
@@ -546,9 +576,9 @@ namespace DSL
         DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
 
         /**
-         * @brief interval between succesive reconnect attempts, 0 . 
+         * @brief maximim time between successive buffers before determining the connection is lost, 0 to disable 
          */
-        uint m_reconnectInterval;
+        uint m_bufferTimeout;
         
         /**
          * @brief gnome timer Id for RTSP stream-status and reconnect management 
@@ -556,14 +586,41 @@ namespace DSL
         uint m_streamMgtTimerId;
         
         /**
-         * @brief true if the RTSP Source is in Reconnect, false otherwise.
-         */
-        bool m_isInReconnect;
-        
-        /**
          * @brief mutux to guard the reconnection managment.
          */
         GMutex m_reconnectionMutex;
+        
+        /**
+         * @brief the last time this source reconnected in timeval.tv_sec
+         */
+        struct timeval m_lastReconnectTime;
+        
+        /**
+         * @brief reconnection count for this source since pipeline-play or clear
+         */
+        uint m_lastReconnectCount;
+
+        /**
+         * @brief true if the RTSP Source is currently in Reset, false otherwise.
+         */
+        bool m_isInReset;
+
+        /**
+         * @brief the last time this source reconnected in timeval.tv_sec
+         */
+        struct timeval m_lastResetTime;
+        
+        /**
+         * @brief current reset count since loss of connection
+         * the value is 0 when m_isInReset == false
+         */
+        uint m_lastResetCount;
+        
+        /**
+         * @brief gnome timer Id for RTSP stream-reset management 
+         */
+        uint m_resetMgtTimerId;
+        
     };
 
     /**
@@ -644,6 +701,13 @@ namespace DSL
      * @return int returns 0
      */
     static int RtspStreamMgtHandler(void* pSource);
+    
+    /**
+     * @brief Timer callback handler to reset the RTSP Source's Stream manager.
+     * @param pSource shared pointer to RTSP Source component to reset.
+     * @return int returns 0
+     */
+    static int RtspStreamResetHandler(void* pSource);
 
 } // DSL
 #endif // _DSL_SOURCE_BINTR_H

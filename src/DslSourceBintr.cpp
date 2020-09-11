@@ -795,12 +795,17 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint reconnectInterval)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
-        , m_reconnectInterval(reconnectInterval)
+        , m_bufferTimeout(timeout)
         , m_streamMgtTimerId(0)
-        , m_isInReconnect(false)
+        , m_lastReconnectTime{0}
+        , m_lastReconnectCount(0)
+        , m_resetMgtTimerId(0)
+        , m_isInReset(false)
+        , m_lastResetTime{0}
+        , m_lastResetCount(0)
     {
         LOG_FUNC();
         
@@ -863,6 +868,10 @@ namespace DSL
         if (m_streamMgtTimerId)
         {
             g_source_remove(m_streamMgtTimerId);
+        }
+        if (m_resetMgtTimerId)
+        {
+            g_source_remove(m_resetMgtTimerId);
         }
 
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
@@ -989,30 +998,31 @@ namespace DSL
         return true;
     }
     
-    uint RtspSourceBintr::GetReconnectInterval()
-    {
-        LOG_FUNC();
-        
-        return m_reconnectInterval;
-    }
-    
-    void RtspSourceBintr::SetReconnectInterval(uint interval)
+    uint RtspSourceBintr::GetBufferTimeout()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
         
-        if (m_reconnectInterval == interval)
+        return m_bufferTimeout;
+    }
+    
+    void RtspSourceBintr::SetBufferTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        
+        if (m_bufferTimeout == timeout)
         {
-            LOG_WARN("Reconnect Interval for RTSP Source '" << GetName() << "' is already set to " << interval);
+            LOG_WARN("Buffer timeout for RTSP Source '" << GetName() << "' is already set to " << timeout);
             return;
         }
-        m_reconnectInterval = interval;
+        m_bufferTimeout = timeout;
 
         // If we're all ready in a linked state, 
         if (IsLinked()) 
         {
             // If we're setting the reconect interval from zero to non-zero.
-            if (interval)
+            if (timeout)
             {
                 // Start up stream mangement
                 m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
@@ -1028,6 +1038,32 @@ namespace DSL
         }
     }
     
+    void RtspSourceBintr::GetReconnectStats(uint* lastTime, uint* lastCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+
+        *lastTime = m_lastReconnectTime.tv_sec;
+        *lastCount = m_lastReconnectCount;
+    }
+    
+    void RtspSourceBintr::ClearReconnectStats()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+
+        m_lastReconnectTime = {0,0};
+        m_lastReconnectCount = 0;
+    }
+
+    void  RtspSourceBintr::GetResetStats(boolean* isInReset, uint* resetCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        
+        *isInReset = m_isInReset;
+        *resetCount = m_lastResetCount;
+    }
 
     bool RtspSourceBintr::AddTapBintr(DSL_BASE_PTR pTapBintr)
     {
@@ -1178,7 +1214,7 @@ namespace DSL
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
             
             // Start the Stream mangement timer.
-            if (m_reconnectInterval)
+            if (m_bufferTimeout)
             {
                 m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
@@ -1193,10 +1229,97 @@ namespace DSL
 
     int RtspSourceBintr::ManageStream()
     {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+
+        // if currently in a reset cycle then let the ResetStream handler continue to handle
+        if (m_isInReset)
+        {
+            return true;
+        }
+
         struct timeval currentTime;
         gettimeofday(&currentTime, NULL);
+        
+        // m_lastResetTime set to 0,0 on construction, and updated in Reset() 
+        double timeSinceLastResetMs = (1000.0 * (currentTime.tv_sec - m_lastResetTime.tv_sec)) +
+            ((currentTime.tv_usec - m_lastResetTime.tv_usec) / 1000.0);
+            
+        // Get the last buffer time. This timer callback should not be called until after the timer 
+        // is started on successful linkup - therefore the lastBufferTime should be non-zero
+        struct timeval lastBufferTime;
+        m_TimestampPph->GetTime(lastBufferTime);
+        if (lastBufferTime.tv_sec == 0)
+        {
+            LOG_ERROR("ManageStream callback called before the connection has been establed for source '" << GetName() << "'");
+            return false;
+        }
 
+        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+        if (timeSinceLastBufferMs > m_bufferTimeout*1000)
+        {
+            LOG_INFO("Buffer timeout of " << m_bufferTimeout << "exceeded for source '" << GetName() << "'");
+            m_resetMgtTimerId = g_timeout_add(100, RtspStreamResetHandler, this);
+        }
         return true;
+    }
+    
+    int RtspSourceBintr::ResetStream()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+
+        gettimeofday(&m_lastResetTime, NULL);
+        
+        uint stateResult(0);
+        GstState currentState;
+        
+        if (!m_isInReset)
+        {
+            // set the reset-state,
+            m_isInReset = true;
+            m_lastResetCount++; 
+
+            LOG_DEBUG("Resetting RTSP Source '" << GetName() << "' with reset count = " << m_lastResetCount);
+            
+            // update the current buffer timestamp to the current reset time
+            m_TimestampPph->SetTime(m_lastResetTime);
+
+            if (!SetState(GST_STATE_NULL))
+            {
+                LOG_ERROR("Failed to set RTSP Source '" << GetName() << "' state to GST_STATE_NULL");
+                return false;
+            }
+            stateResult = SyncStateWithParent();
+        }
+        else
+        {
+            stateResult = GetState(currentState);
+        }
+            
+        switch (stateResult) 
+        {
+            case GST_STATE_CHANGE_SUCCESS:
+                LOG_INFO("Reset completed for RTSP Source'" << GetName() << "'");
+                m_isInReset = false;
+                m_lastResetCount = 0; 
+                m_lastReconnectTime = m_lastResetTime;
+                m_lastResetCount++;
+                m_resetMgtTimerId = 0;
+                return false;
+            case GST_STATE_CHANGE_FAILURE:
+            case GST_STATE_CHANGE_NO_PREROLL:
+                LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
+                return false;
+            case GST_STATE_CHANGE_ASYNC:
+                LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
+                return true;
+            default:
+                break;
+        }
+       
+        return false;
+        
     }
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
@@ -1249,5 +1372,12 @@ namespace DSL
         return static_cast<RtspSourceBintr*>(pSource)->
             ManageStream();
     }
+
+    static int RtspStreamResetHandler(void* pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            ResetStream();
+    }
+
 
 } // SDL namespace

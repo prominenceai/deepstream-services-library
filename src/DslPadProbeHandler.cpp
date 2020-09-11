@@ -427,8 +427,17 @@ namespace DSL
     
     void TimestampPadProbeHandler::GetTime(struct timeval& timestamp)
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         timestamp = m_timestamp;
+    }
+    
+    void TimestampPadProbeHandler::SetTime(struct timeval& timestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        m_timestamp = timestamp;
     }
     
     GstPadProbeReturn TimestampPadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)

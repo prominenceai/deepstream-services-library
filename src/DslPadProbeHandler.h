@@ -379,8 +379,15 @@ namespace DSL
          * @param[in] timestamp timestamp struct to fil in
          */
         void GetTime(struct timeval& timestamp);
+        
         /**
-         * @brief Timestamp Pad Probe Handler
+         * @brief sets the time of the last buffer
+         * @param[in] timestamp timevalue to set this Timestamp
+         */
+        void SetTime(struct timeval& timestamp);
+        
+        /**
+         * @brief Timestamp Pad Probe Handler. Updates the Timestamp to current-time on each buffer
          * @param[out] pBuffer Pad buffer
          * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
          * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]

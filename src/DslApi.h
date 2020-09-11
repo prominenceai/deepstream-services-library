@@ -350,11 +350,12 @@ THE SOFTWARE.
 #define DSL_CONTAINER_MP4                                           0
 #define DSL_CONTAINER_MKV                                           1
 
+// Must match GST_STATE enum values
 #define DSL_STATE_NULL                                              1
 #define DSL_STATE_READY                                             2
 #define DSL_STATE_PAUSED                                            3
 #define DSL_STATE_PLAYING                                           4
-#define DSL_STATE_IN_TRANSITION                                     5
+#define DSL_STATE_CHANGE_ASYNC                                      5
 #define DSL_STATE_INVALID_STATE_VALUE                               UINT32_MAX
 
 #define DSL_PAD_SINK                                                0
@@ -362,6 +363,7 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+#define DSL_RTSP_RESET_TIMEOUT_MS                                   3000
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -385,7 +387,6 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_REMOVE                                        2
 #define DSL_PAD_PROBE_PASS                                          3
 #define DSL_PAD_PROBE_HANDLED                                       4
-
 
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
@@ -1636,15 +1637,15 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolea
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] intra_decode
+ * @param[in] intra_decode set to True to enable, false to disable
  * @param[in] drop_frame_interval, set to 0 to decode every frame.
  * @param[in] latency in milliseconds
- * @param[in] reconnect_interval interval at which to attemp a stream reconnect on the 
- * event a connection is lost. Set to 0 to disable.
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint reconnect_interval);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -1700,22 +1701,48 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 
 /**
- * @brief Gets the current Reset Interval for the named RTSP Source
+ * @brief Gets the current Reconnect Interval for the named RTSP Source
  * @param[in] name name of the source object to query
- * @param[in] reconnect_interval time between successive reconnect attemps in seconds.
- * A value of 0 indicates that reconnect managment is disabled for the named Source
+ * @param[out] timeout current time to wait between successive frames before determining the 
+ * connection is lost. If set to 0 then timeout is disabled.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnect_interval_get(const wchar_t* name, uint* reconnect_interval);
+DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
 
 /**
  * @brief Sets the current Reset Interval for the named RTSP Source
  * @param[in] name name of the source object to updated
- * @param[in] reconnect_interval time between successive reconnect attemps in seconds.
- * A value of 0 indicates that reconnect managment is disabled for the named Source
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnect_interval_set(const wchar_t* name, uint reconnect_interval);
+DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
+
+/**
+ * @brief Gets the current reconnect stats for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[out] last_time time of the last reconnect from system time in seconds (see timeval <sys/time.h>)
+ * @param[out] last_count the count of reconnections for the named source, since first played or cleared.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, uint* last_time, uint* last_count); 
+
+/**
+ * @brief Clears the reconnect stats for the named RTSP Source
+ * @param[in] name name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnect_stats_clear(const wchar_t* name); 
+
+/**
+ * @brief Gets the current reconnect stats for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[out] is_in_reset true if the source is currently in a reset cycle
+ * @param[out] reset_count the count of reset attempts for the current reset cycle
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reset_stats_get(const wchar_t* name, boolean* is_in_reset, uint* reset_count); 
+
 
 /**
  * @brief Adds a named Tap to a named RTSP source

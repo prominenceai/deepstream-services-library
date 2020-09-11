@@ -280,7 +280,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (GetState() == GST_STATE_NULL)
+        GstState currentState;
+        GetState(currentState);
+        if (currentState == GST_STATE_NULL)
         {
             if (!LinkAll())
             {
@@ -306,7 +308,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (GetState() != GST_STATE_PLAYING)
+        GstState state;
+        GetState(state);
+        if (state != GST_STATE_PLAYING)
         {
             LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
@@ -324,7 +328,8 @@ namespace DSL
     {
         LOG_FUNC();
         
-        uint state = GetState();
+        GstState state;
+        GetState(state);
         if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
         {
             LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");

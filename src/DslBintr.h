@@ -218,6 +218,21 @@ namespace DSL
         bool SetInterval(uint interval);
 
         /**
+         * @brief gets the current state of the Bintr
+         * @param[out] state current state of the Bintr
+         * @return one of GST_STATE_CHANGE values.
+         */
+        uint GetState(GstState& state)
+        {
+            LOG_FUNC();
+
+            uint retval = gst_element_get_state(GetGstElement(), &state, NULL, 0);
+            LOG_INFO("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+            
+            return retval;
+        }
+        
+        /**
          * @brief Attempts to set the state of this Bintr's GST Element
          * @return true if successful transition, false on failure
          */
@@ -254,6 +269,12 @@ namespace DSL
             return true;
         }
 
+        uint SyncStateWithParent()
+        {
+            LOG_FUNC();
+            
+            return gst_element_sync_state_with_parent(GetGstElement());
+        }
         
         bool SendEos()
         {

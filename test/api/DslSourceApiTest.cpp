@@ -586,7 +586,7 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     }
 }
 
-SCENARIO( "An RTSP Source's Reconnect Interval can be retrieved and updated", "[source-api]" )
+SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
 {
     GIVEN( "A new Source and a Fake Sink as invalid Dewarper" )
     {
@@ -597,25 +597,25 @@ SCENARIO( "An RTSP Source's Reconnect Interval can be retrieved and updated", "[
         uint intra_decode(false);
         uint interval;
         uint latency(100);
-        uint reconnectInterval(0);
-        uint retReconnectInterval(123);
+        uint timeout(0);
+        uint retTimeout(123);
         
         REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
-            intra_decode, interval, latency, reconnectInterval) == DSL_RESULT_SUCCESS );
+            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_source_rtsp_reconnect_interval_get(rtspSourceName.c_str(), &retReconnectInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( retReconnectInterval == reconnectInterval );
+        REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( retTimeout == timeout );
 
         WHEN( "The RTSP Source's Reconnect Interval is updated" ) 
         {
-            uint reconnectInterval(321);
-            uint retReconnectInterval(0);
-            REQUIRE( dsl_source_rtsp_reconnect_interval_set(rtspSourceName.c_str(), reconnectInterval) == DSL_RESULT_SUCCESS );
+            uint timeout(321);
+            uint retTimeout(0);
+            REQUIRE( dsl_source_rtsp_timeout_set(rtspSourceName.c_str(), timeout) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned after update" )
             {
-                REQUIRE( dsl_source_rtsp_reconnect_interval_get(rtspSourceName.c_str(), &retReconnectInterval) == DSL_RESULT_SUCCESS );
-                REQUIRE( retReconnectInterval == reconnectInterval );
+                REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( retTimeout == timeout );
                     
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
