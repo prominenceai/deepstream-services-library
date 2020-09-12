@@ -1794,7 +1794,7 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout)
     return DSL::Services::GetServices()->SourceRtspTimeoutSet(cstrName.c_str(), timeout);
 }
 
-DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, uint* last_time, uint* last_count)
+DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, time_t* last_time, uint* last_count)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1812,6 +1812,32 @@ DslReturnType dsl_source_rtsp_reconnect_stats_clear(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceRtspReconnectStatsClear(cstrName.c_str());
+}
+
+DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source, 
+    dsl_state_change_listener_cb listener, void* userdata)
+{
+    RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->
+        SourceRtspStateChangeListenerAdd(cstrSource.c_str(), listener, userdata);
+}
+
+DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* source, 
+    dsl_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->
+        SourceRtspStateChangeListenerRemove(cstrSource.c_str(), listener);
 }
 
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap)

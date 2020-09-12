@@ -74,6 +74,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
+#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
+#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
+
 
 /**
  * Dewarper API Return Values
@@ -363,7 +366,16 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
-#define DSL_RTSP_RESET_TIMEOUT_MS                                   3000
+/**
+ * @brief time to sleep between successive queries to check if
+ * the RTSP Source has reconnected and the stream re-established
+ */
+#define DSL_RTSP_RECONNECT_SLEEP_TIME_MS                            100
+/**
+ * @brief the maximum time to wait for reconnect before resetting
+ * the RTSP Source and trying again.
+ */
+#define DSL_RTSP_RECONNECT_TIMEOUT_MS                               3000
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -1725,7 +1737,7 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
  * @param[out] last_count the count of reconnections for the named source, since first played or cleared.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, uint* last_time, uint* last_count); 
+DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, time_t* last_time, uint* last_count); 
 
 /**
  * @brief Clears the reconnect stats for the named RTSP Source
@@ -1743,6 +1755,24 @@ DslReturnType dsl_source_rtsp_reconnect_stats_clear(const wchar_t* name);
  */
 DslReturnType dsl_source_rtsp_reset_stats_get(const wchar_t* name, boolean* is_in_reset, uint* reset_count); 
 
+/**
+ * @brief adds a callback to be notified on change of RTSP Source state
+ * @param[in] name unique name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* name, 
+    dsl_state_change_listener_cb listener, void* userdata);
+
+/**
+ * @brief removes a callback previously added with dsl_source_rtsp_state_change_listener_add
+ * @param[in] name unique name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name, 
+    dsl_state_change_listener_cb listener);
 
 /**
  * @brief Adds a named Tap to a named RTSP source

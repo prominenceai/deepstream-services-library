@@ -3621,7 +3621,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectStatsGet(const char* name, uint* lastTime, uint*lastCount)
+    DslReturnType Services::SourceRtspReconnectStatsGet(const char* name, time_t* lastTime, uint*lastCount)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3665,6 +3665,65 @@ namespace DSL
             LOG_ERROR("Source '" << name << "' threw exception clearing Reconnect Stats");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::SourceRtspStateChangeListenerAdd(const char* name, 
+        dsl_state_change_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->AddStateChangeListener(listener, userdata))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to add a State Change Listener");
+                return DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw an exception adding a State Change Lister");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::SourceRtspStateChangeListenerRemove(const char* name, 
+        dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->RemoveStateChangeListener(listener))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to remove a State Change Listener");
+                return DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw an exception removeing a State Change Lister");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::SourceRtspTapAdd(const char* name, const char* tap)
@@ -7528,6 +7587,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_TAP_ADD_FAILED] = L"DSL_RESULT_SOURCE_TAP_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_TAP_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_TAP_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
+        m_returnValueToString[DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED] = L"DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEWARPER_NAME_BAD_FORMAT";

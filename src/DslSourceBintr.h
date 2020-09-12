@@ -469,7 +469,7 @@ namespace DSL
         
         /**
          * @brief Sets the current buffer timeout to control reconnection attempts
-         * @param[in] time between su value in units of seconds, set to 0 to diable
+         * @param[in] max time between successive buffers in units of seconds, set to 0 to diable
          */
         void SetBufferTimeout(uint timeout);
         
@@ -479,7 +479,17 @@ namespace DSL
          * @param[out] lastCount the count of reconnection since the Pipeline was first played
          * or since the stats were last cleared by the client.
          */
-        void GetReconnectStats(uint* lastTime, uint* lastCount);
+        void GetReconnectStats(time_t* lastTime, uint* lastCount);
+        
+        /**
+         * @brief Sets the Reconnect Statistics collected by the RTSP source 
+         * Note: this services is to be called by the StreamManage and StreamReset handlers only.
+         * It is left public for the purposes of test only. 
+         * @param[in] lastTime time of the last reconnect in tv_sec
+         * @param[in] lastCount the count of reconnection since the Pipeline was first played
+         * or since the stats were last cleared by the client.
+         */
+        void SetReconnectStats(time_t lastTime, uint lastCount);
         
         /**
          * @brief Clears the Reconnect Statistics collected the RTSP source
@@ -492,6 +502,29 @@ namespace DSL
          * @param resetCount the number of reset attempts in the current cycle
          */
         void GetResetStats(boolean* isInReset, uint* resetCount);
+        
+        /**
+         * @brief Get the current reset stats for 
+         * @param isInReset true if the RTSP source is currently in a reset cycle
+         * @param resetCount the number of reset attempts in the current cycle
+         */
+        void SetResetStats(boolean isInReset, uint resetCount);
+        
+        /**
+         * @brief adds a callback to be notified on change of RTSP source state
+         * @param[in] listener pointer to the client's function to call on state change
+         * @param[in] userdata opaque pointer to client data passed into the listener function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
+            
         
         /**
          * @brief adds a TapBintr to the RTSP Source - one at most
@@ -527,14 +560,27 @@ namespace DSL
          * @brief Called to reset the RTSP stream. 
          */
         int ResetStream();
+
+        
+        /**
+         * @brief gets the RTSP Source's current state as maintaned by the component.
+         * Not to be confussed with the GetState() Bintr base class function 
+         * @return current state of the RTSP Source
+         */
+        GstState _getCurrentState();
+
+        /**
+         * @brief sets the RTSP Source's current state variable to newState, one of GST_STATE_*
+         * Changes in state will notifiy all client state-change-listerners
+         * Not to be confussed with the SetState() Bintr base class function which attempts 
+         * to change the actual state of the GstElement for this Bintr
+         * @param[in] newState new state to set the current state variable
+         */
+        void _setCurrentState(GstState newState);
+        
         
     private:
     
-        /**
-         * @brief function to reset the RTSP Soure
-         */
-        void Reset();
-        
         /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
@@ -586,9 +632,9 @@ namespace DSL
         uint m_streamMgtTimerId;
         
         /**
-         * @brief mutux to guard the reconnection managment.
+         * @brief mutux to guard the reconnection managment read/write attributes.
          */
-        GMutex m_reconnectionMutex;
+        GMutex m_streamMgtMutex;
         
         /**
          * @brief the last time this source reconnected in timeval.tv_sec
@@ -606,21 +652,38 @@ namespace DSL
         bool m_isInReset;
 
         /**
-         * @brief the last time this source reconnected in timeval.tv_sec
-         */
-        struct timeval m_lastResetTime;
-        
-        /**
          * @brief current reset count since loss of connection
          * the value is 0 when m_isInReset == false
          */
         uint m_lastResetCount;
         
         /**
+         * @brief number of times the StreamReset manger has checked for the RTSP source to reconnect
+         * after reset. Exceeding DSL_RTSP_RECONNECT_TIMEOUT_MS / DSL_RTSP_RECONNECT_SLEEP_TIME_MS counts
+         * will result in the StreamReset manager and resetting the Source and the count.
+         */
+        uint m_waitForReconnectCount;
+        
+        /**
          * @brief gnome timer Id for RTSP stream-reset management 
          */
         uint m_resetMgtTimerId;
+
+        /**
+         * @brief maintains the current state of the RTSP source bin
+         */
+        GstState m_currentState;
+
+        /**
+         * @brief mutux to guard the current State read/write access.
+         */
+        GMutex m_currentStateMutex;
         
+        /**
+         * @brief map of all currently registered state-change-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
     };
 
     /**

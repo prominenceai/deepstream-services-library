@@ -802,10 +802,11 @@ namespace DSL
         , m_streamMgtTimerId(0)
         , m_lastReconnectTime{0}
         , m_lastReconnectCount(0)
+        , m_waitForReconnectCount(0)
         , m_resetMgtTimerId(0)
         , m_isInReset(false)
-        , m_lastResetTime{0}
         , m_lastResetCount(0)
+        , m_currentState(GST_STATE_NULL)
     {
         LOG_FUNC();
         
@@ -853,7 +854,8 @@ namespace DSL
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), "src", m_pSourceQueue);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
         
-        g_mutex_init(&m_reconnectionMutex);
+        g_mutex_init(&m_streamMgtMutex);
+        g_mutex_init(&m_currentStateMutex);
         
     }
 
@@ -876,7 +878,8 @@ namespace DSL
 
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
         
-        g_mutex_clear(&m_reconnectionMutex);
+        g_mutex_clear(&m_streamMgtMutex);
+        g_mutex_clear(&m_currentStateMutex);
         
     }
     
@@ -1001,7 +1004,7 @@ namespace DSL
     uint RtspSourceBintr::GetBufferTimeout()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
         
         return m_bufferTimeout;
     }
@@ -1009,7 +1012,7 @@ namespace DSL
     void RtspSourceBintr::SetBufferTimeout(uint timeout)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
         
         if (m_bufferTimeout == timeout)
         {
@@ -1038,19 +1041,28 @@ namespace DSL
         }
     }
     
-    void RtspSourceBintr::GetReconnectStats(uint* lastTime, uint* lastCount)
+    void RtspSourceBintr::GetReconnectStats(time_t* lastTime, uint* lastCount)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
 
         *lastTime = m_lastReconnectTime.tv_sec;
         *lastCount = m_lastReconnectCount;
     }
     
+    void RtspSourceBintr::SetReconnectStats(time_t lastTime, uint lastCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+
+        m_lastReconnectTime.tv_sec = lastTime;
+        m_lastReconnectCount = lastCount;
+    }
+    
     void RtspSourceBintr::ClearReconnectStats()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
 
         m_lastReconnectTime = {0,0};
         m_lastReconnectCount = 0;
@@ -1059,12 +1071,49 @@ namespace DSL
     void  RtspSourceBintr::GetResetStats(boolean* isInReset, uint* resetCount)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
         
         *isInReset = m_isInReset;
         *resetCount = m_lastResetCount;
     }
 
+    void  RtspSourceBintr::SetResetStats(boolean isInReset, uint resetCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        
+        m_isInReset = isInReset;
+        m_lastResetCount = resetCount;
+    }
+    
+    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        
+        if (m_stateChangeListeners.find(listener) != m_stateChangeListeners.end())
+        {   
+            LOG_ERROR("Pipeline listener is not unique");
+            return false;
+        }
+        m_stateChangeListeners[listener] = userdata;
+        
+        return true;
+    }
+
+    bool RtspSourceBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        if (m_stateChangeListeners.find(listener) == m_stateChangeListeners.end())
+        {   
+            LOG_ERROR("Pipeline listener was not found");
+            return false;
+        }
+        m_stateChangeListeners.erase(listener);
+        
+        return true;
+    }
+    
     bool RtspSourceBintr::AddTapBintr(DSL_BASE_PTR pTapBintr)
     {
         LOG_FUNC();
@@ -1099,7 +1148,7 @@ namespace DSL
         
         return (m_pTapBintr != nullptr);
     }
-    
+
     bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps)
     {
         GstStructure *structure = gst_caps_get_structure(caps, 0);
@@ -1222,6 +1271,7 @@ namespace DSL
 
             // Now fully linked
             m_isLinked = true;
+            _setCurrentState(GST_STATE_PLAYING);
 
             LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
         }
@@ -1229,7 +1279,7 @@ namespace DSL
 
     int RtspSourceBintr::ManageStream()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
 
         // if currently in a reset cycle then let the ResetStream handler continue to handle
         if (m_isInReset)
@@ -1240,10 +1290,6 @@ namespace DSL
         struct timeval currentTime;
         gettimeofday(&currentTime, NULL);
         
-        // m_lastResetTime set to 0,0 on construction, and updated in Reset() 
-        double timeSinceLastResetMs = (1000.0 * (currentTime.tv_sec - m_lastResetTime.tv_sec)) +
-            ((currentTime.tv_usec - m_lastResetTime.tv_usec) / 1000.0);
-            
         // Get the last buffer time. This timer callback should not be called until after the timer 
         // is started on successful linkup - therefore the lastBufferTime should be non-zero
         struct timeval lastBufferTime;
@@ -1260,58 +1306,72 @@ namespace DSL
         if (timeSinceLastBufferMs > m_bufferTimeout*1000)
         {
             LOG_INFO("Buffer timeout of " << m_bufferTimeout << "exceeded for source '" << GetName() << "'");
-            m_resetMgtTimerId = g_timeout_add(100, RtspStreamResetHandler, this);
+            m_resetMgtTimerId = g_timeout_add(DSL_RTSP_RECONNECT_SLEEP_TIME_MS, RtspStreamResetHandler, this);
         }
         return true;
     }
     
     int RtspSourceBintr::ResetStream()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
 
-        gettimeofday(&m_lastResetTime, NULL);
+        struct timeval lastResetTime;
+        gettimeofday(&lastResetTime, NULL);
         
         uint stateResult(0);
         GstState currentState;
         
-        if (!m_isInReset)
+        if (!m_isInReset or m_waitForReconnectCount > (DSL_RTSP_RECONNECT_TIMEOUT_MS / DSL_RTSP_RECONNECT_SLEEP_TIME_MS))
         {
             // set the reset-state,
-            m_isInReset = true;
-            m_lastResetCount++; 
+            SetResetStats(true, m_lastResetCount+1);
 
             LOG_DEBUG("Resetting RTSP Source '" << GetName() << "' with reset count = " << m_lastResetCount);
             
             // update the current buffer timestamp to the current reset time
-            m_TimestampPph->SetTime(m_lastResetTime);
+            m_TimestampPph->SetTime(lastResetTime);
 
-            if (!SetState(GST_STATE_NULL))
+            if (SetState(GST_STATE_NULL) != GST_STATE_CHANGE_SUCCESS)
             {
-                LOG_ERROR("Failed to set RTSP Source '" << GetName() << "' state to GST_STATE_NULL");
+                LOG_ERROR("Failed to set RTSP Source '" << GetName() << "' to GST_STATE_NULL");
                 return false;
             }
-            stateResult = SyncStateWithParent();
+            // update the internal state variable to notify all client listeners 
+            _setCurrentState(GST_STATE_NULL);
+            stateResult = SyncStateWithParent(currentState);
+            _setCurrentState(currentState);
+            m_waitForReconnectCount = 0;
         }
         else
-        {
+        {   
+            // Waiting for the Source to reconnect, check the state again
             stateResult = GetState(currentState);
+            m_waitForReconnectCount++;
         }
             
         switch (stateResult) 
         {
             case GST_STATE_CHANGE_SUCCESS:
                 LOG_INFO("Reset completed for RTSP Source'" << GetName() << "'");
-                m_isInReset = false;
-                m_lastResetCount = 0; 
-                m_lastReconnectTime = m_lastResetTime;
-                m_lastResetCount++;
+                LOG_INFO("RTSP Source '" << "' is now in state " << gst_element_state_get_name(currentState));
+                
+                SetResetStats(false, 0);
+                SetReconnectStats(lastResetTime.tv_sec, m_lastReconnectCount+1);
                 m_resetMgtTimerId = 0;
+                
+                // update the internal state variable to notify all client listeners 
+                _setCurrentState(currentState);
                 return false;
+                
             case GST_STATE_CHANGE_FAILURE:
             case GST_STATE_CHANGE_NO_PREROLL:
+                // update the internal state variable to notify all client listeners 
+                _setCurrentState(currentState);
                 LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
                 return false;
             case GST_STATE_CHANGE_ASYNC:
+
+                // Do not set state
                 LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
                 return true;
             default:
@@ -1321,6 +1381,45 @@ namespace DSL
         return false;
         
     }
+    
+    GstState RtspSourceBintr::_getCurrentState()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_currentStateMutex);
+        
+        LOG_INFO("Returning state " << gst_element_state_get_name(m_currentState) << 
+        " for RtspSourceBintr '" << GetName() << "'");
+
+        return m_currentState;
+    }
+
+    void RtspSourceBintr::_setCurrentState(GstState newState)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+
+        if (newState != m_currentState)
+        {
+            LOG_INFO("Changing state from" << gst_element_state_get_name(m_currentState) << 
+            " to " << gst_element_state_get_name(newState) << " for RtspSourceBintr '" << GetName() << "'");
+            
+            // iterate through the map of state-change-listeners calling each
+            for(auto const& imap: m_stateChangeListeners)
+            {
+                try
+                {
+                    imap.first((uint)m_currentState, (uint)newState, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client State-Change-Lister");
+                }
+            }
+            m_currentState = newState;
+        }
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {

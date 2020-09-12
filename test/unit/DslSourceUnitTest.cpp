@@ -568,22 +568,22 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
+SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBinter]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
     {
-        std::string sourceName("test-rtps-source");
-        std::string uri("https://hddn01.skylinewebcams.com/live.m3u8?a=e8inqgf08vq4rp43gvmkj9ilv0");
+        std::string sourceName("rtps-source");
+        std::string uri("https://63.138.85.85/axis-cg/mjpg/.");
         uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(true);
-        uint dropFrameInterval(2);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
         uint latency(100);
-        uint reconnectInterval(20);
+        uint timeout(20);
 
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-                uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, reconnectInterval);
+                uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -592,6 +592,20 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
+                REQUIRE( pSourceBintr->_getCurrentState() == GST_STATE_NULL );
+                
+                time_t lastTime(123);
+                uint lastCount(456);
+                pSourceBintr->GetReconnectStats(&lastTime, &lastCount);
+                REQUIRE( lastTime == 0 );
+                REQUIRE( lastCount == 0 );
+                
+                boolean isInReset(true);
+                uint resetCount(123);
+                pSourceBintr->GetResetStats(&isInReset, &resetCount);
+                REQUIRE( isInReset == false );
+                REQUIRE( resetCount == 0 );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == true );
@@ -610,6 +624,159 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[UriSourceBintr]" )
         }
     }
 }
+
+SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBinter]" )
+{
+    GIVEN( "A new RtspSourceBintr with a timeout" ) 
+    {
+        std::string sourceName("rtps-source");
+        std::string uri("https://63.138.85.85/axis-cg/mjpg/.");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+        uint latency(100);
+        uint timeout(20);
+
+        DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
+            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+
+        WHEN( "The RtspSourceBintr's timeout set " )
+        {
+            uint newTimeout(0);
+            pSourceBintr->SetBufferTimeout(newTimeout);
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pSourceBintr->GetBufferTimeout() == newTimeout );
+            }
+        }
+        WHEN( "The RtspSourceBintr's reconnect stats are set " )
+        {
+            time_t newLastTime(123), lastTime(0);
+            uint newLastCount(0), lastCount(0);
+            pSourceBintr->SetReconnectStats(newLastTime, newLastCount);
+
+            THEN( "The correct value is returned on get" )
+            {
+                pSourceBintr->GetReconnectStats(&lastTime, &lastCount);
+                REQUIRE( lastTime == newLastTime );
+                REQUIRE( lastCount == newLastCount );
+            }
+        }
+        WHEN( "The RtspSourceBintr's reset stats are set " )
+        {
+            boolean newIsInReset(true), isInReset(false);
+            uint newResetCount(123), resetCount(0);
+            pSourceBintr->SetResetStats(newIsInReset, newResetCount);
+
+            THEN( "The correct value is returned on get" )
+            {
+                pSourceBintr->GetResetStats(&isInReset, &resetCount);
+                REQUIRE( isInReset == newIsInReset );
+                REQUIRE( resetCount == newResetCount );
+            }
+        }
+    }
+}
+
+static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
+{
+    std::cout << "Source state change lister 1 called with prev_state = " 
+        << prev_state << " current_state = " << curr_state << "\n";
+}
+
+static void source_state_change_listener_cb2(uint prev_state, uint curr_state, void* user_data)
+{
+    std::cout << "Source state change lister 1 called with prev_state = " 
+        << prev_state << " current_state = " << curr_state << "\n";
+}
+
+SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBinter]" )
+{
+    GIVEN( "A new RtspSourceBintr with a timeout" ) 
+    {
+        std::string sourceName("rtps-source");
+        std::string uri("https://63.138.85.85/axis-cg/mjpg/.");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+        uint latency(100);
+        uint timeout(20);
+
+        DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
+            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+        
+        WHEN( "Client Listeners are added" )
+        {
+            REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, NULL) == true );
+            REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, NULL) == true );
+
+            THEN( "Adding them a second time must fail" )
+            {
+                REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, NULL) == false );
+                REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, NULL) == false );
+            }
+        }
+        WHEN( "Client Listeners are added" )
+        {
+            REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, NULL) == true );
+            REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, NULL) == true );
+
+            THEN( "They can be successfully removed" )
+            {
+                REQUIRE( pRtspSourceBintr->RemoveStateChangeListener(source_state_change_listener_cb1) == true );
+                REQUIRE( pRtspSourceBintr->RemoveStateChangeListener(source_state_change_listener_cb2) == true );
+                
+                // Calling a second time must fail
+                REQUIRE( pRtspSourceBintr->RemoveStateChangeListener(source_state_change_listener_cb1) == false );
+                REQUIRE( pRtspSourceBintr->RemoveStateChangeListener(source_state_change_listener_cb2) == false );
+            }
+        }
+    }
+}
+            
+SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of state", "[RtspSourceBinter]" )
+{
+    GIVEN( "A new RtspSourceBintr with a timeout" ) 
+    {
+        std::string sourceName("rtps-source");
+        std::string uri("https://63.138.85.85/axis-cg/mjpg/.");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+        uint latency(100);
+        uint timeout(20);
+
+        DSL_RTSP_SOURCE_PTR pRtspSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
+            uri.c_str(), DSL_RTP_ALL, cudadecMemType, intrDecode, dropFrameInterval, latency, timeout);
+
+        REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb1, NULL) == true );
+        REQUIRE( pRtspSourceBintr->AddStateChangeListener(source_state_change_listener_cb2, NULL) == true );
+        
+        WHEN( "The current state is changed" )
+        {
+            pRtspSourceBintr->_setCurrentState(GST_STATE_READY);
+
+            THEN( "All client listeners are called on state change" )
+            {
+                // Note: this test requires (currently) manual/visual confirmation of console output
+                REQUIRE( pRtspSourceBintr->_getCurrentState() == GST_STATE_READY );
+            }
+        }
+        WHEN( "The new state is the same as the current state" )
+        {
+            pRtspSourceBintr->_setCurrentState(GST_STATE_NULL);
+
+            THEN( "They no client listener should be called" )
+            {
+                // Note: this test requires (currently) manual/visual confirmation of console output
+                REQUIRE( pRtspSourceBintr->_getCurrentState() == GST_STATE_NULL );
+            }
+        }
+    }
+}
+            
+
 
 SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
 {

@@ -601,7 +601,14 @@ namespace DSL
         // iterate through the map of state-change-listeners calling each
         for(auto const& imap: m_stateChangeListeners)
         {
-            imap.first((uint)oldstate, (uint)newstate, imap.second);
+            try
+            {
+                imap.first((uint)oldstate, (uint)newstate, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client State-Change-Lister");
+            }
         }
         return true;
     }
@@ -613,7 +620,14 @@ namespace DSL
         // iterate through the map of EOS-listeners calling each
         for(auto const& imap: m_eosListeners)
         {
-            imap.first(imap.second);
+            try
+            {
+                imap.first(imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client EOS-Lister");
+            }
         }
     }
     

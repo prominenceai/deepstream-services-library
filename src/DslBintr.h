@@ -269,11 +269,30 @@ namespace DSL
             return true;
         }
 
-        uint SyncStateWithParent()
+        uint SyncStateWithParent(GstState& parentState)
         {
             LOG_FUNC();
             
-            return gst_element_sync_state_with_parent(GetGstElement());
+            uint returnVal = gst_element_sync_state_with_parent(GetGstElement());
+
+            switch (returnVal) 
+            {
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
+                    break;
+                case GST_STATE_CHANGE_FAILURE:
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_ERROR("FAILURE occured when trying to sync state with parent for Bintr '" << GetName() << "'");
+                    break;
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
+                    break;
+                default:
+                    break;
+            }
+            uint retval = gst_element_get_state(GST_ELEMENT_PARENT(GetGstElement()), &parentState, NULL, 0);
+            LOG_INFO("Get state returned '" << gst_element_state_get_name(parentState) << "' for Parent of Bintr '" << GetName() << "'");
+            
         }
         
         bool SendEos()
