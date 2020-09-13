@@ -1731,39 +1731,24 @@ DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
 DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
 
 /**
- * @brief Gets the current reconnect stats for the named RTSP Source
+ * @brief Gets the current reconnection stats for the named RTSP Source
  * @param[in] name name of the source object to query
- * @param[out] last_time time of the last reconnect from system time in seconds (see timeval <sys/time.h>)
- * @param[out] last_count the count of reconnections for the named source, since first played or cleared.
+ * @param[out] last time of the last reconnect from the system time in seconds (see timeval <sys/time.h>)
+ * @param[out] count the count of reconnections for the named source, since first played or cleared.
+ * @param[out] isInReconnect true if the RTSP source is currently in a "reconnection-cycle"
+ * @param[out] retries number reconnection retries in either the current reconnection-cycle, in the case
+ * of isInReonnect == true, or the last reconnection when isInReonnect == false. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnect_stats_get(const wchar_t* name, time_t* last_time, uint* last_count); 
+DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
+    time_t* last, uint* count, boolean* isInReconnect, uint* retries); 
 
 /**
  * @brief Clears the reconnect stats for the named RTSP Source
  * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnect_stats_clear(const wchar_t* name); 
-
-/**
- * @brief Gets the current reconnect stats for the named RTSP Source
- * @param[in] name name of the source object to query
- * @param[out] is_in_reset true if the source is currently in a reset cycle
- * @param[out] reset_count the count of reset attempts for the current reset cycle
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_rtsp_reset_stats_get(const wchar_t* name, boolean* is_in_reset, uint* reset_count); 
-
-/**
- * @brief adds a callback to be notified on change of RTSP Source state
- * @param[in] name unique name of the RTSP source to update
- * @param[in] listener pointer to the client's function to call on state change
- * @param[in] userdata opaque pointer to client data passed into the listner function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* name, 
-    dsl_state_change_listener_cb listener, void* userdata);
+DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
 
 /**
  * @brief removes a callback previously added with dsl_source_rtsp_state_change_listener_add

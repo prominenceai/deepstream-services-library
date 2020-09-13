@@ -799,13 +799,13 @@ namespace DSL
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
         , m_bufferTimeout(timeout)
-        , m_streamMgtTimerId(0)
+        , m_streamManagerTimerId(0)
+        , m_reconnectionManagerTimerId(0)
         , m_lastReconnectTime{0}
-        , m_lastReconnectCount(0)
+        , m_reconnectionCount(0)
         , m_waitForReconnectCount(0)
-        , m_resetMgtTimerId(0)
-        , m_isInReset(false)
-        , m_lastResetCount(0)
+        , m_isInReconnect(false)
+        , m_reconnectionRetries(0)
         , m_currentState(GST_STATE_NULL)
     {
         LOG_FUNC();
@@ -854,7 +854,7 @@ namespace DSL
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), "src", m_pSourceQueue);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
         
-        g_mutex_init(&m_streamMgtMutex);
+        g_mutex_init(&m_streamManagerMutex);
         g_mutex_init(&m_currentStateMutex);
         
     }
@@ -867,18 +867,18 @@ namespace DSL
         {
             UnlinkAll();
         }
-        if (m_streamMgtTimerId)
+        if (m_streamManagerTimerId)
         {
-            g_source_remove(m_streamMgtTimerId);
+            g_source_remove(m_streamManagerTimerId);
         }
-        if (m_resetMgtTimerId)
+        if (m_reconnectionManagerTimerId)
         {
-            g_source_remove(m_resetMgtTimerId);
+            g_source_remove(m_reconnectionManagerTimerId);
         }
 
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
         
-        g_mutex_clear(&m_streamMgtMutex);
+        g_mutex_clear(&m_streamManagerMutex);
         g_mutex_clear(&m_currentStateMutex);
         
     }
@@ -940,11 +940,11 @@ namespace DSL
             return;
         }
         
-        if (m_streamMgtTimerId)
+        if (m_streamManagerTimerId)
         {
             // Otherwise, we're disabling management with an interval of 0
-            g_source_remove(m_streamMgtTimerId);
-            m_streamMgtTimerId = 0;
+            g_source_remove(m_streamManagerTimerId);
+            m_streamManagerTimerId = 0;
             LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
         }
         
@@ -1004,7 +1004,7 @@ namespace DSL
     uint RtspSourceBintr::GetBufferTimeout()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
         
         return m_bufferTimeout;
     }
@@ -1012,7 +1012,7 @@ namespace DSL
     void RtspSourceBintr::SetBufferTimeout(uint timeout)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
         
         if (m_bufferTimeout == timeout)
         {
@@ -1028,64 +1028,55 @@ namespace DSL
             if (timeout)
             {
                 // Start up stream mangement
-                m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
+                m_streamManagerTimerId = g_timeout_add(1000, RtspReconnectionMangerHandler, this);
                 LOG_INFO("Stream management enabled for RTSP Source '" << GetName() << "'");
             }
             else
             {
                 // Otherwise, we're disabling management with an interval of 0
-                g_source_remove(m_streamMgtTimerId);
-                m_streamMgtTimerId = 0;
+                g_source_remove(m_streamManagerTimerId);
+                m_streamManagerTimerId = 0;
                 LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
             }
         }
     }
     
-    void RtspSourceBintr::GetReconnectStats(time_t* lastTime, uint* lastCount)
+    void RtspSourceBintr::GetReconnectionStats(time_t* last, uint* count, boolean* isInReconnect, uint* retries)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
-        *lastTime = m_lastReconnectTime.tv_sec;
-        *lastCount = m_lastReconnectCount;
+        *last = m_lastReconnectTime.tv_sec;
+        *count = m_reconnectionCount;
+        *isInReconnect = m_isInReconnect;
+        *retries = m_reconnectionRetries;
     }
     
-    void RtspSourceBintr::SetReconnectStats(time_t lastTime, uint lastCount)
+    void RtspSourceBintr::_setReconnectionStats(time_t last, uint count, boolean isInReconnect, uint retries)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
-        m_lastReconnectTime.tv_sec = lastTime;
-        m_lastReconnectCount = lastCount;
+        m_lastReconnectTime.tv_sec = last;
+        m_reconnectionCount = count;
+        m_isInReconnect = isInReconnect;
+        m_reconnectionRetries = retries;
     }
     
-    void RtspSourceBintr::ClearReconnectStats()
+    void RtspSourceBintr::ClearReconnectionStats()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
         m_lastReconnectTime = {0,0};
-        m_lastReconnectCount = 0;
+        m_reconnectionCount = 0;
+        
+        if (!m_isInReconnect)
+        {
+            m_reconnectionRetries = 0;
+        }
     }
 
-    void  RtspSourceBintr::GetResetStats(boolean* isInReset, uint* resetCount)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
-        
-        *isInReset = m_isInReset;
-        *resetCount = m_lastResetCount;
-    }
-
-    void  RtspSourceBintr::SetResetStats(boolean isInReset, uint resetCount)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
-        
-        m_isInReset = isInReset;
-        m_lastResetCount = resetCount;
-    }
-    
     bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
@@ -1265,7 +1256,7 @@ namespace DSL
             // Start the Stream mangement timer.
             if (m_bufferTimeout)
             {
-                m_streamMgtTimerId = g_timeout_add(1000, RtspStreamMgtHandler, this);
+                m_streamManagerTimerId = g_timeout_add(1000, RtspStreamManagerHandler, this);
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
             }
 
@@ -1277,43 +1268,56 @@ namespace DSL
         }
     }
 
-    int RtspSourceBintr::ManageStream()
+    int RtspSourceBintr::StreamManager()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
-
-        // if currently in a reset cycle then let the ResetStream handler continue to handle
-        if (m_isInReset)
+        // New level of scope for the code that needs mutex 
         {
-            return true;
-        }
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
-        struct timeval currentTime;
-        gettimeofday(&currentTime, NULL);
-        
-        // Get the last buffer time. This timer callback should not be called until after the timer 
-        // is started on successful linkup - therefore the lastBufferTime should be non-zero
-        struct timeval lastBufferTime;
-        m_TimestampPph->GetTime(lastBufferTime);
-        if (lastBufferTime.tv_sec == 0)
+            // if currently in a reset cycle then let the ResetStream handler continue to handle
+            if (m_isInReconnect)
+            {
+                return true;
+            }
+
+            struct timeval currentTime;
+            gettimeofday(&currentTime, NULL);
+            
+            // Get the last buffer time. This timer callback should not be called until after the timer 
+            // is started on successful linkup - therefore the lastBufferTime should be non-zero
+            struct timeval lastBufferTime;
+            m_TimestampPph->GetTime(lastBufferTime);
+            if (lastBufferTime.tv_sec == 0)
+            {
+                LOG_ERROR("ManageStream callback called before the connection has been establed for source '" << GetName() << "'");
+                return false;
+            }
+
+            double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+                (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+            if (timeSinceLastBufferMs < m_bufferTimeout*1000)
+            {
+                // Timeout has not been exceeded, so return true to sleep again
+                return true;
+            }
+            LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" << GetName() << "'");
+        }
+        //  Now out of scope with the mutex unlocked, call the Reconnect Managter directly to start the reconnection cycle
+        if (!ReconnectionManager())
         {
-            LOG_ERROR("ManageStream callback called before the connection has been establed for source '" << GetName() << "'");
-            return false;
+            LOG_ERROR("Failed to start reconnection cycle for source '" << GetName() << "'");
         }
+            
+        LOG_INFO("Starting Reconnection Manager for source '" << GetName() << "'");
+        m_reconnectionManagerTimerId = g_timeout_add(DSL_RTSP_RECONNECT_SLEEP_TIME_MS, RtspReconnectionMangerHandler, this);
 
-        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
-            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
-
-        if (timeSinceLastBufferMs > m_bufferTimeout*1000)
-        {
-            LOG_INFO("Buffer timeout of " << m_bufferTimeout << "exceeded for source '" << GetName() << "'");
-            m_resetMgtTimerId = g_timeout_add(DSL_RTSP_RECONNECT_SLEEP_TIME_MS, RtspStreamResetHandler, this);
-        }
         return true;
     }
     
-    int RtspSourceBintr::ResetStream()
+    int RtspSourceBintr::ReconnectionManager()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
 
         struct timeval lastResetTime;
         gettimeofday(&lastResetTime, NULL);
@@ -1321,12 +1325,17 @@ namespace DSL
         uint stateResult(0);
         GstState currentState;
         
-        if (!m_isInReset or m_waitForReconnectCount > (DSL_RTSP_RECONNECT_TIMEOUT_MS / DSL_RTSP_RECONNECT_SLEEP_TIME_MS))
+        if (!m_isInReconnect or m_waitForReconnectCount > (DSL_RTSP_RECONNECT_TIMEOUT_MS / DSL_RTSP_RECONNECT_SLEEP_TIME_MS))
         {
             // set the reset-state,
-            SetResetStats(true, m_lastResetCount+1);
+            if (!m_isInReconnect)
+            {
+                m_reconnectionRetries = 0;
+                m_isInReconnect = true;
+            }
+            m_reconnectionRetries++;
 
-            LOG_DEBUG("Resetting RTSP Source '" << GetName() << "' with reset count = " << m_lastResetCount);
+            LOG_INFO("Resetting RTSP Source '" << GetName() << "' with reset count = " << m_reconnectionRetries);
             
             // update the current buffer timestamp to the current reset time
             m_TimestampPph->SetTime(lastResetTime);
@@ -1353,11 +1362,12 @@ namespace DSL
         {
             case GST_STATE_CHANGE_SUCCESS:
                 LOG_INFO("Reset completed for RTSP Source'" << GetName() << "'");
-                LOG_INFO("RTSP Source '" << "' is now in state " << gst_element_state_get_name(currentState));
+                LOG_INFO("RTSP Source '" << GetName() << "' is now in state " << gst_element_state_get_name(currentState));
                 
-                SetResetStats(false, 0);
-                SetReconnectStats(lastResetTime.tv_sec, m_lastReconnectCount+1);
-                m_resetMgtTimerId = 0;
+                m_isInReconnect = false;
+                m_lastReconnectTime = lastResetTime,
+                m_reconnectionCount++;
+                m_reconnectionManagerTimerId = 0;
                 
                 // update the internal state variable to notify all client listeners 
                 _setCurrentState(currentState);
@@ -1369,15 +1379,17 @@ namespace DSL
                 _setCurrentState(currentState);
                 LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
                 return false;
-            case GST_STATE_CHANGE_ASYNC:
 
-                // Do not set state
+            case GST_STATE_CHANGE_ASYNC:
+                // update the internal state variable to notify all client listeners 
+                _setCurrentState((GstState)DSL_STATE_CHANGE_ASYNC);
                 LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
                 return true;
+
             default:
+                LOG_ERROR("Unknown 'state change result' when trying to sync state for RTSP Source '" << GetName() << "'");
                 break;
         }
-       
         return false;
         
     }
@@ -1396,11 +1408,11 @@ namespace DSL
     void RtspSourceBintr::_setCurrentState(GstState newState)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamMgtMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_currentStateMutex);
 
         if (newState != m_currentState)
         {
-            LOG_INFO("Changing state from" << gst_element_state_get_name(m_currentState) << 
+            LOG_INFO("Changing state from " << gst_element_state_get_name(m_currentState) << 
             " to " << gst_element_state_get_name(newState) << " for RtspSourceBintr '" << GetName() << "'");
             
             // iterate through the map of state-change-listeners calling each
@@ -1466,16 +1478,16 @@ namespace DSL
         return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
     }
 
-    static int RtspStreamMgtHandler(void* pSource)
+    static int RtspStreamManagerHandler(void* pSource)
     {
         return static_cast<RtspSourceBintr*>(pSource)->
-            ManageStream();
+            StreamManager();
     }
 
-    static int RtspStreamResetHandler(void* pSource)
+    static int RtspReconnectionMangerHandler(void* pSource)
     {
         return static_cast<RtspSourceBintr*>(pSource)->
-            ResetStream();
+            ReconnectionManager();
     }
 
 

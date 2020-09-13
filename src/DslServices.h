@@ -320,11 +320,10 @@ namespace DSL {
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint reconnectInterval);
         
-        DslReturnType SourceRtspReconnectStatsGet(const char* name, time_t* lastTime, uint*lastCount);
+        DslReturnType SourceRtspReconnectionStatsGet(const char* name, 
+            time_t* last, uint* count, boolean* isInReconnect, uint* retries);
         
-        DslReturnType SourceRtspReconnectStatsClear(const char* name);
-        
-        DslReturnType SourceRtspReconnectStats(const char* name);
+        DslReturnType SourceRtspReconnectionStatsClear(const char* name);
         
         DslReturnType SourceRtspStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* userdata);

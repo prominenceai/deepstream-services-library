@@ -256,7 +256,7 @@ namespace DSL
         
         m_areSourcesLive = isLive;
         
-        LOG_INFO("'live-source' attrubute set to " << m_areSourcesLive << "for Streammuxer '" << GetName() << "'");
+        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive << "' for Streammuxer '" << GetName() << "'");
         m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
     }
 

@@ -3621,7 +3621,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectStatsGet(const char* name, time_t* lastTime, uint*lastCount)
+    DslReturnType Services::SourceRtspReconnectionStatsGet(const char* name, 
+        time_t* last, uint* count, boolean* isInReconnect, uint* retries)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3634,7 +3635,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->GetReconnectStats(lastTime, lastCount);
+            pSourceBintr->GetReconnectionStats(last, count, isInReconnect, retries);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -3644,7 +3645,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectStatsClear(const char* name)
+    DslReturnType Services::SourceRtspReconnectionStatsClear(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3657,7 +3658,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->ClearReconnectStats();
+            pSourceBintr->ClearReconnectionStats();
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
