@@ -1794,6 +1794,26 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout)
     return DSL::Services::GetServices()->SourceRtspTimeoutSet(cstrName.c_str(), timeout);
 }
 
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspReconnectionParamsGet(cstrName.c_str(), sleep_ms, timeout_ms);
+}
+
+DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep_ms, uint timeout_ms)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspReconnectionParamsSet(cstrName.c_str(), sleep_ms, timeout_ms);
+}
+
 DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
     time_t* last, uint* count, boolean* isInReconnect, uint* retries)
 {

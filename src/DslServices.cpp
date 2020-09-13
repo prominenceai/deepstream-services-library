@@ -3593,7 +3593,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception getting buffer timeout");
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting buffer timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3616,7 +3616,57 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception setting");
+            LOG_ERROR("RTSP Source '" << name << "' threw exception setting buffer timeout");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep_ms, uint* timeout_ms)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            pSourceBintr->GetReconnectionParams(sleep_ms, timeout_ms);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting reconnection params");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep_ms, uint timeout_ms)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+                
+            if (!pSourceBintr->SetReconnectionParams(sleep_ms, timeout_ms))
+            {
+                LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception setting reconnection params");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3640,7 +3690,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception getting Reconnect Stats");
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting Reconnect Stats");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -7590,6 +7640,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE] = L"DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE";
         m_returnValueToString[DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED] = L"DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_SET_FAILED] = L"DSL_RESULT_SOURCE_SET_FAILED";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_BAD_FORMAT] = L"DSL_RESULT_DEWARPER_NAME_BAD_FORMAT";

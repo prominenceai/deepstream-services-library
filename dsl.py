@@ -69,6 +69,7 @@ DSL_PAD_PROBE_HANDLED = 4
 DSL_UINT_P = POINTER(c_uint)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
+DSL_LONG_P = POINTER(c_long)
 DSL_DOUBLE_P = POINTER(c_double)
 DSL_FLOAT_P = POINTER(c_float)
 
@@ -1312,6 +1313,97 @@ _dsl.dsl_source_decode_dewarper_remove.restype = c_uint
 def dsl_source_decode_dewarper_remove(name):
     global _dsl
     result = _dsl.dsl_source_decode_dewarper_remove(name)
+    return int(result)
+
+##
+## dsl_source_rtsp_timeout_get()
+##
+_dsl.dsl_source_rtsp_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_rtsp_timeout_get.restype = c_uint
+def dsl_source_rtsp_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result = _dsl.dsl_source_rtsp_timeout_get(name, DSL_UINT_P(timeout))
+    return int(result), timeout.value
+
+##
+## dsl_source_rtsp_timeout_set()
+##
+_dsl.dsl_source_rtsp_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_rtsp_timeout_set.restype = c_uint
+def dsl_source_rtsp_timeout_set(name, timeout):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_timeout_set(name, timeout)
+    return int(result)
+
+##
+## dsl_source_rtsp_reconnection_params_get()
+##
+_dsl.dsl_source_rtsp_reconnection_params_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_rtsp_reconnection_params_get.restype = c_uint
+def dsl_source_rtsp_reconnection_params_get(name):
+    global _dsl
+    sleep_ms = c_uint(0)
+    timeout_ms = c_uint(0)
+    result = _dsl.dsl_source_rtsp_reconnection_params_get(name, DSL_UINT_P(sleep_ms), DSL_UINT_P(timeout_ms))
+    return int(result), sleep_ms.value, timeout_ms.value
+
+##
+## dsl_source_rtsp_reconnection_params_set()
+##
+_dsl.dsl_source_rtsp_reconnection_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_source_rtsp_reconnection_params_set.restype = c_uint
+def dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms)
+    return int(result)
+
+##
+## dsl_source_rtsp_reconnection_stats_get()
+##
+_dsl.dsl_source_rtsp_reconnection_stats_get.argtypes = [c_wchar_p, POINTER(c_long), POINTER(c_uint), POINTER(c_bool), POINTER(c_uint)]
+_dsl.dsl_source_rtsp_reconnection_stats_get.restype = c_uint
+def dsl_source_rtsp_reconnection_stats_get(name):
+    global _dsl
+    last = c_long(0)
+    count = c_uint(0)
+    isInReset = c_bool(0)
+    retries = c_uint(0)
+    result = _dsl.dsl_source_rtsp_reconnection_stats_get(name, DSL_LONG_P(last), DSL_UINT_P(count), DSL_BOOL_P(isInReset), DSL_UINT_P(retries))
+    return int(result), last.value, count.value, isInReset.value, retries.value
+
+##
+## dsl_source_rtsp_reconnection_stats_clear()
+##
+_dsl.dsl_source_rtsp_reconnection_stats_clear.argtypes = [c_wchar_p]
+_dsl.dsl_source_rtsp_reconnection_stats_clear.restype = c_uint
+def dsl_source_rtsp_reconnection_stats_clear(name):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_reconnection_stats_clear(name)
+    return int(result)
+
+##
+## dsl_source_rtsp_state_change_listener_add()
+##
+_dsl.dsl_source_rtsp_state_change_listener_add.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_source_rtsp_state_change_listener_add.restype = c_uint
+def dsl_source_rtsp_state_change_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_source_rtsp_state_change_listener_add(name, c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_source_rtsp_state_change_listener_remove()
+##
+_dsl.dsl_source_rtsp_state_change_listener_remove.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER]
+_dsl.dsl_source_rtsp_state_change_listener_remove.restype = c_uint
+def dsl_source_rtsp_state_change_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_source_rtsp_state_change_listene_remove(name, c_client_listener)
     return int(result)
 
 ##
@@ -2730,7 +2822,7 @@ def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     return int(result)
     
 ##
-## dsl_pipeline_state_change_listener_remove()
+## dsl_pipeline_eos_listener_remove()
 ##
 _dsl.dsl_pipeline_eos_listener_remove.argtypes = [c_wchar_p, DSL_EOS_LISTENER]
 _dsl.dsl_pipeline_eos_listener_remove.restype = c_uint

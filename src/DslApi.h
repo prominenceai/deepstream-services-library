@@ -76,6 +76,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 #define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
 #define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
+#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
 
 
 /**
@@ -370,12 +371,12 @@ THE SOFTWARE.
  * @brief time to sleep between successive queries to check if
  * the RTSP Source has reconnected and the stream re-established
  */
-#define DSL_RTSP_RECONNECT_SLEEP_TIME_MS                            100
+#define DSL_RTSP_RECONNECTION_SLEEP_MS                              100
 /**
  * @brief the maximum time to wait for reconnect before resetting
  * the RTSP Source and trying again.
  */
-#define DSL_RTSP_RECONNECT_TIMEOUT_MS                               3000
+#define DSL_RTSP_RECONNECTION_TIMEOUT_MS                            3000
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -1713,7 +1714,7 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 
 /**
- * @brief Gets the current Reconnect Interval for the named RTSP Source
+ * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query
  * @param[out] timeout current time to wait between successive frames before determining the 
  * connection is lost. If set to 0 then timeout is disabled.
@@ -1722,13 +1723,37 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
 
 /**
- * @brief Sets the current Reset Interval for the named RTSP Source
- * @param[in] name name of the source object to updated
+ * @brief Sets the current buffer timeout for the named RTSP Source
+ * @param[in] name name of the source object to update
  * @param[in] timeout time to wait between successive frames before determining the 
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
+
+/**
+ * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
+ * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * @param[in] name name of the source object to query.
+ * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
+ * @param[out] timeout current time to wait before terminating the current reconnection try, and
+ * restarting the reconnection cycle again.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
+
+/**
+ * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
+ * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * Note: calling this service while a reconnection cycle is in progess will terminate
+ * the current cycle before restarting with the new parmeters.
+ * @param[in] name name of the source object to update.
+ * @param[in] sleep_ms time to sleep between successively checking the status of the asynchrounus reconnection
+ * @param[in] timeout current time to wait before terminating the current reconnection try, and
+ * restarting the reconnection cycle again.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep_ms, uint timeout_ms);
 
 /**
  * @brief Gets the current reconnection stats for the named RTSP Source
@@ -1737,24 +1762,35 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
  * @param[out] count the count of reconnections for the named source, since first played or cleared.
  * @param[out] isInReconnect true if the RTSP source is currently in a "reconnection-cycle"
  * @param[out] retries number reconnection retries in either the current reconnection-cycle, in the case
- * of isInReonnect == true, or the last reconnection when isInReonnect == false. 
+ * of isInReconnect == true, or the last reconnection when isInReconnect == false. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
     time_t* last, uint* count, boolean* isInReconnect, uint* retries); 
 
 /**
- * @brief Clears the reconnect stats for the named RTSP Source
+ * @brief Clears the reconnect stats for the named RTSP Source.
+ * Note: "retries" will not be cleared if isInReconnect == true
  * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
 
 /**
+ * @brief adds a callback to be notified on change of RTSP Source state
+ * @param[in] name name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* name, 
+    dsl_state_change_listener_cb listener, void* userdata);
+
+/**
  * @brief removes a callback previously added with dsl_source_rtsp_state_change_listener_add
  * @param[in] name unique name of the RTSP source to update
  * @param[in] listener pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);

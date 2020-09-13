@@ -133,25 +133,6 @@ namespace DSL
                 
             return pParentBintr->RemoveChild(shared_from_this());
         }
-        
-//        /**
-//         * @brief Adds a named Ghost Pad to this Bintr using a provided Elementr
-//         * @param[in] name for the new Ghost Pad
-//         * @param[in] pElementr to retrieve the static Sink pad from
-//         */
-//        virtual void AddGhostPad(const char* name, DSL_BASE_PTR pElementr)
-//        {
-//            LOG_FUNC();
-//            
-//            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
-//            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-//            if (!gst_element_add_pad(GetGstElement(), 
-//                gst_ghost_pad_new(name, gst_element_get_static_pad(pElementr->GetGstElement(), name))))
-//            {
-//                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
-//                throw;
-//            }
-//        }
 
         /**
          * @brief virtual function for derived classes to implement

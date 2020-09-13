@@ -463,7 +463,7 @@ namespace DSL
         
         /**
          * @brief Gets the current buffer timeout value controlling reconnection attemtps
-         * @return buffer timeout with 0 indicating the buffer watchdog is disbled.
+         * @return buffer timeout in seconds, with 0 indicating that Stream Reconnection Management is disbled.
          */
         uint GetBufferTimeout();
         
@@ -472,7 +472,28 @@ namespace DSL
          * @param[in] max time between successive buffers in units of seconds, set to 0 to diable
          */
         void SetBufferTimeout(uint timeout);
+
+        /**
+         * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
+         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+         * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
+         * @param[out] timeout current time to wait before terminating the current reconnection try, and
+         * restarting the reconnection cycle again.
+         */
+        void GetReconnectionParams(uint* sleep_ms, uint* timeout_ms);
         
+        /**
+         * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
+         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation. Both must be > 10ms
+         * Note: calling this service while a reconnection cycle is in progess will terminate the current cycle 
+         * before restarting with the new parmeters.
+         * @param[in] sleep time to sleep between successively checking the status of the asynchrounus reconnection
+         * @param[in] timeout current time to wait before terminating the current reconnection try, and
+         * restarting the reconnection cycle again.
+         * @return true is params have been set, false otherwise.
+         */
+        bool SetReconnectionParams(uint sleep_ms, uint timeout_ms);
+
         /**
          * @brief Gets the Reconnect Statistics collected by the RTSP source 
          * @param[out] last time of the last reconnect in tv_sec
@@ -485,6 +506,7 @@ namespace DSL
          * @brief Sets the Reconnect Statistics collected by the RTSP source 
          * Note: this services is to be called by the test services only
          * It is left public for the purposes of test only. 
+         * @param[in] name name of the source object to update.
          * @param[in] lastTime time of the last reconnect in tv_sec
          * @param[in] lastCount the count of reconnection since the Pipeline was first played
          * or since the stats were last cleared by the client.
@@ -510,7 +532,40 @@ namespace DSL
          * @return DSL_RESULT_PIPELINE_RESULT
          */
         bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
-            
+
+        /**
+         * @brief Called periodically on timer experation to Check the status of the RTSP stream
+         * and to initiate a reconnection cycle when the last buffer time execeeds timeout
+         */
+        int StreamManager();
+        
+        /**
+         * @brief Called to manage the reconnection cycle on loss of connection
+         */
+        int ReconnectionManager();
+        
+        /**
+         * @brief gets the RTSP Source's current state as maintaned by the component.
+         * Not to be confussed with the GetState() Bintr base class function 
+         * @return current state of the RTSP Source
+         */
+        uint _getCurrentState();
+
+        /**
+         * @brief sets the RTSP Source's current state variable to newState, one of GST_STATE_*
+         * Changes in state will notifiy all client state-change-listeners
+         * Not to be confussed with the SetState() Bintr base class function which attempts 
+         * to change the actual state of the GstElement for this Bintr
+         * @param[in] newState new state to set the current state variable
+         */
+        void _setCurrentState(uint newState);
+        
+        /**
+         * @brief NOTE: Used for test purposes only, allows access to the Source's Timestamp PPH which 
+         * is used to maintain a timestamp of the last buffer received for the source. 
+         * @return 
+         */
+        DSL_PPH_TIMESTAMP_PTR _getTimestampPph(){return m_TimestampPph;};
         
         /**
          * @brief adds a TapBintr to the RTSP Source - one at most
@@ -535,41 +590,6 @@ namespace DSL
         void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
 
         void HandleDecodeElementOnPadAdded(GstElement* pBin, GstPad* pPad);
-        
-        /**
-         * @brief Called periodically on timer experation to Check the status of the RTSP stream
-         * and to initiate a reconnection cycle when the last buffer time execeeds timeout
-         */
-        int StreamManager();
-        
-        /**
-         * @brief Called to manage the reconnection cycle on loss of connection
-         */
-        int ReconnectionManager();
-
-        
-        /**
-         * @brief gets the RTSP Source's current state as maintaned by the component.
-         * Not to be confussed with the GetState() Bintr base class function 
-         * @return current state of the RTSP Source
-         */
-        GstState _getCurrentState();
-
-        /**
-         * @brief sets the RTSP Source's current state variable to newState, one of GST_STATE_*
-         * Changes in state will notifiy all client state-change-listeners
-         * Not to be confussed with the SetState() Bintr base class function which attempts 
-         * to change the actual state of the GstElement for this Bintr
-         * @param[in] newState new state to set the current state variable
-         */
-        void _setCurrentState(GstState newState);
-        
-        /**
-         * @brief NOTE: Used for test purposes only, allows access to the Source's Timestamp PPH which 
-         * is used to maintain a timestamp of the last buffer received for the source. 
-         * @return 
-         */
-        DSL_PPH_TIMESTAMP_PTR _getTimestampPph(){return m_TimestampPph;};
         
     private:
     
@@ -624,12 +644,12 @@ namespace DSL
         uint m_streamManagerTimerId;
         
         /**
-         * @brief mutux to guard the reconnection managment read/write attributes.
+         * @brief mutux to guard the buffer timeout managment read/write attributes.
          */
         GMutex m_streamManagerMutex;
         
         /**
-         * @brief the last time this source reconnected in timeval.tv_sec
+         * @brief the last time this source reconnected in timeval
          */
         struct timeval m_lastReconnectTime;
         
@@ -662,9 +682,26 @@ namespace DSL
         uint m_reconnectionManagerTimerId;
 
         /**
+         * @brief mutux to guard the reconnection managment read/write attributes.
+         */
+        GMutex m_reconnectionManagerMutex;
+        
+        /**
+         * @brief sleep time to sleep between successively checking the status of the asynchrounus reconnection
+         * Set to DSL_RTSP_RECONNECT_SLEEP_MS on source creation.
+         */
+        uint m_reconnectionSleepMs;
+        
+        /**
+         * @brief time to wait before terminating the current reconnection try, and starting a new cycle
+         * Set to DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+         */
+        uint m_reconnectionTimeoutMs;
+
+        /**
          * @brief maintains the current state of the RTSP source bin
          */
-        GstState m_currentState;
+        uint m_currentState;
 
         /**
          * @brief mutux to guard the current State read/write access.
@@ -680,17 +717,6 @@ namespace DSL
 
     /**
      * @brief 
-     * @param pBin
-     * @param num
-     * @param caps
-     * @param pSource
-     * @return 
-     */
-    static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *caps,
-        gpointer pSource);
-        
-    /**
-     * @brief 
      * @param[in] pBin
      * @param[in] pPad
      * @param[in] pSource (callback user data) pointer to the unique source opject
@@ -698,19 +724,29 @@ namespace DSL
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
 
     /**
-     * @brief 
-     * @param pBin
-     * @param pPad
-     * @param pSource
+     * @brief Called to select the Stream, H264 or H265, based on received caps
+     * @param pBin -unused
+     * @param num -unused
+     * @param pCaps pointer to the caps structure that specifies the Stream to select
+     * @param[in] pSource shared pointer to the RTSP Source component.
+     * @return true on successful selection, false otherwise
+     */
+    static boolean RtspSourceSelectStreamCB(GstElement *pBin, uint num, GstCaps *pCaps,
+        gpointer pSource);
+        
+    /**
+     * @brief Called on new Pad Added to link the depayload and parser
+     * @param pBin pointer to the depayload bin
+     * @param pPad Pointer to the new Pad added for linking
+     * @param[in] pSource shared pointer to the RTSP Source component.
      */
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
     
     /**
-     * @brief 
-     * @param pChildProxy
-     * @param pObject
-     * @param name
-     * @param pSource
+     * @brief Called on new Pad Added to link the parser and the decoder
+     * @param pBin pointer to the parser bin
+     * @param pPad Pointer to the new Pad added for linking
+     * @param[in] pSource shared pointer to the RTSP Source component.
      */
     static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
 
@@ -719,7 +755,7 @@ namespace DSL
      * @param[in] pChildProxy
      * @param[in] pObject
      * @param[in] name
-     * @param[in] pSource (callback user data) pointer to the unique source opject
+     * @param[in] pSource shared pointer to the RTSP Source component.
      */
     static void OnChildAddedCB(GstChildProxy* pChildProxy, GObject* pObject,
         gchar* name, gpointer pSource);
@@ -728,7 +764,7 @@ namespace DSL
      * @brief 
      * @param[in] pObject
      * @param[in] arg0
-     * @param[in] pSource
+     * @param[in] pSource shared pointer to the RTSP Source component.
      */
     static void OnSourceSetupCB(GstElement* pObject, GstElement* arg0, gpointer pSource);
 
@@ -737,7 +773,7 @@ namespace DSL
      * custom logic of looping of each decode source (file) stream.
      * @param pPad
      * @param pInfo
-     * @param pSource
+     * @param[in] pSource shared pointer to the RTSP Source component.
      * @return 
      */
     static GstPadProbeReturn StreamBufferRestartProbCB(GstPad* pPad, 
@@ -745,7 +781,7 @@ namespace DSL
 
     /**
      * @brief 
-     * @param pSource
+     * @param[in] pSource shared pointer to the RTSP Source component.
      * @return 
      */
     static gboolean StreamBufferSeekCB(gpointer pSource);
@@ -759,7 +795,7 @@ namespace DSL
     
     /**
      * @brief Timer callback handler to invoke the RTSP Source's Reconnection Manager.
-     * @param pSource shared pointer to RTSP Source component to reset.
+     * @param[in] pSource shared pointer to RTSP Source component to reset.
      * @return int returns 0
      */
     static int RtspReconnectionMangerHandler(void* pSource);

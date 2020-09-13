@@ -316,9 +316,13 @@ namespace DSL {
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
     
-        DslReturnType SourceRtspTimeoutGet(const char* name, uint* reconnectInterval);
+        DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
-        DslReturnType SourceRtspTimeoutSet(const char* name, uint reconnectInterval);
+        DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType SourceRtspReconnectionParamsGet(const char* name, uint* sleep_ms, uint* timeout_ms);
+
+        DslReturnType SourceRtspReconnectionParamsSet(const char* name, uint sleep_ms, uint timeout_ms);
         
         DslReturnType SourceRtspReconnectionStatsGet(const char* name, 
             time_t* last, uint* count, boolean* isInReconnect, uint* retries);
