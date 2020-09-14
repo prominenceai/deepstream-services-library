@@ -763,7 +763,7 @@ pipeline identified by it's unique name. The function will be called on every Pi
 
 **Python Example**
 ```Python
-def state_change_listener(old_state, new_state, user_data):
+def state_change_listener(old_state, new_state, user_data, client_data):
     print('old_state = ', old_state)
     print('new_state = ', new_state)
     
@@ -789,7 +789,7 @@ pipeline identified by it's unique name.
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_listener, None)
+retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_listener)
 ```
 
 <br>
