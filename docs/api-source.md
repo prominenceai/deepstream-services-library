@@ -603,6 +603,7 @@ retval = dsl_source_rtsp_state_change_listener_remove('my-pipeline', state_chang
 ```
 
 <br>
+
 ### *dsl_source_rtsp_tap_add*
 ```C++
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
