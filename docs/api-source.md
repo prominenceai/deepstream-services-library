@@ -87,9 +87,9 @@ Streaming Source Methods use the following return codes, in addition to the gene
 
 ## Cuda Decode Memory Types
 ```C++
-#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
-#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
-#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
+#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
+#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 ```
 
 ## RTP Protocols
@@ -105,7 +105,7 @@ Streaming Source Methods use the following return codes, in addition to the gene
 ### *dsl_source_csi_new*
 ```C++
 DslReturnType dsl_source_csi_new(const wchar_t* source,
-    uint width, uint height, uint fps_n, uint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named CSI Camera Source object. 
 
@@ -129,7 +129,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 ### *dsl_source_usb_new*
 ```C++
 DslReturnType dsl_source_usb_new(const wchar_t* source,
-    uint width, uint height, uint fps_n, uint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named USB Camera Source object. 
 
@@ -455,7 +455,7 @@ retval, timeout = dsl_source_rtsp_timeout_get('my-rtsp-source')
 ```C++
 DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
 ```
-This service sets the frame buffer timeout value for the named RTSP Source. Setting the `timeout` to 0 will disable stream mangement and terminate any reconnection cycle if in progress. 
+This service sets the frame buffer timeout value for the named RTSP Source. Setting the `timeout` to 0 will disable stream management and terminate any reconnection cycle if in progress. 
 
 **Parameters**
  * `name` - [in] unique name of the Source to query
@@ -478,8 +478,8 @@ This service gets the current reconnection params in use by the named RTSP Sourc
 
 **Parameters**
  * `name` - [in] unique name of the Source to query
- * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchrounus reconnection
- * `timeout_ms` - [out] time to wait before terminating the current reconnection try, and restarting the reconnection cycle again.
+ * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchronous reconnection
+ * `timeout_ms` - [out] time to wait before terminating the current reconnection try and restarting the reconnection cycle again.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -500,8 +500,8 @@ This service sets the reconnection params for the named RTSP Source. The paramet
 
 **Parameters**
  * `name` - [in] unique name of the Source to query
- * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchrounus reconnection
- * `timeout_ms` - [out] time to wait before terminating the current reconnection try, and restarting the reconnection cycle again.
+ * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchronous reconnection
+ * `timeout_ms` - [out] time to wait before terminating the current reconnection try and restarting the reconnection cycle again.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -710,6 +710,3 @@ retval = dsl_source_num_in_use_max_set(24)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-
-
-
