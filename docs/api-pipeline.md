@@ -16,9 +16,9 @@ Pipelines - with a minimum required set of components - can be `played` by calli
 
 #### Pipeline Client-Listener Notifications
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
-* Change of State `(COS)` events -[dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add) / [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove). 
-* End of Stream `(EOS)` events - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
-* Quality of Service `(QOS)` events - with [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add) / [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove).
+* **Change of State** - with [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add) / [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove). 
+* **End of Stream (EOS)** - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
+* **Error Message Received** - with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add) / [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove).
 
 #### Pipeline XWindow Support
 Pipelines - that have at least one Window-Sink - will create an XWindow by default, unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set). A multi-Pipeline Application can have one Pipeline create the XWindow and then sharing with others, all with Window Sinks using difference offsets within the XWindow.
@@ -30,7 +30,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 **Client CallBack Typdefs**
 * [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
 * [dsl_eos_listener_cb](#dsl_eos_listener_cb)
-* [dsl_qos_listener_cb](#dsl_qos_listener_cb)
+* [dsl_error_message_handler_cb](#dsl_error_message_handler_cb)
 * [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb)
 * [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb)
 * [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb)
@@ -72,8 +72,9 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
 * [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add)
 * [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove)
-* [dsl_pipeline_qos_listener_add](#dsl_pipeline_qos_listener_add)
-* [dsl_pipeline_qos_listener_remove](#dsl_pipeline_qos_listener_remove)
+* [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add)
+* [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove)
+* [dsl_pipeline_error_message_last_get](#dsl_pipeline_error_message_last_get)
 * [dsl_pipeline_play](#dsl_pipeline_play)
 * [dsl_pipeline_pause](#dsl_pipeline_pause)
 * [dsl_pipeline_stop](#dsl_pipeline_stop)
@@ -121,64 +122,76 @@ The following return codes are used by the Pipeline API
 ## Client Callback Typedefs
 ### *dsl_state_change_listener_cb*
 ```C++
-typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, void* user_data);
+typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, void* client_data);
 ```
 Callback typedef for a client state-change listener. Functions of this type are added to a Pipeline by calling [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Once added, the function will be called on every change of Pipeline state until the client removes the listener by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 
 **Parameters**
 * `old_state` - [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the old (previous) pipeline state
 * `new_state` - [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the new pipeline state
-* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
 ### *dsl_eos_listener_cb*
 ```C++
-typedef void (*dsl_eos_listener_cb)(void* user_data);
+typedef void (*dsl_eos_listener_cb)(void* client_data);
 ```
 Callback typedef for a client EOS listener function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add). Once added, the function will be called on the event of Pipeline end-of-stream (EOS). The listener function is removed by calling [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove) . 
 
 **Parameters**
-* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
-### *dsl_qos_listener_cb*
+### *dsl_error_message_handler_cb*
 ```C++
-typedef void (*dsl_eos_listener_cb)(void* user_data);
+typedef void (*dsl_error_message_handler_cb)(void* client_data);
 ```
-Callback typedef for a client QOS listener function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_qos_listener_add](#dsl_pipeline_eos_listener_add). Once added, the function will be called on the event that one or more of the Pipeline's components has detected a degradation in the Quality-of-Service (QOS). The listener function is removed by calling [dsl_pipeline_qos_listener_remove](#dsl_pipeline_eos_listener_remove). 
+Callback typedef for a client error-message-handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add). Once added, the function will be called on the event of an error message recieved by the Pipeline's bus-watcher. The handler function is removed by calling [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove) . 
 
 **Parameters**
-* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
 ### *dsl_xwindow_key_event_handler_cb*
 ```C++
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_data);
+typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
 ```
-Callback typedef for a client XWindow `KeyRelease` event hander function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event, as long as the Pipeline has at least one [Window Sink](#). The handler function is removed by calling  [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove).
+Callback typedef for a client XWindow `KeyRelease` event hander function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling  [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove).
 
 **Parameters**
 * `key` - [in] UNICODE key string for the key pressed
-* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
 
 ### *dsl_xwindow_button_event_handler_cb*
 ```C++
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, uint xpos, uint ypos, void* user_data);
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, uint xpos, uint ypos, void* client_data);
 ```
-Callback typedef for a client XWindow `ButtonPress` event hander function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event, as long as the Pipeline has at least one [Window Sink](#). The handler function is removed by calling [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove).
+Callback typedef for a client XWindow `ButtonPress` event hander function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove).
 
 **Parameters**
 * `button` - [in] one of [DSL_BUTTON_ID](#) indicating which mouse button was pressed
 * `xpos` - [in] possitional X-offset from the XWindow's upper left corner in pixels
 * `ypos` - [in] possitional Y-offset from the XWindow's upper left corner in pixels
-* `user_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
+
+### *dsl_xwindow_delete_event_handler_cb*
+```C++
+typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
+```
+Callback typedef for a client XWindow `Delete` event hander function. Functions of this type are added to a Pipeline be calling [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add). Once added, the function will be called on XWindow `Delete` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove).
+
+**Parameters**
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+
+<br>
+
 
 ---
 ## Constructors
@@ -599,24 +612,24 @@ retval = dsl_pipeline_xwindow_dimensions_set('my-pipeline', 1280, 720)
 ### *dsl_pipeline_xwindow_key_event_handler_add*
 ```C++
 DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_key_handler_cb handler, void* user_data);
+    dsl_xwindow_key_handler_cb handler, void* client_data);
 ```
 This service adds a callback function of type [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `KeyReleased` event with Key string and the client provided `user_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Note** Client XWindow Callback functions will only be called if the Pipeline creates the XWindow, which requires a minimum of one Window-Sink component.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
 * `handler` - [in] XWindow event handler callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the handler when called back
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
 
 **Returns** 
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-def key_event_handler(key_string, user_data):
+def key_event_handler(key_string, client_data):
     print('key pressed = ', key_string)
     
 retval = dsl_pipeline_xwindow_key_event_handler_add('my-pipeline', key_event_handler, None)
@@ -648,24 +661,24 @@ retval = dsl_pipeline_xwindow_key_event_handler_remove('my-pipeline', key_event_
 ### *dsl_pipeline_xwindow_button_event_handler_add*
 ```C++
 DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_button_handler_cb handler, void* user_data);
+    dsl_xwindow_button_handler_cb handler, void* client_data);
 ```
 This service adds a callback function of type [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `user_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a minimum of one Window-Sink component.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
 * `handler` - [in] XWindow event handler callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the handler when called back
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-def button_event_handler(button, xpos, ypos, user_data):
+def button_event_handler(button, xpos, ypos, client_data):
     print('button = ', button)
     print('xpos = ', xpos)
     print('ypos = ', ypos)
@@ -699,7 +712,7 @@ retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_
 ### *dsl_pipeline_xwindow_delete_event_handler_add*
 ```C++
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_delete_handler_cb handler, void* user_data);
+    dsl_xwindow_delete_handler_cb handler, void* client_data);
 ```
 This service adds a callback function of type [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb) to a
 pipeline identified by it's unique name. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
@@ -709,7 +722,7 @@ pipeline identified by it's unique name. The function will be called on when the
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
 * `handler` - [in] XWindow event handler callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the handler when called back
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
@@ -748,22 +761,22 @@ retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow
 ### *dsl_pipeline_state_change_listener_add*
 ```C++
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
-    state_change_listener_cb listener, void* user_data);
+    state_change_listener_cb listener, void* client_data);
 ```
 This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `user_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines. 
+pipeline identified by it's unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines. 
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
 * `listener` - [in] state change listener callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the listner is called back
+* `client_data` - [in] opaque pointer to user data returned to the listner is called back
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-def state_change_listener(old_state, new_state, user_data, client_data):
+def state_change_listener(old_state, new_state, client_data, client_data):
     print('old_state = ', old_state)
     print('new_state = ', new_state)
     
@@ -797,20 +810,20 @@ retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_l
 ### *dsl_pipeline_eos_listener_add*
 ```C++
 DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
-    eos_listener_cb listener, void* user_data);
+    eos_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) to a pipeline identified by it's unique name. The function will be called on a Pipeline `EOS` event. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) to a Pipeline identified by it's unique name. The function will be called on a Pipeline `EOS` event. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the listener is called back
+* `listener` - [in] EOS listener callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-def eos_listener(user_data):
+def eos_listener(client_data):
     print('EOS event received')
     
 retval = dsl_pipeline_eos_listener_add('my-pipeline', eos_listener, None)
@@ -823,12 +836,11 @@ retval = dsl_pipeline_eos_listener_add('my-pipeline', eos_listener, None)
 DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
     dsl_eos_listener_cb listener);
 ```
-This service removes a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) from a
-pipeline identified by it's unique name.
+This service removes a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) from a Pipeline identified by it's unique name.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to remove.
+* `listener` - [in] EOS listener callback function to remove.
 
 **Returns**  
 * `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
@@ -840,47 +852,69 @@ retval = dsl_pipeline_eos_listener_remove('my-pipeline', eos_listener)
 
 <br>
 
-### *dsl_pipeline_qos_listener_add*
+
+### *dsl_pipeline_error_message_handler_add*
 ```C++
-DslReturnType dsl_pipeline_qos_listener_add(const wchar_t* pipeline, 
-    dsl_qos_listener_cb listener, void* user_data);
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_qos_listener_cb](#dsl_qos_listener_cb) to a pipeline identified by it's unique name. The function will be called on every Pipeline `QOS` event. Multiple calback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+This service adds a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb) to a Pipeline identified by it's unique name. The function will be called when the Pipeline's bus-watcher receives an error message from one of the GST Objects. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to add.
-* `user_data` - [in] opaque pointer to user data returned to the listener is called back
+* `handler` - [in] error message handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-def qos_listener(user_data):
-    print('QOS event received')
+def error_message_handler(source, message, client_data):
+    print('Error: source = ', source, ' message = ', message)
+    dsl_main_loop_quit()
     
-retval = dsl_pipeline_qos_listener_add('my-pipeline', qos_listener, None)
+retval = dsl_pipeline_error_message_handler_add('my-pipeline', error_message_handler, None)
 ```
 
 <br>
 
-### *dsl_pipeline_qos_listener_remove*
+### *dsl_pipeline_error_message_handler_remove*
 ```C++
-DslReturnType dsl_pipeline_qos_listener_remove(const wchar_t* pipeline, 
-    qos_listener_cb listener);
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler);
 ```
-This service removes a callback function of type [dsl_qos_listener_cb](#dsl_qos_listener_cb) from a pipeline identified by it's unique name.
+This service remove a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb), previously added with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add), from a Pipeline identified by it's unique name.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
-* `listener` - [in] state change listener callback function to remove.
+* `handler` - [in] error message handler callback function to remove.
 
-**Returns**  
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+**Returns**  `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_qos_listener_remove('my-pipeline', qos_listener)
+retval = dsl_pipeline_error_message_handler_remove('my-pipeline', error_message_handler)
+```
+
+<br>
+
+### *dsl_pipeline_error_message_last_get*
+```C++
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+    const wchar_t** source, const wchar_t** message);
+```
+This service gets the last error message received by the Pipeline's bus watcher. The parameters `source` and `message` will return `NULL` until the first message is received.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `source` - [out] source name of the GST object that was the source of the error message.
+* `message` - [out] message error message sent from the source object.
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, source, message = dsl_pipeline_error_message_last_get('my-pipeline')
 ```
 
 <br>
@@ -1019,16 +1053,18 @@ Except for the prefix, this method performs the identical service as
 * [List of all Services](/docs/api-reference-list.md)
 * **Pipeline**
 * [Source](/docs/api-source.md)
+* [Tap](/docs/api-tap.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
 * [Tracker](/docs/api-tracker.md)
-* [ODE Handler](/docs/api-ode-handler.md)
-* [ODE Trigger](/docs/api-ode-trigger.md)
-* [ODE Acton](/docs/api-ode-action.md)
-* [ODE Area](/docs/api-ode-area.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter](/docs/api-tee.md)
 * [Sink](/docs/api-sink.md)
+* [Pad Probe Handler](/docs/api-pad-probe-handler.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Acton](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
+* [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
