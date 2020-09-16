@@ -3719,7 +3719,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceRtspStateChangeListenerAdd(const char* name, 
-        dsl_state_change_listener_cb listener, void* userdata)
+        dsl_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3732,7 +3732,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->AddStateChangeListener(listener, userdata))
+            if (!pSourceBintr->AddStateChangeListener(listener, clientData))
             {
                 LOG_ERROR("RTSP Source '" << name 
                     << "' failed to add a State Change Listener");
@@ -4078,7 +4078,7 @@ namespace DSL
     }
 
     DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
-        dsl_record_client_listner_cb clientListener)
+        dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6014,7 +6014,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
-        uint bitrate, uint interval, dsl_record_client_listner_cb clientListener)
+        uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -7273,20 +7273,22 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStateChangeListenerAdd(const char* pipeline, 
-        dsl_state_change_listener_cb listener, void* userdata)
+        dsl_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
-            if (!m_pipelines[pipeline]->AddStateChangeListener(listener, userdata))
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->AddStateChangeListener(listener, clientData))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to add a State Change Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -7294,7 +7296,6 @@ namespace DSL
                 << "' threw an exception adding a State Change Lister");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineStateChangeListenerRemove(const char* pipeline, 
@@ -7302,16 +7303,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
     
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->RemoveStateChangeListener(listener))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to remove a State Change Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
@@ -7319,32 +7322,32 @@ namespace DSL
                 << "' threw an exception removing a State Change Lister");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::PipelineEosListenerAdd(const char* pipeline, 
-        dsl_eos_listener_cb listener, void* userdata)
+        dsl_eos_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
-            if (!m_pipelines[pipeline]->AddEosListener(listener, userdata))
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->AddEosListener(listener, clientData))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
-                    << "' failed to add a EOS Listener");
+                    << "' failed to add an EOS Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline 
-                << "' threw an exception adding a EOS Lister");
+                << "' threw an exception adding an EOS Lister");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineEosListenerRemove(const char* pipeline, 
@@ -7352,41 +7355,117 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
     
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->RemoveEosListener(listener))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
-                    << "' failed to remove a State Change Listener");
+                    << "' failed to remove an EOS Listener");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline 
-                << "' threw an exception removing a State Change Lister");
+                << "' threw an exception removing an EOS Listener");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
     
-    DslReturnType Services::PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
-        dsl_xwindow_key_event_handler_cb handler, void* userdata)
+    DslReturnType Services::PipelineErrorMessageHandlerAdd(const char* pipeline, 
+        dsl_error_message_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->AddErrorMessageHandler(handler, clientData))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to add an Error Message Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception adding an Error Message Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineErrorMessageHandlerRemove(const char* pipeline, 
+        dsl_error_message_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+            if (!m_pipelines[pipeline]->RemoveErrorMessageHandler(handler))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to remove an Error Message Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing an Error Message Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineErrorMessageLastGet(const char* pipeline,
+        std::wstring& source, std::wstring& message)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            m_pipelines[pipeline]->GetLastErrorMessage(source, message);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception removing an Error Message Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
+        dsl_xwindow_key_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
         try
         {
-            if (!m_pipelines[pipeline]->AddXWindowKeyEventHandler(handler, userdata))
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->AddXWindowKeyEventHandler(handler, clientData))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to add XWindow Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7394,7 +7473,6 @@ namespace DSL
                 << "' threw an exception adding XWindow Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineXWindowKeyEventHandlerRemove(const char* pipeline, 
@@ -7402,16 +7480,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
             if (!m_pipelines[pipeline]->RemoveXWindowKeyEventHandler(handler))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to remove XWindow Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7419,24 +7499,25 @@ namespace DSL
                 << "' threw an exception removing XWindow Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineXWindowButtonEventHandlerAdd(const char* pipeline, 
-        dsl_xwindow_button_event_handler_cb handler, void* userdata)
+        dsl_xwindow_button_event_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         try
         {
-            if (!m_pipelines[pipeline]->AddXWindowButtonEventHandler(handler, userdata))
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+            if (!m_pipelines[pipeline]->AddXWindowButtonEventHandler(handler, clientData))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to add XWindow Button Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7444,7 +7525,6 @@ namespace DSL
                 << "' threw an exception adding XWindow Button Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineXWindowButtonEventHandlerRemove(const char* pipeline, 
@@ -7452,16 +7532,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
             if (!m_pipelines[pipeline]->RemoveXWindowButtonEventHandler(handler))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to remove XWindow Button Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7469,24 +7551,25 @@ namespace DSL
                 << "' threw an exception removing XWindow Button Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineXWindowDeleteEventHandlerAdd(const char* pipeline, 
-        dsl_xwindow_delete_event_handler_cb handler, void* userdata)
+        dsl_xwindow_delete_event_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         try
         {
-            if (!m_pipelines[pipeline]->AddXWindowDeleteEventHandler(handler, userdata))
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+            if (!m_pipelines[pipeline]->AddXWindowDeleteEventHandler(handler, clientData))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to add XWindow Delete Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7494,7 +7577,6 @@ namespace DSL
                 << "' threw an exception adding XWindow Delete Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
@@ -7502,16 +7584,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
         
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
             if (!m_pipelines[pipeline]->RemoveXWindowDeleteEventHandler(handler))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to remove XWindow Delete Event Handler");
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7519,7 +7603,6 @@ namespace DSL
                 << "' threw an exception removing XWindow Delete Event Handler");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     bool Services::IsSourceComponent(const char* component)

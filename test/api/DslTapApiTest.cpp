@@ -32,7 +32,7 @@ SCENARIO( "The Components container is updated correctly on new Record Tap", "[t
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
 
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -65,7 +65,7 @@ SCENARIO( "The Components container is updated correctly on Record Tap delete", 
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
 
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
@@ -92,7 +92,7 @@ SCENARIO( "A Record Tap's Init Parameters can be Set/Get ",  "[tap-api]" )
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
 
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
         
         REQUIRE( dsl_tap_record_new(recordTapName.c_str(), outdir.c_str(),
             container, client_listener) == DSL_RESULT_SUCCESS );
@@ -132,7 +132,7 @@ SCENARIO( "An invalid New parameters are checked on Record Tap create", "[tap-ap
     {
         std::wstring recordTapName(L"record-tap");
 
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
 

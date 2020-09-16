@@ -1837,7 +1837,7 @@ DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name)
 }
 
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source, 
-    dsl_state_change_listener_cb listener, void* userdata)
+    dsl_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(source);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -1846,7 +1846,7 @@ DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source,
     std::string cstrSource(wstrSource.begin(), wstrSource.end());
 
     return DSL::Services::GetServices()->
-        SourceRtspStateChangeListenerAdd(cstrSource.c_str(), listener, userdata);
+        SourceRtspStateChangeListenerAdd(cstrSource.c_str(), listener, client_data);
 }
 
 DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* source, 
@@ -1961,7 +1961,7 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file)
 }
 
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
-     uint container, dsl_record_client_listner_cb client_listener)
+     uint container, dsl_record_client_listener_cb client_listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -2867,7 +2867,7 @@ DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
-     uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener)
+     uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb client_listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -3565,7 +3565,7 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t*
 }
 
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
-    dsl_state_change_listener_cb listener, void* userdata)
+    dsl_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -3574,7 +3574,7 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->
-        PipelineStateChangeListenerAdd(cstrPipeline.c_str(), listener, userdata);
+        PipelineStateChangeListenerAdd(cstrPipeline.c_str(), listener, client_data);
 }
 
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
@@ -3591,7 +3591,7 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
 }
 
 DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
-    dsl_eos_listener_cb listener, void* userdata)
+    dsl_eos_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -3600,7 +3600,7 @@ DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline,
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->
-        PipelineEosListenerAdd(cstrPipeline.c_str(), listener, userdata);
+        PipelineEosListenerAdd(cstrPipeline.c_str(), listener, client_data);
 }
 
 DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline, 
@@ -3616,8 +3616,8 @@ DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline,
         PipelineEosListenerRemove(cstrPipeline.c_str(), listener);
 }
 
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_key_event_handler_cb handler, void* user_data)
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -3626,7 +3626,56 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowKeyEventHandlerAdd(cstrPipeline.c_str(), handler, user_data);
+        PipelineErrorMessageHandlerAdd(cstrPipeline.c_str(), handler, client_data);
+}
+
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineErrorMessageHandlerRemove(cstrPipeline.c_str(), handler);
+}
+
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+    const wchar_t** source, const wchar_t** message)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(message);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+    
+    static std::wstring wstrSource;
+    static std::wstring wstrMessage;
+    
+    uint retval = DSL::Services::GetServices()->PipelineErrorMessageLastGet(cstrPipeline.c_str(), wstrSource, wstrMessage);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        
+        *source = (wstrSource.size()) ? wstrSource.c_str() : NULL;
+        *message = (wstrMessage.size()) ? wstrMessage.c_str() : NULL;
+    }
+    return retval;
+}
+    
+DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
+    dsl_xwindow_key_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->
+        PipelineXWindowKeyEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
 }    
 
 DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipeline, 
@@ -3643,7 +3692,7 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipel
 }
 
 DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_button_event_handler_cb handler, void* user_data)
+    dsl_xwindow_button_event_handler_cb handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -3652,7 +3701,7 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipel
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowButtonEventHandlerAdd(cstrPipeline.c_str(), handler, user_data);
+        PipelineXWindowButtonEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
 }    
 
 DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pipeline, 
@@ -3669,7 +3718,7 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
 }
 
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_delete_event_handler_cb handler, void* user_data)
+    dsl_xwindow_delete_event_handler_cb handler, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -3678,7 +3727,7 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipel
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->
-        PipelineXWindowDeleteEventHandlerAdd(cstrPipeline.c_str(), handler, user_data);
+        PipelineXWindowDeleteEventHandlerAdd(cstrPipeline.c_str(), handler, client_data);
 }    
 
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 

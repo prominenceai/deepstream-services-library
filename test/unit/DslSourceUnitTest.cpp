@@ -626,7 +626,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBinter]" )
                 REQUIRE( pSourceBintr->GetId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
-                REQUIRE( pSourceBintr->_getCurrentState() == GST_STATE_NULL );
+                REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
                 time_t last(123);
                 uint count(456);
@@ -780,28 +780,17 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
         
         WHEN( "The current state is changed" )
         {
-            pRtspSourceBintr->_setCurrentState(GST_STATE_READY);
+            pRtspSourceBintr->SetCurrentState(GST_STATE_READY);
 
             THEN( "All client listeners are called on state change" )
             {
-                REQUIRE( pRtspSourceBintr->_getCurrentState() == GST_STATE_READY );
+                REQUIRE( pRtspSourceBintr->GetCurrentState() == GST_STATE_READY );
                 
+                // simulate timer callback
+                REQUIRE( pRtspSourceBintr->NotifyClientListeners() == FALSE );
                 // Callbacks will change user data if called
                 REQUIRE( userData1 == 111 );
                 REQUIRE( userData2 == 222 );
-            }
-        }
-        WHEN( "The new state is the same as the current state" )
-        {
-            pRtspSourceBintr->_setCurrentState(GST_STATE_NULL);
-
-            THEN( "Then no client listener should be called" )
-            {
-                REQUIRE( pRtspSourceBintr->_getCurrentState() == GST_STATE_NULL );
-
-                // Callbacks will change user data if called
-                REQUIRE( userData1 == 0 );
-                REQUIRE( userData2 == 0 );
             }
         }
     }
@@ -873,7 +862,7 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         WHEN( "The Source is NOT in reset and currentTime-lastBufferTime > timeout" )
         {
             pRtspSourceBintr->_setReconnectionStats(0, 0, false, 0);
-            pRtspSourceBintr->_setCurrentState(GST_STATE_PLAYING);
+            pRtspSourceBintr->SetCurrentState(GST_STATE_PLAYING);
             // get the current time and update the Source buffer timestamp
             timeval currentTime{0};
             gettimeofday(&currentTime, NULL);
@@ -884,6 +873,12 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
             {
                 // Note: this test requires (currently) additional manual/visual confirmation of console log output
                 REQUIRE( pRtspSourceBintr->StreamManager() == true );
+
+                // simulate timer callback
+                REQUIRE( pRtspSourceBintr->NotifyClientListeners() == FALSE );
+
+                // simulate a reconnection timer - which should fail - unable to sync to parent
+                REQUIRE( pRtspSourceBintr->ReconnectionManager() == false );
             }
         }
     }

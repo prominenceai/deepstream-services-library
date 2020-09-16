@@ -149,11 +149,12 @@ namespace DSL
             LOG_ERROR("SourceBintr '" << GetName() << "' failed to unlink from StreamMuxer");
             return false;
         }
+        
         gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
         gst_object_unref(m_pGstRequestedSinkPads[sinkPadName]);
 
         m_pGstRequestedSinkPads.erase(sinkPadName);
-        return Bintr::UnlinkFromSink();
+        return Nodetr::UnlinkFromSink();
     }
     
     //*********************************************************************************
@@ -388,8 +389,7 @@ namespace DSL
         }
         
         LOG_INFO("URI Path = " << m_uri);
-        std::string sourceElementName = "src-element" + GetName();
-        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, sourceElementName.c_str());
+        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         if (m_uri.find("rtsp") != std::string::npos)
         {
@@ -809,6 +809,8 @@ namespace DSL
         , m_reconnectionSleepMs(DSL_RTSP_RECONNECTION_SLEEP_MS)
         , m_reconnectionTimeoutMs(DSL_RTSP_RECONNECTION_TIMEOUT_MS)
         , m_currentState(GST_STATE_NULL)
+        , m_previousState(GST_STATE_NULL)
+        , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
         
@@ -858,7 +860,7 @@ namespace DSL
         
         g_mutex_init(&m_streamManagerMutex);
         g_mutex_init(&m_reconnectionManagerMutex);
-        g_mutex_init(&m_currentStateMutex);
+        g_mutex_init(&m_stateChangeMutex);
         
     }
 
@@ -881,10 +883,12 @@ namespace DSL
             g_source_remove(m_reconnectionManagerTimerId);
         }
 
+        // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
+        
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
         
         g_mutex_clear(&m_streamManagerMutex);
-        g_mutex_clear(&m_currentStateMutex);
+        g_mutex_clear(&m_stateChangeMutex);
         
     }
     
@@ -939,6 +943,7 @@ namespace DSL
     {
         LOG_FUNC();
 
+        LOG_WARN("*********************************source");
         if (!m_isLinked)
         {
             LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
@@ -1355,7 +1360,7 @@ namespace DSL
 
             // Now fully linked
             m_isLinked = true;
-            _setCurrentState(GST_STATE_READY);
+            SetCurrentState(GST_STATE_READY);
 
             LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
         }
@@ -1376,7 +1381,7 @@ namespace DSL
 
         GstState currentState;
         uint stateResult = GetState(currentState);
-        _setCurrentState(currentState);
+        SetCurrentState(currentState);
 
         // Get the last buffer time. This timer callback should not be called until after the timer 
         // is started on successful linkup - therefore the lastBufferTime should be non-zero
@@ -1441,9 +1446,9 @@ namespace DSL
                 return false;
             }
             // update the internal state variable to notify all client listeners 
-            _setCurrentState(GST_STATE_NULL);
+            SetCurrentState(GST_STATE_NULL);
             stateResult = SyncStateWithParent(currentState);
-            _setCurrentState(currentState);
+            SetCurrentState(currentState);
             m_waitForReconnectCount = 0;
         }
         else
@@ -1465,19 +1470,19 @@ namespace DSL
                 m_reconnectionManagerTimerId = 0;
                 
                 // update the internal state variable to notify all client listeners 
-                _setCurrentState(currentState);
+                SetCurrentState(currentState);
                 return false;
                 
             case GST_STATE_CHANGE_FAILURE:
             case GST_STATE_CHANGE_NO_PREROLL:
                 // update the internal state variable to notify all client listeners 
-                _setCurrentState(currentState);
+                SetCurrentState(currentState);
                 LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
                 return false;
 
             case GST_STATE_CHANGE_ASYNC:
                 // update the internal state variable to notify all client listeners 
-                _setCurrentState(DSL_STATE_CHANGE_ASYNC);
+                SetCurrentState(DSL_STATE_CHANGE_ASYNC);
                 LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
                 return true;
 
@@ -1489,10 +1494,10 @@ namespace DSL
         
     }
     
-    uint RtspSourceBintr::_getCurrentState()
+    uint RtspSourceBintr::GetCurrentState()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_currentStateMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
         
         LOG_INFO("Returning state " << gst_element_state_get_name((GstState)m_currentState) << 
         " for RtspSourceBintr '" << GetName() << "'");
@@ -1500,30 +1505,46 @@ namespace DSL
         return m_currentState;
     }
 
-    void RtspSourceBintr::_setCurrentState(uint newState)
+    void RtspSourceBintr::SetCurrentState(uint newState)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_currentStateMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
 
         if (newState != m_currentState)
         {
             LOG_INFO("Changing state from " << gst_element_state_get_name((GstState)m_currentState) << 
             " to " << gst_element_state_get_name((GstState)newState) << " for RtspSourceBintr '" << GetName() << "'");
             
-            // iterate through the map of state-change-listeners calling each
-            for(auto const& imap: m_stateChangeListeners)
-            {
-                try
-                {
-                    imap.first((uint)m_currentState, (uint)newState, imap.second);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client State-Change-Lister");
-                }
-            }
+            m_previousState = m_currentState;
             m_currentState = newState;
+            
+            if (m_stateChangeListeners.size())
+            {
+                m_listenerNotifierTimerId = g_timeout_add(1, RtspListenerNotificationHandler, this);
+            }
         }
+    }
+    
+    int RtspSourceBintr::NotifyClientListeners()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
+
+        // iterate through the map of state-change-listeners calling each
+        for(auto const& imap: m_stateChangeListeners)
+        {
+            try
+            {
+                imap.first((uint)m_previousState, (uint)m_currentState, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("RTSP Source '" << GetName() << "' threw exception calling Client State-Change-Lister");
+            }
+        }
+        // clear the timer id and return false to self remove
+        m_listenerNotifierTimerId = 0;
+        return false;
     }
     
     // -----------------------------------------------------------------------------------------------------------------
@@ -1573,17 +1594,23 @@ namespace DSL
         return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
     }
 
-    static int RtspStreamManagerHandler(void* pSource)
+    static int RtspStreamManagerHandler(gpointer pSource)
     {
         return static_cast<RtspSourceBintr*>(pSource)->
             StreamManager();
     }
 
-    static int RtspReconnectionMangerHandler(void* pSource)
+    static int RtspReconnectionMangerHandler(gpointer pSource)
     {
         return static_cast<RtspSourceBintr*>(pSource)->
             ReconnectionManager();
     }
 
-
+    static int RtspListenerNotificationHandler(gpointer pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            NotifyClientListeners();
+    }
+        
+    
 } // SDL namespace

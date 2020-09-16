@@ -330,7 +330,7 @@ namespace DSL {
         DslReturnType SourceRtspReconnectionStatsClear(const char* name);
         
         DslReturnType SourceRtspStateChangeListenerAdd(const char* name, 
-            dsl_state_change_listener_cb listener, void* userdata);
+            dsl_state_change_listener_cb listener, void* clientData);
         
         DslReturnType SourceRtspStateChangeListenerRemove(const char* name, 
             dsl_state_change_listener_cb listener);
@@ -362,7 +362,7 @@ namespace DSL {
         DslReturnType DewarperNew(const char* name, const char* configFile);
         
         DslReturnType TapRecordNew(const char* name, const char* outdir, 
-            uint container, dsl_record_client_listner_cb clientListener);
+            uint container, dsl_record_client_listener_cb clientListener);
             
         DslReturnType TapRecordSessionStart(const char* name, 
             uint* session, uint start, uint duration, void* clientData);
@@ -498,7 +498,7 @@ namespace DSL {
             uint codec, uint muxer, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listner_cb clientListener);
+            uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint* session, uint start, uint duration, void* clientData);
@@ -616,31 +616,40 @@ namespace DSL {
         DslReturnType PipelineDumpToDotWithTs(const char* pipeline, char* filename);
         
         DslReturnType PipelineStateChangeListenerAdd(const char* pipeline, 
-            dsl_state_change_listener_cb listener, void* userdata);
+            dsl_state_change_listener_cb listener, void* clientData);
         
         DslReturnType PipelineStateChangeListenerRemove(const char* pipeline, 
             dsl_state_change_listener_cb listener);
                         
         DslReturnType PipelineEosListenerAdd(const char* pipeline, 
-            dsl_eos_listener_cb listener, void* userdata);
+            dsl_eos_listener_cb listener, void* clientData);
         
         DslReturnType PipelineEosListenerRemove(const char* pipeline, 
             dsl_eos_listener_cb listener);
+
+        DslReturnType PipelineErrorMessageHandlerAdd(const char* pipeline, 
+            dsl_error_message_handler_cb handler, void* clientData);
+
+        DslReturnType PipelineErrorMessageHandlerRemove(const char* pipeline, 
+            dsl_error_message_handler_cb handler);
+            
+        DslReturnType PipelineErrorMessageLastGet(const char* pipeline,
+            std::wstring& source, std::wstring& message);
                         
         DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* pipeline, 
-            dsl_xwindow_key_event_handler_cb handler, void* userdata);
+            dsl_xwindow_key_event_handler_cb handler, void* clientData);
 
         DslReturnType PipelineXWindowKeyEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_key_event_handler_cb handler);
 
         DslReturnType PipelineXWindowButtonEventHandlerAdd(const char* pipeline, 
-            dsl_xwindow_button_event_handler_cb handler, void* userdata);
+            dsl_xwindow_button_event_handler_cb handler, void* clientData);
 
         DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_button_event_handler_cb handler);
         
         DslReturnType PipelineXWindowDeleteEventHandlerAdd(const char* pipeline, 
-            dsl_xwindow_delete_event_handler_cb handler, void* userdata);
+            dsl_xwindow_delete_event_handler_cb handler, void* clientData);
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);

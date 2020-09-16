@@ -63,10 +63,7 @@ namespace DSL
     #define DSL_PPEH_EOS_HANDLER_NEW(name, clientHandler, clientData) \
         std::shared_ptr<EosHandlerPadProbeEventHandler>(new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
         
-    #define DSL_PPEH_STATE_CHANGE_HANDLER_PTR std::shared_ptr<StateChangeListenerPadProbeEventHandler>
-    #define DSL_PPEH_STATE_CHANGE_HANDLER_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<StateChangeListenerPadProbeEventHandler>(new StateChangeListenerPadProbeEventHandler(name, clientHandler, clientData))
-        
+
     #define DSL_PAD_PROBE_PTR std::shared_ptr<PadProbetr>
 
     #define DSL_PAD_BUFFER_PROBE_PTR std::shared_ptr<PadBufferProbetr>
@@ -250,50 +247,6 @@ namespace DSL
         
     };
 
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * @class StateChangeListenerPadProbeEventHandler
-     * @brief Pad Probe Handler to call a client handler callback function on downstream state-change events.
-     */
-    class StateChangeListenerPadProbeEventHandler : public PadProbeHandler
-    {
-    public: 
-    
-        /**
-         * @brief ctor for the State Change Listener Pad Probe Handler
-         * @param[in] name unique name for the PPH
-         * @param[in] clientHandler client callback function to handle the EOS event
-         * @param[in] clientData return to the client when the handler is called
-         */
-        StateChangeListenerPadProbeEventHandler(const char* name, dsl_pph_client_handler_cb clientHandler, void* clientData);
-
-        /**
-         * @brief dtor for the EOS Consumer Pad Probe Handler
-         */
-        ~StateChangeListenerPadProbeEventHandler();
-
-        /**
-         * @brief Custom Pad Probe Handler
-         * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
-         */
-        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
-
-    private:
-    
-        /**
-         * @brief client callback funtion, called on change of state event
-         */
-        dsl_state_change_listener_cb m_clientHandler;
-        
-        /**
-         * @brief opaue pointer to client data, returned on callback
-         */
-        void* m_clientData;
-        
-    };
     //----------------------------------------------------------------------------------------------
 
     /**

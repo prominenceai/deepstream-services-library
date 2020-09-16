@@ -164,6 +164,7 @@ namespace DSL
         {
             // unlink the source from the Streammuxer
             pChildSource->UnlinkFromSink();
+            LOG_WARN("*********************************remove");
             pChildSource->UnlinkAll();
         }
         
@@ -229,12 +230,13 @@ namespace DSL
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSink())
-            {
+            {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
                 return;
             }
             // unink all of the ChildSource's Elementrs and reset the unique Id
+            LOG_WARN("*********************************unilink-all");
             imap.second->UnlinkAll();
             Services::GetServices()->_sourceNameErase(imap.second->GetId());
             imap.second->SetId(-1);

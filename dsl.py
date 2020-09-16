@@ -79,6 +79,7 @@ DSL_FLOAT_P = POINTER(c_float)
 DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
 DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
+DSL_ERROR_MESSAGE_HANDLER = CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
@@ -1232,11 +1233,11 @@ def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_
 ##
 ## dsl_source_rtsp_new()
 ##
-_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_rtsp_new.restype = c_uint
-def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency):
+def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout):
     global _dsl
-    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency)
+    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout)
     return int(result)
 
 ##
@@ -2826,10 +2827,34 @@ def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
 ##
 _dsl.dsl_pipeline_eos_listener_remove.argtypes = [c_wchar_p, DSL_EOS_LISTENER]
 _dsl.dsl_pipeline_eos_listener_remove.restype = c_uint
-def dsl_pipeline_eos_listener_remove(name, listener):
+def dsl_pipeline_eos_listener_remove(name, client_listener):
     global _dsl
-    client_listener = DSL_EOS_LISTENER(listener)
-    result = _dsl.dsl_pipeline_eos_listener_remove(name, client_listener)
+    c_client_listener = DSL_EOS_LISTENER(client_listener)
+    result = _dsl.dsl_pipeline_eos_listener_remove(name, c_client_listener)
+    return int(result)
+
+##
+## dsl_pipeline_error_message_handler_add()
+##
+_dsl.dsl_pipeline_error_message_handler_add.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER, c_void_p]
+_dsl.dsl_pipeline_error_message_handler_add.restype = c_uint
+def dsl_pipeline_error_message_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_error_message_handler_add(name, c_client_handler, c_client_data)
+    return int(result)
+    
+##
+## dsl_pipeline_error_message_handler_remove()
+##
+_dsl.dsl_pipeline_error_message_handler_remove.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER]
+_dsl.dsl_pipeline_error_message_handler_remove.restype = c_uint
+def dsl_pipeline_error_message_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_error_message_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
@@ -2850,10 +2875,10 @@ def dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, client_data
 ##
 _dsl.dsl_pipeline_xwindow_key_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER]
 _dsl.dsl_pipeline_xwindow_key_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_key_event_handler_remove(name, handler):
+def dsl_pipeline_xwindow_key_event_handler_remove(name, client_handler):
     global _dsl
-    client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(handler)
-    result = _dsl.dsl_pipeline_xwindow_key_event_handler_remove(name, client_handler)
+    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_key_event_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
@@ -2874,10 +2899,10 @@ def dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, client_d
 ##
 _dsl.dsl_pipeline_xwindow_button_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER]
 _dsl.dsl_pipeline_xwindow_button_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_button_event_handler_remove(name, handler):
+def dsl_pipeline_xwindow_button_event_handler_remove(name, client_handler):
     global _dsl
-    client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(handler)
-    result = _dsl.dsl_pipeline_xwindow_button_event_handler_remove(name, client_handler)
+    c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_button_event_handler_remove(name, c_client_handler)
     return int(result)
 
 ##

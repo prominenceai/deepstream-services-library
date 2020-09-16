@@ -549,16 +549,23 @@ namespace DSL
          * Not to be confussed with the GetState() Bintr base class function 
          * @return current state of the RTSP Source
          */
-        uint _getCurrentState();
+        uint GetCurrentState();
 
         /**
-         * @brief sets the RTSP Source's current state variable to newState, one of GST_STATE_*
-         * Changes in state will notifiy all client state-change-listeners
-         * Not to be confussed with the SetState() Bintr base class function which attempts 
-         * to change the actual state of the GstElement for this Bintr
+         * @brief sets the RTSP Source's current state variable to newState, one of DSL_STATE_*
+         * Changes in state will notifiy all client state-change-listeners, not to be confused
+         * with the SetState() Bintr base class function which attempts change the actual state 
+         * of the GstElement for this Bintr.
          * @param[in] newState new state to set the current state variable
          */
-        void _setCurrentState(uint newState);
+        void SetCurrentState(uint newState);
+        
+        /**
+         * @brief implements a timer thread to notify all client listeners in the main loop context.
+         * @return false always to self remove timer once clients have been notified. Timer/tread will
+         * be restarted on next call to SetCurrentState() that changes the current state.
+         */
+        int NotifyClientListeners();
         
         /**
          * @brief NOTE: Used for test purposes only, allows access to the Source's Timestamp PPH which 
@@ -704,9 +711,19 @@ namespace DSL
         uint m_currentState;
 
         /**
+         * @brief maintains the previous state of the RTSP source bin
+         */
+        uint m_previousState;
+
+        /**
          * @brief mutux to guard the current State read/write access.
          */
-        GMutex m_currentStateMutex;
+        GMutex m_stateChangeMutex;
+
+        /**
+         * @brief gnome timer Id for the RTSP reconnection manager
+         */
+        uint m_listenerNotifierTimerId;
         
         /**
          * @brief map of all currently registered state-change-listeners
@@ -789,16 +806,23 @@ namespace DSL
     /**
      * @brief Timer callback handler to invoke the RTSP Source's Stream manager.
      * @param pSource shared pointer to RTSP Source component to check/manage.
-     * @return int returns 0
+     * @return int true to continue, 0 to self remove
      */
-    static int RtspStreamManagerHandler(void* pSource);
+    static int RtspStreamManagerHandler(gpointer pSource);
     
     /**
      * @brief Timer callback handler to invoke the RTSP Source's Reconnection Manager.
-     * @param[in] pSource shared pointer to RTSP Source component to reset.
-     * @return int returns 0
+     * @param[in] pSource shared pointer to RTSP Source component to invoke.
+     * @return int true to continue, 0 to self remove
      */
-    static int RtspReconnectionMangerHandler(void* pSource);
+    static int RtspReconnectionMangerHandler(gpointer pSource);
+    
+    /**
+     * @brief Timer callback handler to invoke the RTSP Source's Listerner notification.
+     * @param[in] pSource shared pointer to RTSP Source component to invoke.
+     * @return int true to continue, 0 to self remove
+     */
+    static int RtspListenerNotificationHandler(gpointer pSource);
 
 } // DSL
 #endif // _DSL_SOURCE_BINTR_H

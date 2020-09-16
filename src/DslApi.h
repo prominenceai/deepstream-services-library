@@ -484,24 +484,33 @@ typedef uint (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data
  * the function will be called when the Pipeline changes state.
  * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
  * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
- * @param[in] user_data opaque pointer to client's data
+ * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
  * the function will be called on receipt of EOS message from the Pipeline bus.
- * @param[in] user_data opaque pointer to client's data
+ * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_eos_listener_cb)(void* user_data);
+typedef void (*dsl_eos_listener_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called on receipt of Error messages from the Pipeline bus.
+ * @param[in] source name of the element or component that is the source of the message
+ * @param[in] message error parsed from the message data
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, const wchar_t* message, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_data);
+typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
@@ -509,23 +518,23 @@ typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_
  * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
  * @param[in] ypos from the top left corner of the window
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* user_data);
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow Delete Message event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow Delete Message event.
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
+typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
  * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
- * @param[in] user_data opaque pointer to client's user data provide on end-of-session
+ * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listener_cb)(void* info, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1780,11 +1789,11 @@ DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name);
  * @brief adds a callback to be notified on change of RTSP Source state
  * @param[in] name name of the RTSP source to update
  * @param[in] listener pointer to the client's function to call on state change
- * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* name, 
-    dsl_state_change_listener_cb listener, void* userdata);
+    dsl_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_source_rtsp_state_change_listener_add
@@ -1882,7 +1891,7 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
-    uint container, dsl_record_client_listner_cb client_listener);
+    uint container, dsl_record_client_listener_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Tap
@@ -2540,7 +2549,7 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener);
+    uint container, uint bitrate, uint interval, dsl_record_client_listener_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink
@@ -3100,11 +3109,11 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t*
  * @brief adds a callback to be notified on End of Stream (EOS)
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on EOS
- * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
-    dsl_eos_listener_cb listener, void* userdata);
+    dsl_eos_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_eos_listener_add
@@ -3116,14 +3125,45 @@ DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline,
     dsl_eos_listener_cb listener);
 
 /**
+ * @brief Adds a callback to be notified on the event of an error message received by
+ * the Pipeline's bus-watcher. The callback is called from the mainloop context allowing
+ * clients to change the state of, and components within, the Pipeline
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to add
+ * @param[in] client_data opaque pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_pipeline_error_message_handler_add
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler);
+
+/**
+ * @brief Gets the last error message received by the Pipeline's bus watcher
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] source name of the GST object that was the source of the error message
+ * @param[out] message error message sent from the source object
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+    const wchar_t** source, const wchar_t** message);
+
+/**
  * @brief adds a callback to be notified on change of Pipeline state
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
- * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
-    dsl_state_change_listener_cb listener, void* userdata);
+    dsl_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
@@ -3138,11 +3178,11 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
  * @brief adds a callback to be notified on XWindow KeyRelease Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_key_event_handler_cb handler, void* user_data);
+    dsl_xwindow_key_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
@@ -3157,11 +3197,11 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipel
  * @brief adds a callback to be notified on XWindow ButtonPress Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow button events.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_button_event_handler_cb handler, void* user_data);
+    dsl_xwindow_button_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
@@ -3176,11 +3216,11 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
  * @brief adds a callback to be notified on XWindow Delete Message Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_delete_event_handler_cb handler, void* user_data);
+    dsl_xwindow_delete_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
