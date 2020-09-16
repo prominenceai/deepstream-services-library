@@ -146,11 +146,13 @@ Callback typedef for a client EOS listener function. Functions of this type are 
 
 ### *dsl_error_message_handler_cb*
 ```C++
-typedef void (*dsl_error_message_handler_cb)(void* client_data);
+typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, const wchar_t* message, void* client_data);
 ```
 Callback typedef for a client error-message-handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add). Once added, the function will be called on the event of an error message recieved by the Pipeline's bus-watcher. The handler function is removed by calling [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove) . 
 
 **Parameters**
+* `source` - [in] name of the GST Object that is the source of the message
+* `message` - [in] message error parsed from the message data
 * `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
 
 <br>
