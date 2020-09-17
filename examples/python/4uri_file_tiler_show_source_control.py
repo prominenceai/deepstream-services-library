@@ -103,12 +103,16 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
     print('button = ', button, ' pressed at x = ', x_pos, ' y = ', y_pos)
-
-    # cast the C void* client_data back to a py_object pointer and deref
-    timeout = cast(client_data, POINTER(py_object)).contents.value
+    
+    global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
-        dsl_tiler_source_show_select('tiler', x_pos, y_pos, WINDOW_WIDTH, WINDOW_HEIGHT, timeout=SHOW_SOURCE_TIMEOUT)
+        # get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
+        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        
+        # call the Tiler to show the source based on the x and y button cooridantes
+        # and the current window dimensions obtained from the XWindow
+        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 
 def main(args):
 
@@ -173,11 +177,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # We need to explicity set the rows and columns to enable source selection via the mouse click
-        #retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the ODE Pad Probe Handler to the Sink pad of the Tiler
         retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
@@ -199,6 +198,11 @@ def main(args):
             'primary-gie', 'ktl-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Enabled the XWindow for full-screen-mode
+        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add the EOS listener and XWindow event handler functions defined above
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
@@ -218,9 +222,6 @@ def main(args):
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-        dsl_pipeline_dump_to_dot('pipeline', 'state-playing')
 
         dsl_main_loop_run()
         break

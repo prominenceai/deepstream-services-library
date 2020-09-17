@@ -134,8 +134,35 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly", "[PipelineBintr]" )
         DSL_PIPELINE_PTR pPipelineBintr = 
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
+        pPipelineBintr->SetXWindowDimensions(windowW, windowH);
 
-        REQUIRE( pPipelineBintr->SetXWindowDimensions(windowW, windowH) == true );
+        WHEN( "The new PipelineBintr's XWindow is created" )
+        {
+            REQUIRE( pPipelineBintr->CreateXWindow() == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pPipelineBintr->GetXWindow() != 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PipelineBintr's' XWindow is created correctly in Full-Screen-Mode", "[PipelineBintr]" )
+{
+    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
+    {
+        std::string pipelineName = "pipeline";
+
+        uint windowW(1280);
+        uint windowH(720);
+        boolean full_screen_enabled(1);
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        pPipelineBintr->SetXWindowDimensions(windowW, windowH);
+        pPipelineBintr->SetXWindowFullScreenEnabled(full_screen_enabled);
 
         WHEN( "The new PipelineBintr's XWindow is created" )
         {

@@ -159,6 +159,21 @@ namespace DSL
         bool SetStreamMuxPadding(bool enabled);
         
         /**
+         * @brief Gets the current x and y offsets for the Pipeline's XWindow
+         * @param[out] xOffset x directional offset from left window edge in pixels
+         * @param[out] yOffset y directional offset from top window edge in pixels
+         */
+        void GetXWindowOffsets(uint* xOffset, uint* yOffset);
+
+        /**
+         * @brief Sets the current x and y offsets for the Pipeline's XWindow
+         * Note: this function is used for XWindow unit testing only. Offsets are set by the Window Sink
+         * @param[in] xOffset x directional offset from left window edge in pixels
+         * @param[in] yOffset y directional offset from top window edge in pixels
+         */
+        void SetXWindowOffsets(uint xOffset, uint yOffset);
+
+        /**
          * @brief Gets the current dimensions for the Pipeline's XWindow
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the current setting
@@ -166,13 +181,27 @@ namespace DSL
         void GetXWindowDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the Pipeline's XWindow
+         * @brief Sets the dimensions for the Pipeline's XWindow
+         * Note: this function is used for XWindow unit testing only. Dimensions are set by the Window Sink
          * @param width width in pixels to set the XWindow on creation
          * @param height height in pixels to set the XWindow on creation
          * @return true if the output dimensions could be set, false otherwise
          */
-        bool SetXWindowDimensions(uint width, uint height);
+        void SetXWindowDimensions(uint width, uint height);
         
+        /**
+         * @brief Gets the current full-screen-enabled setting for the Pipeline's XWindow
+         * @retrun true if full-screen-mode is currently enabled, false otherwise
+         */
+        bool GetXWindowFullScreenEnabled();
+        
+        /**
+         * @brief Sets the full-screen-enabled setting for the Pipeline's XWindow
+         * @param enabled if true, sets the XWindow to full-screen on creation
+         * @return true if the full-screen-enabled could be set, false if called after XWindow creation
+         */
+        bool SetXWindowFullScreenEnabled(bool enabled);
+
         /**
          * @brief dumps a Pipeline's graph to dot file.
          * @param[in] filename name of the file without extention.
@@ -353,6 +382,16 @@ namespace DSL
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         
         /**
+         * @brief x-offset setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowOffsetX;
+        
+        /**
+         * @brief y-offset setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowOffsetY;
+        
+        /**
          * @brief width setting to use on XWindow creation in pixels
          */
         uint m_xWindowWidth;
@@ -459,11 +498,18 @@ namespace DSL
          * @brief handle to X Window
          */
         Window m_pXWindow;
+        
         /**
          * @brief handle to the X Window event thread, 
          * active for the life of the Pipeline
         */
         GThread* m_pXWindowEventThread;        
+        
+        /**
+         * @brief if true, the Pipeline will set its XWindow to full-screen if one is created
+         * A Pipeline requires a Window Sink to create an XWindow on Play
+         */
+        bool m_xWindowfullScreenEnabled;
         
         /**
          * @brief maps a GstMessage constant value to a string for logging

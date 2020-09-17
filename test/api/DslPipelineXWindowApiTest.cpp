@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 using namespace DSL;
 
-SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[pipeline-xwindow-api]" )
+SCENARIO( "A Pipeline's XWindow Offsets and Dimensions can be queried", "[pipeline-xwindow-api]" )
 {
     GIVEN( "A new Pipeline in memeory" ) 
     {
@@ -39,11 +39,18 @@ SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[pipeline-xwindow-a
 
             THEN( "The Pipeline returns the correct default XWindow dimensions" )
             {
+                uint xwindowOffsetX(123), xwindowOffsetY(456);
+                REQUIRE( dsl_pipeline_xwindow_offsets_get(pipelineName.c_str(), 
+                    &xwindowOffsetX, &xwindowOffsetY) == DSL_RESULT_SUCCESS );
+                REQUIRE( xwindowOffsetX == 0 );
+                REQUIRE( xwindowOffsetY == 0 );
+
                 uint xwindowWidth(123), xwindowHeight(456);
                 REQUIRE( dsl_pipeline_xwindow_dimensions_get(pipelineName.c_str(), 
                     &xwindowWidth, &xwindowHeight) == DSL_RESULT_SUCCESS );
                 REQUIRE( xwindowWidth == 0 );
                 REQUIRE( xwindowHeight == 0 );
+
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
             }
@@ -51,28 +58,58 @@ SCENARIO( "A Pipeline's XWindow Dimensions can be queried", "[pipeline-xwindow-a
     }
 }
 
-SCENARIO( "A Pipeline's XWindow Dimensions can be updated", "[pipeline-xwindow-api]" )
+SCENARIO( "A Pipeline's XWindow Full-Screen-Enabled be Set/Get", "[pipeline-xwindow-api]" )
 {
-    GIVEN( "A new Pipeline in memeory" ) 
+    GIVEN( "A new Pipeline" ) 
     {
         std::wstring pipelineName  = L"test-pipeline";
-        uint newXwindowWidth(1280); 
-        uint newXwindowHeight(720);
+        boolean newFullScreenEnabled(1);
         
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
+        boolean fullScreenEnabled(1);
+        REQUIRE( dsl_pipeline_xwindow_fullscreen_enabled_get(pipelineName.c_str(), 
+            &fullScreenEnabled) == DSL_RESULT_SUCCESS );
+            
+        // must be initialized false
+        REQUIRE( fullScreenEnabled == 0 );
+
+        WHEN( "When the Pipeline's XWindow Offsets are updated" ) 
+        {
+            REQUIRE( dsl_pipeline_xwindow_fullscreen_enabled_set(pipelineName.c_str(), 
+                newFullScreenEnabled) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The new values are returned on get" )
+            {
+                REQUIRE( dsl_pipeline_xwindow_fullscreen_enabled_get(pipelineName.c_str(), 
+                    &fullScreenEnabled) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( fullScreenEnabled == newFullScreenEnabled );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline's XWindow Full-Sreen-Enabled setting can be queried", "[pipeline-xwindow-api]" )
+{
+    GIVEN( "A name for a new Pipeline" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+        
         WHEN( "When the Pipeline is created" ) 
         {
-            REQUIRE( dsl_pipeline_xwindow_dimensions_set(pipelineName.c_str(), 
-                newXwindowWidth, newXwindowHeight) == DSL_RESULT_SUCCESS );
-                
-            THEN( "The Pipeline returns the new XWindow dimensions" )
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline returns the correct default XWindow offsets" )
             {
-                uint xwindowWidth(0), xwindowHeight(0);
-                REQUIRE( dsl_pipeline_xwindow_dimensions_get(pipelineName.c_str(), 
-                    &xwindowWidth, &xwindowHeight) == DSL_RESULT_SUCCESS );
-                REQUIRE( xwindowWidth == newXwindowWidth );
-                REQUIRE( xwindowHeight == newXwindowHeight );
+                uint xwindowOffsetX(123), xwindowOffsetY(456);
+                REQUIRE( dsl_pipeline_xwindow_offsets_get(pipelineName.c_str(), 
+                    &xwindowOffsetX, &xwindowOffsetY) == DSL_RESULT_SUCCESS );
+                REQUIRE( xwindowOffsetX == 0 );
+                REQUIRE( xwindowOffsetY == 0 );
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
             }

@@ -3280,6 +3280,8 @@ DslReturnType dsl_branch_component_remove_many(const wchar_t* name,
 
 DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3289,6 +3291,9 @@ DslReturnType dsl_pipeline_new(const wchar_t* pipeline)
 DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(components);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     
@@ -3312,6 +3317,8 @@ DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline,
 
 DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
 {
+    RETURN_IF_PARAM_IS_NULL(pipelines);
+
     for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
     {
         std::wstring wstrPipeline(*pipeline);
@@ -3327,6 +3334,8 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines)
 
 DslReturnType dsl_pipeline_delete(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3335,6 +3344,8 @@ DslReturnType dsl_pipeline_delete(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_delete_many(const wchar_t** pipelines)
 {
+    RETURN_IF_PARAM_IS_NULL(pipelines);
+
     for (const wchar_t** pipeline = pipelines; *pipeline; pipeline++)
     {
         std::wstring wstrPipeline(*pipeline);
@@ -3361,6 +3372,9 @@ uint dsl_pipeline_list_size()
 DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
     const wchar_t* component)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(component);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     std::wstring wstrComponent(component);
@@ -3372,6 +3386,9 @@ DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(components);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     
@@ -3391,6 +3408,9 @@ DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, 
     const wchar_t* component)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(component);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     std::wstring wstrComponent(component);
@@ -3402,6 +3422,9 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, 
     const wchar_t** components)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(components);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     
@@ -3421,6 +3444,10 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline, 
     uint* batchSize, uint* batchTimeout)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(batchSize);
+    RETURN_IF_PARAM_IS_NULL(batchTimeout);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3431,6 +3458,8 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipelin
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline, 
     uint batchSize, uint batchTimeout)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3441,6 +3470,10 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipelin
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline, 
     uint* width, uint* height)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3451,6 +3484,8 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3460,6 +3495,9 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* pipeline, boolean* enabled)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3468,6 +3506,8 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* pipeline, boolea
 
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolean enabled)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3476,15 +3516,35 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolea
 
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->PipelineXWindowClear(cstrPipeline.c_str());
 }
  
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+    uint* x_offset, uint* y_offset)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(x_offset);
+    RETURN_IF_PARAM_IS_NULL(y_offset);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowOffsetsGet(cstrPipeline.c_str(),
+        x_offset, y_offset);
+}
+
 DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
     uint* width, uint* height)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3492,18 +3552,31 @@ DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline,
         width, height);
 }
 
-DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
-    uint width, uint height)
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, boolean* enabled)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
-    return DSL::Services::GetServices()->PipelineXWindowDimensionsSet(cstrPipeline.c_str(),
-        width, height);
-}    
+    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledGet(cstrPipeline.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledSet(cstrPipeline.c_str(), enabled);
+}
 
 DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3512,6 +3585,8 @@ DslReturnType dsl_pipeline_pause(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_play(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3520,6 +3595,8 @@ DslReturnType dsl_pipeline_play(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_stop(const wchar_t* pipeline)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3528,6 +3605,9 @@ DslReturnType dsl_pipeline_stop(const wchar_t* pipeline)
 
 DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(state);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3536,6 +3616,9 @@ DslReturnType dsl_pipeline_state_get(const wchar_t* pipeline, uint* state)
 
 DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(is_live);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
@@ -3544,6 +3627,9 @@ DslReturnType dsl_pipeline_is_live(const wchar_t* pipeline, boolean* is_live)
 
 DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filename)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(filename);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     std::wstring wstrFilename(filename);
@@ -3555,6 +3641,9 @@ DslReturnType dsl_pipeline_dump_to_dot(const wchar_t* pipeline, wchar_t* filenam
 
 DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t* filename)
 {
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(filename);
+
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
     std::wstring wstrFilename(filename);

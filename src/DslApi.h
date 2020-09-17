@@ -3007,25 +3007,44 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
 
 /**
- * @brief gets the current Pipeline XWindow dimensions
+ * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
+ * prior to window creation which occurs when the Pipeline is played. 
  * @param[in] pipeline name of the pipeline to query
- * @param[in] width width of the XWindow in pixels
- * @param[in] heigth height of the Window in pixels
+ * @param[out] x_offset offset in the x direction of the XWindow in pixels
+ * @param[out] x_offset offset in the Y direction of the XWindow in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+    uint* x_offset, uint* y_offset);
+
+/**
+ * @brief gets the current Pipeline XWindow dimensions. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] width width of the XWindow in pixels
+ * @param[out] heigth height of the Window in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
 DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
     uint* width, uint* height);
 
 /**
- * @brief Sets the Pipeline XWindow dimensions to used on XWindow creation
- * If not explicitely set, the Pipeline will use the Tiled Display's dimensions if one exists.
- * @param[in] pipeline name of the pipeline to update
- * @param[in] width width of the XWindow in pixels
- * @param[in] heigth height of the Window in pixels
+ * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
-    uint width, uint height);
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
+    boolean* enabled);
+
+/**
+ * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
+    boolean enabled);
 
 /**
  * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 

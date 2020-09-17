@@ -6878,11 +6878,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
         
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+            
             // Can't add components if they're In use by another Pipeline
             if (m_components[component]->IsInUse())
             {
@@ -6912,6 +6913,10 @@ namespace DSL
                     << "' failed component '" << component << "'");
                 return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
             }
+            LOG_INFO("Component '" << component 
+                << "' was added to Pipeline '" << pipeline << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -6919,10 +6924,6 @@ namespace DSL
                 << "' threw exception adding component '" << component << "'");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        LOG_INFO("Component '" << component 
-            << "' was added to Pipeline '" << pipeline << "' successfully");
-
-        return DSL_RESULT_SUCCESS;
     }    
     
     DslReturnType Services::PipelineComponentRemove(const char* pipeline, 
@@ -6930,18 +6931,20 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
-        RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
-        if (!m_components[component]->IsParent(m_pipelines[pipeline]))
-        {
-            LOG_ERROR("Component '" << component << 
-                "' is not in use by Pipeline '" << pipeline << "'");
-            return DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE;
-        }
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+
+            if (!m_components[component]->IsParent(m_pipelines[pipeline]))
+            {
+                LOG_ERROR("Component '" << component << 
+                    "' is not in use by Pipeline '" << pipeline << "'");
+                return DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE;
+            }
             m_components[component]->RemoveFromParent(m_pipelines[pipeline]);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -6949,7 +6952,6 @@ namespace DSL
                 << "' threw an exception removing component");
             return DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED;
         }
-        return DSL_RESULT_SUCCESS;
 }
     
     DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const char* pipeline,
@@ -6957,11 +6959,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             m_pipelines[pipeline]->GetStreamMuxBatchProperties(batchSize, batchTimeout);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -6969,7 +6973,6 @@ namespace DSL
                 << "' threw an exception getting the Stream Muxer Batch Properties");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineStreamMuxBatchPropertiesSet(const char* pipeline,
@@ -6977,16 +6980,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->SetStreamMuxBatchProperties(batchSize, batchTimeout))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Set the Stream Muxer Batch Properties");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -6994,7 +6999,6 @@ namespace DSL
                 << "' threw an exception setting the Stream Muxer Batch Properties");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
 
     DslReturnType Services::PipelineStreamMuxDimensionsGet(const char* pipeline,
@@ -7002,16 +7006,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->GetStreamMuxDimensions(width, height))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Get the Stream Muxer Output Dimensions");
                 return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7019,7 +7025,6 @@ namespace DSL
                 << "' threw an exception setting the Stream Muxer Output Dimensions");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineStreamMuxDimensionsSet(const char* pipeline,
@@ -7027,16 +7032,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->SetStreamMuxDimensions(width, height))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Set the Stream Muxer Output Dimensions");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7044,7 +7051,6 @@ namespace DSL
                 << "' threw an exception setting the Stream Muxer output size");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineStreamMuxPaddingGet(const char* pipeline,
@@ -7052,16 +7058,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->GetStreamMuxPadding((bool*)enabled))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Get the Stream Muxer is Padding enabled setting");
                 return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7069,7 +7077,6 @@ namespace DSL
                 << "' threw an exception getting the Stream Muxer padding");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineStreamMuxPaddingSet(const char* pipeline,
@@ -7077,16 +7084,18 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->SetStreamMuxPadding((bool)enabled))
             {
                 LOG_ERROR("Pipeline '" << pipeline 
                     << "' failed to Get the Stream Muxer is Padding enabled setting");
                 return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7094,29 +7103,50 @@ namespace DSL
                 << "' threw an exception setting the Stream Muxer padding");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
         
     DslReturnType Services::PipelineXWindowClear(const char* pipeline)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             if (!m_pipelines[pipeline]->ClearXWindow())
             {
                 LOG_ERROR("Pipeline '" << pipeline << "' failed to Clear XWindow");
                 return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
             }
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing XWindow");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::PipelineXWindowOffsetsGet(const char* pipeline,
+        uint* xOffset, uint* yOffset)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            m_pipelines[pipeline]->GetXWindowOffsets(xOffset, yOffset);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception getting the XWindow Offsets");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
     }
         
     DslReturnType Services::PipelineXWindowDimensionsGet(const char* pipeline,
@@ -7124,11 +7154,13 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
             m_pipelines[pipeline]->GetXWindowDimensions(width, height);
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
@@ -7136,34 +7168,54 @@ namespace DSL
                 << "' threw an exception getting the XWindow Dimensions");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
-        
-    DslReturnType Services::PipelineXWindowDimensionsSet(const char* pipeline,
-        uint width, uint height)    
+
+    DslReturnType Services::PipelineXWindowFullScreenEnabledGet(const char* pipeline, boolean* enabled)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
 
         try
         {
-            if (!m_pipelines[pipeline]->SetXWindowDimensions(width, height))
-            {
-                LOG_ERROR("Pipeline '" << pipeline 
-                    << "' failed to Set the XWindow Dimensions");
-                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
-            }
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            *enabled = (boolean)m_pipelines[pipeline]->GetXWindowFullScreenEnabled();
+            return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << pipeline 
-                << "' threw an exception setting the XWindow dimensions");
+                << "' threw an exception getting the XWindow full-screen-enabled setting");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
-        return DSL_RESULT_SUCCESS;
     }
-        
+
+    DslReturnType Services::PipelineXWindowFullScreenEnabledSet(const char* pipeline, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+
+            if (!m_pipelines[pipeline]->SetXWindowFullScreenEnabled(enabled))
+            {
+                LOG_ERROR("Pipeline '" << pipeline 
+                    << "' failed to set the XWindow full-screen-enabled setting");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline 
+                << "' threw an exception setting the XWindow full-screen-enabled setting");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+            
     DslReturnType Services::PipelinePause(const char* pipeline)
     {
         LOG_FUNC();

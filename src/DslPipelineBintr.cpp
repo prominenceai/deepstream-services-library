@@ -37,9 +37,12 @@ namespace DSL
         , m_pXWindowEventThread(NULL)
         , m_pXDisplay(0)
         , m_pXWindow(0)
+        , m_xWindowOffsetX(0)
+        , m_xWindowOffsetY(0)
         , m_xWindowWidth(0)
         , m_xWindowHeight(0)
         , m_errorNotificationTimerId(0)
+        , m_xWindowfullScreenEnabled(false)
 {
         LOG_FUNC();
 
@@ -218,26 +221,70 @@ namespace DSL
         return true;
     }
     
+    void PipelineBintr::GetXWindowOffsets(uint* xOffset, uint* yOffset)
+    {
+        LOG_FUNC();
+
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_xWindowOffsetX = attrs.x;
+            m_xWindowOffsetY = attrs.y;
+        }
+        *xOffset = m_xWindowOffsetX;
+        *yOffset = m_xWindowOffsetY;
+    }
+
+    void PipelineBintr::SetXWindowOffsets(uint xOffset, uint yOffset)
+    {
+        LOG_FUNC();
+
+        m_xWindowOffsetX = xOffset;
+        m_xWindowOffsetY = yOffset;
+    }
+
     void PipelineBintr::GetXWindowDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
-        
+
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_xWindowWidth = attrs.width;
+            m_xWindowHeight = attrs.height;
+        }
         *width = m_xWindowWidth;
         *height = m_xWindowHeight;
     }
 
-    bool PipelineBintr::SetXWindowDimensions(uint width, uint height)
+   void PipelineBintr::SetXWindowDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
+        m_xWindowWidth = width;
+        m_xWindowHeight = height;
+    }
+    
+    bool PipelineBintr::GetXWindowFullScreenEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_xWindowfullScreenEnabled;
+    }
+    
+    bool PipelineBintr::SetXWindowFullScreenEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
         // TODO verify dimensions before setting.
         if (m_pXWindow)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' has an existing XWindow.");
+            LOG_ERROR("Can not set full-screen-enable for Pipeline '" << GetName() << "' once XWindow has been created.");
             return false;
         }
-        m_xWindowWidth = width;
-        m_xWindowHeight = height;
+        m_xWindowfullScreenEnabled = enabled;
         return true;
     }
     
@@ -598,6 +645,8 @@ namespace DSL
 
                 if (!m_pXWindow)
                 {
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-x", &m_xWindowOffsetX, NULL);
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-y", &m_xWindowOffsetY, NULL);
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-width", &m_xWindowWidth, NULL);
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-height", &m_xWindowHeight, NULL);
                     
@@ -733,8 +782,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
-        
         if (!m_xWindowWidth or !m_xWindowHeight)
         {
             LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' with invalid width or height");
@@ -748,16 +795,33 @@ namespace DSL
             LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' ");
             return false;
         }
-        // create new simple XWindow using default attributes and checked dimensions
-        m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
-            RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-            0, 0, m_xWindowWidth, m_xWindowHeight, 2, 0x00000000, 0x00000000);            
+        
+        // create new simple XWindow either in 'full-screen-enabled' or using the Window Sink offsets and dimensions
+        if (m_xWindowfullScreenEnabled)
+        {
+            LOG_INFO("Creating new XWindow in 'full-screen-mode'");
+
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                0, 0, 10, 10, 0, BlackPixel(m_pXDisplay, 0), BlackPixel(m_pXDisplay, 0));
+        } 
+        else
+        {
+            LOG_INFO("Creating new XWindow: x-offset = " << m_xWindowOffsetX << ", y-offset = " << m_xWindowOffsetY << 
+                ", width = " << m_xWindowWidth << ", height = " << m_xWindowHeight);
+        
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                m_xWindowOffsetX, m_xWindowOffsetY, m_xWindowWidth, m_xWindowHeight, 2, 0, 0);
+        } 
+        
+            
         if (!m_pXWindow)
         {
             LOG_ERROR("Failed to create new X Window for Pipeline '" << GetName() << "' ");
             return false;
         }
-        XSetWindowAttributes attr = {0};
+        XSetWindowAttributes attr{0};
         
         attr.event_mask = ButtonPress | KeyRelease;
         XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
@@ -767,7 +831,24 @@ namespace DSL
         {
             XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
         }
+        
         XMapRaised(m_pXDisplay, m_pXWindow);
+        if (m_xWindowfullScreenEnabled)
+        {
+            Atom wmState = XInternAtom(m_pXDisplay, "_NET_WM_STATE", False);
+            Atom fullscreen = XInternAtom(m_pXDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+            XEvent xev{0};
+            xev.type = ClientMessage;
+            xev.xclient.window = m_pXWindow;
+            xev.xclient.message_type = wmState;
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1;
+            xev.xclient.data.l[1] = fullscreen;
+            xev.xclient.data.l[2] = 0;        
+
+            XSendEvent(m_pXDisplay, DefaultRootWindow(m_pXDisplay), False,
+                SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+        }
         // flush the XWindow output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);

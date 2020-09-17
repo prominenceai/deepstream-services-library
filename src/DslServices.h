@@ -595,12 +595,16 @@ namespace DSL {
 
         DslReturnType PipelineXWindowClear(const char* pipeline);
         
+        DslReturnType PipelineXWindowOffsetsGet(const char* pipeline,
+            uint* xOffset, uint* yOffset);
+            
         DslReturnType PipelineXWindowDimensionsGet(const char* pipeline,
             uint* width, uint* height);
-
-        DslReturnType PipelineXWindowDimensionsSet(const char* pipeline,
-            uint width, uint height);
             
+        DslReturnType PipelineXWindowFullScreenEnabledGet(const char* pipeline, boolean* enabled);
+        
+        DslReturnType PipelineXWindowFullScreenEnabledSet(const char* pipeline, boolean enabled);
+        
         DslReturnType PipelinePause(const char* pipeline);
         
         DslReturnType PipelinePlay(const char* pipeline);
