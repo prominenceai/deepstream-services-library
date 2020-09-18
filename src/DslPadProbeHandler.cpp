@@ -482,8 +482,9 @@ namespace DSL
         }
         
         GstEvent *event = (GstEvent*)pInfo->data;
-        if (GST_EVENT_TYPE (event) == GST_EVENT_EOS)
+        if (GST_EVENT_TYPE(event) == GST_EVENT_EOS)
         {
+            LOG_INFO("EOS Consumer -- dropping EOS Event");
             return GST_PAD_PROBE_DROP;
         }
         return GST_PAD_PROBE_OK;
@@ -643,7 +644,6 @@ namespace DSL
                 DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
                 try
                 {
-                    // Remove the client on false return
                     if (pPadProbeHandler->HandlePadData(pInfo) == GST_PAD_PROBE_REMOVE)
                     {
                         LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
@@ -664,7 +664,7 @@ namespace DSL
 
     PadEventDownStreamProbetr::PadEventDownStreamProbetr(const char* name, 
         const char* factoryName, DSL_ELEMENT_PTR parentElement)
-        : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_BUFFER)
+        : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
     {
         LOG_FUNC();
     }
@@ -676,7 +676,7 @@ namespace DSL
 
     GstPadProbeReturn PadEventDownStreamProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)   
     {
-        if ((m_padProbeType == GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) and (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM))
+        if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
         {
             if (!(GstEvent*)pInfo->data)
             {
@@ -688,11 +688,15 @@ namespace DSL
                 DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
                 try
                 {
-                    // Remove the client on false return
-                    if (!pPadProbeHandler->HandlePadData(pInfo))
+                    GstPadProbeReturn retval = pPadProbeHandler->HandlePadData(pInfo);
+                    if (retval == GST_PAD_PROBE_REMOVE)
                     {
                         LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
                         RemovePadProbeHandler(pPadProbeHandler);
+                    }
+                    else if (retval == GST_PAD_PROBE_DROP)
+                    {
+                        return retval;
                     }
                 }
                 catch(...)
@@ -701,6 +705,7 @@ namespace DSL
                     RemovePadProbeHandler(pPadProbeHandler);
                 }
             }
+            return GST_PAD_PROBE_OK;
         }
     }
 
@@ -711,6 +716,4 @@ namespace DSL
         return static_cast<PadProbetr*>(pPadProbetr)->
             HandlePadProbe(pPad, pInfo);
     }
-
-  
 }

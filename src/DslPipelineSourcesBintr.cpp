@@ -164,7 +164,6 @@ namespace DSL
         {
             // unlink the source from the Streammuxer
             pChildSource->UnlinkFromSink();
-            LOG_WARN("*********************************remove");
             pChildSource->UnlinkAll();
         }
         
@@ -236,7 +235,6 @@ namespace DSL
                 return;
             }
             // unink all of the ChildSource's Elementrs and reset the unique Id
-            LOG_WARN("*********************************unilink-all");
             imap.second->UnlinkAll();
             Services::GetServices()->_sourceNameErase(imap.second->GetId());
             imap.second->SetId(-1);
