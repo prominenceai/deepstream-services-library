@@ -44,7 +44,7 @@ namespace DSL
         // Float the Queue sink pad as a Ghost Pad for this MultiComponentsBintr
         m_pQueue->AddGhostPadToParent("sink");
         
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("multi-comp-sink-pad-probe", "sink", m_pQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("multi-comp-sink-pad-probe", "sink", m_pQueue);
     }
     
     MultiComponentsBintr::~MultiComponentsBintr()

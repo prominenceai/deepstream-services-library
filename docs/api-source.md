@@ -46,6 +46,14 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 * [dsl_source_decode_drop_farme_interval_set](#dsl_source_decode_drop_farme_interval_set)
 * [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add)
 * [dsl_source_decode_dewarper_remove](#dsl_source_decode_dewarper_remove)
+* [dsl_source_rtsp_timeout_get](#dsl_source_rtsp_timeout_get)
+* [dsl_source_rtsp_timeout_set](#dsl_source_rtsp_timeout_set)
+* [dsl_source_rtsp_reconnection_params_get](#dsl_source_rtsp_reconnection_params_get)
+* [dsl_source_rtsp_reconnection_params_set](#dsl_source_rtsp_reconnection_params_set)
+* [dsl_source_rtsp_reconnection_stats_get](#dsl_source_rtsp_reconnection_stats_get)
+* [dsl_source_rtsp_reconnection_stats_clear](#dsl_source_rtsp_reconnection_stats_clear)
+* [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add)
+* [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
 * [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
 * [dsl_source_num_in_use_get](#dsl_source_num_in_use_get)
@@ -55,6 +63,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
 ```C++
+#define DSL_RESULT_SOURCE_RESULT                                    0x00020000
 #define DSL_RESULT_SOURCE_NAME_NOT_UNIQUE                           0x00020001
 #define DSL_RESULT_SOURCE_NAME_NOT_FOUND                            0x00020002
 #define DSL_RESULT_SOURCE_NAME_BAD_FORMAT                           0x00020003
@@ -71,13 +80,16 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
+#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
+#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
+#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
 ```
 
 ## Cuda Decode Memory Types
 ```C++
-#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
-#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
-#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
+#define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
+#define DSL_CUDADEC_MEMTYPE_PINNED                                  1
+#define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
 ```
 
 ## RTP Protocols
@@ -93,7 +105,7 @@ Streaming Source Methods use the following return codes, in addition to the gene
 ### *dsl_source_csi_new*
 ```C++
 DslReturnType dsl_source_csi_new(const wchar_t* source,
-    uint width, uint height, uint fps_n, uint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named CSI Camera Source object. 
 
@@ -117,7 +129,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 ### *dsl_source_usb_new*
 ```C++
 DslReturnType dsl_source_usb_new(const wchar_t* source,
-    uint width, uint height, uint fps_n, uint fps_d);
+    uint width, uint height, uint fps_n, uint fps_d);
 ```
 Creates a new, uniquely named USB Camera Source object. 
 
@@ -151,7 +163,7 @@ This service creates a new, uniquely named URI Source component
 * `name` - [in] unique name for the new Source
 * `uri` - [in] fully qualified URI prefixed with `http://`, `https://`,  or `file://` 
 * `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will used a fixed value of `false`
-* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined below
+* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#cuda-decode-memory-types) defined below
 * `intra_decode` - [in] set to true for M-JPEG codec format
 * `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
 
@@ -160,7 +172,7 @@ This service creates a new, uniquely named URI Source component
 
 **Python Example**
 ```Python
-retval = dsl_source_uri_new('dsl_source_uri_new', '../../test/streams/sample_1080p_h264.mp4',
+retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h264.mp4',
     False, DSL_CUDADEC_MEMTYPE_DEVICE, 0)
 ```
 
@@ -169,27 +181,27 @@ retval = dsl_source_uri_new('dsl_source_uri_new', '../../test/streams/sample_108
 ### *dsl_source_rtsp_new*
 ```C++
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 ```
 
-This service creates a new, uniquely named URI Source component
+This service creates a new, uniquely named RTSP Source component
 
 **Parameters**
 * `name` - [in] unique name for the new Source
-* `uri` - [in] fully qualified URI prefixed with `http://`, `https://`
-* `is_live` [in] `true` if the URI is a live source, `false` otherwise.
+* `uri` - [in] fully qualified URI prefixed with `rtsp://`
 * `protocol` - [in] one of the [RTP Protocols](#rtp-protocols) define above
-* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#Cuda Decode Memory Types) defined above
-* `drop_frame_interval` [in] interval to drop frames at. 0 = decode all frames
-* `latency` [in] source latency setting in milliseconds
+* `cudadec_mem_type` - [in] one of the [Cuda Decode Memory Types](#cuda-decode-memory-types) defined above
+* `drop_frame_interval` - [in] interval to drop frames at. 0 = decode all frames
+* `latency` - [in] source latency setting in milliseconds
+* `timeout` - [in] maximum time between successive frame buffers in units of seconds before initiating a "reconnection-cycle". Set to 0 to disable the timeout.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_source_uri_new('dsl_source_uri_new', 'http://localhost::8050/rtsp-camera-1',
-    True, DSL_CUDADEC_MEMTYPE_DEVICE, 0)
+retval = dsl_source_rtsp_new('dsl_source_uri_new', 'rtsp://username:password@192.168.0.17:554/rtsp-camera-1',
+    True, DSL_CUDADEC_MEMTYPE_DEVICE, 200, 2)
 ```
 
 <br>
@@ -383,12 +395,12 @@ retval = dsl_source_decode_drop_farme_interval_set('my-uri-source', 2)
 
 ### *dsl_source_decode_dewarper_add*
 ```C++
-DslReturnType dsl_source_decode_dewarper_add(const wchar_t* source, const wchar_t* dewarper);
+DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 ```
 This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named URI or RTSP source. A source can have at most one Dewarper, and calls to add more will fail. Attempts to add a Dewarper to a Source `in use` will fail. 
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 * `dewarper` - [in] unique name of the Dewarper to add
 
 **Returns**
@@ -403,12 +415,12 @@ retval = dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
 
 ### *dsl_source_decode_dewarper_remove*
 ```C++
-DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* source);
+DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 ```
 This service remove a [Dewarper](api-dewarper.md) component, previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) to a named URI source. Calls to remove will fail if the Source is currently without a Dewarper or `in use`.
 
 **Parameters**
-* `source` - [in] unique name of the Source to update
+* `name` - [in] unique name of the Source to update
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -416,6 +428,178 @@ This service remove a [Dewarper](api-dewarper.md) component, previously added wi
 **Python Example**
 ```Python
 retval = dsl_source_uri_dewarper_remove('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_rtsp_timeout_get*
+```C++
+DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
+```
+This service gets the current frame buffer timeout value for the named RTSP Source
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `timeout` - [out] time to wait (in seconds) between successive frames before determining the connection is lost. If set to 0 then timeout is disabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, timeout = dsl_source_rtsp_timeout_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_timeout_set*
+```C++
+DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
+```
+This service sets the frame buffer timeout value for the named RTSP Source. Setting the `timeout` to 0 will disable stream management and terminate any reconnection cycle if in progress. 
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `timeout` - [in] time to wait (in seconds) between successive frames before determining the connection is lost. Set to 0 to disable timeout.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_timeout_set('my-rtsp-source', timeout)
+```
+<br>
+
+### *dsl_source_rtsp_reconnection_params_get*
+```C++
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
+```
+This service gets the current reconnection params in use by the named RTSP Source. The parameters are set to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on Source creation. 
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchronous reconnection
+ * `timeout_ms` - [out] time to wait before terminating the current reconnection try and restarting the reconnection cycle again.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, sleep_ms, timeout_ms = dsl_source_rtsp_reconnection_params_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_reconnection_params_set*
+```C++
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
+```
+This service sets the reconnection params for the named RTSP Source. The parameters are set to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on Source creation. 
+
+**Note:** both `sleep_ms` and `time_out` must be greater than 10 ms. `time_out` must be >= `sleep_ms` and should be set as a multiple of. Calling this service during an active "reconnection-cycle" will terminate the current attempt with a new cycle started using the new parameters. The current number of retries will not be reset.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `sleep_ms` - [out] time to sleep between successively checking the status of the asynchronous reconnection
+ * `timeout_ms` - [out] time to wait before terminating the current reconnection try and restarting the reconnection cycle again.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_reconnection_params_get('my-rtsp-source', sleep_ms, timeout_ms)
+```
+<br>
+
+### *dsl_source_rtsp_reconnection_stats_get*
+```C++
+DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
+    time_t* last, uint* count, boolean* in_reconnect, uint* retries); 
+```
+This service gets the current reconnection stats for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `last` - [out] time of the last reconnect from the system time in seconds (see timeval <sys/time.h>)
+ * `count` - [out] the count of reconnections for the named source, since first played or cleared.
+ * `in_reconnect` - [out] true if the RTSP source is currently in a "reconnection-cycle"
+ * `retries` [out] - number of reconnection retries in either the current reconnection-cycle if `in_reconnect == true` or the last reconnection if `in_reconnect == false`. 
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_reconnection_stats_clear*
+```C++
+DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
+```
+This service clears the current reconnection stats for the named RTSP Source. 
+
+**Note:** the connection `retries` count will not be cleared if `in_reconnect == true`
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_state_change_listener_add*
+```C++
+DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* pipeline, 
+    state_change_listener_cb listener, void* user_data);
+```
+This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
+RTSP Source identified by it's unique name. The function will be called on every change-of-state with `old_state`, `new_state`, and the client provided `user_data`. Multiple callback functions can be registered with one Source, and one callback function can be registered with multiple Sources. 
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Source to update.
+* `listener` - [in] state change listener callback function to add.
+* `user_data` - [in] opaque pointer to user data returned to the client when listener is called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def state_change_listener(old_state, new_state, user_data, user_data):
+    print('old_state = ', old_state)
+    print('new_state = ', new_state)
+    
+retval = dsl_source_rtsp_state_change_listener_add('my-rtsp-source', state_change_listener, None)
+```
+
+<br>
+
+### *dsl_source_rtsp_state_change_listener_remove*
+```C++
+DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name, 
+    dsl_state_change_listener_cb listener);
+```
+This service removes a callback function of type [state_change_listener_cb](#state_change_listener_cb) from a
+pipeline identified by it's unique name.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `listener` - [in] state change listener callback function to remove.
+
+**Returns**  
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_state_change_listener_remove('my-pipeline', state_change_listener)
 ```
 
 <br>
@@ -526,6 +710,3 @@ retval = dsl_source_num_in_use_max_set(24)
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-
-
-

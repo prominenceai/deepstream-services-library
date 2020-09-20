@@ -49,8 +49,8 @@ namespace DSL
         m_pTracker->AddGhostPadToParent("sink");
         m_pTracker->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("tracker-sink-pad-probe", "sink", m_pTracker);
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("tracker-src-pad-probe", "src", m_pTracker);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-sink-pad-probe", "sink", m_pTracker);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-src-pad-probe", "src", m_pTracker);
     }
 
     TrackerBintr::~TrackerBintr()

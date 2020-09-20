@@ -56,6 +56,12 @@ namespace DSL
         ~PipelineBintr();
 
         /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+
+        /**
          * @brief Attempts to link all and play the Pipeline
          * @return true if able to play, false otherwise
          */
@@ -153,6 +159,21 @@ namespace DSL
         bool SetStreamMuxPadding(bool enabled);
         
         /**
+         * @brief Gets the current x and y offsets for the Pipeline's XWindow
+         * @param[out] xOffset x directional offset from left window edge in pixels
+         * @param[out] yOffset y directional offset from top window edge in pixels
+         */
+        void GetXWindowOffsets(uint* xOffset, uint* yOffset);
+
+        /**
+         * @brief Sets the current x and y offsets for the Pipeline's XWindow
+         * Note: this function is used for XWindow unit testing only. Offsets are set by the Window Sink
+         * @param[in] xOffset x directional offset from left window edge in pixels
+         * @param[in] yOffset y directional offset from top window edge in pixels
+         */
+        void SetXWindowOffsets(uint xOffset, uint yOffset);
+
+        /**
          * @brief Gets the current dimensions for the Pipeline's XWindow
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the current setting
@@ -160,13 +181,27 @@ namespace DSL
         void GetXWindowDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the Pipeline's XWindow
+         * @brief Sets the dimensions for the Pipeline's XWindow
+         * Note: this function is used for XWindow unit testing only. Dimensions are set by the Window Sink
          * @param width width in pixels to set the XWindow on creation
          * @param height height in pixels to set the XWindow on creation
          * @return true if the output dimensions could be set, false otherwise
          */
-        bool SetXWindowDimensions(uint width, uint height);
+        void SetXWindowDimensions(uint width, uint height);
         
+        /**
+         * @brief Gets the current full-screen-enabled setting for the Pipeline's XWindow
+         * @retrun true if full-screen-mode is currently enabled, false otherwise
+         */
+        bool GetXWindowFullScreenEnabled();
+        
+        /**
+         * @brief Sets the full-screen-enabled setting for the Pipeline's XWindow
+         * @param enabled if true, sets the XWindow to full-screen on creation
+         * @return true if the full-screen-enabled could be set, false if called after XWindow creation
+         */
+        bool SetXWindowFullScreenEnabled(bool enabled);
+
         /**
          * @brief dumps a Pipeline's graph to dot file.
          * @param[in] filename name of the file without extention.
@@ -189,10 +224,10 @@ namespace DSL
         /**
          * @brief adds a callback to be notified on change of Pipeline state
          * @param[in] listener pointer to the client's function to call on state change
-         * @param[in] userdata opaque pointer to client data passed into the listner function.
+         * @param[in] clientData opaque pointer to client data passed into the listner function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
+        bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -204,10 +239,10 @@ namespace DSL
         /**
          * @brief adds a callback to be notified on change of Pipeline state
          * @param[in] listener pointer to the client's function to call on state change
-         * @param[in] userdata opaque pointer to client data passed into the listner function.
+         * @param[in] clientData opaque pointer to client data passed into the listner function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        bool AddEosListener(dsl_eos_listener_cb listener, void* userdata);
+        bool AddEosListener(dsl_eos_listener_cb listener, void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -217,12 +252,27 @@ namespace DSL
         bool RemoveEosListener(dsl_eos_listener_cb listener);
             
         /**
-         * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
-         * @param[in] handler pointer to the client's function to call on XWindow event
-         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @brief adds a callback to be notified on the event an error message is recieved on the bus
+         * @param[in] handler pointer to the client's function to call on error message
+         * @param[in] clientData opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        bool AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* userdata);
+        bool AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool RemoveErrorMessageHandler(dsl_error_message_handler_cb handler);
+            
+        /**
+         * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
+         * @param[in] handler pointer to the client's function to call on XWindow event
+         * @param[in] clientData opaque pointer to client data passed into the handler function.
+         * @return DSL_RESULT_PIPELINE_RESULT
+         */
+        bool AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -234,10 +284,10 @@ namespace DSL
         /**
          * @brief adds a callback to be notified on display/window event [ButtonPress|KeyRelease]
          * @param[in] handler pointer to the client's function to call on XWindow event
-         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @param[in] clientData opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        bool AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* userdata);
+        bool AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -249,10 +299,10 @@ namespace DSL
         /**
          * @brief adds a callback to be notified on XWindow Delete message event
          * @param[in] handler pointer to the client's function to call on XWindow Delete event
-         * @param[in] userdata opaque pointer to client data passed into the handler function.
+         * @param[in] clientData opaque pointer to client data passed into the handler function.
          * @return DSL_RESULT_PIPELINE_RESULT
          */
-        bool AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* userdata);
+        bool AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -283,8 +333,6 @@ namespace DSL
 
         bool CreateXWindow();
         
-        bool LinkAll();
-        
         /**
          * @brief returns a handle to this PipelineBintr's XWindow
          * @return XWindow handle, NULL untill created
@@ -297,7 +345,29 @@ namespace DSL
         }
         
         bool ClearXWindow();
+        
+        /**
+         * @brief Gets the last error message recieved by the bus watch error handler
+         * @param[out] source name of gst object that sent the error mess
+         * @param[out] message error/warning message sent by the source
+         */
+        void GetLastErrorMessage(std::wstring& source, std::wstring& message);
 
+        /**
+         * @brief Sets the last error message recieved by the bus watch error handler.
+         * this service will schedule a timer thread to notify all client handlers. 
+         * @param[out] source name of gst object that sent the error mess
+         * @param[out] message error/warning message sent by the source
+         */
+        void SetLastErrorMessage(std::wstring& source, std::wstring& message);
+        
+        /**
+         * @brief Timer experation callback function to notify all error-message-handlers of a new error
+         * recieved by the bus-watch. Allows notifications to be sent out from the main-loop context.
+         * @return false always to destroy the one-shot timer calling this callback. 
+         */
+        int NotifyErrorMessageHandlers();
+        
     private:
 
         bool HandleStateChanged(GstMessage* pMessage);
@@ -310,6 +380,16 @@ namespace DSL
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
+        
+        /**
+         * @brief x-offset setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowOffsetX;
+        
+        /**
+         * @brief y-offset setting to use on XWindow creation in pixels
+         */
+        uint m_xWindowOffsetY;
         
         /**
          * @brief width setting to use on XWindow creation in pixels
@@ -332,6 +412,12 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_eos_listener_cb, void*>m_eosListeners;
+        
+        /**
+         * @brief map of all currently registered error-message-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_error_message_handler_cb, void*>m_errorMessageHandlers;
         
         /**
          * @brief map of all currently registered XWindow-key-event-handlers
@@ -372,6 +458,28 @@ namespace DSL
         guint m_gstBusWatch;
         
         /**
+         * @brief mutex to protect multiple threads from accessing/updating last error message information
+         */
+        GMutex m_lastErrorMutex;
+        
+        /**
+         * @brief timer used to execute the error notification thread
+         */
+        uint m_errorNotificationTimerId;
+        
+        /**
+         * @brief name of the gst object that was the source of the last error message
+         * Note: in wchar format for client handlers
+         */
+        std::wstring m_lastErrorSource;
+
+        /**
+         * @brief the last error message received by the bus watch. 
+         * Note: in wchar format for client handlers
+         */
+        std::wstring m_lastErrorMessage;
+        
+        /**
          * @brief maps a GstState constant value to a string for logging
          */
         std::map<GstState, std::string> m_mapPipelineStates;
@@ -390,11 +498,18 @@ namespace DSL
          * @brief handle to X Window
          */
         Window m_pXWindow;
+        
         /**
          * @brief handle to the X Window event thread, 
          * active for the life of the Pipeline
         */
         GThread* m_pXWindowEventThread;        
+        
+        /**
+         * @brief if true, the Pipeline will set its XWindow to full-screen if one is created
+         * A Pipeline requires a Window Sink to create an XWindow on Play
+         */
+        bool m_xWindowfullScreenEnabled;
         
         /**
          * @brief maps a GstMessage constant value to a string for logging
@@ -429,6 +544,14 @@ namespace DSL
     static GstBusSyncReply bus_sync_handler(
         GstBus* bus, GstMessage* pMessage, gpointer pData);
 
+    /**
+     * @brief Timer thread Notification Handler to invoke a Pipelines NotifyErrorMessageHandlers() function
+     * @param pPipeline shared pointer to the Pipeline that started the timer so that clients can be notified
+     * in the timer's experation callback running from the main the loop, instead of the bus-watch callback
+     * @return false always to self destroy the one-shot timer.
+     */
+    static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline);
+    
     static gpointer XWindowEventThread(gpointer pData);
 
     

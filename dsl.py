@@ -57,14 +57,30 @@ Button3	= 3
 Button4	= 4
 Button5	= 5
 
+DSL_PAD_PROBE_DROP    = 0
+DSL_PAD_PROBE_OK      = 1
+DSL_PAD_PROBE_REMOVE  = 2
+DSL_PAD_PROBE_PASS    = 3
+DSL_PAD_PROBE_HANDLED = 4
+
 ##
 ## Pointer Typedefs
 ##
 DSL_UINT_P = POINTER(c_uint)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
+DSL_LONG_P = POINTER(c_long)
 DSL_DOUBLE_P = POINTER(c_double)
 DSL_FLOAT_P = POINTER(c_float)
+
+class DslRecordingInfo(Structure):
+    _fields_ = [("sessionId", c_uint),
+                ("filename", c_wchar_p),
+                ("dirpath", c_wchar_p),
+                ("duration", c_long),
+                ("containerType", c_uint),
+                ("width", c_uint),
+                ("height", c_uint)]
 
 ##
 ## Callback Typedefs
@@ -72,14 +88,15 @@ DSL_FLOAT_P = POINTER(c_float)
 DSL_META_BATCH_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
 DSL_STATE_CHANGE_LISTENER = CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 DSL_EOS_LISTENER = CFUNCTYPE(None, c_void_p)
+DSL_ERROR_MESSAGE_HANDLER = CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 DSL_XWINDOW_KEY_EVENT_HANDLER = CFUNCTYPE(None, c_wchar_p, c_void_p)
 DSL_XWINDOW_BUTTON_EVENT_HANDLER = CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
 DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
-DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_bool, c_void_p, c_void_p)
+DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(DslRecordingInfo), c_void_p)
+DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -1225,11 +1242,11 @@ def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_
 ##
 ## dsl_source_rtsp_new()
 ##
-_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_rtsp_new.restype = c_uint
-def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency):
+def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout):
     global _dsl
-    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency)
+    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout)
     return int(result)
 
 ##
@@ -1306,6 +1323,97 @@ _dsl.dsl_source_decode_dewarper_remove.restype = c_uint
 def dsl_source_decode_dewarper_remove(name):
     global _dsl
     result = _dsl.dsl_source_decode_dewarper_remove(name)
+    return int(result)
+
+##
+## dsl_source_rtsp_timeout_get()
+##
+_dsl.dsl_source_rtsp_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_rtsp_timeout_get.restype = c_uint
+def dsl_source_rtsp_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result = _dsl.dsl_source_rtsp_timeout_get(name, DSL_UINT_P(timeout))
+    return int(result), timeout.value
+
+##
+## dsl_source_rtsp_timeout_set()
+##
+_dsl.dsl_source_rtsp_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_rtsp_timeout_set.restype = c_uint
+def dsl_source_rtsp_timeout_set(name, timeout):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_timeout_set(name, timeout)
+    return int(result)
+
+##
+## dsl_source_rtsp_reconnection_params_get()
+##
+_dsl.dsl_source_rtsp_reconnection_params_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_rtsp_reconnection_params_get.restype = c_uint
+def dsl_source_rtsp_reconnection_params_get(name):
+    global _dsl
+    sleep_ms = c_uint(0)
+    timeout_ms = c_uint(0)
+    result = _dsl.dsl_source_rtsp_reconnection_params_get(name, DSL_UINT_P(sleep_ms), DSL_UINT_P(timeout_ms))
+    return int(result), sleep_ms.value, timeout_ms.value
+
+##
+## dsl_source_rtsp_reconnection_params_set()
+##
+_dsl.dsl_source_rtsp_reconnection_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_source_rtsp_reconnection_params_set.restype = c_uint
+def dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms)
+    return int(result)
+
+##
+## dsl_source_rtsp_reconnection_stats_get()
+##
+_dsl.dsl_source_rtsp_reconnection_stats_get.argtypes = [c_wchar_p, POINTER(c_long), POINTER(c_uint), POINTER(c_bool), POINTER(c_uint)]
+_dsl.dsl_source_rtsp_reconnection_stats_get.restype = c_uint
+def dsl_source_rtsp_reconnection_stats_get(name):
+    global _dsl
+    last = c_long(0)
+    count = c_uint(0)
+    isInReset = c_bool(0)
+    retries = c_uint(0)
+    result = _dsl.dsl_source_rtsp_reconnection_stats_get(name, DSL_LONG_P(last), DSL_UINT_P(count), DSL_BOOL_P(isInReset), DSL_UINT_P(retries))
+    return int(result), last.value, count.value, isInReset.value, retries.value
+
+##
+## dsl_source_rtsp_reconnection_stats_clear()
+##
+_dsl.dsl_source_rtsp_reconnection_stats_clear.argtypes = [c_wchar_p]
+_dsl.dsl_source_rtsp_reconnection_stats_clear.restype = c_uint
+def dsl_source_rtsp_reconnection_stats_clear(name):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_reconnection_stats_clear(name)
+    return int(result)
+
+##
+## dsl_source_rtsp_state_change_listener_add()
+##
+_dsl.dsl_source_rtsp_state_change_listener_add.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_source_rtsp_state_change_listener_add.restype = c_uint
+def dsl_source_rtsp_state_change_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_source_rtsp_state_change_listener_add(name, c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_source_rtsp_state_change_listener_remove()
+##
+_dsl.dsl_source_rtsp_state_change_listener_remove.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER]
+_dsl.dsl_source_rtsp_state_change_listener_remove.restype = c_uint
+def dsl_source_rtsp_state_change_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_source_rtsp_state_change_listene_remove(name, c_client_listener)
     return int(result)
 
 ##
@@ -2037,14 +2145,13 @@ def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, clien
 ##
 ## dsl_sink_record_session_start()
 ##
-_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint, c_uint, c_void_p]
+_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, c_uint, c_uint, c_void_p]
 _dsl.dsl_sink_record_session_start.restype = c_uint
 def dsl_sink_record_session_start(name, start, duration, client_data):
     global _dsl
-    session = c_uint(0)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    result = _dsl.dsl_sink_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
-    return int(result), session.value 
+    result = _dsl.dsl_sink_record_session_start(name, start, duration, c_client_data)
+    return int(result) 
 
 ##
 ## dsl_sink_record_session_stop()
@@ -2605,13 +2712,36 @@ def dsl_pipeline_xwindow_dimensions_get(name):
     return int(result), int(width.value), int(height.value) 
 
 ##
-## dsl_pipeline_xwindow_dimensions_set()
+## dsl_pipeline_xwindow_offsets_get()
 ##
-_dsl.dsl_pipeline_xwindow_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_pipeline_xwindow_dimensions_set.restype = c_uint
-def dsl_pipeline_xwindow_dimensions_set(name, width, height):
+_dsl.dsl_pipeline_xwindow_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_xwindow_offsets_get.restype = c_uint
+def dsl_pipeline_xwindow_offsets_get(name):
     global _dsl
-    result = _dsl.dsl_pipeline_xwindow_dimensions_set(name, width, height)
+    x_offset = c_uint(0)
+    y_offset = c_uint(0)
+    result = _dsl.dsl_pipeline_xwindow_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
+    return int(result), int(width.value), int(height.value) 
+
+##
+## dsl_pipeline_xwindow_fullscreen_enabled_get()
+##
+_dsl.dsl_pipeline_xwindow_fullscreen_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_pipeline_xwindow_fullscreen_enabled_get.restype = c_uint
+def dsl_pipeline_xwindow_fullscreen_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_xwindow_offsets_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_xwindow_fullscreen_enabled_set()
+##
+_dsl.dsl_pipeline_xwindow_fullscreen_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_pipeline_xwindow_fullscreen_enabled_set.restype = c_uint
+def dsl_pipeline_xwindow_fullscreen_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_fullscreen_enabled_set(name, enabled)
     return int(result)
 
 ##
@@ -2724,14 +2854,38 @@ def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     return int(result)
     
 ##
-## dsl_pipeline_state_change_listener_remove()
+## dsl_pipeline_eos_listener_remove()
 ##
 _dsl.dsl_pipeline_eos_listener_remove.argtypes = [c_wchar_p, DSL_EOS_LISTENER]
 _dsl.dsl_pipeline_eos_listener_remove.restype = c_uint
-def dsl_pipeline_eos_listener_remove(name, listener):
+def dsl_pipeline_eos_listener_remove(name, client_listener):
     global _dsl
-    client_listener = DSL_EOS_LISTENER(listener)
-    result = _dsl.dsl_pipeline_eos_listener_remove(name, client_listener)
+    c_client_listener = DSL_EOS_LISTENER(client_listener)
+    result = _dsl.dsl_pipeline_eos_listener_remove(name, c_client_listener)
+    return int(result)
+
+##
+## dsl_pipeline_error_message_handler_add()
+##
+_dsl.dsl_pipeline_error_message_handler_add.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER, c_void_p]
+_dsl.dsl_pipeline_error_message_handler_add.restype = c_uint
+def dsl_pipeline_error_message_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_pipeline_error_message_handler_add(name, c_client_handler, c_client_data)
+    return int(result)
+    
+##
+## dsl_pipeline_error_message_handler_remove()
+##
+_dsl.dsl_pipeline_error_message_handler_remove.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER]
+_dsl.dsl_pipeline_error_message_handler_remove.restype = c_uint
+def dsl_pipeline_error_message_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_error_message_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
@@ -2752,10 +2906,10 @@ def dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, client_data
 ##
 _dsl.dsl_pipeline_xwindow_key_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER]
 _dsl.dsl_pipeline_xwindow_key_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_key_event_handler_remove(name, handler):
+def dsl_pipeline_xwindow_key_event_handler_remove(name, client_handler):
     global _dsl
-    client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(handler)
-    result = _dsl.dsl_pipeline_xwindow_key_event_handler_remove(name, client_handler)
+    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_key_event_handler_remove(name, c_client_handler)
     return int(result)
 
 ##
@@ -2776,10 +2930,10 @@ def dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, client_d
 ##
 _dsl.dsl_pipeline_xwindow_button_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER]
 _dsl.dsl_pipeline_xwindow_button_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_button_event_handler_remove(name, handler):
+def dsl_pipeline_xwindow_button_event_handler_remove(name, client_handler):
     global _dsl
-    client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(handler)
-    result = _dsl.dsl_pipeline_xwindow_button_event_handler_remove(name, client_handler)
+    c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_xwindow_button_event_handler_remove(name, c_client_handler)
     return int(result)
 
 ##

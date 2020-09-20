@@ -34,12 +34,12 @@ SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A state-change-listner is added" )
+        WHEN( "A state-change-listener is added" )
         {
             REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
                 listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-            THEN( "The same listner can't be added again" ) 
+            THEN( "The same listener can't be added again" ) 
             {
                 REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
                     listener, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
@@ -62,7 +62,7 @@ SCENARIO( "A state-change-listener can be removed", "[pipeline-cb-api]" )
         REQUIRE( dsl_pipeline_state_change_listener_add(pipelineName.c_str(),
             listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A state-change-listner is removed" )
+        WHEN( "A state-change-listener is removed" )
         {
             REQUIRE( dsl_pipeline_state_change_listener_remove(pipelineName.c_str(),
                 listener) == DSL_RESULT_SUCCESS );
@@ -88,12 +88,12 @@ SCENARIO( "A EOS-listener must be unique", "[pipeline-cb-api]" )
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A EOS-listner is added" )
+        WHEN( "A EOS-listener is added" )
         {
             REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
                 listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-            THEN( "The same listner can't be added again" ) 
+            THEN( "The same listener can't be added again" ) 
             {
                 REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
                     listener, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
@@ -116,7 +116,7 @@ SCENARIO( "A EOS-listener can be removed", "[pipeline-cb-api]" )
         REQUIRE( dsl_pipeline_eos_listener_add(pipelineName.c_str(),
             listener, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A EOS-listner is removed" )
+        WHEN( "A EOS-listener is removed" )
         {
             REQUIRE( dsl_pipeline_eos_listener_remove(pipelineName.c_str(),
                 listener) == DSL_RESULT_SUCCESS );
@@ -297,3 +297,38 @@ SCENARIO( "A XWindow Delete Event Handler can be removed", "[pipeline-cb-api]" )
         }
     }
 }
+
+SCENARIO( "An error-message-handler can be added and removed", "[pipeline-cb-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+    dsl_error_message_handler_cb handler;
+    
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "An error message handler is added" )
+        {
+            REQUIRE( dsl_pipeline_error_message_handler_add(pipelineName.c_str(),
+                handler, NULL) == DSL_RESULT_SUCCESS );
+
+            // calling a second time must fail
+            REQUIRE( dsl_pipeline_error_message_handler_add(pipelineName.c_str(),
+                handler, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
+
+            THEN( "The same handler can be removed" ) 
+            {
+                REQUIRE( dsl_pipeline_error_message_handler_remove(pipelineName.c_str(),
+                    handler) == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pipeline_error_message_handler_remove(pipelineName.c_str(),
+                    handler) == DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}    
+

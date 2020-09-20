@@ -37,8 +37,12 @@ namespace DSL
         , m_pXWindowEventThread(NULL)
         , m_pXDisplay(0)
         , m_pXWindow(0)
+        , m_xWindowOffsetX(0)
+        , m_xWindowOffsetY(0)
         , m_xWindowWidth(0)
         , m_xWindowHeight(0)
+        , m_errorNotificationTimerId(0)
+        , m_xWindowfullScreenEnabled(false)
 {
         LOG_FUNC();
 
@@ -55,6 +59,7 @@ namespace DSL
         g_mutex_init(&m_busSyncMutex);
         g_mutex_init(&m_busWatchMutex);
         g_mutex_init(&m_displayMutex);
+        g_mutex_init(&m_lastErrorMutex);
 
         // get the GST message bus - one per GST pipeline
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstObj));
@@ -69,29 +74,31 @@ namespace DSL
     PipelineBintr::~PipelineBintr()
     {
         LOG_FUNC();
+        Stop();
+        
+        // cleanup all resources
+        if (m_pXWindow)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-            
-            Stop();
-            
-            if (m_pXWindow)
-            {
-                XDestroyWindow(m_pXDisplay, m_pXWindow);
-            }
-            if (m_pXDisplay)
-            {
-                XCloseDisplay(m_pXDisplay);
-                // Setting the display handle to NULL will terminate the XWindow Event Thread.
-                m_pXDisplay = NULL;
-            }
-            // cleanup all resources
+            XDestroyWindow(m_pXDisplay, m_pXWindow);
+        }
+        if (m_pXDisplay)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+            XCloseDisplay(m_pXDisplay);
+            // Setting the display handle to NULL will terminate the XWindow Event Thread.
+            m_pXDisplay = NULL;
+        }
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             gst_bus_remove_watch(m_pGstBus);
             gst_object_unref(m_pGstBus);
-
-            g_mutex_clear(&m_busSyncMutex);
-            g_mutex_clear(&m_busWatchMutex);
         }
+        
+        g_mutex_clear(&m_busSyncMutex);
+        g_mutex_clear(&m_busWatchMutex);
         g_mutex_clear(&m_displayMutex);
+        g_mutex_clear(&m_lastErrorMutex);
     }
     
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -214,26 +221,70 @@ namespace DSL
         return true;
     }
     
+    void PipelineBintr::GetXWindowOffsets(uint* xOffset, uint* yOffset)
+    {
+        LOG_FUNC();
+
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_xWindowOffsetX = attrs.x;
+            m_xWindowOffsetY = attrs.y;
+        }
+        *xOffset = m_xWindowOffsetX;
+        *yOffset = m_xWindowOffsetY;
+    }
+
+    void PipelineBintr::SetXWindowOffsets(uint xOffset, uint yOffset)
+    {
+        LOG_FUNC();
+
+        m_xWindowOffsetX = xOffset;
+        m_xWindowOffsetY = yOffset;
+    }
+
     void PipelineBintr::GetXWindowDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
-        
+
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_xWindowWidth = attrs.width;
+            m_xWindowHeight = attrs.height;
+        }
         *width = m_xWindowWidth;
         *height = m_xWindowHeight;
     }
 
-    bool PipelineBintr::SetXWindowDimensions(uint width, uint height)
+   void PipelineBintr::SetXWindowDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
+        m_xWindowWidth = width;
+        m_xWindowHeight = height;
+    }
+    
+    bool PipelineBintr::GetXWindowFullScreenEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_xWindowfullScreenEnabled;
+    }
+    
+    bool PipelineBintr::SetXWindowFullScreenEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
         // TODO verify dimensions before setting.
         if (m_pXWindow)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' has an existing XWindow.");
+            LOG_ERROR("Can not set full-screen-enable for Pipeline '" << GetName() << "' once XWindow has been created.");
             return false;
         }
-        m_xWindowWidth = width;
-        m_xWindowHeight = height;
+        m_xWindowfullScreenEnabled = enabled;
         return true;
     }
     
@@ -280,7 +331,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (GetState() == GST_STATE_NULL)
+        GstState currentState;
+        GetState(currentState);
+        if (currentState == GST_STATE_NULL)
         {
             if (!LinkAll())
             {
@@ -288,7 +341,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive())
+            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
             {
                 if (!SetState(GST_STATE_PAUSED))
                 {
@@ -306,7 +359,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (GetState() != GST_STATE_PLAYING)
+        GstState state;
+        GetState(state);
+        if (state != GST_STATE_PLAYING)
         {
             LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
@@ -324,14 +379,15 @@ namespace DSL
     {
         LOG_FUNC();
         
-        uint state = GetState();
-        if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
-        {
-            LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
-            return true;
-        }
+//        GstState state;
+//        GetState(state);
+//        if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
+//        {
+//            LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
+//            return true;
+//        }
 
-        if (!SetState(GST_STATE_READY))
+        if (!SetState(GST_STATE_NULL))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
             return false;
@@ -352,7 +408,7 @@ namespace DSL
             LOG_INFO("Pipeline '" << GetName() << "' has no sources, therefore is-live = false");
             return false;
         }
-        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLive();
+        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet();
     }
     
     void PipelineBintr::DumpToDot(char* filename)
@@ -371,7 +427,7 @@ namespace DSL
             GST_DEBUG_GRAPH_SHOW_ALL, filename);
     }
 
-    bool PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    bool PipelineBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         
@@ -380,7 +436,7 @@ namespace DSL
             LOG_ERROR("Pipeline listener is not unique");
             return false;
         }
-        m_stateChangeListeners[listener] = userdata;
+        m_stateChangeListeners[listener] = clientData;
         
         return true;
     }
@@ -399,7 +455,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBintr::AddEosListener(dsl_eos_listener_cb listener, void* userdata)
+    bool PipelineBintr::AddEosListener(dsl_eos_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         
@@ -408,7 +464,7 @@ namespace DSL
             LOG_ERROR("Pipeline listener is not unique");
             return false;
         }
-        m_eosListeners[listener] = userdata;
+        m_eosListeners[listener] = clientData;
         
         return true;
     }
@@ -427,7 +483,35 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBintr::AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* userdata)
+    bool PipelineBintr::AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        
+        if (m_errorMessageHandlers.find(handler) != m_errorMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return false;
+        }
+        m_errorMessageHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool PipelineBintr::RemoveErrorMessageHandler(dsl_error_message_handler_cb handler)
+    {
+        LOG_FUNC();
+        
+        if (m_errorMessageHandlers.find(handler) == m_errorMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return false;
+        }
+        m_errorMessageHandlers.erase(handler);
+        
+        return true;
+    }
+
+    bool PipelineBintr::AddXWindowKeyEventHandler(dsl_xwindow_key_event_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
 
@@ -436,7 +520,7 @@ namespace DSL
             LOG_ERROR("Pipeline handler is not unique");
             return false;
         }
-        m_xWindowKeyEventHandlers[handler] = userdata;
+        m_xWindowKeyEventHandlers[handler] = clientData;
         
         return true;
     }
@@ -455,7 +539,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* userdata)
+    bool PipelineBintr::AddXWindowButtonEventHandler(dsl_xwindow_button_event_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
 
@@ -464,7 +548,7 @@ namespace DSL
             LOG_ERROR("Pipeline handler is not unique");
             return false;
         }
-        m_xWindowButtonEventHandlers[handler] = userdata;
+        m_xWindowButtonEventHandlers[handler] = clientData;
         
         return true;
     }
@@ -483,7 +567,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* userdata)
+    bool PipelineBintr::AddXWindowDeleteEventHandler(dsl_xwindow_delete_event_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
 
@@ -492,7 +576,7 @@ namespace DSL
             LOG_ERROR("Pipeline handler is not unique");
             return false;
         }
-        m_xWindowDeleteEventHandlers[handler] = userdata;
+        m_xWindowDeleteEventHandlers[handler] = clientData;
         
         return true;
     }
@@ -561,6 +645,8 @@ namespace DSL
 
                 if (!m_pXWindow)
                 {
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-x", &m_xWindowOffsetX, NULL);
+                    g_object_get(GST_MESSAGE_SRC(pMessage), "window-y", &m_xWindowOffsetY, NULL);
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-width", &m_xWindowWidth, NULL);
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-height", &m_xWindowHeight, NULL);
                     
@@ -596,7 +682,14 @@ namespace DSL
         // iterate through the map of state-change-listeners calling each
         for(auto const& imap: m_stateChangeListeners)
         {
-            imap.first((uint)oldstate, (uint)newstate, imap.second);
+            try
+            {
+                imap.first((uint)oldstate, (uint)newstate, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client State-Change-Lister");
+            }
         }
         return true;
     }
@@ -608,7 +701,14 @@ namespace DSL
         // iterate through the map of EOS-listeners calling each
         for(auto const& imap: m_eosListeners)
         {
-            imap.first(imap.second);
+            try
+            {
+                imap.first(imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Pipeline '" << GetName() << "' threw exception calling Client EOS-Lister");
+            }
         }
     }
     
@@ -682,8 +782,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        LOG_INFO("Creating new XWindow with width = " << m_xWindowWidth << ": height = " << m_xWindowHeight);
-        
         if (!m_xWindowWidth or !m_xWindowHeight)
         {
             LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' with invalid width or height");
@@ -697,16 +795,33 @@ namespace DSL
             LOG_ERROR("Failed to create new X Display for Pipeline '" << GetName() << "' ");
             return false;
         }
-        // create new simple XWindow using default attributes and checked dimensions
-        m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
-            RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-            0, 0, m_xWindowWidth, m_xWindowHeight, 2, 0x00000000, 0x00000000);            
+        
+        // create new simple XWindow either in 'full-screen-enabled' or using the Window Sink offsets and dimensions
+        if (m_xWindowfullScreenEnabled)
+        {
+            LOG_INFO("Creating new XWindow in 'full-screen-mode'");
+
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                0, 0, 10, 10, 0, BlackPixel(m_pXDisplay, 0), BlackPixel(m_pXDisplay, 0));
+        } 
+        else
+        {
+            LOG_INFO("Creating new XWindow: x-offset = " << m_xWindowOffsetX << ", y-offset = " << m_xWindowOffsetY << 
+                ", width = " << m_xWindowWidth << ", height = " << m_xWindowHeight);
+        
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                m_xWindowOffsetX, m_xWindowOffsetY, m_xWindowWidth, m_xWindowHeight, 2, 0, 0);
+        } 
+        
+            
         if (!m_pXWindow)
         {
             LOG_ERROR("Failed to create new X Window for Pipeline '" << GetName() << "' ");
             return false;
         }
-        XSetWindowAttributes attr = {0};
+        XSetWindowAttributes attr{0};
         
         attr.event_mask = ButtonPress | KeyRelease;
         XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
@@ -716,7 +831,24 @@ namespace DSL
         {
             XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
         }
+        
         XMapRaised(m_pXDisplay, m_pXWindow);
+        if (m_xWindowfullScreenEnabled)
+        {
+            Atom wmState = XInternAtom(m_pXDisplay, "_NET_WM_STATE", False);
+            Atom fullscreen = XInternAtom(m_pXDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+            XEvent xev{0};
+            xev.type = ClientMessage;
+            xev.xclient.window = m_pXWindow;
+            xev.xclient.message_type = wmState;
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1;
+            xev.xclient.data.l[1] = fullscreen;
+            xev.xclient.data.l[2] = 0;        
+
+            XSendEvent(m_pXDisplay, DefaultRootWindow(m_pXDisplay), False,
+                SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+        }
         // flush the XWindow output buffer and then wait until all requests have been 
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);
@@ -757,9 +889,65 @@ namespace DSL
             LOG_DEBUG("Debug info: " << debugInfo);
         }
 
+        // persist the last error information
+        std::string cstrSource(GST_OBJECT_NAME(pMessage->src));
+        std::string cstrMessage(error->message);
+
+        std::wstring wstrSource(cstrSource.begin(), cstrSource.end());
+        std::wstring wstrMessage(cstrMessage.begin(), cstrMessage.end());
+        
+        // Setting the last error message will invoke a timer thread to notify all client handlers.
+        SetLastErrorMessage(wstrSource, wstrMessage);
+        
         g_error_free(error);
         g_free(debugInfo);
     }    
+
+    void PipelineBintr::GetLastErrorMessage(std::wstring& source, std::wstring& message)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
+        
+        source = m_lastErrorSource;
+        message = m_lastErrorMessage;
+    }
+
+    void PipelineBintr::SetLastErrorMessage(std::wstring& source, std::wstring& message)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
+
+        m_lastErrorSource = source;
+        m_lastErrorMessage = message;
+        
+        if (m_errorMessageHandlers.size())
+        {
+            m_errorNotificationTimerId = g_timeout_add(1, ErrorMessageHandlersNotificationHandler, this);
+        }
+    }
+    
+    int PipelineBintr::NotifyErrorMessageHandlers()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
+
+        // iterate through the map of state-change-listeners calling each
+        for(auto const& imap: m_errorMessageHandlers)
+        {
+            try
+            {
+                imap.first(m_lastErrorSource.c_str(), m_lastErrorMessage.c_str(), imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("RTSP Source '" << GetName() << "' threw exception calling Client State-Change-Lister");
+            }
+        }
+        // clear the timer id and return false to self remove
+        m_errorNotificationTimerId = 0;
+        return false;
+    }
+
     
     void PipelineBintr::_initMaps()
     {
@@ -793,6 +981,12 @@ namespace DSL
     static GstBusSyncReply bus_sync_handler(GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
         return static_cast<PipelineBintr*>(pData)->HandleBusSyncMessage(pMessage);
+    }
+
+    static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline)
+    {
+        return static_cast<PipelineBintr*>(pPipeline)->
+            NotifyErrorMessageHandlers();
     }
 
     static gpointer XWindowEventThread(gpointer pData)

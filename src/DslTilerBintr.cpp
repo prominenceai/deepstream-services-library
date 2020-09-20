@@ -58,8 +58,8 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         m_pTiler->AddGhostPadToParent("src");
     
-        m_pSinkPadProbe = DSL_PAD_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
-        m_pSrcPadProbe = DSL_PAD_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
     
         g_mutex_init(&m_showSourceMutex);
     }

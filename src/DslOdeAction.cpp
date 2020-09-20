@@ -1034,7 +1034,6 @@ namespace DSL
         , m_start(start)
         , m_duration(duration)
         , m_clientData(clientData)
-        , m_session(0)
     {
         LOG_FUNC();
     }
@@ -1051,7 +1050,7 @@ namespace DSL
         {
             // Ignore the return value, errors will be logged 
             Services::GetServices()->SinkRecordSessionStart(m_recordSink.c_str(), 
-                &m_session, m_start, m_duration, m_clientData);
+                m_start, m_duration, m_clientData);
         }
     }
 
@@ -1064,7 +1063,6 @@ namespace DSL
         , m_start(start)
         , m_duration(duration)
         , m_clientData(clientData)
-        , m_session(0)
     {
         LOG_FUNC();
     }
@@ -1081,7 +1079,7 @@ namespace DSL
         {
             // Ignore the return value, errors will be logged 
             Services::GetServices()->TapRecordSessionStart(m_recordTap.c_str(), 
-                &m_session, m_start, m_duration, m_clientData);
+                m_start, m_duration, m_clientData);
         }
     }
 

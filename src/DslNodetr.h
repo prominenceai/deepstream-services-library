@@ -498,27 +498,6 @@ namespace DSL
         }
         
         /**
-         * @brief Returns the current State of this GstNodetr
-         * @return the current state of the GstNodetr. 
-         */
-        uint GetState()
-        {
-            LOG_FUNC();
-            
-            GstState currentState;
-            
-            if (gst_element_get_state(GetGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
-            {
-                return DSL_STATE_IN_TRANSITION;
-            }
-            
-            LOG_DEBUG("Returning a state of '" << gst_element_state_get_name(currentState)
-                << "' for Nodetr '" << GetName());
-            
-            return (uint)currentState;
-        }
-        
-        /**
          * @brief Returns the current State of this Bintr's Parent
          * @return the current state of the Parenet, GST_STATE_NULL if the
          * GstNodetr is currently an orphen. 
@@ -533,10 +512,7 @@ namespace DSL
             }
             GstState currentState;
             
-            if (gst_element_get_state(GetParentGstElement(), &currentState, NULL, 1) == GST_STATE_CHANGE_ASYNC)
-            {
-                return DSL_STATE_IN_TRANSITION;
-            }
+            gst_element_get_state(GetParentGstElement(), &currentState, NULL, 1);
             
             LOG_DEBUG("Returning a state of '" << gst_element_state_get_name(currentState) 
                 << "' for Nodetr '" << GetName());

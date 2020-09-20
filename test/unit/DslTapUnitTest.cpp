@@ -36,7 +36,7 @@ SCENARIO( "A RecordTapBintr is created correctly",  "[RecordTapBintr]" )
         std::string outDir("./");
         uint container(DSL_CONTAINER_MKV);
 
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         WHEN( "The Dewarper is created" )
         {
@@ -67,7 +67,7 @@ SCENARIO( "A RecordTapBintr's Init Parameters can be Set/Get ",  "[RecordTapBint
         std::string outDir("./");
         uint container(DSL_CONTAINER_MKV);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_TAP_PTR pRecordTapBintr = 
             DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
@@ -109,7 +109,7 @@ SCENARIO( "A new DSL_CONTAINER_MKV RecordTapBintr can LinkAll Child Elementrs", 
         std::string outDir("./");
         uint container(DSL_CONTAINER_MKV);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_TAP_PTR pRecordTapBintr = 
             DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
@@ -143,7 +143,7 @@ SCENARIO( "A Linked DSL_CONTAINER_MKV RecordTapBintr can UnlinkAll Child Element
         std::string outDir("./");
         uint container(DSL_CONTAINER_MKV);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_TAP_PTR pRecordTapBintr = 
             DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);

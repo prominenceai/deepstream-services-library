@@ -89,14 +89,16 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Links the Child OSD and MultiSinks for each Source back to the Demuxer
-         * @param pDemuxerBintr Demuxer elementr to link to
-         * @return true if successful, false otherwise
+         * @brief Gets the current Streammuxer "play-type-is-live" setting
+         * @return true if play-type is live, false otherwise
          */
-         
-        void SetStreamMuxPlayType(bool areSourcesLive);        
-        
-        bool StreamMuxPlayTypeIsLive();        
+        bool StreamMuxPlayTypeIsLiveGet();        
+
+        /**
+         * @brief Sets the current Streammuxer play type based on the first source added
+         * @param isLive set to true if all sources are to be Live, and therefore live only.
+         */
+        void StreamMuxPlayTypeIsLiveSet(bool isLive);        
         
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
@@ -131,14 +133,14 @@ namespace DSL
         void SetStreamMuxDimensions(uint width, uint height);
         
         /**
-         * @brief Gets the current setting for the SourcesBintr's Muxer padding
+         * @brief Gets the current setting for the PipelineSourcesBintr's Muxer padding
          * @param enable true if enabled, false otherwise.
          * @return true if the Padding enabled setting could be read, false otherwisee
          */
         void GetStreamMuxPadding(bool* enabled);
 
         /**
-         * @brief Sets, enables/disables the SourcesBintr's Stream Muxer padding
+         * @brief Sets, enables/disables the PipelineSourcesBintr's Stream Muxer padding
          * @param enabled set to true to enable padding
          * @return true if the Padding enable setting could be set, false otherwise.
          */
@@ -153,10 +155,16 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this PipelineSinksBintr
+         * @brief removes a child Elementr from this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
+        
+        /**
+         * @brief Pad Probe Event Handler to consume all dowstream EOS events
+         * Will be created if and when a RTSP source is added to this PipelineSourcesBintr.
+         */
+        DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
 
     public:
 

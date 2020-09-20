@@ -548,7 +548,6 @@ SCENARIO( "A Dewarper can be added to and removed from a Decode Source Component
                 // A second time must fail
                 REQUIRE( dsl_source_decode_dewarper_remove(sourceName.c_str()) == DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED );
                     
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -586,6 +585,129 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     }
 }
 
+SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
+{
+    GIVEN( "A new RTSP Source with a 0 timeout" )
+    {
+        std::wstring rtspSourceName(L"rtsp-SOURCE");
+        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
+        uint protocol(DSL_RTP_ALL);
+        uint memtype(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intra_decode(false);
+        uint interval;
+        uint latency(100);
+        uint timeout(0);
+        uint retTimeout(123);
+        
+        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
+            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( retTimeout == timeout );
+
+        WHEN( "The RTSP Source's buffer timeout is updated" ) 
+        {
+            uint timeout(321);
+            uint retTimeout(0);
+            REQUIRE( dsl_source_rtsp_timeout_set(rtspSourceName.c_str(), timeout) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_timeout_get(rtspSourceName.c_str(), &retTimeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( retTimeout == timeout );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-api]" )
+{
+    GIVEN( "A new RTSP Source with a 0 timeout" )
+    {
+        std::wstring rtspSourceName(L"rtsp-SOURCE");
+        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
+        uint protocol(DSL_RTP_ALL);
+        uint memtype(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intra_decode(false);
+        uint interval;
+        uint latency(100);
+        uint timeout(0);
+        uint retTimeout(123);
+        
+        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
+            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        WHEN( "A client gets an RTSP Source's connection stats" ) 
+        {
+            time_t last(123);
+            uint count(456);
+            boolean isInReset(1);
+            uint retries(543);
+            REQUIRE( dsl_source_rtsp_reconnection_stats_get(rtspSourceName.c_str(), 
+                &last, &count, &isInReset, &retries) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( last == 0 );
+                REQUIRE( count == 0 );
+                REQUIRE( isInReset == 0 );
+                REQUIRE( retries == 0 );
+
+                REQUIRE( dsl_source_rtsp_reconnection_stats_clear(rtspSourceName.c_str()) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
+{
+}
+
+SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api]" )
+{
+    GIVEN( "A new RTSP Source and client listener callback" )
+    {
+        std::wstring rtspSourceName(L"rtsp-source");
+        std::wstring uri(L"rtsp://username:password@192.168.0.14:554");
+        uint protocol(DSL_RTP_ALL);
+        uint memtype(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intra_decode(false);
+        uint interval;
+        uint latency(100);
+        uint timeout(0);
+        uint retTimeout(123);
+        
+        REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
+            intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A state-change-listner is added" )
+        {
+            REQUIRE( dsl_source_rtsp_state_change_listener_add(rtspSourceName.c_str(),
+                source_state_change_listener_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_source_rtsp_state_change_listener_add(rtspSourceName.c_str(),
+                source_state_change_listener_cb1, NULL) == DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED );
+
+            THEN( "The same listner can be remove" ) 
+            {
+                REQUIRE( dsl_source_rtsp_state_change_listener_remove(rtspSourceName.c_str(),
+                    source_state_change_listener_cb1) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must faile
+                REQUIRE( dsl_source_rtsp_state_change_listener_remove(rtspSourceName.c_str(),
+                    source_state_change_listener_cb1) == DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -605,8 +727,8 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );

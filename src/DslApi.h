@@ -74,6 +74,10 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
+#define DSL_RESULT_SOURCE_CALLBACK_ADD_FAILED                       0x00020011
+#define DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED                    0x00020012
+#define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
+
 
 /**
  * Dewarper API Return Values
@@ -350,11 +354,12 @@ THE SOFTWARE.
 #define DSL_CONTAINER_MP4                                           0
 #define DSL_CONTAINER_MKV                                           1
 
+// Must match GST_STATE enum values
 #define DSL_STATE_NULL                                              1
 #define DSL_STATE_READY                                             2
 #define DSL_STATE_PAUSED                                            3
 #define DSL_STATE_PLAYING                                           4
-#define DSL_STATE_IN_TRANSITION                                     5
+#define DSL_STATE_CHANGE_ASYNC                                      5
 #define DSL_STATE_INVALID_STATE_VALUE                               UINT32_MAX
 
 #define DSL_PAD_SINK                                                0
@@ -362,6 +367,16 @@ THE SOFTWARE.
 
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+/**
+ * @brief time to sleep between successive queries to check if
+ * the RTSP Source has reconnected and the stream re-established
+ */
+#define DSL_RTSP_RECONNECTION_SLEEP_MS                              100
+/**
+ * @brief the maximum time to wait for reconnect before resetting
+ * the RTSP Source and trying again.
+ */
+#define DSL_RTSP_RECONNECTION_TIMEOUT_MS                            3000
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -379,13 +394,20 @@ THE SOFTWARE.
 #define DSL_ARROW_END_HEAD                                          1
 #define DSL_ARROW_BOTH_HEAD                                         2
 
+// Must match GstPadProbeReturn values
+#define DSL_PAD_PROBE_DROP                                          0
+#define DSL_PAD_PROBE_OK                                            1
+#define DSL_PAD_PROBE_REMOVE                                        2
+#define DSL_PAD_PROBE_PASS                                          3
+#define DSL_PAD_PROBE_HANDLED                                       4
+
 /**
  * @brief DSL_DEFAULT values initialized on first call to DSL
  */
 //TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
-#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         4000000
+#define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
@@ -453,32 +475,42 @@ typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages,
  * the function will be called when the component receives a pad probe buffer ready.
  * @param[in] buffer pointer to a stream buffer to process
  * @param[in] client_data opaque pointer to client's user data
+ * @return one of DSL_PAD_PROBE values defined above 
  */
-typedef boolean (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
+typedef uint (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
  * the function will be called when the Pipeline changes state.
  * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
  * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
- * @param[in] user_data opaque pointer to client's data
+ * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* user_data);
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
  * the function will be called on receipt of EOS message from the Pipeline bus.
- * @param[in] user_data opaque pointer to client's data
+ * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_eos_listener_cb)(void* user_data);
+typedef void (*dsl_eos_listener_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called on receipt of Error messages from the Pipeline bus.
+ * @param[in] source name of the element or component that is the source of the message
+ * @param[in] message error parsed from the message data
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, const wchar_t* message, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_data);
+typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
@@ -486,23 +518,66 @@ typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* user_
  * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
  * @param[in] ypos from the top left corner of the window
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* user_data);
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow Delete Message event handler function. Once added to a Pipeline, 
  * the function will be called when the Pipeline receives XWindow Delete Message event.
- * @param[in] user_data opaque pointer to client's user data
+ * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_delete_event_handler_cb)(void* user_data);
+typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
+
+/**
+ * @struct _dsl_record_info
+ * @brief recording session information provided to the client on callback
+ */
+typedef struct DslRecordingInfoType
+{
+    /**
+     * @brief the unique sesions id assigned on record start
+     */
+    uint sessionId;
+    
+    /**
+     * @brief filename generated for the completed recording. 
+     */
+    const wchar_t* filename;
+    
+    /** 
+     * @brief directory path for the completed recording
+     */
+    const wchar_t* dirpath;
+    
+    /**
+     * @brief duration of the recording in milliseconds
+     */
+    uint64_t duration;
+    
+    /**
+     * @brief either DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
+     */
+    uint containerType;
+    
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint width;
+
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint height;
+
+} DslRecordingInfoType;
 
 /**
  * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
- * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
- * @param[in] user_data opaque pointer to client's user data provide on end-of-session
+ * @param[in] info pointer to session info, see... DslRecordingInfoType above.
+ * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listener_cb)(DslRecordingInfoType* info, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1627,13 +1702,15 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolea
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] intra_decode
- * @param[in] drop_frame_interval
+ * @param[in] intra_decode set to True to enable, false to disable
+ * @param[in] drop_frame_interval, set to 0 to decode every frame.
  * @param[in] latency in milliseconds
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency);
+    uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 
 /**
  * @brief returns the frame rate of the name source as a fraction
@@ -1687,6 +1764,88 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
+
+/**
+ * @brief Gets the current buffer timeout for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[out] timeout current time to wait between successive frames before determining the 
+ * connection is lost. If set to 0 then timeout is disabled.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
+
+/**
+ * @brief Sets the current buffer timeout for the named RTSP Source
+ * @param[in] name name of the source object to update
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
+
+/**
+ * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
+ * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * @param[in] name name of the source object to query.
+ * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
+ * @param[out] timeout current time to wait before terminating the current reconnection try, and
+ * restarting the reconnection cycle again.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
+
+/**
+ * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
+ * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * Note: calling this service while a reconnection cycle is in progess will terminate
+ * the current cycle before restarting with the new parmeters.
+ * @param[in] name name of the source object to update.
+ * @param[in] sleep_ms time to sleep between successively checking the status of the asynchrounus reconnection
+ * @param[in] timeout current time to wait before terminating the current reconnection try, and
+ * restarting the reconnection cycle again.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep_ms, uint timeout_ms);
+
+/**
+ * @brief Gets the current reconnection stats for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[out] last time of the last reconnect from the system time in seconds (see timeval <sys/time.h>)
+ * @param[out] count the count of reconnections for the named source, since first played or cleared.
+ * @param[out] isInReconnect true if the RTSP source is currently in a "reconnection-cycle"
+ * @param[out] retries number reconnection retries in either the current reconnection-cycle, in the case
+ * of isInReconnect == true, or the last reconnection when isInReconnect == false. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
+    time_t* last, uint* count, boolean* isInReconnect, uint* retries); 
+
+/**
+ * @brief Clears the reconnect stats for the named RTSP Source.
+ * Note: "retries" will not be cleared if isInReconnect == true
+ * @param[in] name name of the source object to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
+
+/**
+ * @brief adds a callback to be notified on change of RTSP Source state
+ * @param[in] name name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* name, 
+    dsl_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief removes a callback previously added with dsl_source_rtsp_state_change_listener_add
+ * @param[in] name unique name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name, 
+    dsl_state_change_listener_cb listener);
 
 /**
  * @brief Adds a named Tap to a named RTSP source
@@ -1775,12 +1934,11 @@ DslReturnType dsl_dewarper_new(const wchar_t* name, const wchar_t* config_file);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir, 
-    uint container, dsl_record_client_listner_cb client_listener);
+    uint container, dsl_record_client_listener_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Tap
  * @param[in] name unique of the Record Tap to start the session
- * @param[out] session unique id for the new session on successful start
  * @param[in] start start time in seconds before the current time
  * should be less that the video cache size
  * @param[in] duration in seconds from the current time to record.
@@ -1788,7 +1946,7 @@ DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir,
  * on callback to the client listener function provided on Tap creation
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
+DslReturnType dsl_tap_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 
 /**
@@ -1797,8 +1955,7 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
  * @param[in] session unique id for the session to stop
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name, 
-    uint session);
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -2433,12 +2590,11 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, dsl_record_client_listner_cb client_listener);
+    uint container, uint bitrate, uint interval, dsl_record_client_listener_cb client_listener);
      
 /**
  * @brief starts a new recording session for the named Record Sink
  * @param[in] name unique of the Record Sink to start the session
- * @param[out] session unique id for the new session on successful start
  * @param[in] start start time in seconds before the current time
  * should be less that the video cache size
  * @param[in] duration in seconds from the current time to record.
@@ -2446,18 +2602,16 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, ui
  * on callback to the client listener function provided on Sink creation
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_start(const wchar_t* name, uint* session,
+DslReturnType dsl_sink_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 
 /**
  * @brief stops a current recording in session
  * @param[in] name unique of the Record Sink to stop
  * should be less that the video cache size
- * @param[in] session unique id for the session to stop
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
-    uint session);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -2891,25 +3045,44 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
 
 /**
- * @brief gets the current Pipeline XWindow dimensions
+ * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
+ * prior to window creation which occurs when the Pipeline is played. 
  * @param[in] pipeline name of the pipeline to query
- * @param[in] width width of the XWindow in pixels
- * @param[in] heigth height of the Window in pixels
+ * @param[out] x_offset offset in the x direction of the XWindow in pixels
+ * @param[out] x_offset offset in the Y direction of the XWindow in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+    uint* x_offset, uint* y_offset);
+
+/**
+ * @brief gets the current Pipeline XWindow dimensions. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] width width of the XWindow in pixels
+ * @param[out] heigth height of the Window in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
 DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
     uint* width, uint* height);
 
 /**
- * @brief Sets the Pipeline XWindow dimensions to used on XWindow creation
- * If not explicitely set, the Pipeline will use the Tiled Display's dimensions if one exists.
- * @param[in] pipeline name of the pipeline to update
- * @param[in] width width of the XWindow in pixels
- * @param[in] heigth height of the Window in pixels
+ * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
-DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline, 
-    uint width, uint height);
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
+    boolean* enabled);
+
+/**
+ * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
+    boolean enabled);
 
 /**
  * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 
@@ -2993,11 +3166,11 @@ DslReturnType dsl_pipeline_dump_to_dot_with_ts(const wchar_t* pipeline, wchar_t*
  * @brief adds a callback to be notified on End of Stream (EOS)
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on EOS
- * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline, 
-    dsl_eos_listener_cb listener, void* userdata);
+    dsl_eos_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_eos_listener_add
@@ -3009,14 +3182,45 @@ DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline,
     dsl_eos_listener_cb listener);
 
 /**
+ * @brief Adds a callback to be notified on the event of an error message received by
+ * the Pipeline's bus-watcher. The callback is called from the mainloop context allowing
+ * clients to change the state of, and components within, the Pipeline
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to add
+ * @param[in] client_data opaque pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_pipeline_error_message_handler_add
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline, 
+    dsl_error_message_handler_cb handler);
+
+/**
+ * @brief Gets the last error message received by the Pipeline's bus watcher
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] source name of the GST object that was the source of the error message
+ * @param[out] message error message sent from the source object
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* pipeline, 
+    const wchar_t** source, const wchar_t** message);
+
+/**
  * @brief adds a callback to be notified on change of Pipeline state
  * @param[in] pipeline name of the pipeline to update
  * @param[in] listener pointer to the client's function to call on state change
- * @param[in] userdata opaque pointer to client data passed into the listner function.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline, 
-    dsl_state_change_listener_cb listener, void* userdata);
+    dsl_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_state_change_listener_add
@@ -3031,11 +3235,11 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
  * @brief adds a callback to be notified on XWindow KeyRelease Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_key_event_handler_cb handler, void* user_data);
+    dsl_xwindow_key_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
@@ -3050,11 +3254,11 @@ DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* pipel
  * @brief adds a callback to be notified on XWindow ButtonPress Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow button events.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_button_event_handler_cb handler, void* user_data);
+    dsl_xwindow_button_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
@@ -3069,11 +3273,11 @@ DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* pi
  * @brief adds a callback to be notified on XWindow Delete Message Event
  * @param[in] pipeline name of the pipeline to update
  * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
- * @param[in] user_data opaque pointer to client data passed into the handler function.
+ * @param[in] client_data opaque pointer to client data passed into the handler function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline, 
-    dsl_xwindow_delete_event_handler_cb handler, void* user_data);
+    dsl_xwindow_delete_event_handler_cb handler, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
