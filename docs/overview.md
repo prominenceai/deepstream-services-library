@@ -149,7 +149,7 @@ Tiler components transform the multiplexed streams into a 2D grid array of tiles
 ```Python
 # assumes all components have been created first
 retval = dsl_pipeline_component_add_many('my-pipeline', 
-    ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink`, `window-sink` None])
+    ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink', 'window-sink', None])
 ```
 Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
@@ -249,7 +249,7 @@ Next, create the **Splitter Tee** and add **Branch-1** and the **Demuxer Tee** a
 
 ```Python
 # New Splitter to split the stream before the On-Screen Display
-retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'splitter', None])
+retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'demuxer', None])
 ```
 
 Last, create the two RTMP Decode Sources, Primary GIE, and Tracker. Then add the components and the Splitter to a new Pipeline
@@ -275,7 +275,8 @@ retval = dsl_source_rtsp_new('src-2',
 retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
 retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
 
-retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
+retval = dsl_pipeline_new_components_add_many('pipeline', 
+    components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
 
 # ready to play
 retval = dsl_pipeline_play('pipeline')
@@ -304,6 +305,9 @@ retval = dsl_sink_overlay_new('sink-overlay-2', overlay_id=0, display_id=0, dept
 # New Demuxer to to demux into separate streams, one per source.
 retval = dsl_tee_demuxer_new_branch_add_many('demuxer', branches=['sink-overlay-1', 'sink-overlay-2', None])
 
+# New Splitter to split the stream before the On-Screen Display
+retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'demuxer', None])
+
 # For each camera, create a new RTSP Decode Source for the specific RTSP URI
 retval = dsl_source_rtsp_new('src-1', 
     url = rtsp_uri_1, 
@@ -324,7 +328,8 @@ retval = dsl_source_rtsp_new('src-2',
 retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
 retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
 
-retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
+retval = dsl_pipeline_new_components_add_many('pipeline', 
+    components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
 
 # ready to play
 ```
@@ -530,16 +535,31 @@ def RecordStarted(event_id, trigger,
 
     
 # Callback function to process all "record-complete" notifications
-def RecordComplete(session_info, client_data):
+def RecordComplete(session_info_ptr, client_data):
+    session_info = session_info_ptr.contents
 
-    # session_info is obtained using the NVIDIA python bindings
-    
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
-
-    # reset the Trigger that started this recording so that a new session can be started.
+    
+    print('sessionId:     ', session_info.sessionId)
+    print('filename:      ', session_info.filename)
+    print('dirpath:       ', session_info.dirpath)
+    print('duration:      ', session_info.duration)
+    print('containerType: ', session_info.containerType)
+    print('width:         ', session_info.width)
+    print('height:        ', session_info.height)
+    
+    retval, is_on = dsl_tap_record_is_on_get(components.record_tap)
+    print('is_on:         ', is_on)
+    
+    retval, reset_done = dsl_tap_record_reset_done_get(components.record_tap)
+    print('reset_done:    ', reset_done)
+    
+    # reset the Trigger so that a new session can be started.
     dsl_ode_trigger_reset(components.occurrence_trigger)
-```
+    
+    return None
+```    
 The below function creates all "1-per-source" components for a given source-name and RTSP URI.
 The new Source component is added to the named Pipeline and the Trigger is added to [ODE Pad Probe Handler](/docs/api-pph.md)
 
