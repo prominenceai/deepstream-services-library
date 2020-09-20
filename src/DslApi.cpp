@@ -1978,7 +1978,7 @@ DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir,
 }     
 
 DslReturnType dsl_tap_record_session_start(const wchar_t* name, 
-     uint* session, uint start, uint duration,void* client_data)
+     uint start, uint duration,void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -1986,17 +1986,17 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->TapRecordSessionStart(cstrName.c_str(), 
-        session, start, duration, client_data);
+        start, duration, client_data);
 }     
 
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name, uint session)
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str(), session);
+    return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str());
 }
 
 DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size)
@@ -2884,7 +2884,7 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir,
 }     
 
 DslReturnType dsl_sink_record_session_start(const wchar_t* name, 
-     uint* session, uint start, uint duration,void* client_data)
+     uint start, uint duration,void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2892,17 +2892,17 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkRecordSessionStart(cstrName.c_str(), 
-        session, start, duration, client_data);
+        start, duration, client_data);
 }     
 
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name, uint session)
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str(), session);
+    return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str());
 }
 
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size)

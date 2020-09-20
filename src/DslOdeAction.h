@@ -1389,10 +1389,6 @@ namespace DSL
          */
         void* m_clientData;
         
-        /**
-         * @brief unique recording session id aquired on Start Record
-         */
-        uint m_session;
     };
 
     // ********************************************************************
@@ -1452,11 +1448,6 @@ namespace DSL
          * @brief client Data for client listening for recording session complete/stopped
          */
         void* m_clientData;
-        
-        /**
-         * @brief unique recording session id aquired on Start Record
-         */
-        uint m_session;
     };
 
     // ********************************************************************

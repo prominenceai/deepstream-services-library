@@ -4107,7 +4107,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_RECORD_TAP_NEW(name, outdir, 
-                container, (NvDsSRCallbackFunc)clientListener);
+                container, clientListener);
             
             LOG_INFO("New Record Tap '" << name << "' created successfully");
 
@@ -4121,7 +4121,7 @@ namespace DSL
     }
 
     DslReturnType Services::TapRecordSessionStart(const char* name, 
-        uint* session, uint start, uint duration, void* clientData)
+        uint start, uint duration, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4134,7 +4134,7 @@ namespace DSL
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
 
-            if (!pRecordTapBintr->StartSession(session, start, duration, clientData))
+            if (!pRecordTapBintr->StartSession(start, duration, clientData))
             {
                 LOG_ERROR("Record Tap '" << name << "' failed to Start Session");
                 return DSL_RESULT_TAP_SET_FAILED;
@@ -4148,7 +4148,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TapRecordSessionStop(const char* name, uint session)
+    DslReturnType Services::TapRecordSessionStop(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4161,7 +4161,7 @@ namespace DSL
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
 
-            if (!pRecordTapBintr->StopSession(session))
+            if (!pRecordTapBintr->StopSession())
             {
                 LOG_ERROR("Record Tap '" << name << "' failed to Stop Session");
                 return DSL_RESULT_TAP_SET_FAILED;
@@ -6048,7 +6048,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
-                codec, container, bitrate, interval, (NvDsSRCallbackFunc)clientListener);
+                codec, container, bitrate, interval, clientListener);
             
             LOG_INFO("New Record Sink '" << name << "' created successfully");
 
@@ -6062,7 +6062,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRecordSessionStart(const char* name, 
-        uint* session, uint start, uint duration, void* clientData)
+        uint start, uint duration, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6075,7 +6075,7 @@ namespace DSL
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
 
-            if (!recordSinkBintr->StartSession(session, start, duration, clientData))
+            if (!recordSinkBintr->StartSession(start, duration, clientData))
             {
                 LOG_ERROR("Record Sink '" << name << "' failed to Start Session");
                 return DSL_RESULT_SINK_SET_FAILED;
@@ -6089,7 +6089,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRecordSessionStop(const char* name, uint session)
+    DslReturnType Services::SinkRecordSessionStop(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -6102,7 +6102,7 @@ namespace DSL
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
 
-            if (!recordSinkBintr->StopSession(session))
+            if (!recordSinkBintr->StopSession())
             {
                 LOG_ERROR("Record Sink '" << name << "' failed to Stop Session");
                 return DSL_RESULT_SINK_SET_FAILED;

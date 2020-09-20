@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslElementr.h"
+#include "DslRecordMgr.h"
 
 #include <gst-nvdssr.h>
 
@@ -62,11 +63,11 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class RecordTapBintr : public TapBintr
+    class RecordTapBintr : public TapBintr, public RecordMgr
     {
     public: 
     
-        RecordTapBintr(const char* name, const char* outdir, uint container, NvDsSRCallbackFunc clientListener);
+        RecordTapBintr(const char* name, const char* outdir, uint container, dsl_record_client_listener_cb clientListener);
 
         ~RecordTapBintr();
   
@@ -82,102 +83,7 @@ namespace DSL
          */
         void UnlinkAll();
 
-        /**
-         * @brief Gets the current outdir in use by this Bintr
-         * @return relative or absolute pathspec as provided on construction or set call.
-         */
-        const char* GetOutdir();
-
-        /**
-         * @brief Sets the outdir to use by this RecordTapBintr
-         * @param[in] relative or absolute pathspec to the existing directory to use
-         * @return true on successfull set, false otherwise
-         */
-        bool SetOutdir(const char* outdir);
-
-        /**
-         * @brief Gets the current cache size setting used by this RecordTapBintr
-         * @return size of the video cache in seconds 
-         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
-         */
-        uint GetCacheSize();
-        
-        /**
-         * @brief Sets the current cache size used by this RecordTapBint
-         * @param[in] videoCacheSize size of video cache in seconds 
-         * default = DSL_DEFAULT_SINK_VIDEO_CACHE_IN_SEC
-         */
-        bool SetCacheSize(uint videoCacheSize);
-        
-        /**
-         * @brief Gets the current width and height settings for this RecordTapBintr
-         * Zero values indicates no transcode
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        void GetDimensions(uint* width, uint* height);
-        
-        /**
-         * @brief Sets the current width and height settings for this RecordTapBintr
-         * Zero values indicates no transcode
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the RecordTapBintr is currently linked. True otherwise
-         */ 
-        bool SetDimensions(uint width, uint hieght);
-        
-        /**
-         * @brief Start recording to file
-         * @param[out] session unique Id for the new recording session, 
-         * @param[in] start seconds before the current time. Should be less than video cache size.
-         * @param[in] duration of recording in seconds from start
-         * @param[in] clientData returned on call to client callback
-         * @return true on succesful start, false otherwise
-         */
-        bool StartSession(uint* session, uint start, uint duration, void* clientData);
-        
-        /**
-         * @brief Stop recording to file
-         * @param[in] session unique sission Id of the recording session to stop
-         * @return true on succesful start, false otherwise
-         */
-        bool StopSession(uint session);
-
-        /**
-         * @brief Queries the Record Bin context to check the Key Frame
-         * @return true if the Bin has the Key Frame ???
-         */
-        bool GotKeyFrame();
-        
-        /**
-         * @brief Queires the Record Bin context to check if the recording is on
-         * @return true if recording is currently on
-         */
-        bool IsOn();
-        
-        /**
-         * @brief Queries the Record Bin context to check if reset has been
-         * @return true if reset has been done.
-         */
-        bool ResetDone();
-
     private:
-
-        /**
-         * @brief absolute or relative path 
-         */
-        std::string m_outdir;
-
-        /**
-         * @brief SR context, once created, must be passed to 
-         */
-        NvDsSRContext* m_pContext;
-        
-        /**
-         * @brief SR context initialization parameters, provided by client
-         */
-        NvDsSRInitParams m_initParams;
 
         /**
          * @brief Node to wrap NVIDIA's Record Bin

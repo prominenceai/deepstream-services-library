@@ -73,6 +73,15 @@ DSL_LONG_P = POINTER(c_long)
 DSL_DOUBLE_P = POINTER(c_double)
 DSL_FLOAT_P = POINTER(c_float)
 
+class DslRecordingInfo(Structure):
+    _fields_ = [("sessionId", c_uint),
+                ("filename", c_wchar_p),
+                ("dirpath", c_wchar_p),
+                ("duration", c_long),
+                ("containerType", c_uint),
+                ("width", c_uint),
+                ("height", c_uint)]
+
 ##
 ## Callback Typedefs
 ##
@@ -86,7 +95,7 @@ DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, c_void_p, c_void_p)
+DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(DslRecordingInfo), c_void_p)
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 ##
@@ -2136,14 +2145,13 @@ def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, clien
 ##
 ## dsl_sink_record_session_start()
 ##
-_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, POINTER(c_uint), c_uint, c_uint, c_void_p]
+_dsl.dsl_sink_record_session_start.argtypes = [c_wchar_p, c_uint, c_uint, c_void_p]
 _dsl.dsl_sink_record_session_start.restype = c_uint
 def dsl_sink_record_session_start(name, start, duration, client_data):
     global _dsl
-    session = c_uint(0)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    result = _dsl.dsl_sink_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
-    return int(result), session.value 
+    result = _dsl.dsl_sink_record_session_start(name, start, duration, c_client_data)
+    return int(result) 
 
 ##
 ## dsl_sink_record_session_stop()

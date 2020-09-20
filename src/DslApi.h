@@ -530,11 +530,54 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int y
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 
 /**
+ * @struct _dsl_record_info
+ * @brief recording session information provided to the client on callback
+ */
+typedef struct DslRecordingInfoType
+{
+    /**
+     * @brief the unique sesions id assigned on record start
+     */
+    uint sessionId;
+    
+    /**
+     * @brief filename generated for the completed recording. 
+     */
+    const wchar_t* filename;
+    
+    /** 
+     * @brief directory path for the completed recording
+     */
+    const wchar_t* dirpath;
+    
+    /**
+     * @brief duration of the recording in milliseconds
+     */
+    uint64_t duration;
+    
+    /**
+     * @brief either DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
+     */
+    uint containerType;
+    
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint width;
+
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint height;
+
+} DslRecordingInfoType;
+
+/**
  * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
- * @param[in] info opaque pointer to session info, see... NvDsSRRecordingInfo in gst-nvdssr.h 
+ * @param[in] info pointer to session info, see... DslRecordingInfoType above.
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_record_client_listener_cb)(void* info, void* client_data);
+typedef void* (*dsl_record_client_listener_cb)(DslRecordingInfoType* info, void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1896,7 +1939,6 @@ DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir,
 /**
  * @brief starts a new recording session for the named Record Tap
  * @param[in] name unique of the Record Tap to start the session
- * @param[out] session unique id for the new session on successful start
  * @param[in] start start time in seconds before the current time
  * should be less that the video cache size
  * @param[in] duration in seconds from the current time to record.
@@ -1904,7 +1946,7 @@ DslReturnType dsl_tap_record_new(const wchar_t* name, const wchar_t* outdir,
  * on callback to the client listener function provided on Tap creation
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
+DslReturnType dsl_tap_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 
 /**
@@ -1913,8 +1955,7 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
  * @param[in] session unique id for the session to stop
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT on failure
  */
-DslReturnType dsl_tap_record_session_stop(const wchar_t* name, 
-    uint session);
+DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -2554,7 +2595,6 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, ui
 /**
  * @brief starts a new recording session for the named Record Sink
  * @param[in] name unique of the Record Sink to start the session
- * @param[out] session unique id for the new session on successful start
  * @param[in] start start time in seconds before the current time
  * should be less that the video cache size
  * @param[in] duration in seconds from the current time to record.
@@ -2562,18 +2602,16 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, ui
  * on callback to the client listener function provided on Sink creation
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_start(const wchar_t* name, uint* session,
+DslReturnType dsl_sink_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 
 /**
  * @brief stops a current recording in session
  * @param[in] name unique of the Record Sink to stop
  * should be less that the video cache size
- * @param[in] session unique id for the session to stop
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_record_session_stop(const wchar_t* name, 
-    uint session);
+DslReturnType dsl_sink_record_session_stop(const wchar_t* name);
 
 /**
  * @brief returns the video recording cache size in units of seconds

@@ -365,9 +365,9 @@ namespace DSL {
             uint container, dsl_record_client_listener_cb clientListener);
             
         DslReturnType TapRecordSessionStart(const char* name, 
-            uint* session, uint start, uint duration, void* clientData);
+            uint start, uint duration, void* clientData);
 
-        DslReturnType TapRecordSessionStop(const char* name, uint session);
+        DslReturnType TapRecordSessionStop(const char* name);
 
         DslReturnType TapRecordCacheSizeGet(const char* name, uint* cacheSize);
             
@@ -501,9 +501,9 @@ namespace DSL {
             uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
-            uint* session, uint start, uint duration, void* clientData);
+            uint start, uint duration, void* clientData);
 
-        DslReturnType SinkRecordSessionStop(const char* name, uint session);
+        DslReturnType SinkRecordSessionStop(const char* name);
 
         DslReturnType SinkRecordCacheSizeGet(const char* name, uint* cacheSize);
             
