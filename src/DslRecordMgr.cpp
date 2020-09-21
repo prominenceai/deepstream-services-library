@@ -63,7 +63,7 @@ namespace DSL
         m_initParams.height = 0; 
         
         // Filename prefix uses bintr name by default
-        m_initParams.fileNamePrefix = const_cast<gchar*>(name);
+        m_initParams.fileNamePrefix = const_cast<gchar*>(m_name.c_str());
         m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
         
         m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;

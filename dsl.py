@@ -677,7 +677,8 @@ def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, cl
     processor_cb = DSL_ODE_POST_PROCESS_FRAME(client_post_processor)
     callbacks.append(checker_cb)
     callbacks.append(processor_cb)
-    result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, client_data)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, c_client_data)
     return int(result)
 
 ##
