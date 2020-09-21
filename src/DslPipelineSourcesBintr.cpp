@@ -92,21 +92,27 @@ namespace DSL
                 " to streamuxer  '" << GetName() << "' with IsLive=" << StreamMuxPlayTypeIsLiveGet());
             return false;
         }
-        // If we're adding an RTSP Source, ensure EOS consumer is added to Streammuxer
+        // If we're adding an RTSP Source, determine if EOS consumer should be added to Streammuxer
         if (pChildSource->IsType(typeid(RtspSourceBintr)) and m_pEosConsumer == nullptr)
         {
-            LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
+            DSL_RTSP_SOURCE_PTR pRtspSource = std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
             
-            // Create the Pad Probe and EOS Consumer to drop the EOS event that occurs on 
-            // loss of RTSP stream, allowing the Pipeline to continue to play. Each RTSP source 
-            // will then manage their own restart attempts and time management.
+            // If stream management is enabled for at least one RTSP source, add the EOS Consumer
+            if (pRtspSource->GetBufferTimeout())
+            {
+                LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
+                
+                // Create the Pad Probe and EOS Consumer to drop the EOS event that occurs on 
+                // loss of RTSP stream, allowing the Pipeline to continue to play. Each RTSP source 
+                // will then manage their own restart attempts and time management.
 
-            std::string eventHandlerName = GetName() + "-eos-consumer";
-            m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
+                std::string eventHandlerName = GetName() + "-eos-consumer";
+                m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
 
-            std::string padProbeName = GetName() + "-src-pad-probe";
-            m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), "src", m_pStreamMux);
-            m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
+                std::string padProbeName = GetName() + "-src-pad-probe";
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), "src", m_pStreamMux);
+                m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
+            }
         }
         
         // Add the Source to the Sources collection and as a child of this Bintr
