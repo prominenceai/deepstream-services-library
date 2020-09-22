@@ -839,10 +839,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         {
             pRtspSourceBintr->_setReconnectionStats(0, 0, false, 0);
 
-            THEN( "The Stream Management callback returns false immediately" )
+            THEN( "The Stream Management callback returns true immediately" )
             {
                 // Note: this test requires (currently) additional manual/visual confirmation of console log output
-                REQUIRE( pRtspSourceBintr->StreamManager() == false );
+                REQUIRE( pRtspSourceBintr->StreamManager() == true );
             }
         }
         WHEN( "The Source is NOT in reset and lastBufferTime = current time" )

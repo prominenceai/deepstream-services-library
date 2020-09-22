@@ -1383,14 +1383,15 @@ namespace DSL
         uint stateResult = GetState(currentState);
         SetCurrentState(currentState);
 
+        
         // Get the last buffer time. This timer callback should not be called until after the timer 
         // is started on successful linkup - therefore the lastBufferTime should be non-zero
         struct timeval lastBufferTime;
         m_TimestampPph->GetTime(lastBufferTime);
         if (lastBufferTime.tv_sec == 0)
         {
-            LOG_ERROR("ManageStream callback called before the connection has been establed for source '" << GetName() << "'");
-            return false;
+            LOG_INFO("Waiting for first buffer before checking for timeout for source '" << GetName() << "'");
+            return true;
         }
 
         double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
@@ -1474,11 +1475,16 @@ namespace DSL
                 return false;
                 
             case GST_STATE_CHANGE_FAILURE:
-            case GST_STATE_CHANGE_NO_PREROLL:
                 // update the internal state variable to notify all client listeners 
                 SetCurrentState(currentState);
                 LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
-                return false;
+                return true;
+                
+            case GST_STATE_CHANGE_NO_PREROLL:
+                // update the internal state variable to notify all client listeners 
+                SetCurrentState(currentState);
+                LOG_INFO("RTSP Source '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL after syncing state with Parent Pipeline");
+                return true;
 
             case GST_STATE_CHANGE_ASYNC:
                 // update the internal state variable to notify all client listeners 

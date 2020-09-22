@@ -229,10 +229,12 @@ namespace DSL
                     LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
                     return true;
                 case GST_STATE_CHANGE_FAILURE:
-                case GST_STATE_CHANGE_NO_PREROLL:
                     LOG_ERROR("FAILURE occured when trying to change state to '" << 
                         gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                     return false;
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
+                    return true;
                 case GST_STATE_CHANGE_ASYNC:
                     LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
                     break;
@@ -260,11 +262,13 @@ namespace DSL
             {
                 case GST_STATE_CHANGE_SUCCESS:
                     LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
-                    break;
+                    return returnVal;
                 case GST_STATE_CHANGE_FAILURE:
+                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for Bintr '" << GetName() << "'");
+                    return returnVal;
                 case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_ERROR("FAILURE occured when trying to sync state with parent for Bintr '" << GetName() << "'");
-                    break;
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
+                    return returnVal;
                 case GST_STATE_CHANGE_ASYNC:
                     LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
                     break;
