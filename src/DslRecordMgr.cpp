@@ -284,7 +284,7 @@ namespace DSL
             dslInfo.containerType = DSL_CONTAINER_MKV;        
             break;
         default:
-            LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType << "' received from NvDsSR for Record Sink'" << m_name << "'");
+            LOG_ERROR("Invalid container = '" << pNvDsInfo->containerType << "' received from NvDsSR for RecordMgr'" << m_name << "'");
         }
         
         // copy the remaining data received from the nvidia lib
