@@ -100,63 +100,6 @@ namespace DSL
         *fps_d = m_fps_d;
     }
 
-    bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux) 
-    {
-        LOG_FUNC();
-
-        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
-        
-        LOG_INFO("Linking Source '" << GetName() << "' to Pad '" << sinkPadName 
-            << "' for StreamMux '" << pStreamMux->GetName() << "'");
-       
-        m_pGstStaticSourcePad = gst_element_get_static_pad(GetGstElement(), "src");
-        if (!m_pGstStaticSourcePad)
-        {
-            LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSinkPad = gst_element_get_request_pad(pStreamMux->GetGstElement(), sinkPadName.c_str());
-            
-        if (!pGstRequestedSinkPad)
-        {
-            LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->GetName() << "'");
-            return false;
-        }
-        m_pGstRequestedSinkPads[sinkPadName] = pGstRequestedSinkPad;
-            
-        return Bintr::LinkToSink(pStreamMux);
-    }
-
-    bool SourceBintr::UnlinkFromSink()
-    {
-        LOG_FUNC();
-
-        // If we're currently linked to the StreamMuxer
-        if (!IsLinkedToSink())
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
-
-        gst_pad_send_event(m_pGstRequestedSinkPads[sinkPadName], gst_event_new_flush_stop(FALSE));
-        if (!gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]))
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' failed to unlink from StreamMuxer");
-            return false;
-        }
-        
-        gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
-        gst_object_unref(m_pGstRequestedSinkPads[sinkPadName]);
-
-        m_pGstRequestedSinkPads.erase(sinkPadName);
-        return Nodetr::UnlinkFromSink();
-    }
-    
     //*********************************************************************************
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
@@ -904,28 +847,8 @@ namespace DSL
 
         if (HasTapBintr())
         {
-            GstPadTemplate* pPadTemplate = 
-                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pPreDecodeTee->GetGstElement()), "src_%u");
-            if (!pPadTemplate)
-            {
-                LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
-                return false;
-            }
-        
-            // The TEE for this source is linked to both the "pre-decode-queue" and the TapBintr
-
-            GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pPreDecodeTee->GetGstElement(), pPadTemplate, NULL, NULL);
-            if (!pGstRequestedSourcePad)
-            {
-                LOG_ERROR("Failed to get Tee Pad for RTSP Source '" << GetName() <<"'");
-                return false;
-            }
-            std::string padForPreDecodeName = "padForPreDecodeQueue_" + std::to_string(m_uniqueId);
-
-            m_pGstRequestedSourcePads[padForPreDecodeName] = pGstRequestedSourcePad;
-        
-            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSource(m_pPreDecodeTee) or
-                !m_pPreDecodeQueue->LinkToSource(m_pPreDecodeTee))
+            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
+                !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u"))
             {
                 return false;
             }
@@ -934,8 +857,7 @@ namespace DSL
         {
             return false;
         }
-
-        // Note: we don't set the linked state until after 
+        m_isLinked = true;
         return true;
     }
 
@@ -943,7 +865,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        LOG_WARN("*********************************source");
         if (!m_isLinked)
         {
             LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
@@ -970,9 +891,9 @@ namespace DSL
         m_pPreDecodeQueue->UnlinkFromSink();
         if (HasTapBintr())
         {
-            m_pTapBintr->UnlinkFromSource();
+            m_pPreDecodeQueue->UnlinkFromSourceTee();
             m_pTapBintr->UnlinkAll();
-            m_pPreDecodeQueue->UnlinkFromSource();
+            m_pTapBintr->UnlinkFromSourceTee();
         }
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
@@ -1247,45 +1168,48 @@ namespace DSL
         LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
         LOG_INFO("Encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
 
-        if (media.find("video") == std::string::npos)
+        if (!m_pParser)
         {
-            LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
-            return false;
-        }
-        if (encoding.find("H264") != std::string::npos)
-        {
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "src-parse");
-            m_pDepay = DSL_ELEMENT_NEW("rtph264depay", "src-depay");
-        }
-        else if (encoding.find("H265") != std::string::npos)
-        {
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "src-parse");
-            m_pDepay = DSL_ELEMENT_NEW("rtph265depay", "src-depayload");
-        }
-        else
-        {
-            LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
-            return false;
-        }
-        AddChild(m_pDepay);
-        AddChild(m_pParser);
+            if (media.find("video") == std::string::npos)
+            {
+                LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+                return false;
+            }
+            if (encoding.find("H264") != std::string::npos)
+            {
+                m_pParser = DSL_ELEMENT_NEW("h264parse", "src-parse");
+                m_pDepay = DSL_ELEMENT_NEW("rtph264depay", "src-depay");
+            }
+            else if (encoding.find("H265") != std::string::npos)
+            {
+                m_pParser = DSL_ELEMENT_NEW("h265parse", "src-parse");
+                m_pDepay = DSL_ELEMENT_NEW("rtph265depay", "src-depayload");
+            }
+            else
+            {
+                LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
+                return false;
+            }
+            AddChild(m_pDepay);
+            AddChild(m_pParser);
 
-        // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
-        // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
-        if (HasTapBintr())
-        {
-            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+            // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
+            // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
+            if (HasTapBintr())
             {
-                return false;
-            }            
-        }
-        // otherwise, there is no Tee and we link to the Pre-decode Queue directly
-        else
-        {
-            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+                {
+                    return false;
+                }            
+            }
+            // otherwise, there is no Tee and we link to the Pre-decode Queue directly
+            else
             {
-                return false;
-            }            
+                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                {
+                    return false;
+                }            
+            }
         }
         if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
             !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
@@ -1358,8 +1282,6 @@ namespace DSL
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
             }
 
-            // Now fully linked
-            m_isLinked = true;
             SetCurrentState(GST_STATE_READY);
 
             LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
@@ -1462,17 +1384,21 @@ namespace DSL
         switch (stateResult) 
         {
             case GST_STATE_CHANGE_SUCCESS:
-                LOG_INFO("Reset completed for RTSP Source'" << GetName() << "'");
-                LOG_INFO("RTSP Source '" << GetName() << "' is now in state " << gst_element_state_get_name(currentState));
-                
-                m_isInReconnect = false;
-                m_lastReconnectTime = lastResetTime,
-                m_reconnectionCount++;
-                m_reconnectionManagerTimerId = 0;
-                
                 // update the internal state variable to notify all client listeners 
                 SetCurrentState(currentState);
-                return false;
+                if (currentState == GST_STATE_PLAYING)
+                {
+                    LOG_INFO("Reset completed for RTSP Source'" << GetName() << "'");
+                    LOG_INFO("RTSP Source '" << GetName() << "' is now in state " << gst_element_state_get_name(currentState));
+                    
+                    m_isInReconnect = false;
+                    m_lastReconnectTime = lastResetTime,
+                    m_reconnectionCount++;
+                    m_reconnectionManagerTimerId = 0;
+                    
+                    return false;
+                }
+                return true;
                 
             case GST_STATE_CHANGE_FAILURE:
                 // update the internal state variable to notify all client listeners 

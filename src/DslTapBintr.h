@@ -49,12 +49,12 @@ namespace DSL
 
         ~TapBintr();
   
-        bool LinkToSource(DSL_NODETR_PTR pTee);
+        bool LinkToSourceTee(DSL_NODETR_PTR pTee);
 
-        bool UnlinkFromSource();
+        bool UnlinkFromSourceTee();
         
     protected:
-
+    
         /**
          * @brief Queue element as sink for all Tap Bintrs.
          */

@@ -877,8 +877,8 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
                 // simulate timer callback
                 REQUIRE( pRtspSourceBintr->NotifyClientListeners() == FALSE );
 
-                // simulate a reconnection timer - which should fail - unable to sync to parent
-                REQUIRE( pRtspSourceBintr->ReconnectionManager() == false );
+                // simulate a reconnection timer - 
+                REQUIRE( pRtspSourceBintr->ReconnectionManager() == true );
             }
         }
     }

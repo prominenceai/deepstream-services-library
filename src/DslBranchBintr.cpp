@@ -412,7 +412,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool BranchBintr::LinkToSource(DSL_NODETR_PTR pTee)
+    bool BranchBintr::LinkToSourceTee(DSL_NODETR_PTR pTee, const char* srcPadName)
     {
         LOG_FUNC();
         
@@ -425,10 +425,9 @@ namespace DSL
         GstPad* pComponentStaticSinkPad = gst_element_get_static_pad(m_linkedComponents.front()->GetGstElement(), "sink");
         if (!pComponentStaticSinkPad)
         {
-            LOG_ERROR("Failed to get TeePad for Bintr '" << GetName() <<"'");
+            LOG_ERROR("Failed to get static Sink Pad for Branch Bintr '" << GetName() <<"'");
             return false;
-        }
-        
+        }        
         // Add a sink ghost pad to BranchBintr, using the firt componet's 
         if (!gst_element_add_pad(GetGstElement(), 
             gst_ghost_pad_new("sink", pComponentStaticSinkPad)))
@@ -438,72 +437,8 @@ namespace DSL
             return false;
         }
         gst_object_unref(pComponentStaticSinkPad);
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Linking the Branch '" << GetName() << "' to Pad '" << srcPadName
-            << "' for Tee '" << pTee->GetName() << "'");
         
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for BranchBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pRequestedSourcePad(NULL);
-
-        // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
-        DSL_ELEMENT_PTR pTeeElementr = 
-            std::dynamic_pointer_cast<Elementr>(pTee);
-
-        if (pTeeElementr->IsFactoryName("nvstreamdemux"))
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTeeElementr->GetGstElement(), srcPadName.c_str());
-        }
-        else // standard "Tee"
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTeeElementr->GetGstElement(), "src_%u");
-        }
-        if (!pRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee source Pad for BranchBintr '" << GetName() <<"'");
-            return false;
-        }
-        m_pGstRequestedSourcePads[srcPadName] = pRequestedSourcePad;
-
-        return Bintr::LinkToSource(pTee);
-        
-    }
-    
-    bool BranchBintr::UnlinkFromSource()
-    {
-        LOG_FUNC();
-        
-        // If we're not currently linked to the Tee
-        if (!IsLinkedToSource())
-        {
-            LOG_ERROR("SinkBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
-        
-        gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
-        if (!gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad))
-        {
-            LOG_ERROR("SinkBintr '" << GetName() << "' failed to unlink from Tee");
-            return false;
-        }
-        gst_object_unref(m_pGstStaticSinkPad);
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-        gst_object_unref(m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
+        return Bintr::LinkToSourceTee(pTee, srcPadName);
     }
 
 } // DSL

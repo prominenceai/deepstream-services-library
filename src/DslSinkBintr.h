@@ -90,10 +90,6 @@ namespace DSL
         
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
-        bool LinkToSource(DSL_NODETR_PTR pTee);
-
-        bool UnlinkFromSource();
-        
         /**
          * @brief returns the current sync and async settings for the SinkBintr
          * @param[in] sync current sync setting, true if set, false otherwise.

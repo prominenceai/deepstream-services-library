@@ -49,51 +49,15 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool TapBintr::LinkToSource(DSL_NODETR_PTR pTee)
+    bool TapBintr::LinkToSourceTee(DSL_NODETR_PTR pTee)
     {
         LOG_FUNC();
 
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Linking Tap '" << GetName() << "' to Pad '" << srcPadName
-            << "' for Tee '" << pTee->GetName() << "'");
-        
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for TapBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pRequestedSourcePad(NULL);
-
-        // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
-        DSL_ELEMENT_PTR pTeeElementr = 
-            std::dynamic_pointer_cast<Elementr>(pTee);
-
-        if (pTeeElementr->IsFactoryName("nvstreamdemux"))
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), srcPadName.c_str());
-        }
-        else // standard "Tee"
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
-        }
-            
-        if (!pRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee source Pad for TapBintr '" << GetName() <<"'");
-            return false;
-        }
-
-        m_pGstRequestedSourcePads[srcPadName] = pRequestedSourcePad;
-
-        return Bintr::LinkToSource(pTee);
-        
+        LOG_INFO("Linking Tap '" << GetName() << "' to source Tee '" << pTee->GetName() << "'");
+        return Bintr::LinkToSourceTee(pTee, "src_%u");
     }
     
-    bool TapBintr::UnlinkFromSource()
+    bool TapBintr::UnlinkFromSourceTee()
     {
         LOG_FUNC();
         
@@ -104,22 +68,8 @@ namespace DSL
             return false;
         }
 
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing requested Source Pad for Decode Source Tee " << GetName());
-        
-        gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
-        if (!gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad))
-        {
-            LOG_ERROR("TapBintr '" << GetName() << "' failed to unlink from Decode Source Tee");
-            return false;
-        }
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-        gst_object_unref(m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
+        LOG_INFO("Unlinking and releasing requested Source Pad for TapBintr " << GetName());
+        return Bintr::UnlinkFromSourceTee();
     }
 
     //-------------------------------------------------------------------------
@@ -180,6 +130,8 @@ namespace DSL
             LOG_ERROR("RecordTapBintr '" << GetName() << "' is not linked");
             return;
         }
+        DestroyContext();
+
         GstPad* srcPad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "src");
         GstPad* sinkPad = gst_element_get_static_pad(m_pRecordBin->GetGstElement(), "sink");
         
@@ -188,7 +140,6 @@ namespace DSL
         RemoveChild(m_pRecordBin);
         
         m_pRecordBin = nullptr;
-        DestroyContext();
         
         m_isLinked = false;
     }
