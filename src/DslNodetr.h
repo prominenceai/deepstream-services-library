@@ -56,9 +56,9 @@ namespace DSL
          * @param[in] name for the new Nodetr
          */
         Nodetr(const char* name)
-        : Base(name)
-        , m_pGstObj(NULL)
-        , m_pParentGstObj(NULL)
+            : Base(name)
+            , m_pGstObj(NULL)
+            , m_pParentGstObj(NULL)
         {
             LOG_FUNC();
 
@@ -116,19 +116,19 @@ namespace DSL
         
         /**
          * @brief Links this Noder, becoming a source, to a sink Nodre
-         * @param[in] pSource Nodre to link this Sink Nodre back to
+         * @param[in] pSrc Nodre to link this Sink Nodre back to
          */
-        virtual bool LinkToSource(DSL_NODETR_PTR pSource)
+        virtual bool LinkToSource(DSL_NODETR_PTR pSrc)
         {
             LOG_FUNC();
 
-            if (m_pSource)
+            if (m_pSrc)
             {
                 LOG_ERROR("Nodetr '" << GetName() << "' is currently in a linked to a Source");
                 return false;
             }
-            m_pSource = pSource;
-            LOG_DEBUG("Source '" << pSource->GetName() << "' linked to Sink '" << GetName() << "'");
+            m_pSrc = pSrc;
+            LOG_DEBUG("Source '" << pSrc->GetName() << "' linked to Sink '" << GetName() << "'");
             
             return true;
         }
@@ -140,13 +140,13 @@ namespace DSL
         {
             LOG_FUNC();
 
-            if (!m_pSource)
+            if (!m_pSrc)
             {
                 LOG_ERROR("Nodetr '" << GetName() << "' is not currently linked to Source");
                 return false;
             }
-            LOG_DEBUG("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSource->GetName() << "' Source");
-            m_pSource = nullptr;
+            LOG_DEBUG("Unlinking self '" << GetName() <<"' as a Sink from '" << m_pSrc->GetName() << "' Source");
+            m_pSrc = nullptr;
             
             return true;
         }
@@ -170,7 +170,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return bool(m_pSource);
+            return bool(m_pSrc);
         }
         
         /**
@@ -192,7 +192,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return m_pSource;
+            return m_pSrc;
         }
         
         GstObject* GetGstObject()
@@ -247,7 +247,6 @@ namespace DSL
         
     protected:
 
-
         /**
          * @brief Gst object wrapped by the Nodetr
          */
@@ -257,7 +256,7 @@ namespace DSL
          * @brief defines the relationship between a Source Nodetr
          * linked to this Nodetr, making this Nodetr a Sink
          */
-        DSL_NODETR_PTR m_pSource;
+        DSL_NODETR_PTR m_pSrc;
 
         /**
          * @brief defines the relationship this Nodetr linked to
@@ -281,7 +280,11 @@ namespace DSL
          * @param[in] name for the new GstNodetr
          */
         GstNodetr(const char* name)
-        : Nodetr(name)
+            : Nodetr(name)
+            , m_pGstStaticSinkPad(NULL)
+            , m_pGstStaticSrcPad(NULL)
+            , m_pGstRequestedSinkPad(NULL)
+            , m_pGstRequestedSrcPad(NULL)
         {
             LOG_FUNC();
 
@@ -322,7 +325,7 @@ namespace DSL
          *  on the Child Bintr will return true
          * @return true if pChild was added successfully, false otherwise
          */
-        bool AddChild(DSL_BASE_PTR pChild)
+        virtual bool AddChild(DSL_BASE_PTR pChild)
         {
             LOG_FUNC();
             
@@ -342,7 +345,7 @@ namespace DSL
          * @param[in] pChildBintr to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
-        bool RemoveChild(DSL_BASE_PTR pChild)
+        virtual bool RemoveChild(DSL_BASE_PTR pChild)
         {
             LOG_FUNC();
             
@@ -445,7 +448,6 @@ namespace DSL
             }
             if (!GetGstElement() or !m_pSink->GetGstElement())
             {
-//                LOG_ERROR("Invalid GstElements for  '" << GetName() << "' and '" << m_pSink>GetName() << "'");
                 LOG_ERROR("Invalid GstElements for  '" << GetName());
                 return false;
             }
@@ -458,17 +460,17 @@ namespace DSL
          * @brief links this Elementr as Sink to a given Source Nodetr
          * @param[in] pSinkBintr to link to
          */
-        bool LinkToSource(DSL_NODETR_PTR pSource)
+        bool LinkToSource(DSL_NODETR_PTR pSrc)
         { 
             LOG_FUNC();
             
-            DSL_NODETR_PTR pSourceNodetr = std::dynamic_pointer_cast<Nodetr>(pSource);
+            DSL_NODETR_PTR pSrcNodetr = std::dynamic_pointer_cast<Nodetr>(pSrc);
 
             // Call the base class to setup the relationship first
             // Then call GST to Link Source Element to Sink Element 
-            if (!Nodetr::LinkToSource(pSourceNodetr) or !gst_element_link(pSourceNodetr->GetGstElement(), GetGstElement()))
+            if (!Nodetr::LinkToSource(pSrcNodetr) or !gst_element_link(pSrcNodetr->GetGstElement(), GetGstElement()))
             {
-                LOG_ERROR("Failed to link Source '" << pSourceNodetr->GetName() << " to Sink" << GetName());
+                LOG_ERROR("Failed to link Source '" << pSrcNodetr->GetName() << " to Sink" << GetName());
                 return false;
             }
             return true;
@@ -487,14 +489,134 @@ namespace DSL
                 LOG_ERROR("GstNodetr '" << GetName() << "' is not in a linked state");
                 return false;
             }
-            if (!m_pSource->GetGstElement() or !GetGstElement())
+            if (!m_pSrc->GetGstElement() or !GetGstElement())
             {
-                LOG_ERROR("Invalid GstElements for  '" << m_pSource->GetName() << "' and '" << GetName() << "'");
+                LOG_ERROR("Invalid GstElements for  '" << m_pSrc->GetName() << "' and '" << GetName() << "'");
                 return false;
             }
-            gst_element_unlink(m_pSource->GetGstElement(), GetGstElement());
+            gst_element_unlink(m_pSrc->GetGstElement(), GetGstElement());
 
             return Nodetr::UnlinkFromSource();
+        }
+        
+        /**
+         * @brief links this Nodetr as Sink to the Source Pad of Tee
+         * @param[in] pTee to link to
+         * @param[in] padName name to give the requested Src Pad
+         * @return true if able to successfully link with Tee Src Pad
+         */
+        virtual bool LinkToSourceTee(DSL_NODETR_PTR pTee, const char* padName)
+        {
+            LOG_FUNC();
+            
+            m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
+            if (!m_pGstStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get Static Sink Pad for Bintr '" << GetName() << "'");
+                return false;
+            }
+
+            m_pGstRequestedSrcPad = gst_element_get_request_pad(pTee->GetGstElement(), padName);
+                
+            if (!m_pGstRequestedSrcPad)
+            {
+                LOG_ERROR("Failed to get Tee source Pad for Tee '" << GetName() <<"'");
+                return false;
+            }
+            LOG_INFO("Linking requested Src Pad'" << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
+            if (gst_pad_link(m_pGstRequestedSrcPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to link to Source Tee");
+                return false;
+            }
+            return Nodetr::LinkToSource(pTee);
+        }
+        
+        /**
+         * @brief unlinks this Nodetr from a previously linked Source Tee
+         * @return true if able to successfully unlink from Source Tee
+         */
+        virtual bool UnlinkFromSourceTee()
+        {
+            LOG_FUNC();
+            
+            if (!IsLinkedToSource())
+            {
+                return false;
+            }
+            LOG_INFO("Unlinking and releasing requested Src Pad '" << m_pGstRequestedSrcPad << "' for Bintr '" << GetName() << "'");
+            gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
+            if (!gst_pad_unlink(m_pGstRequestedSrcPad, m_pGstStaticSinkPad))
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Source Tee");
+                Nodetr::UnlinkFromSource();
+                return false;
+            }
+            gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSrcPad);
+            gst_object_unref(m_pGstStaticSinkPad);
+            gst_object_unref(m_pGstRequestedSrcPad);
+            return Nodetr::UnlinkFromSource();
+        }
+
+        /**
+         * @brief links this Nodetr as Source to the Sink Pad of Muxert
+         * @param[in] pMuxer nodeter to link to
+         * @param[in] padName name to give the requested Sink Pad
+         * @return true if able to successfully link with Muxer Sink Pad
+         */
+        virtual bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
+        {
+            LOG_FUNC();
+            
+            m_pGstStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            if (!m_pGstStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get Static Src Pad for Bintr '" << GetName() << "'");
+                return false;
+            }
+
+            m_pGstRequestedSinkPad = gst_element_get_request_pad(pMuxer->GetGstElement(), padName);
+                
+            if (!m_pGstRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested Tee Sink Pad for Bintr '" << GetName() <<"'");
+                return false;
+            }
+            
+            LOG_INFO("Linking requested Sink Pad'" << m_pGstRequestedSinkPad << "' for Bintr '" << GetName() << "'");
+            if (gst_pad_link(m_pGstStaticSrcPad, m_pGstRequestedSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to link to Sink Muxer Tee");
+                return false;
+            }
+            return Nodetr::LinkToSink(pMuxer);
+        }
+        
+        /**
+         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @return true if able to successfully unlink from Muxer Sink Pad
+         */
+        virtual bool UnlinkFromSinkMuxer()
+        {
+            LOG_FUNC();
+            
+            if (!IsLinkedToSink())
+            {
+                return false;
+            }
+            LOG_INFO("Unlinking and releasing requested Sink Pad '" << m_pGstRequestedSinkPad << "' for Bintr '" << GetName() << "'");
+
+            gst_pad_send_event(m_pGstRequestedSinkPad, gst_event_new_flush_stop(FALSE));
+            if (!gst_pad_unlink(m_pGstStaticSrcPad, m_pGstRequestedSinkPad))
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Sink Muxer");
+                Nodetr::UnlinkFromSink();
+                return false;
+            }
+            gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPad);
+            gst_object_unref(m_pGstStaticSrcPad);
+            gst_object_unref(m_pGstRequestedSinkPad);
+            return Nodetr::UnlinkFromSink();
         }
         
         /**
@@ -519,6 +641,28 @@ namespace DSL
             
             return currentState;
         }
+
+    protected:
+
+        /**
+         * @brief Static Sink Pad for the Nodetr if used.
+         */
+        GstPad* m_pGstStaticSinkPad;
+
+        /**
+         * @brief Static Sink Pad for the Nodetr if used.
+         */
+        GstPad* m_pGstStaticSrcPad;
+
+        /**
+         * @brief requested Src Pad when linking to Src Tee used.
+         */
+        GstPad* m_pGstRequestedSrcPad;
+
+        /**
+         * @brief requested Sink Pad when linking to Muxer used.
+         */
+        GstPad* m_pGstRequestedSinkPad;
     };
 
 } // DSL namespace    

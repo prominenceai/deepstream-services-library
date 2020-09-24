@@ -203,7 +203,9 @@ namespace DSL
                     << "' failed to Set Source name for  '" << imap.second->GetName() << "'");
                 return false;
             }   
-            if (!imap.second->LinkAll() or !imap.second->LinkToSink(m_pStreamMux))
+            std::string sinkPadName = "sink_" + std::to_string(id);
+            
+            if (!imap.second->LinkAll() or !imap.second->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
@@ -234,7 +236,7 @@ namespace DSL
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
-            if (!imap.second->UnlinkFromSink())
+            if (!imap.second->UnlinkFromSinkMuxer())
             {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");

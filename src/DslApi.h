@@ -371,12 +371,12 @@ THE SOFTWARE.
  * @brief time to sleep between successive queries to check if
  * the RTSP Source has reconnected and the stream re-established
  */
-#define DSL_RTSP_RECONNECTION_SLEEP_MS                              100
+#define DSL_RTSP_RECONNECTION_SLEEP_MS                              1000
 /**
  * @brief the maximum time to wait for reconnect before resetting
  * the RTSP Source and trying again.
  */
-#define DSL_RTSP_RECONNECTION_TIMEOUT_MS                            3000
+#define DSL_RTSP_RECONNECTION_TIMEOUT_MS                            20000
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1

@@ -154,14 +154,25 @@ namespace DSL
         for (auto const& imap: m_pChildComponents)
         {
             // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
+            imap.second->SetId(id);
+
+            // NOTE: important to use the correct request pad name based on the element type
+            // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
+            DSL_ELEMENT_PTR pTeeElementr = 
+                std::dynamic_pointer_cast<Elementr>(m_pTee);
+
+             std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
+                ? "src_" + std::to_string(id)
+                : "src_%u";
+                
             // link back upstream to the Tee, the src for this Child Component 
-            imap.second->SetId(id++);
-            if (!imap.second->LinkAll() or !imap.second->LinkToSource(m_pTee))
+            if (!imap.second->LinkAll() or !imap.second->LinkToSourceTee(m_pTee, srcPadName.c_str()))
             {
                 LOG_ERROR("MultiComponentsBintr '" << GetName() 
                     << "' failed to Link Child Component '" << imap.second->GetName() << "'");
                 return false;
             }
+            id++;
         }
         m_isLinked = true;
         return true;
@@ -180,7 +191,7 @@ namespace DSL
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pTee->GetName() << " from " << imap.second->GetName());
-            if (!imap.second->UnlinkFromSource())
+            if (!imap.second->UnlinkFromSourceTee())
             {
                 LOG_ERROR("MultiComponentsBintr '" << GetName() 
                     << "' failed to Unlink Child Component '" << imap.second->GetName() << "'");
@@ -192,58 +203,6 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
-    }
-
-    bool MultiComponentsBintr::LinkToSource(DSL_NODETR_PTR pTee)
-    {
-        LOG_FUNC();
-        
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-        
-        LOG_INFO("Linking the MultiComponentsBintr '" << GetName() << "' to Pad '" << srcPadName 
-            << "' for Demuxer '" << pTee->GetName() << "'");
-       
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for MuliComponentsBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSrcPad = gst_element_get_request_pad(pTee->GetGstElement(), srcPadName.c_str());
-            
-        if (!pGstRequestedSrcPad)
-        {
-            LOG_ERROR("Failed to get Requested Src Pad for Demuxer '" << pTee->GetName() << "'");
-            return false;
-        }
-        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSrcPad;
-
-        // Call the base class to complete the link relationship
-        return Bintr::LinkToSource(pTee);
-    }
-    
-    bool MultiComponentsBintr::UnlinkFromSource()
-    {
-        LOG_FUNC();
-        
-        // If we're not currently linked to the Demuxer
-        if (!IsLinkedToSource())
-        {
-            LOG_ERROR("MultiComponentsBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
-        
-        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
     }
 
     bool MultiComponentsBintr::SetBatchSize(uint batchSize)

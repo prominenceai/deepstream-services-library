@@ -208,7 +208,7 @@ namespace DSL
             LOG_FUNC();
 
             uint retval = gst_element_get_state(GetGstElement(), &state, NULL, 0);
-            LOG_INFO("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+            LOG_DEBUG("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
             
             return retval;
         }

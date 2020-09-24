@@ -103,17 +103,6 @@ namespace DSL
          * @param[out] fps_d the FPS denominator
          */ 
         void GetFrameRate(uint* fps_n, uint* fps_d);
-        
-        /**
-         * @brief Links the Streaming Source to a Stream Muxer
-         * @param[in] pStreamMux
-         */
-        bool LinkToSink(DSL_NODETR_PTR pStreamMux);
-        
-        /**
-         * @brief Unlinks this Streaming Source from a previously linked to Stream Muxer
-         */
-        bool UnlinkFromSink();
 
     public:
     
@@ -156,7 +145,7 @@ namespace DSL
          * @brief
          */
         uint m_numExtraSurfaces;
-
+        
         /**
          * @brief Soure Element for this SourceBintr
          */
