@@ -606,17 +606,36 @@ namespace DSL
             }
             LOG_INFO("Unlinking and releasing requested Sink Pad '" << m_pGstRequestedSinkPad << "' for Bintr '" << GetName() << "'");
 
-            gst_pad_send_event(m_pGstRequestedSinkPad, gst_event_new_flush_stop(FALSE));
-            if (!gst_pad_unlink(m_pGstStaticSrcPad, m_pGstRequestedSinkPad))
+            GstStateChangeReturn changeResult = gst_element_set_state(GetGstElement(), GST_STATE_NULL);
+            switch (changeResult)
             {
-                LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Sink Muxer");
-                Nodetr::UnlinkFromSink();
+            case GST_STATE_CHANGE_FAILURE:
+                LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
                 return false;
+
+            case GST_STATE_CHANGE_ASYNC:
+                LOG_INFO("Bintr '" << GetName() << "' changing state to NULL async");
+                // block on get state until change completes. 
+                if (gst_element_get_state(GetGstElement(), NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
+                {
+                    LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
+                }
+                // drop through on success - DO NOT BREAK
+
+            case GST_STATE_CHANGE_SUCCESS:
+                LOG_INFO("Bintr '" << GetName() << "' changed state to NULL successfully");
+                gst_pad_send_event(m_pGstRequestedSinkPad, gst_event_new_flush_stop(FALSE));
+                if (!gst_pad_unlink(m_pGstStaticSrcPad, m_pGstRequestedSinkPad))
+                {
+                    LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Sink Muxer");
+                    Nodetr::UnlinkFromSink();
+                    return false;
+                }
+                gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPad);
+                gst_object_unref(m_pGstStaticSrcPad);
+                gst_object_unref(m_pGstRequestedSinkPad);
+                return Nodetr::UnlinkFromSink();
             }
-            gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPad);
-            gst_object_unref(m_pGstStaticSrcPad);
-            gst_object_unref(m_pGstRequestedSinkPad);
-            return Nodetr::UnlinkFromSink();
         }
         
         /**

@@ -693,6 +693,11 @@ namespace DSL
          * Set to DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
          */
         uint m_reconnectionTimeoutMs;
+        
+        /**
+         * @brief will be set to true on reconnection failure to force a mew reconnection cycle
+         */
+        bool m_reconnectionFailed;
 
         /**
          * @brief maintains the current state of the RTSP source bin
