@@ -751,6 +751,7 @@ namespace DSL
         , m_reconnectionRetries(0)
         , m_reconnectionSleepMs(DSL_RTSP_RECONNECTION_SLEEP_MS)
         , m_reconnectionTimeoutMs(DSL_RTSP_RECONNECTION_TIMEOUT_MS)
+        , m_reconnectionFailed(false)
         , m_currentState(GST_STATE_NULL)
         , m_previousState(GST_STATE_NULL)
         , m_listenerNotifierTimerId(0)
@@ -1210,12 +1211,12 @@ namespace DSL
                     return false;
                 }            
             }
-        }
-        if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
-            !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
-        {
-            LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
-            return false;
+            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
+                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
+            {
+                LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
+                return false;
+            }
         }
         return true;
     }
@@ -1275,8 +1276,8 @@ namespace DSL
             gst_structure_get_uint(structure, "height", &m_height);
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
             
-            // Start the Stream mangement timer.
-            if (m_bufferTimeout)
+            // Start the Stream mangement timer, only if timeout is enable and not currently running
+            if (m_bufferTimeout and !m_streamManagerTimerId)
             {
                 m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, RtspStreamManagerHandler, this);
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
@@ -1348,7 +1349,7 @@ namespace DSL
         uint stateResult(0);
         GstState currentState;
         
-        if (!m_isInReconnect or m_waitForReconnectCount > (m_reconnectionTimeoutMs / m_reconnectionSleepMs))
+        if (!m_isInReconnect or m_reconnectionFailed or m_waitForReconnectCount > (m_reconnectionTimeoutMs / m_reconnectionSleepMs))
         {
             // set the reset-state,
             if (!m_isInReconnect)
@@ -1356,6 +1357,7 @@ namespace DSL
                 m_reconnectionRetries = 0;
                 m_isInReconnect = true;
             }
+            m_reconnectionFailed = false;
             m_reconnectionRetries++;
 
             LOG_INFO("Resetting RTSP Source '" << GetName() << "' with reset count = " << m_reconnectionRetries);
@@ -1398,18 +1400,21 @@ namespace DSL
                     
                     return false;
                 }
+                // If state change completed succesfully, but not yet playing, set explicitely.
+                SetState(GST_STATE_PLAYING);
                 return true;
                 
             case GST_STATE_CHANGE_FAILURE:
                 // update the internal state variable to notify all client listeners 
                 SetCurrentState(currentState);
                 LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
+                m_reconnectionFailed = true;
                 return true;
                 
             case GST_STATE_CHANGE_NO_PREROLL:
                 // update the internal state variable to notify all client listeners 
                 SetCurrentState(currentState);
-                LOG_INFO("RTSP Source '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL after syncing state with Parent Pipeline");
+                LOG_INFO("RTSP Source '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL");
                 return true;
 
             case GST_STATE_CHANGE_ASYNC:
