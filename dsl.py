@@ -257,7 +257,7 @@ def dsl_ode_action_custom_new(name, client_handler, client_data):
     c_client_handler = DSL_ODE_HANDLE_OCCURRENCE(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_ode_action_custom_new(name, c_client_handler, c_client_data)
     return int(result)
     
@@ -431,7 +431,7 @@ _dsl.dsl_ode_action_sink_record_start_new.restype = c_uint
 def dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, client_data):
     global _dsl
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result =_dsl.dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, c_client_data)
     return int(result)
 
@@ -463,7 +463,7 @@ _dsl.dsl_ode_action_tap_record_start_new.restype = c_uint
 def dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, client_data):
     global _dsl
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result =_dsl.dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, c_client_data)
     return int(result)
 
@@ -682,7 +682,7 @@ def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, cl
     callbacks.append(checker_cb)
     callbacks.append(processor_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, c_client_data)
     return int(result)
 
@@ -1116,7 +1116,7 @@ def dsl_pph_custom_new(name, client_handler, client_data):
     client_handler_cb = DSL_PPH_CUSTOM_CLIENT_HANDLER(client_handler)
     callbacks.append(client_handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result =_dsl.dsl_pph_custom_new(name, client_handler_cb, c_client_data)
     return int(result)
 
@@ -1130,7 +1130,7 @@ def dsl_pph_meter_new(name, interval, client_handler, client_data):
     client_handler_cb = DSL_PPH_METER_CLIENT_HANDLER(client_handler)
     callbacks.append(client_handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result =_dsl.dsl_pph_meter_new(name, interval, client_handler_cb, c_client_data)
     return int(result)
 
@@ -1410,7 +1410,7 @@ def dsl_source_rtsp_state_change_listener_add(name, client_listener, client_data
     c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_source_rtsp_state_change_listener_add(name, c_client_listener, c_client_data)
     return int(result)
     
@@ -1513,7 +1513,7 @@ def dsl_tap_record_session_start(name, start, duration, client_data):
     global _dsl
     session = c_uint(0)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
     return int(result), session.value 
 
@@ -2160,7 +2160,7 @@ _dsl.dsl_sink_record_session_start.restype = c_uint
 def dsl_sink_record_session_start(name, start, duration, client_data):
     global _dsl
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_sink_record_session_start(name, start, duration, c_client_data)
     return int(result) 
 
@@ -2837,7 +2837,7 @@ def dsl_pipeline_state_change_listener_add(name, client_listener, client_data):
     c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_state_change_listener_add(name, c_client_listener, c_client_data)
     return int(result)
     
@@ -2862,7 +2862,7 @@ def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     c_client_listener = DSL_EOS_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_eos_listener_add(name, c_client_listener, c_client_data)
     return int(result)
     
@@ -2887,7 +2887,7 @@ def dsl_pipeline_error_message_handler_add(name, client_handler, client_data):
     c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_error_message_handler_add(name, c_client_handler, c_client_data)
     return int(result)
     
@@ -2912,7 +2912,7 @@ def dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, client_data
     c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_xwindow_key_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
@@ -2937,7 +2937,7 @@ def dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, client_d
     c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_xwindow_button_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
@@ -2962,7 +2962,7 @@ def dsl_pipeline_xwindow_delete_event_handler_add(name, client_handler, client_d
     c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(client_data)
+    clientdata.append(c_client_data)
     result = _dsl.dsl_pipeline_xwindow_delete_event_handler_add(name, c_client_handler, c_client_data)
     return int(result)
 
