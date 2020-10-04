@@ -114,8 +114,12 @@ Streaming Source Methods use the following return codes, in addition to the gene
 
 <br>
 
+---
+
 ## Types
 ### dsl_rtsp_connection_data
+This DSL Type defines a structure of Connection Stats and Parameters for a given RTSP Source. The data is returned to the client by calling [dsl_source_rtsp_connection_data_get](#dsl_source_rtsp_connection_data_get).
+
 ```C
 typedef struct dsl_rtsp_connection_data
 {
@@ -222,9 +226,6 @@ Creates a new, uniquely named USB Camera Source object.
 ```Python
 retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 ```
-
-
-
 <br>
 
 ### *dsl_source_uri_new*
