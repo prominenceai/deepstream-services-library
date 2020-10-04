@@ -15,6 +15,7 @@
     * [Custom Handler](#custom-pad-probe-handler)
 * [Display Types](#display-types)
 * [Smart Recording](#smart-recording)
+* [RTSP Stream Connection Management](rtsp-stream-connection-management)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
@@ -713,6 +714,103 @@ print(dsl_return_value_to_string(retval))
 dsl_delete-all()
 
 ```
+
+---
+## RTSP Stream Connection Management
+
+When creating an RTSP Source, the client application can specify a `next-buffer-timeout` as maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect. The Stream manager uses two client settable parameters to control the reconnection behavior. 
+1. `sleep` - the time to sleep between a failed connection and a new reconnection atempt. 
+2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
+
+Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created as defined in `dslapi.h`
+```C
+#define DSL_RTSP_RECONNECTION_SLEEP_S    4
+#define DSL_RTSP_RECONNECTION_TIMEOUT_S  30
+```
+
+The client can register a `state-change-listener` callback function to be notified on every Source's change-of-state to monitor the connection process and update the reconnection parameters when needed.
+
+```Python
+##
+# Function to be called by all Source components on every change of state
+# old_state - the previous state of the source prior to change
+# new_state - the new state of source after the state change
+# client_data - components object containing the name of the Source
+##
+def SourceStateChangeListener(old_state, new_state, client_data):
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+
+    print('RTSP Source ', components.source, 'change-of-state: previous =',
+        dsl_state_value_to_string(old_state), '- new =', dsl_state_value_to_string(new_state))
+    
+    # A change of state to NULL occurs on every disconnection and after each failed retry.
+    # A change of state to PLAYING occurs on every successful connection.
+    if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
+    
+        # Query the Source for it's current statistics and re-connection parameters
+        retval, data = dsl_source_rtsp_connection_data_get(components.source)
+        
+        print('Connection data for source:', components.source)
+        print('  is connected:     ', data.is_connected)
+        print('  first connected:  ', time.ctime(data.first_connected))
+        print('  last connected:   ', time.ctime(data.last_connected))
+        print('  last disconnected:', time.ctime(data.last_disconnected))
+        print('  total count:      ', data.count)
+        print('  in is reconnect:  ', data.is_in_reconnect)
+        print('  retries:          ', data.retries)
+        print('  sleep time:       ', data.sleep,'seconds')
+        print('  timeout:          ', data.timeout, 'seconds')
+
+        if (new_state == DSL_STATE_PLAYING):
+            print("setting the time to sleep between re-connection retries to 4 seconds for quick recovery")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=4, timeout=30)
+            
+        # If we're in a reconnection cycle, check if the number of quick recovery attempts has
+        # been reached. (20 * 4 =~ 80 seconds), before backing off on the time between retries 
+        elif (data.is_in_reconnect and data.retries == 20):
+            print("extending the time to sleep between re-connection retries to 20 seconds")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
+```
+Expanding on the [Smart Recording](#smart-recording) example above, set the RTSP Source's next-buffer-timeout, and then add the common `SourceStateChangeListener` callback to the new component using the `components` object as `client_data`
+
+```Python
+##
+# Function to create all "1-per-source" components, and add them to the Pipeline
+# pipeline - unique name of the Pipeline to add the Source components to
+# source - unique name for the RTSP Source to create
+# uri - unique uri for the new RTSP Source
+# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to
+##
+def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
+   
+    # New Component names based on unique source name
+    components = ComponentNames(source)
+    
+    # For each camera, create a new RTSP Source for the specific RTSP URI
+    retval = dsl_source_rtsp_new(source, 
+        uri = rtsp_uri, 
+        protocol = DSL_RTP_ALL, 
+        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+        intra_decode = False, 
+        drop_frame_interval = 0, 
+        latency=100,
+        timeout=3)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # Add our state change listener to the new source, with the component names as client data
+    retval = dsl_source_rtsp_state_change_listener_add(source, 
+        client_listener=source_state_change_listener,
+        client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # ---- create the remaining components
+    
+```
+Refer to the [Source API](/docs/api-source.md) documentation for more information. The script [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) provides a complete example.
 
 ---
 
