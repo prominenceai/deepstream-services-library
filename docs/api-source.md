@@ -28,6 +28,12 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 
 
 ## Source API
+**Typedefs**
+* [dsl_rtsp_connection_data](dsl_rtsp_connection_data)
+
+**Client CallBack Typedefs**
+* [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
+
 **Constructors:**
 * [dsl_source_csi_new](#dsl_source_csi_new)
 * [dsl_source_usb_new](#dsl_source_usb_new)
@@ -85,8 +91,16 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_SET_FAILED                                0x00020013
 ```
 
+## DSL State Values
+```C
+#define DSL_STATE_NULL                                              1
+#define DSL_STATE_READY                                             2
+#define DSL_STATE_PAUSED                                            3
+#define DSL_STATE_PLAYING                                           4
+```
+
 ## Cuda Decode Memory Types
-```C++
+```C
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
 #define DSL_CUDADEC_MEMTYPE_PINNED                                  1
 #define DSL_CUDADEC_MEMTYPE_UNIFIED                                 2
@@ -100,10 +114,71 @@ Streaming Source Methods use the following return codes, in addition to the gene
 
 <br>
 
+## Types
+### dsl_rtsp_connection_data
+```C
+typedef struct dsl_rtsp_connection_data
+{
+    boolean is_connected; 
+    time_t first_connected; 
+    time_t last_connected; 
+    time_t last_disconnected; 
+    uint count;
+    boolean is_in_reconnect; 
+    uint retries;
+    uint sleep;
+    uint timeout;
+}dsl_rtsp_connection_data;
+```
+
+**Fields**
+* `is_connected` true if the RTSP Source is currently in a connected state, false otherwise
+* `first_connected` - epoc time in seconds for the first succesful connection, or when the stats were last cleared
+* `last_connected`- epoc time in seconds for the last succesful connection, or when the stats were last cleared
+* `last_disconnected` - epoc time in seconds for the last disconnection, or when the stats were last cleared
+* `count` - the number of succesful connections from the start of Pipeline play, or from when the stats were last cleared
+* `is_in_reconnect` - true if the RTSP Source is currently in a re-connection cycle, false otherwise.
+* `retries` - number of re-connection retries for either the current cycle, if `is_in_reconnect` is true, or the last connection if `is_in_reconnect` is false`.
+* `sleep` - current setting for the time to sleep between re-connection attempts after failure.
+* `is_connect` - true if the RTSP Source is currently in a connected state, false otherwise.
+* `timeout` - current setting for the maximum time to wait for an asynchronous state change to complete before resetting the source and then retrying again after the next sleep period.
+
+**Python Example**
+```Python
+retval, data = dsl_source_rtsp_connection_data_get('rtsp-source')
+
+print('Connection data for source:', 'rtsp-source')
+print('  is connected:     ', data.is_connected)
+print('  first connected:  ', time.ctime(data.first_connected))
+print('  last connected:   ', time.ctime(data.last_connected))
+print('  last disconnected:', time.ctime(data.last_disconnected))
+print('  total count:      ', data.count)
+print('  in is reconnect:  ', data.is_in_reconnect)
+print('  retries:          ', data.retries)
+print('  sleep time:       ', data.sleep,'seconds')
+print('  timeout:          ', data.timeout, 'seconds')
+```
+
+<br>
+
+## Client CallBack Typedefs
+### *dsl_state_change_listener_cb*
+```C++
+typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, void* client_data);
+```
+Callback typedef for a client state-change listener. Functions of this type are added to an RTSP Source by calling [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add). Once added, the function will be called on every change of Pipeline state until the client removes the listener by calling [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove).
+
+**Parameters**
+* `old_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the old (previous) pipeline state
+* `new_state` - [in] one of [DSL State Values](#dsl-state-values) constants for the new pipeline state
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+
+<br>
+
 ## Constructors
 
 ### *dsl_source_csi_new*
-```C++
+```C
 DslReturnType dsl_source_csi_new(const wchar_t* source,
     uint width, uint height, uint fps_n, uint fps_d);
 ```
@@ -127,7 +202,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 <br>
 
 ### *dsl_source_usb_new*
-```C++
+```C
 DslReturnType dsl_source_usb_new(const wchar_t* source,
     uint width, uint height, uint fps_n, uint fps_d);
 ```
@@ -153,7 +228,7 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 <br>
 
 ### *dsl_source_uri_new*
-```C++
+```C
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
     uint cudadec_mem_type, boolean intra_decode, uint drop_frame_interval);
 ```
@@ -179,7 +254,7 @@ retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h2
 <br>
 
 ### *dsl_source_rtsp_new*
-```C++
+```C
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
     uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval, uint latency, uint timeout);
 ```
@@ -213,7 +288,7 @@ As with all Pipeline components, Sources are deleted by calling [dsl_component_d
 ## Methods
 
 ### *dsl_source_dimensions_get*
-```C++
+```C
 DslReturnType dsl_source_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
 This service returns the width and height values of a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
@@ -234,7 +309,7 @@ retval, width, height = dsl_source_dimensions_get('my-uri-source')
 <br>
 
 ### *dsl_source_framerate_get*
-```C++
+```C
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
 ```
 This service returns the fractional frames per second as numerator and denominator for a named source. CSI and USB Camera sources will return the values they were created with. URI and RTSP sources will return 0's while `not-in` and will be updated once the Source has transitioned to a state of `playing`.
@@ -255,7 +330,7 @@ retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
 <br>
 
 ### *dsl_source_is_live*
-```C++
+```C
 DslReturnType dsl_source_is_live(const wchar_t* source, boolean* is_live);
 ```
 Returns `true` if the Source component's stream is live. CSI and USB Camera sources will always be return `True`.
@@ -274,7 +349,7 @@ retval, is_live = dsl_source_is_live('my-uri-source')
 <br>
 
 ### *dsl_source_pause*
-```C++
+```C
 DslReturnType dsl_source_pause(const wchar_t* source);
 ```
 Sets the state of the Source component to Paused. This method tries to change the state of an `in-use` Source component to `GST_STATE_PAUSED`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is).
@@ -293,7 +368,7 @@ retval = dsl_source_play('my-source')
 <br>
 
 ### *dsl_source_resume*
-```C++
+```C
 DslReturnType dsl_source_resume(const wchar_t* source);
 ```
 Sets the state of a `paused` Source component to `playing`. This method tries to change the state of an `in-use` Source component to `DSL_STATE_PLAYING`. The current state of the Source component can be obtained by calling [dsl_source_state_is](#dsl_source_state_is). The Pipeline, when transitioning to a state of `DSL_STATE_PLAYING`, will set each of its Sources' 
@@ -316,7 +391,7 @@ retval = dsl_source_resume('my-source')
 
 
 ### *dsl_source_decode_uri_get*
-```C++
+```C
 DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri);
 ```
 This service gets the current URI in use for the named URI or RTSP source
@@ -335,7 +410,7 @@ retval, uri = dsl_source_decode_uri_get('my-uri-source')
 <br>
 
 ### *dsl_source_decode_uri_set*
-```C++
+```C
 DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
 ```
 This service sets the URI to use by the named URI or RTSP source. 
@@ -355,7 +430,7 @@ retval = dsl_source_decode_uri_set('my-uri-source', '../../test/streams/sample_1
 <br>
 
 ### *dsl_source_decode_drop_farme_interval_get*
-```C++
+```C
 DslReturnType dsl_source_decode_drop_farme_interval_get(const wchar_t* name, uint* interval)
 ```
 This service gets the current drop frame interval in use by the named URI or RTSP source
@@ -374,7 +449,7 @@ retval, interval = dsl_source_decode_drop_frame_interval_get('my-uri-source')
 <br>
 
 ### *dsl_source_decode_drop_farme_interval_set*
-```C++
+```C
 DslReturnType dsl_source_decode_drop_farme_interval_set(const wchar_t* name, uint interval);
 ```
 This service sets the drop frame interval to use by the named URI or RTSP source. 
@@ -394,7 +469,7 @@ retval = dsl_source_decode_drop_farme_interval_set('my-uri-source', 2)
 <br>
 
 ### *dsl_source_decode_dewarper_add*
-```C++
+```C
 DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t* dewarper);
 ```
 This service adds a previously constructed [Dewarper](api-dewarper.md) component to either a named URI or RTSP source. A source can have at most one Dewarper, and calls to add more will fail. Attempts to add a Dewarper to a Source `in use` will fail. 
@@ -414,7 +489,7 @@ retval = dsl_source_decode_dewarper_add('my-uri-source', 'my-dewarper')
 <br>
 
 ### *dsl_source_decode_dewarper_remove*
-```C++
+```C
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 ```
 This service remove a [Dewarper](api-dewarper.md) component, previously added with [dsl_source_decode_dewarper_add](#dsl_source_decode_dewarper_add) to a named URI source. Calls to remove will fail if the Source is currently without a Dewarper or `in use`.
@@ -433,7 +508,7 @@ retval = dsl_source_uri_dewarper_remove('my-uri-source')
 <br>
 
 ### *dsl_source_rtsp_timeout_get*
-```C++
+```C
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
 ```
 This service gets the current frame buffer timeout value for the named RTSP Source
@@ -452,7 +527,7 @@ retval, timeout = dsl_source_rtsp_timeout_get('my-rtsp-source')
 <br>
 
 ### *dsl_source_rtsp_timeout_set*
-```C++
+```C
 DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
 ```
 This service sets the frame buffer timeout value for the named RTSP Source. Setting the `timeout` to 0 will disable stream management and terminate any reconnection cycle if in progress. 
@@ -471,7 +546,7 @@ retval = dsl_source_rtsp_timeout_set('my-rtsp-source', timeout)
 <br>
 
 ### *dsl_source_rtsp_reconnection_params_get*
-```C++
+```C
 DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
 ```
 This service gets the current reconnection params in use by the named RTSP Source. The parameters are set to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on Source creation. 
@@ -491,7 +566,7 @@ retval, sleep_ms, timeout_ms = dsl_source_rtsp_reconnection_params_get('my-rtsp-
 <br>
 
 ### *dsl_source_rtsp_reconnection_params_set*
-```C++
+```C
 DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
 ```
 This service sets the reconnection params for the named RTSP Source. The parameters are set to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on Source creation. 
@@ -513,7 +588,7 @@ retval = dsl_source_rtsp_reconnection_params_get('my-rtsp-source', sleep_ms, tim
 <br>
 
 ### *dsl_source_rtsp_reconnection_stats_get*
-```C++
+```C
 DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
     time_t* last, uint* count, boolean* in_reconnect, uint* retries); 
 ```
@@ -536,7 +611,7 @@ retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_
 <br>
 
 ### *dsl_source_rtsp_reconnection_stats_clear*
-```C++
+```C
 DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
 ```
 This service clears the current reconnection stats for the named RTSP Source. 
@@ -556,7 +631,7 @@ retval, last, count, in_reconnect, retries = dsl_source_rtsp_reconnection_stats_
 <br>
 
 ### *dsl_source_rtsp_state_change_listener_add*
-```C++
+```C
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* pipeline, 
     state_change_listener_cb listener, void* user_data);
 ```
@@ -583,7 +658,7 @@ retval = dsl_source_rtsp_state_change_listener_add('my-rtsp-source', state_chang
 <br>
 
 ### *dsl_source_rtsp_state_change_listener_remove*
-```C++
+```C
 DslReturnType dsl_source_rtsp_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);
 ```
@@ -605,7 +680,7 @@ retval = dsl_source_rtsp_state_change_listener_remove('my-pipeline', state_chang
 <br>
 
 ### *dsl_source_rtsp_tap_add*
-```C++
+```C
 DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 ```
 This service adds a named Tap to a named RTSP source
@@ -624,7 +699,7 @@ retval = dsl_source_rtsp_tap_add('my-rtsp-source', 'my-record-tap')
 <br>
 
 ### *dsl_source_rtsp_tap_remove*
-```C++
+```C
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 ```
 
@@ -645,7 +720,7 @@ retval = dsl_source_rtsp_tap_remove('my-rtsp-source')
 
 
 ### *dsl_source_num_in_use_get*
-```C++
+```C
 uint dsl_source_num_in_use_get();
 ```
 This service returns the total number of all Sinks currently `in-use` by all Pipelines.
@@ -661,7 +736,7 @@ sources_in_use = dsl_source_num_in_use_get()
 <br>
 
 ### *dsl_source_num_in_use_max_get*
-```C++
+```C
 uint dsl_source_num_in_use_max_get();
 ```
 This service returns the "maximum number of Sources" that can be `in-use` at any one time, defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization, and can be updated by calling [dsl_source_num_in_use_max_set](#dsl_source_num_in_use_max_set). The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
@@ -677,7 +752,7 @@ max_source_in_use = dsl_source_num_in_use_max_get()
 <br>
 
 ### *dsl_source_num_in_use_max_set*
-```C++
+```C
 boolean dsl_source_num_in_use_max_set(uint max);
 ```
 This service sets the "maximum number of Source" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SOURCE_NUM_IN_USE_MAX` on service initilization. The actual maximum is impossed by the Jetson model in use. It's the responsibility of the client application to set the value correctly.
