@@ -67,6 +67,8 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove)
 * [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
 * [dsl_pipeline_xwindow_delete_event_handler_remove](#dsl_pipeline_xwindow_delete_event_handler_remove)
+* [dsl_pipeline_xwindow_fullscreen_enabled_get](#dsl_pipeline_xwindow_fullscreen_enabled_get)
+* [dsl_pipeline_xwindow_fullscreen_enabled_set](#dsl_pipeline_xwindow_fullscreen_enabled_set)
 * [dsl_pipeline_state_get](#dsl_pipeline_state_get)
 * [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
@@ -756,6 +758,46 @@ This service removes a Client XWindow delete event handler callback that was add
 **Python Example**
 ```Python
 retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow_delete_event_handler)
+```
+
+<br>
+
+### *dsl_pipeline_xwindow_fullscreen_enabled_get*
+```C++
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, boolean* enabled)
+```
+This service gets the current full-screen-enabled setting for the Pipeline's XWindow
+.
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update
+* `enbled` - [out] true if the XWindow's full-screen mode is enabled, false otherwise. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_xwindow_fullscreen_enabled_get('my-pipeline')
+```
+
+<br>
+
+### *dsl_pipeline_xwindow_fullscreen_enabled_set*
+```C++
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, boolean enabled)
+```
+This service sets the current full-screen-enabled setting for the Pipeline's XWindow
+.
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update
+* `enbled` - [in] set to true to enable the XWindow's full-screen mode, false otherwise. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_fullscreen_enabled_get('my-pipeline', enabled=True)
 ```
 
 <br>
