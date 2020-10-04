@@ -16,11 +16,11 @@
 * [Display Types](#display-types)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
+* [X11 Window Services](#x11-window-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
-* [X11 Window Support](#x11-window-support)
 * [API Reference](#api-reference)
 
 ## Introduction
@@ -717,18 +717,24 @@ dsl_delete-all()
 
 ---
 ## RTSP Stream Connection Management
+RTSP Source Components have "built-in" stream connection management for detecting and resolving a stream disconnection.   
 
-When creating an RTSP Source, the client application can specify a `next-buffer-timeout` as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect. The Stream manager uses two client settable parameters to control the reconnection behavior. 
-1. `sleep` - the time to sleep between a failed connection and a new reconnection atempt. 
+When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as: *the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.* 
+
+The Stream manager uses two client settable parameters to control the reconnection behavior. 
+
+1. `sleep` - the time to sleep between failed connection atempts, in units of seconds. 
 2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
 
-Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created as defined in `dslapi.h`
+Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created, defined in `dslapi.h` as:
 ```C
 #define DSL_RTSP_RECONNECTION_SLEEP_S    4
 #define DSL_RTSP_RECONNECTION_TIMEOUT_S  30
 ```
 
-The client can register a `state-change-listener` callback function to be notified on every Source's change-of-state to monitor the connection process and update the reconnection parameters when needed.
+The client can register a `state-change-listener` callback function to be notified on every change-of-state, to monitor the connection process and update the reconnection parameters when needed.
+
+Expanding on the [Smart Recording](#smart-recording) example above,
 
 ```Python
 ##
@@ -773,7 +779,7 @@ def SourceStateChangeListener(old_state, new_state, client_data):
             print("extending the time to sleep between re-connection retries to 20 seconds")
             dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
 ```
-Expanding on the [Smart Recording](#smart-recording) example above, set the RTSP Source's next-buffer-timeout, and then add the common `SourceStateChangeListener` callback to the new component using the `components` object as `client_data`
+When creating each RTSP Source component, set the Source's next-buffer-timeout, and then add the common `SourceStateChangeListener` callback to the Source with the `components` object as `client_data` to be returned on change-of-state. 
 
 ```Python
 ##
@@ -811,6 +817,133 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     
 ```
 Refer to the [Source API](/docs/api-source.md) documentation for more information. The script [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) provides a complete example.
+
+---
+
+## X11 Window Services
+DSL provides X11 Window Services for Pipelines that use a Window Sink. An Application can create an XWindow - using GTK+ for example - and pass the window handle to the Pipeline prior to playing, or let the Pipeline create the XWindow to use by default. 
+
+The client application can register callback functions to handle window events -- `ButtonPress`, `KeyRelease`, and `WindowDelete` -- caused by user interaction. 
+
+Expanding on the [Smart Recording](#smart-recording) example above, with its four Sources and Tiled Display, the following Client callback functions provide examples of how user input can be used to control the application. 
+
+The first callback allows the user to `select` a single source stream within the tiled view based on the positional coordinates of a `ButtonPress`. The selected stream will be shown for a specified time period, or until the window is clicked on again. A timeout value of 0 will disable the timer.
+
+``` Python
+## 
+# Function to be called on XWindow Button Press event
+# button - id of the button pressed, one of Button1..Button5
+# x_pos - x positional coordinate relative to the windows top/left corner
+# y_pos - y positional coordinate relative to the windows top/left corner
+# client_data - unused. 
+## 
+def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
+    print('button = ', button, ' pressed at x = ', x_pos, ' y = ', y_pos)
+    
+    # time to show the single source before returning to view all. A timeout value of 0
+    # will disable the Tiler's timer and show the single source until called on again.
+    global SHOW_SOURCE_TIMEOUT
+
+    if (button == Button1):
+        # get the current XWindow dimensions as the User may have resized it. 
+        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        
+        # call the Tiler to show the source based on the x and y button cooridantes relative
+        # to the current window dimensions obtained from the XWindow.
+        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+```
+The second callback, called on KeyRelease, allows the user to
+1. `show` a single source, or all
+2. `cycle` through all sources on a time interval, 
+3. `quit` the application. 
+
+```Python
+## 
+# Function to be called on XWindow KeyRelease event
+# key_string - the ASCI key string value of the key pressed and released
+# client_data
+## 
+def XWindowKeyReleaseEventHandler(key_string, client_data):
+    print('key released = ', key_string)
+    
+    global SHOW_SOURCE_TIMEOUT
+        
+    # if one of the unique soure Ids, show source
+    elif key_string >= '0' and key_string <= '3':
+        retval, source = dsl_source_name_get(int(key_string))
+        if retval == DSL_RETURN_SUCCESS:
+            dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
+            
+    # C = cycle All sources
+    elif key_string.upper() == 'C':
+        dsl_tiler_source_show_cycle('tiler', timeout=SHOW_SOURCE_TIMEOUT)
+
+    # A = show All sources
+    elif key_string.upper() == 'A':
+        dsl_tiler_source_show_all('tiler')
+
+    # Q or Esc = quit application
+    if key_string.upper() == 'Q' or key_string == '':
+        dsl_main_loop_quit()
+```
+The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
+
+```Python
+# Function to be called on XWindow Delete event
+def XWindowDeleteEventHandler(client_data):
+    print('delete window event')
+    dsl_main_loop_quit()
+
+```
+The callback functions are added to the Pipeline after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
+
+```Python
+while True:
+
+    # New Pipeline
+    retval = dsl_pipeline_new('pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    # Add the XWindow event handler functions defined above
+    retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', XWindowButtonEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', XWindowKeyReleaseEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', XWindowDeleteEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    # Set the XWindow into 'full-screen' mode for a kiosk look and feel.         
+    retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+        
+    # Create all other required components and add them to the Pipeline (see some examples above)
+    # ...
+ 
+    retval = dsl_pipeline_play('pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+ 
+    # Start/Join with main loop until released - blocking call
+    dsl_main_loop_run()
+    retval = DSL_RETURN_SUCCESS
+    break
+
+#print out the final result
+print(dsl_return_value_to_string(retval))
+
+# clean up all resources
+dsl_delete_all()
+```
+
+<br>
 
 ---
 
@@ -866,75 +999,6 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 ```
 
 <br>
-
-
-## X11 Window Support
-DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
-
-``` Python
-# Function to be called on XWindow ButtonPress event
-def xwindow_button_event_handler(xpos, ypos, client_data):
-    print('button pressed: xpos = ', xpos, ', ypos = ', ypos)
-    
-# Function to be called on XWindow KeyRelease event - non-live streams
-def xwindow_key_event_handler(key_string, client_data):
-    print('key released = ', key_string)
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == ' ':
-        dsl_main_loop_quit()
- 
-# Function to be called on XWindow Delete event
-def xwindow_delete_event_handler(client_data):
-    print('delete window event')
-    dsl_main_loop_quit()
-
-while True:
-
-    # New Pipeline
-    retval = dsl_pipeline_new('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
-
-    retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-
-    # Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_key_event_handler_add(1'my-pipeline', xwindow_key_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', xwindow_button_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-        
-    # Create all other required components and add them to the Pipeline (see some examples above)
-    # ...
- 
-    retval = dsl_pipeline_play('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
- 
-    # Start/Join with main loop until released - blocking call
-    dsl_main_loop_run()
-    retval = DSL_RETURN_SUCCESS
-    break
-
-#print out the final result
-print(dsl_return_value_to_string(retval))
-
-# clean up all resources
-dsl_delete_all()
-```
-
-<br>
-
----
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)
