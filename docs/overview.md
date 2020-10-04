@@ -718,7 +718,7 @@ dsl_delete-all()
 ---
 ## RTSP Stream Connection Management
 
-When creating an RTSP Source, the client application can specify a `next-buffer-timeout` as maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect. The Stream manager uses two client settable parameters to control the reconnection behavior. 
+When creating an RTSP Source, the client application can specify a `next-buffer-timeout` as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect. The Stream manager uses two client settable parameters to control the reconnection behavior. 
 1. `sleep` - the time to sleep between a failed connection and a new reconnection atempt. 
 2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
 
@@ -749,7 +749,7 @@ def SourceStateChangeListener(old_state, new_state, client_data):
     # A change of state to PLAYING occurs on every successful connection.
     if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
     
-        # Query the Source for it's current statistics and re-connection parameters
+        # Query the Source for it's current statistics and reconnection parameters
         retval, data = dsl_source_rtsp_connection_data_get(components.source)
         
         print('Connection data for source:', components.source)
