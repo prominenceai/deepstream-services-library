@@ -15,7 +15,7 @@
     * [Custom Handler](#custom-pad-probe-handler)
 * [Display Types](#display-types)
 * [Smart Recording](#smart-recording)
-* [RTSP Stream Connection Management](rtsp-stream-connection-management)
+* [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
