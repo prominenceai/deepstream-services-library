@@ -29,7 +29,7 @@ The maximum number of `in-use` Sources is set to `DSL_DEFAULT_SOURCE_IN_USE_MAX`
 
 ## Source API
 **Typedefs**
-* [dsl_rtsp_connection_data](dsl_rtsp_connection_data)
+* [dsl_rtsp_connection_data](#dsl_rtsp_connection_data)
 
 **Client CallBack Typedefs**
 * [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
