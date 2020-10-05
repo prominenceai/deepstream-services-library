@@ -27,7 +27,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 
 ---
 ## Pipeline API
-**Client CallBack Typdefs**
+**Client CallBack Typedefs**
 * [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
 * [dsl_eos_listener_cb](#dsl_eos_listener_cb)
 * [dsl_error_message_handler_cb](#dsl_error_message_handler_cb)
