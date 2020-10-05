@@ -717,9 +717,9 @@ dsl_delete-all()
 
 ---
 ## RTSP Stream Connection Management
-RTSP Source Components have "built-in" stream connection management for detecting and resolving a stream disconnection.   
+RTSP Source Components have "built-in" stream connection management for detecting and resolving stream disconnections.   
 
-When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as: *the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.* 
+When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
 
 The Stream manager uses two client settable parameters to control the reconnection behavior. 
 
@@ -853,9 +853,9 @@ def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
         dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 ```
 The second callback, called on KeyRelease, allows the user to
-1. `show` a single source, or all
-2. `cycle` through all sources on a time interval, 
-3. `quit` the application. 
+1. show a single source, or all
+2. cycle through all sources on a time interval, 
+3. quit the application. 
 
 ```Python
 ## 
