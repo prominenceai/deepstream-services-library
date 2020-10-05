@@ -80,13 +80,16 @@ def eos_event_listener(client_data):
 # Function to be called on New-Error-Message received by the Pipeline bus-watcher
 ## 
 def error_message_handler(source, message, client_data):
-    print('Error: source = ', source, ' message = ', message)
+    print('Error: source =', source, 'message =', message)
 
 ## 
 # Function to be called on every Pipeline change of state
 ## 
 def pipeline_state_change_listener(old_state, new_state, client_data):
-    print('previous state = ', old_state, ', new state = ', new_state)
+
+    print('Pipeline change-of-state: previous = ', dsl_state_value_to_string(old_state),
+        ', new = ', dsl_state_value_to_string(new_state))
+
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
@@ -94,7 +97,36 @@ def pipeline_state_change_listener(old_state, new_state, client_data):
 # Function to be called on every RTSP Source change of state
 ##
 def source_state_change_listener(old_state, new_state, client_data):
-    print('previous state = ', old_state, ', new state = ', new_state)
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+
+    print('RTSP Source ', components.source, 'change-of-state: previous =',
+        dsl_state_value_to_string(old_state), '- new =', dsl_state_value_to_string(new_state))
+    
+    if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
+        retval, data = dsl_source_rtsp_connection_data_get(components.source)
+        print('Connection data for source:', components.source)
+        print('  is connected:     ', data.is_connected)
+        print('  first connected:  ', time.ctime(data.first_connected))
+        print('  last connected:   ', time.ctime(data.last_connected))
+        print('  last disconnected:', time.ctime(data.last_disconnected))
+        print('  total count:      ', data.count)
+        print('  in-reconnect:     ', data.is_in_reconnect)
+        print('  retries:          ', data.retries)
+        print('  sleep time:       ', data.sleep,'seconds')
+        print('  timeout:          ', data.timeout, 'seconds')
+
+        if (new_state == DSL_STATE_PLAYING):
+            print("setting the time to sleep between re-connection retries to 4 seconds for quick recovery")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=4, timeout=30)
+            
+        # If we're in a re-connection cycle, check if the nuber of quick recovery attempts has
+        # been reached. (20 * 4 =~ 80 seconds), before backing off on the time between retries 
+        elif (data.is_in_reconnect and data.retries == 20):
+            print("extending the time to sleep between re-connection retries to 20 seconds")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
+
 ## 
 # Function to create all Display Types used in this example
 ## 
@@ -137,12 +169,6 @@ class ComponentNames:
         self.ode_notify = source + '-ode-notify'
         self.start_record = source + '-start-record'    
 
-## 
-# Function to be called on every state change for all RTSP Sources
-## 
-def source_state_change_listener(old_state, new_state, client_data):
-    print('previous state = ', old_state, ', new state = ', new_state)
-
 def recording_started(event_id, trigger,
     buffer, frame_meta, object_meta, client_data):
 
@@ -154,26 +180,24 @@ def recording_started(event_id, trigger,
 ## 
 def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Complete  *** ')
-    print(client_data)
 
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
-    print(components)
     
     session_info = session_info_ptr.contents
-    print('sessionId:     ', session_info.sessionId)
-    print('filename:      ', session_info.filename)
-    print('dirpath:       ', session_info.dirpath)
-    print('duration:      ', session_info.duration)
-    print('containerType: ', session_info.containerType)
-    print('width:         ', session_info.width)
-    print('height:        ', session_info.height)
+    print('session Id:     ', session_info.session_id)
+    print('filename:       ', session_info.filename)
+    print('dirpath:        ', session_info.dirpath)
+    print('duration:       ', session_info.duration)
+    print('container type: ', session_info.container_type)
+    print('width:          ', session_info.width)
+    print('height:         ', session_info.height)
     
     retval, is_on = dsl_tap_record_is_on_get(components.record_tap)
-    print('        is_on flag = ', is_on)
+    print('is_on flag = ', is_on)
     
     retval, reset_done = dsl_tap_record_reset_done_get(components.record_tap)
-    print('        reset_done flag = ', reset_done)
+    print('reset_done flag = ', reset_done)
     
     # reset the Trigger that started this recording so that a new session can be started.
     dsl_ode_trigger_reset(components.occurrence_trigger)

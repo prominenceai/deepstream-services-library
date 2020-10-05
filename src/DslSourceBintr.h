@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslElementr.h"
 #include "DslDewarperBintr.h"
 #include "DslTapBintr.h"
+#include "DslStateChange.h"
 
 namespace DSL
 {
@@ -469,7 +470,7 @@ namespace DSL
          * @param[out] timeout current time to wait before terminating the current reconnection try, and
          * restarting the reconnection cycle again.
          */
-        void GetReconnectionParams(uint* sleep_ms, uint* timeout_ms);
+        void GetReconnectionParams(uint* sleep, uint* timeout);
         
         /**
          * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
@@ -481,31 +482,27 @@ namespace DSL
          * restarting the reconnection cycle again.
          * @return true is params have been set, false otherwise.
          */
-        bool SetReconnectionParams(uint sleep_ms, uint timeout_ms);
+        bool SetReconnectionParams(uint sleep, uint timeout);
 
         /**
          * @brief Gets the Reconnect Statistics collected by the RTSP source 
-         * @param[out] last time of the last reconnect in tv_sec
-         * @param[out] count the count of reconnections since the Pipeline was first played
+         * @param[out] data current Connection Stats and Parameters for the source
          * or since the stats were last cleared by the client.
          */
-        void GetReconnectionStats(time_t* last, uint* count, boolean* isInReconnect, uint* retries);
+        void GetConnectionData(dsl_rtsp_connection_data* data);
         
         /**
          * @brief Sets the Reconnect Statistics collected by the RTSP source 
          * Note: this services is to be called by the test services only
          * It is left public for the purposes of test only. 
-         * @param[in] name name of the source object to update.
-         * @param[in] lastTime time of the last reconnect in tv_sec
-         * @param[in] lastCount the count of reconnection since the Pipeline was first played
-         * or since the stats were last cleared by the client.
+         * @param[in] data new Connection Stats and Paremters to use under Test.
          */
-        void _setReconnectionStats(time_t last, uint count, boolean isInReconnect, uint retries);
+        void _setConnectionData(dsl_rtsp_connection_data data);
         
         /**
          * @brief Clears the Reconnection Statistics collected by the RTSP source
          */
-        void ClearReconnectionStats();
+        void ClearConnectionStats();
         
         /**
          * @brief adds a callback to be notified on change of RTSP source state
@@ -538,7 +535,7 @@ namespace DSL
          * Not to be confussed with the GetState() Bintr base class function 
          * @return current state of the RTSP Source
          */
-        uint GetCurrentState();
+        GstState GetCurrentState();
 
         /**
          * @brief sets the RTSP Source's current state variable to newState, one of DSL_STATE_*
@@ -547,7 +544,7 @@ namespace DSL
          * of the GstElement for this Bintr.
          * @param[in] newState new state to set the current state variable
          */
-        void SetCurrentState(uint newState);
+        void SetCurrentState(GstState newState);
         
         /**
          * @brief implements a timer thread to notify all client listeners in the main loop context.
@@ -645,32 +642,9 @@ namespace DSL
         GMutex m_streamManagerMutex;
         
         /**
-         * @brief the last time this source reconnected in timeval
+         * @brief active connection data for the RtspSourceBintr.
          */
-        struct timeval m_lastReconnectTime;
-        
-        /**
-         * @brief reconnection count for this source since pipeline-play or clear
-         */
-        uint m_reconnectionCount;
-
-        /**
-         * @brief true if the RTSP Source is currently in Reconnection, false otherwise.
-         */
-        bool m_isInReconnect;
-
-        /**
-         * @brief current reset count since loss of connection
-         * the value is 0 when m_isInReconnect == false
-         */
-        uint m_reconnectionRetries;
-        
-        /**
-         * @brief number of times the Stream Reconnection manger has checked for the RTSP source to reconnect
-         * after reset. Exceeding DSL_RTSP_RECONNECT_TIMEOUT_MS / DSL_RTSP_RECONNECT_SLEEP_TIME_MS counts
-         * will result in the Reconnection manager resetting the Source and this counter.
-         */
-        uint m_waitForReconnectCount;
+        dsl_rtsp_connection_data m_connectionData;
         
         /**
          * @brief gnome timer Id for the RTSP reconnection manager
@@ -683,31 +657,30 @@ namespace DSL
         GMutex m_reconnectionManagerMutex;
         
         /**
-         * @brief sleep time to sleep between successively checking the status of the asynchrounus reconnection
-         * Set to DSL_RTSP_RECONNECT_SLEEP_MS on source creation.
-         */
-        uint m_reconnectionSleepMs;
-        
-        /**
-         * @brief time to wait before terminating the current reconnection try, and starting a new cycle
-         * Set to DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
-         */
-        uint m_reconnectionTimeoutMs;
-        
-        /**
          * @brief will be set to true on reconnection failure to force a mew reconnection cycle
          */
         bool m_reconnectionFailed;
+        
+        /**
+         * @brief remaining time to sleep after a failed reconnection attemp, in seconds. 
+         */
+        uint m_reconnectionSleep;
+        
+        /**
+         * @brief start time of the most recent reconnection cycle, used for maximum timeout 
+         * for async state change completion
+         */
+        timeval m_reconnectionStartTime;
 
         /**
          * @brief maintains the current state of the RTSP source bin
          */
-        uint m_currentState;
+        GstState m_currentState;
 
         /**
          * @brief maintains the previous state of the RTSP source bin
          */
-        uint m_previousState;
+        GstState m_previousState;
 
         /**
          * @brief mutux to guard the current State read/write access.
@@ -724,7 +697,13 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_state_change_listener_cb, void*>m_stateChangeListeners;
+        
+        /**
+         * @brief a queue of state changes to process and notify clients asynchronously
+         */
+        std::queue<std::shared_ptr<DslStateChange>> m_stateChanges;
     };
+    
 
     /**
      * @brief 

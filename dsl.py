@@ -33,7 +33,8 @@ DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
 DSL_STATE_PAUSED = 3
 DSL_STATE_PLAYING = 4
-DSL_STATE_IN_TRANSITION = 5
+DSL_STATE_CHANGE_ASYNC = 5
+DSL_STATE_UNKNOWN = int('7FFFFFFF',16)
 
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
@@ -63,6 +64,28 @@ DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
 
+class dsl_recording_info(Structure):
+    _fields_ = [
+        ('session_id', c_uint),
+        ('filename', c_wchar_p),
+        ('dirpath', c_wchar_p),
+        ('duration', c_long),
+        ('container_type', c_uint),
+        ('width', c_uint),
+        ('height', c_uint)]
+                
+class dsl_rtsp_connection_data(Structure):
+    _fields_ = [
+        ('is_connected', c_bool),
+        ('first_connected', c_long),
+        ('last_connected', c_long),
+        ('last_disconnected', c_long),
+        ('count', c_uint),
+        ('is_in_reconnect', c_bool),
+        ('retries', c_uint),
+        ('sleep', c_uint),
+        ('timeout', c_uint)]
+
 ##
 ## Pointer Typedefs
 ##
@@ -72,15 +95,7 @@ DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
 DSL_DOUBLE_P = POINTER(c_double)
 DSL_FLOAT_P = POINTER(c_float)
-
-class DslRecordingInfo(Structure):
-    _fields_ = [("sessionId", c_uint),
-                ("filename", c_wchar_p),
-                ("dirpath", c_wchar_p),
-                ("duration", c_long),
-                ("containerType", c_uint),
-                ("width", c_uint),
-                ("height", c_uint)]
+DSL_CONNECTION_DATA_P = POINTER(dsl_rtsp_connection_data)
 
 ##
 ## Callback Typedefs
@@ -95,7 +110,7 @@ DSL_XWINDOW_DELETE_EVENT_HANDLER = CFUNCTYPE(None, c_void_p)
 DSL_ODE_HANDLE_OCCURRENCE = CFUNCTYPE(None, c_uint, c_wchar_p, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_CHECK_FOR_OCCURRENCE = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p)
 DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
-DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(DslRecordingInfo), c_void_p)
+DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 ##
@@ -1361,43 +1376,40 @@ _dsl.dsl_source_rtsp_reconnection_params_get.argtypes = [c_wchar_p, POINTER(c_ui
 _dsl.dsl_source_rtsp_reconnection_params_get.restype = c_uint
 def dsl_source_rtsp_reconnection_params_get(name):
     global _dsl
-    sleep_ms = c_uint(0)
-    timeout_ms = c_uint(0)
-    result = _dsl.dsl_source_rtsp_reconnection_params_get(name, DSL_UINT_P(sleep_ms), DSL_UINT_P(timeout_ms))
-    return int(result), sleep_ms.value, timeout_ms.value
+    sleep = c_uint(0)
+    timeout = c_uint(0)
+    result = _dsl.dsl_source_rtsp_reconnection_params_get(name, DSL_UINT_P(sleep), DSL_UINT_P(timeout))
+    return int(result), sleep.value, timeout.value
 
 ##
 ## dsl_source_rtsp_reconnection_params_set()
 ##
 _dsl.dsl_source_rtsp_reconnection_params_set.argtypes = [c_wchar_p, c_uint, c_uint]
 _dsl.dsl_source_rtsp_reconnection_params_set.restype = c_uint
-def dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms):
+def dsl_source_rtsp_reconnection_params_set(name, sleep, timeout):
     global _dsl
-    result = _dsl.dsl_source_rtsp_reconnection_params_set(name, sleep_ms, timeout_ms)
+    result = _dsl.dsl_source_rtsp_reconnection_params_set(name, sleep, timeout)
     return int(result)
 
 ##
-## dsl_source_rtsp_reconnection_stats_get()
+## dsl_source_rtsp_connection_data_get()
 ##
-_dsl.dsl_source_rtsp_reconnection_stats_get.argtypes = [c_wchar_p, POINTER(c_long), POINTER(c_uint), POINTER(c_bool), POINTER(c_uint)]
-_dsl.dsl_source_rtsp_reconnection_stats_get.restype = c_uint
-def dsl_source_rtsp_reconnection_stats_get(name):
+_dsl.dsl_source_rtsp_connection_data_get.argtypes = [c_wchar_p, DSL_CONNECTION_DATA_P]
+_dsl.dsl_source_rtsp_connection_data_get.restype = c_uint
+def dsl_source_rtsp_connection_data_get(name):
     global _dsl
-    last = c_long(0)
-    count = c_uint(0)
-    isInReset = c_bool(0)
-    retries = c_uint(0)
-    result = _dsl.dsl_source_rtsp_reconnection_stats_get(name, DSL_LONG_P(last), DSL_UINT_P(count), DSL_BOOL_P(isInReset), DSL_UINT_P(retries))
-    return int(result), last.value, count.value, isInReset.value, retries.value
+    data = dsl_rtsp_connection_data()
+    result = _dsl.dsl_source_rtsp_connection_data_get(name, DSL_CONNECTION_DATA_P(data))
+    return int(result), data
 
 ##
-## dsl_source_rtsp_reconnection_stats_clear()
+## dsl_source_rtsp_connection_stats_clear()
 ##
-_dsl.dsl_source_rtsp_reconnection_stats_clear.argtypes = [c_wchar_p]
-_dsl.dsl_source_rtsp_reconnection_stats_clear.restype = c_uint
-def dsl_source_rtsp_reconnection_stats_clear(name):
+_dsl.dsl_source_rtsp_connection_stats_clear.argtypes = [c_wchar_p]
+_dsl.dsl_source_rtsp_connection_stats_clear.restype = c_uint
+def dsl_source_rtsp_connection_stats_clear(name):
     global _dsl
-    result = _dsl.dsl_source_rtsp_reconnection_stats_clear(name)
+    result = _dsl.dsl_source_rtsp_connection_stats_clear(name)
     return int(result)
 
 ##

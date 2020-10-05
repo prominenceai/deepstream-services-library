@@ -264,7 +264,7 @@ namespace DSL
         LOG_FUNC();
         
         // new DSL info structure with unicode strings for python3 compatibility
-        DslRecordingInfoType dslInfo{0};
+        dsl_recording_info dslInfo{0};
 
         // convert the filename and dirpath to wchar string types
         std::string cstrFilename(pNvDsInfo->filename);

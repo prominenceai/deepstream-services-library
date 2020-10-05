@@ -634,28 +634,33 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
         uint interval;
         uint latency(100);
         uint timeout(0);
-        uint retTimeout(123);
+        uint retTimeout(0);
         
         REQUIRE( dsl_source_rtsp_new(rtspSourceName.c_str(), uri.c_str(), protocol, memtype,
             intra_decode, interval, latency, timeout) == DSL_RESULT_SUCCESS );
             
-        WHEN( "A client gets an RTSP Source's connection stats" ) 
+        WHEN( "A client gets an RTSP Source's connection data" ) 
         {
-            time_t last(123);
-            uint count(456);
-            boolean isInReset(1);
-            uint retries(543);
-            REQUIRE( dsl_source_rtsp_reconnection_stats_get(rtspSourceName.c_str(), 
-                &last, &count, &isInReset, &retries) == DSL_RESULT_SUCCESS );
+            dsl_rtsp_connection_data data{0};
+            data.first_connected = 123;
+            data.last_connected = 456;
+            data.last_disconnected = 789;
+            data.count = 654;
+            data.is_in_reconnect = true;
+            data.retries = 444;
+            REQUIRE( dsl_source_rtsp_connection_data_get(rtspSourceName.c_str(), 
+                &data) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned after update" )
             {
-                REQUIRE( last == 0 );
-                REQUIRE( count == 0 );
-                REQUIRE( isInReset == 0 );
-                REQUIRE( retries == 0 );
+                REQUIRE( data.first_connected == 0 );
+                REQUIRE( data.last_connected == 0 );
+                REQUIRE( data.last_disconnected == 0 );
+                REQUIRE( data.count == 0 );
+                REQUIRE( data.is_in_reconnect == 0 );
+                REQUIRE( data.retries == 0 );
 
-                REQUIRE( dsl_source_rtsp_reconnection_stats_clear(rtspSourceName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_rtsp_connection_stats_clear(rtspSourceName.c_str()) == DSL_RESULT_SUCCESS );
                     
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

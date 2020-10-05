@@ -47,7 +47,7 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
             {
                 GstState state;
                 REQUIRE( pPipelineBintr->GetName() == pipelineName );
-                pPipelineBintr->GetState(state);
+                pPipelineBintr->GetState(state, 0);
                 REQUIRE( state == DSL_STATE_NULL );
                 REQUIRE( pPipelineBintr->IsLive() == False );
             }
