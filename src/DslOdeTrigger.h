@@ -208,6 +208,14 @@ namespace DSL
         void SetSource(const char* source);
         
         /**
+         * @brief Note: this service is for testing purposes only. It is
+         * used to set the Source Id filter, which is normally queried 
+         * and set at runtime by the trigger. 
+         * @param id Source Id to use for test scenario
+         */
+        void _setSourceId(int id);
+        
+        /**
          * @brief Gets the Minimuum Inference Confidence to trigger the event
          * @return the current Minimum Confidence value in use [0..1.0]
          */
@@ -287,7 +295,14 @@ namespace DSL
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test for min criteria
          * @return true if Min Criteria is met, false otherwise
          */
-        bool checkForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        bool CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief Common function to check if a Frame's source id meets the criteria for ODE
+         * @param sourceId a Frame's Source Id to check against the trigger's source filter if set.
+         * @return true if Source Id criteria is met, false otherwise
+         */
+        bool CheckForSourceId(int sourceId);
         
         /**
          * @brief helper function for doesOverlap

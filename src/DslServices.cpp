@@ -3621,7 +3621,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep_ms, uint* timeout_ms)
+    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3634,7 +3634,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->GetReconnectionParams(sleep_ms, timeout_ms);
+            pSourceBintr->GetReconnectionParams(sleep, timeout);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
@@ -3644,7 +3644,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep_ms, uint timeout_ms)
+    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3657,7 +3657,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            if (!pSourceBintr->SetReconnectionParams(sleep_ms, timeout_ms))
+            if (!pSourceBintr->SetReconnectionParams(sleep, timeout))
             {
                 LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
                 return DSL_RESULT_SOURCE_SET_FAILED;
@@ -3671,8 +3671,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectionStatsGet(const char* name, 
-        time_t* last, uint* count, boolean* isInReconnect, uint* retries)
+    DslReturnType Services::SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3685,17 +3684,17 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->GetReconnectionStats(last, count, isInReconnect, retries);
+            pSourceBintr->GetConnectionData(data);
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("RTSP Source '" << name << "' threw exception getting Reconnect Stats");
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting Connection Data");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectionStatsClear(const char* name)
+    DslReturnType Services::SourceRtspConnectionStatsClear(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3708,12 +3707,12 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->ClearReconnectionStats();
+            pSourceBintr->ClearConnectionStats();
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception clearing Reconnect Stats");
+            LOG_ERROR("Source '" << name << "' threw exception clearing Connection Stats");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3923,13 +3922,13 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NOT_IN_USE;
             }
             GstState state;
-            pSourceBintr->GetState(state);
+            pSourceBintr->GetState(state, 0);
             if (state != GST_STATE_PLAYING)
             {
                 LOG_ERROR("Source '" << name << "' can not be paused - is not in play");
                 return DSL_RESULT_SOURCE_NOT_IN_PLAY;
             }
-            if (!pSourceBintr->SetState(GST_STATE_PAUSED))
+            if (!pSourceBintr->SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to paused");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -3962,14 +3961,14 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NOT_IN_USE;
             }
             GstState state;
-            pSourceBintr->GetState(state);
+            pSourceBintr->GetState(state, 0);
             if (state != GST_STATE_PAUSED)
             {
                 LOG_ERROR("Source '" << name << "' can not be resumed - is not in pause");
                 return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
             }
 
-            if (!pSourceBintr->SetState(GST_STATE_PLAYING))
+            if (!pSourceBintr->SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to play");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -7267,7 +7266,7 @@ namespace DSL
         try
         {
             GstState gstState;
-            std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->GetState(gstState);
+            std::dynamic_pointer_cast<PipelineBintr>(m_pipelines[pipeline])->GetState(gstState, 0);
             *state = (uint)gstState;
         }
         catch(...)
@@ -7722,10 +7721,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (m_stateValueToString.find(state) == m_returnValueToString.end())
+        if (m_stateValueToString.find(state) == m_stateValueToString.end())
         {
-            LOG_ERROR("Invalid state = " << state << " unable to convert to string");
-            return m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE].c_str();
+            state = DSL_STATE_UNKNOWN;
         }
 
         std::string cstrState(m_stateValueToString[state].begin(), m_stateValueToString[state].end());
@@ -7745,7 +7743,7 @@ namespace DSL
         m_stateValueToString[DSL_STATE_PAUSED] = L"DSL_STATE_PAUSED";
         m_stateValueToString[DSL_STATE_PLAYING] = L"DSL_STATE_PLAYING";
         m_stateValueToString[DSL_STATE_CHANGE_ASYNC] = L"DSL_STATE_CHANGE_ASYNC";
-        m_stateValueToString[DSL_STATE_INVALID_STATE_VALUE] = L"Invalid DSL_STATE Value";
+        m_stateValueToString[DSL_STATE_UNKNOWN] = L"DSL_STATE_UNKNOWN";
 
         m_returnValueToString[DSL_RESULT_SUCCESS] = L"DSL_RESULT_SUCCESS";
         m_returnValueToString[DSL_RESULT_INVALID_INPUT_PARAM] = L"DSL_RESULT_INVALID_INPUT_PARAM";

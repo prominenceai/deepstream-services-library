@@ -332,7 +332,7 @@ namespace DSL
         LOG_FUNC();
         
         GstState currentState;
-        GetState(currentState);
+        GetState(currentState, 0);
         if (currentState == GST_STATE_NULL)
         {
             if (!LinkAll())
@@ -343,7 +343,7 @@ namespace DSL
             // For non-live sources we Pause to preroll before we play
             if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
             {
-                if (!SetState(GST_STATE_PAUSED))
+                if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {
                     LOG_ERROR("Failed to Pause non-live soures before playing Pipeline '" << GetName() << "'");
                     return false;
@@ -352,7 +352,7 @@ namespace DSL
         }
                 
         // Call the base class to complete the Play process
-        return SetState(GST_STATE_PLAYING);
+        return SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
     }
 
     bool PipelineBintr::Pause()
@@ -360,14 +360,14 @@ namespace DSL
         LOG_FUNC();
         
         GstState state;
-        GetState(state);
+        GetState(state, 0);
         if (state != GST_STATE_PLAYING)
         {
             LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
         }
         // Call the base class to Pause
-        if (!SetState(GST_STATE_PAUSED))
+        if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
             return false;
@@ -379,15 +379,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        GstState state;
-//        GetState(state);
-//        if ((state != GST_STATE_PLAYING) and (state != GST_STATE_PAUSED))
-//        {
-//            LOG_DEBUG("Pipeline '" << GetName() << "' is not in a state of Playing or Paused");
-//            return true;
-//        }
-
-        if (!SetState(GST_STATE_NULL))
+        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
             return false;
@@ -606,8 +598,10 @@ namespace DSL
         case GST_MESSAGE_QOS:
         case GST_MESSAGE_NEW_CLOCK:
         case GST_MESSAGE_ASYNC_DONE:
-        case GST_MESSAGE_TAG:
             LOG_INFO("Message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
+            return true;
+        case GST_MESSAGE_TAG:
+            LOG_DEBUG("Message type:: " << m_mapMessageTypes[GST_MESSAGE_TYPE(pMessage)]);
             return true;
         case GST_MESSAGE_EOS:
             HandleEosMessage(pMessage);

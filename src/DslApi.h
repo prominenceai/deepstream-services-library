@@ -360,7 +360,7 @@ THE SOFTWARE.
 #define DSL_STATE_PAUSED                                            3
 #define DSL_STATE_PLAYING                                           4
 #define DSL_STATE_CHANGE_ASYNC                                      5
-#define DSL_STATE_INVALID_STATE_VALUE                               UINT32_MAX
+#define DSL_STATE_UNKNOWN                                           UINT32_MAX
 
 #define DSL_PAD_SINK                                                0
 #define DSL_PAD_SRC                                                 1
@@ -368,15 +368,16 @@ THE SOFTWARE.
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
 /**
- * @brief time to sleep between successive queries to check if
- * the RTSP Source has reconnected and the stream re-established
+ * @brief time to sleep after a failed reconnection before
+ * starting a new re-connection cycle. In units of seconds
  */
-#define DSL_RTSP_RECONNECTION_SLEEP_MS                              4000
+#define DSL_RTSP_RECONNECTION_SLEEP_S                               4
 /**
- * @brief the maximum time to wait for reconnect before resetting
- * the RTSP Source and trying again.
+ * @brief the maximum time to wait for a RTSP Source to
+ * asynchronously transition to a final state of Playing.
+ * In units of seconds
  */
-#define DSL_RTSP_RECONNECTION_TIMEOUT_MS                            60000
+#define DSL_RTSP_RECONNECTION_TIMEOUT_S                             30
 
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
@@ -419,6 +420,108 @@ EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
 typedef uint boolean;
+
+/**
+ * @struct dsl_rtsp_connection_data
+ * @brief a structure of Connection Stats and Parameters for a given RTSP Source
+ */
+typedef struct dsl_rtsp_connection_data
+{
+    /**
+     * @brief true if the RTSP Source is currently in a connected state, false otherwise
+     */ 
+    boolean is_connected; 
+    
+    /**
+     * @brief linux time in seconds for the first successful connection or
+     * when the stats were last cleared
+     */ 
+    time_t first_connected; 
+
+    /**
+     * @brief linux time in seconds for the last succesful connection or
+     * when the stats were last cleared
+     */ 
+    time_t last_connected; 
+
+    /**
+     * @brief linux time in seconds for the last disconnection or
+     * when the stats were last cleared
+     */ 
+    time_t last_disconnected; 
+
+    /**
+     * @brief count of succesful connections from the start of Pipeline
+     * play, or from when the stats were last cleared
+     */ 
+    uint count;
+    
+    /**
+     * @brief true if the RTSP Source is currently in a re-connection cycle, false otherwise
+     */ 
+    boolean is_in_reconnect; 
+    
+    /**
+     * @brief number of re-connection retries for either the current cycle, if "is_in_reconnect == true"
+     * or the last connection if "is_in_reconnect == false"
+     */ 
+    uint retries;
+    
+    /**
+     * @brief current setting for the time to sleep between re-connection attempts after failure.
+     */ 
+    uint sleep;
+    
+    /**
+     * @brief current setting for the maximum time to wait for an asynchronous state change to complete
+     * before resetting the source and then retrying again after the next sleep period.
+     */ 
+   uint timeout;
+   
+}dsl_rtsp_connection_data;
+
+/**
+ * @struct dsl_recording_info
+ * @brief recording session information provided to the client on callback
+ */
+typedef struct dsl_recording_info
+{
+    /**
+     * @brief the unique sesions id assigned on record start
+     */
+    uint sessionId;
+    
+    /**
+     * @brief filename generated for the completed recording. 
+     */
+    const wchar_t* filename;
+    
+    /** 
+     * @brief directory path for the completed recording
+     */
+    const wchar_t* dirpath;
+    
+    /**
+     * @brief duration of the recording in milliseconds
+     */
+    uint64_t duration;
+    
+    /**
+     * @brief either DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
+     */
+    uint containerType;
+    
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint width;
+
+    /**
+     * @brief width of the recording in pixels
+     */
+    uint height;
+
+} dsl_recording_info;
 
 /**
  *
@@ -529,55 +632,14 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int y
  */
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 
-/**
- * @struct _dsl_record_info
- * @brief recording session information provided to the client on callback
- */
-typedef struct DslRecordingInfoType
-{
-    /**
-     * @brief the unique sesions id assigned on record start
-     */
-    uint sessionId;
-    
-    /**
-     * @brief filename generated for the completed recording. 
-     */
-    const wchar_t* filename;
-    
-    /** 
-     * @brief directory path for the completed recording
-     */
-    const wchar_t* dirpath;
-    
-    /**
-     * @brief duration of the recording in milliseconds
-     */
-    uint64_t duration;
-    
-    /**
-     * @brief either DSL_CONTAINER_MP4 or DSL_CONTAINER_MP4
-     */
-    uint containerType;
-    
-    /**
-     * @brief width of the recording in pixels
-     */
-    uint width;
-
-    /**
-     * @brief width of the recording in pixels
-     */
-    uint height;
-
-} DslRecordingInfoType;
 
 /**
  * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
- * @param[in] info pointer to session info, see... DslRecordingInfoType above.
+ * @param[in] info pointer to session info, see... dsl_recording_info above.
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef void* (*dsl_record_client_listener_cb)(DslRecordingInfoType* info, void* client_data);
+typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
+
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -1787,46 +1849,42 @@ DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
  * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
  * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
  * @param[in] name name of the source object to query.
- * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
- * @param[out] timeout current time to wait before terminating the current reconnection try, and
+ * @param[out] sleep time, in unit of seconds, to sleep between successively checking the status of the asynchrounus reconnection
+ * Also, the retry_sleep time is used after a state change failure
+ * @param[out] timeout time, in units of seconds, to wait before terminating the current reconnection try and
  * restarting the reconnection cycle again.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep_ms, uint* timeout_ms);
+DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep, uint* timeout);
 
 /**
  * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
- * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * to DSL_RTSP_RECONNECT_SLEEP_TIME and DSL_RTSP_RECONNECT_TIMEOUT on source creation.
  * Note: calling this service while a reconnection cycle is in progess will terminate
  * the current cycle before restarting with the new parmeters.
- * @param[in] name name of the source object to update.
- * @param[in] sleep_ms time to sleep between successively checking the status of the asynchrounus reconnection
- * @param[in] timeout current time to wait before terminating the current reconnection try, and
+ * @param[in] retry_sleep time, in unit of seconds, to sleep between successively checking the status of the asynchrounus reconnection
+ * Also, the retry_sleep time is used after a state change failure
+ * @param[in] retry_timeout time, in units of seconds, to wait before terminating the current reconnection try and
  * restarting the reconnection cycle again.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep_ms, uint timeout_ms);
+DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep, uint timeout);
 
 /**
- * @brief Gets the current reconnection stats for the named RTSP Source
+ * @brief Gets the current connection stats for the named RTSP Source
  * @param[in] name name of the source object to query
- * @param[out] last time of the last reconnect from the system time in seconds (see timeval <sys/time.h>)
- * @param[out] count the count of reconnections for the named source, since first played or cleared.
- * @param[out] isInReconnect true if the RTSP source is currently in a "reconnection-cycle"
- * @param[out] retries number reconnection retries in either the current reconnection-cycle, in the case
- * of isInReconnect == true, or the last reconnection when isInReconnect == false. 
+ * @param[out] data the current Connection Stats and Params for the Source. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_stats_get(const wchar_t* name, 
-    time_t* last, uint* count, boolean* isInReconnect, uint* retries); 
+DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_connection_data* data); 
 
 /**
- * @brief Clears the reconnect stats for the named RTSP Source.
- * Note: "retries" will not be cleared if isInReconnect == true
+ * @brief Clears the connection stats for the named RTSP Source.
+ * Note: "retries" will not be cleared if is_in_reset == true
  * @param[in] name name of the source object to update
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_stats_clear(const wchar_t* name); 
+DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name); 
 
 /**
  * @brief adds a callback to be notified on change of RTSP Source state

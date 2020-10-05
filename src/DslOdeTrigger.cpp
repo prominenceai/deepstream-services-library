@@ -197,6 +197,13 @@ namespace DSL
         m_source.assign(source);
     }
 
+    void OdeTrigger::_setSourceId(int id)
+    {
+        LOG_FUNC();
+        
+        m_sourceId = id;
+    }
+    
     float OdeTrigger::GetMinConfidence()
     {
         LOG_FUNC();
@@ -277,27 +284,37 @@ namespace DSL
         m_minFrameCountD = minFrameCountD;
     }
 
-    void OdeTrigger::PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-        NvDsFrameMeta* pFrameMeta)
+    bool OdeTrigger::CheckForSourceId(int sourceId)
     {
-        if (!m_enabled)
-        {
-            return;
-        }
+        LOG_FUNC();
+
         // Filter on Source id if set
         if (m_source.size())
         {
+            // a "one-time-get" of the source Id from the source name as the 
+            // source id is not assigned until the pipeline is played
             if (m_sourceId == -1)
             {
                 Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
             }
-            if (m_sourceId != pFrameMeta->source_id)
+            if (m_sourceId != sourceId)
             {
-                return;
+                return false;
             }
         }
-        // Reset the occurrences from the last frame. 
+        return true;
+    }
+
+    void OdeTrigger::PreProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        // Reset the occurrences from the last frame, even if disabled  
         m_occurrences = 0;
+
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
+        {
+            return;
+        }
 
         // Call on each of the Trigger's Areas to (optionally) display their Rectangle
         for (const auto &imap: m_pOdeAreas)
@@ -308,7 +325,7 @@ namespace DSL
         }
     }
 
-    bool OdeTrigger::checkForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
@@ -409,21 +426,9 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta)
     {
 
-        if (!m_enabled or m_when != DSL_ODE_PRE_OCCURRENCE_CHECK)
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or m_when != DSL_ODE_PRE_OCCURRENCE_CHECK)
         {
             return;
-        }
-        // Filter on Source id if set
-        if (m_source.size())
-        {
-            if (m_sourceId == -1)
-            {
-                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
-            }
-            if (m_sourceId != pFrameMeta->source_id)
-            {
-                return;
-            }
         }
         for (const auto &imap: m_pOdeActions)
         {
@@ -435,21 +440,9 @@ namespace DSL
     uint AlwaysOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_when != DSL_ODE_POST_OCCURRENCE_CHECK)
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or m_when != DSL_ODE_POST_OCCURRENCE_CHECK)
         {
             return 0;
-        }
-        // Filter on Source id if set
-        if (m_source.size())
-        {
-            if (m_sourceId == -1)
-            {
-                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
-            }
-            if (m_sourceId != pFrameMeta->source_id)
-            {
-                return 0;
-            }
         }
         for (const auto &imap: m_pOdeActions)
         {
@@ -475,7 +468,7 @@ namespace DSL
     bool OccurrenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -520,7 +513,7 @@ namespace DSL
         // Important **** we need to check for Criteria even if the Absence Trigger is disabled. This is
         // case another Trigger enables This trigger, and it checks for the number of occurrences in the 
         // PostProcessFrame() . If the m_occurrences is not updated the Trigger will report Absence incorrectly
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -532,12 +525,9 @@ namespace DSL
     
     uint AbsenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or
-            (m_limit and m_triggered >= m_limit) or 
-            m_occurrences) 
+        if (!m_enabled or (m_limit and m_triggered >= m_limit) or m_occurrences) 
         {
-            m_occurrences = 0;
-            return m_occurrences;
+            return 0;
         }        
         
         // event has been triggered
@@ -551,7 +541,7 @@ namespace DSL
             DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
             pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, pDisplayMeta, pFrameMeta, NULL);
         }
-        return m_occurrences;
+        return 1;
    }
 
     // *****************************************************************************
@@ -570,7 +560,7 @@ namespace DSL
     bool SummationOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -616,7 +606,7 @@ namespace DSL
     bool IntersectionOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -691,7 +681,8 @@ namespace DSL
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         // conditional execution
-        if (!m_enabled or !m_clientChecker or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!m_enabled or !m_clientChecker or !CheckForSourceId(pFrameMeta->source_id) 
+            or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -774,7 +765,7 @@ namespace DSL
     bool MinimumOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -822,7 +813,7 @@ namespace DSL
     bool MaximumOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -871,7 +862,7 @@ namespace DSL
     bool RangeOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -917,7 +908,7 @@ namespace DSL
     bool SmallestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }
@@ -982,7 +973,7 @@ namespace DSL
     bool LargestOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
-        if (!m_enabled or !checkForMinCriteria(pFrameMeta, pObjectMeta))
+        if (!CheckForSourceId(pFrameMeta->source_id) or !CheckForMinCriteria(pFrameMeta, pObjectMeta))
         {
             return false;
         }

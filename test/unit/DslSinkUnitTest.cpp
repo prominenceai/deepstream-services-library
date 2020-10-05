@@ -904,7 +904,7 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBi
     }
 }
 
-static void* record_complete_cb(DslRecordingInfoType* info, void* client_data)
+static void* record_complete_cb(dsl_recording_info* info, void* client_data)
 {
     std::cout << "sessionId:     " << info->sessionId << "\n";
     std::wcout << L"filename:      " << info->filename << L"\n";

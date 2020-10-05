@@ -601,7 +601,7 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBinter]" )
+SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
     {
@@ -628,15 +628,21 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBinter]" )
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
-                time_t last(123);
-                uint count(456);
-                boolean isInReset(true);
-                uint retries(123);
-                pSourceBintr->GetReconnectionStats(&last, &count, &isInReset, &retries);
-                REQUIRE( last == 0 );
-                REQUIRE( count == 0 );
-                REQUIRE( isInReset == false );
-                REQUIRE( retries == 0 );
+                dsl_rtsp_connection_data data{0};
+                data.first_connected = 123;
+                data.last_connected = 456;
+                data.last_disconnected = 456;
+                data.count = 654;
+                data.is_in_reconnect = true;
+                data.retries = 444;
+                
+                pSourceBintr->GetConnectionData(&data);
+                REQUIRE( data.first_connected == 0 );
+                REQUIRE( data.last_connected == 0 );
+                REQUIRE( data.last_disconnected == 0 );
+                REQUIRE( data.count == 0 );
+                REQUIRE( data.is_in_reconnect == 0 );
+                REQUIRE( data.retries == 0 );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == true );
@@ -656,7 +662,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBinter]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBinter]" )
+SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -681,21 +687,27 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[RtspSourceBin
                 REQUIRE( pSourceBintr->GetBufferTimeout() == newTimeout );
             }
         }
-        WHEN( "The RtspSourceBintr's reconnect stats are set " )
+        WHEN( "The RtspSourceBintr's reconnect data are set " )
         {
             time_t newLast(123), last(0);
-            uint newCount(0), count(0);
-            boolean newIsInReset(true), isInReset(false);
-            uint newRetries(123), retries(0);
-            pSourceBintr->_setReconnectionStats(newLast, newCount, newIsInReset, newRetries);
+            dsl_rtsp_connection_data data{0}, newData{0};
+            data.first_connected = 123;
+            data.last_connected = 456;
+            data.last_disconnected = 789;
+            data.count = 654;
+            data.is_in_reconnect = true;
+            data.retries = 444;
+            pSourceBintr->_setConnectionData(data);
 
             THEN( "The correct value is returned on get" )
             {
-                pSourceBintr->GetReconnectionStats(&last, &count, &isInReset, &retries);
-                REQUIRE( last == newLast );
-                REQUIRE( count == newCount );
-                REQUIRE( isInReset == newIsInReset );
-                REQUIRE( retries == newRetries );
+                pSourceBintr->GetConnectionData(&newData);
+                REQUIRE( data.first_connected == newData.first_connected );
+                REQUIRE( data.last_connected == newData.last_connected );
+                REQUIRE( data.last_disconnected == newData.last_disconnected );
+                REQUIRE( data.count == newData.count );
+                REQUIRE( data.is_in_reconnect == newData.is_in_reconnect );
+                REQUIRE( data.retries == newData.retries );
             }
         }
     }
@@ -715,7 +727,7 @@ static void source_state_change_listener_cb2(uint prev_state, uint curr_state, v
         *(int*)user_data = 222;
 }
 
-SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBinter]" )
+SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -759,7 +771,7 @@ SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[Rts
     }
 }
             
-SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of state", "[RtspSourceBinter]" )
+SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of state", "[RtspSourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -796,7 +808,7 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
     }
 }
 
-SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[RtspSourceBinter]" )
+SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[RtspSourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -827,7 +839,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         
         WHEN( "The Source is in reset" )
         {
-            pRtspSourceBintr->_setReconnectionStats(0, 0, true, 1);
+            dsl_rtsp_connection_data data{0};
+            data.is_in_reconnect = true;
+            data.retries = 1;
+            pRtspSourceBintr->_setConnectionData(data);
 
             THEN( "The Stream Management callback returns true immediately" )
             {
@@ -837,7 +852,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         }
         WHEN( "The Source is NOT in reset and lastBufferTime is uninitialized" )
         {
-            pRtspSourceBintr->_setReconnectionStats(0, 0, false, 0);
+            dsl_rtsp_connection_data data{0};
+            data.is_in_reconnect = false;
+            data.retries = 0;
+            pRtspSourceBintr->_setConnectionData(data);
 
             THEN( "The Stream Management callback returns true immediately" )
             {
@@ -847,7 +865,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         }
         WHEN( "The Source is NOT in reset and lastBufferTime = current time" )
         {
-            pRtspSourceBintr->_setReconnectionStats(0, 0, false, 0);
+            dsl_rtsp_connection_data data{0};
+            data.is_in_reconnect = false;
+            data.retries = 0;
+            pRtspSourceBintr->_setConnectionData(data);
             // get the current time and update the Source buffer timestamp
             timeval currentTime{0};
             gettimeofday(&currentTime, NULL);
@@ -861,7 +882,10 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         }
         WHEN( "The Source is NOT in reset and currentTime-lastBufferTime > timeout" )
         {
-            pRtspSourceBintr->_setReconnectionStats(0, 0, false, 0);
+            dsl_rtsp_connection_data data{0};
+            data.is_in_reconnect = false;
+            data.retries = 0;
+            pRtspSourceBintr->_setConnectionData(data);
             pRtspSourceBintr->SetCurrentState(GST_STATE_PLAYING);
             // get the current time and update the Source buffer timestamp
             timeval currentTime{0};
@@ -904,7 +928,7 @@ SCENARIO( "A RtspSourceBintr can Get and Set its GPU ID",  "[RtspSourceBintr]" )
 
         REQUIRE( pRtspSourceBintr->GetGpuId() == GPUID0 );
         
-        WHEN( "The RtspSourceBintr's  GPU ID is set" )
+        WHEN( "The RtspSourceBintr's GPU ID is set" )
         {
             REQUIRE( pRtspSourceBintr->SetGpuId(GPUID1) == true );
 
