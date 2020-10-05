@@ -82,8 +82,17 @@ def state_change_listener(old_state, new_state, client_data):
 ## 
 # Function to be called on recording complete
 ## 
-def record_complete_listener(session_info, client_data):
+def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Complete  *** ')
+    
+    session_info = session_info_ptr.contents
+    print('sessionId:     ', session_info.sessionId)
+    print('filename:      ', session_info.filename)
+    print('dirpath:       ', session_info.dirpath)
+    print('duration:      ', session_info.duration)
+    print('containerType: ', session_info.containerType)
+    print('width:         ', session_info.width)
+    print('height:        ', session_info.height)
     
     retval, is_on = dsl_sink_record_is_on_get('record-sink')
     print('        is_on flag = ', is_on)
@@ -93,6 +102,8 @@ def record_complete_listener(session_info, client_data):
     
     # reset the Trigger so that a new session can be started.
     print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
+    
+    return None
 
 ## 
 # Custom check-for-occurrence (NOP) callback added to the Custome trigger.

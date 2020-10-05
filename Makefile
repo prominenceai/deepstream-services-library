@@ -31,7 +31,7 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.07.alpha"'
+DSL_VERSION:='L"v0.08.alpha"'
 NVDS_VERSION:=5.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -70,7 +70,6 @@ endif
 CFLAGS+= -I$(INC_INSTALL_DIR) \
     -I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
     -I/opt/include \
-	-I/opt/nvidia/deepstream/deepstream-4.0/sources/includes \
 	-I/usr/include \
 	-I/usr/include/gstreamer-$(GS_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
@@ -113,6 +112,9 @@ LIBS+= `pkg-config --libs $(PKGS)`
 
 all: $(APP)
 
+debug: CFLAGS += -DDEBUG -g
+debug: $(APP)
+
 PCH_INC=./src/Dsl.h
 PCH_OUT=./src/Dsl.h.gch
 $(PCH_OUT): $(PCH_INC) Makefile
@@ -133,6 +135,7 @@ lib:
 	
 so_lib:
 	$(CXX) -shared $(OBJS) -o dsl-lib.so $(LIBS) 
+	cp dsl-lib.so examples/python/
 
 clean:
 	rm -rf $(OBJS) $(APP) dsl-lib.a dsl-lib.so $(PCH_OUT)

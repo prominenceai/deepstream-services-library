@@ -70,7 +70,7 @@ namespace DSL
          * @param[out] rows the current number of rows
          * @param[out] columns the current number of columns
          */
-        void GetTiles(uint* rows, uint* columns);
+        void GetTiles(uint* columns, uint* rows);
         
         /**
          * @brief Sets the number of rows and columns for the TilerBintr
@@ -79,7 +79,7 @@ namespace DSL
          * @param[in] columns the number of columns to set
          * @return false if the TilerBintr is currently in Use. True otherwise
          */
-        bool SetTiles(uint rows, uint columns);
+        bool SetTiles(uint columns, uint rows);
 
         /**
          * @brief Gets the current width and height settings for this TilerBintr
@@ -123,6 +123,12 @@ namespace DSL
          * The show-source timeout, if running, will be canceled on call 
          */
         void ShowAllSources();
+        
+        /**
+         * @brief Cycles through all sources showing each until timeout.
+         * @param[in] timeout the time in seconds to show the current source
+         */
+        bool CycleAllSources(uint timeout);
         
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -186,6 +192,11 @@ namespace DSL
          * @brief show-source timer-id, non-zero == currently running
          */
         uint m_showSourceTimerId;
+        
+        /**
+         * @brief true if source cycling is enabled, false otherwise
+         */
+        bool m_showSourceCycle;
     };
 
     //----------------------------------------------------------------------------------------------

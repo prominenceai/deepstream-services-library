@@ -152,14 +152,10 @@ namespace DSL
         /**
          * @brief Links this BranchBintr, becoming a sink, to a Tee Elementr
          * The Tee can be either a demuxer of tee 
-         * @param[in] pTee Nodre to link this Sink Nodre back to
+         * @param[in] pTee Nodre to link this Sink Nodre back to.
+         * @return true if successfully linked, false otherwise.
          */
-        bool LinkToSource(DSL_NODETR_PTR pTee);
-
-        /**
-         * @brief Unlinks this BranchBintr, from a previously linked to source Tee Nodetr
-         */
-        bool UnlinkFromSource();
+        bool LinkToSourceTee(DSL_NODETR_PTR pTee, const char* padName);
 
     protected:
         

@@ -15,11 +15,12 @@
     * [Custom Handler](#custom-pad-probe-handler)
 * [Display Types](#display-types)
 * [Smart Recording](#smart-recording)
+* [RTSP Stream Connection Management](#rtsp-stream-connection-management)
+* [X11 Window Services](#x11-window-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
-* [X11 Window Support](#x11-window-support)
 * [API Reference](#api-reference)
 
 ## Introduction
@@ -151,7 +152,7 @@ Tiler components transform the multiplexed streams into a 2D grid array of tiles
 ```Python
 # assumes all components have been created first
 retval = dsl_pipeline_component_add_many('my-pipeline', 
-    ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink`, `window-sink` None])
+    ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink', 'window-sink', None])
 ```
 Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
@@ -251,7 +252,7 @@ Next, create the **Splitter Tee** and add **Branch-1** and the **Demuxer Tee** a
 
 ```Python
 # New Splitter to split the stream before the On-Screen Display
-retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'splitter', None])
+retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'demuxer', None])
 ```
 
 Last, create the two RTMP Decode Sources, Primary GIE, and Tracker. Then add the components and the Splitter to a new Pipeline
@@ -277,7 +278,8 @@ retval = dsl_source_rtsp_new('src-2',
 retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
 retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
 
-retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
+retval = dsl_pipeline_new_components_add_many('pipeline', 
+    components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
 
 # ready to play
 retval = dsl_pipeline_play('pipeline')
@@ -306,6 +308,9 @@ retval = dsl_sink_overlay_new('sink-overlay-2', overlay_id=0, display_id=0, dept
 # New Demuxer to to demux into separate streams, one per source.
 retval = dsl_tee_demuxer_new_branch_add_many('demuxer', branches=['sink-overlay-1', 'sink-overlay-2', None])
 
+# New Splitter to split the stream before the On-Screen Display
+retval = dsl_tee_splitter_new_branch_add_many('splitter', branches=['branch-1, 'demuxer', None])
+
 # For each camera, create a new RTSP Decode Source for the specific RTSP URI
 retval = dsl_source_rtsp_new('src-1', 
     url = rtsp_uri_1, 
@@ -326,7 +331,8 @@ retval = dsl_source_rtsp_new('src-2',
 retval = dsl_gie_primary_new('pgie', path_to_engine_file, path_to_config_file, interval=0)
 retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
 
-retval = dsl_pipeline_new_components_add_many('pipeline', components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
+retval = dsl_pipeline_new_components_add_many('pipeline', 
+    components=['src-1', 'src-2', 'pgie', 'tracker', 'splitter'])
 
 # ready to play
 ```
@@ -532,16 +538,31 @@ def RecordStarted(event_id, trigger,
 
     
 # Callback function to process all "record-complete" notifications
-def RecordComplete(session_info, client_data):
+def RecordComplete(session_info_ptr, client_data):
+    session_info = session_info_ptr.contents
 
-    # session_info is obtained using the NVIDIA python bindings
-    
     # cast the C void* client_data back to a py_object pointer and deref
     components = cast(client_data, POINTER(py_object)).contents.value
-
-    # reset the Trigger that started this recording so that a new session can be started.
+    
+    print('sessionId:     ', session_info.sessionId)
+    print('filename:      ', session_info.filename)
+    print('dirpath:       ', session_info.dirpath)
+    print('duration:      ', session_info.duration)
+    print('containerType: ', session_info.containerType)
+    print('width:         ', session_info.width)
+    print('height:        ', session_info.height)
+    
+    retval, is_on = dsl_tap_record_is_on_get(components.record_tap)
+    print('is_on:         ', is_on)
+    
+    retval, reset_done = dsl_tap_record_reset_done_get(components.record_tap)
+    print('reset_done:    ', reset_done)
+    
+    # reset the Trigger so that a new session can be started.
     dsl_ode_trigger_reset(components.occurrence_trigger)
-```
+    
+    return None
+```    
 The below function creates all "1-per-source" components for a given source-name and RTSP URI.
 The new Source component is added to the named Pipeline and the Trigger is added to [ODE Pad Probe Handler](/docs/api-pph.md)
 
@@ -697,6 +718,236 @@ dsl_delete-all()
 ```
 
 ---
+## RTSP Stream Connection Management
+RTSP Source Components have "built-in" stream connection management for detecting and resolving stream disconnections.   
+
+When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
+
+The Stream manager uses two client settable parameters to control the reconnection behavior. 
+
+1. `sleep` - the time to sleep between failed connection atempts, in units of seconds. 
+2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
+
+Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created, defined in `dslapi.h` as:
+```C
+#define DSL_RTSP_RECONNECTION_SLEEP_S    4
+#define DSL_RTSP_RECONNECTION_TIMEOUT_S  30
+```
+
+The client can register a `state-change-listener` callback function to be notified on every change-of-state, to monitor the connection process and update the reconnection parameters when needed.
+
+Expanding on the [Smart Recording](#smart-recording) example above,
+
+```Python
+##
+# Function to be called by all Source components on every change of state
+# old_state - the previous state of the source prior to change
+# new_state - the new state of source after the state change
+# client_data - components object containing the name of the Source
+##
+def SourceStateChangeListener(old_state, new_state, client_data):
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
+
+    print('RTSP Source ', components.source, 'change-of-state: previous =',
+        dsl_state_value_to_string(old_state), '- new =', dsl_state_value_to_string(new_state))
+    
+    # A change of state to NULL occurs on every disconnection and after each failed retry.
+    # A change of state to PLAYING occurs on every successful connection.
+    if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
+    
+        # Query the Source for it's current statistics and reconnection parameters
+        retval, data = dsl_source_rtsp_connection_data_get(components.source)
+        
+        print('Connection data for source:', components.source)
+        print('  is connected:     ', data.is_connected)
+        print('  first connected:  ', time.ctime(data.first_connected))
+        print('  last connected:   ', time.ctime(data.last_connected))
+        print('  last disconnected:', time.ctime(data.last_disconnected))
+        print('  total count:      ', data.count)
+        print('  in is reconnect:  ', data.is_in_reconnect)
+        print('  retries:          ', data.retries)
+        print('  sleep time:       ', data.sleep,'seconds')
+        print('  timeout:          ', data.timeout, 'seconds')
+
+        if (new_state == DSL_STATE_PLAYING):
+            print("setting the time to sleep between re-connection retries to 4 seconds for quick recovery")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=4, timeout=30)
+            
+        # If we're in a reconnection cycle, check if the number of quick recovery attempts has
+        # been reached. (20 * 4 =~ 80 seconds), before backing off on the time between retries 
+        elif (data.is_in_reconnect and data.retries == 20):
+            print("extending the time to sleep between re-connection retries to 20 seconds")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
+```
+When creating each RTSP Source component, set the Source's next-buffer-timeout, and then add the common `SourceStateChangeListener` callback to the Source with the `components` object as `client_data` to be returned on change-of-state. 
+
+```Python
+##
+# Function to create all "1-per-source" components, and add them to the Pipeline
+# pipeline - unique name of the Pipeline to add the Source components to
+# source - unique name for the RTSP Source to create
+# uri - unique uri for the new RTSP Source
+# ode_handler - Object Detection Event (ODE) handler to add the new Trigger and Actions to
+##
+def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
+   
+    # New Component names based on unique source name
+    components = ComponentNames(source)
+    
+    # For each camera, create a new RTSP Source for the specific RTSP URI
+    retval = dsl_source_rtsp_new(source, 
+        uri = rtsp_uri, 
+        protocol = DSL_RTP_ALL, 
+        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
+        intra_decode = False, 
+        drop_frame_interval = 0, 
+        latency=100,
+        timeout=3)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # Add our state change listener to the new source, with the component names as client data
+    retval = dsl_source_rtsp_state_change_listener_add(source, 
+        client_listener=source_state_change_listener,
+        client_data=components)
+    if (retval != DSL_RETURN_SUCCESS):
+        return retval
+        
+    # ---- create the remaining components
+    
+```
+Refer to the [Source API](/docs/api-source.md) documentation for more information. The script [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) provides a complete example.
+
+---
+
+## X11 Window Services
+DSL provides X11 Window Services for Pipelines that use a Window Sink. An Application can create an XWindow - using GTK+ for example - and pass the window handle to the Pipeline prior to playing, or let the Pipeline create the XWindow to use by default. 
+
+The client application can register callback functions to handle window events -- `ButtonPress`, `KeyRelease`, and `WindowDelete` -- caused by user interaction. 
+
+Expanding on the [Smart Recording](#smart-recording) example above, with its four Sources and Tiled Display, the following Client callback functions provide examples of how user input can be used to control the application. 
+
+The first callback allows the user to `select` a single source stream within the tiled view based on the positional coordinates of a `ButtonPress`. The selected stream will be shown for a specified time period, or until the window is clicked on again. A timeout value of 0 will disable the timer.
+
+``` Python
+## 
+# Function to be called on XWindow Button Press event
+# button - id of the button pressed, one of Button1..Button5
+# x_pos - x positional coordinate relative to the windows top/left corner
+# y_pos - y positional coordinate relative to the windows top/left corner
+# client_data - unused. 
+## 
+def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
+    print('button = ', button, ' pressed at x = ', x_pos, ' y = ', y_pos)
+    
+    # time to show the single source before returning to view all. A timeout value of 0
+    # will disable the Tiler's timer and show the single source until called on again.
+    global SHOW_SOURCE_TIMEOUT
+
+    if (button == Button1):
+        # get the current XWindow dimensions as the User may have resized it. 
+        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        
+        # call the Tiler to show the source based on the x and y button cooridantes relative
+        # to the current window dimensions obtained from the XWindow.
+        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+```
+The second callback, called on KeyRelease, allows the user to
+1. show a single source, or all
+2. cycle through all sources on a time interval, 
+3. quit the application. 
+
+```Python
+## 
+# Function to be called on XWindow KeyRelease event
+# key_string - the ASCI key string value of the key pressed and released
+# client_data
+## 
+def XWindowKeyReleaseEventHandler(key_string, client_data):
+    print('key released = ', key_string)
+    
+    global SHOW_SOURCE_TIMEOUT
+        
+    # if one of the unique soure Ids, show source
+    elif key_string >= '0' and key_string <= '3':
+        retval, source = dsl_source_name_get(int(key_string))
+        if retval == DSL_RETURN_SUCCESS:
+            dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
+            
+    # C = cycle All sources
+    elif key_string.upper() == 'C':
+        dsl_tiler_source_show_cycle('tiler', timeout=SHOW_SOURCE_TIMEOUT)
+
+    # A = show All sources
+    elif key_string.upper() == 'A':
+        dsl_tiler_source_show_all('tiler')
+
+    # Q or Esc = quit application
+    if key_string.upper() == 'Q' or key_string == '':
+        dsl_main_loop_quit()
+```
+The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
+
+```Python
+# Function to be called on XWindow Delete event
+def XWindowDeleteEventHandler(client_data):
+    print('delete window event')
+    dsl_main_loop_quit()
+
+```
+The callback functions are added to the Pipeline after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
+
+```Python
+while True:
+
+    # New Pipeline
+    retval = dsl_pipeline_new('pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    if (retval != DSL_RETURN_SUCCESS):
+        break
+    # Add the XWindow event handler functions defined above
+    retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', XWindowButtonEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', XWindowKeyReleaseEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+    retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', XWindowDeleteEventHandler, None)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+
+    # Set the XWindow into 'full-screen' mode for a kiosk look and feel.         
+    retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
+    if retval != DSL_RETURN_SUCCESS:
+        break
+        
+    # Create all other required components and add them to the Pipeline (see some examples above)
+    # ...
+ 
+    retval = dsl_pipeline_play('pipeline')
+    if retval != DSL_RETURN_SUCCESS:
+        break
+ 
+    # Start/Join with main loop until released - blocking call
+    dsl_main_loop_run()
+    retval = DSL_RETURN_SUCCESS
+    break
+
+#print out the final result
+print(dsl_return_value_to_string(retval))
+
+# clean up all resources
+dsl_delete_all()
+```
+
+<br>
+
+---
 
 ## DSL Initialization
 The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time unless the calling application has already done so. 
@@ -750,75 +1001,6 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 ```
 
 <br>
-
-
-## X11 Window Support
-DSL provides X11 Window support for Pipelines that have one or more Window Sinks. An Application can create Windows - using GTK+ for example - and share them with Pipelines prior to playing, or let the Pipeline create a Display and Window to use. 
-
-``` Python
-# Function to be called on XWindow ButtonPress event
-def xwindow_button_event_handler(xpos, ypos, client_data):
-    print('button pressed: xpos = ', xpos, ', ypos = ', ypos)
-    
-# Function to be called on XWindow KeyRelease event - non-live streams
-def xwindow_key_event_handler(key_string, client_data):
-    print('key released = ', key_string)
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == ' ':
-        dsl_main_loop_quit()
- 
-# Function to be called on XWindow Delete event
-def xwindow_delete_event_handler(client_data):
-    print('delete window event')
-    dsl_main_loop_quit()
-
-while True:
-
-    # New Pipeline
-    retval = dsl_pipeline_new('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
-
-    retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-
-    # Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_key_event_handler_add(1'my-pipeline', xwindow_key_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', xwindow_button_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-    retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
-    if retval != DSL_RETURN_SUCCESS:
-        break
-        
-    # Create all other required components and add them to the Pipeline (see some examples above)
-    # ...
- 
-    retval = dsl_pipeline_play('my-pipeline')
-    if retval != DSL_RETURN_SUCCESS:
-        break
- 
-    # Start/Join with main loop until released - blocking call
-    dsl_main_loop_run()
-    retval = DSL_RETURN_SUCCESS
-    break
-
-#print out the final result
-print(dsl_return_value_to_string(retval))
-
-# clean up all resources
-dsl_delete_all()
-```
-
-<br>
-
----
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)

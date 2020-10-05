@@ -111,19 +111,6 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Links this MultiComponentsBintr back to a source Demuxer element
-         * @param[in] pDemuxer to link back to
-         * @return true on successful Link false other
-         */
-        bool LinkToSource(DSL_NODETR_PTR pDemuxer);
-        
-        /**
-         * @brief Unlinks this MultiComponentsBintr from a source Demuxer element
-         * @return true on successful Unlink false other
-         */
-        bool UnlinkFromSource();
-        
-        /**
          * @brief sets the batch size for this Bintr
          * @param[in] batchSize the new batch size to use
          */

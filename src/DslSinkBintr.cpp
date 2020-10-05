@@ -22,11 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <nvbufsurftransform.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgproc/types_c.h"
-#include "opencv2/highgui/highgui.hpp"
-
 #include "Dsl.h"
 #include "DslSinkBintr.h"
 #include "DslBranchBintr.h"
@@ -83,79 +78,6 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    bool SinkBintr::LinkToSource(DSL_NODETR_PTR pTee)
-    {
-        LOG_FUNC();
-
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Linking Sink '" << GetName() << "' to Pad '" << srcPadName
-            << "' for Tee '" << pTee->GetName() << "'");
-        
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for SinkBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pRequestedSourcePad(NULL);
-
-        // NOTE: important to use the correct request pad name based on the element type
-        // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
-        DSL_ELEMENT_PTR pTeeElementr = 
-            std::dynamic_pointer_cast<Elementr>(pTee);
-
-        if (pTeeElementr->IsFactoryName("nvstreamdemux"))
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), srcPadName.c_str());
-        }
-        else // standard "Tee"
-        {
-            pRequestedSourcePad = gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
-        }
-            
-        if (!pRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee source Pad for SinkBintr '" << GetName() <<"'");
-            return false;
-        }
-
-        m_pGstRequestedSourcePads[srcPadName] = pRequestedSourcePad;
-
-        return Bintr::LinkToSource(pTee);
-        
-    }
-    
-    bool SinkBintr::UnlinkFromSource()
-    {
-        LOG_FUNC();
-        
-        // If we're not currently linked to the Tee
-        if (!IsLinkedToSource())
-        {
-            LOG_ERROR("SinkBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string srcPadName = "src_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing requested Source Pad for Sink Tee " << GetName());
-        
-        gst_pad_send_event(m_pGstStaticSinkPad, gst_event_new_eos());
-        if (!gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad))
-        {
-            LOG_ERROR("SinkBintr '" << GetName() << "' failed to unlink from MultiSinks Tee");
-            return false;
-        }
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-        gst_object_unref(m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
-    }
-
     void SinkBintr::GetSyncSettings(bool* sync, bool* async)
     {
         LOG_FUNC();
@@ -198,7 +120,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("FakeSinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("FakeSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pFakeSink))
@@ -215,7 +137,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("FakeSinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("FakeSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -283,7 +205,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pOverlay))
@@ -300,7 +222,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -453,7 +375,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pTransform) or
@@ -471,7 +393,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -658,7 +580,7 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << m_name << "'");
+        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for FileSinkBintr '" << GetName() << "'");
 
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
@@ -712,7 +634,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("FileSinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("FileSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pTransform) or
@@ -734,7 +656,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("FileSinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("FileSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pContainer->UnlinkFromSink();
@@ -768,39 +690,12 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint codec, uint container, uint bitRate, uint interval, NvDsSRCallbackFunc clientListener)
+        uint codec, uint container, uint bitRate, uint interval, dsl_record_client_listener_cb clientListener)
         : EncodeSinkBintr(name, codec, container, bitRate, interval)
-        , m_outdir(outdir)
-        , m_pContext(NULL)
+        , RecordMgr(name, outdir, container, clientListener)
     {
         LOG_FUNC();
         
-        switch (container)
-        {
-        case DSL_CONTAINER_MP4 :
-            m_initParams.containerType = NVDSSR_CONTAINER_MP4;        
-            break;
-        case DSL_CONTAINER_MKV :
-            m_initParams.containerType = NVDSSR_CONTAINER_MKV;        
-            break;
-        default:
-            LOG_ERROR("Invalid container = '" << container << "' for new RecordSinkBintr '" << name << "'");
-            throw;
-        }
-        
-        // Set single callback listener. Unique clients are identifed using client_data provided on Start session
-        m_initParams.callback = clientListener;
-        
-        // Set both width and height params to zero = no-transcode
-        m_initParams.width = 0;  
-        m_initParams.height = 0; 
-        
-        // Filename prefix uses bintr name by default
-        m_initParams.fileNamePrefix = const_cast<gchar*>(GetCStrName());
-        m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
-        
-        m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
-        m_initParams.videoCacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -819,16 +714,11 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("RecordSinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("RecordSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
 
-        // Create the smart record context
-        if (NvDsSRCreate(&m_pContext, &m_initParams) != NVDSSR_STATUS_OK)
-        {
-            LOG_ERROR("Failed to create Smart Record Context for new RecordSinkBintr '" << m_name << "'");
-            return false;
-        }
+        CreateContext();
         
         m_pRecordBin = DSL_NODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
@@ -847,7 +737,7 @@ namespace DSL
         
         if (gst_pad_link(srcPad, sinkPad) != GST_PAD_LINK_OK)
         {
-            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" << m_name << "'");
+            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" << GetName() << "'");
             return false;
         }
         m_isLinked = true;
@@ -860,7 +750,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("RecordSinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("RecordSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
@@ -876,147 +766,11 @@ namespace DSL
         RemoveChild(m_pRecordBin);
         
         m_pRecordBin = nullptr;
-        NvDsSRDestroy(m_pContext);
-        m_pContext = NULL;
+        DestroyContext();
         
         m_isLinked = false;
     }
 
-    const char* RecordSinkBintr::GetOutdir()
-    {
-        LOG_FUNC();
-        
-        return m_outdir.c_str();
-    }
-    
-    bool RecordSinkBintr::SetOutdir(const char* outdir)
-    {
-        LOG_FUNC();
-
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set the Output for RecordSinkBintr '" << GetName() 
-                << "' as it's currently Linked");
-            return false;
-        }
-        
-        m_outdir.assign(outdir);
-        return true;
-    }
-
-    uint RecordSinkBintr::GetCacheSize()
-    {
-        LOG_FUNC();
-        
-        return m_initParams.videoCacheSize;
-    }
-
-    bool RecordSinkBintr::SetCacheSize(uint videoCacheSize)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set cache size for RecordSinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_initParams.videoCacheSize = videoCacheSize;
-        
-        return true;
-    }
-
-
-    void RecordSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_initParams.width;
-        *height = m_initParams.height;
-    }
-
-    bool RecordSinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Dimensions for RecordSinkBintr '" << GetName() 
-                << "' as it's currently Linked");
-            return false;
-        }
-
-        m_initParams.width = width;
-        m_initParams.height = height;
-        
-        return true;
-    }
-    
-    bool RecordSinkBintr::StartSession(uint* session, uint start, uint duration, void* clientData)
-    {
-        LOG_FUNC();
-        
-        if (!IsLinked())
-        {
-            LOG_ERROR("Unable to Start Session for RecordSinkBintr '" << GetName() 
-                << "' as it is not currently Linked");
-            return false;
-        }
-        return (NvDsSRStart(m_pContext, session, start, duration, clientData) == NVDSSR_STATUS_OK);
-    }
-    
-    bool RecordSinkBintr::StopSession(uint session)
-    {
-        LOG_FUNC();
-        
-        if (!IsLinked())
-        {
-            LOG_ERROR("Unable to Stop Session for RecordSinkBintr '" << GetName() 
-                << "' as it is not currently Linked");
-            return false;
-        }
-        return (NvDsSRStop(m_pContext, session) == NVDSSR_STATUS_OK);
-    }
-    
-    bool RecordSinkBintr::GotKeyFrame()
-    {
-        LOG_FUNC();
-        
-        if (!m_pContext or !IsLinked())
-        {
-            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
-                << "' is not currently Linked");
-            return false;
-        }
-        return m_pContext->gotKeyFrame;
-    }
-    
-    bool RecordSinkBintr::IsOn()
-    {
-        LOG_FUNC();
-        
-        if (!m_pContext or !IsLinked())
-        {
-            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
-                << "' is not currently Linked");
-            return false;
-        }
-        return m_pContext->recordOn;
-    }
-    
-    bool RecordSinkBintr::ResetDone()
-    {
-        LOG_FUNC();
-        
-        if (!m_pContext or !IsLinked())
-        {
-            LOG_WARN("There is no Record Bin context to query as '" << GetName() 
-                << "' is not currently Linked");
-            return false;
-        }
-        return m_pContext->resetDone;
-    }
     
     bool RecordSinkBintr::SetSyncSettings(bool sync, bool async)
     {
@@ -1034,7 +788,6 @@ namespace DSL
         // TODO set sync/async for file element owned by context??
         return true;
     }
-    
 
     //******************************************************************************************
     
@@ -1104,13 +857,13 @@ namespace DSL
         m_pFactory = gst_rtsp_media_factory_new();
         gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
 
-        LOG_INFO("UDP Src for RtspSinkBintr '" << m_name << "' = " << udpSrc);
+        LOG_INFO("UDP Src for RtspSinkBintr '" << GetName() << "' = " << udpSrc);
 
         // Get a handle to the Mount-Points object from the new RTSP Server
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
 
         // Attach the RTSP Media Factory to the mount-point-path in the mounts object.
-        std::string uniquePath = "/" + m_name;
+        std::string uniquePath = "/" + GetName();
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
@@ -1138,7 +891,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << m_name << "' is already linked");
+            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         
@@ -1166,7 +919,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << m_name << "' is not linked");
+            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         if (m_pServerSrcId)

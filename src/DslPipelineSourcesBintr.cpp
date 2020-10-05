@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslPadProbeHandler.h"
 #include "DslPipelineSourcesBintr.h"
 #include "DslServices.h"
 
@@ -50,7 +51,7 @@ namespace DSL
 
         // Float the StreamMux src pad as a Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
-    }
+}
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
     {
@@ -83,8 +84,35 @@ namespace DSL
         // Set the play type based on the first source added
         if (m_pChildSources.size() == 0)
         {
-            SetStreamMuxPlayType(
-                std::dynamic_pointer_cast<SourceBintr>(pChildSource)->IsLive());
+            StreamMuxPlayTypeIsLiveSet(pChildSource->IsLive());
+        }
+        else if (pChildSource->IsLive() != StreamMuxPlayTypeIsLiveGet())
+        {
+            LOG_ERROR("Can't add Source '" << pChildSource->GetName() << "' with IsLive=" << pChildSource->IsLive()  << 
+                " to streamuxer  '" << GetName() << "' with IsLive=" << StreamMuxPlayTypeIsLiveGet());
+            return false;
+        }
+        // If we're adding an RTSP Source, determine if EOS consumer should be added to Streammuxer
+        if (pChildSource->IsType(typeid(RtspSourceBintr)) and m_pEosConsumer == nullptr)
+        {
+            DSL_RTSP_SOURCE_PTR pRtspSource = std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
+            
+            // If stream management is enabled for at least one RTSP source, add the EOS Consumer
+            if (pRtspSource->GetBufferTimeout())
+            {
+                LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
+                
+                // Create the Pad Probe and EOS Consumer to drop the EOS event that occurs on 
+                // loss of RTSP stream, allowing the Pipeline to continue to play. Each RTSP source 
+                // will then manage their own restart attempts and time management.
+
+                std::string eventHandlerName = GetName() + "-eos-consumer";
+                m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
+
+                std::string padProbeName = GetName() + "-src-pad-probe";
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), "src", m_pStreamMux);
+                m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
+            }
         }
         
         // Add the Source to the Sources collection and as a child of this Bintr
@@ -175,7 +203,9 @@ namespace DSL
                     << "' failed to Set Source name for  '" << imap.second->GetName() << "'");
                 return false;
             }   
-            if (!imap.second->LinkAll() or !imap.second->LinkToSink(m_pStreamMux))
+            std::string sinkPadName = "sink_" + std::to_string(id);
+            
+            if (!imap.second->LinkAll() or !imap.second->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" << imap.second->GetName() << "'");
@@ -186,8 +216,7 @@ namespace DSL
         if (!m_batchSize)
         {
             // Set the Batch size to the nuber of sources owned if not already set
-            // TODO add support for managing batch timeout
-            SetStreamMuxBatchProperties(m_pChildSources.size(), 40000);
+            SetStreamMuxBatchProperties(m_pChildSources.size(), DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT);
         }
         m_isLinked = true;
         
@@ -207,8 +236,8 @@ namespace DSL
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " << imap.second->GetName());
-            if (!imap.second->UnlinkFromSink())
-            {
+            if (!imap.second->UnlinkFromSinkMuxer())
+            {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
                 return;
@@ -222,22 +251,23 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void PipelineSourcesBintr::SetStreamMuxPlayType(bool areSourcesLive)
-    {
-        LOG_FUNC();
-        
-        m_areSourcesLive = areSourcesLive;
-        
-        m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
-    }
-
-    bool PipelineSourcesBintr::StreamMuxPlayTypeIsLive()
+    bool PipelineSourcesBintr::StreamMuxPlayTypeIsLiveGet()
     {
         LOG_FUNC();
         
         return m_areSourcesLive;
     }
     
+    void PipelineSourcesBintr::StreamMuxPlayTypeIsLiveSet(bool isLive)
+    {
+        LOG_FUNC();
+        
+        m_areSourcesLive = isLive;
+        
+        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive << "' for Streammuxer '" << GetName() << "'");
+        m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
+    }
+
     void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, guint* batchTimeout)
     {
         LOG_FUNC();

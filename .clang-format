@@ -1,0 +1,23 @@
+# See: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+# See: https://code.visualstudio.com/docs/cpp/cpp-ide#_code-formatting
+
+# Copied from "Visual Studio" style
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+
+# Custom
+AccessModifierOffset: -4
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: DontAlign
+AllowShortBlocksOnASingleLine: Never
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+DerivePointerAlignment: false
+NamespaceIndentation: All
+PointerAlignment: Left

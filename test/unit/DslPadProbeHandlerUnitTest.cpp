@@ -169,6 +169,95 @@ SCENARIO( "A new MeterPadProbeHandler can Get/Set attributes correctly", "[PadPr
     }
 }
 
+SCENARIO( "A new EosConsumerPadProbeEventHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new EosConsumerPadProbeEventHandler" ) 
+    {
+        std::string handlerName("eos-consumer");
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPEH_EOS_CONSUMER_PTR pPadProbeHandler = 
+                DSL_PPEH_EOS_CONSUMER_NEW(handlerName.c_str());
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pPadProbeHandler->GetName()  == handlerName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new EosHandlerPadProbeEventHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new EosHandlerPadProbeEventHandler" ) 
+    {
+        std::string handlerName("eos-handler");
+        dsl_pph_client_handler_cb clientHandler;
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPEH_EOS_HANDLER_PTR pPadProbeHandler = 
+                DSL_PPEH_EOS_HANDLER_NEW(handlerName.c_str(), clientHandler, NULL);
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pPadProbeHandler->GetName()  == handlerName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new TimestampPadProbeHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new TimestampPadProbeHandler" ) 
+    {
+        std::string handlerName("timestamp-handler");
+        struct timeval timestamp{0};
+        timestamp.tv_sec = 123;
+        timestamp.tv_usec = 456;
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPH_TIMESTAMP_PTR pPadProbeHandler = 
+                DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                pPadProbeHandler->GetTime(timestamp);
+                REQUIRE( timestamp.tv_sec == 0 );
+                REQUIRE( timestamp.tv_usec == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "When a TimestampPadProbeHandler timestamp is Set the correct value is returned on Get ", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new TimestampPadProbeHandler" ) 
+    {
+        std::string handlerName("timestamp-handler");
+        struct timeval timestamp{123,345};
+        struct timeval retTimestamp{0,0};
+
+        DSL_PPH_TIMESTAMP_PTR pPadProbeHandler = 
+            DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                pPadProbeHandler->SetTime(timestamp);
+                pPadProbeHandler->GetTime(retTimestamp);
+                REQUIRE( retTimestamp.tv_sec == timestamp.tv_sec );
+                REQUIRE( retTimestamp.tv_usec == timestamp.tv_usec );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "A PadProbeHandler can be added to the Sink Pad of a Bintr", "[PadProbeHandler]" )
 {
     GIVEN( "A new Tracker and OdePadProbeHandlr in memory" ) 

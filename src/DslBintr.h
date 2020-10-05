@@ -133,25 +133,6 @@ namespace DSL
                 
             return pParentBintr->RemoveChild(shared_from_this());
         }
-        
-//        /**
-//         * @brief Adds a named Ghost Pad to this Bintr using a provided Elementr
-//         * @param[in] name for the new Ghost Pad
-//         * @param[in] pElementr to retrieve the static Sink pad from
-//         */
-//        virtual void AddGhostPad(const char* name, DSL_BASE_PTR pElementr)
-//        {
-//            LOG_FUNC();
-//            
-//            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
-//            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
-//            if (!gst_element_add_pad(GetGstElement(), 
-//                gst_ghost_pad_new(name, gst_element_get_static_pad(pElementr->GetGstElement(), name))))
-//            {
-//                LOG_ERROR("Failed to add Pad '" << name << "' for element'" << GetName() << "'");
-//                throw;
-//            }
-//        }
 
         /**
          * @brief virtual function for derived classes to implement
@@ -215,13 +196,28 @@ namespace DSL
          * @brief sets the interval for this Bintr
          * @param the new interval to use
          */
-        bool SetInterval(uint interval);
+        bool SetInterval(uint interval, uint timeout);
 
+        /**
+         * @brief gets the current state of the Bintr
+         * @param[out] state current state of the Bintr
+         * @return one of GST_STATE_CHANGE values.
+         */
+        uint GetState(GstState& state, GstClockTime timeout)
+        {
+            LOG_FUNC();
+
+            uint retval = gst_element_get_state(GetGstElement(), &state, NULL, timeout);
+            LOG_DEBUG("Get state returned '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
+            
+            return retval;
+        }
+        
         /**
          * @brief Attempts to set the state of this Bintr's GST Element
          * @return true if successful transition, false on failure
          */
-        bool SetState(GstState state)
+        bool SetState(GstState state, GstClockTime timeout)
         {
             LOG_FUNC();
             LOG_INFO("Changing state to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
@@ -233,10 +229,12 @@ namespace DSL
                     LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
                     return true;
                 case GST_STATE_CHANGE_FAILURE:
-                case GST_STATE_CHANGE_NO_PREROLL:
                     LOG_ERROR("FAILURE occured when trying to change state to '" << 
                         gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                     return false;
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
+                    return true;
                 case GST_STATE_CHANGE_ASYNC:
                     LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
                     break;
@@ -245,7 +243,7 @@ namespace DSL
             }
             
             // Wait until state change or failure, no timeout.
-            if (gst_element_get_state(GetGstElement(), NULL, NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND) == GST_STATE_CHANGE_FAILURE)
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, timeout) == GST_STATE_CHANGE_FAILURE)
             {
                 LOG_ERROR("FAILURE occured waiting for state to change to '" << gst_element_state_get_name(state) << "' for Bintr '" << GetName() << "'");
                 return false;
@@ -254,6 +252,33 @@ namespace DSL
             return true;
         }
 
+        uint SyncStateWithParent(GstState& parentState, GstClockTime timeout)
+        {
+            LOG_FUNC();
+            
+            uint returnVal = gst_element_sync_state_with_parent(GetGstElement());
+
+            switch (returnVal) 
+            {
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("State change completed synchronously for Bintr'" << GetName() << "'");
+                    return returnVal;
+                case GST_STATE_CHANGE_FAILURE:
+                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for Bintr '" << GetName() << "'");
+                    return returnVal;
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("Set state for Bintr '" << GetName() << "' return GST_STATE_CHANGE_NO_PREROLL");
+                    return returnVal;
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for Bintr '" << GetName() << "'");
+                    break;
+                default:
+                    break;
+            }
+            uint retval = gst_element_get_state(GST_ELEMENT_PARENT(GetGstElement()), &parentState, NULL, timeout);
+            LOG_INFO("Get state returned '" << gst_element_state_get_name(parentState) << "' for Parent of Bintr '" << GetName() << "'");
+            return retval;
+        }
         
         bool SendEos()
         {

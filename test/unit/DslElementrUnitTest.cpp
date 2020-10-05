@@ -41,7 +41,6 @@ SCENARIO( "An Elementr is constructed correctly", "[Elementr]" )
             {
                 REQUIRE( pElementr->GetName() == elementName );
                 REQUIRE( pElementr->GetParentState() == GST_STATE_NULL );
-                REQUIRE( pElementr->GetState() == GST_STATE_NULL );
             }
         }
     }

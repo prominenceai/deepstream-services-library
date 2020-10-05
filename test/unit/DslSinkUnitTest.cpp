@@ -828,7 +828,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Rec
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         WHEN( "The DSL_CONTAINER_MP4 RecordSinkBintr is created" )
         {
@@ -868,7 +868,7 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBi
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
             outdir.c_str(), codec, container, bitrate, interval, clientListener);
@@ -904,6 +904,56 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[RecordSinkBi
     }
 }
 
+static void* record_complete_cb(dsl_recording_info* info, void* client_data)
+{
+    std::cout << "sessionId:     " << info->sessionId << "\n";
+    std::wcout << L"filename:      " << info->filename << L"\n";
+    std::wcout << L"dirpath:       " << info->dirpath << L"\n";
+    std::cout << "containerType: " << info->containerType << "\n";
+    std::cout << "width:         " << info->width << "\n";
+    std::cout << "height:        " << info->height << "\n";
+    
+    return (void*)0x12345678;
+}
+
+SCENARIO( "A RecordSinkBintr handles a Record Complete Notificatin correctly",  "[RecordSinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_MPEG4 RecordSinkBintr" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, record_complete_cb);
+
+        WHEN( "The RecordSinkBinter is called to handle a record complete" )
+        {
+            std::string filename("recording-file-name");
+            std::string dirpath("recording-dir-path");
+            NvDsSRRecordingInfo recordingInfo{0};
+            recordingInfo.sessionId = 123;
+            recordingInfo.filename = const_cast<gchar*>(filename.c_str());
+            recordingInfo.dirpath = const_cast<gchar*>(dirpath.c_str());
+            recordingInfo.containerType = NVDSSR_CONTAINER_MP4;
+            recordingInfo.width = 123;
+            recordingInfo.height = 456;
+            
+            void* retval = pSinkBintr->HandleRecordComplete(&recordingInfo);
+            
+            THEN( "The correct response is returned" )
+            {
+                REQUIRE( retval == (void*)0x12345678 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs", "[RecordSinkBintr]" )
 {
     GIVEN( "A new DSL_CONTAINER_MP4 RecordSinkBintr in an Unlinked state" ) 
@@ -915,7 +965,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr can LinkAll Child Elementrs",
         uint interval(0);
         uint container(DSL_CONTAINER_MKV);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
             outdir.c_str(), codec, container, bitrate, interval, clientListener);
@@ -952,7 +1002,7 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elemen
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
-        NvDsSRCallbackFunc clientListener;
+        dsl_record_client_listener_cb clientListener;
 
         DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
             outdir.c_str(), codec, container, bitrate, interval, clientListener);
@@ -1187,3 +1237,4 @@ SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[RtspSinkBintr]" )
         }
     }
 }
+

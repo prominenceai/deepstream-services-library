@@ -28,12 +28,8 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslSurfaceTransform.h"
 #include "DslDisplayTypes.h"
-
-#include <nvbufsurftransform.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/imgproc/types_c.h"
-#include "opencv2/highgui/highgui.hpp"
 
 namespace DSL
 {
@@ -1393,10 +1389,6 @@ namespace DSL
          */
         void* m_clientData;
         
-        /**
-         * @brief unique recording session id aquired on Start Record
-         */
-        uint m_session;
     };
 
     // ********************************************************************
@@ -1456,11 +1448,6 @@ namespace DSL
          * @brief client Data for client listening for recording session complete/stopped
          */
         void* m_clientData;
-        
-        /**
-         * @brief unique recording session id aquired on Start Record
-         */
-        uint m_session;
     };
 
     // ********************************************************************

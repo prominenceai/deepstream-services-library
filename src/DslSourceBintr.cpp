@@ -100,62 +100,6 @@ namespace DSL
         *fps_d = m_fps_d;
     }
 
-    bool SourceBintr::LinkToSink(DSL_NODETR_PTR pStreamMux) 
-    {
-        LOG_FUNC();
-
-        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
-        
-        LOG_INFO("Linking Source '" << GetName() << "' to Pad '" << sinkPadName 
-            << "' for StreamMux '" << pStreamMux->GetName() << "'");
-       
-        m_pGstStaticSourcePad = gst_element_get_static_pad(GetGstElement(), "src");
-        if (!m_pGstStaticSourcePad)
-        {
-            LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSinkPad = gst_element_get_request_pad(pStreamMux->GetGstElement(), sinkPadName.c_str());
-            
-        if (!pGstRequestedSinkPad)
-        {
-            LOG_ERROR("Failed to get Requested Sink Pad for StreamMux '" << pStreamMux->GetName() << "'");
-            return false;
-        }
-        m_pGstRequestedSinkPads[sinkPadName] = pGstRequestedSinkPad;
-            
-        return Bintr::LinkToSink(pStreamMux);
-    }
-
-    bool SourceBintr::UnlinkFromSink()
-    {
-        LOG_FUNC();
-
-        // If we're currently linked to the StreamMuxer
-        if (!IsLinkedToSink())
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string sinkPadName = "sink_" + std::to_string(m_uniqueId);
-
-        LOG_INFO("Unlinking and releasing request Sink Pad for StreamMux " << m_pSink->GetName());
-
-        gst_pad_send_event(m_pGstRequestedSinkPads[sinkPadName], gst_event_new_flush_stop(FALSE));
-        if (!gst_pad_unlink(m_pGstStaticSourcePad, m_pGstRequestedSinkPads[sinkPadName]))
-        {
-            LOG_ERROR("SourceBintr '" << GetName() << "' failed to unlink from StreamMuxer");
-            return false;
-        }
-        gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPads[sinkPadName]);
-        gst_object_unref(m_pGstRequestedSinkPads[sinkPadName]);
-
-        m_pGstRequestedSinkPads.erase(sinkPadName);
-        return Bintr::UnlinkFromSink();
-    }
-    
     //*********************************************************************************
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
@@ -388,8 +332,7 @@ namespace DSL
         }
         
         LOG_INFO("URI Path = " << m_uri);
-        std::string sourceElementName = "src-element" + GetName();
-        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, sourceElementName.c_str());
+        m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         if (m_uri.find("rtsp") != std::string::npos)
         {
@@ -526,7 +469,7 @@ namespace DSL
     
     gboolean DecodeSourceBintr::HandleStreamBufferSeek()
     {
-        SetState(GST_STATE_PAUSED);
+        SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         
         gboolean retval = gst_element_seek(GetGstElement(), 1.0, GST_FORMAT_TIME,
             (GstSeekFlags)(GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_FLUSH),
@@ -537,7 +480,7 @@ namespace DSL
             LOG_WARN("Failure to seek");
         }
 
-        SetState(GST_STATE_PLAYING);
+        SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         return false;
     }
 
@@ -795,9 +738,19 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
         : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
+        , m_bufferTimeout(timeout)
+        , m_streamManagerTimerId(0)
+        , m_reconnectionManagerTimerId(0)
+        , m_connectionData{0}
+        , m_reconnectionFailed(false)
+        , m_reconnectionSleep(0)
+        , m_reconnectionStartTime{0}
+        , m_currentState(GST_STATE_NULL)
+        , m_previousState(GST_STATE_NULL)
+        , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
         
@@ -833,9 +786,25 @@ namespace DSL
         AddChild(m_pPreDecodeQueue);
         AddChild(m_pDecodeBin);
         AddChild(m_pSourceQueue);
-        
-        // Source Ghost Pad for Source Queue
+
+        // Source Ghost Pad for Source Queue as src pad to connect to streammuxer
         m_pSourceQueue->AddGhostPadToParent("src");
+        
+        // New timestamp PPH to stamp the time of the last buffer - used to monitor the RTSP connection
+        std::string handlerName = GetName() + "-timestamp-pph";
+        m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
+        
+        std::string padProbeName = GetName() + "-src-pad-probe";
+        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), "src", m_pSourceQueue);
+        m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
+        
+        g_mutex_init(&m_streamManagerMutex);
+        g_mutex_init(&m_reconnectionManagerMutex);
+        g_mutex_init(&m_stateChangeMutex);
+        
+        // Set the default connection param values
+        m_connectionData.sleep = DSL_RTSP_RECONNECTION_SLEEP_S;
+        m_connectionData.timeout = DSL_RTSP_RECONNECTION_TIMEOUT_S;
     }
 
     RtspSourceBintr::~RtspSourceBintr()
@@ -846,6 +815,24 @@ namespace DSL
         {
             UnlinkAll();
         }
+        if (m_streamManagerTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+            g_source_remove(m_streamManagerTimerId);
+        }
+        if (m_reconnectionManagerTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+            g_source_remove(m_reconnectionManagerTimerId);
+        }
+
+        // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
+        
+        m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
+        
+        g_mutex_clear(&m_streamManagerMutex);
+        g_mutex_clear(&m_stateChangeMutex);
+        
     }
     
     bool RtspSourceBintr::LinkAll()
@@ -860,28 +847,8 @@ namespace DSL
 
         if (HasTapBintr())
         {
-            GstPadTemplate* pPadTemplate = 
-                gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pPreDecodeTee->GetGstElement()), "src_%u");
-            if (!pPadTemplate)
-            {
-                LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
-                return false;
-            }
-        
-            // The TEE for this source is linked to both the "pre-decode-queue" and the TapBintr
-
-            GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pPreDecodeTee->GetGstElement(), pPadTemplate, NULL, NULL);
-            if (!pGstRequestedSourcePad)
-            {
-                LOG_ERROR("Failed to get Tee Pad for RTSP Source '" << GetName() <<"'");
-                return false;
-            }
-            std::string padForPreDecodeName = "padForPreDecodeQueue_" + std::to_string(m_uniqueId);
-
-            m_pGstRequestedSourcePads[padForPreDecodeName] = pGstRequestedSourcePad;
-        
-            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSource(m_pPreDecodeTee) or
-                !m_pPreDecodeQueue->LinkToSource(m_pPreDecodeTee))
+            if (!m_pTapBintr->LinkAll() or !m_pTapBintr->LinkToSourceTee(m_pPreDecodeTee) or
+                !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u"))
             {
                 return false;
             }
@@ -891,7 +858,6 @@ namespace DSL
             return false;
         }
         m_isLinked = true;
-        
         return true;
     }
 
@@ -904,12 +870,30 @@ namespace DSL
             LOG_ERROR("RtspSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        
+        if (m_streamManagerTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+            
+            g_source_remove(m_streamManagerTimerId);
+            m_streamManagerTimerId = 0;
+            LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
+        }
+        if (m_reconnectionManagerTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+
+            g_source_remove(m_reconnectionManagerTimerId);
+            m_reconnectionManagerTimerId = 0;
+            LOG_INFO("Reconnection management disabled for RTSP Source '" << GetName() << "'");
+        }
+        
         m_pPreDecodeQueue->UnlinkFromSink();
         if (HasTapBintr())
         {
-            m_pTapBintr->UnlinkFromSource();
+            m_pPreDecodeQueue->UnlinkFromSourceTee();
             m_pTapBintr->UnlinkAll();
-            m_pPreDecodeQueue->UnlinkFromSource();
+            m_pTapBintr->UnlinkFromSourceTee();
         }
         m_pParser->UnlinkFromSink();
         m_pDepay->UnlinkFromSink();
@@ -927,7 +911,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Uri for RtspSourceBintr '" << GetName() 
                 << "' as it's currently in use");
@@ -956,11 +940,149 @@ namespace DSL
         
         return true;
     }
+    
+    uint RtspSourceBintr::GetBufferTimeout()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+        
+        return m_bufferTimeout;
+    }
+    
+    void RtspSourceBintr::SetBufferTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+        
+        if (m_bufferTimeout == timeout)
+        {
+            LOG_WARN("Buffer timeout for RTSP Source '" << GetName() << "' is already set to " << timeout);
+            return;
+        }
 
+        // If we're all ready in a linked state, 
+        if (IsLinked()) 
+        {
+            // If stream management is currently running, shut it down regardless
+            if (m_streamManagerTimerId)
+            {
+                // shutdown the current session
+                g_source_remove(m_streamManagerTimerId);
+                m_streamManagerTimerId = 0;
+                LOG_INFO("Stream management disabled for RTSP Source '" << GetName() << "'");
+            }
+            // If we have a new timeout value, we can renable
+            if (timeout)
+            {
+                // Start up stream mangement
+                m_streamManagerTimerId = g_timeout_add(timeout, RtspReconnectionMangerHandler, this);
+                LOG_INFO("Stream management enabled for RTSP Source '" << GetName() << "' with timeout = " << timeout);
+            }
+            // Else, the client is disabling stream mangagement. Shut down the reconnection cycle if running 
+            else if (m_reconnectionManagerTimerId)
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+                // shutdown the current reconnection cycle
+                g_source_remove(m_reconnectionManagerTimerId);
+                m_reconnectionManagerTimerId = 0;
+                LOG_INFO("Reconnection management disabled for RTSP Source '" << GetName() << "'");
+            }
+        }
+        m_bufferTimeout = timeout;
+    }
+
+    void RtspSourceBintr::GetReconnectionParams(uint* sleep, uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+        
+        *sleep = m_connectionData.sleep;
+        *timeout = m_connectionData.timeout;
+    }
+    
+    bool RtspSourceBintr::SetReconnectionParams(uint sleep, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+        
+        if (!sleep or !timeout)
+        {
+            LOG_INFO("Invalid reconnection params for RTSP Source '" << GetName() << "'");
+            return false;
+        }
+
+        m_connectionData.sleep = sleep;
+        m_connectionData.timeout = timeout;
+        return true;
+    }
+
+    void RtspSourceBintr::GetConnectionData(dsl_rtsp_connection_data* data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+
+        *data = m_connectionData;
+    }
+    
+    void RtspSourceBintr::_setConnectionData(dsl_rtsp_connection_data data)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+        
+        m_connectionData = data;
+    }
+    
+    void RtspSourceBintr::ClearConnectionStats()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+
+        m_connectionData.first_connected = 0;
+        m_connectionData.last_connected = 0;
+        m_connectionData.last_disconnected = 0;
+        m_connectionData.count = 0;
+        m_connectionData.retries = 0;
+    }
+
+    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+        
+        if (m_stateChangeListeners.find(listener) != m_stateChangeListeners.end())
+        {   
+            LOG_ERROR("RTSP Source state-change-listener is not unique");
+            return false;
+        }
+        m_stateChangeListeners[listener] = userdata;
+        
+        return true;
+    }
+
+    bool RtspSourceBintr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+        
+        if (m_stateChangeListeners.find(listener) == m_stateChangeListeners.end())
+        {   
+            LOG_ERROR("RTSP Source state-change-listener");
+            return false;
+        }
+        m_stateChangeListeners.erase(listener);
+        
+        return true;
+    }
+    
     bool RtspSourceBintr::AddTapBintr(DSL_BASE_PTR pTapBintr)
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can not add Tap to Source '" << GetName() << "' as it's in a Linked state");
+            return false;
+        }
         if (m_pTapBintr)
         {
             LOG_ERROR("Source '" << GetName() << "' allready has a Tap");
@@ -980,6 +1102,11 @@ namespace DSL
             LOG_ERROR("Source '" << GetName() << "' does not have a Tap");
             return false;
         }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can not remove Tap from Source '" << GetName() << "' as it's in a Linked state");
+            return false;
+        }
         RemoveChild(m_pTapBintr);
         m_pTapBintr = nullptr;
         return true;
@@ -991,7 +1118,7 @@ namespace DSL
         
         return (m_pTapBintr != nullptr);
     }
-    
+
     bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, uint num, GstCaps *caps)
     {
         GstStructure *structure = gst_caps_get_structure(caps, 0);
@@ -1001,51 +1128,54 @@ namespace DSL
         LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
         LOG_INFO("Encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
 
-        if (media.find("video") == std::string::npos)
+        if (!m_pParser)
         {
-            LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
-            return false;
-        }
-        if (encoding.find("H264") != std::string::npos)
-        {
-            m_pParser = DSL_ELEMENT_NEW("h264parse", "src-parse");
-            m_pDepay = DSL_ELEMENT_NEW("rtph264depay", "src-depay");
-        }
-        else if (encoding.find("H265") != std::string::npos)
-        {
-            m_pParser = DSL_ELEMENT_NEW("h265parse", "src-parse");
-            m_pDepay = DSL_ELEMENT_NEW("rtph265depay", "src-depayload");
-        }
-        else
-        {
-            LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
-            return false;
-        }
-        AddChild(m_pDepay);
-        AddChild(m_pParser);
+            if (media.find("video") == std::string::npos)
+            {
+                LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+                return false;
+            }
+            if (encoding.find("H264") != std::string::npos)
+            {
+                m_pParser = DSL_ELEMENT_NEW("h264parse", "src-parse");
+                m_pDepay = DSL_ELEMENT_NEW("rtph264depay", "src-depay");
+            }
+            else if (encoding.find("H265") != std::string::npos)
+            {
+                m_pParser = DSL_ELEMENT_NEW("h265parse", "src-parse");
+                m_pDepay = DSL_ELEMENT_NEW("rtph265depay", "src-depayload");
+            }
+            else
+            {
+                LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
+                return false;
+            }
+            AddChild(m_pDepay);
+            AddChild(m_pParser);
 
-        // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
-        // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
-        if (HasTapBintr())
-        {
-            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+            // If we're tapping off of the pre-decode source stream, then link to the pre-decode Tee
+            // The Pre-decode Queue will already be linked downstream as the first branch on the Tee
+            if (HasTapBintr())
             {
-                return false;
-            }            
-        }
-        // otherwise, there is no Tee and we link to the Pre-decode Queue directly
-        else
-        {
-            if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeTee))
+                {
+                    return false;
+                }            
+            }
+            // otherwise, there is no Tee and we link to the Pre-decode Queue directly
+            else
             {
+                if (!m_pDepay->LinkToSink(m_pParser) or !m_pParser->LinkToSink(m_pPreDecodeQueue))
+                {
+                    return false;
+                }            
+            }
+            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
+                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
+            {
+                LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
                 return false;
-            }            
-        }
-        if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
-            !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
-        {
-            LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
-            return false;
+            }
         }
         return true;
     }
@@ -1091,7 +1221,7 @@ namespace DSL
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+                LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
@@ -1105,10 +1235,259 @@ namespace DSL
             gst_structure_get_uint(structure, "height", &m_height);
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
             
-            LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+            // Start the Stream mangement timer, only if timeout is enable and not currently running
+            if (m_bufferTimeout and !m_streamManagerTimerId)
+            {
+                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, RtspStreamManagerHandler, this);
+                LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
+            }
+
+            SetCurrentState(GST_STATE_READY);
+
+            LOG_INFO("Video decode linked for RTSP Source '" << GetName() << "'");
+        }
+    }
+
+    int RtspSourceBintr::StreamManager()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
+
+        // if currently in a reset cycle then let the ResetStream handler continue to handle
+        if (m_connectionData.is_in_reconnect)
+        {
+            return true;
+        }
+
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
+        GstState currentState;
+        uint stateResult = GetState(currentState, 0);
+        SetCurrentState(currentState);
+        
+        // Get the last buffer time. This timer callback should not be called until after the timer 
+        // is started on successful linkup - therefore the lastBufferTime should be non-zero
+        struct timeval lastBufferTime;
+        m_TimestampPph->GetTime(lastBufferTime);
+        if (lastBufferTime.tv_sec == 0)
+        {
+            LOG_DEBUG("Waiting for first buffer before checking for timeout for source '" << GetName() << "'");
+            return true;
+        }
+
+        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+            (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
+
+        if (timeSinceLastBufferMs < m_bufferTimeout*1000)
+        {
+            // Timeout has not been exceeded, so return true to sleep again
+            return true;
+        }
+        LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" << GetName() << "'");
+        
+        // Call the Reconnection Managter directly to start the reconnection cycle,
+        if (!ReconnectionManager())
+        {
+            LOG_INFO("Unable to start re-connection manager for '" << GetName() << "'");
+            return false;
+        }
+            
+        LOG_INFO("Starting Re-connection Manager for source '" << GetName() << "'");
+        m_reconnectionManagerTimerId = g_timeout_add(1000, RtspReconnectionMangerHandler, this);
+
+        return true;
+    }
+    
+    int RtspSourceBintr::ReconnectionManager()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
+        do
+        {
+            struct timeval currentTime;
+            gettimeofday(&currentTime, NULL);
+            
+            uint stateResult(0);
+            GstState currentState;
+            
+            if (!m_connectionData.is_in_reconnect or m_reconnectionFailed or 
+                (currentTime.tv_sec - m_reconnectionStartTime.tv_sec) > m_connectionData.timeout)
+            {
+                // set the reset-state,
+                if (!m_connectionData.is_in_reconnect)
+                {
+                    m_connectionData.is_connected = false;
+                    m_connectionData.retries = 0;
+                    m_connectionData.is_in_reconnect = true;
+                }
+                // if the previous attempt failed
+                else if (m_reconnectionFailed == true)
+                {
+                    m_reconnectionSleep-=1;
+                    if (m_reconnectionSleep)
+                    {
+                        LOG_INFO("Sleeping after failed connection");
+                        return true;
+                    }
+                    m_reconnectionFailed = false;    
+                }
+                m_connectionData.retries++;
+
+                LOG_INFO("Resetting RTSP Source '" << GetName() << "' with retry count = " << m_connectionData.retries);
+                
+                m_reconnectionStartTime = currentTime;
+
+                if (SetState(GST_STATE_NULL, 0) != GST_STATE_CHANGE_SUCCESS)
+                {
+                    LOG_ERROR("Failed to set RTSP Source '" << GetName() << "' to GST_STATE_NULL");
+                    return false;
+                }
+                // update the internal state variable to notify all client listeners 
+                SetCurrentState(GST_STATE_NULL);
+                return true;
+            }
+            else
+            {   
+                // Waiting for the Source to reconnect, check the state again
+                stateResult = GetState(currentState, GST_SECOND);
+            }
+                
+            // update the internal state variable to notify all client listeners 
+            SetCurrentState(currentState);
+            switch (stateResult) 
+            {
+                case GST_STATE_CHANGE_NO_PREROLL:
+                    LOG_INFO("RTSP Source '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL");
+                    // fall through ... do not break
+                case GST_STATE_CHANGE_SUCCESS:
+                    if (currentState == GST_STATE_NULL)
+                    {
+                        // synchronize the source's state with the Pipleine's
+                        SyncStateWithParent(currentState, 1);
+                        return true;
+                    }
+                    if (currentState == GST_STATE_PLAYING)
+                    {
+                        LOG_INFO("Re-connection complete for RTSP Source'" << GetName() << "'");
+                        m_connectionData.is_in_reconnect = false;
+
+                        // update the current buffer timestamp to the current reset time
+                        m_TimestampPph->SetTime(currentTime);
+                        m_reconnectionManagerTimerId = 0;
+                        return false;
+                    }
+                    
+                    // If state change completed succesfully, but not yet playing, set explicitely.
+                    SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
+                    break;
+                    
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
+                    break;
+
+                case GST_STATE_CHANGE_FAILURE:
+                    LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
+                    m_reconnectionFailed = true;
+                    m_reconnectionSleep = m_connectionData.sleep;
+                    return true;
+
+                default:
+                    LOG_ERROR("Unknown 'state change result' when trying to sync state for RTSP Source '" << GetName() << "'");
+                    return true;
+            }
+        }while(true);
+    }
+    
+    GstState RtspSourceBintr::GetCurrentState()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
+        
+        LOG_INFO("Returning state " << gst_element_state_get_name((GstState)m_currentState) << 
+        " for RtspSourceBintr '" << GetName() << "'");
+
+        return m_currentState;
+    }
+
+    void RtspSourceBintr::SetCurrentState(GstState newState)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
+
+        if (newState != m_currentState)
+        {
+            LOG_INFO("Changing state from " << gst_element_state_get_name((GstState)m_currentState) << 
+            " to " << gst_element_state_get_name((GstState)newState) << " for RtspSourceBintr '" << GetName() << "'");
+            
+            m_previousState = m_currentState;
+            m_currentState = newState;
+
+            struct timeval currentTime;
+            gettimeofday(&currentTime, NULL);
+            
+            if ((m_previousState == GST_STATE_PLAYING) and (m_currentState == GST_STATE_NULL))
+            {
+                m_connectionData.is_connected = false;
+                m_connectionData.last_disconnected = currentTime.tv_sec;
+            }
+            if (m_currentState == GST_STATE_PLAYING)
+            {
+                m_connectionData.is_connected = true;
+                
+                // if first time is empty, this is the first since Pipeline play or stats clear.
+                if(!m_connectionData.first_connected)
+                {
+                    m_connectionData.first_connected = currentTime.tv_sec;
+                }
+                m_connectionData.last_connected = currentTime.tv_sec;
+                m_connectionData.count++;
+            }                    
+            
+            if (m_stateChangeListeners.size())
+            {
+                std::shared_ptr<DslStateChange> pStateChange = 
+                    std::shared_ptr<DslStateChange>(new DslStateChange(m_previousState, m_currentState));
+                    
+                m_stateChanges.push(pStateChange);
+                
+                // start the asynchronous notification timer if not currently running
+                if (!m_listenerNotifierTimerId)
+                {
+                    m_listenerNotifierTimerId = g_timeout_add(1, RtspListenerNotificationHandler, this);
+                }
+            }
         }
     }
     
+    int RtspSourceBintr::NotifyClientListeners()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
+        
+        while (m_stateChanges.size())
+        {
+            std::shared_ptr<DslStateChange> pStateChange = m_stateChanges.front();
+            m_stateChanges.pop();
+            
+            // iterate through the map of state-change-listeners calling each
+            for(auto const& imap: m_stateChangeListeners)
+            {
+                try
+                {
+                    imap.first((uint)pStateChange->m_previousState, (uint)pStateChange->m_newState, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("RTSP Source '" << GetName() << "' threw exception calling Client State-Change-Lister");
+                }
+            }
+            
+        }
+        // clear the timer id and return false to self remove
+        m_listenerNotifierTimerId = 0;
+        return false;
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
@@ -1155,4 +1534,23 @@ namespace DSL
         return static_cast<DecodeSourceBintr*>(pSource)->HandleStreamBufferSeek();
     }
 
+    static int RtspStreamManagerHandler(gpointer pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            StreamManager();
+    }
+
+    static int RtspReconnectionMangerHandler(gpointer pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            ReconnectionManager();
+    }
+
+    static int RtspListenerNotificationHandler(gpointer pSource)
+    {
+        return static_cast<RtspSourceBintr*>(pSource)->
+            NotifyClientListeners();
+    }
+        
+    
 } // SDL namespace

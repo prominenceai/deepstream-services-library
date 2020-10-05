@@ -1258,7 +1258,7 @@ SCENARIO( "A new RecordSinkStartOdeAction is created correctly", "[OdeAction]" )
         std::string actionName("action");
         std::string recordSink("record-sink");
         
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         WHEN( "A new RecordSinkStartOdeAction is created" )
         {
@@ -1286,7 +1286,7 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
         std::string actionName("action");
         std::string recordSink("record-sink");
         
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
@@ -1315,7 +1315,7 @@ SCENARIO( "A new RecordTapStartOdeAction is created correctly", "[OdeAction]" )
         std::string actionName("action");
         std::string recordTap("record-tap");
         
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         WHEN( "A new RecordTapStartOdeAction is created" )
         {
@@ -1343,7 +1343,7 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
         std::string actionName("action");
         std::string recordTap("record-tap");
         
-        dsl_record_client_listner_cb client_listener;
+        dsl_record_client_listener_cb client_listener;
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
