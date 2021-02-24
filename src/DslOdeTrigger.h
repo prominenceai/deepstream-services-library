@@ -195,6 +195,18 @@ namespace DSL
         void SetClassId(uint classId);
         
         /**
+         * @brief Gets the trigger limit for this ODE Trigger 
+         * @return the current limit value
+         */
+        uint GetLimit();
+        
+        /**
+         * @brief Sets the ClassId filter for Object detection 
+         * @param[in] limit new trigger limit value to use
+         */
+        void SetLimit(uint limit);
+        
+        /**
          * @brief Get the Source filter used for Object detection
          * A value of NULL indicates no filter.
          * @return the current Source filter value

@@ -284,8 +284,7 @@ namespace DSL
         {
             LOG_FUNC();
             
-            return gst_pad_send_event(
-                gst_element_get_static_pad(GetGstElement(), "sink"), gst_event_new_eos());            
+            return gst_element_send_event(GetGstElement(), gst_event_new_eos());
         }
         
         /**

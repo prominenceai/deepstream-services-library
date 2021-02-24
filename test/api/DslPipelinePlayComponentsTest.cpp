@@ -496,7 +496,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         uint height(720);
 
         std::wstring onScreenDisplayName(L"on-screen-display");
-        bool isClockEnabled(false);
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
         uint overlayId(1);
@@ -522,7 +523,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Overlay S
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
         
@@ -876,7 +877,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         uint height(720);
 
         std::wstring onScreenDisplayName(L"on-screen-display");
-        bool isClockEnabled(false);
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
         uint overlayId(1);
@@ -902,7 +904,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, Overlay
         REQUIRE( dsl_gie_secondary_new(secondaryGieName1.c_str(), sgieInferConfigFile1.c_str(), 
             sgieModelEngineFile1.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -969,7 +971,8 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         uint height(720);
 
         std::wstring onScreenDisplayName(L"on-screen-display");
-        bool isClockEnabled(false);
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
 
         std::wstring overlaySinkName(L"overlay-sink");
         uint overlayId(1);
@@ -1001,7 +1004,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
         REQUIRE( dsl_gie_secondary_new(secondaryGieName3.c_str(), sgieInferConfigFile3.c_str(), 
             sgieModelEngineFile3.c_str(), primaryGieName.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), isClockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(onScreenDisplayName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1277,7 +1280,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
         REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), cudadecMemType, 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );
@@ -1378,7 +1381,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
         REQUIRE( dsl_tiler_new(tilerName1.c_str(), width, height) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName2.c_str(), width, height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), true, false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_overlay_new(overlaySinkName1.c_str(), overlayId1, displayId1, depth1,
             offsetX1, offsetY1, sinkW1, sinkH1) == DSL_RESULT_SUCCESS );

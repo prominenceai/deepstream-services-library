@@ -89,10 +89,18 @@ namespace DSL
         bool AddTilerBintr(DSL_BASE_PTR pTilerBintr);
         
         /**
-         * @brief adds a single OsdBintr to this Branch 
+         * @brief adds an OsdBintr to this Branch 
          * @param[in] pOsdBintr shared pointer to OSD Bintr to add
+         * @return true on succesful add, false otherwise.
          */
         bool AddOsdBintr(DSL_BASE_PTR pOsdBintr);
+        
+        /**
+         * @brief removes a OsdBintr from this Branch 
+         * @param[in] pOsdBintr shared pointer to OSD Bintr to remove
+         * @return true on succesful remove, false otherwise.
+         */
+        bool RemoveOsdBintr(DSL_BASE_PTR pOsdBintr);
         
         /**
          * @brief adds a single TeeBintr to this Branch 

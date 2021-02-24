@@ -422,7 +422,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
             modelEngineFile.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
-            DSL_OSD_NEW(osdName.c_str(), true);
+            DSL_OSD_NEW(osdName.c_str(), true, true);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -488,7 +488,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
         DSL_OSD_PTR pOsdBintr = 
-            DSL_OSD_NEW(osdName.c_str(), true);
+            DSL_OSD_NEW(osdName.c_str(), true, true);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
@@ -562,7 +562,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Compone
             secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
-            DSL_OSD_NEW(osdName.c_str(), true);
+            DSL_OSD_NEW(osdName.c_str(), true, true);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
@@ -699,10 +699,10 @@ SCENARIO( "A Pipeline can have at most one OsdBintr", "[PipelineBintr]" )
         std::string osdName2 = "on-screen-tiler-2";
 
         DSL_OSD_PTR pOsdBintr1 = 
-            DSL_OSD_NEW(osdName1.c_str(), true);
+            DSL_OSD_NEW(osdName1.c_str(), true, true);
 
         DSL_OSD_PTR pOsdBintr2 = 
-            DSL_OSD_NEW(osdName2.c_str(), true);
+            DSL_OSD_NEW(osdName2.c_str(), true, true);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -818,7 +818,8 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
         std::string osdName = "on-screen-display";
         std::string pipelineName = "pipeline";
 
-        bool clockEnabled(false);
+        boolean clockEnabled(false);
+        boolean textEnabled(false);
 
         DSL_DEMUXER_PTR pDemuxerBintr = 
             DSL_DEMUXER_NEW(demuxerName.c_str());
@@ -827,7 +828,7 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
             DSL_PIPELINE_NEW(pipelineName.c_str());
 
         DSL_OSD_PTR pOsdBintr = 
-            DSL_OSD_NEW(osdName.c_str(), clockEnabled);
+            DSL_OSD_NEW(osdName.c_str(), textEnabled, clockEnabled);
 
         WHEN( "A DemuxerBintr is added to the PipelineBintr" )
         {

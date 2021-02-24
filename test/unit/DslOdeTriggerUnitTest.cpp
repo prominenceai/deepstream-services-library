@@ -49,6 +49,7 @@ SCENARIO( "A new OdeOccurreceTrigger is created correctly", "[OdeTrigger]" )
             {
                 REQUIRE( pOdeTrigger->GetEnabled() == true );
                 REQUIRE( pOdeTrigger->GetClassId() == classId );
+                REQUIRE( pOdeTrigger->GetLimit() == limit );
                 REQUIRE( pOdeTrigger->GetSource() == NULL );
                 float minWidth(123), minHeight(123);
                 pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
