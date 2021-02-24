@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -193,6 +193,18 @@ namespace DSL
          * @param[in] classId new filter value to use
          */
         void SetClassId(uint classId);
+        
+        /**
+         * @brief Gets the trigger limit for this ODE Trigger 
+         * @return the current limit value
+         */
+        uint GetLimit();
+        
+        /**
+         * @brief Sets the ClassId filter for Object detection 
+         * @param[in] limit new trigger limit value to use
+         */
+        void SetLimit(uint limit);
         
         /**
          * @brief Get the Source filter used for Object detection

@@ -301,9 +301,9 @@ def dsl_ode_action_capture_object_new(name, outdir):
 ##
 _dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
-def dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId, font, has_bg_color, bg_color):
+def dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_display_new(name, offsetX, offsetY, offsetY_with_classId, font, has_bg_color, bg_color)
+    result =_dsl.dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
     return int(result)
 
 ##
@@ -451,6 +451,16 @@ def dsl_ode_action_sink_record_start_new(name, record_sink, start, duration, cli
     return int(result)
 
 ##
+## dsl_ode_action_sink_record_stop_new()
+##
+_dsl.dsl_ode_action_sink_record_stop_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_sink_record_stop_new.restype = c_uint
+def dsl_ode_action_sink_record_stop_new(name, record_sink):
+    global _dsl
+    result =_dsl.dsl_ode_action_sink_record_stop_new(name, record_sink)
+    return int(result)
+
+##
 ## dsl_ode_action_source_add_new()
 ##
 _dsl.dsl_ode_action_source_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
@@ -480,6 +490,16 @@ def dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, clien
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result =_dsl.dsl_ode_action_tap_record_start_new(name, record_tap, start, duration, c_client_data)
+    return int(result)
+
+##
+## dsl_ode_action_tap_record_stop_new()
+##
+_dsl.dsl_ode_action_tap_record_stop_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_tap_record_stop_new.restype = c_uint
+def dsl_ode_action_tap_record_stop_new(name, record_tap):
+    global _dsl
+    result =_dsl.dsl_ode_action_tap_record_stop_new(name, record_tap)
     return int(result)
 
 ##
@@ -768,6 +788,7 @@ _dsl.dsl_ode_trigger_smallest_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_ui
 _dsl.dsl_ode_trigger_smallest_new.restype = c_uint
 def dsl_ode_trigger_smallest_new(name, souce, class_id, limit):
     global _dsl
+    print('name =', name, 'source = ', source, 'class_id =', class_id, 'limit =', limit)
     result =_dsl.dsl_ode_trigger_smallest_new(name, source, class_id, limit)
     return int(result)
 
@@ -852,6 +873,27 @@ _dsl.dsl_ode_trigger_class_id_set.restype = c_uint
 def dsl_ode_trigger_class_id_set(name, class_id):
     global _dsl
     result =_dsl.dsl_ode_trigger_class_id_set(name, class_id)
+    return int(result)
+
+##
+## dsl_ode_trigger_limit_get()
+##
+_dsl.dsl_ode_trigger_limit_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_ode_trigger_limit_get.restype = c_uint
+def dsl_ode_trigger_limit_get(name):
+    global _dsl
+    limit = c_uint(0)
+    result =_dsl.dsl_ode_trigger_limit_get(name, DSL_UINT_P(limit))
+    return int(result), limit.value
+
+##
+## dsl_ode_trigger_limit_set()
+##
+_dsl.dsl_ode_trigger_limit_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_ode_trigger_limit_set.restype = c_uint
+def dsl_ode_trigger_limit_set(name, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_limit_set(name, limit)
     return int(result)
 
 ##
@@ -1527,16 +1569,58 @@ def dsl_tap_record_session_start(name, start, duration, client_data):
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result = _dsl.dsl_tap_record_session_start(name, DSL_UINT_P(session), start, duration, c_client_data)
-    return int(result), session.value 
+    return int(result) 
 
 ##
 ## dsl_tap_record_session_stop()
 ##
-_dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p]
 _dsl.dsl_tap_record_session_stop.restype = c_uint
-def dsl_tap_record_session_stop(name, session):
+def dsl_tap_record_session_stop(name):
     global _dsl
-    result = _dsl.dsl_tap_record_session_stop(name, session)
+    result = _dsl.dsl_tap_record_session_stop(name)
+    return int(result)
+
+##
+## dsl_tap_record_outdir_get()
+##
+_dsl.dsl_tap_record_outdir_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tap_record_outdir_get.restype = c_uint
+def dsl_tap_record_outdir_get(name):
+    global _dsl
+    outdir = c_wchar_p(0)
+    result = _dsl.dsl_tap_record_outdir_get(name, DSL_WCHAR_PP(outdir))
+    return int(result), outdir.value 
+
+##
+## dsl_tap_record_outdir_set()
+##
+_dsl.dsl_tap_record_outdir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tap_record_outdir_set.restype = c_uint
+def dsl_tap_record_outdir_set(name, outdir):
+    global _dsl
+    result = _dsl.dsl_tap_record_outdir_set(name, outdir)
+    return int(result)
+
+##
+## dsl_tap_record_container_get()
+##
+_dsl.dsl_tap_record_container_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_tap_record_container_get.restype = c_uint
+def dsl_tap_record_container_get(name):
+    global _dsl
+    container = c_uint(0)
+    result = _dsl.dsl_tap_record_container_get(name, DSL_UINT_P(container))
+    return int(result), container.value 
+
+##
+## dsl_tap_record_container_set()
+##
+_dsl.dsl_tap_record_container_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tap_record_container_set.restype = c_uint
+def dsl_tap_record_container_set(name, container):
+    global _dsl
+    result = _dsl.dsl_tap_record_container_set(name, container)
     return int(result)
 
 ##
@@ -1687,6 +1771,27 @@ def dsl_gie_model_engine_file_set(name, model_engine_file):
     return int(result)
 
 ##
+## dsl_gie_interval_get()
+##
+_dsl.dsl_gie_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_gie_interval_get.restype = c_uint
+def dsl_gie_interval_get(name):
+    global _dsl
+    interval = c_uint(0)
+    result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(interval))
+    return int(result), interval.value 
+
+##
+## dsl_gie_interval_set()
+##
+_dsl.dsl_gie_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_gie_interval_set.restype = c_uint
+def dsl_gie_interval_set(name, interval):
+    global _dsl
+    result = _dsl.dsl_gie_interval_set(name, interval)
+    return int(result)
+
+##
 ## dsl_gie_raw_output_enabled_set()
 ##
 _dsl.dsl_gie_raw_output_enabled_set.argtypes = [c_wchar_p, c_bool, c_wchar_p]
@@ -1761,21 +1866,32 @@ def dsl_tracker_pph_remove(name, handler, pad):
 ##
 ## dsl_osd_new()
 ##
-_dsl.dsl_osd_new.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_new.argtypes = [c_wchar_p, c_bool, c_bool]
 _dsl.dsl_osd_new.restype = c_uint
-def dsl_osd_new(name, is_clock_enabled):
+def dsl_osd_new(name, text_enabled, clock_enabled):
     global _dsl
-    result =_dsl.dsl_osd_new(name, is_clock_enabled)
+    result =_dsl.dsl_osd_new(name, text_enabled, clock_enabled)
     return int(result)
 
 ##
-## dsl_osd_clock_enabled_set()
+## dsl_osd_text_enabled_get()
 ##
-_dsl.dsl_osd_clock_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_osd_clock_enabled_set.restype = c_uint
-def dsl_osd_clock_enabled_set(name, enabled):
+_dsl.dsl_osd_text_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_text_enabled_get.restype = c_uint
+def dsl_osd_text_enabled_get(name):
     global _dsl
-    result = _dsl.dsl_osd_clock_enabled_set(name, enabled)
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_text_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_text_enabled_set()
+##
+_dsl.dsl_osd_text_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_text_enabled_set.restype = c_uint
+def dsl_osd_text_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_text_enabled_set(name, enabled)
     return int(result)
 
 ##
@@ -1788,6 +1904,16 @@ def dsl_osd_clock_enabled_get(name):
     enabled = c_bool(False)
     result = _dsl.dsl_osd_clock_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value 
+
+##
+## dsl_osd_clock_enabled_set()
+##
+_dsl.dsl_osd_clock_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_clock_enabled_set.restype = c_uint
+def dsl_osd_clock_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_clock_enabled_set(name, enabled)
+    return int(result)
 
 ##
 ## dsl_osd_clock_offsets_get()
@@ -2179,11 +2305,53 @@ def dsl_sink_record_session_start(name, start, duration, client_data):
 ##
 ## dsl_sink_record_session_stop()
 ##
-_dsl.dsl_sink_record_session_stop.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_record_session_stop.argtypes = [c_wchar_p]
 _dsl.dsl_sink_record_session_stop.restype = c_uint
-def dsl_sink_record_session_stop(name, session):
+def dsl_sink_record_session_stop(name):
     global _dsl
-    result = _dsl.dsl_sink_record_session_stop(name, session)
+    result = _dsl.dsl_sink_record_session_stop(name)
+    return int(result)
+
+##
+## dsl_sink_record_outdir_get()
+##
+_dsl.dsl_sink_record_outdir_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_record_outdir_get.restype = c_uint
+def dsl_sink_record_outdir_get(name):
+    global _dsl
+    outdir = c_wchar_p(0)
+    result = _dsl.dsl_sink_record_outdir_get(name, DSL_WCHAR_PP(outdir))
+    return int(result), outdir.value 
+
+##
+## dsl_sink_record_outdir_set()
+##
+_dsl.dsl_sink_record_outdir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_record_outdir_set.restype = c_uint
+def dsl_sink_record_outdir_set(name, outdir):
+    global _dsl
+    result = _dsl.dsl_sink_record_outdir_set(name, outdir)
+    return int(result)
+
+##
+## dsl_sink_record_container_get()
+##
+_dsl.dsl_sink_record_container_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_record_container_get.restype = c_uint
+def dsl_sink_record_container_get(name):
+    global _dsl
+    container = c_uint(0)
+    result = _dsl.dsl_sink_record_container_get(name, DSL_UINT_P(container))
+    return int(result), container.value 
+
+##
+## dsl_sink_record_container_set()
+##
+_dsl.dsl_sink_record_container_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_record_container_set.restype = c_uint
+def dsl_sink_record_container_set(name, container):
+    global _dsl
+    result = _dsl.dsl_sink_record_container_set(name, container)
     return int(result)
 
 ##

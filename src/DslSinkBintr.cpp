@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -180,16 +180,6 @@ namespace DSL
         LOG_FUNC();
         
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
-        m_pOverlay->SetAttribute("overlay", m_overlayId);
-        m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
-        m_pOverlay->SetAttribute("overlay-w", m_width);
-        m_pOverlay->SetAttribute("overlay-h", m_height);
-        m_pOverlay->SetAttribute("max-lateness", -1);
-        m_pOverlay->SetAttribute("sync", m_sync);
-        m_pOverlay->SetAttribute("async", m_async);
-        m_pOverlay->SetAttribute("qos", m_qos);
         
         AddChild(m_pOverlay);
     }
@@ -208,6 +198,23 @@ namespace DSL
             LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
             return false;
         }
+        if (!m_pOverlay)
+        {
+            LOG_INFO("Creating new Sink Overlay Element on LinkAll for Sink'" << GetName());
+            m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
+            
+            AddChild(m_pOverlay);
+        }
+        m_pOverlay->SetAttribute("overlay", m_overlayId);
+        m_pOverlay->SetAttribute("display-id", m_displayId);
+        m_pOverlay->SetAttribute("max-lateness", -1);
+        m_pOverlay->SetAttribute("sync", m_sync);
+        m_pOverlay->SetAttribute("async", m_async);
+        m_pOverlay->SetAttribute("qos", m_qos);
+        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
+        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        m_pOverlay->SetAttribute("overlay-w", m_width);
+        m_pOverlay->SetAttribute("overlay-h", m_height);
         if (!m_pQueue->LinkToSink(m_pOverlay))
         {
             return false;
@@ -226,6 +233,8 @@ namespace DSL
             return;
         }
         m_pQueue->UnlinkFromSink();
+        RemoveChild(m_pOverlay);
+        m_pOverlay = nullptr;
         m_isLinked = false;
     }
 

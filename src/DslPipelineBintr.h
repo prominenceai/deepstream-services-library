@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -154,9 +154,25 @@ namespace DSL
         /**
          * @brief Sets, enables/disables the Pipeline's Stream Muxer padding
          * @param enabled set to true to enable padding
-         * @return true if the Padding enable setting could be set, false otherwise.
+         * @return true if the Padding enabled setting could be set, false otherwise.
          */
         bool SetStreamMuxPadding(bool enabled);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's StreamMuxer
+         * num-surfaces-per-frame seting
+         * @param[out] num current setting for the number of surfaces [1..4].
+         * @return true if the number setting could be read, false otherwisee
+         */
+        bool GetStreamMuxNumSurfacesPerFrame(uint* num);
+
+        /**
+         * @brief Sets the current setting for the PipelineSourcesBintr's StreamMuxer
+         * num-surfaces-per-frame seting
+         * @param[in] num new value for the number of surfaces [1..4].
+         * @return true if the number setting could be set, false otherwisee
+         */
+        bool SetStreamMuxNumSurfacesPerFrame(uint num);
         
         /**
          * @brief Gets the current x and y offsets for the Pipeline's XWindow

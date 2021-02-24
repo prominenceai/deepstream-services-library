@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -990,6 +990,41 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
     }
 }
 
+SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Stop Record Sink ODE Action" ) 
+    {
+        std::wstring actionName(L"stop-record-action");
+        std::wstring recordSinkName(L"record-sink");
+
+        WHEN( "A new Stop Record Sink Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_sink_record_stop_new(actionName.c_str(), 
+                recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Stop Record Sink Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Stop Record Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_sink_record_stop_new(actionName.c_str(), 
+                recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Stop Record Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_sink_record_stop_new(actionName.c_str(), 
+                    recordSinkName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Start Record Tap ODE Action" ) 
@@ -999,21 +1034,61 @@ SCENARIO( "A new Start Record Tap ODE Action can be created and deleted", "[ode-
 
         WHEN( "A new Start Record Sink Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "The Start Record Sink Action can be deleted" ) 
+            THEN( "The Start Record Tap Action can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
-        WHEN( "A new Start Record Action is created" ) 
+        WHEN( "A new Start Record Tap Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
-            THEN( "A second Start Record Action of the same names fails to create" ) 
+            THEN( "A second Start Record Tap Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_sink_record_start_new(actionName.c_str(), recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                    recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Stop Record Tap ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Stop Record Tap ODE Action" ) 
+    {
+        std::wstring actionName(L"stop-record-action");
+        std::wstring recordTapName(L"record-sink");
+
+        WHEN( "A new Stop Record Tap Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Stop Record Tap Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Stop Record Tap Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "A second Stop Record Tap Action of the same names fails to create" ) 
+            {
+                REQUIRE( dsl_ode_action_tap_record_start_new(actionName.c_str(), 
+                    recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

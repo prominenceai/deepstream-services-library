@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -104,7 +104,6 @@ namespace DSL
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
          * @param[out] batchSize current batchSize, default == the number of source
          * @param[out] batchTimeout current batch timeout
-         * @return true if the batch properties could be read, false otherwise
          */
         void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
 
@@ -112,7 +111,6 @@ namespace DSL
          * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer
          * @param[in] batchSize new batchSize to set, default == the number of sources
          * @param[in] batchTimeout timeout value to set in ms
-         * @return true if the batch properties could be set, false otherwise
          */
         void SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout);
 
@@ -120,31 +118,41 @@ namespace DSL
          * @brief Gets the current dimensions for the SourcesBintr's Stream Muxer
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the curren setting
-         * @return true if the output dimensions could be read, false otherwise
          */
         void GetStreamMuxDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the SourcesBintr's Stream Muxer
+         * @brief Set the dimensions for the SourcesBintr's StreamMuxer
          * @param width width in pixels to set the streamMux Output
          * @param height height in pixels to set the StreamMux output
-         * @return true if the output dimensions could be set, false otherwise
          */
         void SetStreamMuxDimensions(uint width, uint height);
         
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's Muxer padding
          * @param enable true if enabled, false otherwise.
-         * @return true if the Padding enabled setting could be read, false otherwisee
          */
         void GetStreamMuxPadding(bool* enabled);
 
         /**
-         * @brief Sets, enables/disables the PipelineSourcesBintr's Stream Muxer padding
+         * @brief Sets, enables/disables the PipelineSourcesBintr's StreamMuxer padding
          * @param enabled set to true to enable padding
-         * @return true if the Padding enable setting could be set, false otherwise.
          */
         void SetStreamMuxPadding(bool enabled);
+
+        /**
+         * @brief Gets the current setting for the PipelineSourcesBintr's StreamMuxer
+         * num-surfaces-per-frame seting
+         * @param[out] num current setting for the number of surfaces [1..4].
+         */
+        void GetStreamMuxNumSurfacesPerFrame(uint* num);
+
+        /**
+         * @brief Sets the current setting for the PipelineSourcesBintr's StreamMuxer
+         * num-surfaces-per-frame seting
+         * @param[in] num new value for the number of surfaces [1..4].
+         */
+        void SetStreamMuxNumSurfacesPerFrame(uint num);
 
     private:
         /**
@@ -195,6 +203,11 @@ namespace DSL
          @brief
          */
         bool m_isPaddingEnabled;
+        
+        /**
+         @brief Number of surfaces-per-frame stream-muxer setting
+         */
+        int m_numSurfacesPerFrame;
     };
 
     

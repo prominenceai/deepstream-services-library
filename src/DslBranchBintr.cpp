@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -173,6 +173,28 @@ namespace DSL
         m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
         
         return AddChild(pOsdBintr);
+    }
+
+    bool BranchBintr::RemoveOsdBintr(DSL_BASE_PTR pOsdBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pOsdBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no OSD to remove'");
+            return false;
+        }
+        if (m_pOsdBintr != pOsdBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own OSD' " 
+                << m_pOsdBintr->GetName() << "'");
+            return false;
+        }
+        m_pOsdBintr = nullptr;
+        
+        LOG_INFO("Removing OSD '"<< pOsdBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pOsdBintr);
     }
 
     bool BranchBintr::AddSinkBintr(DSL_BASE_PTR pSinkBintr)
@@ -400,6 +422,7 @@ namespace DSL
         // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedComponents)
         {
+            ivector->SendEos();
             // all but the tail m_pMultiSinksBintr will be Linked to Sink
             if (ivector->IsLinkedToSink())
             {

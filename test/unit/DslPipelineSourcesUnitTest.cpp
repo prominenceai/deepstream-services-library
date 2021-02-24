@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -334,3 +334,46 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
         }
     }
 }
+
+SCENARIO( "The Pipeline Stream Muxer's num-surfaces-per-frame can be read and updaed",  "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
+    {
+        uint width(1280);
+        uint height(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        std::string sourceName = "test-csi-source";
+        std::string pipelineSourcesName = "pipeline-sources";
+
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+
+        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
+
+        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
+        REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
+
+        uint num;
+        
+        pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
+        REQUIRE( num == 4 );
+            
+        WHEN( "The Stream Muxer's num-surfaces-per-frame is set t a new value " )
+        {
+            pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(1);
+             
+            THEN( "The correct value is returned on get" )
+            {
+                uint num;
+                
+                pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
+                REQUIRE( num == 1 );
+            }
+        }
+    }
+}
+

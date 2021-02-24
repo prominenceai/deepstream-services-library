@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,10 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    OsdBintr::OsdBintr(const char* name, boolean isClockEnabled)
+    OsdBintr::OsdBintr(const char* name, boolean textEnabled, boolean clockEnabled)
         : Bintr(name)
-        , m_isClockEnabled(isClockEnabled)
+        , m_textEnabled(textEnabled)
+        , m_clockEnabled(clockEnabled)
         , m_processMode(0)
         , m_clockFont("Serif")
         , m_clockFontSize(12)
@@ -52,14 +53,13 @@ namespace DSL
         m_pVidPreConv->SetAttribute("nvbuf-memory-type", m_nvbufMemoryType);
 
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
-        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+        m_pOsd->SetAttribute("display-text", m_textEnabled);
+        m_pOsd->SetAttribute("display-clock", m_clockEnabled);
         m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
         m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
         m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
         m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
-        
-//        SetClockColor(m_clockColorRed, m_clockColorGreen, m_clockColorBlue);
         
         AddChild(m_pQueue);
         AddChild(m_pVidPreConv);
@@ -92,6 +92,7 @@ namespace DSL
             LOG_ERROR("OsdBintr '" << m_name << "' is already linked");
             return false;
         }
+        
         if (!m_pQueue->LinkToSink(m_pVidPreConv) or
             !m_pVidPreConv->LinkToSink(m_pConvQueue) or
             !m_pConvQueue->LinkToSink(m_pOsd))
@@ -178,25 +179,57 @@ namespace DSL
             AddOsdBintr(shared_from_this());
     }
 
+    bool OsdBintr::RemoveFromParent(DSL_BASE_PTR pBranchBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' OSD to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
+            RemoveOsdBintr(shared_from_this());
+    }
+
+    void OsdBintr::GetTextEnabled(boolean* enabled)
+    {
+        LOG_FUNC();
+        
+        *enabled = m_textEnabled;
+    }
+    
+    bool OsdBintr::SetTextEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to Set the Text Enabled attribute for OsdBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
+        m_textEnabled = enabled;
+        m_pOsd->SetAttribute("display-text", m_textEnabled);
+        
+        return true;
+    }
+
     void OsdBintr::GetClockEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
-        *enabled = m_isClockEnabled;
+        *enabled = m_clockEnabled;
     }
     
     bool OsdBintr::SetClockEnabled(boolean enabled)
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to Set the Clock Enabled attribute for OsdBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-        m_isClockEnabled = enabled;
-        m_pOsd->SetAttribute("display-clock", m_isClockEnabled);
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to Set the Clock Enabled attribute for OsdBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
+        m_clockEnabled = enabled;
+        m_pOsd->SetAttribute("display-clock", m_clockEnabled);
         
         return true;
     }
@@ -213,12 +246,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Clock Offsets for OsdBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to set Clock Offsets for OsdBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
 
         m_clockOffsetX = offsetX;
         m_clockOffsetY = offsetY;
@@ -241,12 +274,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Clock Font for OsdBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to set Clock Font for OsdBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
 
         m_clockFont.assign(name);
         m_clockFontSize = size;
@@ -271,12 +304,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Clock Color for OsdBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
+//        if (IsInUse())
+//        {
+//            LOG_ERROR("Unable to set Clock Color for OsdBintr '" << GetName() 
+//                << "' as it's currently in use");
+//            return false;
+//        }
 
         m_clockColor.red = red;
         m_clockColor.green = green;

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1308,6 +1308,63 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
     }
 }
 
+SCENARIO( "A new RecordSinkStopOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new RecordSinkStopOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string recordSink("record-sink");
+        
+        dsl_record_client_listener_cb client_listener;
+
+        WHEN( "A new RecordSinkStopOdeAction is created" )
+        {
+            DSL_ODE_ACTION_SINK_RECORD_STOP_PTR pAction = 
+                DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), recordSink.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A RecordSinkStopOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new RecordSinkStopOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string recordSink("record-sink");
+        
+        dsl_record_client_listener_cb client_listener;
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_SINK_RECORD_STOP_PTR pAction = 
+            DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(actionName.c_str(), recordSink.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta = {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action will produce an error message as the Record Sink does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
 SCENARIO( "A new RecordTapStartOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new RecordSinkStartOdeAction" ) 
@@ -1350,6 +1407,63 @@ SCENARIO( "A RecordTapStartOdeAction handles an ODE Occurence correctly", "[OdeA
 
         DSL_ODE_ACTION_TAP_RECORD_START_PTR pAction = 
             DSL_ODE_ACTION_TAP_RECORD_START_NEW(actionName.c_str(), recordTap.c_str(), 1, 1, NULL);
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta = {0};
+            NvDsObjectMeta objectMeta = {0};
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                // NOTE:: Action will produce an error message as the Record Sink does not exist
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RecordTapStopOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new RecordTapStopOdeAction" ) 
+    {
+        std::string actionName("action");
+        std::string recordTap("record-tap");
+        
+        dsl_record_client_listener_cb client_listener;
+
+        WHEN( "A new RecordTapStopOdeAction is created" )
+        {
+            DSL_ODE_ACTION_TAP_RECORD_STOP_PTR pAction = 
+                DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), recordTap.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A RecordTapStopOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new RecordTapStopOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("action");
+        std::string recordTap("record-tap");
+        
+        dsl_record_client_listener_cb client_listener;
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_TAP_RECORD_STOP_PTR pAction = 
+            DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(actionName.c_str(), recordTap.c_str());
 
         WHEN( "A new ODE is created" )
         {

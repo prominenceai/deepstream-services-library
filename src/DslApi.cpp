@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -573,6 +573,21 @@ DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
         cstrSink.c_str(), start, duration, client_data);
 }
 
+DslReturnType dsl_ode_action_sink_record_stop_new(const wchar_t* name,
+    const wchar_t* record_sink)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(record_sink);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSink(record_sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->OdeActionSinkRecordStopNew(cstrName.c_str(), 
+        cstrSink.c_str());
+}
+
 DslReturnType dsl_ode_action_source_add_new(const wchar_t* name,
     const wchar_t* pipeline, const wchar_t* source)
 {
@@ -622,6 +637,21 @@ DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionTapRecordStartNew(cstrName.c_str(), 
         cstrTap.c_str(), start, duration, client_data);
+}
+
+DslReturnType dsl_ode_action_tap_record_stop_new(const wchar_t* name,
+    const wchar_t* record_tap)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(record_tap);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTap(record_tap);
+    std::string cstrTap(wstrTap.begin(), wstrTap.end());
+
+    return DSL::Services::GetServices()->OdeActionTapRecordStopNew(cstrName.c_str(), 
+        cstrTap.c_str());
 }
 
 DslReturnType dsl_ode_action_area_add_new(const wchar_t* name,
@@ -1106,6 +1136,26 @@ DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeTriggerClassIdSet(cstrName.c_str(), class_id);
+}
+
+DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitGet(cstrName.c_str(), limit);
+}
+
+DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeTriggerLimitSet(cstrName.c_str(), limit);
 }
 
 DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source)
@@ -1997,6 +2047,61 @@ DslReturnType dsl_tap_record_session_stop(const wchar_t* name)
     return DSL::Services::GetServices()->TapRecordSessionStop(cstrName.c_str());
 }
 
+DslReturnType dsl_tap_record_outdir_get(const wchar_t* name, const wchar_t** outdir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(outdir);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cOutdir;
+    static std::string cstrOutdir;
+    static std::wstring wcstrOutdir;
+    
+    uint retval = DSL::Services::GetServices()->TapRecordOutdirGet(cstrName.c_str(), &cOutdir);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOutdir.assign(cOutdir);
+        wcstrOutdir.assign(cstrOutdir.begin(), cstrOutdir.end());
+        *outdir = wcstrOutdir.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_tap_record_outdir_set(const wchar_t* name, const wchar_t* outdir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(outdir);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->TapRecordOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
+}
+
+DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordContainerGet(cstrName.c_str(), container);
+}
+
+DslReturnType dsl_tap_record_container_set(const wchar_t* name, uint container)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordContainerSet(cstrName.c_str(), container);
+}
+ 
 DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -2309,14 +2414,36 @@ DslReturnType dsl_ofv_new(const wchar_t* name)
     return DSL::Services::GetServices()->OfvNew(cstrName.c_str());
 }
 
-DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled)
+DslReturnType dsl_osd_new(const wchar_t* name, 
+    boolean text_enabled, boolean clock_enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), clock_enabled);
+    return DSL::Services::GetServices()->OsdNew(cstrName.c_str(), 
+        text_enabled, clock_enabled);
+}
+
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdTextEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdTextEnabledSet(cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)
@@ -2382,6 +2509,7 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
 
 DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size)
 {
+    std::cout << "***** pre services" << "\n";
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
@@ -2901,6 +3029,61 @@ DslReturnType dsl_sink_record_session_stop(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkRecordSessionStop(cstrName.c_str());
+}
+
+DslReturnType dsl_sink_record_outdir_get(const wchar_t* name, const wchar_t** outdir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(outdir);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cOutdir;
+    static std::string cstrOutdir;
+    static std::wstring wcstrOutdir;
+    
+    uint retval = DSL::Services::GetServices()->SinkRecordOutdirGet(cstrName.c_str(), &cOutdir);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOutdir.assign(cOutdir);
+        wcstrOutdir.assign(cstrOutdir.begin(), cstrOutdir.end());
+        *outdir = wcstrOutdir.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_record_outdir_set(const wchar_t* name, const wchar_t* outdir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(outdir);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOutdir(outdir);
+    std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
+
+    return DSL::Services::GetServices()->SinkRecordOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
+}
+
+DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordContainerGet(cstrName.c_str(), container);
+}
+
+DslReturnType dsl_sink_record_container_set(const wchar_t* name, uint container)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordContainerSet(cstrName.c_str(), container);
 }
 
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size)
@@ -3510,6 +3693,27 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* pipeline, boolea
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
     return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(cstrPipeline.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(const wchar_t* pipeline, uint* num)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(num);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameGet(cstrPipeline.c_str(), num);
+}
+
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(const wchar_t* pipeline, uint num)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(cstrPipeline.c_str(), num);
 }
 
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)

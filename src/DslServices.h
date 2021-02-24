@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -135,6 +135,9 @@ namespace DSL {
         DslReturnType OdeActionSinkRecordStartNew(const char* name,
             const char* recordSink, uint start, uint duration, void* clientData);
 
+        DslReturnType OdeActionSinkRecordStopNew(const char* name,
+            const char* recordSink);
+
         DslReturnType OdeActionSourceAddNew(const char* name, 
             const char* pipeline, const char* source);
 
@@ -142,7 +145,10 @@ namespace DSL {
             const char* pipeline, const char* source);
 
         DslReturnType OdeActionTapRecordStartNew(const char* name,
-            const char* recordSink, uint start, uint duration, void* clientData);
+            const char* recordTap, uint start, uint duration, void* clientData);
+
+        DslReturnType OdeActionTapRecordStopNew(const char* name,
+            const char* recordTap);
 
         DslReturnType OdeActionActionDisableNew(const char* name, const char* action);
 
@@ -225,6 +231,10 @@ namespace DSL {
         DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
+        
+        DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
+        
+        DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
         
         DslReturnType OdeTriggerConfidenceMinGet(const char* name, float* minConfidence);
         
@@ -368,6 +378,14 @@ namespace DSL {
 
         DslReturnType TapRecordSessionStop(const char* name);
 
+        DslReturnType TapRecordOutdirGet(const char* name, const char** outdir);
+            
+        DslReturnType TapRecordOutdirSet(const char* name, const char* outdir);
+        
+        DslReturnType TapRecordContainerGet(const char* name, uint* container);
+            
+        DslReturnType TapRecordContainerSet(const char* name, uint container);
+        
         DslReturnType TapRecordCacheSizeGet(const char* name, uint* cacheSize);
             
         DslReturnType TapRecordCacheSizeSet(const char* name, uint cacheSize);
@@ -439,9 +457,9 @@ namespace DSL {
 
         DslReturnType TilerDimensionsSet(const char* name, uint width, uint height);
 
-        DslReturnType TilerTilesGet(const char* name, uint* cols, uint* rows);
+        DslReturnType TilerTilesGet(const char* name, uint* columns, uint* rows);
 
-        DslReturnType TilerTilesSet(const char* name, uint cols, uint rows);
+        DslReturnType TilerTilesSet(const char* name, uint columns, uint rows);
 
         DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
@@ -463,8 +481,12 @@ namespace DSL {
 
         DslReturnType OfvNew(const char* name);
 
-        DslReturnType OsdNew(const char* name, boolean clockEnabled);
+        DslReturnType OsdNew(const char* name, boolean textEnabled, boolean clockEnabled);
         
+        DslReturnType OsdTextEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType OsdTextEnabledSet(const char* name, boolean enabled);
+
         DslReturnType OsdClockEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OsdClockEnabledSet(const char* name, boolean enabled);
@@ -503,6 +525,14 @@ namespace DSL {
             uint start, uint duration, void* clientData);
 
         DslReturnType SinkRecordSessionStop(const char* name);
+
+        DslReturnType SinkRecordOutdirGet(const char* name, const char** outdir);
+            
+        DslReturnType SinkRecordOutdirSet(const char* name, const char* outdir);
+        
+        DslReturnType SinkRecordContainerGet(const char* name, uint* container);
+            
+        DslReturnType SinkRecordContainerSet(const char* name, uint container);
 
         DslReturnType SinkRecordCacheSizeGet(const char* name, uint* cacheSize);
             
@@ -591,6 +621,10 @@ namespace DSL {
         DslReturnType PipelineStreamMuxPaddingGet(const char* pipeline, boolean* enabled);
 
         DslReturnType PipelineStreamMuxPaddingSet(const char* pipeline, boolean enabled);
+
+        DslReturnType PipelineStreamMuxNumSurfacesPerFrameGet(const char* pipeline, uint* num);
+
+        DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* pipeline, uint num);
 
         DslReturnType PipelineXWindowClear(const char* pipeline);
         

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -67,14 +67,27 @@ namespace DSL
         bool SetOutdir(const char* outdir);
 
         /**
-         * @brief Gets the current cache size used by this RecordSinkBint
+         * @brief Gets the container type used by this RecordMgr
+         * @return container type in use 
+         */
+        uint GetContainer();
+        
+        /**
+         * @brief Sets the current container type to be used by this RecordMgr
+         * @param[in] container type to set
+         * @return true if container type was set successfully, false others
+         */
+        bool SetContainer(uint container);
+        
+        /**
+         * @brief Gets the current cache size used by this RecordMgr
          * @return size of the video cache in seconds 
          * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */
         uint GetCacheSize();
         
         /**
-         * @brief Sets the current cache size used by this RecordSinkBint
+         * @brief Sets the current cache size used by this RecordMgr
          * @param[in] videoCacheSize size of video cache in seconds 
          * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */

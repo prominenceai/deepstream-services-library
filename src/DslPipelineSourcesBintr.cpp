@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ namespace DSL
         , m_streamMuxHeight(0)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
+        , m_numSurfacesPerFrame(0)
     {
         LOG_FUNC();
 
@@ -329,4 +330,25 @@ namespace DSL
         
         m_pStreamMux->SetAttribute("enable-padding", m_isPaddingEnabled);
     }
+
+    void PipelineSourcesBintr::GetStreamMuxNumSurfacesPerFrame(uint* num)
+    {
+        LOG_FUNC();
+        
+        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        *num = m_numSurfacesPerFrame;
+    }
+    
+    void PipelineSourcesBintr::SetStreamMuxNumSurfacesPerFrame(uint num)
+    {
+        LOG_FUNC();
+        
+        m_numSurfacesPerFrame = num;
+        
+        LOG_INFO("Setting StreamMux attribute: num-surfaces-per-frame = " << m_numSurfacesPerFrame); 
+        
+        m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
+    }
+    
+    
 }

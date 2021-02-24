@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -79,6 +79,7 @@ namespace DSL
             return false;
         }
         m_pOdeActions[pChild->GetName()] = pChild;
+        pChild->AssignParentName(GetName());
         return true;
     }
 
@@ -92,6 +93,7 @@ namespace DSL
             return false;
         }
         m_pOdeActions.erase(pChild->GetName());
+        pChild->ClearParentName();
         return true;
     }
     
@@ -102,6 +104,7 @@ namespace DSL
         for (auto &imap: m_pOdeActions)
         {
             LOG_DEBUG("Removing Action '" << imap.second->GetName() <<"' from Parent '" << GetName() << "'");
+            imap.second->ClearParentName();
         }
         m_pOdeActions.clear();
     }
@@ -116,6 +119,7 @@ namespace DSL
             return false;
         }
         m_pOdeAreas[pChild->GetName()] = pChild;
+        pChild->AssignParentName(GetName());
         return true;
     }
 
@@ -123,7 +127,13 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_pOdeAreas.find(pChild->GetName()) == m_pOdeAreas.end())
+        {
+            LOG_WARN("'" << pChild->GetName() <<"' is not a child of ODE Trigger '" << GetName() << "'");
+            return false;
+        }
         m_pOdeAreas.erase(pChild->GetName());
+        pChild->ClearParentName();
         return true;
     }
     
@@ -176,6 +186,22 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_classId = classId;
+    }
+
+    uint OdeTrigger::GetLimit()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        return m_limit;
+    }
+    
+    void OdeTrigger::SetLimit(uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_limit = limit;
     }
 
     const char* OdeTrigger::GetSource()

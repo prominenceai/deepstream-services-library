@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -231,17 +231,17 @@ namespace DSL
         
         if (!timeout)
         {
-            LOG_INFO("Timeout value can not be 0 when enabling cycle-all-sources for TilerBintr '" << GetName());
+            LOG_ERROR("Timeout value can not be 0 when enabling cycle-all-sources for TilerBintr '" << GetName());
             return false;
         }
         if (!IsLinked())
         {
-            LOG_INFO("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
+            LOG_ERROR("Cycle-all-sources can not be set until TilerBintr '" << GetName() << "' is linked");
             return false;
         }
         if (m_showSourceCycle)
         {
-            LOG_INFO("Cycle-all-sources is already enbled for TilerBintr '" << GetName());
+            LOG_ERROR("Cycle-all-sources is already enbled for TilerBintr '" << GetName());
             return false;
         }
 

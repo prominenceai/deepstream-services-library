@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -399,7 +399,7 @@ namespace DSL
 
             // if the source is from file, then setup Stream buffer probe function
             // to handle the stream restart/loop on GST_EVENT_EOS.
-            if (!m_isLive and false)
+            if (!m_isLive and true)
             {
                 GstPadProbeType mask = (GstPadProbeType) 
                     (GST_PAD_PROBE_TYPE_EVENT_BOTH |

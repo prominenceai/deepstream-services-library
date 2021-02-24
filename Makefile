@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2019-Present, ROBERT HOWELL
+# Copyright (c) 2019-2021, Prominence AI, Inc.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.08.alpha"'
+DSL_VERSION:='L"v0.09.alpha"'
 NVDS_VERSION:=5.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0

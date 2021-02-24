@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-Present, ROBERT HOWELL
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -147,9 +147,17 @@ namespace DSL
     #define DSL_ODE_ACTION_SINK_RECORD_START_NEW(name, recordSink, start, duration, clientData) \
         std::shared_ptr<RecordSinkStartOdeAction>(new RecordSinkStartOdeAction(name, recordSink, start, duration, clientData))
         
+    #define DSL_ODE_ACTION_SINK_RECORD_STOP_PTR std::shared_ptr<RecordSinkStopOdeAction>
+    #define DSL_ODE_ACTION_SINK_RECORD_STOP_NEW(name, recordSink) \
+        std::shared_ptr<RecordSinkStopOdeAction>(new RecordSinkStopOdeAction(name, recordSink))
+        
     #define DSL_ODE_ACTION_TAP_RECORD_START_PTR std::shared_ptr<RecordTapStartOdeAction>
     #define DSL_ODE_ACTION_TAP_RECORD_START_NEW(name, recordTap, start, duration, clientData) \
         std::shared_ptr<RecordTapStartOdeAction>(new RecordTapStartOdeAction(name, recordTap, start, duration, clientData))
+        
+    #define DSL_ODE_ACTION_TAP_RECORD_STOP_PTR std::shared_ptr<RecordTapStopOdeAction>
+    #define DSL_ODE_ACTION_TAP_RECORD_STOP_NEW(name, recordTap) \
+        std::shared_ptr<RecordTapStopOdeAction>(new RecordTapStopOdeAction(name, recordTap))
         
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_PTR std::shared_ptr<TilerShowSourceOdeAction>
     #define DSL_ODE_ACTION_TILER_SHOW_SOURCE_NEW(name, tiler, timeout, hasPrecedence) \
@@ -1394,6 +1402,50 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @class RecordSinkStopOdeAction
+     * @brief Stop Record Sink ODE Action class
+     */
+    class RecordSinkStopOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Stop Record Sink ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Stop on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordSinkStopOdeAction(const char* name, const char* recordSink);
+        
+        /**
+         * @brief dtor for the Stop Record ODE Action class
+         */
+        ~RecordSinkStopOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Stoping a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Sink to start the recording session
+         */ 
+        std::string m_recordSink;
+        
+    };
+
+    // ********************************************************************
+
+    /**
      * @class RecordTapOdeAction
      * @brief Start Record Tap ODE Action class
      */
@@ -1409,7 +1461,7 @@ namespace DSL
          * @param[in] duration for recording unless stopped before completion
          */
         RecordTapStartOdeAction(const char* name, 
-            const char* tapSink, uint start, uint duration, void* clientData);
+            const char* recordTap, uint start, uint duration, void* clientData);
         
         /**
          * @brief dtor for the Start Record ODE Action class
@@ -1448,6 +1500,51 @@ namespace DSL
          * @brief client Data for client listening for recording session complete/stopped
          */
         void* m_clientData;
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class RecordTapOdeAction
+     * @brief Stop Record Tap ODE Action class
+     */
+    class RecordTapStopOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Stop Record Tap ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] recordSink Record Sink component name to Stop on ODE
+         * @param[in] start time before current time in secs
+         * @param[in] duration for recording unless stopped before completion
+         */
+        RecordTapStopOdeAction(const char* name, 
+            const char* recordTap);
+        
+        /**
+         * @brief dtor for the Stop Record ODE Action class
+         */
+        ~RecordTapStopOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by Stoping a Video Recording Session
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Record Tap to start the recording session
+         */ 
+        std::string m_recordTap;
+
     };
 
     // ********************************************************************
