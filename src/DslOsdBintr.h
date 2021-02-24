@@ -38,8 +38,8 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_OSD_PTR std::shared_ptr<OsdBintr>
-    #define DSL_OSD_NEW(name, isClockEnabled) \
-        std::shared_ptr<OsdBintr>(new OsdBintr(name, isClockEnabled))
+    #define DSL_OSD_NEW(name, textEnabled, clockEnabled) \
+        std::shared_ptr<OsdBintr>(new OsdBintr(name, textEnabled, clockEnabled))
 
     /**
      * @class OsdBintr
@@ -52,9 +52,10 @@ namespace DSL
         /**
          * @brief ctor for the OsdBintr class
          * @param[in] name name to give the new OsdBintr
-         * @param[in] isClockEnabled true if clock is to be displayed
+         * @param[in] TextEnabled true if clock is to be displayed
+         * @param[in] ClockEnabled true if clock is to be displayed
          */
-        OsdBintr(const char* name, boolean isClockEnabled);
+        OsdBintr(const char* name, boolean textEnabled, boolean clockEnabled);
 
         /**
          * @brief dtor for the OsdBintr class
@@ -63,9 +64,17 @@ namespace DSL
 
         /**
          * @brief Adds this OsdBintr to a Parent Pipline Bintr
-         * @param[in] pParentBintr
+         * @param[in] pParentBintr parent Pipeline to add to
+         * @return true on successful add, false otherwise
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
+        
+        /**
+         * @brief Removes this OsdBintr to a Parent Pipline Bintr
+         * @param[in] pParentBintr parent Pipeline to remove from
+         * @return true on successful add, false otherwise
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
          * @brief Links all child elements of this OsdBintr
@@ -104,6 +113,18 @@ namespace DSL
 
         /**
          * @brief Gets the current state of the On-screen clock
+         * @param[out] enabled true if bbox labels are currently enabled, false otherwise
+         */
+        void GetTextEnabled(boolean* enabled);
+
+        /**
+         * @brief Sets the current state of the bblox labels display
+         * @param[in] enabled true if bbox labels are to be enabled, false otherwise
+         */
+        bool SetTextEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current state of the bbox labels display
          * @param[out] enabled true if the OSD clock is current enabled, false otherwise
          */
         void GetClockEnabled(boolean* enabled);
@@ -178,10 +199,15 @@ namespace DSL
         bool SetGpuId(uint gpuId);
 
     private:
+        /**
+         * @brief specifies whether bounding-box labels are displayed or not.
+         */
+        boolean m_textEnabled;
 
-        boolean m_isClockEnabled;
-        
-        std::map <int, std::shared_ptr<NvOSD_ColorParams>> m_redactionClasses;
+        /**
+         * @brief specifies whether the on-screen clock is displayed or not.
+         */
+        boolean m_clockEnabled;
         
         std::string m_clockFont;
         uint m_clockFontSize;

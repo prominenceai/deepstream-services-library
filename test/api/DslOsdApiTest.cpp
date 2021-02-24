@@ -36,7 +36,7 @@ SCENARIO( "The Components container is updated correctly on new OSD", "[osd-api]
         WHEN( "A new OSD is created" ) 
         {
 
-            REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -54,7 +54,7 @@ SCENARIO( "The Components container is updated correctly on OSD delete", "[osd-a
         std::wstring osdName(L"on-screen-display");
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "The new OSD is created" ) 
@@ -77,7 +77,7 @@ SCENARIO( "An OSD in use can't be deleted", "[osd-api]" )
         std::wstring pipelineName(L"test-pipeline");
         std::wstring osdName(L"on-screen-display");
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 1 );
@@ -106,7 +106,7 @@ SCENARIO( "An OSD, once removed from a Pipeline, can be deleted", "[osd-api]" )
         std::wstring pipelineName(L"test-pipeline");
         std::wstring osdName(L"on-screen-display");
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_list_size() == 1 );
@@ -139,7 +139,7 @@ SCENARIO( "An OSD in use can't be added to a second Pipeline", "[osd-api]" )
         std::wstring pipelineName2(L"test-pipeline-2");
         std::wstring osdName(L"on-screen-display");
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -160,6 +160,33 @@ SCENARIO( "An OSD in use can't be added to a second Pipeline", "[osd-api]" )
     }
 }
 
+SCENARIO( "An OSD's display-text property can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+        boolean preEnabled(false), retEnabled(false);
+
+        REQUIRE( dsl_osd_new(osdName.c_str(), preEnabled, false) == DSL_RESULT_SUCCESS );
+        dsl_osd_text_enabled_get(osdName.c_str(), &retEnabled);
+        REQUIRE( preEnabled == retEnabled);
+        
+        WHEN( "The OSD's display-text property is Enabled" ) 
+        {
+            preEnabled = false;
+            REQUIRE( dsl_osd_text_enabled_set(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on Get" ) 
+            {
+                dsl_osd_text_enabled_get(osdName.c_str(), &retEnabled);
+                REQUIRE( preEnabled == retEnabled );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "An OSD's Clock Enabled Setting can be updated", "[osd-api]" )
 {
     GIVEN( "A new OSD in memory" ) 
@@ -167,7 +194,7 @@ SCENARIO( "An OSD's Clock Enabled Setting can be updated", "[osd-api]" )
         std::wstring osdName(L"on-screen-display");
         boolean preEnabled(false), retEnabled(false);
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), preEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, preEnabled) == DSL_RESULT_SUCCESS );
         dsl_osd_clock_enabled_get(osdName.c_str(), &retEnabled);
         REQUIRE( preEnabled == retEnabled);
         
@@ -196,7 +223,7 @@ SCENARIO( "An OSD's Clock Offsets can be updated", "[osd-api]" )
         uint preOffsetX(100), preOffsetY(100);
         uint retOffsetX(0), retOffsetY(0);
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, enabled) == DSL_RESULT_SUCCESS );
         
         WHEN( "The OSD's Clock Offsets are Set" ) 
         {
@@ -225,7 +252,7 @@ SCENARIO( "An OSD's Clock Font can be updated", "[osd-api]" )
         std::wstring newFont(L"arial");
         uint newSize(16);
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, enabled) == DSL_RESULT_SUCCESS );
         
         WHEN( "The OSD's Clock Font is Set" ) 
         {
@@ -288,7 +315,7 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a OSD", "[osd-
         std::wstring osdName(L"on-screen-display");
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
@@ -328,7 +355,7 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed froma a OSD", "[o
         std::wstring osdName(L"on-screen-display");
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), false, false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 

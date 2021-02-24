@@ -247,6 +247,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         uint limit(0);
         
         std::wstring osdName(L"osd");
+        boolean textEnabled(false);
         boolean clockEnabled(false);
 
         std::wstring odePphName(L"ode-handler");
@@ -279,7 +280,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Types, each wi
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odeCarOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -546,6 +547,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
         uint sinkH(720);
 
         std::wstring osdName(L"osd");
+        boolean textEnabled(false);
         boolean clockEnabled(false);
 
         std::wstring pipelineName(L"test-pipeline");
@@ -612,7 +614,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Occurrence ODE Type with a s
         
         REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -680,6 +682,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
         uint sinkH(720);
 
         std::wstring osdName(L"osd");
+        boolean textEnabled(false);
         boolean clockEnabled(false);
 
         std::wstring pipelineName(L"test-pipeline");
@@ -745,7 +748,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Type with a sh
         
         REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -813,6 +816,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         uint sinkH(720);
 
         std::wstring osdName(L"osd");
+        boolean textEnabled(false);
         boolean clockEnabled(false);
 
         std::wstring pipelineName(L"test-pipeline");
@@ -910,7 +914,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Types with a s
         
         REQUIRE( dsl_pph_ode_trigger_add_many(odePphName.c_str(), odeTypes) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -980,6 +984,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         uint sinkH(720);
 
         std::wstring osdName(L"osd");
+        boolean textEnabled(false);
         boolean clockEnabled(false);
 
         std::wstring recordSinkName(L"record-sink");
@@ -1029,7 +1034,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
 
         REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), bicycleOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_osd_new(osdName.c_str(), clockEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );

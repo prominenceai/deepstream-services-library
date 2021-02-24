@@ -221,6 +221,32 @@ namespace DSL
         return true;
     }
     
+    bool PipelineBintr::GetStreamMuxNumSurfacesPerFrame(uint* num)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(num);
+        return true;
+    }
+    
+    bool PipelineBintr::SetStreamMuxNumSurfacesPerFrame(uint num)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
+            return false;
+        }
+        m_pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(num);
+        return true;
+    }
+    
     void PipelineBintr::GetXWindowOffsets(uint* xOffset, uint* yOffset)
     {
         LOG_FUNC();
@@ -379,13 +405,20 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
-        {
-            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
-            return false;
-        }
         if (IsLinked())
         {
+            GstState state;
+            GetState(state, 0);
+            if (state == GST_STATE_PAUSED or state == GST_STATE_PLAYING)
+            {
+                SendEos();
+                sleep(1);
+            }
+            if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            {
+                LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+                return false;
+            }
             UnlinkAll();
         }
         return true;

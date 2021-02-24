@@ -399,7 +399,7 @@ namespace DSL
 
             // if the source is from file, then setup Stream buffer probe function
             // to handle the stream restart/loop on GST_EVENT_EOS.
-            if (!m_isLive and false)
+            if (!m_isLive and true)
             {
                 GstPadProbeType mask = (GstPadProbeType) 
                     (GST_PAD_PROBE_TYPE_EVENT_BOTH |

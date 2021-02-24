@@ -1056,6 +1056,31 @@ namespace DSL
 
     // ********************************************************************
 
+    RecordSinkStopOdeAction::RecordSinkStopOdeAction(const char* name, 
+        const char* recordSink)
+        : OdeAction(name)
+        , m_recordSink(recordSink)
+    {
+        LOG_FUNC();
+    }
+
+    RecordSinkStopOdeAction::~RecordSinkStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RecordSinkStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->SinkRecordSessionStop(m_recordSink.c_str());
+        }
+    }
+
+    // ********************************************************************
+
     RecordTapStartOdeAction::RecordTapStartOdeAction(const char* name, 
         const char* recordTap, uint start, uint duration, void* clientData)
         : OdeAction(name)
@@ -1083,6 +1108,30 @@ namespace DSL
         }
     }
 
+    // ********************************************************************
+
+    RecordTapStopOdeAction::RecordTapStopOdeAction(const char* name, 
+        const char* recordTap)
+        : OdeAction(name)
+        , m_recordTap(recordTap)
+    {
+        LOG_FUNC();
+    }
+
+    RecordTapStopOdeAction::~RecordTapStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RecordTapStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            // Ignore the return value, errors will be logged 
+            Services::GetServices()->TapRecordSessionStop(m_recordTap.c_str());
+        }
+    }
     // ********************************************************************
 
     TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, const char* tiler, uint timeout, bool hasPrecedence)

@@ -76,6 +76,7 @@ namespace DSL
 
         if (m_pContext)
         {
+            LOG_INFO("Destroying context");
             DestroyContext();
         }
     }
@@ -132,6 +133,40 @@ namespace DSL
         return true;
     }
 
+    uint RecordMgr::GetContainer()
+    {
+        LOG_FUNC();
+        
+        return m_initParams.containerType;
+    }
+
+    bool RecordMgr::SetContainer(uint container)
+    {
+        LOG_FUNC();
+        
+        if (m_pContext)
+        {
+            LOG_ERROR("Unable to set container type for RecordMgr '" << m_name 
+                << "' as it is currently in use");
+            return false;
+        }
+
+        switch (container)
+        {
+        case DSL_CONTAINER_MP4 :
+            m_initParams.containerType = NVDSSR_CONTAINER_MP4;        
+            break;
+        case DSL_CONTAINER_MKV :
+            m_initParams.containerType = NVDSSR_CONTAINER_MKV;        
+            break;
+        default:
+            LOG_ERROR("Invalid container = '" << container << "' for RecordMgr '" << m_name << "'");
+            return false;
+        }
+        
+        return true;
+    }
+
     uint RecordMgr::GetCacheSize()
     {
         LOG_FUNC();
@@ -154,7 +189,6 @@ namespace DSL
         
         return true;
     }
-
 
     void RecordMgr::GetDimensions(uint* width, uint* height)
     {

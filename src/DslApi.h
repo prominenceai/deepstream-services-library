@@ -987,6 +987,15 @@ DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
     const wchar_t* record_sink, uint start, uint duration, void* client_data);
 
 /**
+ * @brief Creates a uniquely named Stop Record Sink ODE Action
+ * @param[in] name unique name for the Print ODE Action 
+ * @param[in] record_sink unique name of the Record Sink to stop recording
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_sink_record_stop_new(const wchar_t* name,
+    const wchar_t* record_sink);
+
+/**
  * @brief Creates a uniquely named Add Source Action that adds
  * a named Source to a named Pipeline
  * @param[in] name unique name for the ODE Add Action 
@@ -1019,7 +1028,16 @@ DslReturnType dsl_ode_action_source_remove_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_tap_record_start_new(const wchar_t* name,
-    const wchar_t* record_sink, uint start, uint duration, void* client_data);
+    const wchar_t* record_tap, uint start, uint duration, void* client_data);
+
+/**
+ * @brief Creates a uniquely named Stop Record Tap ODE Action
+ * @param[in] name unique name for the Stop Record Tap Action 
+ * @param[in] record_tap unique name of the Record Tap to stop recording
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_tap_record_stop_new(const wchar_t* name,
+    const wchar_t* record_tap);
 
 /**
  * @brief Creates a uniquely named Add Area ODE Action that adds
@@ -1394,6 +1412,24 @@ DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current limit setting for the ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to query
+ * @param[out] limit returns the current trigger_limit in use
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit);
+
+/**
+ * @brief Sets the limit for the ODE Trigger
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] limit new limit to use. Setting the limit to a 
+ * value less that the current trigger count will effectively 
+ * disable the trigger until reset.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
 
 /**
  * @brief Gets the current minimum confidence setting for the ODE Trigger
@@ -2011,9 +2047,41 @@ DslReturnType dsl_tap_record_session_start(const wchar_t* name,
  * @brief stops a current recording in session
  * @param[in] name unique of the Record Tap to stop
  * @param[in] session unique id for the session to stop
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
+
+/**
+ * @brief returns the video recording output directory for the named Record Tap
+ * @param[in] name name of the Record Tap to query
+ * @param[out] outdir current output directory set for the Record Tap
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+  */
+DslReturnType dsl_tap_record_outdir_get(const wchar_t* name, const wchar_t** outdir);
+
+/**
+ * @brief returns the video recording output directory in use by the named Record Tap
+ * @param[in] name name of the Record Tap to update
+ * @param[in] outdir new output directory to use by the Record Tap
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_outdir_set(const wchar_t* name, const wchar_t* outdir);
+
+/**
+ * @brief returns the video recording container type for the named Record Tap
+ * @param[in] name name of the Record Tap to query
+ * @param[out] container current setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+  */
+DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container);
+
+/**
+ * @brief returns the video recording container type for the named Record Tap
+ * @param[in] name name of the Record Tap to query
+ * @param[in] container new setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_tap_record_container_set(const wchar_t* name,  uint container);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -2021,7 +2089,7 @@ DslReturnType dsl_tap_record_session_stop(const wchar_t* name);
  * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Tap to query
  * @param[out] cache_size current cache size setting
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size);
 
@@ -2031,7 +2099,7 @@ DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_siz
  * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
  * @param[in] name name of the Record Tap to update
  * @param[in] cache_size new cache size setting to use on Pipeline play
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size);
 
@@ -2040,7 +2108,7 @@ DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size
  * @param[in] name name of the Record Tap to query
  * @param[out] width current width of the video recording in pixels
  * @param[out] height current height of the video recording in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 
@@ -2050,7 +2118,7 @@ DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, ui
  * @param[in] name name of the Record Tap to update
  * @param[in] width width to set the video recording in pixels
  * @param[in] height height to set the video in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TAP_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, uint width, uint height);
 
@@ -2069,7 +2137,6 @@ DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on);
  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done);
-
 
 /**
  * @brief creates a new, uniquely named Primary GIE object
@@ -2253,10 +2320,28 @@ DslReturnType dsl_ofv_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named OSD obj
  * @param[in] name unique name for the new OSD
- * @param[in] is_clock_enabled true if clock is visible
+ * @param[in] text_enabled set to true to enable display of bbox labels
+ * @param[in] clock_enabled set to true to enable clock display
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_new(const wchar_t* name, boolean is_clock_enabled);
+DslReturnType dsl_osd_new(const wchar_t* name, 
+    boolean text_enabled, boolean clock_enabled);
+
+/**
+ * @brief returns the current clock enabled setting for the named On-Screen Display
+ * @param[in] name name of the Display to query
+ * @param[out] enabled current setting for OSD clock in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the the clock enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update
+ * @param[in] enabled new enabled setting for the OSD clock
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief returns the current clock enabled setting for the named On-Screen Display
@@ -2670,6 +2755,41 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_session_stop(const wchar_t* name);
+
+/**
+ * @brief returns the current output directory in use by the named Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] outdir current output directory set for the Record Sink
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+  */
+DslReturnType dsl_sink_record_outdir_get(const wchar_t* name, const wchar_t** outdir);
+
+/**
+ * @brief Sets the video recording output directory for the named sink.
+ * The directory must exist prior to calling or the services will fail
+ * @param[in] name name of the Record Sink to update
+ * @param[in] outdir new output directory to use by the Record Sink
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_record_outdir_set(const wchar_t* name, const wchar_t* outdir);
+
+/**
+ * @brief returns the video recording container type for the named Sink
+ * A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * @param[in] name name of the Record Tap to query
+ * @param[out] container current setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+  */
+DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container);
+
+/**
+ * @brief Sets the video recording container type for the named Sink
+ * @param[in] name name of the Record Sink to update
+ * @param[in] container new setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
+ */
+DslReturnType dsl_sink_record_container_set(const wchar_t* name,  uint container);
 
 /**
  * @brief returns the video recording cache size in units of seconds
@@ -3159,6 +3279,22 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, boolean* e
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief returns the current num-surfaces-per-frame stream-muxer setting for the named Pipeline
+ * @param[in] name name of the Display to query
+ * @param[out] num number of surfaces per frame [1..4]
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(const wchar_t* name, uint* num);
+
+/**
+ * @brief sets the current num-surfaces-per-frame stream-muxer setting for the named Pipeline
+ * @param[in] name name of the Display to update
+ * @param[in] num number of surfaces per frame [1..4]
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(const wchar_t* name, uint num);
 
 /**
  * @brief pauses a Pipeline if in a state of playing
