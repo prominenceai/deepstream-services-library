@@ -17,6 +17,8 @@ Once added to a Pipeline or Branch, an OSD must be removed before it can be used
 * [dsl_osd_new](#dsl_osd_new)
 
 **Methods:**
+* [dsl_osd_text_enabled_get](#dsl_osd_clock_enabled_get)
+* [dsl_osd_text_enabled_set](#dsl_osd_clock_enabled_set)
 * [dsl_osd_clock_enabled_get](#dsl_osd_clock_enabled_get)
 * [dsl_osd_clock_enabled_set](#dsl_osd_clock_enabled_set)
 * [dsl_osd_clock_offsets_get](#dsl_osd_clock_offsets_get)
@@ -55,7 +57,7 @@ The constructor creates a uniquely named On-Screen Display with an optional cloc
 
 **Parameters**
 * `name` - [in] unique name for the On-Screen Display to create.
-* `text_enable` - [in] set to true to enable object text labels, false otherwise
+* `text_enable` - [in] set to true to enable On-Screen object text - class label and tracking number -  false otherwise
 * `clock_enable` - [in] set to true to enable On-Screen clock, false otherwise
 
 **Returns**
@@ -63,12 +65,53 @@ The constructor creates a uniquely named On-Screen Display with an optional cloc
 
 **Python Example**
 ```Python
-retval = dsl_osd_new('my-on-screen-display', True)
+retval = dsl_osd_new('my-on-screen-display', True, True)
 ```
 
 <br>
 
 ## Methods
+### *dsl_osd_text_enabled_get*
+```c++
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service returns the current object text enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enabled` - [out] true if the On-Screen object text - class label and tracking number -  is currently enabled, false otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_osd_text_enabled_get('my-on-screen-display')
+```
+
+<br>
+
+### *dsl_osd_text_enabled_set*
+```c++
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the current clock enabled setting for the named On-Screen Display
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `enable` - [in] set to true to enable On-Screen object text - class label and tracking number -  false otherwise
+
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_osd_text_enabled_set('my-on-screen-display', False)
+```
+
+<br>
+
 ### *dsl_osd_clock_enabled_get*
 ```c++
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
@@ -100,7 +143,7 @@ This service sets the current clock enabled setting for the named On-Screen Disp
 * `enabled` - [in] set to true to enable the On-Screen clock, false otherwise
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
