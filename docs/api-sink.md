@@ -39,6 +39,11 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_window_dimensions_get](#dsl_sink_window_dimensions_get)
 * [dsl_sink_window_dimensions_set](#dsl_sink_window_dimensions_set)
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
+* [dsl_sink_record_session_stop](#dsl_sink_record_session_stop)
+* [dsl_sink_record_outdir_get](#dsl_sink_record_outdir_get)
+* [dsl_sink_record_outdir_set](#dsl_sink_record_outdir_set)
+* [dsl_sink_record_container_get](#dsl_sink_record_container_get)
+* [dsl_sink_record_container_set](#dsl_sink_record_container_set)
 * [dsl_sink_record_cache_size_get](#dsl_sink_record_cache_size_get)
 * [dsl_sink_record_cache_size_set](#dsl_sink_record_cache_size_set)
 * [dsl_sink_record_dimensions_get](#dsl_sink_record_dimensions_get)
@@ -483,6 +488,86 @@ This services stops a current recording in session.
 **Python Example**
 ```Python
 retval = dsl_sink_record_session_stop('my-record-sink', current_session)
+```
+
+<br>
+
+### *dsl_sink_record_outdir_get*
+```C++
+DslReturnType dsl_sink_record_outdir_get(const wchar_t* name, const wchar_t** outdir);
+```
+This service returns the video recording output directory. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to query
+ * `outdir` - [out] absolute pathspec for the directory to save the recorded video streams.
+
+**Returns**
+ * `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, outdir = dsl_sink_record_outdir_get('my-record-sink')
+```
+
+<br>
+
+### *dsl_sink_record_outdir_set*
+```C++
+DslReturnType dsl_sink_record_outdir_set(const wchar_t* name, const wchar_t* outdir);
+```
+This service sets the video recording output directory. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_outdir_set('my-record-sink', './recordings')
+```
+
+<br>
+
+### *dsl_sink_record_container_get*
+```C++
+DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container);
+```
+This service returns the media container type used when recording. 
+
+**Parameters**
+ * `name` [in] name of the Record Sink to query
+ * `container` - [out] one of the [Video Container Types](#video-container-types) defined above
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, container_type = dsl_sink_record_container_get('my-record-sink')
+```
+
+<br>
+
+### *dsl_sink_record_container_set*
+```C++
+DslReturnType dsl_sink_record_container_set(const wchar_t* name,  uint container);
+```
+This service sets the media container type to use when recording.
+
+**Parameters**
+ * `name` [in] name of the Record Sink to update
+ * `container` - [in] on of the [Video Container Types](#video-container-types) defined above
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_record_container_set('my-record-sink', DSL_CONTAINER_MP4)
 ```
 
 <br>
