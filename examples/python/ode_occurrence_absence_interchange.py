@@ -153,7 +153,7 @@ def main(args):
             return retval
 
         # New Action used to display all Object detection summations for each frame. 
-        retval = dsl_ode_action_display_new('display-action', offsetX=48, offsetY=60, offsetY_with_classId=False,
+        retval = dsl_ode_action_display_new('display-action', x_offset=48, y_offset=60, y_offset_with_classId=False,
             font='arial-15-white', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -280,8 +280,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... .
-        retval = dsl_osd_new('on-screen-display', True)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

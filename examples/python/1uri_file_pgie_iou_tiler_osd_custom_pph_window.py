@@ -102,7 +102,7 @@ def main(args):
             break
  
         # New OSD with clock enabled... .
-        retval = dsl_osd_new('on-screen-display', True)
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

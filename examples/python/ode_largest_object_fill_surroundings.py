@@ -40,10 +40,10 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
+# NOTE: filling the full frame with a blended alpha is a CPU intensive operation
+# Using a 30 fps file source requires us to reduce the size at the streammux output 
 STREAMMUX_WIDTH = 1280
 STREAMMUX_HEIGHT = 720
-#TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-#TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 TILER_WIDTH = STREAMMUX_WIDTH
 TILER_HEIGHT = STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
@@ -166,8 +166,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... .
-        retval = dsl_osd_new('on-screen-display', True)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

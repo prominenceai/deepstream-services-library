@@ -223,7 +223,7 @@ def main(args):
             
         # Create a new  Action used to display all Object detection summations for each frame. Use the classId
         # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=24, offsetY=55, offsetY_with_classId=True,
+        retval = dsl_ode_action_display_new('display-action', x_offset=24, y_offset=55, y_offset_with_classId=True,
             font='arial-15-white', has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -349,8 +349,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... .
-        retval = dsl_osd_new('on-screen-display', True)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
             

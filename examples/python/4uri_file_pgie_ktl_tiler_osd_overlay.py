@@ -67,8 +67,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', False)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
