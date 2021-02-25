@@ -48,12 +48,14 @@ The following return codes are used by the On-Screen Display API
 ## Constructors
 ### *dsl_osd_new*
 ```c++
-DslReturnType dsl_osd_new(const wchar_t* name, boolean clock_enabled);
+DslReturnType dsl_osd_new(const wchar_t* name, 
+    boolean text_enabled, boolean clock_enabled);
 ```
 The constructor creates a uniquely named On-Screen Display with an optional clock. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the On-Screen Display to create.
+* `text_enable` - [in] set to true to enable object text labels, false otherwise
 * `clock_enable` - [in] set to true to enable On-Screen clock, false otherwise
 
 **Returns**
