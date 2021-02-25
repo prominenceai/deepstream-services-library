@@ -107,8 +107,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD for single tiled stream - will be added to Pipeline since using Tiler
-        retval = dsl_osd_new('on-screen-display', False)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

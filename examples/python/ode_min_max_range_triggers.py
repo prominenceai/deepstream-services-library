@@ -112,11 +112,6 @@ def main(args):
         retval = dsl_display_type_rgba_color_new('full-green', red=.0, green=1.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # An opaque red RGBA color to fill the full frame as a secondary indication of Max Objects exceeded
-        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.2)
-        if retval != DSL_RETURN_SUCCESS:
-            break
             
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create all Fill-Area, Fill-Frame Actions for our object count indicators
@@ -155,11 +150,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Action to fill the entire frame with a light shade of red - a secondary indication of object summation above maximum
-        retval = dsl_ode_action_fill_frame_new('shade-frame-red', 'opaque-red')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, new colors, fonts, rectangles and display action for displaying our object counts on the screen 
 
@@ -175,7 +165,7 @@ def main(args):
 
         # Create a new  Action used to display all Object counts for each frame. Use the classId
         # to add an additional vertical offset so the one action can be shared accross classId's
-        retval = dsl_ode_action_display_new('display-action', offsetX=45, offsetY=90, offsetY_with_classId=True,
+        retval = dsl_ode_action_display_new('display-action', x_offset=45, y_offset=90, y_offset_with_classId=True,
             font='arial-16-white', has_bg_color=True, bg_color='full-black')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -203,8 +193,7 @@ def main(args):
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, maximum=MAX_OBJECTS)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add_many('maximum-objects', actions=
-            ['shade-frame-red', 'add-red-rectangle', None])
+        retval = dsl_ode_trigger_action_add('maximum-objects', action='add-red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -284,8 +273,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock enabled... .
-        retval = dsl_osd_new('on-screen-display', True)
+        # New OSD with clock and text enabled... using default values.
+        retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
