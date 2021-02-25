@@ -41,10 +41,12 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
 * [dsl_ode_trigger_enabled_get](#dsl_ode_trigger_enabled_get)
 * [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
+* [dsl_ode_trigger_source_get](#dsl_ode_trigger_source_get)
+* [dsl_ode_trigger_source_set](#dsl_ode_trigger_source_set)
 * [dsl_ode_trigger_class_id_get](#dsl_ode_trigger_class_id_get)
 * [dsl_ode_trigger_class_id_set](#dsl_ode_trigger_class_id_set)
-* [dsl_ode_trigger_source_id_get](#dsl_ode_trigger_source_id_get)
-* [dsl_ode_trigger_source_id_set](#dsl_ode_trigger_source_id_set)
+* [dsl_ode_trigger_limit_get](#dsl_ode_trigger_limit_get)
+* [dsl_ode_trigger_limit_set](#dsl_ode_trigger_limit_set)
 * [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](#dsl_ode_trigger_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
@@ -532,6 +534,49 @@ retval = dsl_ode_trigger_enabled_set('my-trigger', False)
 
 <br>
 
+
+### *dsl_ode_trigger_source_get*
+```c++
+DslReturnType dsl_ode_trigger_source_get(const wchar_t* name, const wchar_t** source);
+```
+
+This service returns the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` indicates that the filter is disable and Source name will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `source` - [out] current source name filter for the ODE Trigger to filter on. A value of 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, source_name = dsl_ode_trigger_source_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_source_set*
+```c++
+DslReturnType dsl_ode_trigger_source_set(const wchar_t* name, const wchar_t* source);
+```
+
+This service sets the current source filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` disables the filter and the Source name will not be used as criteria for ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `source` - [in] new Source name for the ODE Trigger to filter on, or `DSL_ODE_ANY_SOURCE` to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_source_id_set('my-trigger', 'my-source-1')
+```
+
+<br>
+
 ### *dsl_ode_trigger_class_id_get*
 ```c++
 DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
@@ -569,49 +614,49 @@ This service sets the current class_id filter setting for the named ODE Trigger.
 
 **Python Example**
 ```Python
-retval, enabled = dsl_ode_trigger_class_id_set('my-trigger', DSL_ODE_ANY_CLASS)
+retval = dsl_ode_trigger_class_id_set('my-trigger', DSL_ODE_ANY_CLASS)
 ```
 
 <br>
 
-### *dsl_ode_trigger_source_id_get*
+### *dsl_ode_trigger_limit_get*
 ```c++
-DslReturnType dsl_ode_trigger_source_id_get(const wchar_t* name, uint* source_id);
+DslReturnType dsl_ode_trigger_limit_get(const wchar_t* name, uint* limit);
 ```
 
-This service returns the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` (default) indicates that the filter is disable and the Unique Source Id will not be used as criteria for ODE occurrence.
+This service returns the current Trigger limit setting for the named ODE Trigger. A value of zero indicates NO Limit
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `source_id` - [out] current source Id filter for the ODE Trigger to filter on, set to `DSL_ODE_ANY_SOURCE` during construction
+* `limit` - [out] current limit setting for the ODE Trigger. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, class_id = dsl_ode_trigger_source_id_get('my-trigger')
+retval, limit = dsl_ode_trigger_limit_get('my-trigger')
 ```
 
 <br>
 
-### *dsl_ode_trigger_source_id_set*
+### *dsl_ode_trigger_limit_set*
 ```c++
-DslReturnType dsl_ode_trigger_source_id_set(const wchar_t* name, uint source_id);
+DslReturnType dsl_ode_trigger_limit_set(const wchar_t* name, uint limit);
 ```
 
-This service sets the current source_id filter setting for the named ODE Trigger. A value of `DSL_ODE_ANY_SOURCE` disables the filter and the Source Id will not be used as criteria for ODE occurrence.
+This service sets the current limit setting for the named ODE Trigger. Setting the limit to zert disables the limit check, i.e. no limit.
 
 **Parameters**
 * `name` - [in] unique name of the ODE Trigger to query.
-* `source_id` - [in] new Source Id filter for the ODE Trigger to filter on, or `DSL_ODE_ANY_SOURCE` to disable.
+* `limit` - [in] new limit for the ODE Trigger to filter on, 0 to indicate no limit.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, enabled = dsl_ode_trigger_source_id_set('my-trigger', 0)
+retval = dsl_ode_trigger_limit_set('my-trigger', 0)
 ```
 
 <br>
