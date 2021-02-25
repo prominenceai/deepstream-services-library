@@ -17,8 +17,8 @@ Once added to a Pipeline or Branch, an OSD must be removed before it can be used
 * [dsl_osd_new](#dsl_osd_new)
 
 **Methods:**
-* [dsl_osd_text_enabled_get](#dsl_osd_clock_enabled_get)
-* [dsl_osd_text_enabled_set](#dsl_osd_clock_enabled_set)
+* [dsl_osd_text_enabled_get](#dsl_osd_text_enabled_get)
+* [dsl_osd_text_enabled_set](#dsl_osd_text_enabled_set)
 * [dsl_osd_clock_enabled_get](#dsl_osd_clock_enabled_get)
 * [dsl_osd_clock_enabled_set](#dsl_osd_clock_enabled_set)
 * [dsl_osd_clock_offsets_get](#dsl_osd_clock_offsets_get)
