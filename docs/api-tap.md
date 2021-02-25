@@ -19,6 +19,11 @@ Note: Adding a Tap component to a Pipeline or Branch directly will fail.
 
 **Methods**
 * [dsl_tap_record_session_start](#dsl_tap_record_session_start)
+* [dsl_tap_record_session_stop](#dsl_tap_record_session_stop)
+* [dsl_tap_record_outdir_get](#dsl_tap_record_outdir_get)
+* [dsl_tap_record_outdir_set](#dsl_tap_record_outdir_set)
+* [dsl_tap_record_container_get](#dsl_tap_record_container_get)
+* [dsl_tap_record_container_set](#dsl_tap_record_container_set)
 * [dsl_tap_record_cache_size_get](#dsl_tap_record_cache_size_get)
 * [dsl_tap_record_cache_size_set](#dsl_tap_record_cache_size_set)
 * [dsl_tap_record_dimensions_get](#dsl_tap_record_dimensions_get)
@@ -40,7 +45,7 @@ The following return codes are used by the Tap API
 ```
 
 ## Video Container Types
-The following video container types are used by the File Tap API
+The following video container types are used by the Record Tap API
 ```C++
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
@@ -139,6 +144,85 @@ This services stops a current recording in session.
 **Python Example**
 ```Python
 retval = dsl_tap_record_session_stop('my-record-tap', current_session)
+```
+<br>
+
+### *dsl_tap_record_outdir_get*
+```C++
+DslReturnType dsl_tap_record_outdir_get(const wchar_t* name, const wchar_t** outdir);
+```
+This service returns the video recording output directory. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to query
+ * `outdir` - [out] absolute pathspec for the directory to save the recorded video streams.
+
+**Returns**
+ * `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, outdir = dsl_tap_record_outdir_get('my-record-tap')
+```
+
+<br>
+
+### *dsl_tap_record_outdir_set*
+```C++
+DslReturnType dsl_tap_record_outdir_set(const wchar_t* name, const wchar_t* outdir);
+```
+This service sets the video recording output directory. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_outdir_set('my-record-tap', './recordings')
+```
+
+<br>
+
+### *dsl_tap_record_container_get*
+```C++
+DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container);
+```
+This service returns the media container type used when recording. 
+
+**Parameters**
+ * `name` [in] name of the Record Tap to query
+ * `container` - [out] one of the [Video Container Types](#video-container-types) defined above
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, container_type = dsl_tap_record_container_get('my-record-tap')
+```
+
+<br>
+
+### *dsl_tap_record_container_set*
+```C++
+DslReturnType dsl_tap_record_container_set(const wchar_t* name,  uint container);
+```
+This service sets the media container type to use when recording.
+
+**Parameters**
+ * `name` [in] name of the Record Tap to update
+ * `container` - [in] on of the [Video Container Types](#video-container-types) defined above
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_container_set('my-record-tap', DSL_CONTAINER_MP4)
 ```
 
 <br>
