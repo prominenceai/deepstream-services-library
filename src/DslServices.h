@@ -68,9 +68,14 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaArrowNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color);
             
-        DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
-            uint borderWidth, const char* color, bool hasBgColor, const char* bgColor);
+        DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, 
+            uint width, uint height, uint borderWidth, const char* color, 
+            bool hasBgColor, const char* bgColor);
     
+        DslReturnType DisplayTypeRgbaPolygonNew(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates, 
+            uint borderWidth, const char* color);
+
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
@@ -180,10 +185,13 @@ namespace DSL {
         uint OdeActionListSize();
 
         DslReturnType OdeAreaInclusionNew(const char* name, 
-            const char* rectangle, boolean display);
+            const char* polygon, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaExclusionNew(const char* name, 
-            const char* rectangle, boolean display);
+            const char* polygon, boolean display, uint bboxTestPoint);
+
+        DslReturnType OdeAreaLineNew(const char* name, 
+            const char* line, boolean display, uint bboxTestEdge);
 
         DslReturnType OdeAreaDelete(const char* name);
         

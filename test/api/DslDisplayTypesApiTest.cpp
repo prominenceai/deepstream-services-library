@@ -328,6 +328,65 @@ SCENARIO( "A new RGBA Rectangle can be created and deleted", "[display-types-api
     }
 }
 
+SCENARIO( "A new RGBA Polygon can be created and deleted", "[display-types-api]" )
+{
+    GIVEN( "Attributes for a new RGBA Polygon" ) 
+    {
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint num_coordinates(4);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new RGBA Polygon is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+                border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+            THEN( "The RGBA Rectangle can be deleted" ) 
+            {
+                REQUIRE( dsl_display_type_delete(polygonName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RGBA Polygon is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+                border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+            
+            THEN( "A second RGBA Polygon of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+                    border_width, colorName.c_str())== DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE );
+
+                REQUIRE( dsl_display_type_delete(polygonName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+        WHEN( "An invalid 'num_coordinates' value is used to create an RGBA Polygon" ) 
+        {
+            num_coordinates = 9; 
+            
+            THEN( "A second RGBA Polygon of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+                    border_width, colorName.c_str())== DSL_RESULT_DISPLAY_PARAMETER_INVALID );
+
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new RGBA Circle can be created and deleted", "[display-types-api]" )
 {
     GIVEN( "Attributes for a new RGBA Circle" ) 

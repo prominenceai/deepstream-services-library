@@ -197,14 +197,16 @@ def main(args):
         # will be for the Person class alone...  and defines a vertical rectangle to 
         # the left of the pedestrian sidewalk. The pixel values are relative to the
         # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_inclusion_new('person-area', 'person-rectangle', display=True)
+        retval = dsl_ode_area_inclusion_new('person-area', 'person-rectangle', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_ANY)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # The second area will be shared by both Person and Vehicle classes... and defines
         # a vertical area/rectangle to the right of the sidewalk and left of the street
         # This area's background will be shaded yellow for caution
-        retval = dsl_ode_area_inclusion_new('shared-area', 'shared-rectangle', display=True)
+        retval = dsl_ode_area_inclusion_new('shared-area', 'shared-rectangle', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_ANY)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -312,6 +312,16 @@ const wchar_t* dsl_version_get()
     return DSL_VERSION;
 }
 
+void geosNoticeHandler(const char *fmt, ...)
+{
+    
+}
+
+void geosErrorHandler(const char *fmt, ...)
+{
+    
+}
+
 // Single GST debug catagory initialization
 GST_DEBUG_CATEGORY(GST_CAT_DSL);
 
@@ -350,6 +360,9 @@ namespace DSL
             // Single instantiation for the lib's lifetime
             m_pInstatnce = new Services(doGstDeinit);
             
+            // initialization of GEOS
+            initGEOS(geosNoticeHandler, geosErrorHandler);
+            
             // Initialize private containers
             m_pInstatnce->InitToStringMaps();
         }
@@ -373,6 +386,8 @@ namespace DSL
         
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+            
+            finishGEOS();
             
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
@@ -571,8 +586,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
-        uint borderWidth, const char* color, bool hasBgColor, const char* bgColor)
+    DslReturnType Services::DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, 
+        uint width, uint height, uint borderWidth, const char* color, bool hasBgColor, const char* bgColor)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -618,6 +633,48 @@ namespace DSL
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
     }
+    
+    DslReturnType Services::DisplayTypeRgbaPolygonNew(const char* name, 
+        const dsl_coordinate* coordinates, uint numCoordinates, 
+        uint borderWidth, const char* color)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("RGBA Polygon name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE;
+            }
+            if (numCoordinates > DSL_MAX_POLYGON_COORDINATES)
+            {
+                LOG_ERROR("Max coordinates exceeded created RGBA Polygon name '" << name << "'");
+                return DSL_RESULT_DISPLAY_PARAMETER_INVALID;
+            }
+            
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, color, RgbaColor);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+            
+            m_displayTypes[name] = DSL_RGBA_POLYGON_NEW(name, 
+                coordinates, numCoordinates, borderWidth, pColor);
+
+            LOG_INFO("New RGBA Rectangle '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RGBA Rectangle '" << name << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+    
 
     DslReturnType Services::DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
         const char* color, bool hasBgColor, const char* bgColor)
@@ -1936,7 +1993,7 @@ namespace DSL
     }
     
     DslReturnType Services::OdeAreaInclusionNew(const char* name, 
-        const char* rectangle, boolean display)
+        const char* polygon, boolean show, uint bboxTestPoint)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1949,13 +2006,23 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            DSL_RGBA_RECTANGLE_PTR pRectangle = 
-                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            // Interim ... only supporting rectangles at this
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
             
-            m_odeAreas[name] = DSL_ODE_AREA_INCLUSION_NEW(name, pRectangle, display);
+            if (bboxTestPoint > DSL_BBOX_POINT_ANY)
+            {
+                LOG_ERROR("Bounding box test point value of '" << bboxTestPoint << 
+                    "' is invalid when creating ODE Inclusion Area '" << name << "'");
+                return DSL_RESULT_ODE_AREA_PARAMETER_INVALID;
+            }
+            
+            DSL_RGBA_POLYGON_PTR pPolygon = 
+                std::dynamic_pointer_cast<RgbaPolygon>(m_displayTypes[polygon]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_INCLUSION_NEW(name, 
+                pPolygon, show, bboxTestPoint);
          
             LOG_INFO("New ODE Inclusion Area '" << name << "' created successfully");
 
@@ -1969,7 +2036,7 @@ namespace DSL
     }                
 
     DslReturnType Services::OdeAreaExclusionNew(const char* name, 
-        const char* rectangle, boolean display)
+        const char* polygon, boolean show, uint bboxTestPoint)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1982,13 +2049,22 @@ namespace DSL
                 LOG_ERROR("ODE Area name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
             }
-            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, rectangle);
-            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, rectangle, RgbaRectangle);
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, polygon);
             
-            DSL_RGBA_RECTANGLE_PTR pRectangle = 
-                std::dynamic_pointer_cast<RgbaRectangle>(m_displayTypes[rectangle]);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, polygon, RgbaPolygon);
+
+            if (bboxTestPoint > DSL_BBOX_POINT_ANY)
+            {
+                LOG_ERROR("Bounding box test point value of '" << bboxTestPoint << 
+                    "' is invalid when creating ODE Exclusion Area '" << name << "'");
+                return DSL_RESULT_ODE_AREA_PARAMETER_INVALID;
+            }
+
+            DSL_RGBA_POLYGON_PTR pPolygon = 
+                std::dynamic_pointer_cast<RgbaPolygon>(m_displayTypes[polygon]);
             
-            m_odeAreas[name] = DSL_ODE_AREA_EXCLUSION_NEW(name, pRectangle, display);
+            m_odeAreas[name] = DSL_ODE_AREA_EXCLUSION_NEW(name, 
+                pPolygon, show, bboxTestPoint);
          
             LOG_INFO("New ODE Exclusion Area '" << name << "' created successfully");
 
@@ -1997,6 +2073,46 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("ODE Exclusion Area '" << name << "' threw exception on creation");
+            return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::OdeAreaLineNew(const char* name, 
+        const char* line, boolean show, uint bboxTestEdge)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure ODE Area name uniqueness 
+            if (m_odeAreas.find(name) != m_odeAreas.end())
+            {   
+                LOG_ERROR("ODE Area name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE;
+            }
+            RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, line);
+            RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(m_displayTypes, line, RgbaLine);
+            
+            if (bboxTestEdge > DSL_BBOX_EDGE_RIGHT)
+            {
+                LOG_ERROR("Bounding box test edge value of '" << bboxTestEdge << 
+                    "' is invalid when creating ODE Line Area '" << name << "'");
+                return DSL_RESULT_ODE_AREA_PARAMETER_INVALID;
+            }
+            
+            DSL_RGBA_LINE_PTR pLine = 
+                std::dynamic_pointer_cast<RgbaLine>(m_displayTypes[line]);
+            
+            m_odeAreas[name] = DSL_ODE_AREA_LINE_NEW(name, pLine, show, bboxTestEdge);
+         
+            LOG_INFO("New ODE Line Area '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Line Area '" << name << "' threw exception on creation");
             return DSL_RESULT_ODE_AREA_THREW_EXCEPTION;
         }
     }                
@@ -2041,7 +2157,7 @@ namespace DSL
                 if (imap.second.use_count() > 1)
                 {
                     LOG_ERROR("ODE Area '" << imap.second->GetName() << "' is currently in use");
-                    return DSL_RESULT_ODE_ACTION_IN_USE;
+                    return DSL_RESULT_ODE_AREA_IN_USE;
                 }
             }
             m_odeAreas.clear();
@@ -2081,7 +2197,7 @@ namespace DSL
             if (when > DSL_ODE_POST_OCCURRENCE_CHECK)
             {   
                 LOG_ERROR("Invalid 'when' parameter for ODE Trigger name '" << name << "'");
-                return DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID;
+                return DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID;
             }
             m_odeTriggers[name] = DSL_ODE_TRIGGER_ALWAYS_NEW(name, source, when);
             
@@ -8306,7 +8422,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED] = L"DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
-        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";
@@ -8319,6 +8435,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_AREA_THREW_EXCEPTION] = L"DSL_RESULT_ODE_AREA_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_ODE_AREA_PARAMETER_INVALID] = L"DSL_RESULT_ODE_AREA_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_AREA_SET_FAILED] = L"DSL_RESULT_ODE_AREA_SET_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_UNIQUE] = L"DSL_RESULT_SINK_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SINK_NAME_NOT_FOUND] = L"DSL_RESULT_SINK_NAME_NOT_FOUND";
@@ -8423,11 +8540,13 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID] = L"DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE] = L"DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_DISPLAY_PARAMETER_INVALID] = L"DSL_RESULT_DISPLAY_PARAMETER_INVALID";
         m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_UNIQUE] = L"DSL_RESULT_TAP_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_TAP_NAME_NOT_FOUND] = L"DSL_RESULT_TAP_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_THREW_EXCEPTION] = L"DSL_RESULT_TAP_THREW_EXCEPTION";

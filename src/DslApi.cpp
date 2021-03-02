@@ -120,8 +120,9 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
         x1, y1, x2, y2, width, head, cstrColor.c_str());
 }
     
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
-    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
+    uint width, uint height, uint border_width, const wchar_t* color, 
+    bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -142,9 +143,27 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
     return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
         left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
+
+DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, 
+    uint border_width, const wchar_t* color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(coordinates);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(cstrName.c_str(), 
+        coordinates, num_coordinates, border_width, cstrColor.c_str());
+}
     
-DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
-    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
+    uint x_center, uint y_center, uint radius, const wchar_t* color, 
+    bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -834,33 +853,48 @@ uint dsl_ode_action_list_size()
 }
 
 DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display)
+    const wchar_t* polygon, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(rectangle);
+    RETURN_IF_PARAM_IS_NULL(polygon);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrRectangle(rectangle);
-    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
+    std::wstring wstrPolygon(polygon);
+    std::string cstrPolygon(wstrPolygon.begin(), wstrPolygon.end());
 
     return DSL::Services::GetServices()->OdeAreaInclusionNew(cstrName.c_str(), 
-        cstrRectangle.c_str(), display);
+        cstrPolygon.c_str(), show, bbox_test_point);
 }
 
 DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display)
+    const wchar_t* polygon, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(rectangle);
+    RETURN_IF_PARAM_IS_NULL(polygon);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrRectangle(rectangle);
-    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
+    std::wstring wstrPolygon(polygon);
+    std::string cstrPolygon(wstrPolygon.begin(), wstrPolygon.end());
 
     return DSL::Services::GetServices()->OdeAreaExclusionNew(cstrName.c_str(), 
-        cstrRectangle.c_str(), display);
+        cstrPolygon.c_str(), show, bbox_test_point);
+}
+
+DslReturnType dsl_ode_area_line_new(const wchar_t* name, 
+    const wchar_t* line, boolean show, uint bbox_test_edge)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(line);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrLine(line);
+    std::string cstrLine(wstrLine.begin(), wstrLine.end());
+
+    return DSL::Services::GetServices()->OdeAreaLineNew(cstrName.c_str(), 
+        cstrLine.c_str(), show, bbox_test_edge);
 }
 
 DslReturnType dsl_ode_area_delete(const wchar_t* name)

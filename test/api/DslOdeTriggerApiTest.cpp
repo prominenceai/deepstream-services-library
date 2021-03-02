@@ -352,7 +352,7 @@ SCENARIO( "A new Always Trigger can be created and deleted correctly", "[ode-tri
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_always_new(odeTriggerName.c_str(), NULL, when+100) 
-                    == DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID );
+                    == DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID );
                     
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
             }

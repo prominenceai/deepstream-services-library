@@ -183,6 +183,45 @@ namespace DSL
     
     // ********************************************************************
 
+    RgbaPolygon::RgbaPolygon(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
+        uint lineWidth, DSL_RGBA_COLOR_PTR pColor)
+        : DisplayType(name)
+        , dsl_polygon_params{NULL, numCoordinates, lineWidth, *pColor}
+    {
+        LOG_FUNC();
+        
+        // allocate data for coordinates and copy over values
+        this->coordinates = (dsl_coordinate*) g_malloc0(numCoordinates*sizeof(dsl_coordinate));
+        memcpy(this->coordinates, coordinates, numCoordinates*sizeof(dsl_coordinate));
+    }
+
+    RgbaPolygon::~RgbaPolygon()
+    {
+        LOG_FUNC();
+        
+        g_free(coordinates);
+    }
+
+    void RgbaPolygon::AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) 
+    {
+        LOG_FUNC();
+
+        for (uint i = 0; i < num_coordinates; i++)
+        {
+            NvOSD_LineParams line = {
+                coordinates[i].x, 
+                coordinates[i].y, 
+                coordinates[(i+1)%num_coordinates].x, 
+                coordinates[(i+1)%num_coordinates].y, 
+                border_width, 
+                color};
+                
+            pDisplayMeta->line_params[pDisplayMeta->num_lines++] = line;
+        }
+    }
+
+    // ********************************************************************
+
     RgbaCircle::RgbaCircle(const char* name, uint x_center, uint y_center, uint radius,
         DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : DisplayType(name)

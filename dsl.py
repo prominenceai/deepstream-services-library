@@ -64,6 +64,27 @@ DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
 
+DSL_BBOX_POINT_CENTER     = 0
+DSL_BBOX_POINT_NORTH_WEST = 1
+DSL_BBOX_POINT_NORTH      = 2
+DSL_BBOX_POINT_NORTH_EAST = 3
+DSL_BBOX_POINT_EAST       = 4
+DSL_BBOX_POINT_SOUTH_EAST = 5
+DSL_BBOX_POINT_SOUTH      = 6
+DSL_BBOX_POINT_SOUTH_WEST = 7
+DSL_BBOX_POINT_WEST       = 8
+DSL_BBOX_POINT_ANY        = 9
+
+DSL_BBOX_EDGE_TOP    = 0
+DSL_BBOX_EDGE_BOTTOM = 1
+DSL_BBOX_EDGE_LEFT   = 2
+DSL_BBOX_EDGE_RIGHT  = 3
+
+class dsl_coordinate(Structure):
+    _fields_ = [
+        ('x', c_uint),
+        ('y', c_uint)]
+        
 class dsl_recording_info(Structure):
     _fields_ = [
         ('session_id', c_uint),
@@ -169,6 +190,18 @@ _dsl.dsl_display_type_rgba_rectangle_new.restype = c_uint
 def dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color):
     global _dsl
     result =_dsl.dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_polygon_new()
+##
+#_dsl.dsl_display_type_rgba_polygon_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_polygon_new.restype = c_uint
+def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border_width, color):
+    global _dsl
+    arr = (dsl_coordinate * num_coordinates)()
+    arr[:] = coordinates
+    result =_dsl.dsl_display_type_rgba_polygon_new(name, arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
@@ -628,9 +661,9 @@ def dsl_ode_action_list_size():
 ##
 _dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_area_inclusion_new.restype = c_uint
-def dsl_ode_area_inclusion_new(name, rectangle, display):
+def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_inclusion_new(name, rectangle, display)
+    result =_dsl.dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point)
     return int(result)
 
 ##
@@ -638,9 +671,19 @@ def dsl_ode_area_inclusion_new(name, rectangle, display):
 ##
 _dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_area_exclusion_new.restype = c_uint
-def dsl_ode_area_exclusion_new(name, rectangle, display):
+def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_exclusion_new(name, rectangle, display)
+    result =_dsl.dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point)
+    return int(result)
+
+##
+## dsl_ode_area_line_new()
+##
+_dsl.dsl_ode_area_line_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
+_dsl.dsl_ode_area_line_new.restype = c_uint
+def dsl_ode_area_line_new(name, line, show, bbox_test_edge):
+    global _dsl
+    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_edge)
     return int(result)
 
 ##

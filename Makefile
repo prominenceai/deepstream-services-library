@@ -86,12 +86,15 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
     -fPIC 
+	
+CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
 	-L/usr/lib/aarch64-linux-gnu \
+	-lgeos_c \
 	-lnvdsgst_meta \
 	-lnvds_meta \
 	-lnvdsgst_helper \

@@ -312,7 +312,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[Od
         {
             pOdeTrigger->SetMinDimensions(199, 0);    
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
@@ -330,7 +330,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Minimum Dimensions correctly", "[Od
         {
             pOdeTrigger->SetMinDimensions(0, 99);    
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
@@ -385,7 +385,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[Od
         {
             pOdeTrigger->SetMaxDimensions(201, 0);    
             
-            THEN( "The OdeTrigger is detected because of the maximum criteria" )
+            THEN( "The ODE Occurrence is detected because of the maximum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
@@ -403,7 +403,7 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Maximum Dimensions correctly", "[Od
         {
             pOdeTrigger->SetMaxDimensions(0, 101);    
             
-            THEN( "The OdeTrigger is detected because of the maximum criteria" )
+            THEN( "The ODE Occurrence is detected because of the maximum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
@@ -468,7 +468,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its InferDoneOnly setting ", "[OdeTrig
 
 SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigger]" )
 {
-    GIVEN( "A new OdeOccurenceTrigger with maximum criteria" ) 
+    GIVEN( "A new OdeOccurenceTrigger with criteria" ) 
     {
         std::string odeTriggerName("occurence");
         std::string source;
@@ -478,28 +478,26 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
         std::string odeActionName("ode-action");
         std::string odeAreaName("ode-area");
 
-        std::string rectangleName  = "my-rectangle";
-        uint left(12), top(34), width(56), height(78);
-        uint borderWidth(4);
+        std::string polygonName  = "my-polygon";
+        dsl_coordinate coordinates[4] = {{100,100},{200,100},{200, 200},{100,200}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
 
         std::string colorName  = "my-custom-color";
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
 
         DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
-        DSL_RGBA_RECTANGLE_PTR pRectangle = DSL_RGBA_RECTANGLE_NEW(rectangleName.c_str(), 
-            left, top, width, height, borderWidth, pColor, true, pColor);
+
+        DSL_RGBA_POLYGON_PTR pPolygon = DSL_RGBA_POLYGON_NEW(polygonName.c_str(), 
+            coordinates, numCoordinates, lineWidth, pColor);
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
-            DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pRectangle, false);
-            
+
         REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
-        REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );        
 
         NvDsFrameMeta frameMeta =  {0};
         frameMeta.bInferDone = true;  
@@ -510,70 +508,176 @@ SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigg
         NvDsObjectMeta objectMeta = {0};
         objectMeta.class_id = classId; // must match ODE Type's classId
         objectMeta.object_id = INT64_MAX; 
-        objectMeta.rect_params.left = 200;
-        objectMeta.rect_params.top = 100;
-        objectMeta.rect_params.width = 200;
-        objectMeta.rect_params.height = 100;
         objectMeta.confidence = 0.4999; 
 
-        WHEN( "The Area is set so that the Object's top left corner overlaps" )
+        WHEN( "The Area and Object are set so that the Object's Center Point overlaps" )
         {
-            pRectangle->left = 0; 
-            pRectangle->top = 0; 
-            pRectangle->width = 201;
-            pRectangle->height = 101;    
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_CENTER);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 140;
+            objectMeta.rect_params.top = 140;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The Area is set so that the Object's top right corner overlaps" )
+        WHEN( "The Area and Object are set so that the Object's North West point overlaps" )
         {
-            pRectangle->left = 400; 
-            pRectangle->top = 0; 
-            pRectangle->width = 100;
-            pRectangle->height = 100;    
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_NORTH_WEST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 190;
+            objectMeta.rect_params.top = 190;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The Area is set so that the Object's bottom left corner overlaps" )
+        WHEN( "The Area and Object are set so that the Object's North Point overlaps" )
         {
-            pRectangle->left = 0; 
-            pRectangle->top = 199; 
-            pRectangle->width = 201;
-            pRectangle->height = 100;    
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_NORTH);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 140;
+            objectMeta.rect_params.top = 190;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The Area is set so that the Object's bottom right corner overlaps" )
+        WHEN( "The Area and Object are set so that the Object's North east point overlaps" )
         {
-            pRectangle->left = 400; 
-            pRectangle->top = 200; 
-            pRectangle->width = 100;
-            pRectangle->height = 100;    
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_NORTH_EAST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 90;
+            objectMeta.rect_params.top = 190;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
             
-            THEN( "The OdeTrigger is detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
-        WHEN( "The Area is set so that the Object does not overlap" )
+        WHEN( "The Area and Object are set so that the Object's East Point overlaps" )
         {
-            pRectangle->left = 0; 
-            pRectangle->top = 0; 
-            pRectangle->width = 10;
-            pRectangle->height = 10;    
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_EAST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 90;
+            objectMeta.rect_params.top = 140;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
             
-            THEN( "The OdeTrigger is NOT detected because of the minimum criteria" )
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
             {
-                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area and Object are set so that the Object's East Point overlaps" )
+        {
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_SOUTH_EAST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 90;
+            objectMeta.rect_params.top = 90;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area and Object are set so that the Object's South Point overlaps" )
+        {
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_SOUTH);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 140;
+            objectMeta.rect_params.top = 90;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area and Object are set so that the Object's South West Point overlaps" )
+        {
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_SOUTH_WEST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 190;
+            objectMeta.rect_params.top = 90;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area and Object are set so that the Object's West Point overlaps" )
+        {
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_WEST);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 190;
+            objectMeta.rect_params.top = 140;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
+            }
+        }
+        WHEN( "The Area and Object are set so that Any Point overlaps" )
+        {
+            DSL_ODE_AREA_INCLUSION_PTR pOdeArea =
+                DSL_ODE_AREA_INCLUSION_NEW(odeAreaName.c_str(), pPolygon, false, DSL_BBOX_POINT_ANY);
+                
+            REQUIRE( pOdeTrigger->AddArea(pOdeArea) == true );
+        
+            objectMeta.rect_params.left = 110;
+            objectMeta.rect_params.top = 110;
+            objectMeta.rect_params.width = 20;
+            objectMeta.rect_params.height = 20;
+            
+            THEN( "The ODE Occurrence is detected because of the minimum criteria" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta) == true );
             }
         }
     }
