@@ -59,6 +59,10 @@ namespace DSL
     #define DSL_RGBA_RECTANGLE_NEW(name, left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor) \
         std::shared_ptr<RgbaRectangle>(new RgbaRectangle(name, left, top, width, height, borderWidth, pColor, hasBgColor, pBgColor))
 
+    #define DSL_RGBA_POLYGON_PTR std::shared_ptr<RgbaPolygon>
+    #define DSL_RGBA_POLYGON_NEW(name, coordinates, numCoordinates, borderWidth, pColor) \
+        std::shared_ptr<RgbaPolygon>(new RgbaPolygon(name, coordinates, numCoordinates, borderWidth, pColor))
+    
     #define DSL_RGBA_CIRCLE_PTR std::shared_ptr<RgbaCircle>
     #define DSL_RGBA_CIRCLE_NEW(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor) \
         std::shared_ptr<RgbaCircle>(new RgbaCircle(name, x_center, y_center, radius, pColor, hasBgColor, pBgColor))
@@ -234,6 +238,59 @@ namespace DSL
             uint borderWidth, DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
 
         ~RgbaRectangle();
+
+        void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @struct dsl_polygon
+     * @brief the following is an interim solution until Nvidia provides 
+     * a version (with bg_color) - as promised for the next release. 
+     */
+    typedef struct _dsl_polygon_params
+    {
+        /**
+         * @brief an array coordinates defining the polygon
+         * The last point provided will be connected to the first
+         */
+        dsl_coordinate* coordinates;
+        
+        /**
+         * @brief the number of coordinates in the polygon
+         */
+        uint num_coordinates;
+         
+        /**
+         * @brief width of the polygon lines in pixels
+         */
+        uint border_width;    
+
+        /**
+         * @brief RGBA color of the polygon lines in pixels
+         */
+        NvOSD_ColorParams color;
+         
+    } dsl_polygon_params;
+
+    
+    class RgbaPolygon : public DisplayType, public dsl_polygon_params
+    {
+    public:
+
+        /**
+         * @brief ctor for RGBA Rectangle
+         * @param[in] name unique name for the RGBA Rectangle
+         * @param[in] coordinates an array of xy dsl_coordinates defining the Polygon
+         * @param[in] numPoints number of xy coordinates in the array.
+         * @param[in] lineWidth width of the Polygon line in pixels
+         * @param[in] pColor RGBA Color for this RGBA Polygon
+         */
+        RgbaPolygon(const char* name, const dsl_coordinate* coordinates, uint numCoordinates,
+            uint lineWidth, DSL_RGBA_COLOR_PTR pColor);
+
+        ~RgbaPolygon();
 
         void AddMeta(NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };

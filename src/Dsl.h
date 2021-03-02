@@ -55,6 +55,8 @@ THE SOFTWARE.
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
 
+#include <geos_c.h>
+
 #include "DslLog.h"
 #include "DslMutex.h"
 

@@ -275,7 +275,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
-#define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
+#define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000E
 
 /**
  * ODE Action API Return Values
@@ -300,6 +300,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_AREA_THREW_EXCEPTION                         0x00100003
 #define DSL_RESULT_ODE_AREA_IN_USE                                  0x00100004
 #define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
+#define DSL_RESULT_ODE_AREA_PARAMETER_INVALID                       0x00100006
 
 #define DSL_RESULT_DISPLAY_TYPE_RESULT                              0x00100000
 #define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00100001
@@ -315,11 +316,13 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0010000B
 #define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0010000C
 #define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
-#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x0010000F
-#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00100010
-#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00100011
-#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00100012
+#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0010000E
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000F
+#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00100010
+#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00100011
+#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00100012
+#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00100013
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00100014
 
 
 /**
@@ -390,6 +393,9 @@ THE SOFTWARE.
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 
+#define DSL_AREA_TYPE_INCLUSION                                     0
+#define DSL_AREA_TYPE_EXCLUSION                                     1
+
 // Must match NvOSD_Arrow_Head_Direction
 #define DSL_ARROW_START_HEAD                                        0
 #define DSL_ARROW_END_HEAD                                          1
@@ -402,19 +408,33 @@ THE SOFTWARE.
 #define DSL_PAD_PROBE_PASS                                          3
 #define DSL_PAD_PROBE_HANDLED                                       4
 
-/**
- * @brief DSL_DEFAULT values initialized on first call to DSL
- */
-//TODO move to new defaults schema
 #define DSL_DEFAULT_SOURCE_IN_USE_MAX                               8
 #define DSL_DEFAULT_SINK_IN_USE_MAX                                 8
+
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
+
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
+
+#define DSL_BBOX_POINT_CENTER                                       0
+#define DSL_BBOX_POINT_NORTH_WEST                                   1
+#define DSL_BBOX_POINT_NORTH                                        2
+#define DSL_BBOX_POINT_NORTH_EAST                                   3
+#define DSL_BBOX_POINT_EAST                                         4
+#define DSL_BBOX_POINT_SOUTH_EAST                                   5
+#define DSL_BBOX_POINT_SOUTH                                        6
+#define DSL_BBOX_POINT_SOUTH_WEST                                   7
+#define DSL_BBOX_POINT_WEST                                         8
+#define DSL_BBOX_POINT_ANY                                          9
+
+#define DSL_BBOX_EDGE_TOP                                           0
+#define DSL_BBOX_EDGE_BOTTOM                                        1
+#define DSL_BBOX_EDGE_LEFT                                          2
+#define DSL_BBOX_EDGE_RIGHT                                         3
 
 EXTERN_C_BEGIN
 
@@ -522,6 +542,21 @@ typedef struct dsl_recording_info
     uint height;
 
 } dsl_recording_info;
+
+/**
+ * @struct _dsl_coordinate
+ * @brief defines a frame coordinate by it's x and y pixel position
+ */
+typedef struct _dsl_coordinate
+{
+    uint x;
+    uint y;
+} dsl_coordinate;
+
+/**
+ * @brief the maximum number of coordinates when defining a Polygon
+ */
+#define DSL_MAX_POLYGON_COORDINATES 8
 
 /**
  *
@@ -719,8 +754,21 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
  * @param[in] bgColor RGBA Color for the Circle background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
-    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
+    uint width, uint height, uint border_width, const wchar_t* color, 
+    bool has_bg_color, const wchar_t* bg_color);
+
+/**
+ * @brief creates a uniquely named RGBA Polygon
+ * @param[in] name unique name for the RGBA Polygon
+ * @param[in] coordinate an array of dsl_coordinate structures 
+ * @param[in] num_coordinates the number of xy coordinates in the array
+ * @param[in] border_width width of the polygon border in pixels
+ * @param[in] color RGBA Color for the polygon border
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, const wchar_t* color);
 
 /**
  * @brief creates a uniquely named RGBA Circle
@@ -1169,22 +1217,38 @@ uint dsl_ode_action_list_size();
 /**
  * @brief Creates a uniquely named ODE Inclusion Area
  * @param[in] name unique name of the ODE area to create
- * @param[in] rectangle name of an RGBA Display Rectangle
- * @param[in] display set to true to display (overlay) the rectangle on each frame
+ * @param[in] polygon name of an RGBA Polygon Type used to define the Area
+ * @param[in] show set to true to show (overlay) the type on each frame
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for inclusion Area
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display);
+    const wchar_t* polygon, boolean show, uint bbox_test_point);
 
 /**
- * @brief Creates a uniquely named ODE Inclusion Area
+ * @brief Creates a uniquely named ODE Exclusion Area
  * @param[in] name unique name of the ODE area to create
- * @param[in] rectangle name of an RGBA Display Rectangle
- * @param[in] display set to true to display (overlay) the rectangle on each frame
+ * @param[in] polygon name of an RGBA Polygon Type used to define the Area
+ * @param[in] show set to true to show (overlay) the type on each frame
+ * @param[in] bbox_test_point one of DSL_BBOX_POINT values defining which point of a
+ * object's bounding box to use when testing for exclusion from Area
  * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
  */
 DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display);
+    const wchar_t* polygon, boolean show, uint bbox_test_point);
+
+/**
+ * @brief Creates a uniquely named ODE Line Area
+ * @param[in] name unique name of the ODE Line Area to create
+ * @param[in] line name of an RGBA Line used to define location, dimensions, color
+ * @param[in] show set to true to show (overlay) the line on each frame
+ * @param[in] bbox_test_edge one of DSL_BBOX_EDGE values defining which edge of a
+ * object's bounding box to use when testing for lines crossing
+ * @return DSL_RESULT_SUCCESS on successful create, DSL_RESULT_ODE_AREA_RESULT otherwise.
+ */
+DslReturnType dsl_ode_area_line_new(const wchar_t* name,
+    const wchar_t* line, boolean show, uint bbox_test_edge);
 
 /**
  * @brief Deletes an ODE Area
@@ -1225,7 +1289,7 @@ uint dsl_ode_area_list_size();
  * before (pre) or after (post) processing all Object metadata for all other Triggers.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] when DSL_PRE_CHECK_FOR_OCCURRENCES or DSL_POST_CHECK_FOR_OCCURRENCES
+ * @param[in] when DSL_ODE_PRE_OCCURRENCE_CHECK or DSL_ODE_POST_OCCURRENCE_CHECK
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);

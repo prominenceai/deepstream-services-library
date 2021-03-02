@@ -346,7 +346,7 @@ namespace DSL
         for (const auto &imap: m_pOdeAreas)
         {
             DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-
+            
             pOdeArea->AddMeta(pDisplayMeta, pFrameMeta);
         }
     }
@@ -401,17 +401,15 @@ namespace DSL
         {
             return false;
         }
-        // If areas are defined, check for overlay
+        // If areas are defined, check condition
         if (m_pOdeAreas.size())
         {
             for (const auto &imap: m_pOdeAreas)
             {
                 DSL_ODE_AREA_PTR pOdeArea = std::dynamic_pointer_cast<OdeArea>(imap.second);
-                if (doesOverlap(pObjectMeta->rect_params, *pOdeArea->m_pRectangle))
+                if (pOdeArea->CheckForWithin(pObjectMeta->rect_params))
                 {
-                    return (imap.second->IsType(typeid(OdeInclusionArea))) 
-                        ? true
-                        : false;
+                    return true;
                 }
             }
             return false;

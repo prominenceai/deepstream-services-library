@@ -50,9 +50,12 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
 
         WHEN( "Several new Actions are created" ) 
         {
-            REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
+                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
+                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
+                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
@@ -88,9 +91,12 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
             border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), areaRectangleName.c_str(), display) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
+            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
+            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
+            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
 
         WHEN( "A single Area is deleted" ) 
         {
@@ -121,6 +127,80 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
     }
 }
 
+SCENARIO( "The ODE Line can be created and deleted", "[ode-area-api]" )
+{
+    GIVEN( "An RGBA Line" ) 
+    {
+        std::wstring areaName  = L"line-area";
+        
+        uint interval(0);
+        boolean enabled(0);
+        
+        std::wstring lineName(L"line");
+        uint x1(100), y1(100), x2(200), y2(200);
+        uint width(20);
+
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
+            x1, y1, x2, y2, width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+        WHEN( "When a new ODE Line Area is created" ) 
+        {
+            REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+                true, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Area can then be deleted" ) 
+            {
+                REQUIRE( dsl_ode_area_delete(areaName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The ODE Line API checks for an invalid TestEdge parameter", "[ode-area-api]" )
+{
+    GIVEN( "An RGBA Line" ) 
+    {
+        std::wstring areaName  = L"line-area";
+        
+        uint interval(0);
+        boolean enabled(0);
+        
+        std::wstring lineName(L"line");
+        uint x1(100), y1(100), x2(200), y2(200);
+        uint width(20);
+
+        std::wstring colorName(L"my-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
+            x1, y1, x2, y2, width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+        WHEN( "When an invalid TestEdge parameter is used" ) 
+        {
+            uint invalid_test_edge(DSL_BBOX_EDGE_RIGHT+1);
+            
+            THEN( "The Area fails to create" ) 
+            {
+                REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+                    true, invalid_test_edge) == DSL_RESULT_ODE_AREA_PARAMETER_INVALID );
+                    
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The ODE Area API checks for NULL input parameters", "[ode-area-api]" )
 {
@@ -129,20 +209,26 @@ SCENARIO( "The ODE Area API checks for NULL input parameters", "[ode-area-api]" 
         std::wstring areaName  = L"test-area";
         std::wstring otherName  = L"other";
         
-        uint interval(0);
-        boolean enabled(0);
-        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When NULL pointers are used as input" ) 
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_ode_area_inclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_inclusion_new(NULL, NULL, 
+                    false, DSL_BBOX_POINT_ANY) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), NULL, 
+                    false, DSL_BBOX_POINT_ANY) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_area_exclusion_new(NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_exclusion_new(NULL, NULL, 
+                    false, DSL_BBOX_POINT_ANY) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), NULL, 
+                    false, DSL_BBOX_POINT_ANY) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_area_line_new(NULL, NULL, 
+                    false, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_area_line_new(areaName.c_str(), NULL, 
+                    false, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_area_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_area_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

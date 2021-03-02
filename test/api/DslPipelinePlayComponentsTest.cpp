@@ -1546,7 +1546,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //
 
 
-SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH can play", "[new]" )
+SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Tiled Display, and Meter PPH" ) 
     {
