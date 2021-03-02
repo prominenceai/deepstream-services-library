@@ -466,7 +466,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks its InferDoneOnly setting ", "[OdeTrig
     }
 }
 
-SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[new]" )
+SCENARIO( "A OdeOccurrenceTrigger checks for Area overlap correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeOccurenceTrigger with criteria" ) 
     {

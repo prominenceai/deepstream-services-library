@@ -1152,8 +1152,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_display_type_rgba_line_new(lineName.c_str(), 
             x1, y1, x2, y2, line_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
-                true, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_area_line_new(areaName.c_str(), lineName.c_str(), 
+            true, DSL_BBOX_EDGE_BOTTOM) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), 
             NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
@@ -1186,6 +1186,266 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion Area can play", "[ode-behavior]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, Inclusion ODE Area, and Fill ODE Action" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+        
+        std::wstring trackerName(L"ktl-tracker");
+        uint trackerW(480);
+        uint trackerH(272);
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+        
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+
+        std::wstring odePersonOccurrenceName(L"person-occurrence");
+        uint personClassId(2);
+
+        std::wstring odeFillActionName(L"fill-action");
+        
+        uint limit(0);
+        
+        std::wstring osdName(L"osd");
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
+
+        std::wstring odePphName(L"ode-handler");
+        
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+
+        dsl_coordinate coordinates[4] = {{365,600},{580,620},{600, 770},{180,750}};
+        uint num_coordinates(4);
+
+        std::wstring colorName(L"opaque-white");
+        double red(1.0), green(1.0), blue(1.0), alpha(1.0);
+        
+        std::wstring areaName  = L"inclusion-area";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+            border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), polygonName.c_str(), 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), 
+            NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(odePersonOccurrenceName.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_fill_object_new(odeFillActionName.c_str(), 
+            colorName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_action_add(odePersonOccurrenceName.c_str(), 
+            odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*12);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion Area can play", "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, Inclusion ODE Area, and Fill ODE Action" ) 
+    {
+        std::wstring sourceName1(L"uri-source");
+        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
+        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
+        uint intrDecode(false);
+        uint dropFrameInterval(0);
+
+        std::wstring primaryGieName(L"primary-gie");
+        std::wstring inferConfigFile(L"./test/configs/config_infer_primary_nano.txt");
+        std::wstring modelEngineFile(L"./test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+        
+        std::wstring trackerName(L"ktl-tracker");
+        uint trackerW(480);
+        uint trackerH(272);
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+        
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+
+        std::wstring odePersonOccurrenceName(L"person-occurrence");
+        uint personClassId(2);
+
+        std::wstring odeFillActionName(L"fill-action");
+        
+        uint limit(0);
+        
+        std::wstring osdName(L"osd");
+        boolean textEnabled(false);
+        boolean clockEnabled(false);
+
+        std::wstring odePphName(L"ode-handler");
+        
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+
+        dsl_coordinate coordinates[4] = {{365,600},{580,620},{600, 770},{180,750}};
+        uint num_coordinates(4);
+
+        std::wstring colorName(L"opaque-white");
+        double red(1.0), green(1.0), blue(1.0), alpha(1.0);
+        
+        std::wstring areaName  = L"exclusion-area";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), cudadecMemType, 
+            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gie_primary_new(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_ktl_new(trackerName.c_str(), trackerW, trackerH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(odePphName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), odePphName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
+            red, green, blue, alpha) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+            border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_area_exclusion_new(areaName.c_str(), polygonName.c_str(), 
+            true, DSL_BBOX_POINT_SOUTH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_occurrence_new(odePersonOccurrenceName.c_str(), 
+            NULL, personClassId, limit) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_area_add(odePersonOccurrenceName.c_str(), 
+            areaName.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_fill_object_new(odeFillActionName.c_str(), 
+            colorName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_ode_trigger_action_add(odePersonOccurrenceName.c_str(), 
+            odeFillActionName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_trigger_add(odePphName.c_str(), odePersonOccurrenceName.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_osd_new(osdName.c_str(), textEnabled, clockEnabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"ktl-tracker", L"tiler", L"osd", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*12);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
