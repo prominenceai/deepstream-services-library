@@ -41,6 +41,7 @@ $ sudo apt-get install doxygen
 * [Building and Importing DSL](/docs/building-dsl.md)
 
 ## API Reference
+* [Overview](/docs/overview.md)
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
 * [Source](/docs/api-source.md)
