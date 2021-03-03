@@ -361,8 +361,6 @@ The constructor creates an RGBA Polygon Display Type. The RGBA Polygon can be ad
 * `num_coordinates` - [in] number of positioanl coordinates that make up the Polygon
 * `border_width` - [in] width of the Polygon border in pixels
 * `color` - [in] RGBA Color for this RGBA Polygon
-* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
-* `bgColor` - [in] RGBA Color for the Circle background if set
  
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
