@@ -8,10 +8,11 @@ There are two base types used when creating other complete types for actual disp
 * RGBA Color
 * RGBA Font
 
-There are four types for displaying text and shapes. 
+There are five types for displaying text and shapes. 
 * RGBA Line
 * RGBA Arrow
 * RGBA Rectangle
+* RGBA Polygon
 * RGBA Circle
 
 And three types for displaying source information specific to each frame. 
@@ -28,8 +29,8 @@ Display Types are added to a Display Action when the action is created by callin
 
 Note: Adding a Base Display Type to an ODE Action will fail. 
 
-#### Adding Rectangles to ODE Areas.
-RGBA Rectangles are used to define [ODE Areas](/docs/api-ode-area.md) of criteria, either inclussion or exclusion, for one or more [ODE Triggers](/docs/api-ode-trigger.md). Rectangles are added when the ODE Area is created by calling [dsl_ode_area_new](/docs/api-ode-area.md#dsl_ode_area_new).
+#### Adding Lines and Polygons to ODE Areas.
+RGBA Lines and Polygons are used to define [ODE Areas](/docs/api-ode-area.md) of criteria for one or more [ODE Triggers](/docs/api-ode-trigger.md). The Lines are used when calling [dsl_ode_area_line_new](/docs/api-od-area.md#dsl_ode_area_line_new) with Polygons used when calling [dsl_ode_area_inclusion_new](/docs/api-ode-area#dsl_ode_area_inclusion_new) and calling [dsl_ode_area_exclusion_new](/docs/api-ode-area#dsl_ode_area_exclusion_new)
 
 ### Using Display Types
 
@@ -108,9 +109,6 @@ def handle_ode_occurrence(event_id, trigger, display_meta, frame_meta, object_me
     dsl_display_type_meta_add('object-pointer', display_meta, frame_meta)
     
     dsl_display_type_delete('object-pointer')
-
-        
-
 ```
 
 ---
@@ -123,6 +121,7 @@ def handle_ode_occurrence(event_id, trigger, display_meta, frame_meta, object_me
 * [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new) 
 * [dsl_display_type_rgba_arrow_new](#dsl_display_type_rgba_arrow_new)
 * [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
+* [dsl_display_type_rgba_polygon_new](#dsl_display_type_rgba_polygon_new)
 * [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
 * [dsl_display_type_source_number_new](#dsl_display_type_source_number_new)
 * [dsl_display_type_source_name_new](#dsl_display_type_source_name_new)
@@ -155,8 +154,39 @@ The following return codes are used by the Display Type API
 #define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0010000B
 #define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0010000C
 #define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000E
+#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0010000E
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000F
+#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00100010
+#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00100011
+#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00100012
+#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00100013
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00100014
 ```
+
+## Constants
+The following symbolic constants are used by the Display Type API
+```C++
+#define DSL_ARROW_START_HEAD                                        0
+#define DSL_ARROW_END_HEAD                                          1
+#define DSL_ARROW_BOTH_HEAD                                         2
+#define DSL_MIN_POLYGON_COORDINATES                                 3
+#define DSL_MAX_POLYGON_COORDINATES                                 8
+```
+
+## Types
+The following types are used by the Display Type API
+```C++
+typedef struct _dsl_coordinate
+{
+    uint x;
+    uint y;
+} dsl_coordinate;
+```
+Defines a positional X,Y coordinate
+
+**Fields**
+* `x` - coordinate value for the X dimension
+* `y` - coordinate value for the Y dimension
 
 ---
 
@@ -170,8 +200,8 @@ The constructor creates an RGBA Color Display Type. The RGBA Color is a base typ
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
-* ` red` - [in]red level for the RGB color [0..1]
-* ` blue` - [in] blue level for the RGB color [0..1]
+* `red` - [in]red level for the RGB color [0..1]
+* `blue` - [in] blue level for the RGB color [0..1]
 * `green` - [in] green level for the RGB color [0..1]
 * `alpha` - [in] alpha level for the RGB color [0..1]
 **Returns**
@@ -208,8 +238,8 @@ retval = dsl_display_type_rgba_font_new('red-arial-18', 'arial', 18, 'full-red')
 
 ### *dsl_display_type_rgba_text_new* 
 ```C++
-DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);    
+DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, uint x_offset, 
+    uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);    
 ```
 The constructor creates an RGBA Text Display Type. The RGBA Text can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
 
@@ -281,15 +311,16 @@ The constructor creates an RGBA Arrow Display Type. The RGBA Arrow can be added 
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_arrow_new('arrow-pointer', 220, 165, 370, 235, 1, DSL_ARROW_END_HEAD, 'full-blue')
+retval = dsl_display_type_rgba_arrow_new('arrow-pointer', 
+    220, 165, 370, 235, 1, DSL_ARROW_END_HEAD, 'full-blue')
 ```
 
 <br>
 
 ### *dsl_display_type_rgba_rectangle_new* 
 ```C++
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
-    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, 
+    uint height, uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 ```
 
 The constructor creates an RGBA Rectangle Display Type. The RGBA Rectangle can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
@@ -301,7 +332,7 @@ The constructor creates an RGBA Rectangle Display Type. The RGBA Rectangle can b
 * `width` - [in] width of the rectangle in Pixels
 * `height` - [in] height of the rectangle in Pixels
 * `border_width` - [in] width of the rectangle border in pixels
-* `color` - [in] RGBA Color for thIS RGBA Line
+* `color` - [in] RGBA Color for this RGBA Rectangle
 * `hasBgColor` - [in] set to true to enable bacground color, false otherwise
 * `bgColor` - [in] RGBA Color for the Circle background if set
  
@@ -310,15 +341,48 @@ The constructor creates an RGBA Rectangle Display Type. The RGBA Rectangle can b
 
 **Python Example**
 ```Python
-retval = dsl_display_type_rgba_rectangle_new('black-rectangle', 240, 370, 1200, 940, 2, 'full-black', False, None)
+retval = dsl_display_type_rgba_rectangle_new('black-rectangle', 
+    240, 370, 1200, 940, 2, 'full-black', False, None)
+```
+
+<br>
+
+### *dsl_display_type_rgba_polygon_new* 
+```C++
+DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, const wchar_t* color);
+```
+
+The constructor creates an RGBA Polygon Display Type. The RGBA Polygon can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `coordinates` - [in] an array of positional coordinates defining the Polygon
+* `num_coordinates` - [in] number of positioanl coordinates that make up the Polygon
+* `border_width` - [in] width of the Polygon border in pixels
+* `color` - [in] RGBA Color for this RGBA Polygon
+* `hasBgColor` - [in] set to true to enable bacground color, false otherwise
+* `bgColor` - [in] RGBA Color for the Circle background if set
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+# create a list of X,Y coordinates defining the points of the Polygon.
+coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
+    dsl_coordinate(600, 770), dsl_coordinate(180,750)]
+
+retval = dsl_display_type_rgba_polygon_new('polygon1', coordinates, len(coordinates), 4, 'opaque-red')
+
 ```
 
 <br>
 
 ### *dsl_display_type_rgba_circle_new* 
 ```C++
-DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
-    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, 
+    uint radius, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
 ```
 
 The constructor creates an RGBA Circle Display Type. The RGBA Circle can be added as display metadata to a frame's metadata when using a [Pad Probe Handler](/docs/api-pph.md).
@@ -416,7 +480,8 @@ The constructor creates a uniquely name Source Dimensions Display Type. The Sour
 
 **Python Example**
 ```Python
-retval = dsl_display_type_source_dimensions_new('display-source-dimensions', 10, 10, 'arial-blue-14', False, None)
+retval = dsl_display_type_source_dimensions_new('display-source-dimensions', 
+    10, 10, 'arial-blue-14', False, None)
 ```
 
 <br>
