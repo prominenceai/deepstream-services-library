@@ -392,9 +392,12 @@ Triggers have optional, settable criteria and filters:
 * **Actions on Areas** - Add/Remove Areas
 * **Actions on Actions** - Disable/Enable Actions
 
-Actions acting on Triggers, Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when a group of objects first enters and then exits the frame or Area.
+Actions acting on Triggers, other Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when one or more objects first enters and then exits the frame or Area.
 
-**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria 
+**ODE Areas**, [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) can be added to any number of Triggers as additional criteria. 
+
+* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
+* **Polygon Areas** - criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon 
 
 A simple example using python
 
@@ -417,7 +420,7 @@ retval = dsl_ode_trigger_action_add_many('east-cam-1-trigger', actions=['print-a
 # Create an Area of inclusion using a previously defined [Rectangle Display Type](#display-types) as
 # criteria for occurrence and add the Area to the Trigger. A detected object must have at least one pixel of
 # overlap before occurrence will be triggered and the Actions invoked.
-retval = dsl_ode_area_inclusion_new('east-cam-1-area', 'east-cam-1-rectangle', display=True)
+retval = dsl_ode_area_inclusion_new('east-cam-1-area', 'east-cam-1-polygon', display=True)
 retval = dsl_ode_trigger_area_add('east-cam-1-trigger', 'east-cam-1-area')
 
 # Create an ODE handler to manage the Trigger, add the Trigger to the handler
@@ -475,6 +478,7 @@ There are four types for displaying text and shapes.
 * RGBA Line
 * RGBA Arrow
 * RGBA Rectangle
+* RGBA Polygon
 * RGBA Circle
 
 And three types for displaying source information specific to each frame. 
