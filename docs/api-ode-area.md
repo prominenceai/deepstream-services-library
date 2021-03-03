@@ -1,9 +1,10 @@
 # ODE Area Services API
-Object Detection Event (ODE) Areas use a [Rectangle Display Type](/docs/api-display-type.md) with coordinates  (`left` and `top`) and dimensions (`width` and `height`) to be used as additional [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
+Object Detection Event (ODE) Areas use [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) as [ODE Trigger](/docs/api-ode-trigger.md) criteria for an ODE occurrence. 
 
 There are two types of Areas:
-* **Area of Inclusion** - at least one pixel of overlap between object and area is required to trigger ODE occurrence.
-* **Area of Exclusion** - not one pixel of overlap can occur for ODE occurrence to be triggered. 
+* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
+* **Inclusion Areas** - criteria is met when a specific point on an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon Area.
+* **Exclusion Areas** - criteria is met when a specific point on an object's bounding box is NOT within the Polygon Area. 
 
 The relationship between Triggers and Areas is many-to-many as multiple Areas can be added to a Trigger and the same Area can be added to multiple Triggers.  If a New Ares's `display` is enabled, Areas owned by Triggers will be added as display metadata for an On-Screen-Component to display.
 
@@ -20,8 +21,10 @@ ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/do
 ## ODE Area Services API
 
 **Constructors:**
+
 * [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
+* [dsl_ode_area_line_new](#dsl_ode_area_line_new)
 
 **Destructors:**
 * [dsl_ode_area_delete](#dsl_ode_area_delete)
@@ -44,6 +47,25 @@ The following return codes are used by the OSD Area API
 #define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
 ```
 
+## Constants
+The following constants are used by the OSD Area API
+```C++
+#define DSL_BBOX_POINT_CENTER                                       0
+#define DSL_BBOX_POINT_NORTH_WEST                                   1
+#define DSL_BBOX_POINT_NORTH                                        2
+#define DSL_BBOX_POINT_NORTH_EAST                                   3
+#define DSL_BBOX_POINT_EAST                                         4
+#define DSL_BBOX_POINT_SOUTH_EAST                                   5
+#define DSL_BBOX_POINT_SOUTH                                        6
+#define DSL_BBOX_POINT_SOUTH_WEST                                   7
+#define DSL_BBOX_POINT_WEST                                         8
+#define DSL_BBOX_POINT_ANY                                          9
+
+#define DSL_BBOX_EDGE_TOP                                           0
+#define DSL_BBOX_EDGE_BOTTOM                                        1
+#define DSL_BBOX_EDGE_LEFT                                          2
+#define DSL_BBOX_EDGE_RIGHT                                         3
+```
 <br>
 
 ---
@@ -52,23 +74,24 @@ The following return codes are used by the OSD Area API
 ### *dsl_ode_area_inclusion_new*
 ```C++
 DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display);
+    const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Rectangle. Inclusion require at least one pixel of overlap between an Object's rectangle and the Area's rectangle is required to trigger ODE occurrence.
+The constructor creates a uniquely named ODE **Area of Inclusion** using a uniquely named RGBA Polygon. Inclusion requires that a specified point on the Object's bounding box is within the Polygon Area to trigger ODE occurrence.
 
-The Rectangle can be displayed (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
+The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
 **Parameters**
-* `name` - [in] unique name for the ODE Area of Inclusion to create.
-* `rectangle` - [in] unique name for the Rectangle to use for coordinates, dimensions, and optionally display
-* `display` - [in] if true, rectangle display-metadata will be added to each structure of frame metadata.
+* `name` - [in] unique name for the ODE Inclusion Area to create.
+* `polygon` - [in] unique name for the Polygon to use as coordinates and optionally display
+* `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
+* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) define above
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-inclusion-rectangle', True)
+retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-polygon', True, DSL_BBOX_POINT_SOUTH)
 ```
 
 <br>
@@ -76,23 +99,49 @@ retval = dsl_ode_area_inclusion_new('my-inclusion-area', 'my-inclusion-rectangle
 ### *dsl_ode_area_exclusion_new*
 ```C++
 DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display);
+    const wchar_t* polygon, boolean show, uint bbox_test_point);
 ```
-The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Rectangle. Exclusion requires that not one pixel of overlap can occur for ODE occurrence to be triggered. 
+The constructor creates a uniquely named ODE **Area of Exclusion** using a uniquely named RGBA Polygon. Exclusion requires that that a specified point on the Object's bounding box is **not** within the Polygon Area to trigger ODE occurrence.
 
-The Rectangle can be displayed (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
+The Polygon can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
 
 **Parameters**
-* `name` - [in] unique name for the ODE Area of Inclusion to create.
-* `rectangle` - [in] unique name for the Rectangle to use for coordinates, dimensions, and optionally display.
-* `display` - [in] if true, rectangle display-metadata will be added to each structure of frame metadata.
+* `name` - [in] unique name for the ODE Exclusion Area to create.
+* `polygon` - [in] unique name for the Polygon to use for coordinates and optionally display
+* `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
+* `bbox_test_point` - [in] one of the [DSL_BBOX_POINT Constants](#Constants) define above
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_area_exclusion_new('my-exclusion-area', 'my-exclusion-rectangle', True)
+retval = dsl_ode_area_exclusion_new('my-exclusion-area', 'my-polygon', True, DSL_BBOX_POINT_SOUTH)
+```
+
+<br>
+
+### *dsl_ode_area_line_new*
+```C++
+DslReturnType dsl_ode_area_line_new(const wchar_t* name,
+    const wchar_t* line, boolean show, uint bbox_test_edge)
+```
+The constructor creates a uniquely named ODE **Line Area** using a uniquely named RGBA Line. ODE occurrence is triggered when a specified edge of the Object's bounding box crosses with the Line Area
+
+The Line can be shown (requires an [On-Screen Display](/docs/api-osd.md)) or left hidden.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Line Area to create.
+* `line` - [in] unique name for the Line to use as coordinates and optionally display
+* `show` - [in] if true, polygon metadata will be added to each structure of frame metadata.
+* `bbox_test_edge` - [in] one of the [DSL_BBOX_EDGE Constants](#Constants) define above
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_area_line_new('my-line-area', 'my-line', True, DSL_BBOX_EDGE_BOTTOM)
 ```
 
 <br>
