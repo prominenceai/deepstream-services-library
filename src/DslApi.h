@@ -1316,6 +1316,17 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t*
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
+ * @brief Occurence trigger that checks for a new instance of an Object for a 
+ * specified source and object class_id. Instance identification is based on Tracking Id
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+
+/**
  * @brief Intersection trigger that checks for intersection of all Object detected
  * and triggers an ODE occurrence for each unique overlaping pair.
  * @param[in] name unique name for the ODE Trigger

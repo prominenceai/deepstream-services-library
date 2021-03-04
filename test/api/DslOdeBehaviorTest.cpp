@@ -1333,7 +1333,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
     }
 }
 
-SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion Area can play", "[new]" )
+SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion Area can play", "[ode-behavior]" )
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, Inclusion ODE Area, and Fill ODE Action" ) 
     {
@@ -1445,7 +1445,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*12);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );

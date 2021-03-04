@@ -204,6 +204,8 @@ namespace DSL {
         DslReturnType OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerInstanceNew(const char* name, const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit);
 
