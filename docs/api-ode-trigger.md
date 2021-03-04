@@ -23,6 +23,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
+* [dsl_ode_trigger_instance_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_minimum_new](#dsl_ode_trigger_minimum_new)
@@ -145,7 +146,8 @@ retval = dsl_ode_trigger_always_new('my-always-trigger', DSL_ODE_ANY_SOURCE, DSL
 
 ### *dsl_ode_trigger_absence_new* 
 ```C++
-DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 ```
 
 The constructor creates an Absence trigger that checks for the absence of Objects within a frame and generates an ODE occurrence if no object occur.
@@ -171,10 +173,11 @@ retval = dsl_ode_trigger_absence_new('my-absence-trigger', DSL_ODE_ANY_SOURCE,
 
 ### *dsl_ode_trigger_occurrence_new*
 ```C++
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 ```
 
-The constructor creates an Occurrence trigger that checks for the occurrence of Objects within a frame and generates an ODE occurrence invoking all ODE Action for **each** object detected that passes the triggers (option) criteria.
+The constructor creates an Occurrence trigger that checks for the occurrence of Objects within a frame and generates an ODE occurrence invoking all ODE Action for **each** object detected that passes the triggers (optional) criteria.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -195,9 +198,37 @@ retval = dsl_ode_trigger_absence_new('my-absence-trigger', DSL_ODE_ANY_SOURCE,
 
 <br>
 
+### *dsl_ode_trigger_instance_new*
+```C++
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+```
+
+The constructor creates an Instance trigger that checks for new instances of Objects based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames. Each new `object_id` detected generates an ODE occurrence invoking all ODE Actions.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_instance_new('my-absence-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
 ### *dsl_ode_trigger_summation_new*
 ```C++
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);    
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);    
 ```
 This constructor creates a uniquely named Summation trigger that counts the number Objects within a frame that pass the trigger's (option) criteria. The Trigger generates an ODE occurrence invoking all ODE Actions once for **per-frame** until the Trigger limit is reached. 
 
@@ -224,7 +255,8 @@ retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_SOURC
 
 ### *dsl_ode_trigger_intersection_new*
 ```C++
-DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 ```
 
 This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) criteria, intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. 
@@ -342,7 +374,8 @@ retval = dsl_ode_trigger_range_new('my-range-trigger', DSL_ODE_ANY_SOURCE,
 
 ### *dsl_ode_trigger_smallest_new*
 ```C++
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 ```
 This constructor creates a uniquely named smallest trigger that checks for the occurrence of Objects within a frame, and if at least one is found, Triggers on the Object with smallest rectangle area.
 
@@ -366,7 +399,8 @@ retval = dsl_ode_trigger_smallest_new('my-range-trigger', DSL_ODE_ANY_SOURCE, DS
 
 ### *dsl_ode_trigger_largest_new*
 ```C++
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 ```
 This constructor creates a uniquely named Largest trigger that checks for the occurrence of Objects within a frame, and if at least one is found, Triggers on the Object with largest rectangle area.
 
