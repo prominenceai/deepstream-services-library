@@ -758,6 +758,84 @@ SCENARIO( "A OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]"
     }
 }
 
+SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new InstanceOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("instance");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "Three objects have the same object Id" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 1; 
+            objectMeta3.object_id = 1; 
+
+            THEN( "Only the first object triggers ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == false );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+            }
+        }
+        WHEN( "Three objects have different object Id's" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 2; 
+            objectMeta3.object_id = 3; 
+
+            THEN( "Only the first object triggers ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            }
+        }
+        WHEN( "Two objects have the same object Id and a third object is difference" )
+        {
+            objectMeta1.object_id = 1; 
+            objectMeta2.object_id = 3; 
+            objectMeta3.object_id = 1; 
+
+            THEN( "Only the first and second objects trigger ODE occurrence" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeIntersectionTrigger with minimum criteria" ) 
@@ -917,7 +995,7 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
     }
 }
 
-SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" )
+SCENARIO( "A MaximumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
     {
@@ -975,7 +1053,7 @@ SCENARIO( "A MaximumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" 
     }
 }
 
-SCENARIO( "A MinimumOdeTrigger handle ODE Occurrence correctly", "[OdeTrigger]" )
+SCENARIO( "A MinimumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
     {

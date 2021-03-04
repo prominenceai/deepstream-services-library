@@ -44,6 +44,10 @@ namespace DSL
     #define DSL_ODE_TRIGGER_ABSENCE_NEW(name, source, classId, limit) \
         std::shared_ptr<AbsenceOdeTrigger>(new AbsenceOdeTrigger(name, source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_INSTANCE_PTR std::shared_ptr<InstanceOdeTrigger>
+    #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
+        std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, source, classId, limit))
+
     #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
     #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit) \
         std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, source, classId, limit))
@@ -523,6 +527,32 @@ namespace DSL
         uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
+    
+    };
+
+    class InstanceOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        InstanceOdeTrigger(const char* name, const char* source, uint classId, uint limit);
+        
+        ~InstanceOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for New Instances of a Class
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+        /**
+         * @brief map of last Tracking Ids per unique source_id-class_id combination
+         */
+        std::map<std::string, uint64_t> m_instances;
     
     };
     
