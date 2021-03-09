@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
+#include "DslComms.h"
 
 namespace DSL {
     
@@ -700,7 +701,11 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
+            
+        void SmtpCredentialsSet(const char* username, const char* password);
         
+        void GetSmtpServerUrl(const char** serverUrl);
+
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
@@ -721,6 +726,12 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
+        
+        /**
+         * @brief Returns the single Comms object owned by the DSL
+         * @return const unique pointer to the Service Lib's Comm object
+         */
+        std::shared_ptr<Comms> GetComms();
 
     private:
 
@@ -851,6 +862,11 @@ namespace DSL {
          * @brief map of all source names to source ids
          */
         std::map <std::string, uint> m_sourceIds;
+        
+        /**
+         * @brief DSL Comms object for libcurl services
+         */
+        std::shared_ptr<Comms> m_pComms;
         
     };  
 

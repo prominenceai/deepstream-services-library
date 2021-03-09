@@ -374,9 +374,10 @@ namespace DSL
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
         , m_sourceNumInUseMax(DSL_DEFAULT_SOURCE_IN_USE_MAX)
         , m_sinkNumInUseMax(DSL_DEFAULT_SINK_IN_USE_MAX)
+        , m_pComms(std::unique_ptr<Comms>(new Comms()))
     {
         LOG_FUNC();
-        
+
         g_mutex_init(&m_servicesMutex);
     }
 
@@ -8290,6 +8291,28 @@ namespace DSL
         }
     }
 
+    void Services::SmtpCredentialsSet(const char* username, const char* password)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        LOG_INFO("New SMTP Username and Password set");
+        
+        m_pComms->SetSmtpCredentials(username, password);
+    }
+    
+    void Services::GetSmtpServerUrl(const char** serverUrl)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->GetSmtpServerUrl(serverUrl);
+
+        LOG_INFO("Returning SMTP Server URL = '" << *serverUrl << "'");
+    }
+    
+    // ------------------------------------------------------------------------------
+    
     bool Services::IsSourceComponent(const char* component)
     {
         LOG_FUNC();
@@ -8582,6 +8605,11 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
+    }
+    
+    std::shared_ptr<Comms> Services::GetComms()
+    {
+        return m_pComms;
     }
 
 } // namespace

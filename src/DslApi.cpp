@@ -4084,6 +4084,43 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+DslReturnType dsl_smtp_credentials_set(const wchar_t* username, 
+    const wchar_t* password)
+{
+    RETURN_IF_PARAM_IS_NULL(username);
+    RETURN_IF_PARAM_IS_NULL(password);
+
+    std::wstring wstrUsername(username);
+    std::string cstrUsername(wstrUsername.begin(), wstrUsername.end());
+    std::wstring wstrPassword(password);
+    std::string cstrPassword(wstrPassword.begin(), wstrPassword.end());
+
+    DSL::Services::GetServices()->
+        SmtpCredentialsSet(cstrUsername.c_str(), cstrPassword.c_str());
+    
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url)
+{
+    RETURN_IF_PARAM_IS_NULL(server_url);
+
+    const char* cServerUrl;
+    static std::string cstrServerUrl;
+    static std::wstring wcstrServerUrl;
+    
+    const char* cFromAddress;
+    static std::string cstrFromAddress;
+    static std::wstring wcstrFromAddress;
+    
+    DSL::Services::GetServices()->GetSmtpServerUrl(&cServerUrl);
+    cstrServerUrl.assign(cServerUrl);
+    wcstrServerUrl.assign(cstrServerUrl.begin(), cstrServerUrl.end());
+    *server_url = wcstrServerUrl.c_str();
+    
+    return DSL_RESULT_SUCCESS;
+}
+
 void dsl_delete_all()
 {
     dsl_pipeline_delete_all();
