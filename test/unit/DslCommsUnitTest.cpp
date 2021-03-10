@@ -202,7 +202,7 @@ SCENARIO( "A new SMTP message can update its state correctly", "[Comms]" )
     }
 }
 
-SCENARIO( "A new SMTP message can be Read", "[new]" )
+SCENARIO( "A new SMTP message can be Read", "[Comms]" )
 {
     GIVEN( "Attributes for a new SMTP message" )
     {
@@ -573,7 +573,7 @@ SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comm
             
             THEN( "The Comms object can queue a new email" )
             {
-                REQUIRE( pComms->QueueSmtpMessage(body) == true );
+                REQUIRE( pComms->QueueSmtpMessage(subject, body) == true );
             }
         }
     }
@@ -625,7 +625,7 @@ SCENARIO( "A Comms Object handles a failed SMTP Email because of invalid options
         
         WHEN( "A message is Queued with invalid options" )
         {
-            REQUIRE( pComms->QueueSmtpMessage(body) == true );
+            REQUIRE( pComms->QueueSmtpMessage(subject, body) == true );
             
             THEN( "The Comms object handles the failure correctly" )
             {

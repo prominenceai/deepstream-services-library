@@ -40,7 +40,10 @@ namespace DSL {
         /**
          * @brief ctor for an undefined EmailAdress class
          */
-        EmailAddress(){};
+        EmailAddress()
+            : m_isSet(false)
+        {
+        }
         
         /**
          * @brief ctor for the EmailAdress class
@@ -51,14 +54,15 @@ namespace DSL {
             : m_name(name)
             , m_address(address)
             , m_nameStr{"\"" + std::string(name) + "\""}
-            , m_addressStr{address ? "<" + std::string(address) + ">" : ""} 
+            , m_addressStr{address ? "<" + std::string(address) + ">" : ""}
+            , m_isSet(true)
         {
         }
         
         /**
          * @brief Updates and existing Email address
-         * @param name new display name to assign to this email
-         * @param address new email address to assign to the email
+         * @param name new display name to assign to this email address
+         * @param address new email address to assign to the email address
          */
         void Set(const char* name, const char* address)
         {
@@ -66,12 +70,27 @@ namespace DSL {
             m_address.assign(address);
             m_nameStr.assign("\"" + std::string(name) + "\"");
             m_addressStr.assign(address ? "<" + std::string(address) + ">" : "");
+            m_isSet = true;
         }
         
+        /**
+         * @brief Gets the name and address components used to create/set this object
+         * @param name display name assigned to this email address
+         * @param address email address assigned to this email address object
+         */
         void Get(const char** name, const char** address)
         {
             *name = m_name.c_str();
             *address = m_address.c_str();
+        }
+        
+        /**
+         * @brief returns the state of the email address, set or not
+         * @return true if the email is set, false otherwise 
+         */
+        bool IsSet()
+        {
+            return m_isSet;
         }
 
         /**
@@ -105,6 +124,7 @@ namespace DSL {
         }
 
     private:
+        bool m_isSet;
         std::string m_name;
         std::string m_address;
         std::string m_nameStr;
@@ -352,8 +372,24 @@ namespace DSL {
          */
         bool Purge();
         
+        /**
+         * @brief gets the current enabled setting for the queue
+         * @return current enabled setting
+         */
+        bool GetEnabled();
+        
+        /**
+         * @brief sets the enabled setting for the queue
+         */
+        void SetEnabled(bool enabled);
+        
     private:
     
+        /**
+         * specifies the current queue state, true if able to queue message.
+         */
+        bool m_enabled;
+        
         /**
          * @brief mutex to protect mutual access to queue data
          */
@@ -391,6 +427,18 @@ namespace DSL {
          */
         ~Comms();
 
+        /**
+         * @brief Get the current enabled state for the SMTP Email Queue
+         * @return true if enabled, false otherwise.
+         */
+        bool GetSmtpMailEnabled();
+        
+        /**
+         * @brief Sets the enabled state for the SMTP Email Queue
+         * @param enabled set to true to enable. false to disable.
+         */
+        void SetSmtpMailEnabled(bool enabled);
+        
         /**
          * @brief Sets the current SMTP Credentials for outgoing mail
          * @param[in] userId mail account user Id
@@ -460,17 +508,19 @@ namespace DSL {
         void RemoveAllSmtpCcAddresses();
         
         /**
-         * @brief Sets the default subject line for outgoing SMTP messages.
-         * @param subject text to use for subject line for subsequent messages
+         * @brief Returs the initialization state of SMTP services
+         * @return true if setup false otherwise
          */
-        void SetSmtpSubject(const char* subject);
-
+        bool IsSetup();
+        
         /**
          * @brief Queues a SMTP Message to be sent to all current recepients
-         * @param[in] uniqueContent unique content to add to the message body 
+         * @param[in] subject subject line for the email /r/n terminated
+         * @param[in] body message body to add, each line /r/n terminated
          * @return true if successfully queued, false otherwise
          */
-        bool QueueSmtpMessage(const std::vector<std::string>& uniqueContent);
+        bool QueueSmtpMessage(const std::string& subject, 
+            const std::vector<std::string>& body);
 
         /**
          * @brief background thread function to send a pending SMTP message
@@ -519,18 +569,13 @@ namespace DSL {
         /** 
          * @brief List of TO email address
          */
-        EmailAddresses m_toAdresses;
+        EmailAddresses m_toAddresses;
 
         /** 
          * @brief List of CC email address
          */
-        EmailAddresses m_ccAdresses;
+        EmailAddresses m_ccAddresses;
 
-        /** 
-         * @brief Default subject line for outgoing mail
-         */
-        std::string m_subject;
-        
         /**
          * @brief gnome thread id for the background send message thread
          */

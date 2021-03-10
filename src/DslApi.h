@@ -436,6 +436,8 @@ THE SOFTWARE.
 #define DSL_BBOX_EDGE_LEFT                                          2
 #define DSL_BBOX_EDGE_RIGHT                                         3
 
+#define DSL_SMTP_MAX_PENDING_MESSAGES                               10
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -3558,8 +3560,20 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     dsl_xwindow_delete_event_handler_cb handler);
 
 /**
+ * @brief Gets the current Enabled state of the SMTP Email Services
+ */
+boolean dsl_smtp_mail_enabled_get();
+
+/**
+ * @brief Sets the state of the SMTP Email Services
+ * Disabling SMTP services will block all subsequent emails from being queued for sending.
+ * @param enabled set to true to enable, false to disabled
+ */
+void dsl_smtp_mail_enabled_set(boolean enabled);
+
+/**
  * @brief sets the user credentials for the SMTP host for all subsequent emails
- * @param[in] username username to use 
+ * @param[in] username username to use
  * @param[in] password password to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM if param(s) NULL.
  */
@@ -3615,13 +3629,13 @@ void dsl_smtp_ssl_enabled_set(boolean enabled);
  * @param address qualifed email To address
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM otherwise.
  */
-DslReturnType dsl_smtp_to_address_add(const wchar_t* name,
+DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
     const wchar_t* address);
 
 /**
  * @brief removes all current TO addresses
  */
-void dsl_smtp_to_address_remove_all();
+void dsl_smtp_address_to_remove_all();
 
 /**
  * @brief adds a new email address to the Cc list
@@ -3629,19 +3643,20 @@ void dsl_smtp_to_address_remove_all();
  * @param address qualifed email Cc address
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM  otherwise.
  */
-DslReturnType dsl_smtp_cc_address_add(const wchar_t* name,
+DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
     const wchar_t* address);
 
 /**
  * @brief removes all current CC addresses
  */
-void dsl_smtp_cc_address_remove_all();
+void dsl_smtp_address_cc_remove_all();
 
 /**
  * @brief sends a test message using the current SMTP
  * settings and email addresses (From, To, Cc)
+ * @return true on successful upload, false otherwise
  */
-void dsl_smtp_test_message_send();
+boolean dsl_smtp_test_message_send();
 
 /**
  * @brief entry point to the GST Main Loop

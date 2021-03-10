@@ -25,26 +25,99 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-//SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-api]" )
-//{
-//    GIVEN( "A set of SMTP credentials" ) 
-//    {
-//        std::wstring username(L"joe.blow");
-//        std::wstring password(L"3littlepigs");
-//        std::wstring server_url(L"mail:\")
-//        
-//        WHEN( "A Properties are set" ) 
-//        {
+SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-api]" )
+{
+    GIVEN( "A set of SMTP credentials" ) 
+    {
+        std::wstring username(L"joe.blow");
+        std::wstring password(L"3littlepigs");
+        std::wstring mail_server(L"smtp://mail.example.com");
+        std::wstring from_name(L"Joe Blow");
+        std::wstring from_address(L"joe.blow@example.com");
+        std::wstring to_name1(L"Joe Blow");
+        std::wstring to_address1(L"joe.blow@example.org");
+        std::wstring to_name2(L"Jack Black");
+        std::wstring to_address2(L"jack.black@example.org");
+        std::wstring cc_name1(L"Jane Doe");
+        std::wstring cc_address1(L"jane.doe@example.org");
+        std::wstring cc_name2(L"Bill Williams");
+        std::wstring cc_address2(L"bill.williams@example.org");
+        
+        WHEN( "All Properties are set" ) 
+        {
+            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
+                password.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_from_address_set(from_name.c_str(), 
+                from_address.c_str()) == DSL_RESULT_SUCCESS );
+            dsl_smtp_ssl_enabled_set(false);
+            
+            REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
+                to_address1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_address_to_add(to_name2.c_str(), 
+                to_address2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_address_to_add(cc_name1.c_str(), 
+                cc_address1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_address_to_add(cc_name2.c_str(), 
+                cc_address2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                const wchar_t* ret_mail_server_str;
+                const wchar_t* ret_from_name_str;
+                const wchar_t* ret_from_address_str;
+
+                REQUIRE( dsl_smtp_server_url_get(&ret_mail_server_str) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_smtp_from_address_get(&ret_from_name_str, 
+                    &ret_from_address_str) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_mail_server(ret_mail_server_str);
+                std::wstring ret_from_name(ret_from_name_str);
+                std::wstring ret_from_address(ret_from_address_str);
+                
+                REQUIRE( ret_mail_server == mail_server );
+                REQUIRE( ret_from_name == from_name );
+                REQUIRE( ret_from_address == from_address );
+                REQUIRE( dsl_smtp_ssl_enabled_get() == false );
+                
+                dsl_smtp_address_to_remove_all();
+                dsl_smtp_address_cc_remove_all();
+            }
+        }
+    }
+}    
+
+SCENARIO( "A SMTP Test Message fails to Queue with insufficient parameters", "[new]" )
+{
+    GIVEN( "A set of SMTP credentials with invalid " ) 
+    {
+        std::wstring username(L"joe.blow");
+        std::wstring password(L"3littlepigs");
+        std::wstring mail_server(L"smtp://mail.gmail.com");
+        std::wstring from_name(L"Joe Blow");
+        std::wstring from_address(L"joe.blow@gmail.com");
+        std::wstring to_name1(L"Joe Blow");
+        std::wstring to_address1(L"joe.blow@gmail.com");
+        
+        WHEN( "All Properties except the credentials are set" ) 
+        {
 //            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
 //                password.c_str()) == DSL_RESULT_SUCCESS );
-//
-//            THEN( "The list size is updated correctly" ) 
-//            {
-//                
-//            }
-//        }
-//    }
-//}    
+            REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_from_address_set(from_name.c_str(), 
+                from_address.c_str()) == DSL_RESULT_SUCCESS );
+            dsl_smtp_ssl_enabled_set(false);
+            
+            REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
+                to_address1.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "A Test Message fails to queue" ) 
+            {
+                REQUIRE( dsl_smtp_test_message_send() == false );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The SMTP API checks for NULL input parameters", "[comms-api]" )
 {

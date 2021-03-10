@@ -8291,6 +8291,27 @@ namespace DSL
         }
     }
 
+    boolean Services::SmtpMailEnabledGet()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        boolean enabled = m_pComms->GetSmtpMailEnabled();
+        
+        LOG_INFO("Returning SMTP Mail Enabled = " << enabled);
+        return enabled;
+    }
+    
+    void Services::SmtpMailEnabledSet(boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        LOG_INFO("Setting SMTP Mail Enabled = " << enabled);
+        
+        m_pComms->SetSmtpMailEnabled(enabled);
+    }
+     
     void Services::SmtpCredentialsSet(const char* username, const char* password)
     {
         LOG_FUNC();
@@ -8301,7 +8322,7 @@ namespace DSL
         m_pComms->SetSmtpCredentials(username, password);
     }
     
-    void Services::GetSmtpServerUrl(const char** serverUrl)
+    void Services::SmtpServerUrlGet(const char** serverUrl)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -8309,6 +8330,125 @@ namespace DSL
         m_pComms->GetSmtpServerUrl(serverUrl);
 
         LOG_INFO("Returning SMTP Server URL = '" << *serverUrl << "'");
+    }
+    
+    void Services::SmtpServerUrlSet(const char* serverUrl)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->SetSmtpServerUrl(serverUrl);
+
+        LOG_INFO("New SMTP Server URL = '" << serverUrl << "' set");
+    }
+    
+    void Services::SmtpFromAddressGet(const char** name, const char** address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->GetSmtpFromAddress(name, address);
+
+        LOG_INFO("Returning SMTP From Address with Name = '" << *name 
+            << "', and Address = '" << *address << "'" );
+    }
+    
+    void Services::SmtpFromAddressSet(const char* name, const char* address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->SetSmtpFromAddress(name, address);
+
+        LOG_INFO("New SMTP From Address with Name = '" << name 
+            << "', and Address = '" << address << "' set");
+    }
+    
+    boolean Services::SmtpSslEnabledGet()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        boolean enabled = m_pComms->GetSmtpSslEnabled();
+        
+        LOG_INFO("Returning SMTP SSL Enabled = '" << enabled  << "'" );
+        
+        return enabled;
+    }
+    
+    void Services::SmtpSslEnabledSet(boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        LOG_INFO("Setting SMTP SSL Enabled = '" << enabled  << "'" );
+        
+        m_pComms->SetSmtpSslEnabled(enabled);
+    }
+    
+    void Services::SmtpToAddressAdd(const char* name, const char* address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->AddSmtpToAddress(name, address);
+
+        LOG_INFO("New SMTP To Address with Name = '" << name 
+            << "', and Address = '" << address << "' added");
+    }
+    
+    void Services::SmtpToAddressesRemoveAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        m_pComms->RemoveAllSmtpToAddresses();
+
+        LOG_INFO("All SMTP To Addresses removed");
+        
+    }
+    
+    void Services::SmtpCcAddressAdd(const char* name, const char* address)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        m_pComms->AddSmtpCcAddress(name, address);
+
+        LOG_INFO("New SMTP Cc Address with Name = '" << name 
+            << "', and Address = '" << address << "' set");
+    }
+
+    void Services::SmtpCcAddressesRemoveAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        m_pComms->RemoveAllSmtpCcAddresses();
+
+        LOG_INFO("All SMTP Cc Addresses removed");
+    }
+    
+    boolean Services::SendSmtpTestMessage()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        std::string subject("Test message");
+        std::string bline1("Test message.\r\n");
+        
+        std::vector<std::string> body{bline1};
+        boolean success = m_pComms->QueueSmtpMessage(subject, body);
+
+        if (!success)
+        {
+            LOG_ERROR("Failed to queue SMTP Test Message");
+        }
+        else
+        {
+            LOG_INFO("Test message Queued successfully");
+        }
+        return success;
     }
     
     // ------------------------------------------------------------------------------

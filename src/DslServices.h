@@ -701,10 +701,34 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
+
+        boolean SmtpMailEnabledGet();
+        
+        void SmtpMailEnabledSet(boolean enabled);   
             
         void SmtpCredentialsSet(const char* username, const char* password);
         
-        void GetSmtpServerUrl(const char** serverUrl);
+        void SmtpServerUrlGet(const char** serverUrl);
+        
+        void SmtpServerUrlSet(const char* serverUrl);
+
+        void SmtpFromAddressGet(const char** name, const char** address);
+
+        void SmtpFromAddressSet(const char* name, const char* address);
+        
+        boolean SmtpSslEnabledGet();
+        
+        void SmtpSslEnabledSet(boolean enabled);
+        
+        void SmtpToAddressAdd(const char* name, const char* address);
+        
+        void SmtpToAddressesRemoveAll();
+        
+        void SmtpCcAddressAdd(const char* name, const char* address);
+
+        void SmtpCcAddressesRemoveAll();
+        
+        boolean SendSmtpTestMessage();
 
         GMainLoop* GetMainLoopHandle()
         {

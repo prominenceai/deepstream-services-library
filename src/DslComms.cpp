@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "DslComms.h"
+#include "DslApi.h"
 
 #define DATE_BUFF_LENGTH 37
 
@@ -220,7 +221,8 @@ namespace DSL
     // ------------------------------------------------------------------------------
 
     SmtpMessageQueue::SmtpMessageQueue()
-        : m_purgeTimerId(0)
+        : m_enabled(true)
+        , m_purgeTimerId(0)
     {
         LOG_FUNC();
         
@@ -238,11 +240,33 @@ namespace DSL
         }
         g_mutex_clear(&m_queueMutex);
     }
+    
+    bool SmtpMessageQueue::GetEnabled()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
+
+        return m_enabled;
+    }
+    
+    void SmtpMessageQueue::SetEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
+
+        m_enabled = enabled;
+    }
 
     bool SmtpMessageQueue::Push(std::shared_ptr<SmtpMessage> pMessage)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
+        
+        if (!m_enabled)
+        {
+            LOG_ERROR("SMTP Message Queue is currently disabled, unable to push new message");
+            return false;
+        }
         
         LOG_INFO("Pushing: SMTP Message with Id = " << pMessage->GetId());
 
@@ -267,6 +291,7 @@ namespace DSL
     bool SmtpMessageQueue::Purge()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
         
         if (m_queue.empty())
         {
@@ -275,16 +300,23 @@ namespace DSL
         while (m_queue.size() and 
             (m_queue.front()->IsComplete() or m_queue.front()->IsFailure()))
         {
+            if (m_enabled and m_queue.front()->IsFailure())
+            {
+                LOG_ERROR("SMTP Message with Id " << m_queue.front()->GetId() 
+                    << " failed to send. ");
+            }
             LOG_INFO("Purging: SMTP Message with Id = " << m_queue.front()->GetId());
             m_queue.pop();
         }
         
+        // If the queue is backing up, then disable new messages from being added
+        m_enabled = (m_queue.size() > DSL_SMTP_MAX_PENDING_MESSAGES) ? false : true;
+        
         // If there are remaining messages in the queue waiting for completion 
         // - either pending or in progress - return true to restart the timer.
-        // 
         return m_queue.size();
     }
-
+    
     static int SmtpMessageQueuePurge(gpointer pMessageQueue)
     {
         return static_cast<SmtpMessageQueue*>(pMessageQueue)->Purge();
@@ -328,6 +360,22 @@ namespace DSL
             curl_global_cleanup();
         }
         g_mutex_clear(&m_commsMutex);
+    }
+    
+    bool Comms::GetSmtpMailEnabled()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
+        
+        return m_pMessageQueue.GetEnabled();
+    }
+
+    void Comms::SetSmtpMailEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
+        
+        m_pMessageQueue.SetEnabled(enabled);
     }
 
     void Comms::SetSmtpCredentials(const char* username, const char* password)
@@ -393,7 +441,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
         
         EmailAddress newToAddress(name, address);
-        m_toAdresses.push_back(newToAddress);
+        m_toAddresses.push_back(newToAddress);
     }
 
     void Comms::RemoveAllSmtpToAddresses()
@@ -401,7 +449,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
         
-        m_toAdresses.clear();
+        m_toAddresses.clear();
     }
 
     void Comms::AddSmtpCcAddress(const char* name, const char* address)
@@ -410,7 +458,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
         
         EmailAddress newCcAddress(name, address);
-        m_ccAdresses.push_back(newCcAddress);
+        m_ccAddresses.push_back(newCcAddress);
     }
 
     void Comms::RemoveAllSmtpCcAddresses()
@@ -418,29 +466,63 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
         
-        m_ccAdresses.clear();
+        m_ccAddresses.clear();
+    }
+    
+    bool Comms::IsSetup()
+    {
+        bool result(true);
+        
+        if (m_initResult != CURLE_OK)
+        {
+            LOG_INFO("CURL initialization failed");
+            result = false;
+        }
+        if (m_mailServerUrl.empty())
+        {
+            LOG_INFO("SMTP Mail Server has not be set");
+            result = false;
+        }
+        if (m_username.empty() or m_password.empty())
+        {
+            LOG_INFO("SMTP Mail Server Username and Password have not be set");
+            result = false;
+        }
+        if (!m_fromAddress.IsSet())
+        {
+            LOG_INFO("SMTP From Address has not be set");
+            result = false;
+        }
+        if (m_toAddresses.empty())
+        {
+            LOG_INFO("SMTP one or more To Addressess have not be set");
+            result = false;
+        }
+        return result;
     }
 
-    void Comms::SetSmtpSubject(const char* subject)
+    bool Comms::QueueSmtpMessage(const std::string& subject, 
+            const std::vector<std::string>& body)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
-
-        m_subject.assign(subject);
-    }
-
-    bool Comms::QueueSmtpMessage(const std::vector<std::string>& uniqueContent)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
+        
+        if (!IsSetup())
+        {
+            LOG_ERROR("Unable to queue Message - SMTP Mail settings are incomplete.");
+            return false;
+        }
 
         // Create a new message with the caller's unique content
         std::shared_ptr<SmtpMessage> pMessage = 
-            std::shared_ptr<SmtpMessage>(new SmtpMessage(m_toAdresses, 
-                m_fromAddress, m_ccAdresses, m_subject, uniqueContent));
+            std::shared_ptr<SmtpMessage>(new SmtpMessage(m_toAddresses, 
+                m_fromAddress, m_ccAddresses, subject, body));
         
-        // queue the new Message
-        m_pMessageQueue.Push(pMessage);
+        // queue the new Message, return on falure
+        if (!m_pMessageQueue.Push(pMessage))
+        {
+            return false;
+        }
         
         // if the SendMessage thread is not currently running
         if (!m_smtpSendMessageThreadId)
@@ -492,11 +574,11 @@ namespace DSL
         // build a recipient list of all TO and CC addresses
         curl_slist* recipients(NULL);
         
-        for (auto &ivec: m_toAdresses)
+        for (auto &ivec: m_toAddresses)
         {
             recipients = curl_slist_append(recipients, (const char*)ivec);
         }
-        for (auto &ivec: m_ccAdresses)
+        for (auto &ivec: m_ccAddresses)
         {
             recipients = curl_slist_append(recipients, (const char*)ivec);
         }
