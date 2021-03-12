@@ -10,10 +10,25 @@ sudo apt-get install libapr1 libapr1-dev libaprutil1 libaprutil1-dev`
 ```
 
 ## Geometry Engine, Open Source (GEOS)
-DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - specifically, a set of spacial predicate functions for determining if geometries - points, lines, polygons - touch, cross, ovelap, etc. The following commands are used to install the library.
+DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - specifically, a set of spacial predicate functions for determining if geometries - points, lines, polygons - touch, cross, ovelap, etc. 
 ```
 sudo apt update
 sudo apt install libgeos-dev 
+```
+
+## Open Computer Vision
+opencv4 is used to convert raw video frames to JPEG image files.
+
+```
+sudo apt update
+sudo apt install python3-opencv
+```
+
+## Lib cURL
+libcurl provides Secure Socket Layer (SSL) protocol services.  
+```
+sudo apt update
+sudo apt install libcurl4-openssl-dev
 ```
 
 ## Optional Documentation and Debug Dependencies
