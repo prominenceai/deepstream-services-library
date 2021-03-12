@@ -111,6 +111,8 @@ namespace DSL {
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
+
+        DslReturnType OdeActionEmailNew(const char* name, const char* subject);
         
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         

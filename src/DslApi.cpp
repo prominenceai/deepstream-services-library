@@ -412,6 +412,20 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
     return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
 }
 
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subject);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSubject(subject);
+    std::string cstrSubject(wstrSubject.begin(), wstrSubject.end());
+
+    return DSL::Services::GetServices()->OdeActionEmailNew(cstrName.c_str(),
+        cstrSubject.c_str());
+}
+
 DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color)
 {
     RETURN_IF_PARAM_IS_NULL(name);

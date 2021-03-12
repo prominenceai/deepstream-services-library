@@ -332,11 +332,24 @@ def dsl_ode_action_capture_object_new(name, outdir):
 ##
 ## dsl_ode_action_display_new()
 ##
-_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
-def dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
+def dsl_ode_action_display_new(name, 
+    x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+    result =_dsl.dsl_ode_action_display_new(name, 
+        x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_ode_action_email_new()
+##
+_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_email_new.restype = c_uint
+def dsl_ode_action_email_new(name, subject):
+    global _dsl
+    result =_dsl.dsl_ode_action_email_new(name, subject)
     return int(result)
 
 ##

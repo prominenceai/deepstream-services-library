@@ -570,7 +570,8 @@ typedef struct _dsl_coordinate
  * @param[in] trigger unique name of the ODE Event Trigger that trigger the occurrence
  * @param[in] pointer to a frame_meta structure that triggered the ODE event
  * @param[in] pointer to a object_meta structure that triggered the ODE event
- * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
+ * Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* trigger,
@@ -583,7 +584,8 @@ typedef void (*dsl_ode_handle_occurrence_cb)(uint64_t event_id, const wchar_t* t
  * returns true to invoke all ODE acctions owned by the Custom Trigger
  * @param[in] pointer to a frame_meta structure that triggered the ODE event
  * @param[in] pointer to a object_meta structure that triggered the ODE event
- * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
+ * Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
@@ -591,11 +593,13 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 
 /**
  * @brief callback typedef for a client ODE Custom Trigger post-process-frame function. Once 
- * registered, the function will be called on every frame AFTER all Check-For-Occurrence calls have been handles
- * The client, determining that criteria is met for ODE occurrence,  returns true to invoke all ODE acctions owned by the Custom Trigger
+ * registered, the function will be called on every frame AFTER all Check-For-Occurrence calls 
+ * have been handles The client, determining that criteria is met for ODE occurrence,  
+ * returns true to invoke all ODE acctions owned by the Custom Trigger
  * @param[in] pointer to a frame_meta structure that triggered the ODE event
  * @param[in] pointer to a object_meta structure that triggered the ODE event
- * This parameter will be set to NULL for ODE occurrences detected in Post process frame. Absence and Submation ODE's
+ * This parameter will be set to NULL for ODE occurrences detected in Post process frame. 
+ * Absence and Submation ODE's
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
@@ -604,13 +608,16 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
 /**
  * @brief callback typedef for a client to hanlde new Pipeline performance data
  * ,calcaulated by the Meter Pad Probe Handler, at an intervel specified by the client.
- * @param[in] session_fps_averages array of frames-per-second measurements, one per source, specified by list_size 
- * @param[in] interval_fps_averages array of average frames-per-second measurements, one per source, specified by list_size 
- * @param[in] source_count count of both session_fps_averages and avg_fps interval_fps_averages, one Pipeline Source
+ * @param[in] session_fps_averages array of frames-per-second measurements, 
+ * one per source, specified by list_size 
+ * @param[in] interval_fps_averages array of average frames-per-second measurements, 
+ * one per source, specified by list_size 
+ * @param[in] source_count count of both session_fps_averages and avg_fps 
+ * interval_fps_averages, one Pipeline Source
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
-typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, double* interval_fps_averages, 
-    uint source_count, void* client_data);
+typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages, 
+    double* interval_fps_averages,    uint source_count, void* client_data);
     
 /**
  * @brief callback typedef for a client pad probe handler function. Once added to a Component, 
@@ -644,36 +651,42 @@ typedef void (*dsl_eos_listener_cb)(void* client_data);
  * @param[in] message error parsed from the message data
  * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, const wchar_t* message, void* client_data);
+typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, 
+    const wchar_t* message, void* client_data);
 
 /**
- * @brief callback typedef for a client XWindow KeyRelease event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives XWindow KeyRelease events.
+ * @brief callback typedef for a client XWindow KeyRelease event handler function. 
+ * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
 
 /**
- * @brief callback typedef for a client XWindow ButtonPress event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives XWindow ButtonPress events.
+ * @brief callback typedef for a client XWindow ButtonPress event handler function. 
+ * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * XWindow ButtonPress events.
  * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
  * @param[in] ypos from the top left corner of the window
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, int xpos, int ypos, void* client_data);
+typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, 
+    int xpos, int ypos, void* client_data);
 
 /**
- * @brief callback typedef for a client XWindow Delete Message event handler function. Once added to a Pipeline, 
- * the function will be called when the Pipeline receives XWindow Delete Message event.
+ * @brief callback typedef for a client XWindow Delete Message event handler function. 
+ * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * XWindow Delete Message event.
  * @param[in] client_data opaque pointer to client's user data
  */
 typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 
 
 /**
- * @brief callback typedef for a client to listen for notification that a Recording Session has ended.
+ * @brief callback typedef for a client to listen for notification that a Recording 
+ * Session has ended.
  * @param[in] info pointer to session info, see... dsl_recording_info above.
  * @param[in] client_data opaque pointer to client's user data provide on end-of-session
  */
@@ -700,7 +713,8 @@ DslReturnType dsl_display_type_rgba_color_new(const wchar_t* name,
  * @param[in] color name of the RGBA Color for the RGBA font
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, const wchar_t* font, uint size, const wchar_t* color);
+DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, 
+    const wchar_t* font, uint size, const wchar_t* color);
 
 /**
  * @brief creates a uniquely named RGBA Display Text
@@ -713,8 +727,9 @@ DslReturnType dsl_display_type_rgba_font_new(const wchar_t* name, const wchar_t*
  * @param[in] bgColor RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, const wchar_t* text, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_rgba_text_new(const wchar_t* name, 
+    const wchar_t* text, uint x_offset, uint y_offset, const wchar_t* font, 
+    boolean has_bg_color, const wchar_t* bg_color);
     
 /**
  * @brief creates a uniquely named RGBA Display Line
@@ -758,8 +773,8 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
  * @param[in] bgColor RGBA Color for the Circle background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
-    uint width, uint height, uint border_width, const wchar_t* color, 
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, uint border_width, const wchar_t* color, 
     bool has_bg_color, const wchar_t* bg_color);
 
 /**
@@ -772,7 +787,8 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
-    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, const wchar_t* color);
+    const dsl_coordinate* coordinates, uint num_coordinates, uint border_width, 
+    const wchar_t* color);
 
 /**
  * @brief creates a uniquely named RGBA Circle
@@ -785,8 +801,9 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
  * @param[in] bgColor RGBA Color for the Circle background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
-    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
+    uint x_center, uint y_center, uint radius, const wchar_t* color, bool has_bg_color, 
+    const wchar_t* bg_color);
 
 /**
  * @brief creates a uniquely named Source Number Display Type
@@ -798,8 +815,9 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_cente
  * @param[in] bgColor RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
     
 /**
  * @brief creates a uniquely named Source Name Display Type
@@ -811,8 +829,9 @@ DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_off
  * @param[in] bgColor RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
     
 /**
  * @brief creates a uniquely named Source Dimensions Display Type
@@ -824,8 +843,9 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name, uint x_offse
  * @param[in] bgColor RGBA Color for the Text background if set
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, uint x_offset, uint y_offset, 
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
 
 /**
  * @brief Adds a named Display Type (text/shape) to a frames's display metadata, The caller 
@@ -880,7 +900,8 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
  * @param[in] annotate if true, bounding boxes and labes will be added to the image.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
+    const wchar_t* outdir, boolean annotate);
 
 /**
  * @brief Creates a uniquely named Capture Object ODE Action
@@ -888,7 +909,8 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_
  * @param[in] outdir absolute or relative path to image capture directory 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar_t* outdir);
+DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, 
+    const wchar_t* outdir);
 
 /**
  * @brief Creates a uniquely named Display ODE Action
@@ -903,7 +925,8 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
-    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
 
 /**
  * @brief Creates a uniquely named Add Display Metadata ODE Action to add Display metadata
@@ -913,26 +936,35 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint
  * Note: the Display Type must exist prior to constructing the Action.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, const wchar_t* display_type);
+DslReturnType dsl_ode_action_display_meta_add_new(const wchar_t* name, 
+    const wchar_t* display_type);
 
 /**
  * @brief Creates a uniquely named Add Many Display Metadata ODE Action to add the 
  * metadata using multiple uniquely named Display Types 
  * @param[in] name unique name for the Add Many Display Metadata ODE Action 
- * @param[in] display_typess NULL terminated list of names of the Display Types to overlay on ODE occurrence
+ * @param[in] display_typess NULL terminated list of names of the Display 
+ * Types to overlay on ODE occurrence
  * Note: the Display Type must exist prior to constructing the Action.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, const wchar_t** display_types);
+DslReturnType dsl_ode_action_display_meta_add_many_new(const wchar_t* name, 
+    const wchar_t** display_types);
+
+/**
+ * @brief Creates a uniquely named Email ODE Action, that sends an email message using the
+ * SMTP parameters setup through the SMTP API
+ * @param[in] name unique name for the Email ODE Action
+ * @param[in] subject text to use as the subject line for all messages sent from this Action
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
 
 /**
  * @brief Creates a uniquely named Fill Frame ODE Action, that fills the entire
  * frame with a give RGBA color value
  * @param[in] name unique name for the Fill Frame ODE Action
- * @param[in] red red value for the RGBA background color [1..0]
- * @param[in] green green value for the RGBA background color [1..0]
- * @param[in] blue blue value for the RGBA background color [1..0]
- * @param[in] alpha alpha value for the RGBA background color [1..0]
+ * @param[in] color name of the RGBA Color to use for the fill action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* color);
@@ -941,7 +973,7 @@ DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name, const wchar_t* 
  * @brief Creates a uniquely named Fill Object ODE Action, that fills an object's
  * Background with RGBA color values
  * @param[in] name unique name for the Fill Object ODE Action
- * @param[in] color nane of a RGBA color that must exist prior to creating the Action
+ * @param[in] color name of the RGBA Color to use for the fill action
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_fill_object_new(const wchar_t* name, const wchar_t* color);

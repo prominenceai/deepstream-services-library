@@ -1138,6 +1138,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OdeActionEmailNew(const char* name, const char* subject)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            m_odeActions[name] = DSL_ODE_ACTION_EMAIL_NEW(name, subject);
+
+            LOG_INFO("New ODE Email Action '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Email Action '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::OdeActionFillSurroundingsNew(const char* name, const char* color)
     {
         LOG_FUNC();
