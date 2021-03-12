@@ -58,6 +58,10 @@ namespace DSL
     #define DSL_ODE_ACTION_DISABLE_HANDLER_PTR std::shared_ptr<DisableHandlerOdeAction>
     #define DSL_ODE_ACTION_DISABLE_HANDLER_NEW(name, handler) \
         std::shared_ptr<DisableHandlerOdeAction>(new DisableHandlerOdeAction(name, handler))
+
+    #define DSL_ODE_ACTION_EMAIL_PTR std::shared_ptr<EmailOdeAction>
+    #define DSL_ODE_ACTION_EMAIL_NEW(name, subject) \
+        std::shared_ptr<EmailOdeAction>(new EmailOdeAction(name, subject))
         
     #define DSL_ODE_ACTION_FILL_AREA_PTR std::shared_ptr<FillAreaOdeAction>
     #define DSL_ODE_ACTION_FILL_AREA_NEW(name, area, pColor) \
@@ -470,6 +474,49 @@ namespace DSL
         std::string m_handler;
     
     };
+    
+    // ********************************************************************
+
+    /**
+     * @class EmailOdeAction
+     * @brief Email ODE Action class
+     */
+    class EmailOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the ODE Fill Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pColor shared pointer to an RGBA Color to fill the Frame
+         */
+        EmailOdeAction(const char* name, const char* subject);
+        
+        /**
+         * @brief dtor for the ODE Display Action class
+         */
+        ~EmailOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by queuing and Email with SMTP API
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+            
+    private:
+    
+        /**
+         * @brief Subject line used for all email messages sent by this action
+         */
+        std::string m_subject;
+    
+    };
+    
     // ********************************************************************
 
     /**

@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "DslGeosTypes.h"
+#include "DslComms.h"
 
 namespace DSL
 {

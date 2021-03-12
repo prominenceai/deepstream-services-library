@@ -70,7 +70,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void CustomOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void CustomOdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled)
@@ -85,7 +86,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Custom ODE Action '" << GetName() << "' threw exception calling client callback");
+            LOG_ERROR("Custom ODE Action '" << GetName() 
+                << "' threw exception calling client callback");
         }
     }
 
@@ -106,7 +108,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame)
+    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
+        cv::Mat& bgr_frame)
     {
         // rectangle params are in floats so convert
         int left((int)pObjectMeta->rect_params.left);
@@ -133,8 +136,9 @@ namespace DSL
             label = label + " " + std::to_string(pObjectMeta->confidence); 
         }
         
-        // add a black background rectangle for the label as cv::putText does not support a background color
-        // the size of the bacground is just an approximation based on character count not their actual sizes
+        // add a black background rectangle for the label as cv::putText does not 
+        // support a background color the size of the bacground is just an approximation 
+        //based on character count not their actual sizes
         cv::rectangle(bgr_frame,
             cv::Point(left, top-30),
             cv::Point(left+label.size()*10+2, top-2),
@@ -153,7 +157,8 @@ namespace DSL
         return bgr_frame;
     }
 
-    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!m_enabled)
@@ -170,14 +175,16 @@ namespace DSL
         // surface index is derived from the batch_id for the frame that triggered the event
         int surfaceIndex = pFrameMeta->batch_id;
         
-        // Coordinates and dimensions for our destination surface for RGBA to BGR conversion required for JPEG
+        // Coordinates and dimensions for our destination surface for RGBA to 
+        // BGR conversion required for JPEG
         uint32_t left(0), top(0), width(0), height(0);
 
         // MapInfo for the current buffer
         DslMapInfo mapInfo(pBuffer);
         
-        // Transforming only one frame in the batch, so create a copy of the single surface ... becoming our new source surface
-        // This creates a new mono (non-batched) surface copied from the "batched frames" using the batch id as the index
+        // Transforming only one frame in the batch, so create a copy of the single 
+        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
+        // surface copied from the "batched frames" using the batch id as the index
         DslMonoSurface srcSurface(mapInfo, pFrameMeta->batch_id);
 
         // capturing full frame or object only?
@@ -208,19 +215,23 @@ namespace DSL
         DslCudaStream dslCudaStream(srcSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(srcSurface.gpuId, dslCudaStream);
+        DslSurfaceTransformSessionParams dslTransformSessionParams(srcSurface.gpuId, 
+            dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
         if (!dslTransformSessionParams.Set())
         {
-            LOG_ERROR("Destination surface failed to set transform session params for Action '" << GetName() << "'");
+            LOG_ERROR("Destination surface failed to set transform session params for Action '" 
+                << GetName() << "'");
             return;
         }
         
-        // We can now transform our Mono Source surface to the first (and only) surface in the batched buffer.
+        // We can now transform our Mono Source surface to the first (and only) 
+        // surface in the batched buffer.
         if (!dstSurface.TransformMonoSurface(srcSurface, 0, transformParams))
         {
-            LOG_ERROR("Destination surface failed to transform for Action '" << GetName() << "'");
+            LOG_ERROR("Destination surface failed to transform for Action '" 
+                << GetName() << "'");
             return;
         }
         
@@ -262,7 +273,8 @@ namespace DSL
             // otherwise, we iterate throught the framemeta object-list highlighting each object.
             else
             {
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; pMeta != NULL; pMeta = pMeta->next)
+                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
+                    pMeta != NULL; pMeta = pMeta->next)
                 {
                     // not to be confussed with pObjectMeta
                     NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
@@ -296,7 +308,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisableHandlerOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -308,7 +321,8 @@ namespace DSL
 
     // ********************************************************************
 
-    DisplayOdeAction::DisplayOdeAction(const char* name, uint offsetX, uint offsetY, bool offsetYWithClassId, 
+    DisplayOdeAction::DisplayOdeAction(const char* name, 
+        uint offsetX, uint offsetY, bool offsetYWithClassId, 
         DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)
         , m_offsetX(offsetX)
@@ -326,7 +340,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void DisplayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -336,7 +351,8 @@ namespace DSL
             NvOSD_TextParams *pTextParams = &pDisplayMeta->text_params[pDisplayMeta->num_labels++];
             pTextParams->display_text = (gchar*) g_malloc0(MAX_DISPLAY_LEN);
             
-            std::string text = pTrigger->GetName() + " = " + std::to_string(pTrigger->m_occurrences);
+            std::string text = pTrigger->GetName() + " = " 
+                + std::to_string(pTrigger->m_occurrences);
             text.copy(pTextParams->display_text, MAX_DISPLAY_LEN, 0);
 
             // Setup X and Y display offsets
@@ -362,10 +378,117 @@ namespace DSL
             nvds_add_display_meta_to_frame(pFrameMeta, pDisplayMeta);
         }
     }
+    
+    // ********************************************************************
+
+    EmailOdeAction::EmailOdeAction(const char* name, const char* subject)
+        : OdeAction(name)
+        , m_subject(subject)
+    {
+        LOG_FUNC();
+    }
+
+    EmailOdeAction::~EmailOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void EmailOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (m_enabled)
+        {
+            DSL_ODE_TRIGGER_PTR pTrigger = std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            
+            std::vector<std::string> body;
+            
+            body.push_back(std::string("Trigger Name    : " 
+                + pTrigger->GetName() + "\r\n"));
+            body.push_back(std::string("  Unique ODE Id : " 
+                + std::to_string(pTrigger->s_eventCount) + "\r\n"));
+            body.push_back(std::string("  NTP Timestamp : " 
+                +  std::to_string(pFrameMeta->ntp_timestamp) + "\r\n"));
+            body.push_back(std::string("  Source Data   : ------------------------\r\n"));
+            if (pFrameMeta->bInferDone)
+            {
+                body.push_back(std::string("    Inference   : Yes\r\n"));
+            }
+            else
+            {
+                body.push_back(std::string("    Inference   : No\r\n"));
+            }
+            body.push_back(std::string("    SourceId    : " 
+                +  std::to_string(pFrameMeta->source_id) + "\r\n"));
+            body.push_back(std::string("    BatchId     : " 
+                +  std::to_string(pFrameMeta->batch_id) + "\r\n"));
+            body.push_back(std::string("    PadIndex    : " 
+                +  std::to_string(pFrameMeta->pad_index) + "\r\n"));
+            body.push_back(std::string("    Frame       : " 
+                +  std::to_string(pFrameMeta->frame_num) + "\r\n"));
+            body.push_back(std::string("    Width       : " 
+                +  std::to_string(pFrameMeta->source_frame_width) + "\r\n"));
+            body.push_back(std::string("    Heigh       : " 
+                +  std::to_string(pFrameMeta->source_frame_height) + "\r\n"));
+            body.push_back(std::string("  Object Data   : ------------------------\r\n"));
+            body.push_back(std::string("    Class Id    : " 
+                +  std::to_string(pTrigger->m_classId) + "\r\n"));
+            body.push_back(std::string("    Occurrences : " 
+                +  std::to_string(pTrigger->m_occurrences) + "\r\n"));
+
+            if (pObjectMeta)
+            {
+                body.push_back(std::string("    Obj ClassId : " 
+                    +  std::to_string(pObjectMeta->class_id) + "\r\n"));
+                body.push_back(std::string("    Tracking Id : " 
+                    +  std::to_string(pObjectMeta->object_id) + "\r\n"));
+                body.push_back(std::string("    Label       : " 
+                    +  std::string(pObjectMeta->obj_label) + "\r\n"));
+                body.push_back(std::string("    Confidence  : " 
+                    +  std::to_string(pObjectMeta->confidence) + "\r\n"));
+                body.push_back(std::string("    Left        : " 
+                    +  std::to_string(pObjectMeta->rect_params.left) + "\r\n"));
+                body.push_back(std::string("    Top         : " 
+                    +  std::to_string(pObjectMeta->rect_params.top) + "\r\n"));
+                body.push_back(std::string("    Width       : " 
+                    +  std::to_string(pObjectMeta->rect_params.width) + "\r\n"));
+                body.push_back(std::string("    Height      : " 
+                    +  std::to_string(pObjectMeta->rect_params.height) + "\r\n"));
+            }
+
+            body.push_back(std::string("  Criteria  : ------------------------\r\n"));
+            body.push_back(std::string("    Confidence  : " 
+                +  std::to_string(pTrigger->m_minConfidence) + "\r\n"));
+            body.push_back(std::string("    Frame Count : " 
+                +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
+                +  std::to_string(pTrigger->m_minFrameCountD) + "\r\n"));
+            body.push_back(std::string("    Min Width   : " 
+                +  std::to_string(pTrigger->m_minWidth) + "\r\n"));
+            body.push_back(std::string("    Min Height  : " 
+                +  std::to_string(pTrigger->m_minHeight) + "\r\n"));
+            body.push_back(std::string("    Max Width   : " 
+                +  std::to_string(pTrigger->m_maxWidth) + "\r\n"));
+            body.push_back(std::string("    Max Height  : " 
+                +  std::to_string(pTrigger->m_maxHeight) + "\r\n"));
+
+            if (pTrigger->m_inferDoneOnly)
+            {
+                body.push_back(std::string("    Inference   : Yes\r\n"));
+            }
+            else
+            {
+                body.push_back(std::string("    Inference   : No\r\n"));
+            }
+            
+            const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
+            pComms->QueueSmtpMessage(m_subject, body);
+        }
+    }
 
     // ********************************************************************
 
-    FillSurroundingsOdeAction::FillSurroundingsOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
+    FillSurroundingsOdeAction::FillSurroundingsOdeAction(const char* name, 
+        DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
         , m_pColor(pColor)
     {
@@ -378,7 +501,8 @@ namespace DSL
 
     }
 
-    void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void FillSurroundingsOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -400,7 +524,8 @@ namespace DSL
             std::string rightRectName("right-rect");
             
             DSL_RGBA_RECTANGLE_PTR pRightRect = DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
-                x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+                x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 
+                    0, m_pColor, true, m_pColor);
     
             pRightRect->AddMeta(pDisplayMeta, pFrameMeta);
 
@@ -436,7 +561,8 @@ namespace DSL
 
     }
 
-    void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void FillFrameOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -469,7 +595,8 @@ namespace DSL
 
     }
 
-    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void FillObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -494,7 +621,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void HideOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled and pObjectMeta)
@@ -524,7 +652,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void LogOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -585,7 +714,8 @@ namespace DSL
 
     // ********************************************************************
 
-    AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, DSL_DISPLAY_TYPE_PTR pDisplayType)
+    AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, 
+        DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
     {
         LOG_FUNC();
@@ -606,7 +736,8 @@ namespace DSL
     }
 
     
-    void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void AddDisplayMetaOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -632,7 +763,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -655,7 +787,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+    void PrintOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (m_enabled)
@@ -696,12 +829,14 @@ namespace DSL
                 std::cout << "    Height      : " << pObjectMeta->rect_params.height << "\n";
             }
 
-            std::cout << "  Min Criteria  : ------------------------" << "\n";
+            std::cout << "  Criteria  : ------------------------" << "\n";
             std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
             std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
-            std::cout << "    Width       : " << pTrigger->m_minWidth << "\n";
-            std::cout << "    Height      : " << pTrigger->m_minHeight << "\n";
+            std::cout << "    Min Width   : " << pTrigger->m_minWidth << "\n";
+            std::cout << "    Min Height  : " << pTrigger->m_minHeight << "\n";
+            std::cout << "    Max Width   : " << pTrigger->m_maxWidth << "\n";
+            std::cout << "    Max Height  : " << pTrigger->m_maxHeight << "\n";
 
             if (pTrigger->m_inferDoneOnly)
             {

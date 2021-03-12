@@ -95,6 +95,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lX11 \
 	-L/usr/lib/aarch64-linux-gnu \
 	-lgeos_c \
+	-lcurl \
 	-lnvdsgst_meta \
 	-lnvds_meta \
 	-lnvdsgst_helper \

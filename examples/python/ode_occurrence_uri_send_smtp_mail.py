@@ -28,6 +28,20 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+#######################################################################
+#
+# CAUTION - Do not check sripts into your repo with valid credentials
+#
+#######################################################################
+user_name = 'my.smtps.server'
+password = 'my-server-pw!'
+server_url = 'smtps://smtp.gmail.com:465'
+
+from_name = ''
+from_address = 'my.smtps.server'
+to_name = 'Joe Bloe'
+to_address = 'joe.blow@gmail.com'
+
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
@@ -79,49 +93,26 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-## 
-# Function to be called on recording complete
-## 
-def record_complete_listener(session_info_ptr, client_data):
-    print(' ***  Recording Complete  *** ')
     
-    session_info = session_info_ptr.contents
-    print('sessionId:     ', session_info.sessionId)
-    print('filename:      ', session_info.filename)
-    print('dirpath:       ', session_info.dirpath)
-    print('duration:      ', session_info.duration)
-    print('containerType: ', session_info.containerType)
-    print('width:         ', session_info.width)
-    print('height:        ', session_info.height)
-    
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    print('        is_on flag = ', is_on)
-    
-    retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
-    print('        reset_done flag = ', reset_done)
-    
-    # reset the Trigger so that a new session can be started.
-    print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
-    
-    return None
+def setup_smpt_mail():
 
-## 
-# Custom check-for-occurrence (NOP) callback added to the Custome trigger.
-## 
-def check_for_occurrence(buffer, object_meta, frame_meta, client_data):
-    
-    return False
-
-## 
-# Custom post-process-frame callback added to the Custome trigger.
-## 
-def post_process_frame(buffer, frame_meta, client_data):
-    
-    # check the state of the Record Sink
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    
-    # if on... returning true will execute all of the Trigger's Actions
-    return is_on
+    global server_url, user_name, password, from_name, from_address, \
+        to_name, to_address
+    retval = dsl_smtp_server_url_set(server_url)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_credentials_set(user_name, password)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_address_from_set(from_name, from_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_address_to_add(to_name, to_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # (optional) queue a test message to be sent out when main_loop starts
+    return dsl_smtp_test_message_send()
 
 def main(args):
 
@@ -129,28 +120,13 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and a Start Record Action
-        # to control a Record Sink.  A callback function, called on completion of the recording session, will
-        # reset the Trigger allowing a new session to be started on next occurrence.
-        # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
+        # This example is used to demonstrate the use of a First Occurrence Trigger and an Email Action
+        # to send an emal using SMTP service. Addional actions are added to "Capture" the frame to an 
+        # image-file and "Fill" (flash) the frame red as a visual marker.
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New Record-Sink that will buffer encoded video while waiting for the ODE trigger/action, defined below, 
-        # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 12 Mbps for 1080p ??? 
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=12000000, interval=0, client_listener=record_complete_listener)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
-        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
-        
-        # Update the cache size to 5 seconds.
-        retval = dsl_sink_record_cache_size_set('record-sink', 5)
+        # Setup the SMTP Server URL, Credentials, and From/To addresss
+        retval = setup_smpt_mail()
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -159,40 +135,9 @@ def main(args):
         retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Text type object that will be used to show the recording in progress
-        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', x_offset=10, y_offset=30, 
-            font='impact-20-white', has_bg_color=True, bg_color='opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.
-        retval = dsl_display_type_rgba_circle_new('red-led', x_center=94, y_center=52, radius=8, 
-            color='full-red', has_bg_color=True, bg_color='full-red')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Action to display the "recording in-progress" text
-        retval = dsl_ode_action_display_meta_add_many_new('add-rec-on', display_types=
-            ['rec-text', 'red-led', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_custom_new('rec-on-trigger', source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
-            limit=DSL_ODE_TRIGGER_LIMIT_NONE, client_checker=check_for_occurrence, client_post_processor=post_process_frame, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
+
+        # Create a new Action to Queue an email
+        retval = dsl_ode_action_email_new('email-action', subject="Bicycle Occurrence!")
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -206,12 +151,6 @@ def main(args):
         retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        # Create a new Capture Action to start a new record session
-        retval = dsl_ode_action_sink_record_start_new('start-record-action', 
-            record_sink='record-sink', start=2, duration=10, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
@@ -220,46 +159,36 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # set the "infer-done-only" criteria so we can capture the confidence level
-        retval = dsl_ode_trigger_infer_done_only_set('bicycle-occurrence-trigger', True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_ode_action_print_new('print')
-
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
         retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
+            'email-action',
             'red-flash-action', 
-            'bicycle-capture-action', 
-            'start-record-action', 
-            'print',
+            'bicycle-capture-action',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New ODE Handler for our Trigger
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'bicycle-occurrence-trigger',
-            'rec-on-trigger', 
-            None])
+        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='bicycle-occurrence-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        ############################################################################################
+            ############################################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, 
+            cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        # New Primary GIE using the filespecs above with interval = 1
+        retval = dsl_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -290,15 +219,11 @@ def main(args):
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', 'record-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # IMPORTANT *******
-        # Set Streammux dimensions, as the record sink does not work well with the defaults of 1920 x 1080
-        # Hope this is issue is resolved in the GA release of Deepstream 5.0
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', WINDOW_WIDTH, WINDOW_HEIGHT)
-
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:

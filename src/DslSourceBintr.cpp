@@ -75,7 +75,8 @@ namespace DSL
         
         if (!IsParent(pParentBintr))
         {
-            LOG_ERROR("Source '" << GetName() << "' is not a child of Pipeline '" << pParentBintr->GetName() << "'");
+            LOG_ERROR("Source '" << GetName() << "' is not a child of Pipeline '" 
+                << pParentBintr->GetName() << "'");
             return false;
         }
         
@@ -288,7 +289,8 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for UsbSourceBintr '" << m_name << "'");
+        LOG_DEBUG("Setting GPU ID to '" << gpuId 
+            << "' for UsbSourceBintr '" << m_name << "'");
 
         m_pVidConv2->SetAttribute("gpu-id", m_gpuId);
         
@@ -297,7 +299,8 @@ namespace DSL
 
     //*********************************************************************************
 
-    DecodeSourceBintr::DecodeSourceBintr(const char* name, const char* factoryName, const char* uri,
+    DecodeSourceBintr::DecodeSourceBintr(const char* name, 
+        const char* factoryName, const char* uri,
         bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
         : SourceBintr(name)
         , m_cudadecMemtype(cudadecMemType)
@@ -414,7 +417,8 @@ namespace DSL
         }
     }
     
-    GstPadProbeReturn DecodeSourceBintr::HandleStreamBufferRestart(GstPad* pPad, GstPadProbeInfo* pInfo)
+    GstPadProbeReturn DecodeSourceBintr::HandleStreamBufferRestart(GstPad* pPad, 
+        GstPadProbeInfo* pInfo)
     {
         LOG_FUNC();
 
@@ -524,7 +528,8 @@ namespace DSL
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval)
+        : DecodeSourceBintr(name, NVDS_ELEM_SRC_URI, uri, isLive, 
+            cudadecMemType, intraDecode, dropFrameInterval)
     {
         LOG_FUNC();
         
@@ -581,7 +586,8 @@ namespace DSL
         }
 
         GstPadTemplate* pPadTemplate = 
-            gst_element_class_get_pad_template(GST_ELEMENT_GET_CLASS(m_pTee->GetGstElement()), "src_%u");
+            gst_element_class_get_pad_template(
+                GST_ELEMENT_GET_CLASS(m_pTee->GetGstElement()), "src_%u");
         if (!pPadTemplate)
         {
             LOG_ERROR("Failed to get Pad Template for '" << GetName() << "'");
@@ -590,7 +596,8 @@ namespace DSL
         
         // The TEE for this source is linked to both the "source queue" and "fake sink queue"
 
-        GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+        GstPad* pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), 
+            pPadTemplate, NULL, NULL);
         if (!pGstRequestedSourcePad)
         {
             LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
@@ -602,7 +609,8 @@ namespace DSL
         
         if (HasDewarperBintr())
         {
-            if (!m_pDewarperBintr->LinkToSource(m_pTee) or !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            if (!m_pDewarperBintr->LinkToSource(m_pTee) or 
+                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
             {
                 return false;
             }            
@@ -615,7 +623,8 @@ namespace DSL
             }
         }
 
-        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), pPadTemplate, NULL, NULL);
+        pGstRequestedSourcePad = gst_element_request_pad(m_pTee->GetGstElement(), 
+            pPadTemplate, NULL, NULL);
         if (!pGstRequestedSourcePad)
         {
             LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
@@ -625,7 +634,8 @@ namespace DSL
 
         m_pGstRequestedSourcePads[padForFakeSinkQueueName] = pGstRequestedSourcePad;
 
-        if (!m_pFakeSinkQueue->LinkToSource(m_pTee) or !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        if (!m_pFakeSinkQueue->LinkToSource(m_pTee) or 
+            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
         {
             return false;
         }
@@ -683,7 +693,8 @@ namespace DSL
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
+                    << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
@@ -716,7 +727,8 @@ namespace DSL
         {
             if (m_isLive)
             {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << GetName() << "'");
+                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" 
+                    << GetName() << "'");
                 return false;
             }
             std::ifstream streamUriFile(uri);
@@ -738,8 +750,10 @@ namespace DSL
     //*********************************************************************************
     
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, uint protocol,
-        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
-        : DecodeSourceBintr(name, "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
+        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, 
+        uint latency, uint timeout)
+        : DecodeSourceBintr(name, 
+            "rtspsrc", uri, true, cudadecMemType, intraDecode, dropFrameInterval)
         , m_rtpProtocols(protocol)
         , m_bufferTimeout(timeout)
         , m_streamManagerTimerId(0)
@@ -756,7 +770,8 @@ namespace DSL
         
         // Set RTSP latency
         m_latency = latency;
-        LOG_DEBUG("Setting latency to '" << latency << "' for RtspSourceBintr '" << m_name << "'");
+        LOG_DEBUG("Setting latency to '" << latency 
+            << "' for RtspSourceBintr '" << m_name << "'");
 
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
@@ -790,7 +805,8 @@ namespace DSL
         // Source Ghost Pad for Source Queue as src pad to connect to streammuxer
         m_pSourceQueue->AddGhostPadToParent("src");
         
-        // New timestamp PPH to stamp the time of the last buffer - used to monitor the RTSP connection
+        // New timestamp PPH to stamp the time of the last buffer 
+        // - used to monitor the RTSP connection
         std::string handlerName = GetName() + "-timestamp-pph";
         m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
         
@@ -956,7 +972,8 @@ namespace DSL
         
         if (m_bufferTimeout == timeout)
         {
-            LOG_WARN("Buffer timeout for RTSP Source '" << GetName() << "' is already set to " << timeout);
+            LOG_WARN("Buffer timeout for RTSP Source '" << GetName() 
+                << "' is already set to " << timeout);
             return;
         }
 
@@ -975,10 +992,13 @@ namespace DSL
             if (timeout)
             {
                 // Start up stream mangement
-                m_streamManagerTimerId = g_timeout_add(timeout, RtspReconnectionMangerHandler, this);
-                LOG_INFO("Stream management enabled for RTSP Source '" << GetName() << "' with timeout = " << timeout);
+                m_streamManagerTimerId = g_timeout_add(timeout, 
+                    RtspReconnectionMangerHandler, this);
+                LOG_INFO("Stream management enabled for RTSP Source '" 
+                    << GetName() << "' with timeout = " << timeout);
             }
-            // Else, the client is disabling stream mangagement. Shut down the reconnection cycle if running 
+            // Else, the client is disabling stream mangagement. Shut down the 
+            // reconnection cycle if running. 
             else if (m_reconnectionManagerTimerId)
             {
                 LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
@@ -1080,7 +1100,8 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can not add Tap to Source '" << GetName() << "' as it's in a Linked state");
+            LOG_ERROR("Can not add Tap to Source '" << GetName() 
+                << "' as it's in a Linked state");
             return false;
         }
         if (m_pTapBintr)
@@ -1104,7 +1125,8 @@ namespace DSL
         }
         if (m_isLinked)
         {
-            LOG_ERROR("Can not remove Tap from Source '" << GetName() << "' as it's in a Linked state");
+            LOG_ERROR("Can not remove Tap from Source '" << GetName() 
+                << "' as it's in a Linked state");
             return false;
         }
         RemoveChild(m_pTapBintr);
@@ -1132,7 +1154,8 @@ namespace DSL
         {
             if (media.find("video") == std::string::npos)
             {
-                LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+                LOG_WARN("Unsupported media = '" << media << "' for RtspSourceBitnr '" 
+                    << GetName() << "'");
                 return false;
             }
             if (encoding.find("H264") != std::string::npos)
@@ -1147,7 +1170,8 @@ namespace DSL
             }
             else
             {
-                LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" << GetName() << "'");
+                LOG_ERROR("Unsupported encoding = '" << encoding << "' for RtspSourceBitnr '" 
+                    << GetName() << "'");
                 return false;
             }
             AddChild(m_pDepay);
@@ -1173,7 +1197,8 @@ namespace DSL
             if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
                 !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
             {
-                LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" << GetName() << "'");
+                LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" 
+                    << GetName() << "'");
                 return false;
             }
         }
@@ -1194,7 +1219,8 @@ namespace DSL
             m_pGstStaticSinkPad = gst_element_get_static_pad(m_pDepay->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" << GetName() << "'");
+                LOG_ERROR("Failed to get Static Source Pad for Streaming Source '" 
+                    << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
@@ -1218,10 +1244,12 @@ namespace DSL
         LOG_INFO("Caps structs name " << name);
         if (name.find("video") != std::string::npos)
         {
-            m_pGstStaticSinkPad = gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
+            m_pGstStaticSinkPad = 
+                gst_element_get_static_pad(m_pSourceQueue->GetGstElement(), "sink");
             if (!m_pGstStaticSinkPad)
             {
-                LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" << GetName() << "'");
+                LOG_ERROR("Failed to get Static Source Pad for RTSP Source '" 
+                    << GetName() << "'");
             }
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
@@ -1238,7 +1266,8 @@ namespace DSL
             // Start the Stream mangement timer, only if timeout is enable and not currently running
             if (m_bufferTimeout and !m_streamManagerTimerId)
             {
-                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, RtspStreamManagerHandler, this);
+                m_streamManagerTimerId = g_timeout_add(m_bufferTimeout, 
+                    RtspStreamManagerHandler, this);
                 LOG_INFO("Starting stream management for RTSP Source '" << GetName() << "'");
             }
 
@@ -1271,7 +1300,8 @@ namespace DSL
         m_TimestampPph->GetTime(lastBufferTime);
         if (lastBufferTime.tv_sec == 0)
         {
-            LOG_DEBUG("Waiting for first buffer before checking for timeout for source '" << GetName() << "'");
+            LOG_DEBUG("Waiting for first buffer before checking for timeout for source '" 
+                << GetName() << "'");
             return true;
         }
 
@@ -1283,7 +1313,8 @@ namespace DSL
             // Timeout has not been exceeded, so return true to sleep again
             return true;
         }
-        LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" << GetName() << "'");
+        LOG_INFO("Buffer timeout of " << m_bufferTimeout << " seconds exceeded for source '" 
+            << GetName() << "'");
         
         // Call the Reconnection Managter directly to start the reconnection cycle,
         if (!ReconnectionManager())
@@ -1332,7 +1363,8 @@ namespace DSL
                 }
                 m_connectionData.retries++;
 
-                LOG_INFO("Resetting RTSP Source '" << GetName() << "' with retry count = " << m_connectionData.retries);
+                LOG_INFO("Resetting RTSP Source '" << GetName() 
+                    << "' with retry count = " << m_connectionData.retries);
                 
                 m_reconnectionStartTime = currentTime;
 
@@ -1356,7 +1388,8 @@ namespace DSL
             switch (stateResult) 
             {
                 case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_INFO("RTSP Source '" << GetName() << "' returned GST_STATE_CHANGE_NO_PREROLL");
+                    LOG_INFO("RTSP Source '" << GetName() 
+                        << "' returned GST_STATE_CHANGE_NO_PREROLL");
                     // fall through ... do not break
                 case GST_STATE_CHANGE_SUCCESS:
                     if (currentState == GST_STATE_NULL)
@@ -1377,21 +1410,25 @@ namespace DSL
                     }
                     
                     // If state change completed succesfully, but not yet playing, set explicitely.
-                    SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
+                    SetState(GST_STATE_PLAYING, 
+                        DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
                     break;
                     
                 case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for RTSP Source '" << GetName() << "'");
+                    LOG_INFO("State change will complete asynchronously for RTSP Source '" 
+                        << GetName() << "'");
                     break;
 
                 case GST_STATE_CHANGE_FAILURE:
-                    LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" << GetName() << "'");
+                    LOG_ERROR("FAILURE occured when trying to sync state for RTSP Source '" 
+                        << GetName() << "'");
                     m_reconnectionFailed = true;
                     m_reconnectionSleep = m_connectionData.sleep;
                     return true;
 
                 default:
-                    LOG_ERROR("Unknown 'state change result' when trying to sync state for RTSP Source '" << GetName() << "'");
+                    LOG_ERROR("Unknown 'state change result' when trying to sync state for RTSP Source '" 
+                        << GetName() << "'");
                     return true;
             }
         }while(true);
@@ -1402,8 +1439,9 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_stateChangeMutex);
         
-        LOG_INFO("Returning state " << gst_element_state_get_name((GstState)m_currentState) << 
-        " for RtspSourceBintr '" << GetName() << "'");
+        LOG_INFO("Returning state " 
+            << gst_element_state_get_name((GstState)m_currentState) << 
+            " for RtspSourceBintr '" << GetName() << "'");
 
         return m_currentState;
     }
@@ -1415,8 +1453,10 @@ namespace DSL
 
         if (newState != m_currentState)
         {
-            LOG_INFO("Changing state from " << gst_element_state_get_name((GstState)m_currentState) << 
-            " to " << gst_element_state_get_name((GstState)newState) << " for RtspSourceBintr '" << GetName() << "'");
+            LOG_INFO("Changing state from " << 
+                gst_element_state_get_name((GstState)m_currentState) << 
+                " to " << gst_element_state_get_name((GstState)newState) 
+                << " for RtspSourceBintr '" << GetName() << "'");
             
             m_previousState = m_currentState;
             m_currentState = newState;
@@ -1473,11 +1513,13 @@ namespace DSL
             {
                 try
                 {
-                    imap.first((uint)pStateChange->m_previousState, (uint)pStateChange->m_newState, imap.second);
+                    imap.first((uint)pStateChange->m_previousState, 
+                        (uint)pStateChange->m_newState, imap.second);
                 }
                 catch(...)
                 {
-                    LOG_ERROR("RTSP Source '" << GetName() << "' threw exception calling Client State-Change-Lister");
+                    LOG_ERROR("RTSP Source '" << GetName() 
+                        << "' threw exception calling Client State-Change-Lister");
                 }
             }
             
@@ -1487,7 +1529,7 @@ namespace DSL
         return false;
     }
     
-    // -----------------------------------------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------------
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
@@ -1551,6 +1593,4 @@ namespace DSL
         return static_cast<RtspSourceBintr*>(pSource)->
             NotifyClientListeners();
     }
-        
-    
 } // SDL namespace

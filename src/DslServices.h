@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
+#include "DslComms.h"
 
 namespace DSL {
     
@@ -110,6 +111,8 @@ namespace DSL {
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
+
+        DslReturnType OdeActionEmailNew(const char* name, const char* subject);
         
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         
@@ -700,7 +703,35 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
+
+        DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
+        DslReturnType SmtpMailEnabledSet(boolean enabled);   
+            
+        DslReturnType SmtpCredentialsSet(const char* username, const char* password);
+        
+        DslReturnType SmtpServerUrlGet(const char** serverUrl);
+        
+        DslReturnType SmtpServerUrlSet(const char* serverUrl);
+
+        DslReturnType SmtpFromAddressGet(const char** name, const char** address);
+
+        DslReturnType SmtpFromAddressSet(const char* name, const char* address);
+        
+        DslReturnType SmtpSslEnabledGet(boolean* enabled);
+        
+        DslReturnType SmtpSslEnabledSet(boolean enabled);
+        
+        DslReturnType SmtpToAddressAdd(const char* name, const char* address);
+        
+        DslReturnType SmtpToAddressesRemoveAll();
+        
+        DslReturnType SmtpCcAddressAdd(const char* name, const char* address);
+
+        DslReturnType SmtpCcAddressesRemoveAll();
+        
+        DslReturnType SendSmtpTestMessage();
+
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
@@ -721,6 +752,12 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
+        
+        /**
+         * @brief Returns the single Comms object owned by the DSL
+         * @return const unique pointer to the Service Lib's Comm object
+         */
+        std::shared_ptr<Comms> GetComms();
 
     private:
 
@@ -851,6 +888,11 @@ namespace DSL {
          * @brief map of all source names to source ids
          */
         std::map <std::string, uint> m_sourceIds;
+        
+        /**
+         * @brief DSL Comms object for libcurl services
+         */
+        std::shared_ptr<Comms> m_pComms;
         
     };  
 
