@@ -236,6 +236,8 @@ namespace DSL {
          */
         bool IsFailure();
         
+        uint GetState();
+        
         /**
          * @brief returns the unique Id for this message
          * @return unique message Id

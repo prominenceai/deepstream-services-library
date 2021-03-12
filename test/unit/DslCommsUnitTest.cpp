@@ -253,7 +253,7 @@ SCENARIO( "A new SMTP message can be Read", "[Comms]" )
             {
                 do
                 {
-                    len = pMessage->ReadLine(line, sizeof(line), 10);
+                    len = pMessage->ReadLine(line, 1, sizeof(line));
                     if (len)
                     {
                         std::cout << line;
@@ -271,7 +271,7 @@ SCENARIO( "A new SMTP message can be Read", "[Comms]" )
             
             THEN( "All lines can be read correctly" )
             {
-                REQUIRE( pMessage->ReadLine(line, sizeof(line), 10) == 0 );
+                REQUIRE( pMessage->ReadLine(line, 1, sizeof(line)) == 0 );
                 REQUIRE( pMessage->IsFailure() == true );
             }
         }
@@ -528,6 +528,8 @@ SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comm
 {
     GIVEN( "A new Comms Object" ) 
     {
+        std::string userName("john.henry");
+        std::string password("3littlepigs");
         std::string senderName("John Henry");
         std::string senderAddress("john.henry@example.org");
         EmailAddress fromAddress(senderName.c_str(), senderAddress.c_str());
@@ -563,6 +565,7 @@ SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comm
         
         WHEN( "The Comms object is intialized correctly" )
         {
+            pComms->SetSmtpCredentials(userName.c_str(), password.c_str());
             pComms->SetSmtpServerUrl(mailServer.c_str()); 
             pComms->SetSmtpFromAddress(senderName.c_str(), senderAddress.c_str());
             
@@ -579,10 +582,12 @@ SCENARIO( "A Comms Object can Queue an SMTP Email with specific content", "[Comm
     }
 }
  
-SCENARIO( "A Comms Object handles a failed SMTP Email because of invalid options", "[Comms]" )
+SCENARIO( "A Comms Object handles a failed SMTP Send because of an invalid server url", "[Comms]" )
 {
     GIVEN( "A new Comms Object" ) 
     {
+        std::string userName("john.henry");
+        std::string password("3littlepigs");
         std::string senderName("John Henry");
         std::string senderAddress("john.henry@example.org");
         EmailAddress fromAddress(senderName.c_str(), senderAddress.c_str());
@@ -616,6 +621,7 @@ SCENARIO( "A Comms Object handles a failed SMTP Email because of invalid options
         
         const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();
 
+        pComms->SetSmtpCredentials(userName.c_str(), password.c_str());
         pComms->SetSmtpServerUrl(mailServer.c_str()); 
         pComms->SetSmtpFromAddress(senderName.c_str(), senderAddress.c_str());
         pComms->AddSmtpToAddress(toName1.c_str(), toAddress1.c_str());

@@ -3210,21 +3210,22 @@ def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
     result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
     return int(result)
     
-##
-## dsl_smtp_mail_enabled_get()
-##
-_dsl.dsl_return_value_to_string.restype = c_bool
+_dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
+_dsl.dsl_smtp_mail_enabled_get.restype = c_uint
 def dsl_smtp_mail_enabled_get():
     global _dsl
-    return _dsl.dsl_smtp_mail_enabled_get()
+    enabled = c_bool(0)
+    result = _dsl.dsl_smtp_mail_enabled_get(DSL_BOOL_P(enabled))
+    return int(result), enabled.value
 
 ##
 ## dsl_smtp_mail_enabled_set()
 ##
-_dsl.dsl_return_value_to_string.argtypes = [c_bool]
+_dsl.dsl_smtp_mail_enabled_set.argtypes = [c_bool]
 def dsl_smtp_mail_enabled_set(enabled):
     global _dsl
-    return _dsl.dsl_smtp_mail_enabled_get(enabled)
+    result = _dsl.dsl_smtp_mail_enabled_set(c_uint)
+    return int(result)
 
 ##
 ## dsl_smtp_credentials_set()
@@ -3258,34 +3259,37 @@ def dsl_smtp_server_url_set(url):
     return int(result)
 
 ##
-## dsl_smtp_from_address_get()
+## dsl_smtp_address_from_get()
 ##
-_dsl.dsl_smtp_from_address_get.argtypes = [POINTER(c_wchar_p), POINTER(c_wchar_p)]
-_dsl.dsl_smtp_from_address_get.restype = c_uint
-def dsl_smtp_from_address_get():
+_dsl.dsl_smtp_address_from_get.argtypes = [POINTER(c_wchar_p), POINTER(c_wchar_p)]
+_dsl.dsl_smtp_address_from_get.restype = c_uint
+def dsl_smtp_address_from_get():
     global _dsl
     name = c_wchar_p(0)
     address = c_wchar_p(0)
-    result = _dsl.dsl_smtp_from_address_get(DSL_WCHAR_PP(name), DSL_WCHAR_PP(address))
+    result = _dsl.dsl_smtp_address_from_get(DSL_WCHAR_PP(name), DSL_WCHAR_PP(address))
     return int(result), name.value, address.value
 
 ##
-## dsl_smtp_from_address_set()
+## dsl_smtp_address_from_set()
 ##
-_dsl.dsl_smtp_from_address_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_smtp_from_address_set.restype = c_uint
-def dsl_smtp_from_address_set(name, address):
+_dsl.dsl_smtp_address_from_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_smtp_address_from_set.restype = c_uint
+def dsl_smtp_address_from_set(name, address):
     global _dsl
-    result = _dsl.dsl_smtp_from_address_set(name, address)
+    result = _dsl.dsl_smtp_address_from_set(name, address)
     return int(result)
 
 ##
 ## dsl_smtp_ssl_enabled_get()
 ##
-_dsl.dsl_smtp_ssl_enabled_get.restype = c_bool
+_dsl.dsl_smtp_ssl_enabled_get.argtypes = [POINTER(c_bool)]
+_dsl.dsl_smtp_ssl_enabled_get.restype = c_uint
 def dsl_smtp_ssl_enabled_get():
     global _dsl
-    return _dsl.dsl_smtp_ssl_enabled_get()
+    enabled = c_bool(0)
+    result = _dsl.dsl_smtp_ssl_enabled_get(DSL_BOOL_P(enabled))
+    return int(result), enabled.value
 
 ##
 ## dsl_smtp_ssl_enabled_set()
@@ -3293,7 +3297,8 @@ def dsl_smtp_ssl_enabled_get():
 _dsl.dsl_smtp_ssl_enabled_set.argtypes = [c_bool]
 def dsl_smtp_mail_enabled_set(enabled):
     global _dsl
-    return _dsl.dsl_smtp_ssl_enabled_set(enabled)
+    result = _dsl.dsl_smtp_ssl_enabled_set(enabled)
+    return int(result)
 
 ##
 ## dsl_smtp_address_to_add()
@@ -3308,9 +3313,11 @@ def dsl_smtp_address_to_add(name, address):
 ##
 ## dsl_smtp_address_to_remove_all()
 ##
+_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
 def dsl_smtp_address_to_remove_all():
     global _dsl
-    _dsl.dsl_smtp_address_to_remove_all()
+    result = _dsl.dsl_smtp_address_to_remove_all()
+    return int(result)
 
 ##
 ## dsl_smtp_address_cc_add()
@@ -3325,9 +3332,20 @@ def dsl_smtp_address_cc_add(name, address):
 ##
 ## dsl_smtp_address_cc_remove_all()
 ##
+_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
 def dsl_smtp_address_cc_remove_all():
     global _dsl
-    _dsl.dsl_smtp_address_cc_remove_all()
+    result = _dsl.dsl_smtp_address_cc_remove_all()
+    return int(result)
+
+##
+## dsl_smtp_test_message_send()
+##
+_dsl.dsl_smtp_test_message_send.restype = c_uint
+def dsl_smtp_test_message_send():
+    global _dsl
+    result = _dsl.dsl_smtp_test_message_send()
+    return int(result)
 
 ##
 ## dsl_main_loop_run()

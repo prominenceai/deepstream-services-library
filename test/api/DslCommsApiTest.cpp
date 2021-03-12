@@ -48,9 +48,9 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
             REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
                 password.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_from_address_set(from_name.c_str(), 
+            REQUIRE( dsl_smtp_address_from_set(from_name.c_str(), 
                 from_address.c_str()) == DSL_RESULT_SUCCESS );
-            dsl_smtp_ssl_enabled_set(false);
+            REQUIRE( dsl_smtp_ssl_enabled_set(false) == DSL_RESULT_SUCCESS );
             
             REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
                 to_address1.c_str()) == DSL_RESULT_SUCCESS );
@@ -68,17 +68,19 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
                 const wchar_t* ret_from_address_str;
 
                 REQUIRE( dsl_smtp_server_url_get(&ret_mail_server_str) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_smtp_from_address_get(&ret_from_name_str, 
+                REQUIRE( dsl_smtp_address_from_get(&ret_from_name_str, 
                     &ret_from_address_str) == DSL_RESULT_SUCCESS );
 
                 std::wstring ret_mail_server(ret_mail_server_str);
                 std::wstring ret_from_name(ret_from_name_str);
                 std::wstring ret_from_address(ret_from_address_str);
+                boolean ret_ssl_enabled(true);
                 
                 REQUIRE( ret_mail_server == mail_server );
                 REQUIRE( ret_from_name == from_name );
                 REQUIRE( ret_from_address == from_address );
-                REQUIRE( dsl_smtp_ssl_enabled_get() == false );
+                REQUIRE( dsl_smtp_ssl_enabled_get(&ret_ssl_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_ssl_enabled == false );
                 
                 dsl_smtp_address_to_remove_all();
                 dsl_smtp_address_cc_remove_all();
@@ -87,9 +89,9 @@ SCENARIO( "All SMTP Properties can be set and returned back correctly", "[comms-
     }
 }    
 
-SCENARIO( "A SMTP Test Message fails to Queue with insufficient parameters", "[new]" )
+SCENARIO( "A SMTP Test Message can be Queued", "[comms-api]" )
 {
-    GIVEN( "A set of SMTP credentials with invalid " ) 
+    GIVEN( "A set of SMTP credentials and setup parameters " ) 
     {
         std::wstring username(L"joe.blow");
         std::wstring password(L"3littlepigs");
@@ -99,21 +101,21 @@ SCENARIO( "A SMTP Test Message fails to Queue with insufficient parameters", "[n
         std::wstring to_name1(L"Joe Blow");
         std::wstring to_address1(L"joe.blow@gmail.com");
         
-        WHEN( "All Properties except the credentials are set" ) 
+        WHEN( "All Properties are set" ) 
         {
-//            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
-//                password.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_smtp_credentials_set(username.c_str(), 
+                password.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_smtp_server_url_set(mail_server.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_smtp_from_address_set(from_name.c_str(), 
+            REQUIRE( dsl_smtp_address_from_set(from_name.c_str(), 
                 from_address.c_str()) == DSL_RESULT_SUCCESS );
-            dsl_smtp_ssl_enabled_set(false);
+            REQUIRE( dsl_smtp_ssl_enabled_set(false) == DSL_RESULT_SUCCESS );
             
             REQUIRE( dsl_smtp_address_to_add(to_name1.c_str(), 
                 to_address1.c_str()) == DSL_RESULT_SUCCESS );
 
-            THEN( "A Test Message fails to queue" ) 
+            THEN( "A Test Message can be queued" ) 
             {
-                REQUIRE( dsl_smtp_test_message_send() == false );
+                REQUIRE( dsl_smtp_test_message_send() == DSL_RESULT_SUCCESS );
             }
         }
     }

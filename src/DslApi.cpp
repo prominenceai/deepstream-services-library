@@ -4084,15 +4084,14 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
-boolean dsl_smtp_mail_enabled_get()
+DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled)
 {
-    return DSL::Services::GetServices()->SmtpMailEnabledGet();
-        
+    return DSL::Services::GetServices()->SmtpMailEnabledGet(enabled);
 }
 
-void dsl_smtp_mail_enabled_set(boolean enabled)
+DslReturnType dsl_smtp_mail_enabled_set(boolean enabled)
 {
-    DSL::Services::GetServices()->SmtpMailEnabledSet(enabled);
+    return DSL::Services::GetServices()->SmtpMailEnabledSet(enabled);
 }
 
 DslReturnType dsl_smtp_credentials_set(const wchar_t* username, 
@@ -4106,10 +4105,8 @@ DslReturnType dsl_smtp_credentials_set(const wchar_t* username,
     std::wstring wstrPassword(password);
     std::string cstrPassword(wstrPassword.begin(), wstrPassword.end());
 
-    DSL::Services::GetServices()->SmtpCredentialsSet(cstrUsername.c_str(), 
+    return DSL::Services::GetServices()->SmtpCredentialsSet(cstrUsername.c_str(), 
         cstrPassword.c_str());
-    
-    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url)
@@ -4120,12 +4117,14 @@ DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url)
     static std::string cstrServerUrl;
     static std::wstring wcstrServerUrl;
     
-    DSL::Services::GetServices()->SmtpServerUrlGet(&cServerUrl);
-    cstrServerUrl.assign(cServerUrl);
-    wcstrServerUrl.assign(cstrServerUrl.begin(), cstrServerUrl.end());
-    *server_url = wcstrServerUrl.c_str();
-    
-    return DSL_RESULT_SUCCESS;
+    DslReturnType result = DSL::Services::GetServices()->SmtpServerUrlGet(&cServerUrl);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrServerUrl.assign(cServerUrl);
+        wcstrServerUrl.assign(cstrServerUrl.begin(), cstrServerUrl.end());
+        *server_url = wcstrServerUrl.c_str();
+    }
+    return result;
 }
 
 DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url)
@@ -4135,12 +4134,10 @@ DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url)
     std::wstring wstrServerUrl(server_url);
     std::string cstrServerUrl(wstrServerUrl.begin(), wstrServerUrl.end());
 
-    DSL::Services::GetServices()->SmtpServerUrlSet(cstrServerUrl.c_str());
-    
-    return DSL_RESULT_SUCCESS;
+    return DSL::Services::GetServices()->SmtpServerUrlSet(cstrServerUrl.c_str());
 }
 
-DslReturnType dsl_smtp_from_address_get(const wchar_t** name,
+DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
     const wchar_t** address)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4153,18 +4150,20 @@ DslReturnType dsl_smtp_from_address_get(const wchar_t** name,
     static std::string cstrAddress;
     static std::wstring wcstrAddress;
     
-    DSL::Services::GetServices()->SmtpFromAddressGet(&cName, & cAddress);
-    cstrName.assign(cName);
-    wcstrName.assign(cstrName.begin(), cstrName.end());
-    *name = wcstrName.c_str();
-    cstrAddress.assign(cAddress);
-    wcstrAddress.assign(cstrAddress.begin(), cstrAddress.end());
-    *address = wcstrAddress.c_str();
-    
-    return DSL_RESULT_SUCCESS;
+    DslReturnType result = DSL::Services::GetServices()->SmtpFromAddressGet(&cName, &cAddress);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrName.assign(cName);
+        wcstrName.assign(cstrName.begin(), cstrName.end());
+        *name = wcstrName.c_str();
+        cstrAddress.assign(cAddress);
+        wcstrAddress.assign(cstrAddress.begin(), cstrAddress.end());
+        *address = wcstrAddress.c_str();
+    }
+    return result;
 }
 
-DslReturnType dsl_smtp_from_address_set(const wchar_t* name,
+DslReturnType dsl_smtp_address_from_set(const wchar_t* name,
     const wchar_t* address)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4175,20 +4174,18 @@ DslReturnType dsl_smtp_from_address_set(const wchar_t* name,
     std::wstring wstrAddress(address);
     std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
 
-    DSL::Services::GetServices()->SmtpFromAddressSet(cstrName.c_str(),
+    return DSL::Services::GetServices()->SmtpFromAddressSet(cstrName.c_str(),
         cstrAddress.c_str());
-    
-    return DSL_RESULT_SUCCESS;
 }    
 
-boolean dsl_smtp_ssl_enabled_get()
+DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled)
 {
-    return DSL::Services::GetServices()->SmtpSslEnabledGet();
+    return DSL::Services::GetServices()->SmtpSslEnabledGet(enabled);
 }
 
-void dsl_smtp_ssl_enabled_set(boolean enabled)
+DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled)
 {
-    DSL::Services::GetServices()->SmtpSslEnabledSet(enabled);
+    return DSL::Services::GetServices()->SmtpSslEnabledSet(enabled);
 }
 
 DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
@@ -4202,15 +4199,14 @@ DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
     std::wstring wstrAddress(address);
     std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
 
-    DSL::Services::GetServices()->SmtpToAddressAdd(cstrName.c_str(),
+    return DSL::Services::GetServices()->SmtpToAddressAdd(cstrName.c_str(),
         cstrAddress.c_str());
     
-    return DSL_RESULT_SUCCESS;
 }    
     
-void dsl_smtp_address_to_remove_all()
+DslReturnType dsl_smtp_address_to_remove_all()
 {
-    DSL::Services::GetServices()->SmtpToAddressesRemoveAll();
+    return DSL::Services::GetServices()->SmtpToAddressesRemoveAll();
 }
     
 DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
@@ -4224,20 +4220,18 @@ DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
     std::wstring wstrAddress(address);
     std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
 
-    DSL::Services::GetServices()->SmtpCcAddressAdd(cstrName.c_str(),
+    return DSL::Services::GetServices()->SmtpCcAddressAdd(cstrName.c_str(),
         cstrAddress.c_str());
-    
-    return DSL_RESULT_SUCCESS;
 }    
 
-void dsl_smtp_address_cc_remove_all()
+DslReturnType dsl_smtp_address_cc_remove_all()
 {
-    DSL::Services::GetServices()->SmtpCcAddressesRemoveAll();
+    return DSL::Services::GetServices()->SmtpCcAddressesRemoveAll();
 }
 
-boolean dsl_smtp_test_message_send()
+DslReturnType dsl_smtp_test_message_send()
 {
-     DSL::Services::GetServices()->SendSmtpTestMessage();
+     return DSL::Services::GetServices()->SendSmtpTestMessage();
 }    
     
 void dsl_delete_all()

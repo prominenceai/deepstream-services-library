@@ -702,33 +702,33 @@ namespace DSL {
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
 
-        boolean SmtpMailEnabledGet();
+        DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
-        void SmtpMailEnabledSet(boolean enabled);   
+        DslReturnType SmtpMailEnabledSet(boolean enabled);   
             
-        void SmtpCredentialsSet(const char* username, const char* password);
+        DslReturnType SmtpCredentialsSet(const char* username, const char* password);
         
-        void SmtpServerUrlGet(const char** serverUrl);
+        DslReturnType SmtpServerUrlGet(const char** serverUrl);
         
-        void SmtpServerUrlSet(const char* serverUrl);
+        DslReturnType SmtpServerUrlSet(const char* serverUrl);
 
-        void SmtpFromAddressGet(const char** name, const char** address);
+        DslReturnType SmtpFromAddressGet(const char** name, const char** address);
 
-        void SmtpFromAddressSet(const char* name, const char* address);
+        DslReturnType SmtpFromAddressSet(const char* name, const char* address);
         
-        boolean SmtpSslEnabledGet();
+        DslReturnType SmtpSslEnabledGet(boolean* enabled);
         
-        void SmtpSslEnabledSet(boolean enabled);
+        DslReturnType SmtpSslEnabledSet(boolean enabled);
         
-        void SmtpToAddressAdd(const char* name, const char* address);
+        DslReturnType SmtpToAddressAdd(const char* name, const char* address);
         
-        void SmtpToAddressesRemoveAll();
+        DslReturnType SmtpToAddressesRemoveAll();
         
-        void SmtpCcAddressAdd(const char* name, const char* address);
+        DslReturnType SmtpCcAddressAdd(const char* name, const char* address);
 
-        void SmtpCcAddressesRemoveAll();
+        DslReturnType SmtpCcAddressesRemoveAll();
         
-        boolean SendSmtpTestMessage();
+        DslReturnType SendSmtpTestMessage();
 
         GMainLoop* GetMainLoopHandle()
         {

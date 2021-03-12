@@ -37,8 +37,10 @@ THE SOFTWARE.
 #define DSL_TRUE                                                    1
 
 #define DSL_RESULT_SUCCESS                                          0x00000000
-#define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000001
-#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000002
+#define DSL_RESULT_FAILURE                                          0x00000001
+#define DSL_RESULT_API_NOT_IMPLEMENTED                              0x00000002
+#define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000003
+#define DSL_RESULT_THREW_EXCEPTION                                  0x00000004
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
@@ -3561,15 +3563,16 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
 
 /**
  * @brief Gets the current Enabled state of the SMTP Email Services
+ * @return DSL_RESULT_SUCCESS on success, one DSL_RESULT_FAILED on failure
  */
-boolean dsl_smtp_mail_enabled_get();
+DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled);
 
 /**
  * @brief Sets the state of the SMTP Email Services
  * Disabling SMTP services will block all subsequent emails from being queued for sending.
  * @param enabled set to true to enable, false to disabled
  */
-void dsl_smtp_mail_enabled_set(boolean enabled);
+DslReturnType dsl_smtp_mail_enabled_set(boolean enabled);
 
 /**
  * @brief sets the user credentials for the SMTP host for all subsequent emails
@@ -3597,66 +3600,71 @@ DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url);
  * @brief gets the current From address components
  * @param[out] name current From address display name
  * @param[out] address current From address
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_from_address_get(const wchar_t** name,
+DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
     const wchar_t** address);
 
 /**
  * @brief sets the current From address componts to use for all subsequent email
  * @param[in] name new From address display name to use
- * @param[int] address new From address
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM otherwise.
+ * @param[in] address new From address
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-DslReturnType dsl_smtp_from_address_set(const wchar_t* name,
+DslReturnType dsl_smtp_address_from_set(const wchar_t* name,
     const wchar_t* address);
 
 /**
  * @brief returns the current SMTP SSL enabled setting
- * @return true if enabled, false otherwise 
+ * The setting is enabled by default
+ * @param[out] enabled true if SSL is enabled, false otherwise 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-boolean dsl_smtp_ssl_enabled_get();
+DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled);
 
 /**
  * @brief sets the SMTP SSL enabled setting
- * @param enabled set to true to enable, false otherwise
- */
-void dsl_smtp_ssl_enabled_set(boolean enabled);
+ * @param[in] enabled set to true to enable, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
+*/
+DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled);
 
 /**
  * @brief adds a new email address to the To list
  * @param name display name for the To address
  * @param address qualifed email To address
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
 DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
     const wchar_t* address);
 
 /**
  * @brief removes all current TO addresses
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-void dsl_smtp_address_to_remove_all();
+DslReturnType dsl_smtp_address_to_remove_all();
 
 /**
  * @brief adds a new email address to the Cc list
  * @param name display name for the Cc address
  * @param address qualifed email Cc address
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INVALID_INPUT_PARAM  otherwise.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
 DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
     const wchar_t* address);
 
 /**
  * @brief removes all current CC addresses
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-void dsl_smtp_address_cc_remove_all();
+DslReturnType dsl_smtp_address_cc_remove_all();
 
 /**
  * @brief sends a test message using the current SMTP
  * settings and email addresses (From, To, Cc)
- * @return true on successful upload, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT otherwise.
  */
-boolean dsl_smtp_test_message_send();
+DslReturnType dsl_smtp_test_message_send();
 
 /**
  * @brief entry point to the GST Main Loop

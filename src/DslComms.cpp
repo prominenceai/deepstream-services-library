@@ -139,6 +139,9 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
         
+        LOG_INFO("size = " << size << " nmemb = " << nmemb);
+        LOG_INFO("m_linesRead = " << m_linesRead << " size = " << m_content.size());
+        
         // if there are no more lines to read
         if (m_linesRead >= m_content.size())
         {
@@ -146,9 +149,9 @@ namespace DSL
             return 0;
         }
         size_t currentLineSize(m_content[m_linesRead].size());
-        
+
         // make sure there is sufficient memory to copy the current line
-        if((size < currentLineSize) or (nmemb == 0) or ((size*nmemb) < 1))
+        if((size == 0) or (nmemb == 0) or ( currentLineSize > (size*nmemb)))
         {
             m_messageState = FAILURE;
             LOG_ERROR("Insufficient memory to copy message " << m_messageId);
@@ -157,8 +160,10 @@ namespace DSL
     
         // copy the current line, add the null character, and increment the lines read
         m_content[m_linesRead].copy(ptr, currentLineSize);
-        ptr[currentLineSize] = 0;
+        //ptr[currentLineSize] = 0;
         m_linesRead++;
+        
+        LOG_DEBUG("Returning " << currentLineSize);
         
         return currentLineSize;
     }
@@ -192,7 +197,7 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
 
-        return m_messageState == COMPLETE;
+        return bool(m_messageState == COMPLETE);
     }
     
     void SmtpMessage::NowFailure()
@@ -208,7 +213,17 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
 
-        return m_messageState == FAILURE;
+        return bool(m_messageState == FAILURE);
+    }
+    
+    uint SmtpMessage::GetState()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
+
+        LOG_DEBUG("Message state = " << m_messageState 
+            << " for message with Id = " << m_messageId);
+        return m_messageState;
     }
     
     static size_t SmtpMessageReadLine(char *ptr, 
@@ -552,8 +567,6 @@ namespace DSL
             return true;
         }
 
-        LOG_INFO("Sending new SMTP Message");
-        
         CURL* pCurl = curl_easy_init();
         if(!pCurl)
         {
@@ -585,14 +598,16 @@ namespace DSL
         curl_easy_setopt(pCurl, CURLOPT_MAIL_RCPT, recipients);
         
         curl_easy_setopt(pCurl, CURLOPT_READFUNCTION, SmtpMessageReadLine);
-        curl_easy_setopt(pCurl, CURLOPT_READDATA, message);
+        curl_easy_setopt(pCurl, CURLOPT_READDATA, &(*message));
         curl_easy_setopt(pCurl, CURLOPT_UPLOAD, 1L);
+
+        message->NowInProgress();            
         
-        // perform the actual send
+        // perform the actual send, ReadLine function is called in this context
         CURLcode result = curl_easy_perform(pCurl);
         if (result == CURLE_OK)
         {
-            message->NowInProgress();            
+            LOG_INFO("Email Message with id " << message->GetId() << " sent successfully");
         }
         else
         {
