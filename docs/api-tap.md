@@ -370,4 +370,5 @@ retval, reset_done = dsl_tap_record_reset_done_get('my-record-tap')
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-
+* [SMTP Services](/docs/api-smtp.md)
+* 
