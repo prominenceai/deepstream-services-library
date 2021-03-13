@@ -175,4 +175,4 @@ retval = dsl_component_gpuid_set_many(['my-uri-source', 'my-primary-gie', 'my-os
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * **Component**
-
+* [SMTP Services](/docs/api-smtp.md)
