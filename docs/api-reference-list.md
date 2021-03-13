@@ -386,3 +386,19 @@
 * [dsl_component_gpuid_set_many](/docs/api-component.md#dsl_component_gpuid_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
 
+### SMTP Services API:
+* [dsl_smtp_mail_enabled_get](/docs/api-smpt.md#dsl_smtp_mail_enabled_get)
+* [dsl_smtp_mail_enabled_set](/docs/api-smpt.md#dsl_smtp_mail_enabled_set)
+* [dsl_smtp_credentials_set](/docs/api-smpt.md#dsl_smtp_credentials_set)
+* [dsl_smtp_server_url_get](/docs/api-smpt.md#dsl_smtp_server_url_get)
+* [dsl_smtp_server_url_set](/docs/api-smpt.md#dsl_smtp_server_url_set)
+* [dsl_smtp_ssl_enabled_get](/docs/api-smpt.md#dsl_smtp_ssl_enabled_get)
+* [dsl_smtp_ssl_enabled_set](/docs/api-smpt.md#dsl_smtp_ssl_enabled_set)
+* [dsl_smtp_address_from_get](/docs/api-smpt.md#dsl_smtp_address_from_get)
+* [dsl_smtp_address_from_set](/docs/api-smpt.md#dsl_smtp_address_from_set)
+* [dsl_smtp_address_to_add](/docs/api-smpt.md#dsl_smtp_address_to_add)
+* [dsl_smtp_address_to_remove_all](/docs/api-smpt.md#dsl_smtp_address_to_remove_all)
+* [dsl_smtp_address_to_add](/docs/api-smpt.md#dsl_smtp_address_to_add)
+* [dsl_smtp_address_to_remove_all](/docs/api-smpt.md#dsl_smtp_address_to_remove_all)
+* [dsl_smtp_test_message_send](/docs/api-smpt.md#dsl_smtp_test_message_send)
+
