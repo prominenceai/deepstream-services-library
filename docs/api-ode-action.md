@@ -11,7 +11,7 @@ There are two actions for starting a record session, one for the [Record-Sink](/
 Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new). 
 
 #### Actions with ODE Occurrence Data
-Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
+Actions performed with the ODE occurrence data include  [dsl_ode_action_callback_new](#dsl_ode_action_callback_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 
 #### Actions on Areas
 Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new). 
@@ -42,6 +42,7 @@ ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](
 * [dsl_ode_action_display_new](#dsl_ode_action_display_new)
 * [dsl_ode_action_display_meta_add_new](#dsl_ode_action_display_meta_add_new)
 * [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
+* [dsl_ode_action_email_new](#dsl_ode_action_email_new)
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new)
 * [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
@@ -326,10 +327,30 @@ retval = dsl_ode_action_display_meta_add_new('my-add-display-meta-action',
 
 <br>
 
+### *dsl_ode_action_email_new*
+```C++
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject);
+```
+The constructor creates a uniquely named **Email** ODE Action. When invoked, this Action will send an Email message to all `To` and `Cc` addresses previously setup using the [SMTP Services API](/docs/api-smtp.md). The body of the email will contain all Fram/Object and Trigger Criteria information for the ODE occurence that triggered the event.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `subject` - [in] Subject line to add to all emails sent by this specific action.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_email_new('my-email-action', 'Bicycle has entered Inclussion Area')
+```
+
+<br>
+
 ### *dsl_ode_action_fill_frame_new*
 ```C++
 DslReturnType dsl_ode_action_fill_frame_new(const wchar_t* name
-    double red, double green, double blue, double alpha);
+    const wchar_t* color);
 ```
 The constructor creates a uniquely named **Fill Frame** ODE Action. When invoked, this Action will fill the Frame with a rectangle background color added to the Frame Meta that triggered the ODE occurrence.
 
@@ -874,3 +895,4 @@ size = dsl_ode_action_list_size()
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
+* [SMTP Services](/docs/api-smtp.md)
