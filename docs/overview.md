@@ -17,6 +17,7 @@
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
+* [SMTP Services](#smtp-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
@@ -977,6 +978,17 @@ dsl_delete_all()
 
 ---
 
+## SMTP Services
+Secure outgoing SMTP email services allow clients to provide server info, credentials and header data (From, To, Cc, Subject, etc.) - settings required for an [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new) to send email notifications on an [Object Detection Event (ODE) Occurence](#object-detection-event-pad-probe-handler).
+
+Message content is sent out using multipart mime-type. Adding attachments, including captured images, will be supported in a future release.
+
+Refere to the [SMTP Services](/docs/api-smtp.md) for more information.
+
+See the example script [ode_occurrence_uri_send_smtp_mail.py](/examples/python/ode_occurrence_uri_send_smtp_mail.py) for additional reference.
+
+---
+
 ## DSL Initialization
 The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time unless the calling application has already done so. 
 
@@ -1053,6 +1065,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
+* [SMTP Services](/docs/api-smpt.md)
 
 --- 
 * <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)
