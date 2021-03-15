@@ -53,6 +53,24 @@ namespace DSL
         
         m_enabled = enabled;
     }
+    
+    std::string OdeAction::Ntp2Str(uint64_t ntp)
+    {
+        time_t secs = round(ntp/1000000000);
+        time_t usecs = ntp%1000000000;  // gives us fraction of seconds
+        usecs *= 1000000; // multiply by 1e6
+        usecs >>= 32; // and divide by 2^32
+        
+        struct tm currentTm;
+        localtime_r(&secs, &currentTm);        
+        
+        char dateTime[64] = {0};
+        char dateTimeUsec[64];
+        strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", &currentTm);
+        snprintf(dateTimeUsec, sizeof(dateTimeUsec), "%s.%06ld", dateTime, usecs);
+
+        return std::string(dateTimeUsec);
+    }
 
     // ********************************************************************
 
@@ -408,7 +426,7 @@ namespace DSL
             body.push_back(std::string("  Unique ODE Id : " 
                 + std::to_string(pTrigger->s_eventCount) + "<br>"));
             body.push_back(std::string("  NTP Timestamp : " 
-                +  std::to_string(pFrameMeta->ntp_timestamp) + "<br>"));
+                +  Ntp2Str(pFrameMeta->ntp_timestamp) + "<br>"));
             body.push_back(std::string("  Source Data   : ------------------------<br>"));
             if (pFrameMeta->bInferDone)
             {
@@ -447,29 +465,29 @@ namespace DSL
                 body.push_back(std::string("    Confidence  : " 
                     +  std::to_string(pObjectMeta->confidence) + "<br>"));
                 body.push_back(std::string("    Left        : " 
-                    +  std::to_string(pObjectMeta->rect_params.left) + "<br>"));
+                    +  std::to_string(lrint(pObjectMeta->rect_params.left)) + "<br>"));
                 body.push_back(std::string("    Top         : " 
-                    +  std::to_string(pObjectMeta->rect_params.top) + "<br>"));
+                    +  std::to_string(lrint(pObjectMeta->rect_params.top)) + "<br>"));
                 body.push_back(std::string("    Width       : " 
-                    +  std::to_string(pObjectMeta->rect_params.width) + "<br>"));
+                    +  std::to_string(lrint(pObjectMeta->rect_params.width)) + "<br>"));
                 body.push_back(std::string("    Height      : " 
-                    +  std::to_string(pObjectMeta->rect_params.height) + "<br>"));
+                    +  std::to_string(lrint(pObjectMeta->rect_params.height)) + "<br>"));
             }
 
-            body.push_back(std::string("  Criteria     : ------------------------<br>"));
+            body.push_back(std::string("  Criteria      : ------------------------<br>"));
             body.push_back(std::string("    Confidence  : " 
                 +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
             body.push_back(std::string("    Frame Count : " 
                 +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
                 +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
             body.push_back(std::string("    Min Width   : " 
-                +  std::to_string(pTrigger->m_minWidth) + "<br>"));
+                +  std::to_string(lrint(pTrigger->m_minWidth)) + "<br>"));
             body.push_back(std::string("    Min Height  : " 
-                +  std::to_string(pTrigger->m_minHeight) + "<br>"));
+                +  std::to_string(lrint(pTrigger->m_minHeight)) + "<br>"));
             body.push_back(std::string("    Max Width   : " 
-                +  std::to_string(pTrigger->m_maxWidth) + "<br>"));
+                +  std::to_string(lrint(pTrigger->m_maxWidth)) + "<br>"));
             body.push_back(std::string("    Max Height  : " 
-                +  std::to_string(pTrigger->m_maxHeight) + "<br>"));
+                +  std::to_string(lrint(pTrigger->m_maxHeight)) + "<br>"));
 
             if (pTrigger->m_inferDoneOnly)
             {
@@ -662,7 +680,7 @@ namespace DSL
             
             LOG_INFO("Trigger Name    : " << pTrigger->GetName());
             LOG_INFO("  Unique ODE Id : " << pTrigger->s_eventCount);
-            LOG_INFO("  NTP Timestamp : " << pFrameMeta->ntp_timestamp);
+            LOG_INFO("  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp));
             LOG_INFO("  Source Data   : ------------------------");
             
             if (pFrameMeta->bInferDone)
@@ -694,12 +712,14 @@ namespace DSL
                 LOG_INFO("    Width       : " << pObjectMeta->rect_params.width);
                 LOG_INFO("    Height      : " << pObjectMeta->rect_params.height);
             }
-            LOG_INFO("  Min Criteria  : ------------------------");
+            LOG_INFO("  Criteria      : ------------------------");
             LOG_INFO("    Confidence  : " << pTrigger->m_minConfidence);
             LOG_INFO("    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD);
-            LOG_INFO("    Width       : " << pTrigger->m_minWidth);
-            LOG_INFO("    Height      : " << pTrigger->m_minHeight);
+            LOG_INFO("    Min Width   : " << pTrigger->m_minWidth);
+            LOG_INFO("    Min Height  : " << pTrigger->m_minHeight);
+            LOG_INFO("    Max Width   : " << pTrigger->m_maxWidth);
+            LOG_INFO("    Max Height  : " << pTrigger->m_maxHeight);
             
             if (pTrigger->m_inferDoneOnly)
             {
@@ -797,7 +817,7 @@ namespace DSL
             
             std::cout << "Trigger Name    : " << pTrigger->GetName() << "\n";
             std::cout << "  Unique ODE Id : " << pTrigger->s_eventCount << "\n";
-            std::cout << "  NTP Timestamp : " << pFrameMeta->ntp_timestamp << "\n";
+            std::cout << "  NTP Timestamp : " << Ntp2Str(pFrameMeta->ntp_timestamp) << "\n";
             std::cout << "  Source Data   : ------------------------" << "\n";
             if (pFrameMeta->bInferDone)
             {
@@ -823,20 +843,20 @@ namespace DSL
                 std::cout << "    Tracking Id : " << pObjectMeta->object_id << "\n";
                 std::cout << "    Label       : " << pObjectMeta->obj_label << "\n";
                 std::cout << "    Confidence  : " << pObjectMeta->confidence << "\n";
-                std::cout << "    Left        : " << pObjectMeta->rect_params.left << "\n";
-                std::cout << "    Top         : " << pObjectMeta->rect_params.top << "\n";
-                std::cout << "    Width       : " << pObjectMeta->rect_params.width << "\n";
-                std::cout << "    Height      : " << pObjectMeta->rect_params.height << "\n";
+                std::cout << "    Left        : " << lrint(pObjectMeta->rect_params.left) << "\n";
+                std::cout << "    Top         : " << lrint(pObjectMeta->rect_params.top) << "\n";
+                std::cout << "    Width       : " << lrint(pObjectMeta->rect_params.width) << "\n";
+                std::cout << "    Height      : " << lrint(pObjectMeta->rect_params.height) << "\n";
             }
 
-            std::cout << "  Criteria  : ------------------------" << "\n";
+            std::cout << "  Criteria      : ------------------------" << "\n";
             std::cout << "    Confidence  : " << pTrigger->m_minConfidence << "\n";
             std::cout << "    Frame Count : " << pTrigger->m_minFrameCountN
                 << " out of " << pTrigger->m_minFrameCountD << "\n";
-            std::cout << "    Min Width   : " << pTrigger->m_minWidth << "\n";
-            std::cout << "    Min Height  : " << pTrigger->m_minHeight << "\n";
-            std::cout << "    Max Width   : " << pTrigger->m_maxWidth << "\n";
-            std::cout << "    Max Height  : " << pTrigger->m_maxHeight << "\n";
+            std::cout << "    Min Width   : " << lrint(pTrigger->m_minWidth) << "\n";
+            std::cout << "    Min Height  : " << lrint(pTrigger->m_minHeight) << "\n";
+            std::cout << "    Max Width   : " << lrint(pTrigger->m_maxWidth) << "\n";
+            std::cout << "    Max Height  : " << lrint(pTrigger->m_maxHeight) << "\n";
 
             if (pTrigger->m_inferDoneOnly)
             {

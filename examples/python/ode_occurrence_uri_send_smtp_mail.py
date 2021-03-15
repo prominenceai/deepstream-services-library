@@ -28,13 +28,23 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-#######################################################################
+##########################################################################33####
+# IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
+# that is seperate/unlinked from all your other email accounts -- strictly for 
+# the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
+# Personal email address as a "To" address to receive the emails.
+#
+# Gmail considers regular email programs (i.e Outlook, etc.) and non-registered 
+# third-party apps to be "less secure". The email account used for sending email 
+# must have the "Allow less secure apps" option turned on. Once you've created 
+# this new account, you can go to the account settings and enable Less secure 
+# app access. see https://myaccount.google.com/lesssecureapps
 #
 # CAUTION - Do not check sripts into your repo with valid credentials
 #
 #######################################################################
 user_name = 'my.smtps.server'
-password = 'my-server-pw!'
+password = 'my-server-pw'
 server_url = 'smtps://smtp.gmail.com:465'
 
 from_name = ''

@@ -133,7 +133,6 @@ namespace DSL
         std::uniform_int_distribution<> distr(0, alphaNum.length() - 1);
         std::string dateTimeStr(dateTime);
         dateTimeStr.resize(DATE_BUFF_LENGTH);
-        std::cout << dateTimeStr << "\r\n";
         std::generate_n(dateTimeStr.begin() + dateLen,
                         DATE_BUFF_LENGTH - dateLen,
                         [&]() { return alphaNum[distr(gen)]; });
@@ -478,7 +477,6 @@ namespace DSL
         curl_slist* headers(NULL);
         for (auto &ivec: message->m_header)
         {
-            std::cout << ivec.c_str();
             headers = curl_slist_append(headers, ivec.c_str());
         }
         curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers);
