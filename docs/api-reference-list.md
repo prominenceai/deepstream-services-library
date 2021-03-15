@@ -387,6 +387,7 @@
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
 
 ### SMTP Services API:
+* [Overview](/docs/api-smpt.md)
 * [dsl_smtp_mail_enabled_get](/docs/api-smpt.md#dsl_smtp_mail_enabled_get)
 * [dsl_smtp_mail_enabled_set](/docs/api-smpt.md#dsl_smtp_mail_enabled_set)
 * [dsl_smtp_credentials_set](/docs/api-smpt.md#dsl_smtp_credentials_set)
