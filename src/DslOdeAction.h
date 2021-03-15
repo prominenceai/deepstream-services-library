@@ -213,6 +213,9 @@ namespace DSL
          * @brief enabled flag.
          */
         bool m_enabled;
+        
+        std::string Ntp2Str(uint64_t ntp);
+        
     };
 
     // ********************************************************************
