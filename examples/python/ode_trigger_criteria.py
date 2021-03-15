@@ -150,7 +150,8 @@ def main(args):
             return retval
         
         
-        retval = dsl_ode_area_inclusion_new('person-criteria-area', rectangle='white-rectangle', display=True)
+        retval = dsl_ode_area_inclusion_new('person-criteria-area', rectangle='white-rectangle', 
+            show=True, bbox_test_point = DSL_BBOX_POINT_SOUTH)
         if retval != DSL_RETURN_SUCCESS:
             break
 

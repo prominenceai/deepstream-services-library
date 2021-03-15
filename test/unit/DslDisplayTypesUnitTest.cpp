@@ -243,6 +243,40 @@ SCENARIO( "A RGBA Rectangle is constructed correctly", "[DisplayTypes]" )
     }
 }
 
+SCENARIO( "A RGBA Polygon is constructed correctly", "[DisplayTypes]" )
+{
+    GIVEN( "Attrubutes for a new RGBA Polygon" )
+    {
+
+        std::string polygonName  = "my-polygon";
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint numCoordinates(4);
+        uint lineWidth(4);
+
+        std::string colorName  = "my-custom-color";
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+
+        DSL_RGBA_COLOR_PTR pColor = DSL_RGBA_COLOR_NEW(colorName.c_str(), red, green, blue, alpha);
+        
+        WHEN( "The RGBA Polygon is created" )
+        {
+            DSL_RGBA_POLYGON_PTR pPolygon = DSL_RGBA_POLYGON_NEW(polygonName.c_str(), 
+                coordinates, numCoordinates, lineWidth, pColor);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                REQUIRE( pPolygon->GetName() == polygonName );
+                REQUIRE( pPolygon->num_coordinates == numCoordinates );
+                REQUIRE( pPolygon->border_width == lineWidth );
+                REQUIRE( pPolygon->color.red == red );
+                REQUIRE( pPolygon->color.blue == blue );
+                REQUIRE( pPolygon->color.green == green );
+                REQUIRE( pPolygon->color.alpha == alpha );
+            }
+        }
+    }
+}
+
 SCENARIO( "A RGBA Circle is constructed correctly", "[DisplayTypes]" )
 {
     GIVEN( "Attrubutes for a new Circle Line" )

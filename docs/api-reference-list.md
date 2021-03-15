@@ -108,6 +108,21 @@
 * [dsl_source_num_in_use_max_get](/docs/api-source.md#dsl_source_num_in_use_max_get)
 * [dsl_source_num_in_use_max_set](/docs/api-source.md#dsl_source_num_in_use_max_set)
 
+### Source Tap API:
+* [Overview](/docs/api-tap.md)
+* [dsl_tap_record_session_start](/docs/api-tap.md#dsl_tap_record_session_start)
+* [dsl_tap_record_session_stop](/docs/api-tap.md#dsl_tap_record_session_stop)
+* [dsl_tap_record_outdir_get](/docs/api-tap.md#dsl_tap_record_outdir_get)
+* [dsl_tap_record_outdir_set](/docs/api-tap.md#dsl_tap_record_outdir_set)
+* [dsl_tap_record_container_get](/docs/api-tap.md#dsl_tap_record_container_get)
+* [dsl_tap_record_container_set](/docs/api-tap.md#dsl_tap_record_container_set)
+* [dsl_tap_record_cache_size_get](/docs/api-tap.md#dsl_tap_record_cache_size_get)
+* [dsl_tap_record_cache_size_set](/docs/api-tap.md#dsl_tap_record_cache_size_set)
+* [dsl_tap_record_dimensions_get](/docs/api-tap.md#dsl_tap_record_dimensions_get)
+* [dsl_tap_record_dimensions_set](/docs/api-tap.md#dsl_tap_record_dimensions_set)
+* [dsl_tap_record_is_on_get](/docs/api-tap.md#dsl_tap_record_is_on_get)
+* [dsl_tap_record_reset_done_get](/docs/api-tap.md#dsl_tap_record_reset_done_get)
+
 ### Dewarpper:
 * [Overview](/docs/api-dewarper.md)
 * [dsl_dewarper_new](/docs/api-dewarper.md#dsl_dewarper_new)
@@ -162,6 +177,8 @@
 ### On-Screen Display (OSD):
 * [Overview](/docs/api-osd.md)
 * [dsl_osd_new](/docs/api-osd.md#dsl_osd_new)
+* [dsl_osd_text_enabled_get](/docs/api-osd.md#dsl_osd_text_enabled_get)
+* [dsl_osd_text_enabled_set](/docs/api-osd.md#dsl_osd_text_enabled_set)
 * [dsl_osd_clock_enabled_get](/docs/api-osd.md#dsl_osd_clock_enabled_get)
 * [dsl_osd_clock_enabled_set](/docs/api-osd.md#dsl_osd_clock_enabled_set)
 * [dsl_osd_clock_offsets_get](/docs/api-osd.md#dsl_osd_clock_offsets_get)
@@ -203,6 +220,11 @@
 * [dsl_sink_window_dimensions_get](/docs/api-sink.md#dsl_sink_window_dimensions_get)
 * [dsl_sink_window_dimensions_set](/docs/api-sink.md#dsl_sink_window_dimensions_set)
 * [dsl_sink_record_session_start](/docs/api-sink.md#dsl_sink_record_session_start)
+* [dsl_sink_record_session_stop](/docs/api-sink.md#dsl_sink_record_session_stop)
+* [dsl_sink_record_outdir_get](/docs/api-sink.md#dsl_sink_record_outdir_get)
+* [dsl_sink_record_outdir_set](/docs/api-sink.md#dsl_sink_record_outdir_set)
+* [dsl_sink_record_container_get](#dsl_sink_record_container_get)
+* [dsl_sink_record_container_set](#dsl_sink_record_container_set)
 * [dsl_sink_record_cache_size_get](/docs/api-sink.md#dsl_sink_record_cache_size_get)
 * [dsl_sink_record_cache_size_set](/docs/api-sink.md#dsl_sink_record_cache_size_set)
 * [dsl_sink_record_dimensions_get](/docs/api-sink.md#dsl_sink_record_dimensions_get)
@@ -245,6 +267,7 @@
 * [dsl_ode_trigger_always_new](/docs/api-ode-trigger.md#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_absence_new)
 * [dsl_ode_trigger_occurrence_new](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new)
+* [dsl_ode_trigger_instance_new](/docs/api-ode-trigger.md#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](/docs/api-ode-trigger.md#dsl_ode_trigger_summation_new)
 * [dsl_ode_trigger_intersection_new](/docs/api-ode-trigger.md#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_minimum_new](/docs/api-ode-trigger.md#dsl_ode_trigger_minimum_new)
@@ -263,6 +286,8 @@
 * [dsl_ode_trigger_class_id_set](/docs/api-ode-trigger.md#dsl_ode_trigger_class_id_set)
 * [dsl_ode_trigger_source_id_get](/docs/api-ode-trigger.md#dsl_ode_trigger_source_id_get)
 * [dsl_ode_trigger_source_id_set](/docs/api-ode-trigger.md#dsl_ode_trigger_source_id_set)
+* [dsl_ode_trigger_limit_get](/docs/api-ode-trigger.md#dsl_ode_trigger_limit_get)
+* [dsl_ode_trigger_limit_set](/docs/api-ode-trigger.md#dsl_ode_trigger_limit_set)
 * [dsl_ode_trigger_confidence_min_get](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_get)
 * [dsl_ode_trigger_confidence_min_set](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_set)
 * [dsl_ode_trigger_dimensions_min_get](/docs/api-ode-trigger.md#dsl_ode_trigger_dimensions_min_get)
@@ -283,7 +308,7 @@
 * [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all)
 * [dsl_ode_trigger_list_size](/docs/api-ode-trigger.md#dsl_ode_trigger_list_size)
 
-### OSD Action:
+### ODE Action:
 * [Overview](/docs/api-ode-action.md)
 * [dsl_ode_action_action_disable_new](/docs/api-ode-action.md#dsl_ode_action_action_disable_new)
 * [dsl_ode_action_action_enable_new](/docs/api-ode-action.md#dsl_ode_action_action_enable_new)
@@ -323,6 +348,7 @@
 
 ### ODE Area:
 * [Overview](/docs/api-ode-area.md)
+* [dsl_ode_area_line_new](/docs/api-ode-area.md#dsl_ode_area_line_new)
 * [dsl_ode_area_inclusion_new](/docs/api-ode-area.md#dsl_ode_area_inclusion_new)
 * [dsl_ode_area_exclusion_new](/docs/api-ode-area.md#dsl_ode_area_exclusion_new)
 * [dsl_ode_area_delete](/docs/api-ode-area.md#dsl_ode_area_delete)
@@ -338,6 +364,7 @@
 * [dsl_display_type_rgba_line_new](/docs/api-display-type.md#dsl_display_type_rgba_line_new)
 * [dsl_display_type_rgba_arrow_new](/docs/api-display-type.md#dsl_display_type_rgba_arrow_new)
 * [dsl_display_type_rgba_rectangle_new](/docs/api-display-type.md#dsl_display_type_rgba_rectangle_new)
+* [dsl_display_type_rgba_polygon_new](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new)
 * [dsl_display_type_rgba_circle_new](/docs/api-display-type.md#dsl_display_type_rgba_circle_new)
 * [dsl_display_type_source_number_new](/docs/api-display-type.md#dsl_display_type_source_number_new)
 * [dsl_display_type_source_name_new](/docs/api-display-type.md#dsl_display_type_source_name_new)
@@ -358,4 +385,21 @@
 * [dsl_component_gpuid_set](/docs/api-component.md#dsl_component_gpuid_set)
 * [dsl_component_gpuid_set_many](/docs/api-component.md#dsl_component_gpuid_set_many)
 * [dsl_component_is_in_use](/docs/api-component.md#dsl_component_is_in_use)
+
+### SMTP Services API:
+* [Overview](/docs/api-smpt.md)
+* [dsl_smtp_mail_enabled_get](/docs/api-smpt.md#dsl_smtp_mail_enabled_get)
+* [dsl_smtp_mail_enabled_set](/docs/api-smpt.md#dsl_smtp_mail_enabled_set)
+* [dsl_smtp_credentials_set](/docs/api-smpt.md#dsl_smtp_credentials_set)
+* [dsl_smtp_server_url_get](/docs/api-smpt.md#dsl_smtp_server_url_get)
+* [dsl_smtp_server_url_set](/docs/api-smpt.md#dsl_smtp_server_url_set)
+* [dsl_smtp_ssl_enabled_get](/docs/api-smpt.md#dsl_smtp_ssl_enabled_get)
+* [dsl_smtp_ssl_enabled_set](/docs/api-smpt.md#dsl_smtp_ssl_enabled_set)
+* [dsl_smtp_address_from_get](/docs/api-smpt.md#dsl_smtp_address_from_get)
+* [dsl_smtp_address_from_set](/docs/api-smpt.md#dsl_smtp_address_from_set)
+* [dsl_smtp_address_to_add](/docs/api-smpt.md#dsl_smtp_address_to_add)
+* [dsl_smtp_address_to_remove_all](/docs/api-smpt.md#dsl_smtp_address_to_remove_all)
+* [dsl_smtp_address_to_add](/docs/api-smpt.md#dsl_smtp_address_to_add)
+* [dsl_smtp_address_to_remove_all](/docs/api-smpt.md#dsl_smtp_address_to_remove_all)
+* [dsl_smtp_test_message_send](/docs/api-smpt.md#dsl_smtp_test_message_send)
 

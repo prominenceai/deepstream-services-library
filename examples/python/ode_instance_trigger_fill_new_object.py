@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2021, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -40,12 +40,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-# NOTE: filling the full frame with a blended alpha is a CPU intensive operation
-# Using a 30 fps file source requires us to reduce the size at the streammux output 
-STREAMMUX_WIDTH = 1280
-STREAMMUX_HEIGHT = 720
-TILER_WIDTH = STREAMMUX_WIDTH
-TILER_HEIGHT = STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
@@ -83,69 +79,103 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # The example demonstrates the used of a Larget Object Trigger and Fill Object Surroundings Action.
-        # To continuosly hightly the larget object in the Frame as measured by bounding box area.
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Action to fill an object's surroundings with an opaque color
-        retval = dsl_ode_action_fill_surroundings_new('fill-surroundings', 'opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_largest_new('largest-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('largest-trigger', action='fill-surroundings')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a Hide-Area Action to hide all Display Text and Rectangle
+    
+        # This example demonstrates the use of ODE Instance Triggers to trigger on
+        # new Object Instances as identified by an IOU Tracker. The bounding box of
+        # the new Object will filled with a color for a (brief) visual indication,
+        # with event data printed to the console for each
+        
+        #```````````````````````````````````````````````````````````````````````````````````
+        # Create a Hide Action to hide all Display Text and Bounding Boxes
         retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+
+        # Create an Any-Class Occurrence Trigger for our Hide Action
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('occurrence-trigger', action='hide-both')
+        retval = dsl_ode_trigger_action_add('every-occurrence-trigger', action='hide-both')
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
+
+        #```````````````````````````````````````````````````````````````````````````````````
+        # Create two new RGBA fill colors to fill the bounding boxes of new objects
+        retval = dsl_display_type_rgba_color_new('solid-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_display_type_rgba_color_new('solid-white', red=1.0, green=1.0, blue=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        #```````````````````````````````````````````````````````````````````````````````````
+        # Create two new Actions to fill the bounding boxes, one for the PERSON class, the
+        # other for the VEHICLE class.
+        retval = dsl_ode_action_fill_object_new('fill-person-action', color='solid-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_action_fill_object_new('fill-vehicle-action', color='solid-white')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # And a single action to print the event data to the console, which will be used
+        # by both our PERSON and VEHICLE Instance Trigers - created next
+        retval = dsl_ode_action_print_new('print-data')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````
+        # Create two new Instance triggers, one for the PERSON class, the other for the VEHICLE class.
+        retval = dsl_ode_trigger_instance_new('person-instance-trigger', source='uri-source-1',
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', source='uri-source-1',
+            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````
+        # Next, we add our Actions to our Triggers
+        retval = dsl_ode_trigger_action_add_many('person-instance-trigger',
+            actions=['fill-person-action', 'print-data', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('vehicle-instance-trigger',
+            actions=['fill-vehicle-action', 'print-data', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````
+        # New ODE Handler to handle all ODE Triggers    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'largest-trigger',
-            'occurrence-trigger', 
-            None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
+            triggers=['every-occurrence-trigger', 'person-instance-trigger', 
+            'vehicle-instance-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        ############################################################################################
+        
+        ####################################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source-1', uri_file, False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        retval = dsl_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -174,19 +204,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['uri-source-1', 'primary-gie', 'iou-tracker', 'tiler', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
-            
+
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -215,4 +246,3 @@ def main(args):
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-    

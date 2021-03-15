@@ -226,6 +226,8 @@ def main(args):
             break
             
         retval = dsl_ode_action_print_new('print')
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
@@ -254,12 +256,14 @@ def main(args):
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, 
+            cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        # New Primary GIE using the filespecs above with interval = 1
+        retval = dsl_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -290,15 +294,11 @@ def main(args):
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', 'record-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 
+            'on-screen-display', 'window-sink', 'record-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # IMPORTANT *******
-        # Set Streammux dimensions, as the record sink does not work well with the defaults of 1920 x 1080
-        # Hope this is issue is resolved in the GA release of Deepstream 5.0
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', WINDOW_WIDTH, WINDOW_HEIGHT)
-
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:

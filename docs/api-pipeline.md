@@ -1112,3 +1112,4 @@ Except for the prefix, this method performs the identical service as
 * [Display Type](/docs/api-display-type.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
+* [SMTP Services](/docs/api-smtp.md)

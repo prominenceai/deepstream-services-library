@@ -31,7 +31,7 @@ CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 
-DSL_VERSION:='L"v0.09a.alpha"'
+DSL_VERSION:='L"v0.10.alpha"'
 NVDS_VERSION:=5.0
 GS_VERSION:=1.0
 GLIB_VERSION:=2.0
@@ -86,12 +86,16 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
 	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
     -fPIC 
+	
+CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
 	-L/usr/lib/aarch64-linux-gnu \
+	-lgeos_c \
+	-lcurl \
 	-lnvdsgst_meta \
 	-lnvds_meta \
 	-lnvdsgst_helper \

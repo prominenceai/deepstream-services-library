@@ -28,6 +28,30 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
+##########################################################################33####
+# IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
+# that is seperate/unlinked from all your other email accounts -- strictly for 
+# the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
+# Personal email address as a "To" address to receive the emails.
+#
+# Gmail considers regular email programs (i.e Outlook, etc.) and non-registered 
+# third-party apps to be "less secure". The email account used for sending email 
+# must have the "Allow less secure apps" option turned on. Once you've created 
+# this new account, you can go to the account settings and enable Less secure 
+# app access. see https://myaccount.google.com/lesssecureapps
+#
+# CAUTION - Do not check sripts into your repo with valid credentials
+#
+#######################################################################
+user_name = 'my.smtps.server'
+password = 'my-server-pw'
+server_url = 'smtps://smtp.gmail.com:465'
+
+from_name = ''
+from_address = 'my.smtps.server'
+to_name = 'Joe Bloe'
+to_address = 'joe.blow@gmail.com'
+
 uri_file = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
@@ -40,14 +64,10 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-# NOTE: filling the full frame with a blended alpha is a CPU intensive operation
-# Using a 30 fps file source requires us to reduce the size at the streammux output 
-STREAMMUX_WIDTH = 1280
-STREAMMUX_HEIGHT = 720
-TILER_WIDTH = STREAMMUX_WIDTH
-TILER_HEIGHT = STREAMMUX_HEIGHT
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -83,6 +103,26 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+    
+def setup_smpt_mail():
+
+    global server_url, user_name, password, from_name, from_address, \
+        to_name, to_address
+    retval = dsl_smtp_server_url_set(server_url)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_credentials_set(user_name, password)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_address_from_set(from_name, from_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+    retval = dsl_smtp_address_to_add(to_name, to_address)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval
+        
+    # (optional) queue a test message to be sent out when main_loop starts
+    return dsl_smtp_test_message_send()
 
 def main(args):
 
@@ -90,62 +130,75 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # The example demonstrates the used of a Larget Object Trigger and Fill Object Surroundings Action.
-        # To continuosly hightly the larget object in the Frame as measured by bounding box area.
+        # This example is used to demonstrate the use of a First Occurrence Trigger and an Email Action
+        # to send an emal using SMTP service. Addional actions are added to "Capture" the frame to an 
+        # image-file and "Fill" (flash) the frame red as a visual marker.
+
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Setup the SMTP Server URL, Credentials, and From/To addresss
+        retval = setup_smpt_mail()
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Action to Queue an email
+        retval = dsl_ode_action_email_new('email-action', subject="Bicycle Occurrence!")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
+        retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Action to fill an object's surroundings with an opaque color
-        retval = dsl_ode_action_fill_surroundings_new('fill-surroundings', 'opaque-black')
+        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
+        # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_largest_new('largest-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('largest-trigger', action='fill-surroundings')
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
+        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Hide-Area Action to hide all Display Text and Rectangle
-        retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
+        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
+        # Add the actions to our Bicycle Occurence Trigger.
+        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
+            'email-action',
+            'red-flash-action', 
+            'bicycle-capture-action',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('occurrence-trigger', action='hide-both')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-    
+
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # New ODE Handler for our Trigger
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'largest-trigger',
-            'occurrence-trigger', 
-            None])
+        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='bicycle-occurrence-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        ############################################################################################
+            ############################################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, 
+            cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 1)
+        # New Primary GIE using the filespecs above with interval = 1
+        retval = dsl_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -159,11 +212,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
  
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+        # add our ODE Pad Probe Handle to the Sink Pad of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+ 
         # New OSD with clock and text enabled... using default values.
         retval = dsl_osd_new('on-screen-display', True, True)
         if retval != DSL_RETURN_SUCCESS:
@@ -176,11 +229,10 @@ def main(args):
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
             
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)

@@ -120,8 +120,9 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
         x1, y1, x2, y2, width, head, cstrColor.c_str());
 }
     
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, uint width, uint height, 
-    uint border_width, const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
+    uint width, uint height, uint border_width, const wchar_t* color, 
+    bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -142,9 +143,27 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
     return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
         left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
+
+DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
+    const dsl_coordinate* coordinates, uint num_coordinates, 
+    uint border_width, const wchar_t* color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(coordinates);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+
+    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(cstrName.c_str(), 
+        coordinates, num_coordinates, border_width, cstrColor.c_str());
+}
     
-DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, uint x_center, uint y_center, uint radius,
-    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
+    uint x_center, uint y_center, uint radius, const wchar_t* color, 
+    bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -391,6 +410,20 @@ DslReturnType dsl_ode_action_hide_new(const wchar_t* name, boolean text, boolean
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeActionHideNew(cstrName.c_str(), text, border);
+}
+
+DslReturnType dsl_ode_action_email_new(const wchar_t* name, const wchar_t* subject)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(subject);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSubject(subject);
+    std::string cstrSubject(wstrSubject.begin(), wstrSubject.end());
+
+    return DSL::Services::GetServices()->OdeActionEmailNew(cstrName.c_str(),
+        cstrSubject.c_str());
 }
 
 DslReturnType dsl_ode_action_fill_surroundings_new(const wchar_t* name, const wchar_t* color)
@@ -834,33 +867,48 @@ uint dsl_ode_action_list_size()
 }
 
 DslReturnType dsl_ode_area_inclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display)
+    const wchar_t* polygon, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(rectangle);
+    RETURN_IF_PARAM_IS_NULL(polygon);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrRectangle(rectangle);
-    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
+    std::wstring wstrPolygon(polygon);
+    std::string cstrPolygon(wstrPolygon.begin(), wstrPolygon.end());
 
     return DSL::Services::GetServices()->OdeAreaInclusionNew(cstrName.c_str(), 
-        cstrRectangle.c_str(), display);
+        cstrPolygon.c_str(), show, bbox_test_point);
 }
 
 DslReturnType dsl_ode_area_exclusion_new(const wchar_t* name, 
-    const wchar_t* rectangle, boolean display)
+    const wchar_t* polygon, boolean show, uint bbox_test_point)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(rectangle);
+    RETURN_IF_PARAM_IS_NULL(polygon);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrRectangle(rectangle);
-    std::string cstrRectangle(wstrRectangle.begin(), wstrRectangle.end());
+    std::wstring wstrPolygon(polygon);
+    std::string cstrPolygon(wstrPolygon.begin(), wstrPolygon.end());
 
     return DSL::Services::GetServices()->OdeAreaExclusionNew(cstrName.c_str(), 
-        cstrRectangle.c_str(), display);
+        cstrPolygon.c_str(), show, bbox_test_point);
+}
+
+DslReturnType dsl_ode_area_line_new(const wchar_t* name, 
+    const wchar_t* line, boolean show, uint bbox_test_edge)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(line);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrLine(line);
+    std::string cstrLine(wstrLine.begin(), wstrLine.end());
+
+    return DSL::Services::GetServices()->OdeAreaLineNew(cstrName.c_str(), 
+        cstrLine.c_str(), show, bbox_test_edge);
 }
 
 DslReturnType dsl_ode_area_delete(const wchar_t* name)
@@ -947,6 +995,22 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* so
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
     return DSL::Services::GetServices()->OdeTriggerAbsenceNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerInstanceNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
 }
 
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)
@@ -4034,6 +4098,156 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled)
+{
+    return DSL::Services::GetServices()->SmtpMailEnabledGet(enabled);
+}
+
+DslReturnType dsl_smtp_mail_enabled_set(boolean enabled)
+{
+    return DSL::Services::GetServices()->SmtpMailEnabledSet(enabled);
+}
+
+DslReturnType dsl_smtp_credentials_set(const wchar_t* username, 
+    const wchar_t* password)
+{
+    RETURN_IF_PARAM_IS_NULL(username);
+    RETURN_IF_PARAM_IS_NULL(password);
+
+    std::wstring wstrUsername(username);
+    std::string cstrUsername(wstrUsername.begin(), wstrUsername.end());
+    std::wstring wstrPassword(password);
+    std::string cstrPassword(wstrPassword.begin(), wstrPassword.end());
+
+    return DSL::Services::GetServices()->SmtpCredentialsSet(cstrUsername.c_str(), 
+        cstrPassword.c_str());
+}
+
+DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url)
+{
+    RETURN_IF_PARAM_IS_NULL(server_url);
+
+    const char* cServerUrl;
+    static std::string cstrServerUrl;
+    static std::wstring wcstrServerUrl;
+    
+    DslReturnType result = DSL::Services::GetServices()->SmtpServerUrlGet(&cServerUrl);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrServerUrl.assign(cServerUrl);
+        wcstrServerUrl.assign(cstrServerUrl.begin(), cstrServerUrl.end());
+        *server_url = wcstrServerUrl.c_str();
+    }
+    return result;
+}
+
+DslReturnType dsl_smtp_server_url_set(const wchar_t* server_url)
+{
+    RETURN_IF_PARAM_IS_NULL(server_url);
+
+    std::wstring wstrServerUrl(server_url);
+    std::string cstrServerUrl(wstrServerUrl.begin(), wstrServerUrl.end());
+
+    return DSL::Services::GetServices()->SmtpServerUrlSet(cstrServerUrl.c_str());
+}
+
+DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
+    const wchar_t** address)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(address);
+
+    const char* cName;
+    static std::string cstrName;
+    static std::wstring wcstrName;
+    const char* cAddress;
+    static std::string cstrAddress;
+    static std::wstring wcstrAddress;
+    
+    DslReturnType result = DSL::Services::GetServices()->SmtpFromAddressGet(&cName, &cAddress);
+    if (result == DSL_RESULT_SUCCESS)
+    {
+        cstrName.assign(cName);
+        wcstrName.assign(cstrName.begin(), cstrName.end());
+        *name = wcstrName.c_str();
+        cstrAddress.assign(cAddress);
+        wcstrAddress.assign(cstrAddress.begin(), cstrAddress.end());
+        *address = wcstrAddress.c_str();
+    }
+    return result;
+}
+
+DslReturnType dsl_smtp_address_from_set(const wchar_t* name,
+    const wchar_t* address)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(address);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAddress(address);
+    std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
+
+    return DSL::Services::GetServices()->SmtpFromAddressSet(cstrName.c_str(),
+        cstrAddress.c_str());
+}    
+
+DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled)
+{
+    return DSL::Services::GetServices()->SmtpSslEnabledGet(enabled);
+}
+
+DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled)
+{
+    return DSL::Services::GetServices()->SmtpSslEnabledSet(enabled);
+}
+
+DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
+    const wchar_t* address)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(address);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAddress(address);
+    std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
+
+    return DSL::Services::GetServices()->SmtpToAddressAdd(cstrName.c_str(),
+        cstrAddress.c_str());
+    
+}    
+    
+DslReturnType dsl_smtp_address_to_remove_all()
+{
+    return DSL::Services::GetServices()->SmtpToAddressesRemoveAll();
+}
+    
+DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
+    const wchar_t* address)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(address);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAddress(address);
+    std::string cstrAddress(wstrAddress.begin(), wstrAddress.end());
+
+    return DSL::Services::GetServices()->SmtpCcAddressAdd(cstrName.c_str(),
+        cstrAddress.c_str());
+}    
+
+DslReturnType dsl_smtp_address_cc_remove_all()
+{
+    return DSL::Services::GetServices()->SmtpCcAddressesRemoveAll();
+}
+
+DslReturnType dsl_smtp_test_message_send()
+{
+     return DSL::Services::GetServices()->SendSmtpTestMessage();
+}    
+    
 void dsl_delete_all()
 {
     dsl_pipeline_delete_all();

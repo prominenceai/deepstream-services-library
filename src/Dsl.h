@@ -46,6 +46,8 @@ THE SOFTWARE.
 #include <unordered_map>
 #include <typeinfo>
 #include <algorithm>
+#include <random>
+#include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -54,6 +56,9 @@ THE SOFTWARE.
 #include <deepstream_perf.h>
 #include <gstnvdsmeta.h>
 #include <gstnvdsinfer.h>
+
+#include <geos_c.h>
+#include <curl/curl.h>
 
 #include "DslLog.h"
 #include "DslMutex.h"

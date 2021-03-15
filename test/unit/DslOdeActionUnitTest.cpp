@@ -164,6 +164,69 @@ SCENARIO( "A new CaptureOjbectOdeAction is created correctly", "[OdeAction]" )
     }
 }
 
+SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new EmailOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string subject("email subject");
+
+        WHEN( "A new OdeAction is created" )
+        {
+            DSL_ODE_ACTION_EMAIL_PTR pAction = 
+                DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), subject.c_str());
+
+            THEN( "The Action's memebers are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A EmailOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new EmailOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName = "ode-action";
+        std::string subject("email subject");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        DSL_ODE_ACTION_EMAIL_PTR pAction = 
+            DSL_ODE_ACTION_EMAIL_NEW(actionName.c_str(), subject.c_str());
+
+        WHEN( "A new ODE is created" )
+        {
+            NvDsFrameMeta frameMeta =  {0};
+            frameMeta.bInferDone = true;  // required to process
+            frameMeta.frame_num = 444;
+            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.source_id = 2;
+
+            NvDsObjectMeta objectMeta = {0};
+            objectMeta.class_id = classId; // must match Detections Trigger's classId
+            objectMeta.object_id = INT64_MAX; 
+            objectMeta.rect_params.left = 10;
+            objectMeta.rect_params.top = 10;
+            objectMeta.rect_params.width = 200;
+            objectMeta.rect_params.height = 100;
+            
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                pAction->HandleOccurrence(pTrigger, NULL, NULL, &frameMeta, &objectMeta);
+            }
+        }
+    }
+}
+
 SCENARIO( "A new HandlerDisableOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new HandlerDisableOdeAction" ) 
@@ -459,7 +522,7 @@ SCENARIO( "A LogOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
 
 SCENARIO( "A new PauseOdeAction is created correctly", "[OdeAction]" )
 {
-    GIVEN( "Attributes for a new PrintOdeAction" ) 
+    GIVEN( "Attributes for a new PauseOdeAction" ) 
     {
         std::string actionName("ode-action");
         std::string pipelineName("pipeline");
@@ -563,16 +626,16 @@ SCENARIO( "A PrintOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
             NvDsFrameMeta frameMeta =  {0};
             frameMeta.bInferDone = true;  // required to process
             frameMeta.frame_num = 444;
-            frameMeta.ntp_timestamp = INT64_MAX;
+            frameMeta.ntp_timestamp = 1615768434973357000;
             frameMeta.source_id = 2;
 
             NvDsObjectMeta objectMeta = {0};
             objectMeta.class_id = classId; // must match Detections Trigger's classId
             objectMeta.object_id = INT64_MAX; 
-            objectMeta.rect_params.left = 10;
-            objectMeta.rect_params.top = 10;
-            objectMeta.rect_params.width = 200;
-            objectMeta.rect_params.height = 100;
+            objectMeta.rect_params.left = 10.123;
+            objectMeta.rect_params.top = 10.123;
+            objectMeta.rect_params.width = 200.123;
+            objectMeta.rect_params.height = 100.123;
             
             THEN( "The OdeAction can Handle the Occurrence" )
             {

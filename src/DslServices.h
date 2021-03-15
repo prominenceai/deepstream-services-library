@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
+#include "DslComms.h"
 
 namespace DSL {
     
@@ -68,9 +69,14 @@ namespace DSL {
         DslReturnType DisplayTypeRgbaArrowNew(const char* name, 
             uint x1, uint y1, uint x2, uint y2, uint width, uint head, const char* color);
             
-        DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, uint width, uint height, 
-            uint borderWidth, const char* color, bool hasBgColor, const char* bgColor);
+        DslReturnType DisplayTypeRgbaRectangleNew(const char* name, uint left, uint top, 
+            uint width, uint height, uint borderWidth, const char* color, 
+            bool hasBgColor, const char* bgColor);
     
+        DslReturnType DisplayTypeRgbaPolygonNew(const char* name, 
+            const dsl_coordinate* coordinates, uint numCoordinates, 
+            uint borderWidth, const char* color);
+
         DslReturnType DisplayTypeRgbaCircleNew(const char* name, uint xCenter, uint yCenter, uint radius,
             const char* color, bool hasBgColor, const char* bgColor);
     
@@ -105,6 +111,8 @@ namespace DSL {
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
+
+        DslReturnType OdeActionEmailNew(const char* name, const char* subject);
         
         DslReturnType OdeActionFillSurroundingsNew(const char* name, const char* color);
         
@@ -180,10 +188,13 @@ namespace DSL {
         uint OdeActionListSize();
 
         DslReturnType OdeAreaInclusionNew(const char* name, 
-            const char* rectangle, boolean display);
+            const char* polygon, boolean display, uint bboxTestPoint);
 
         DslReturnType OdeAreaExclusionNew(const char* name, 
-            const char* rectangle, boolean display);
+            const char* polygon, boolean display, uint bboxTestPoint);
+
+        DslReturnType OdeAreaLineNew(const char* name, 
+            const char* line, boolean display, uint bboxTestEdge);
 
         DslReturnType OdeAreaDelete(const char* name);
         
@@ -196,6 +207,8 @@ namespace DSL {
         DslReturnType OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerInstanceNew(const char* name, const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit);
 
@@ -690,7 +703,35 @@ namespace DSL {
 
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
+
+        DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
+        DslReturnType SmtpMailEnabledSet(boolean enabled);   
+            
+        DslReturnType SmtpCredentialsSet(const char* username, const char* password);
+        
+        DslReturnType SmtpServerUrlGet(const char** serverUrl);
+        
+        DslReturnType SmtpServerUrlSet(const char* serverUrl);
+
+        DslReturnType SmtpFromAddressGet(const char** name, const char** address);
+
+        DslReturnType SmtpFromAddressSet(const char* name, const char* address);
+        
+        DslReturnType SmtpSslEnabledGet(boolean* enabled);
+        
+        DslReturnType SmtpSslEnabledSet(boolean enabled);
+        
+        DslReturnType SmtpToAddressAdd(const char* name, const char* address);
+        
+        DslReturnType SmtpToAddressesRemoveAll();
+        
+        DslReturnType SmtpCcAddressAdd(const char* name, const char* address);
+
+        DslReturnType SmtpCcAddressesRemoveAll();
+        
+        DslReturnType SendSmtpTestMessage();
+
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
@@ -711,6 +752,12 @@ namespace DSL {
          * @return true if all events were handled succesfully
          */
         bool HandleXWindowEvents(); 
+        
+        /**
+         * @brief Returns the single Comms object owned by the DSL
+         * @return const unique pointer to the Service Lib's Comm object
+         */
+        std::shared_ptr<Comms> GetComms();
 
     private:
 
@@ -841,6 +888,11 @@ namespace DSL {
          * @brief map of all source names to source ids
          */
         std::map <std::string, uint> m_sourceIds;
+        
+        /**
+         * @brief DSL Comms object for libcurl services
+         */
+        std::shared_ptr<Comms> m_pComms;
         
     };  
 

@@ -40,14 +40,16 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-# NOTE: filling the full frame with a blended alpha is a CPU intensive operation
-# Using a 30 fps file source requires us to reduce the size at the streammux output 
-STREAMMUX_WIDTH = 1280
-STREAMMUX_HEIGHT = 720
-TILER_WIDTH = STREAMMUX_WIDTH
-TILER_HEIGHT = STREAMMUX_HEIGHT
+MIN_OBJECTS = 3
+MAX_OBJECTS = 8
+
+TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
+TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+
+INCLUSION_AREA = 0
+EXCLUSION_AREA = 1
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -83,64 +85,96 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
+    
+        # This example demonstrates the use of a Polygon Area for Inclusion 
+        # or Exlucion critera for ODE occurrence. Change the variable below to try each.
+        
+        area_type = INCLUSION_AREA
+        
+        #```````````````````````````````````````````````````````````````````````````````````
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # The example demonstrates the used of a Larget Object Trigger and Fill Object Surroundings Action.
-        # To continuosly hightly the larget object in the Frame as measured by bounding box area.
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Action to fill an object's surroundings with an opaque color
-        retval = dsl_ode_action_fill_surroundings_new('fill-surroundings', 'opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_ode_trigger_largest_new('largest-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_trigger_action_add('largest-trigger', action='fill-surroundings')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a Hide-Area Action to hide all Display Text and Rectangle
+        # Create a Hide-Area Action to hide all Display Text and Bounding Boxes
         retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_occurrence_new('occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+
+        # Create an Any-Class Occurrence Trigger for our Hide Action
+        retval = dsl_ode_trigger_occurrence_new('any-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('occurrence-trigger', action='hide-both')
+        retval = dsl_ode_trigger_action_add('any-occurrence-trigger', action='hide-both')
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
+
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Create a new  Action used to fill a bounding box with the opaque red color
+        retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # create a list of X,Y coordinates defining the points of the Polygon.
+        # Polygon can have a minimum of 3, maximum of 8 points (sides)
+        coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
+            dsl_coordinate(600, 770), dsl_coordinate(180,750)]
+            
+        # Create the Polygon display type 
+        retval = dsl_display_type_rgba_polygon_new('polygon1', 
+            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # create the ODE inclusion area to use as criteria for ODE occurrence
+        if area_type == INCLUSION_AREA:
+            retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+            if retval != DSL_RETURN_SUCCESS:
+                break
+        else:
+            retval = dsl_ode_area_exclusion_new('polygon-area', polygon='polygon1', 
+                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+            if retval != DSL_RETURN_SUCCESS:
+                break
+
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
+            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        retval = dsl_ode_trigger_area_add('person-occurrence-trigger', area='polygon-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        retval = dsl_ode_trigger_action_add('person-occurrence-trigger', action='fill-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        
+        # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
-            'largest-trigger',
-            'occurrence-trigger', 
-            None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
+            triggers=['any-occurrence-trigger', 'person-occurrence-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-    
+        
+        
         ############################################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_file, is_live=False, cudadec_mem_type=0, intra_decode=0, drop_frame_interval=0)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -174,14 +208,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
-            
+
         # Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
@@ -215,4 +247,3 @@ def main(args):
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-    

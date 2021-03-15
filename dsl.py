@@ -64,6 +64,27 @@ DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
 
+DSL_BBOX_POINT_CENTER     = 0
+DSL_BBOX_POINT_NORTH_WEST = 1
+DSL_BBOX_POINT_NORTH      = 2
+DSL_BBOX_POINT_NORTH_EAST = 3
+DSL_BBOX_POINT_EAST       = 4
+DSL_BBOX_POINT_SOUTH_EAST = 5
+DSL_BBOX_POINT_SOUTH      = 6
+DSL_BBOX_POINT_SOUTH_WEST = 7
+DSL_BBOX_POINT_WEST       = 8
+DSL_BBOX_POINT_ANY        = 9
+
+DSL_BBOX_EDGE_TOP    = 0
+DSL_BBOX_EDGE_BOTTOM = 1
+DSL_BBOX_EDGE_LEFT   = 2
+DSL_BBOX_EDGE_RIGHT  = 3
+
+class dsl_coordinate(Structure):
+    _fields_ = [
+        ('x', c_uint),
+        ('y', c_uint)]
+        
 class dsl_recording_info(Structure):
     _fields_ = [
         ('session_id', c_uint),
@@ -169,6 +190,18 @@ _dsl.dsl_display_type_rgba_rectangle_new.restype = c_uint
 def dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color):
     global _dsl
     result =_dsl.dsl_display_type_rgba_rectangle_new(name, left, top, width, height, border_width, color, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_rgba_polygon_new()
+##
+#_dsl.dsl_display_type_rgba_polygon_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_polygon_new.restype = c_uint
+def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border_width, color):
+    global _dsl
+    arr = (dsl_coordinate * num_coordinates)()
+    arr[:] = coordinates
+    result =_dsl.dsl_display_type_rgba_polygon_new(name, arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
@@ -299,11 +332,24 @@ def dsl_ode_action_capture_object_new(name, outdir):
 ##
 ## dsl_ode_action_display_new()
 ##
-_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_ode_action_display_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_bool, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_ode_action_display_new.restype = c_uint
-def dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
+def dsl_ode_action_display_new(name, 
+    x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_ode_action_display_new(name, x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+    result =_dsl.dsl_ode_action_display_new(name, 
+        x_offset, y_offset, y_offset_with_classId, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_ode_action_email_new()
+##
+_dsl.dsl_ode_action_email_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_email_new.restype = c_uint
+def dsl_ode_action_email_new(name, subject):
+    global _dsl
+    result =_dsl.dsl_ode_action_email_new(name, subject)
     return int(result)
 
 ##
@@ -628,9 +674,9 @@ def dsl_ode_action_list_size():
 ##
 _dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_area_inclusion_new.restype = c_uint
-def dsl_ode_area_inclusion_new(name, rectangle, display):
+def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_inclusion_new(name, rectangle, display)
+    result =_dsl.dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point)
     return int(result)
 
 ##
@@ -638,9 +684,19 @@ def dsl_ode_area_inclusion_new(name, rectangle, display):
 ##
 _dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
 _dsl.dsl_ode_area_exclusion_new.restype = c_uint
-def dsl_ode_area_exclusion_new(name, rectangle, display):
+def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
-    result =_dsl.dsl_ode_area_exclusion_new(name, rectangle, display)
+    result =_dsl.dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point)
+    return int(result)
+
+##
+## dsl_ode_area_line_new()
+##
+_dsl.dsl_ode_area_line_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
+_dsl.dsl_ode_area_line_new.restype = c_uint
+def dsl_ode_area_line_new(name, line, show, bbox_test_edge):
+    global _dsl
+    result =_dsl.dsl_ode_area_line_new(name, line, show, bbox_test_edge)
     return int(result)
 
 ##
@@ -702,6 +758,16 @@ _dsl.dsl_ode_trigger_absence_new.restype = c_uint
 def dsl_ode_trigger_absence_new(name, source, class_id, limit):
     global _dsl
     result =_dsl.dsl_ode_trigger_absence_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_ode_trigger_instance_new()
+##
+_dsl.dsl_ode_trigger_instance_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_instance_new.restype = c_uint
+def dsl_ode_trigger_instance_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_instance_new(name, source, class_id, limit)
     return int(result)
 
 ##
@@ -3155,6 +3221,143 @@ def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
     global _dsl
     c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
     result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
+    return int(result)
+    
+_dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
+_dsl.dsl_smtp_mail_enabled_get.restype = c_uint
+def dsl_smtp_mail_enabled_get():
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_smtp_mail_enabled_get(DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_smtp_mail_enabled_set()
+##
+_dsl.dsl_smtp_mail_enabled_set.argtypes = [c_bool]
+def dsl_smtp_mail_enabled_set(enabled):
+    global _dsl
+    result = _dsl.dsl_smtp_mail_enabled_set(c_uint)
+    return int(result)
+
+##
+## dsl_smtp_credentials_set()
+##
+_dsl.dsl_smtp_credentials_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_smtp_credentials_set.restype = c_uint
+def dsl_smtp_credentials_set(name, password):
+    global _dsl
+    result = _dsl.dsl_smtp_credentials_set(name, password)
+    return int(result)
+    
+##
+## dsl_smtp_server_url_get()
+##
+_dsl.dsl_smtp_server_url_get.argtypes = [POINTER(c_wchar_p)]
+_dsl.dsl_smtp_server_url_get.restype = c_uint
+def dsl_smtp_server_url_get():
+    global _dsl
+    url = c_wchar_p(0)
+    result = _dsl.dsl_smtp_server_url_get(DSL_WCHAR_PP(url))
+    return int(result), url.value 
+    
+##
+## dsl_smtp_server_url_set()
+##
+_dsl.dsl_smtp_server_url_set.argtypes = [c_wchar_p]
+_dsl.dsl_smtp_server_url_set.restype = c_uint
+def dsl_smtp_server_url_set(url):
+    global _dsl
+    result = _dsl.dsl_smtp_server_url_set(url)
+    return int(result)
+
+##
+## dsl_smtp_address_from_get()
+##
+_dsl.dsl_smtp_address_from_get.argtypes = [POINTER(c_wchar_p), POINTER(c_wchar_p)]
+_dsl.dsl_smtp_address_from_get.restype = c_uint
+def dsl_smtp_address_from_get():
+    global _dsl
+    name = c_wchar_p(0)
+    address = c_wchar_p(0)
+    result = _dsl.dsl_smtp_address_from_get(DSL_WCHAR_PP(name), DSL_WCHAR_PP(address))
+    return int(result), name.value, address.value
+
+##
+## dsl_smtp_address_from_set()
+##
+_dsl.dsl_smtp_address_from_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_smtp_address_from_set.restype = c_uint
+def dsl_smtp_address_from_set(name, address):
+    global _dsl
+    result = _dsl.dsl_smtp_address_from_set(name, address)
+    return int(result)
+
+##
+## dsl_smtp_ssl_enabled_get()
+##
+_dsl.dsl_smtp_ssl_enabled_get.argtypes = [POINTER(c_bool)]
+_dsl.dsl_smtp_ssl_enabled_get.restype = c_uint
+def dsl_smtp_ssl_enabled_get():
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_smtp_ssl_enabled_get(DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_smtp_ssl_enabled_set()
+##
+_dsl.dsl_smtp_ssl_enabled_set.argtypes = [c_bool]
+def dsl_smtp_mail_enabled_set(enabled):
+    global _dsl
+    result = _dsl.dsl_smtp_ssl_enabled_set(enabled)
+    return int(result)
+
+##
+## dsl_smtp_address_to_add()
+##
+_dsl.dsl_smtp_address_to_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_smtp_address_to_add.restype = c_uint
+def dsl_smtp_address_to_add(name, address):
+    global _dsl
+    result = _dsl.dsl_smtp_address_to_add(name, address)
+    return int(result)
+
+##
+## dsl_smtp_address_to_remove_all()
+##
+_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
+def dsl_smtp_address_to_remove_all():
+    global _dsl
+    result = _dsl.dsl_smtp_address_to_remove_all()
+    return int(result)
+
+##
+## dsl_smtp_address_cc_add()
+##
+_dsl.dsl_smtp_address_cc_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_smtp_address_cc_add.restype = c_uint
+def dsl_smtp_address_cc_add(name, address):
+    global _dsl
+    result = _dsl.dsl_smtp_address_cc_add(name, address)
+    return int(result)
+
+##
+## dsl_smtp_address_cc_remove_all()
+##
+_dsl.dsl_smtp_address_to_remove_all.restype = c_uint
+def dsl_smtp_address_cc_remove_all():
+    global _dsl
+    result = _dsl.dsl_smtp_address_cc_remove_all()
+    return int(result)
+
+##
+## dsl_smtp_test_message_send()
+##
+_dsl.dsl_smtp_test_message_send.restype = c_uint
+def dsl_smtp_test_message_send():
+    global _dsl
+    result = _dsl.dsl_smtp_test_message_send()
     return int(result)
 
 ##

@@ -17,6 +17,7 @@
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
+* [SMTP Services](#smtp-services)
 * [DSL Initialization](#dsl-initialization)
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
@@ -392,51 +393,78 @@ Triggers have optional, settable criteria and filters:
 * **Actions on Areas** - Add/Remove Areas
 * **Actions on Actions** - Disable/Enable Actions
 
-Actions acting on Triggers, Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when a group of objects first enters and then exits the frame or Area.
+Actions acting on Triggers, other Actions and Areas allow for a dynamic sequencing of detection events. For example, a one-time Occurrence Trigger using an Action can enable a one-time Absence Trigger for the same class. The Absence Trigger using an Action can then reset/re-enable the one-time Occurrence Trigger. Combined, they can be used to alert when one or more objects first enters and then exits the frame or Area.
 
-**ODE Areas**, rectangles with location and dimensions, can be added to any number of Triggers as additional criteria 
+**ODE Areas**, [Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new) and [Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) can be added to any number of Triggers as additional criteria. 
 
-A simple example using python
+* **Line Areas** - criteria is met when a specific edge of an object's bounding box - left, right, top, bottom - intersects with the Line Area
+* **Polygon Areas** - criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon 
+
+The following image was produced using: 
+* Occurrence Trigger filtering on Any Class Id to hide/exclude the Object Text and Bounding Boxes.
+* Occurrence Trigger filtering on Person Class Id as criteria, using:
+  * Polygon Area of Inclussion as additional criteria,
+  * Fill Object Action to fill the object's bounding-box with an opaue RGBA color on criteria met
+
+![Polygon Area](/Images/polygon-screenshot.png)
+
+The above is produced with the following example
 
 ```python
 # example assumes that all return values are checked before proceeding
 
-# Create a new Print Action to print the ODE Frame/Object details to the console
-retval = dsl_ode_action_print_new('my-print-action')
+# Create a Hide-Area Action to hide all Display Text and Bounding Boxes
+retval = dsl_ode_action_hide_new('hide-both', text=True, border=True)
 
-# Create a new Capture Frame Action to capture the full frame to a jpeg image and save to the local dir
-# The action can be used with multiple triggers for multiple sources.
-# Set annotate=True to add bounding box and label to object that triggered the ODE occurrence.
-retval = dsl_ode_action_capture_frame_new('capture-action', outdir='./', annotate=True)
+# Create an Any-Class Occurrence Trigger for our Hide Action
+retval = dsl_ode_trigger_occurrence_new('any-occurrence-trigger', source='East Cam 1',
+    class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
 
-# Create a new Occurrence Trigger that will invoke the above Actions on first occurrence of an object with a
-# specified Class Id. Set the Trigger limit to one as we are only interested in capturing the first occurrence.
-retval = dsl_ode_trigger_occurrence_new('east-cam-1-trigger', source='east-cam-1', class_id=0, limit=1)
-retval = dsl_ode_trigger_action_add_many('east-cam-1-trigger', actions=['print-action', 'capture-action', None])
+# Add the action to hide/exclude the text and boxes for every object occurrence to the Trigger
+retval = dsl_ode_trigger_action_add('any-occurrence-trigger', action='hide-both')
 
-# Create an Area of inclusion using a previously defined [Rectangle Display Type](#display-types) as
-# criteria for occurrence and add the Area to the Trigger. A detected object must have at least one pixel of
-# overlap before occurrence will be triggered and the Actions invoked.
-retval = dsl_ode_area_inclusion_new('east-cam-1-area', 'east-cam-1-rectangle', display=True)
-retval = dsl_ode_trigger_area_add('east-cam-1-trigger', 'east-cam-1-area')
+# Create the opaque red RGBA Color and "fill-object" Action to fill the bounding box
+retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
 
-# Create an ODE handler to manage the Trigger, add the Trigger to the handler
-retval = dsl_pph_ode_new('ode-handler)
-retval = dsl_pph_ode_trigger_add('ode-handler, 'east-cam-1-trigger')
+# create a list of X,Y coordinates defining the points of the Polygon.
+# Polygons can have a minimum of 3, maximum of 8 points (sides)
+coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620), 
+    dsl_coordinate(600, 770), dsl_coordinate(180,750)]
 
+# Create the Polygon display type using the same red RGBA Color
+retval = dsl_display_type_rgba_polygon_new('polygon1', 
+    coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+    
+# New "Area of Inclusion" to use as criteria for ODE Occurrence using the Polygon object
+# Test point DSL_BBOX_POINT_SOUTH = center of rectangle bottom edge must be within Pologon.
+retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+    show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+
+# New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
+retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source="East Cam 1",
+    class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+
+# Add the Polygon Area and Fill Object Action to the new Occurrence Trigger
+retval = dsl_ode_trigger_area_add('person-occurrence-trigger', area='polygon-area')
+retval = dsl_ode_trigger_action_add('person-occurrence-trigger', action='fill-action')
+            
+# New ODE Handler to handle all ODE Triggers with their Areas and Actions    
+retval = dsl_pph_ode_new('ode-handler')
+retval = dsl_pph_ode_trigger_add_many('ode-handler', 
+    triggers=['any-occurrence-trigger', 'person-occurrence-trigger', None])
+    
 #  Then add the handler to the sink (input) pad of a Tiler.
 retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)
 ```
 
-[Issue #259](https://github.com/canammex-tech/deepstream-services-library/issues/259) has been opened to track all open items related to ODE Services.
+The complete example script under [/examples/python](/examples/python) can be viewed [here](/examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py)
 
 See the below API Reference sections for more information
 * [ODE Pad Probe Handler API Reference](/docs/api-pph.md)
 * [ODE Trigger API Reference](/docs/api-ode-trigger.md)
 * [ODE Action API Reference](/docs/api-ode-action.md)
 * [ODE Area API Reference](/docs/api-ode-area.md)
-
-There are several ODE Python examples provided [here](/examples/python)
 
 ### Custom Pad Probe Handler
 Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
@@ -475,6 +503,7 @@ There are four types for displaying text and shapes.
 * RGBA Line
 * RGBA Arrow
 * RGBA Rectangle
+* RGBA Polygon
 * RGBA Circle
 
 And three types for displaying source information specific to each frame. 
@@ -949,6 +978,17 @@ dsl_delete_all()
 
 ---
 
+## SMTP Services
+Secure outgoing SMTP email services allow clients to provide server info, credentials and header data (From, To, Cc, Subject, etc.) - settings required for an [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new) to send email notifications on an [Object Detection Event (ODE) Occurence](#object-detection-event-pad-probe-handler).
+
+Message content is sent out using multipart mime-type. Adding attachments, including captured images, will be supported in a future release.
+
+Refere to the [SMTP Services](/docs/api-smtp.md) for more information.
+
+See the example script [ode_occurrence_uri_send_smtp_mail.py](/examples/python/ode_occurrence_uri_send_smtp_mail.py) for additional reference.
+
+---
+
 ## DSL Initialization
 The library is automatically initialized on **any** first call to DSL. There is no explicit init or deint service. DSL will initialize GStreamer at this time unless the calling application has already done so. 
 
@@ -1018,13 +1058,14 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Tiler](/docs/api-tiler.md)
 * [Demuxer and Splitter Tees](/docs/api-tee)
 * [Sink](docs/api-sink.md)
-* [Pad Probe Handler](docs/api-pph.md)
-* [ODE Trigger](docs/api-ode-trigger.md)
-* [ODE Action ](docs/api-ode-action.md)
-* [ODE Area](docs/api-ode-area.md)
+* [Pad Probe Handler](/docs/api-pph.md)
+* [ODE Trigger](/docs/api-ode-trigger.md)
+* [ODE Action ](/docs/api-ode-action.md)
+* [ODE Area](/docs/api-ode-area.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](docs/api-branch.md)
+* [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
+* [SMTP Services](/docs/api-smpt.md)
 
 --- 
 * <b id="f1">1</b> Quote from GStreamer documentation [here](https://gstreamer.freedesktop.org/documentation/?gi-language=c). [↩](#a1)
