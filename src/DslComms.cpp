@@ -32,33 +32,48 @@ namespace DSL
     // Initialize static Message Id counter
     uint SmtpMessage::s_nextMessageId = 1;
 
+    std::vector<std::string> SmtpMessage::m_htmlBegin 
+    {
+        {"<html>\r\n"},
+        {"<head>\r\n"},
+        {"<style>\r\n"},
+        {".p1 {font-family: 'Lucida Console', 'Courier New', monospace; }\r\n"},
+        {"</style>\r\n"},
+        {"</head>\r\n"},
+        {"<body>\r\n"},
+        {"<p class='p1'>\r\n"},
+        {"<pre>\r\n"}
+    };
+
+    std::vector<std::string> SmtpMessage::m_htmlEnd 
+    {
+        {"</p>\r\n"},
+        {"<pre>\r\n"},
+        {"</body\r\n>"},
+        {"</html\r\n>"}
+    };
+
+
     SmtpMessage::SmtpMessage(const EmailAddresses& toList,
         const EmailAddress& from, const EmailAddresses& ccList,
         const std::string& subject, const std::vector<std::string>& body)
-        : m_linesRead(0)
-        , m_messageId(0)
-        , m_messageState(PENDING)
     {
         LOG_FUNC();
 
         m_messageId = s_nextMessageId++;
         
-        std::vector<std::string> header;
-        header.push_back(DateTimeLine());
-        header.push_back(AddressLine(TO, toList));
-        header.push_back(FromLine(from));
-        header.push_back(AddressLine(CC, ccList));
-        header.push_back(MessageIdLine(from));
-        header.push_back(SubjectLine(subject));
+        m_header.push_back(DateTimeLine());
+        m_header.push_back(AddressLine(TO, toList));
+        m_header.push_back(FromLine(from));
+        m_header.push_back(AddressLine(CC, ccList));
+        m_header.push_back(MessageIdLine(from));
+        m_header.push_back(SubjectLine(subject));
 
-        // empty line to seperate header from body, see RFC5322
-        std::string seperator("\r\n");
-        header.push_back(seperator);
-
-        // concatenate header and body
-        m_content.reserve(header.size() + body.size() );
-        m_content.insert(m_content.end(), header.begin(), header.end() );
+        // concatenate HTML begin formating, body, and HTML end fromating
+        m_content.reserve(m_htmlBegin.size() + body.size() + m_htmlEnd.size());
+        m_content.insert(m_content.end(), m_htmlBegin.begin(), m_htmlBegin.end() );
         m_content.insert(m_content.end(), body.begin(), body.end() );
+        m_content.insert(m_content.end(), m_htmlEnd.begin(), m_htmlEnd.end() );
 
         g_mutex_init(&m_messageMutex);
     };
@@ -79,7 +94,7 @@ namespace DSL
 
         strftime(dateTime, DATE_BUFF_LENGTH, "%a, %d %b %Y %H:%M:%S %z", &currentTm);
         std::string dateTimeStr(dateTime);
-        std::string dateTimeline("Date: " + dateTimeStr + "\r\n");
+        std::string dateTimeline("Date: " + dateTimeStr);
         
         return dateTimeline;
     }    
@@ -89,13 +104,13 @@ namespace DSL
     {
         std::ostringstream oss;
         oss << ((type == TO) ? "To: " : "Cc: ");
-        oss << addresses << "\r\n";
+        oss << addresses;
         return oss.str();
     }
     
     std::string SmtpMessage::FromLine(const EmailAddress& from)
     {
-        std::string fromLine("From: " + std::string(from) + "\r\n");
+        std::string fromLine("From: " + std::string(from));
         return fromLine;
     }
     
@@ -123,114 +138,14 @@ namespace DSL
                         DATE_BUFF_LENGTH - dateLen,
                         [&]() { return alphaNum[distr(gen)]; });
 
-        std::string messageIdLine{"Message-ID: <" + dateTimeStr + "@" + from.domain() + ">\r\n"};
+        std::string messageIdLine{"Message-ID: <" + dateTimeStr + "@" + from.domain()};
         return messageIdLine; 
     }
     
     std::string SmtpMessage::SubjectLine(const std::string& subject)
     {
-        std::string subjectLine("Subject: " + subject + "\r\n");
+        std::string subjectLine("Subject: " + subject);
         return subjectLine;
-    }
-
-    
-    size_t SmtpMessage::ReadLine(char *ptr, size_t size, size_t nmemb)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-        
-        LOG_INFO("size = " << size << " nmemb = " << nmemb);
-        LOG_INFO("m_linesRead = " << m_linesRead << " size = " << m_content.size());
-        
-        // if there are no more lines to read
-        if (m_linesRead >= m_content.size())
-        {
-            m_messageState = COMPLETE;
-            return 0;
-        }
-        size_t currentLineSize(m_content[m_linesRead].size());
-
-        // make sure there is sufficient memory to copy the current line
-        if((size == 0) or (nmemb == 0) or ( currentLineSize > (size*nmemb)))
-        {
-            m_messageState = FAILURE;
-            LOG_ERROR("Insufficient memory to copy message " << m_messageId);
-            return 0;
-        }
-    
-        // copy the current line, add the null character, and increment the lines read
-        m_content[m_linesRead].copy(ptr, currentLineSize);
-        //ptr[currentLineSize] = 0;
-        m_linesRead++;
-        
-        LOG_DEBUG("Returning " << currentLineSize);
-        
-        return currentLineSize;
-    }
-    
-    void SmtpMessage::NowInProgress()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        m_messageState = INPROGRESS;
-    }
-    
-    bool SmtpMessage::IsInProgress()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        return m_messageState == INPROGRESS;
-    }
-    
-    void SmtpMessage::NowComplete()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        m_messageState = COMPLETE;
-    }
-
-    bool SmtpMessage::IsComplete()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        return bool(m_messageState == COMPLETE);
-    }
-    
-    void SmtpMessage::NowFailure()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        m_messageState = FAILURE;
-    }
-
-    bool SmtpMessage::IsFailure()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        return bool(m_messageState == FAILURE);
-    }
-    
-    uint SmtpMessage::GetState()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_messageMutex);
-
-        LOG_DEBUG("Message state = " << m_messageState 
-            << " for message with Id = " << m_messageId);
-        return m_messageState;
-    }
-    
-    static size_t SmtpMessageReadLine(char *ptr, 
-        size_t size, size_t nmemb, void* pMessage)
-    {
-        return static_cast<SmtpMessage*>(pMessage)->
-            ReadLine(ptr, size, nmemb);
     }
 
     // ------------------------------------------------------------------------------
@@ -286,55 +201,22 @@ namespace DSL
         LOG_INFO("Pushing: SMTP Message with Id = " << pMessage->GetId());
 
         m_queue.push(pMessage);
-        
-        // Start the Purge timer if not already running
-        if (!m_purgeTimerId)
-        {
-            m_purgeTimerId = g_timeout_add(1, SmtpMessageQueuePurge, this);
-        }
-        return bool(m_purgeTimerId);
+        return true;
     }
 
-    std::shared_ptr<SmtpMessage> SmtpMessageQueue::Front()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
-        
-        return (m_queue.empty()) ? nullptr : m_queue.front();
-    }
-    
-    bool SmtpMessageQueue::Purge()
+    std::shared_ptr<SmtpMessage> SmtpMessageQueue::PopFront()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
         
         if (m_queue.empty())
         {
-            LOG_ERROR("Queue Purge timer running without messages");
+            return nullptr;
         }
-        while (m_queue.size() and 
-            (m_queue.front()->IsComplete() or m_queue.front()->IsFailure()))
-        {
-            if (m_enabled and m_queue.front()->IsFailure())
-            {
-                LOG_ERROR("SMTP Message with Id " << m_queue.front()->GetId() 
-                    << " failed to send. ");
-            }
-            LOG_INFO("Purging: SMTP Message with Id = " << m_queue.front()->GetId());
-            m_queue.pop();
-        }
-        
-        // If the queue is backing up, then disable new messages from being added
-        m_enabled = (m_queue.size() > DSL_SMTP_MAX_PENDING_MESSAGES) ? false : true;
-        
-        // If there are remaining messages in the queue waiting for completion 
-        // - either pending or in progress - return true to restart the timer.
-        return m_queue.size();
-    }
-    
-    static int SmtpMessageQueuePurge(gpointer pMessageQueue)
-    {
-        return static_cast<SmtpMessageQueue*>(pMessageQueue)->Purge();
+
+        std::shared_ptr<SmtpMessage> pFront = m_queue.front();
+        m_queue.pop();
+        return pFront;
     }
     
     // ------------------------------------------------------------------------------
@@ -560,12 +442,7 @@ namespace DSL
             return false;
         }
         
-        std::shared_ptr<SmtpMessage> message = m_pMessageQueue.Front();
-        
-        if (message->IsInProgress())
-        {
-            return true;
-        }
+        std::shared_ptr<SmtpMessage> message = m_pMessageQueue.PopFront();
 
         CURL* pCurl = curl_easy_init();
         if(!pCurl)
@@ -597,11 +474,43 @@ namespace DSL
         }
         curl_easy_setopt(pCurl, CURLOPT_MAIL_RCPT, recipients);
         
-        curl_easy_setopt(pCurl, CURLOPT_READFUNCTION, SmtpMessageReadLine);
-        curl_easy_setopt(pCurl, CURLOPT_READDATA, &(*message));
-        curl_easy_setopt(pCurl, CURLOPT_UPLOAD, 1L);
+        // Build and set the message header list.
+        curl_slist* headers(NULL);
+        for (auto &ivec: message->m_header)
+        {
+            std::cout << ivec.c_str();
+            headers = curl_slist_append(headers, ivec.c_str());
+        }
+        curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers);
+ 
+        // Build the mime message. The inline part is an alternative proposing 
+        // the html and the text versions of the e-mail.
+        curl_mime* mime = curl_mime_init(pCurl);
+        curl_mime* alt = curl_mime_init(pCurl);
 
-        message->NowInProgress();            
+        std::ostringstream inlineHtml;
+        for (auto &ivec: message->m_content)
+        {
+            inlineHtml << ivec;
+        }
+     
+        // HTML message.
+        curl_mimepart* part = curl_mime_addpart(alt);
+        curl_mime_data(part, inlineHtml.str().c_str(), CURL_ZERO_TERMINATED);
+        curl_mime_type(part, "text/html");
+
+        // Create the inline part.
+        part = curl_mime_addpart(mime);
+        curl_mime_subparts(part, alt);
+        curl_mime_type(part, "multipart/alternative");
+        curl_slist* slist = curl_slist_append(NULL, "Content-Disposition: inline");
+        curl_mime_headers(part, slist, 1);
+     
+        // Add attachment - TODO
+//        part = curl_mime_addpart(mime);
+//        curl_mime_filedata(part, "image-capture.jpg");
+
+        curl_easy_setopt(pCurl, CURLOPT_MIMEPOST, mime);
         
         // perform the actual send, ReadLine function is called in this context
         CURLcode result = curl_easy_perform(pCurl);
@@ -613,16 +522,19 @@ namespace DSL
         {
             LOG_ERROR("libcurl returned " << result << ": '"
                 << curl_easy_strerror(result) << "' sending message");
-            message->NowFailure();
         }
 
-        // free up all recipients;
+        // free up all recipients/headers
         curl_slist_free_all(recipients);       
+        curl_slist_free_all(headers);       
 
         // clean up resources
-        curl_easy_cleanup(pCurl); 
+        curl_easy_cleanup(pCurl);
+ 
+        // Free multipart message
+        curl_mime_free(mime);        
         
-        // if there is more than one messages to send, return true to reschedule
+        // if there is more than one message to send, return true to reschedule
         if (!m_pMessageQueue.Size() > 1)
         {
             return true;

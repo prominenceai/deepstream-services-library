@@ -404,80 +404,80 @@ namespace DSL
             std::vector<std::string> body;
             
             body.push_back(std::string("Trigger Name    : " 
-                + pTrigger->GetName() + "\r\n"));
+                + pTrigger->GetName() + "<br>"));
             body.push_back(std::string("  Unique ODE Id : " 
-                + std::to_string(pTrigger->s_eventCount) + "\r\n"));
+                + std::to_string(pTrigger->s_eventCount) + "<br>"));
             body.push_back(std::string("  NTP Timestamp : " 
-                +  std::to_string(pFrameMeta->ntp_timestamp) + "\r\n"));
-            body.push_back(std::string("  Source Data   : ------------------------\r\n"));
+                +  std::to_string(pFrameMeta->ntp_timestamp) + "<br>"));
+            body.push_back(std::string("  Source Data   : ------------------------<br>"));
             if (pFrameMeta->bInferDone)
             {
-                body.push_back(std::string("    Inference   : Yes\r\n"));
+                body.push_back(std::string("    Inference   : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No\r\n"));
+                body.push_back(std::string("    Inference   : No<br>"));
             }
             body.push_back(std::string("    SourceId    : " 
-                +  std::to_string(pFrameMeta->source_id) + "\r\n"));
+                +  std::to_string(pFrameMeta->source_id) + "<br>"));
             body.push_back(std::string("    BatchId     : " 
-                +  std::to_string(pFrameMeta->batch_id) + "\r\n"));
+                +  std::to_string(pFrameMeta->batch_id) + "<br>"));
             body.push_back(std::string("    PadIndex    : " 
-                +  std::to_string(pFrameMeta->pad_index) + "\r\n"));
+                +  std::to_string(pFrameMeta->pad_index) + "<br>"));
             body.push_back(std::string("    Frame       : " 
-                +  std::to_string(pFrameMeta->frame_num) + "\r\n"));
+                +  std::to_string(pFrameMeta->frame_num) + "<br>"));
             body.push_back(std::string("    Width       : " 
-                +  std::to_string(pFrameMeta->source_frame_width) + "\r\n"));
+                +  std::to_string(pFrameMeta->source_frame_width) + "<br>"));
             body.push_back(std::string("    Heigh       : " 
-                +  std::to_string(pFrameMeta->source_frame_height) + "\r\n"));
-            body.push_back(std::string("  Object Data   : ------------------------\r\n"));
+                +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
+            body.push_back(std::string("  Object Data   : ------------------------<br>"));
             body.push_back(std::string("    Class Id    : " 
-                +  std::to_string(pTrigger->m_classId) + "\r\n"));
+                +  std::to_string(pTrigger->m_classId) + "<br>"));
             body.push_back(std::string("    Occurrences : " 
-                +  std::to_string(pTrigger->m_occurrences) + "\r\n"));
+                +  std::to_string(pTrigger->m_occurrences) + "<br>"));
 
             if (pObjectMeta)
             {
                 body.push_back(std::string("    Obj ClassId : " 
-                    +  std::to_string(pObjectMeta->class_id) + "\r\n"));
+                    +  std::to_string(pObjectMeta->class_id) + "<br>"));
                 body.push_back(std::string("    Tracking Id : " 
-                    +  std::to_string(pObjectMeta->object_id) + "\r\n"));
+                    +  std::to_string(pObjectMeta->object_id) + "<br>"));
                 body.push_back(std::string("    Label       : " 
-                    +  std::string(pObjectMeta->obj_label) + "\r\n"));
+                    +  std::string(pObjectMeta->obj_label) + "<br>"));
                 body.push_back(std::string("    Confidence  : " 
-                    +  std::to_string(pObjectMeta->confidence) + "\r\n"));
+                    +  std::to_string(pObjectMeta->confidence) + "<br>"));
                 body.push_back(std::string("    Left        : " 
-                    +  std::to_string(pObjectMeta->rect_params.left) + "\r\n"));
+                    +  std::to_string(pObjectMeta->rect_params.left) + "<br>"));
                 body.push_back(std::string("    Top         : " 
-                    +  std::to_string(pObjectMeta->rect_params.top) + "\r\n"));
+                    +  std::to_string(pObjectMeta->rect_params.top) + "<br>"));
                 body.push_back(std::string("    Width       : " 
-                    +  std::to_string(pObjectMeta->rect_params.width) + "\r\n"));
+                    +  std::to_string(pObjectMeta->rect_params.width) + "<br>"));
                 body.push_back(std::string("    Height      : " 
-                    +  std::to_string(pObjectMeta->rect_params.height) + "\r\n"));
+                    +  std::to_string(pObjectMeta->rect_params.height) + "<br>"));
             }
 
-            body.push_back(std::string("  Criteria  : ------------------------\r\n"));
+            body.push_back(std::string("  Criteria     : ------------------------<br>"));
             body.push_back(std::string("    Confidence  : " 
-                +  std::to_string(pTrigger->m_minConfidence) + "\r\n"));
+                +  std::to_string(pTrigger->m_minConfidence) + "<br>"));
             body.push_back(std::string("    Frame Count : " 
                 +  std::to_string(pTrigger->m_minFrameCountN) + " out of " 
-                +  std::to_string(pTrigger->m_minFrameCountD) + "\r\n"));
+                +  std::to_string(pTrigger->m_minFrameCountD) + "<br>"));
             body.push_back(std::string("    Min Width   : " 
-                +  std::to_string(pTrigger->m_minWidth) + "\r\n"));
+                +  std::to_string(pTrigger->m_minWidth) + "<br>"));
             body.push_back(std::string("    Min Height  : " 
-                +  std::to_string(pTrigger->m_minHeight) + "\r\n"));
+                +  std::to_string(pTrigger->m_minHeight) + "<br>"));
             body.push_back(std::string("    Max Width   : " 
-                +  std::to_string(pTrigger->m_maxWidth) + "\r\n"));
+                +  std::to_string(pTrigger->m_maxWidth) + "<br>"));
             body.push_back(std::string("    Max Height  : " 
-                +  std::to_string(pTrigger->m_maxHeight) + "\r\n"));
+                +  std::to_string(pTrigger->m_maxHeight) + "<br>"));
 
             if (pTrigger->m_inferDoneOnly)
             {
-                body.push_back(std::string("    Inference   : Yes\r\n"));
+                body.push_back(std::string("    Inference   : Yes<br>"));
             }
             else
             {
-                body.push_back(std::string("    Inference   : No\r\n"));
+                body.push_back(std::string("    Inference   : No<br>"));
             }
             
             const std::shared_ptr<Comms> pComms = DSL::Services::GetServices()->GetComms();

@@ -158,12 +158,6 @@ namespace DSL {
     }    
     
     /**
-     * @brief SMTP Message states: PENDING on create, INPROGRESS, on 
-     * first Read() call from libcurl, COMPLETE on message fully read.
-     */
-    enum MessageState{ PENDING, INPROGRESS, COMPLETE, FAILURE };
-    
-    /**
      * @brief Address lines types used to specify which Email Address line to build
      */
     enum addressType{ TO, CC };
@@ -194,55 +188,22 @@ namespace DSL {
         ~SmtpMessage();
         
         /**
-         * @brief Callback function to read successive lines of email
-         * content - called by libcurl in response to an UPLOAD command. 
-         * @param[out] ptr memory to copy the next line into
-         * @param[in] size of remaining memory to copy into
-         * @param[in] nmemb number of memory blocks??
-         * @return the length of the line read.
-         */
-        size_t ReadLine(char *ptr, size_t size, size_t nmemb);
-        
-        /**
-         * @brief Sets the SMTP Message into an in-progress state
-         */
-        void NowInProgress();
-
-        /**
-         * @brief Queries the In-Progress state of the Message
-         * @return true if the Message reead is in progerss, false otherwise
-         */
-        bool IsInProgress();
-        
-        /**
-         * @brief Sets the SMTP Message into a COMPLETE state
-         */
-        void NowComplete();
-
-        /**
-         * @brief Queries the Completion state of the Message
-         * @return true if the Message has been Read completely, false otherwise
-         */
-        bool IsComplete();
-        
-        /**
-         * @brief Sets the SMTP Message into a FAILED state
-         */
-        void NowFailure();
-        
-        /**
-         * @brief Queries the Failure state of the Message
-         * @return true if the Message failed to send, false otherwise
-         */
-        bool IsFailure();
-        
-        uint GetState();
-        
-        /**
          * @brief returns the unique Id for this message
          * @return unique message Id
          */
         uint GetId(){return m_messageId;};
+
+    public:
+    
+        /**
+         * @brief Message header, combined DateTime, To, From, etc.
+         */
+        std::vector<std::string> m_header;
+    
+        /**
+         * @brief complete HTML inlne message content including <> tags 
+         */
+        std::vector<std::string> m_content;
     
     private:
     
@@ -281,12 +242,22 @@ namespace DSL {
          * @return formated "Subject:" string object 
          */
         std::string SubjectLine(const std::string& subject);
+        
+        /**
+         * @brief static constant begining HTML CSS content for eamil
+         */
+        static std::vector<std::string> m_htmlBegin;
+
+        /**
+         * @brief static constant ending HTML CSS content for eamil
+         */
+        static std::vector<std::string> m_htmlEnd;
 
         /**
          * @brief mutex to protect mutual access to queue data
          */
         GMutex m_messageMutex;
-        
+
         /**
          * @brief static message counter for all messages, 
          * incremented on message creation
@@ -297,34 +268,8 @@ namespace DSL {
          * @brief static message counter for all messages, 
          * incremented on message creation
          */
-        uint m_messageId;
-        
-        /**
-         * @brief unique message content added to the body of
-         * the message, all other content is template based
-         */
-        std::string m_uniqueContent;
-        
-        /**
-         * @brief complete message content provided to libcurl
-         * with the ReadLine callback. One vector element per line
-         */
-        std::vector<std::string> m_content;
-        
-        /**
-         * @brief maintains the number of lines read by libcurl over
-         * successive calls to the ReadLine callback
-         */
-        uint m_linesRead;
-
-        /**
-         * @brief message send states
-         */
-        MessageState m_messageState;
+        uint m_messageId;        
     };
-
-    static size_t SmtpMessageReadLine(char *ptr, 
-        size_t size, size_t nmemb, void* pMessage);
 
     /**
      * @class SmtpMessageQueue
@@ -365,14 +310,10 @@ namespace DSL {
         
         /**
          * @brief returns a pointer to the element at the front of the Queue
-         * @return shared pointer to the message at the front.
+         * while poping it from the queue as well. 
+         * @return shared pointer to the message poped from the front.
          */
-        std::shared_ptr<SmtpMessage> Front();
-        
-        /**
-         * @brief purges all messages in the queue that have been fully read by libcurl
-         */
-        bool Purge();
+        std::shared_ptr<SmtpMessage> PopFront();
         
         /**
          * @brief gets the current enabled setting for the queue
@@ -408,9 +349,6 @@ namespace DSL {
         uint m_purgeTimerId;
     };
 
-    static int SmtpMessageQueuePurge(gpointer pMessageQueue);
-    
-    
     /**
      * @class Comms
      * @brief Implements a Comms abstraction class for libcurl
