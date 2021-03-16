@@ -23,7 +23,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
-* [dsl_ode_trigger_instance_new](#dsl_ode_trigger_occurrence_new)
+* [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_minimum_new](#dsl_ode_trigger_minimum_new)
