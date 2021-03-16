@@ -366,6 +366,7 @@ Current **ODE Triggers** supported:
 * **Always** - triggers on every frame. Once per-frame always.
 * **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
 * **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
+* **Instance** - triggers on each new object instance accross frames based on unique tracker id. Once per new tracking id. 
 * **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
 * **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
 * **Minimum** - triggers when the count of detected objects in a frame fails to meet a specified minimum number. Once per-frame at most.
