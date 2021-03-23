@@ -215,7 +215,7 @@ DslReturnType dsl_smtp_ssl_enabled_get(boolean* enabled);
 This service gets the SSL enabled setting for the SMTP services. SSL is enabled by default
 
 **Parameters**
- * `enabled` [out] true if SSL is currently enabled, false otherwise.
+* `enabled` [out] true if SSL is currently enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
