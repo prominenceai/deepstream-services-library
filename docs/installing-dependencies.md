@@ -1,13 +1,15 @@
 # Installing DSL Dependencies
-The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. The current Alpha version of DSL supports only the NVIDI® Jetson™ platform, and all development and testing to date has been purposely done on the Jetson Nano™, the smallest model with the most constraints on resources. Testing will be scalled up to the bigger models before releasing v1.0.
+The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified. The current Alpha version of DSL supports only the NVIDI® Jetson™ platform, and all development and testing to date has been done on the Jetson Nano™ 4GB Developer Kit. Testing will be scalled up to larger models before releasing v1.0.
 
 Please consult the [NVIDIA DeepStream Documentation](https://docs.nvidia.com/metropolis/index.html) for complete Installation Instructions.
 
+DSL is built on [Deepstream 5.1](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) and [JetPack 4.5.1 GA (corresponding to L4T 32.5.1 release)](https://developer.nvidia.com/embedded/jetpack)
+
 ## GStreamer RTSP Server
-The RTSP Server lib required for the RTSP Sink Component
-``
+The RTSP Server lib is required by the RTSP Sink Component
+```
  sudo apt-get install libgstrtspserver-1.0-dev gstreamer1.0-rtsp
-``
+```
 
 ## Apache Runtime
 The Apache Runtime is used by the GStreamer Window Sink requiring the following libraries to be installed
