@@ -76,7 +76,7 @@ DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled);
 This services queries the SMTP services object for its current enabled state. Services are automatically disabled if and while the outgoing queue size exceeds `DSL_SMTP_MAX_PENDING_MESSAGES`. Services are enabled by default.
 
 **Parameters**
- * `enabled` [out] true if SMTP services are currently enabled, false otherwise.
+* `enabled` [out] true if SMTP services are currently enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -95,7 +95,7 @@ DslReturnType dsl_smtp_mail_enabled_set(boolean enabled);
 This services sets the enabled state for the SMTP services object. Setting the state to true while the outgoing queue size exceeds `DSL_SMTP_MAX_PENDING_MESSAGES` will return `DSL_RESULT_FAILURE`. Services are enabled by default.
 
 **Parameters**
- * `enabled` [in] set to true to enable SMTP services, false to disable.
+* `enabled` [in] set to true to enable SMTP services, false to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -115,8 +115,8 @@ DslReturnType dsl_smtp_credentials_set(const wchar_t* username,
 This service is used to set the SMTP account credentials, username and password, for all subsequent emails sent.
 
 **Parameters**
- * `username` [in] username for the SMTP account
- * `password` [in] password for the same account
+* `username` [in] username for the SMTP account
+* `password` [in] password for the same account
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -135,7 +135,7 @@ DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url);
 This service gets the current Server URL in use. The service will return an empty string unless set by a previous call made to [dsl_smtp_server_url_set](#dsl_smtp_server_url_set).
 
 **Parameters**
- * `server_url` [out] current Server URL in use.
+* `server_url` [out] current Server URL in use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -154,7 +154,7 @@ DslReturnType dsl_smtp_server_url_get(const wchar_t** server_url);
 This service sets the Server URL to use for all subsequent emails sent.
 
 **Parameters**
- * `server_url` [in] new Server URL to use.
+* `server_url` [in] new Server URL to use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -174,8 +174,8 @@ DslReturnType dsl_smtp_address_from_get(const wchar_t** name,
 This service gets the current `From` address in use by SMTP services, values that were previously set with a call to [dsl_smtp_address_from_set](#dsl_smtp_address_from_set).
 
 **Parameters**
- * `name` [out] returns the display name (optional) for the `From` address in use
- * `address` [out] returns the email address in use.
+* `name` [out] returns the display name (optional) for the `From` address in use
+* `address` [out] returns the email address in use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -195,8 +195,8 @@ DslReturnType dsl_smtp_address_from_get(const wchar_t* name,
 This service sets the `From` address to use for all subsequent emails.
 
 **Parameters**
- * `name` [in] the display name (optional) to use for the `From` address
- * `address` [in] the email address to use. Will be set by the server if omitted.
+* `name` [in] the display name (optional) to use for the `From` address
+* `address` [in] the email address to use. Will be set by the server if omitted.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -234,7 +234,7 @@ DslReturnType dsl_smtp_ssl_enabled_set(boolean enabled);
 This service sets the SSL enabled state for SMTP Services. SSL is enabled by default
 
 **Parameters**
- * `enabled` [in] set to true to enable SSL, false to disable.
+* `enabled` [in] set to true to enable SSL, false to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure
@@ -254,8 +254,8 @@ DslReturnType dsl_smtp_address_to_add(const wchar_t* name,
 This service adds a `To` address to use for all subsequent emails.
 
 **Parameters**
- * `name` [in] the display name (optional) to use for the `To` address
- * `address` [in] the email address to add. 
+* `name` [in] the display name (optional) to use for the `To` address
+* `address` [in] the email address to add. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful call. One of the [Return Values](#return-values) defined above on failure.
@@ -291,8 +291,8 @@ DslReturnType dsl_smtp_address_cc_add(const wchar_t* name,
 This service adds a `Cc` address to use for all subsequent emails. `Cc` addresses are optional.
 
 **Parameters**
- * `name` [in] the display name (optional) to use for the `Cc` address
- * `address` [in] the email address to add. 
+* `name` [in] the display name (optional) to use for the `Cc` address
+* `address` [in] the email address to add. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
