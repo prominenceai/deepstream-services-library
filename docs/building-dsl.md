@@ -22,6 +22,11 @@ Invoke the standard make (all) to  compile all source code and test scenarios in
 ```
 $ make
 ```
+or
+```
+$ make -j 4
+```
+to use all 4 CPU cores for a much faster build time.
 
 ### Running the Test Application
 ***This step is optional unless contributing changes.***
@@ -39,7 +44,7 @@ $ ./dsl-test-app
 After completion, ensure that all tests have passed before building the shared library.
 ```
 ===============================================================================
-All tests passed (3790 assertions in 492 test cases)
+All tests passed (4075 assertions in 527 test cases)
 ```
 
 Note: the total passed assertions and test cases are subject to change.

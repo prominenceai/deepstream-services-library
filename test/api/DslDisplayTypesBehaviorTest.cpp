@@ -140,7 +140,7 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*5);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -153,6 +153,8 @@ SCENARIO( "All DisplayTypes can be displayed by and eODE Action", "[display-type
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }

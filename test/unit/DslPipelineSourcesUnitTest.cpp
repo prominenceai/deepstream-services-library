@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "catch.hpp"
+	#include "catch.hpp"
 #include "DslSourceBintr.h"
 #include "DslPipelineSourcesBintr.h"
 
@@ -360,18 +360,18 @@ SCENARIO( "The Pipeline Stream Muxer's num-surfaces-per-frame can be read and up
         uint num;
         
         pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
-        REQUIRE( num == 4 );
+        REQUIRE( num == 1 );
             
         WHEN( "The Stream Muxer's num-surfaces-per-frame is set t a new value " )
         {
-            pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(1);
+            pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(2);
              
             THEN( "The correct value is returned on get" )
             {
                 uint num;
                 
                 pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
-                REQUIRE( num == 1 );
+                REQUIRE( num == 2 );
             }
         }
     }

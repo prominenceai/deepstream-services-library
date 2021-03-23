@@ -102,8 +102,8 @@ SCENARIO( "A new SMTP message is created correctly", "[Comms]" )
 
             THEN( "All members are setup correctly" )
             {
-                REQUIRE( pMessage1->GetId() == 1 );
-                REQUIRE( pMessage2->GetId() == 2 );
+                REQUIRE( pMessage1->GetId() > 0 );
+                REQUIRE( pMessage2->GetId() == (pMessage1->GetId() +1) );
             }
         }
     }
