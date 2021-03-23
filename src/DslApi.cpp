@@ -2231,15 +2231,18 @@ DslReturnType dsl_gie_primary_new(const wchar_t* name, const wchar_t* infer_conf
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(infer_config_file);
-    RETURN_IF_PARAM_IS_NULL(model_engine_file);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-    std::wstring wstrEngine(model_engine_file);
-    std::string cstrEngine(wstrEngine.begin(), wstrEngine.end());
-    
+	
+	std::string cstrEngine;
+	if (model_engine_file != NULL)
+	{
+		std::wstring wstrEngine(model_engine_file);
+		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    }
     return DSL::Services::GetServices()->PrimaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), interval);
 }
@@ -2277,18 +2280,21 @@ DslReturnType dsl_gie_secondary_new(const wchar_t* name, const wchar_t* infer_co
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(infer_config_file);
-    RETURN_IF_PARAM_IS_NULL(model_engine_file);
     RETURN_IF_PARAM_IS_NULL(infer_on_gie);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrConfig(infer_config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
-    std::wstring wstrEngine(model_engine_file);
-    std::string cstrEngine(wstrEngine.begin(), wstrEngine.end());
     std::wstring wstrInferOnGie(infer_on_gie);
     std::string cstrInferOnGie(wstrInferOnGie.begin(), wstrInferOnGie.end());
-    
+
+	std::string cstrEngine;
+	if (model_engine_file != NULL)
+	{
+		std::wstring wstrEngine(model_engine_file);
+		cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    }
     return DSL::Services::GetServices()->SecondaryGieNew(cstrName.c_str(), cstrConfig.c_str(),
         cstrEngine.c_str(), cstrInferOnGie.c_str(), interval);
 }

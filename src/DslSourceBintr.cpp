@@ -396,7 +396,6 @@ namespace DSL
                 g_object_set(pObject, "skip-frames", 2, NULL);
             }
             g_object_set(pObject, "enable-max-performance", TRUE, NULL);
-            g_object_set(pObject, "bufapi-version", TRUE, NULL);
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
             g_object_set(pObject, "num-extra-surfaces", m_numExtraSurfaces, NULL);
 

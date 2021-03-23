@@ -860,9 +860,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         uint size(14);
 
         std::wstring areaName(L"area");
-        std::wstring areaRectangleName(L"area-rectangle");
-        uint left(500), top(0), width(10), height(1080);
-        uint border_width(0);
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint num_coordinates(4);
 
         std::wstring odePphName(L"ode-handler");
 
@@ -890,11 +892,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_ode_trigger_action_add(personOccurrenceName.c_str(), fillActionName.c_str()) == DSL_RESULT_SUCCESS );
         
         // Create a new ODE Area for criteria
-        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
-            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+			border_width, lightWhite.c_str())== DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_area_inclusion_new(areaName.c_str(), 
-            areaRectangleName.c_str(), true, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+            polygonName.c_str(), true, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_area_add(personOccurrenceName.c_str(), areaName.c_str()) == DSL_RESULT_SUCCESS );
 
         // Single display action shared by all ODT Summation Types
@@ -1070,6 +1072,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -1198,6 +1202,8 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -1315,7 +1321,7 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*12);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -1328,6 +1334,10 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }
@@ -1458,6 +1468,10 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
                 REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+                REQUIRE( dsl_ode_area_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_area_list_size() == 0 );
+                REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
     }

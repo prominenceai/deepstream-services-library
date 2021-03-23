@@ -35,27 +35,28 @@ SCENARIO( "The ODE Areas container is updated correctly on multiple new ODE Area
         std::wstring areaName3(L"area-3");
         boolean display(true);
 
-        std::wstring areaRectangleName(L"area-rectangle");
-        uint left(0), top(0), width(100), height(100);
-        uint border_width(0);
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint num_coordinates(4);
         
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
-        std::wstring lightWhite(L"light-white");
-        REQUIRE( dsl_display_type_rgba_color_new(lightWhite.c_str(), 
+        std::wstring colorName(L"light-white");
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
-            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+			border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
         WHEN( "Several new Actions are created" ) 
         {
             REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
-                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+                polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
-                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+                polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
-                areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+                polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
             
             THEN( "The list size and events are updated correctly" ) 
             {
@@ -78,25 +79,26 @@ SCENARIO( "The ODE Areas container is updated correctly on Delete ODE Area", "[o
         std::wstring areaName3(L"area-3");
         boolean display(true);
         
-        std::wstring areaRectangleName(L"area-rectangle");
-        uint left(0), top(0), width(100), height(100);
-        uint border_width(0);
+        std::wstring polygonName(L"polygon");
+        uint border_width(3);
+        dsl_coordinate coordinates[4] = {{100,100},{210,110},{220, 300},{110,330}};
+        uint num_coordinates(4);
         
         REQUIRE( dsl_ode_area_list_size() == 0 );
 
-        std::wstring lightWhite(L"light-white");
-        REQUIRE( dsl_display_type_rgba_color_new(lightWhite.c_str(), 
+        std::wstring colorName(L"light-white");
+        REQUIRE( dsl_display_type_rgba_color_new(colorName.c_str(), 
             1.0, 1.0, 1.0, 0.25) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_rgba_rectangle_new(areaRectangleName.c_str(), left, top, width, height, 
-            border_width, lightWhite.c_str(), true, lightWhite.c_str())== DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_display_type_rgba_polygon_new(polygonName.c_str(), coordinates, num_coordinates, 
+			border_width, colorName.c_str())== DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
-            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
-            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
-            areaRectangleName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_ode_area_inclusion_new(areaName1.c_str(), 
+			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_ode_area_inclusion_new(areaName2.c_str(), 
+			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
+		REQUIRE( dsl_ode_area_inclusion_new(areaName3.c_str(), 
+			polygonName.c_str(), display, DSL_BBOX_POINT_ANY) == DSL_RESULT_SUCCESS );
 
         WHEN( "A single Area is deleted" ) 
         {

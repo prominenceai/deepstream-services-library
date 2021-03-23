@@ -432,10 +432,8 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[gie-api]" )
             {
                 REQUIRE( dsl_gie_primary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_primary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_gie_primary_new(gieName.c_str(), infer_config_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_secondary_new(NULL, infer_config_file.c_str(), model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_secondary_new(gieName.c_str(),   NULL, model_engine_file.c_str(), gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), NULL, gieName.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_secondary_new(gieName.c_str(), infer_config_file.c_str(), model_engine_file.c_str(), NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_primary_pph_add(NULL, NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gie_primary_pph_add(gieName.c_str(), NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );

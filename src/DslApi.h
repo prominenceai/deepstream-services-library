@@ -304,41 +304,41 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_AREA_SET_FAILED                              0x00100005
 #define DSL_RESULT_ODE_AREA_PARAMETER_INVALID                       0x00100006
 
-#define DSL_RESULT_DISPLAY_TYPE_RESULT                              0x00100000
-#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00100001
-#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND                      0x00100002
-#define DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION                     0x00100003
-#define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00100004
-#define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00100005
-#define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00100006
-#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00100007
-#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00100008
-#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00100009
-#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0010000A
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0010000B
-#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0010000C
-#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0010000D
-#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0010000E
-#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0010000F
-#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00100010
-#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00100011
-#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00100012
-#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00100013
-#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00100014
+#define DSL_RESULT_DISPLAY_TYPE_RESULT                              0x00200000
+#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE                     0x00200001
+#define DSL_RESULT_DISPLAY_TYPE_NAME_NOT_FOUND                      0x00200002
+#define DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION                     0x00200003
+#define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00200004
+#define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00200005
+#define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00200006
+#define DSL_RESULT_DISPLAY_RGBA_COLOR_NAME_NOT_UNIQUE               0x00200007
+#define DSL_RESULT_DISPLAY_RGBA_FONT_NAME_NOT_UNIQUE                0x00200008
+#define DSL_RESULT_DISPLAY_RGBA_TEXT_NAME_NOT_UNIQUE                0x00200009
+#define DSL_RESULT_DISPLAY_RGBA_LINE_NAME_NOT_UNIQUE                0x0020000A
+#define DSL_RESULT_DISPLAY_RGBA_ARROW_NAME_NOT_UNIQUE               0x0020000B
+#define DSL_RESULT_DISPLAY_RGBA_ARROW_HEAD_INVALID                  0x0020000C
+#define DSL_RESULT_DISPLAY_RGBA_RECTANGLE_NAME_NOT_UNIQUE           0x0020000D
+#define DSL_RESULT_DISPLAY_RGBA_POLYGON_NAME_NOT_UNIQUE             0x0020000E
+#define DSL_RESULT_DISPLAY_RGBA_CIRCLE_NAME_NOT_UNIQUE              0x0020000F
+#define DSL_RESULT_DISPLAY_SOURCE_NUMBER_NAME_NOT_UNIQUE            0x00200010
+#define DSL_RESULT_DISPLAY_SOURCE_NAME_NAME_NOT_UNIQUE              0x00200011
+#define DSL_RESULT_DISPLAY_SOURCE_DIMENSIONS_NAME_NOT_UNIQUE        0x00200012
+#define DSL_RESULT_DISPLAY_SOURCE_FRAMERATE_NAME_NOT_UNIQUE         0x00200013
+#define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200014
 
 
 /**
  * Tap API Return Values
  */
-#define DSL_RESULT_TAP_RESULT                                       0x00200000
-#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00200001
-#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00200002
-#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00200003
-#define DSL_RESULT_TAP_IN_USE                                       0x00200004
-#define DSL_RESULT_TAP_SET_FAILED                                   0x00200005
-#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00200006
-#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00200007
-#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00200008
+#define DSL_RESULT_TAP_RESULT                                       0x00300000
+#define DSL_RESULT_TAP_NAME_NOT_UNIQUE                              0x00300001
+#define DSL_RESULT_TAP_NAME_NOT_FOUND                               0x00300002
+#define DSL_RESULT_TAP_THREW_EXCEPTION                              0x00300003
+#define DSL_RESULT_TAP_IN_USE                                       0x00300004
+#define DSL_RESULT_TAP_SET_FAILED                                   0x00300005
+#define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00300006
+#define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00300007
+#define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
 
 /**
  *
@@ -416,6 +416,7 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT                         40000
 #define DSL_DEFAULT_STREAMMUX_WIDTH                                 1920
 #define DSL_DEFAULT_STREAMMUX_HEIGHT                                1080
+#define DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME			1
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 
@@ -2254,6 +2255,8 @@ DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
+ * Set to NULL or empty string "" to leave unspecified, indicating that
+ * the model should be created based on the infer_config_file settings
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */
@@ -2284,7 +2287,9 @@ DslReturnType dsl_gie_primary_pph_remove(const wchar_t* name, const wchar_t* han
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
- * @param[in] infer_on_gie name of the Primary of Secondary GIE to infer on
+ * Set to NULL or empty string "" to leave unspecified, indicating that
+ * the model should be created based on the infer_config_file settings
+ * @param[in] infer_on_gie name of the Primary or Secondary GIE to infer on
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GIE_RESULT otherwise.
  */

@@ -123,8 +123,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add Nvidia's example batch meta handler to the Source Pad of the KTL Tracker
-        retval = dsl_osd_batch_meta_handler_add('on-screen-display', DSL_PAD_SINK, osd_sink_pad_buffer_probe, None)
+        # New Custom Pad Probe Handler to call Nvidia's example callback for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', client_handler=osd_sink_pad_buffer_probe, client_data=None)
+        
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='custom-pph', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
         

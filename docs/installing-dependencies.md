@@ -3,6 +3,12 @@ The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](h
 
 Please consult the [NVIDIA DeepStream Documentation](https://docs.nvidia.com/metropolis/index.html) for complete Installation Instructions.
 
+## GStreamer RTSP Server
+The RTSP Server lib required for the RTSP Sink Component
+``
+ sudo apt-get install libgstrtspserver-1.0-dev gstreamer1.0-rtsp
+``
+
 ## Apache Runtime
 The Apache Runtime is used by the GStreamer Window Sink requiring the following libraries to be installed
 ```
