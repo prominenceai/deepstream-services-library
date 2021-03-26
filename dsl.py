@@ -798,26 +798,6 @@ def dsl_ode_trigger_intersection_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_maximum_new()
-##
-_dsl.dsl_ode_trigger_maximum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_maximum_new.restype = c_uint
-def dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum):
-    global _dsl
-    result =_dsl.dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum)
-    return int(result)
-
-##
-## dsl_ode_trigger_minimum_new()
-##
-_dsl.dsl_ode_trigger_minimum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_minimum_new.restype = c_uint
-def dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum):
-    global _dsl
-    result =_dsl.dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum)
-    return int(result)
-
-##
 ## dsl_ode_trigger_occurrence_new()
 ##
 _dsl.dsl_ode_trigger_occurrence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
@@ -848,13 +828,13 @@ def dsl_ode_trigger_summation_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_range_new()
+## dsl_ode_trigger_count_new()
 ##
-_dsl.dsl_ode_trigger_range_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_range_new.restype = c_uint
-def dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper):
+_dsl.dsl_ode_trigger_count_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_count_new.restype = c_uint
+def dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper)
+    result =_dsl.dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum)
     return int(result)
 
 ##
