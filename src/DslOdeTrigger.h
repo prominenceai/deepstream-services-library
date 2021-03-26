@@ -65,22 +65,14 @@ namespace DSL
         std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
             source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
-    #define DSL_ODE_TRIGGER_MINIMUM_PTR std::shared_ptr<MinimumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MINIMUM_NEW(name, source, classId, limit, minimum) \
-        std::shared_ptr<MinimumOdeTrigger>(new MinimumOdeTrigger(name, source, classId, limit, minimum))
-        
-    #define DSL_ODE_TRIGGER_MAXIMUM_PTR std::shared_ptr<MaximumOdeTrigger>
-    #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum) \
-        std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, source, classId, limit, maximum))
-
     #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
     #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, source, classId, limit, minimum, maximum) \
         std::shared_ptr<PersistenceOdeTrigger> \
 			(new PersistenceOdeTrigger(name, source, classId, limit, minimum, maximum))
 
-    #define DSL_ODE_TRIGGER_RANGE_PTR std::shared_ptr<RangeOdeTrigger>
-    #define DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper) \
-        std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, source, classId, limit, lower, upper))
+    #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
+    #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
+        std::shared_ptr<CountOdeTrigger>(new CountOdeTrigger(name, source, classId, limit, minimum, maximum))
 
     #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
     #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit) \
@@ -829,13 +821,14 @@ namespace DSL
 		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     };
 
-    class RangeOdeTrigger : public OdeTrigger
+    class CountOdeTrigger : public OdeTrigger
     {
     public:
     
-        RangeOdeTrigger(const char* name, const char* source, uint classId, uint limit, uint lower, uint upper);
+        CountOdeTrigger(const char* name, 
+			const char* source, uint classId, uint limit, uint minimum, uint maximum);
         
-        ~RangeOdeTrigger();
+        ~CountOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
@@ -848,8 +841,8 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
 
         /**
-         * @brief Function to post process the frame and generate a Range ODE occurrence if the 
-         * number of occurrences is with in range of the Trigger's Upper and Lower values
+         * @brief Function to post process the frame and generate a Count ODE occurrence if the 
+         * number of occurrences is with in the Trigger's minimum and maximum settings
          * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
@@ -859,14 +852,14 @@ namespace DSL
     private:
     
         /**
-         * @brief Lower range of the object count for ODE occurrence
+         * @brief Minimum object count for ODE occurrence, 0 = no minimum
          */
-        uint m_lower;
+        uint m_minimum;
     
         /**
-         * @brief Lower range of the object count for ODE occurrence
+         * @brief Maximum object count for ODE occurrence, 0 = no maximum
          */
-        uint m_upper;
+        uint m_maximum;
     
     };
 

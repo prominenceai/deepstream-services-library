@@ -395,6 +395,45 @@ SCENARIO( "A new Always Trigger can be created and deleted correctly", "[ode-tri
     }
 }    
 
+SCENARIO( "A new Count Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Count Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"count");
+        uint class_id(0);
+        uint limit(0);
+		uint minimum(10);
+		uint maximum(30);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
+				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
+				NULL, class_id, limit, minimum, maximum) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_count_new(odeTriggerName.c_str(), 
+					NULL, class_id, limit, minimum, maximum) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "A new Summation Trigger can be created and deleted correctly", "[ode-trigger-api]" )
 {
     GIVEN( "Attributes for a new Summation Trigger" ) 
@@ -456,78 +495,6 @@ SCENARIO( "A new Intersection Trigger can be created and deleted correctly", "[o
             THEN( "A second Trigger with the same name fails to create" ) 
             {
                 REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), NULL, class_id, limit) 
-                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-            }
-        }
-    }
-}    
-
-SCENARIO( "A new Minimum Trigger can be created and deleted correctly", "[ode-trigger-api]" )
-{
-    GIVEN( "Attributes for a new Minimum Trigger" ) 
-    {
-        std::wstring odeTriggerName(L"minimum");
-        uint class_id(0);
-        uint limit(0);
-        uint minimum(2);
-
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_minimum_new(odeTriggerName.c_str(), NULL, class_id, limit, minimum) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Trigger can be deleted only once" ) 
-            {
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
-            }
-        }
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_minimum_new(odeTriggerName.c_str(), NULL, class_id, limit, minimum) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Trigger with the same name fails to create" ) 
-            {
-                REQUIRE( dsl_ode_trigger_minimum_new(odeTriggerName.c_str(), NULL, class_id, limit, minimum) 
-                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-            }
-        }
-    }
-}    
-
-SCENARIO( "A new Maximum Trigger can be created and deleted correctly", "[ode-trigger-api]" )
-{
-    GIVEN( "Attributes for a new Maximum Trigger" ) 
-    {
-        std::wstring odeTriggerName(L"maximum");
-        uint class_id(0);
-        uint limit(0);
-        uint maximum(5);
-
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_maximum_new(odeTriggerName.c_str(), NULL, class_id, limit, maximum) == DSL_RESULT_SUCCESS );
-            
-            THEN( "The Trigger can be deleted only once" ) 
-            {
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_trigger_list_size() == 0 );
-                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
-            }
-        }
-        WHEN( "When the Trigger is created" )         
-        {
-            REQUIRE( dsl_ode_trigger_maximum_new(odeTriggerName.c_str(), NULL, class_id, limit, maximum) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Trigger with the same name fails to create" ) 
-            {
-                REQUIRE( dsl_ode_trigger_maximum_new(odeTriggerName.c_str(), NULL, class_id, limit, maximum) 
                     == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
@@ -676,10 +643,7 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_custom_new(triggerName.c_str(), NULL, 0, 0, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_custom_new(triggerName.c_str(), NULL, 0, 0, callback, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_trigger_minimum_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_maximum_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-                REQUIRE( dsl_ode_trigger_range_new(NULL, NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_count_new(NULL, NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_smallest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_largest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
