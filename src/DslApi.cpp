@@ -1102,6 +1102,25 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* so
         class_id, limit, maximum);
 }
 
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerPersistenceNew(cstrName.c_str(), cstrSource.c_str(), 
+        class_id, limit, minimum, maximum);
+}
+
+	
 DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint lower, uint upper)
 {

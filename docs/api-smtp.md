@@ -292,7 +292,7 @@ This service adds a `Cc` address to use for all subsequent emails. `Cc` addresse
 
 **Parameters**
 * `name` [in] the display name (optional) to use for the `Cc` address
-* `address` [in] the email address to add. 
+git* `address` [in] the email address to add. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.

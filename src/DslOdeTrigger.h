@@ -73,6 +73,11 @@ namespace DSL
     #define DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum) \
         std::shared_ptr<MaximumOdeTrigger>(new MaximumOdeTrigger(name, source, classId, limit, maximum))
 
+    #define DSL_ODE_TRIGGER_PERSISTENCE_PTR std::shared_ptr<PersistenceOdeTrigger>
+    #define DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, source, classId, limit, minimum, maximum) \
+        std::shared_ptr<PersistenceOdeTrigger> \
+			(new PersistenceOdeTrigger(name, source, classId, limit, minimum, maximum))
+
     #define DSL_ODE_TRIGGER_RANGE_PTR std::shared_ptr<RangeOdeTrigger>
     #define DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper) \
         std::shared_ptr<RangeOdeTrigger>(new RangeOdeTrigger(name, source, classId, limit, lower, upper))
@@ -552,7 +557,7 @@ namespace DSL
         /**
          * @brief map of last Tracking Ids per unique source_id-class_id combination
          */
-        std::map<std::string, uint64_t> m_instances;
+        std::map <std::string, uint64_t> m_instances;
     
     };
     
@@ -741,7 +746,87 @@ namespace DSL
          * @brief maximum object count before for ODE occurrence
          */
         uint m_maximum;
+		
+    };
+
+	struct TrackedObject
+	{
+
+		TrackedObject(uint64_t trackingId, uint64_t frameNumber)
+			: m_trackingId(trackingId)
+			, m_frameNumber(frameNumber)
+		{
+			timeval creationTime;
+			gettimeofday(&creationTime, NULL);
+			m_creationTimeMs = creationTime.tv_sec*1000.0 + creationTime.tv_usec/1000.0;
+		}
+		
+		/**
+		 * @brief unique id for the tracked object
+		 */
+		uint64_t m_trackingId;
+		
+		/**
+		 * @brief frame number for the tracked object, updated on detection within a new frame
+		 */
+		uint64_t m_frameNumber;
+		
+		/**
+		 * @brief time of creation for this Tracked Object, used to test for object persistence
+		 */
+		double m_creationTimeMs;
+	};
+	
+	/**
+	 * @brief map of tracked objects - unique Tracking Id as key
+	 */
+	typedef std::map <uint64_t, std::shared_ptr<TrackedObject>> TrackedObjects;
+
+    class PersistenceOdeTrigger : public OdeTrigger
+    {
+    public:
     
+        PersistenceOdeTrigger(const char* name, 
+			const char* source, uint classId, uint limit, uint minimum, uint maximum);
+        
+        ~PersistenceOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence, 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Persistence ODE occurrence 
+		 * if any unique object has been tracked for a period of time within the Trigger's 
+		 * minimum and maximum duration value
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+
+    private:
+
+        /**
+         * @brief minimum duration of object persistence - 0 = no minimum.
+         */
+        double m_minimumMs;
+    
+        /**
+         * @brief maximum duration of object persistence - 0 = no maximum
+         */
+        double m_maximumMs;
+    
+		/**
+		 * @brief map of tracked objects per source - Key = source Id
+		 */
+		std::map <uint, std::shared_ptr<TrackedObjects>> m_trackedObjectsPerSource;
     };
 
     class RangeOdeTrigger : public OdeTrigger
