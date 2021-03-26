@@ -995,20 +995,22 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
     }
 }
 
-SCENARIO( "A MaximumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
+SCENARIO( "A CountOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 {
-    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
+    GIVEN( "A new CountOdeTrigger with Maximum criteria" ) 
     {
         std::string odeTriggerName("maximum");
         std::string source;
         uint classId(1);
         uint limit(0);
-        uint maximum(2);
+        uint minimum(2);
+        uint maximum(3);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TRIGGER_MAXIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MAXIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, maximum);
+        DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_COUNT_NEW(odeTriggerName.c_str(), source.c_str(), 
+				classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -1028,82 +1030,48 @@ SCENARIO( "A MaximumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]"
         
         NvDsObjectMeta objectMeta3 = {0};
         objectMeta3.class_id = classId; // must match ODE Type's classId
+
+        NvDsObjectMeta objectMeta4 = {0};
+        objectMeta4.class_id = classId; // must match ODE Type's classId
         
-        WHEN( "Two objects occur -- equal to the Maximum " )
+        WHEN( "Two objects occur -- equal to the Minimum" )
         {
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
-            THEN( "NO ODE occurrence is detected" )
-            {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
-            }
-        }
-        WHEN( "Three objects occur -- greater than the Maximum " )
-        {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-            
-            THEN( "ODE occurrence is detected" )
-            {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A MinimumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
-{
-    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
-    {
-        std::string odeTriggerName("maximum");
-        std::string source;
-        uint classId(1);
-        uint limit(0);
-        uint minimum(3);
-
-        std::string odeActionName("event-action");
-
-        DSL_ODE_TRIGGER_MINIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MINIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, minimum);
-
-        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
-
-        NvDsFrameMeta frameMeta =  {0};
-        frameMeta.frame_num = 444;
-        frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 2;
-
-        NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
-        
-        NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
-        
-        NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classId; // must match ODE Type's classId
-        
-        WHEN( "Two objects occur -- less than the Maximum " )
-        {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-            
-            THEN( "NO ODE occurrence is detected" )
+            THEN( "Two ODE occurrences are detected" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
             }
         }
-        WHEN( "Three objects occur -- equal than the Maximum " )
+        WHEN( "One object occurs -- less than the Minimum" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            
+            THEN( "0 ODE occurrences are detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "Three objects occur -- equal to the Maximum " )
         {
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
-            THEN( "ODE occurrence is detected" )
+            THEN( "Three ODE occurrences are detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+            }
+        }
+        WHEN( "Four objects occur -- greater than the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta4) == true );
+            
+            THEN( "0 ODE occurrences are detected" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
             }

@@ -218,17 +218,11 @@ namespace DSL {
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
             dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
-        DslReturnType OdeTriggerMinimumNew(const char* name, const char* source,
-            uint classId, uint limit, uint minimum);
-        
-        DslReturnType OdeTriggerMaximumNew(const char* name, const char* source,
-            uint classId, uint limit, uint maximum);
-
         DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
             uint classId, uint limit, uint minimum, uint maximum);
 
-        DslReturnType OdeTriggerRangeNew(const char* name, const char* source, 
-            uint classId, uint limit, uint lower, uint upper);
+        DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
+            uint classId, uint limit, uint minimum, uint maximum);
         
         DslReturnType OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit);
 

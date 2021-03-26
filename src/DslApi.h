@@ -1332,17 +1332,6 @@ uint dsl_ode_area_list_size();
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);
 
 /**
- * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
- * specified source and object class_id.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
-
-/**
  * @brief Absence trigger that checks for the absence of Objects within a frame
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
@@ -1351,6 +1340,20 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Count trigger that checks for the occurrence of Objects within a frame
+ * and tests if the count is within a specified range.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
+ * @param[in] maximum the maximum count for triggering ODE occurrence, 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id, uint limit, uint minimum, uint maximum);
 
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
@@ -1375,17 +1378,6 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* s
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Summation trigger that checks for and sums all objects detected within a frame
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
- 
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
-
-/**
  * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
  * to be called with Frame Meta and Object Meta data for every object that meets the trigger's
  * criteria: class id, min dimensions, min confidence, etc. The Client can maitain and test with
@@ -1406,30 +1398,15 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
     dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
 /**
- * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
- * against a specified minimum number, and generates an ODE occurence if not met
+ * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
+ * specified source and object class_id.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] minimum the minimum count that must be present before triggering an ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint minimum);
-
-/**
- * @brief Maximum occurence trigger that checks for the occurrence of Objects within a frame
- * against a specified maximum number, and generates an ODE occurence if exceeded
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] maximum the maximum count allowed without triggering ODE occurence
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint maximum);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
@@ -1448,20 +1425,6 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* so
 DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
 	
-/**
- * @brief Range occurence trigger that checks for the occurrence of Objects within a frame
- * against a range of numbers, and generates an ODE occurence if within range
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] lower the lower range for triggering ODE occurence
- * @param[in] upper the upper range for triggering ODE occurence
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint lower, uint upper);
-
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
@@ -1484,6 +1447,15 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* s
  */
 DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
+/**
+ * @brief Summation trigger that checks for and sums all objects detected within a frame
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
