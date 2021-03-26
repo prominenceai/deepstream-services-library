@@ -969,6 +969,143 @@ namespace DSL
 
     // *****************************************************************************
     
+    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
+        : OdeTrigger(name, source, classId, limit)
+        , m_minimumMs(minimum*1000.0)
+        , m_maximumMs(maximum*1000.0)
+    {
+        LOG_FUNC();
+    }
+
+    PersistenceOdeTrigger::~PersistenceOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+
+		// if this is the first occurrence of any object for this source
+		if (m_trackedObjectsPerSource.find(pFrameMeta->source_id) == 
+			m_trackedObjectsPerSource.end())
+		{
+			LOG_DEBUG("First object detected with id = " << pObjectMeta->object_id 
+				<< " for source = " << pFrameMeta->source_id);
+			
+			// create a new tracked object for this tracking Id and source
+			std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+				(new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+				
+			// create a map of tracked objects for this source	
+			std::shared_ptr<TrackedObjects> pTrackedObjects = 
+				std::shared_ptr<TrackedObjects>(new TrackedObjects());
+				
+			// insert the new tracked object into the new map	
+			pTrackedObjects->insert(std::pair<uint64_t, 
+				std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));
+				
+			// add the map of tracked objects for this source to the map of all tracked objects.
+			m_trackedObjectsPerSource[pFrameMeta->source_id] = pTrackedObjects;
+		}
+		else
+		{
+			std::shared_ptr<TrackedObjects> pTrackedObjects = 
+				m_trackedObjectsPerSource[pFrameMeta->source_id];
+				
+			// else, if this is the first occurrence of a specific object for this source
+			if (pTrackedObjects->find(pObjectMeta->object_id) == pTrackedObjects->end())
+			{
+				LOG_DEBUG("New object detected with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id);
+				
+				// create a new tracked object for this tracking Id and source
+				std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+					(new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+
+				// insert the new tracked object into the new map	
+				pTrackedObjects->insert(std::pair<uint64_t, 
+					std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));		
+			}
+			else
+			{
+				LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id);
+				// else, the object is currently being tracked - so update the frame number
+				pTrackedObjects->at(pObjectMeta->object_id)->m_frameNumber = pFrameMeta->frame_num;
+				
+				timeval currentTime;
+				gettimeofday(&currentTime, NULL);
+				
+				double currentTimeMs = currentTime.tv_sec*1000.0 + currentTime.tv_usec/1000.0;
+				double trackedTimeMs = currentTimeMs - pTrackedObjects->at(pObjectMeta->object_id)->m_creationTimeMs;
+				
+				LOG_DEBUG("Persistence for tracked object with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
+				
+				// if the objects tracked time is within range. 
+				if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
+				{
+					// event has been triggered
+					m_triggered++;
+					m_occurrences++;
+
+					// update the total event count static variable
+					s_eventCount++;
+		
+					for (const auto &imap: m_pOdeActions)
+					{
+						DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+						pOdeAction->HandleOccurrence(shared_from_this(), 
+							pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+					}
+				}
+			}
+		}
+		return true;
+		
+    }
+
+    uint PersistenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_trackedObjectsPerSource.empty())
+        {
+            return 0;
+        }
+		
+		// purge all tracked objects, for all sources that are not in the current frame.
+		for (const auto &trackedObjects: m_trackedObjectsPerSource)
+		{
+			std::shared_ptr<TrackedObjects> pTrackedObjects = trackedObjects.second;
+
+			auto trackedObject = pTrackedObjects->cbegin();
+			while (trackedObject != pTrackedObjects->cend())
+			{
+				if (trackedObject->second->m_frameNumber != pFrameMeta->frame_num)
+				{
+					LOG_DEBUG("Purging tracked object with id = " << trackedObject->first 
+						<< " for source = " << trackedObjects.first);
+						
+					// use the return value to update the iterator, as erase invalidates it
+					trackedObject = pTrackedObjects->erase(trackedObject);
+				}
+				else {
+					++trackedObject;
+				}			
+			}
+		}
+        return m_occurrences;
+    }
+
+    // *****************************************************************************
+    
     RangeOdeTrigger::RangeOdeTrigger(const char* name, const char* source,
         uint classId, uint limit, uint lower, uint upper)
         : OdeTrigger(name, source, classId, limit)

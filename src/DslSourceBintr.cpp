@@ -1333,7 +1333,7 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_reconnectionManagerMutex);
         do
         {
-            struct timeval currentTime;
+            timeval currentTime;
             gettimeofday(&currentTime, NULL);
             
             uint stateResult(0);

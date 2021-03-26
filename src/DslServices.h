@@ -224,6 +224,9 @@ namespace DSL {
         DslReturnType OdeTriggerMaximumNew(const char* name, const char* source,
             uint classId, uint limit, uint maximum);
 
+        DslReturnType OdeTriggerPersistenceNew(const char* name, const char* source,
+            uint classId, uint limit, uint minimum, uint maximum);
+
         DslReturnType OdeTriggerRangeNew(const char* name, const char* source, 
             uint classId, uint limit, uint lower, uint upper);
         

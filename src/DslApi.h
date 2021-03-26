@@ -1432,6 +1432,23 @@ DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* so
     uint class_id, uint limit, uint maximum);
 
 /**
+ * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
+ * specified source and object class_id. Each object tracked or ">= minimum and <= maximum time 
+ * will trigger an ODE occurrence.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+	
+/**
  * @brief Range occurence trigger that checks for the occurrence of Objects within a frame
  * against a range of numbers, and generates an ODE occurence if within range
  * @param[in] name unique name for the ODE Trigger
