@@ -71,6 +71,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
@@ -3319,6 +3320,24 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
  */
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline, 
     uint width, uint height);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to query
+ * @param[out] xwindow XWindow handle currently in use. NULL if none 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to update
+ * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t window);
 
 /**
  * @brief clears the Pipelines XWindow

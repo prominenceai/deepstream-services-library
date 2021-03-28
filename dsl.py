@@ -111,6 +111,7 @@ class dsl_rtsp_connection_data(Structure):
 ## Pointer Typedefs
 ##
 DSL_UINT_P = POINTER(c_uint)
+DSL_UINT64_P = POINTER(c_uint64)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
@@ -2934,6 +2935,27 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_xwindow_handle_get()
+##
+_dsl.dsl_pipeline_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_pipeline_xwindow_handle_get.restype = c_uint
+def dsl_pipeline_xwindow_handle_get(name):
+    global _dsl
+    handle = c_uint64(0)
+    result = _dsl.dsl_pipeline_xwindow_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_pipeline_xwindow_handle_set()
+##
+_dsl.dsl_pipeline_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_pipeline_xwindow_handle_set.restype = c_uint
+def dsl_pipeline_xwindow_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_handle_set(name, handle)
     return int(result)
 
 ##

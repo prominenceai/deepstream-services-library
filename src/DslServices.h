@@ -524,7 +524,7 @@ namespace DSL {
                 
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
-                
+
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
             
@@ -636,6 +636,10 @@ namespace DSL {
 
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* pipeline, uint num);
 
+        DslReturnType PipelineXWindowHandleGet(const char* pipeline, uint64_t* xwindow);
+
+        DslReturnType PipelineXWindowHandleSet(const char* pipeline, uint64_t xwindow);
+		
         DslReturnType PipelineXWindowClear(const char* pipeline);
         
         DslReturnType PipelineXWindowOffsetsGet(const char* pipeline,

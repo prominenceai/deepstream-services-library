@@ -3769,6 +3769,27 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(const wchar_t* p
     return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(cstrPipeline.c_str(), num);
 }
 
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+    RETURN_IF_PARAM_IS_NULL(xwindow);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowHandleGet(cstrPipeline.c_str(), xwindow);
+}
+
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t xwindow)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowHandleSet(cstrPipeline.c_str(), xwindow);
+}
+
 DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(pipeline);
