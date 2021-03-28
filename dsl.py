@@ -2326,6 +2326,27 @@ def dsl_sink_window_new(name, offsetX, offsetY, width, height):
     return int(result)
 
 ##
+## dsl_sink_window_force_aspect_ratio_get()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_get(name):
+    global _dsl
+    force = c_bool(False)
+    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
+    return int(result), force.value
+
+##
+## dsl_sink_window_force_aspect_ratio_set()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_set(name, force):
+    global _dsl
+    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
+    return int(result)
+
+##
 ## dsl_sink_file_new()
 ##
 _dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]

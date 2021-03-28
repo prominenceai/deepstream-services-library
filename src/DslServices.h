@@ -525,6 +525,12 @@ namespace DSL {
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
 
+        DslReturnType SinkWindowForceAspectRationGet(const char* name, 
+            boolean* force);
+
+        DslReturnType SinkWindowForceAspectRationSet(const char* name, 
+            boolean force);
+
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);
             

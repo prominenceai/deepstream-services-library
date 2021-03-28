@@ -2994,6 +2994,31 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
         offsetX, offsetY, width, height);
 }
 
+DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(force);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowForceAspectRationGet(cstrName.c_str(), 
+        force);
+}
+    
+DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowForceAspectRationSet(cstrName.c_str(), 
+        force);
+}
+
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
      uint codec, uint container, uint bitrate, uint interval)
 {

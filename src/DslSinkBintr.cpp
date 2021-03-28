@@ -347,6 +347,7 @@ namespace DSL
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
+        , m_forceAspectRatio(false)
     {
         LOG_FUNC();
         
@@ -358,6 +359,7 @@ namespace DSL
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
         m_pEglGles->SetAttribute("enable-last-sample", false);
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         
         m_pEglGles->SetAttribute("max-lateness", -1);
         m_pEglGles->SetAttribute("sync", m_sync);
@@ -422,10 +424,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -450,10 +452,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -482,6 +484,28 @@ namespace DSL
         m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("async", m_async);
 
+        return true;
+    }
+
+    bool WindowSinkBintr::GetForceAspectRatio()
+    {
+        LOG_FUNC();
+        
+        return m_forceAspectRatio;
+    }
+    
+    bool WindowSinkBintr::SetForceAspectRatio(bool force)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_forceAspectRatio = force;
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
     
