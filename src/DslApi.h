@@ -2814,6 +2814,26 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint di
 DslReturnType dsl_sink_window_new(const wchar_t* name, 
     uint offsetX, uint offsetY, uint width, uint height);
 
+
+/**
+ * @brief Gets the current "force-aspect-ration" property setting for the 
+ * named Window Sink
+ * @param name unique name of the Window Sink to query
+ * @param[out] force true if the apect ratio is forced, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
+
+/**
+ * @brief Sets the "force-aspect-ration" property for the named Window Sink
+ * @param name unique name of the Window Sink to update
+ * @param[in] force set to true to force the apect ratio, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
+    
 /**
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink

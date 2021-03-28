@@ -743,7 +743,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         uint height(720);
 
         std::wstring rtspSinkName(L"rtsp-sink");
-        std::wstring host(L"224.224.255.255");
+        std::wstring host(L"rjhowell-desktop.local");
         uint udpPort(5400);
         uint rtspPort(8554);
         uint codec(DSL_CODEC_H264);

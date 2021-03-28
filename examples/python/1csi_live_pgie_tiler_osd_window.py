@@ -37,6 +37,19 @@ primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
 primary_model_engine_file = '../../test/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
 
 ## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
+        dsl_main_loop_quit()
+
+## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
@@ -72,6 +85,11 @@ def main(args):
         retval = dsl_sink_window_new('window-sink', 0, 0, source_width, source_height)
         if retval != DSL_RETURN_SUCCESS:
             break
+        
+        # Example of how to force the aspect ratio during window resize
+        dsl_sink_window_force_aspect_ratio_set('window-sink', force=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
@@ -79,8 +97,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow delete event handler callback function defined above
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        # Add the XWindow event handler functions defined above
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

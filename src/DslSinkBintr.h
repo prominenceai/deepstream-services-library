@@ -305,6 +305,19 @@ namespace DSL
          * @return true is successful, false otherwise. 
          */
         bool SetSyncSettings(bool sync, bool async);
+        
+        /**
+         * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
+         * @return true if forced, false otherwise
+         */
+        bool GetForceAspectRatio();
+        
+        /**
+         * @brief Set the force-aspect-ration setting for the WindowSinkBinter
+         * @param[in] force set true to force-aspect-ration false otherwise
+         * @return 
+         */
+        bool SetForceAspectRatio(bool force);
 
     private:
 
@@ -313,6 +326,7 @@ namespace DSL
         uint m_offsetY;
         uint m_width;
         uint m_height;
+        bool m_forceAspectRatio;
 
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pEglGles;

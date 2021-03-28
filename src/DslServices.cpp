@@ -2419,11 +2419,11 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-			// check for no maximum
-			maximum = (maximum == 0) ? UINT32_MAX : maximum;
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
 
             m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
-				source, classId, limit, minimum, maximum);
+                source, classId, limit, minimum, maximum);
             
             LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
 
@@ -2450,11 +2450,11 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-			// check for no maximum
-			maximum = (maximum == 0) ? UINT32_MAX : maximum;
-			
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+            
             m_odeTriggers[name] = DSL_ODE_TRIGGER_COUNT_NEW(name, 
-				source, classId, limit, minimum, maximum);
+                source, classId, limit, minimum, maximum);
             
             LOG_INFO("New Count ODE Trigger '" << name << "' created successfully");
 
@@ -6446,6 +6446,62 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkWindowForceAspectRationGet(const char* name, 
+        boolean* force)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            *force = pWindowSinkBintr->GetForceAspectRatio();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink'" << name 
+                << "' threw an exception getting 'force-aspect-ratio' property");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowForceAspectRationSet(const char* name, 
+        boolean force)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->SetForceAspectRatio(force))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to Set 'force-aspec-ratio' property");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink'" << name 
+                << "' threw an exception setting 'force-apect-ratio' property");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -7776,10 +7832,10 @@ namespace DSL
             RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
             
             if (!m_pipelines[pipeline]->SetXWindow(xwindow))
-			{
-				LOG_ERROR("Failure setting XWindow handle for Pipeline '" << pipeline << "'");
+            {
+                LOG_ERROR("Failure setting XWindow handle for Pipeline '" << pipeline << "'");
                 return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
-			}
+            }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
