@@ -7747,6 +7747,48 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::PipelineXWindowHandleGet(const char* pipeline, uint64_t* xwindow) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            *xwindow = m_pipelines[pipeline]->GetXWindow();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception getting XWindow handle");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineXWindowHandleSet(const char* pipeline, uint64_t xwindow)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->SetXWindow(xwindow))
+			{
+				LOG_ERROR("Failure setting XWindow handle for Pipeline '" << pipeline << "'");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+			}
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception setting XWindow handle");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::PipelineXWindowClear(const char* pipeline)    
     {
         LOG_FUNC();
