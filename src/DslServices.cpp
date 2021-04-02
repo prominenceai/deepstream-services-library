@@ -4854,8 +4854,6 @@ namespace DSL
             std::string testPath(modelEngineFile);
             if (testPath.size())
             {
-                LOG_INFO("Model engine file: " << modelEngineFile);
-                
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
@@ -7035,6 +7033,7 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
             
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
@@ -7856,14 +7855,39 @@ namespace DSL
             
             if (!m_pipelines[pipeline]->ClearXWindow())
             {
-                LOG_ERROR("Pipeline '" << pipeline << "' failed to Clear XWindow");
+                LOG_ERROR("Pipeline '" << pipeline << "' failed to clear its XWindow");
                 return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
             }
+            LOG_ERROR("Pipeline '" << pipeline << "' successfully cleared its XWindow");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing XWindow");
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing its XWindow");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineXWindowDestroy(const char* pipeline)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->DestroyXWindow())
+            {
+                LOG_ERROR("Pipeline '" << pipeline << "' failed to destroy its XWindow");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+            LOG_ERROR("Pipeline '" << pipeline << "' successfully destroyed its XWindow");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception destroying its XWindow");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }

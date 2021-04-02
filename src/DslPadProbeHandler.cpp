@@ -201,8 +201,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_clientData = clientData;
-
         // Enable now
         if (!SetEnabled(true))
         {
@@ -246,8 +244,6 @@ namespace DSL
         , m_timerId(0)
     {
         LOG_FUNC();
-
-        LOG_INFO("meter pph handler address " << m_clientHandler);
 
         // Enable now
         if (!SetEnabled(true))

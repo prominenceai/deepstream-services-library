@@ -3342,71 +3342,6 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
     uint width, uint height);
 
 /**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] pipeline name of the Pipeline to query
- * @param[out] xwindow XWindow handle currently in use. NULL if none 
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow);
-
-/**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] pipeline name of the Pipeline to update
- * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t window);
-
-/**
- * @brief clears the Pipelines XWindow
- * @param[in] pipeline name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
-
-/**
- * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
- * prior to window creation which occurs when the Pipeline is played. 
- * @param[in] pipeline name of the pipeline to query
- * @param[out] x_offset offset in the x direction of the XWindow in pixels
- * @param[out] x_offset offset in the Y direction of the XWindow in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
-    uint* x_offset, uint* y_offset);
-
-/**
- * @brief gets the current Pipeline XWindow dimensions. 
- * @param[in] pipeline name of the pipeline to query
- * @param[out] width width of the XWindow in pixels
- * @param[out] heigth height of the Window in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
-    uint* width, uint* height);
-
-/**
- * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to query
- * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
-    boolean* enabled);
-
-/**
- * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to update
- * @param[in] enabled if true, sets the XWindow to full-screen on creation.
- * The service will fail if called after the XWindow has been created.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
-    boolean enabled);
-
-/**
  * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to query
@@ -3568,6 +3503,79 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to query
+ * @param[out] xwindow XWindow handle currently in use. NULL if none 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to update
+ * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t window);
+
+/**
+ * @brief clears the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
+
+/**
+ * @brief destroys the Pipeline's XWindow if one exists and was not provided by the
+ * client with an earlier call to dsl_pipeline_xwindow_handle_set
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
+
+/**
+ * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
+ * prior to window creation which occurs when the Pipeline is played. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] x_offset offset in the x direction of the XWindow in pixels
+ * @param[out] x_offset offset in the Y direction of the XWindow in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+    uint* x_offset, uint* y_offset);
+
+/**
+ * @brief gets the current Pipeline XWindow dimensions. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] width width of the XWindow in pixels
+ * @param[out] heigth height of the Window in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height);
+
+/**
+ * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
+    boolean* enabled);
+
+/**
+ * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
+    boolean enabled);
 
 /**
  * @brief adds a callback to be notified on XWindow KeyRelease Event
