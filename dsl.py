@@ -2990,6 +2990,16 @@ def dsl_pipeline_xwindow_clear(name):
     return int(result)
 
 ##
+## dsl_pipeline_xwindow_destroy()
+##
+_dsl.dsl_pipeline_xwindow_destroy.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_xwindow_destroy.restype = c_uint
+def dsl_pipeline_xwindow_destroy(name):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_destroy(name)
+    return int(result)
+
+##
 ## dsl_pipeline_xwindow_dimensions_get()
 ##
 _dsl.dsl_pipeline_xwindow_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]

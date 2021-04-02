@@ -3825,6 +3825,16 @@ DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline)
     return DSL::Services::GetServices()->PipelineXWindowClear(cstrPipeline.c_str());
 }
  
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline)
+{
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->PipelineXWindowDestroy(cstrPipeline.c_str());
+}
+ 
 DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
     uint* x_offset, uint* y_offset)
 {

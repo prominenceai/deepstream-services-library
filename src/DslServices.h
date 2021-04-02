@@ -648,6 +648,8 @@ namespace DSL {
 		
         DslReturnType PipelineXWindowClear(const char* pipeline);
         
+        DslReturnType PipelineXWindowDestroy(const char* pipeline);
+        
         DslReturnType PipelineXWindowOffsetsGet(const char* pipeline,
             uint* xOffset, uint* yOffset);
             

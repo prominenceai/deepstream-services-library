@@ -373,6 +373,12 @@ namespace DSL
 		 */
         bool ClearXWindow();
         
+		/**
+		 * @brief Destroys the PipelineBintr's XWindow
+		 * @return true on successful destruction, false otherwise
+		 */
+        bool DestroyXWindow();
+        
         /**
          * @brief Gets the last error message recieved by the bus watch error handler
          * @param[out] source name of gst object that sent the error mess
