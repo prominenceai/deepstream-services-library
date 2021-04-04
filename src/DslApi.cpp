@@ -1042,9 +1042,46 @@ DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* 
         std::wstring wstrSource(source);
         cstrSource.assign(wstrSource.begin(), wstrSource.end());
     }
-    return DSL::Services::GetServices()->OdeTriggerSummationNew(cstrName.c_str(), cstrSource.c_str(), class_id, limit);
+    return DSL::Services::GetServices()->OdeTriggerSummationNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
 }
 
+DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerNewHighNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit, preset);
+}
+
+DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerNewLowNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit, preset);
+}
+    
 DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, 
     dsl_ode_post_process_frame_cb client_post_processor, void* client_data)

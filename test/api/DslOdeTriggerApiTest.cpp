@@ -613,6 +613,83 @@ SCENARIO( "A new Persistence Trigger can be created and deleted correctly", "[od
     }
 }    
 
+SCENARIO( "A New High Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new High Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"new-high");
+        uint class_id(0);
+        uint limit(0);
+        uint preset(0);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_new_high_new(odeTriggerName.c_str(), 
+                NULL, class_id, limit, preset) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_new_high_new(odeTriggerName.c_str(), 
+                NULL, class_id, limit, preset) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_new_high_new(odeTriggerName.c_str(), 
+                    NULL, class_id, limit, preset) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A New Low Trigger can be created and deleted correctly", "[ode-trigger-api]" )
+{
+    GIVEN( "Attributes for a new Low Trigger" ) 
+    {
+        std::wstring odeTriggerName(L"new-low");
+        uint class_id(0);
+        uint limit(0);
+        uint preset(0);
+
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_new_low_new(odeTriggerName.c_str(), 
+                NULL, class_id, limit, preset) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Trigger can be deleted only once" ) 
+            {
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_FOUND );
+            }
+        }
+        WHEN( "When the Trigger is created" )         
+        {
+            REQUIRE( dsl_ode_trigger_new_low_new(odeTriggerName.c_str(), 
+                NULL, class_id, limit, preset) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Trigger with the same name fails to create" ) 
+            {
+                REQUIRE( dsl_ode_trigger_new_low_new(odeTriggerName.c_str(), 
+                    NULL, class_id, limit, preset) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -649,6 +726,9 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_largest_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_persistence_new(NULL, NULL, 0, 0, 1, 2) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_trigger_new_low_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_new_high_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -1192,4 +1192,136 @@ namespace DSL
         return m_occurrences;
    }
 
+    // *****************************************************************************
+    
+    NewLowOdeTrigger::NewLowOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+        : OdeTrigger(name, source, classId, limit)
+        , m_preset(preset)
+        , m_currentLow(preset)
+        
+    {
+        LOG_FUNC();
+    }
+
+    NewLowOdeTrigger::~NewLowOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void NewLowOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_currentLow = m_preset;
+    }
+    
+    bool NewLowOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    uint NewLowOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_occurrences >= m_currentLow)
+        {
+            return 0;
+        }
+        // new low
+        m_currentLow = m_occurrences;
+        
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        return 1; // At most once per frame
+   }
+
+    // *****************************************************************************
+    
+    NewHighOdeTrigger::NewHighOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+        : OdeTrigger(name, source, classId, limit)
+        , m_preset(preset)
+        , m_currentHigh(preset)
+        
+    {
+        LOG_FUNC();
+    }
+
+    NewHighOdeTrigger::~NewHighOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void NewHighOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_currentHigh = m_preset;
+    }
+    
+    bool NewHighOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    uint NewHighOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_occurrences <= m_currentHigh)
+        {
+            return 0;
+        }
+        // new high
+        std::cout << m_occurrences << " " << m_currentHigh;
+        m_currentHigh = m_occurrences;
+        
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        return 1; // At most once per frame
+   }
+
+
 }
