@@ -109,6 +109,28 @@ SCENARIO( "Two new GEOS Lines are determined to NOT cross", "[GeosTypes]" )
     }
 }
 
+SCENARIO( "A new GEOS Rectangle is created correctly", "[GeosTypes]" )
+{
+    GIVEN( "A new NvOSD Rectangle with coordinates and dimensions" ) 
+    {
+        NvOSD_RectParams testRectangle{0};
+        testRectangle.left = 100;
+        testRectangle.top = 100;
+        testRectangle.width = 200;
+        testRectangle.height = 200;
+ 
+        WHEN( "A new GEOS Rectangle is created" )
+        {
+            GeosRectangle testGeosRectangle(testRectangle);
+
+            THEN( "The GEOS Rectangle's memebers are setup correctly" )
+            {
+                REQUIRE( testGeosRectangle.m_pGeosRectangle != NULL );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new GEOS Polygon is created from a Polygon Display Type correctly", "[GeosTypes]" )
 {
     GIVEN( "A new Polygon Display Type" ) 

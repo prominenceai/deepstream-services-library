@@ -421,22 +421,6 @@ namespace DSL
         }
         return true;
     }
-
-    inline bool OdeTrigger::valueInRange(int value, int min, int max)
-    { 
-        return (value >= min) && (value <= max);
-    }
-
-    inline bool OdeTrigger::doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b)
-    {
-        bool xOverlap = valueInRange(a.left, b.left, b.left + b.width) ||
-                        valueInRange(b.left, a.left, a.left + a.width);
-
-        bool yOverlap = valueInRange(a.top, b.top, b.top + b.height) ||
-                        valueInRange(b.top, a.top, a.top + a.height);
-
-        return xOverlap && yOverlap;
-    }    
     
     // *****************************************************************************
     AlwaysOdeTrigger::AlwaysOdeTrigger(const char* name, const char* source, uint when)
@@ -740,8 +724,9 @@ namespace DSL
                 for (uint j = i+1; j < m_occurrenceMetaList.size() ; j++) 
                 {
                     // check each in turn for any frame overlap
-                    if (doesOverlap(m_occurrenceMetaList[i]->rect_params, 
-                        m_occurrenceMetaList[j]->rect_params))
+                    GeosRectangle rectA(m_occurrenceMetaList[i]->rect_params);
+                    GeosRectangle rectB(m_occurrenceMetaList[j]->rect_params);
+                    if (rectA.Overlaps(rectB))
                     {
                         // event has been triggered
                         m_occurrences++;
@@ -1305,7 +1290,6 @@ namespace DSL
             return 0;
         }
         // new high
-        std::cout << m_occurrences << " " << m_currentHigh;
         m_currentHigh = m_occurrences;
         
         // event has been triggered

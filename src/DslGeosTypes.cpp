@@ -23,7 +23,6 @@ THE SOFTWARE.
 */
 
 #include "DslGeosTypes.h"
-#include "DslComms.h"
 
 namespace DSL
 {
@@ -116,6 +115,73 @@ namespace DSL
             throw;
         }
         return bool(result);
+    }
+
+    // *****************************************************************************
+
+    GeosRectangle::GeosRectangle(const NvOSD_RectParams& rectangle)
+        : m_pGeosRectangle(NULL)
+    {
+        // Don't log function entry/exit
+        
+        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(5, 2);
+        if (!geosCoordSequence)
+        {
+            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
+            throw;
+        }
+        if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence, 0, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence, 1, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence, 1, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence, 2, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence, 2, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence, 3, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence, 3, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence, 4, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence, 4, double(rectangle.top))) 
+        {
+            LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
+            throw;
+        }
+        
+        GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
+        if (!outerRing)
+        {
+            LOG_ERROR("Exception when creating GEOS outer ring");
+            throw;
+        }
+
+        m_pGeosRectangle = GEOSGeom_createPolygon(outerRing, NULL, 0);
+        if (!m_pGeosRectangle)
+        {
+            LOG_ERROR("Exception when creating GEOS Polygon");
+            throw;
+        }
+    }
+
+    GeosRectangle::~GeosRectangle()
+    {
+        // Don't log function entry/exit
+        
+        if (m_pGeosRectangle)
+        {
+            GEOSGeom_destroy(m_pGeosRectangle);
+        }
+    }
+
+    bool GeosRectangle::Overlaps(const GeosRectangle& testRectangle)
+    {
+        // Don't log function entry/exit
+
+        char result = GEOSOverlaps(m_pGeosRectangle, testRectangle.m_pGeosRectangle);
+        if (result == 2)
+        {
+            LOG_ERROR("Exception when testing if GEOS Rectangles overlap");
+            throw;
+        }
+        return bool(result);
+        
     }
 
     // *****************************************************************************
