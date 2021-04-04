@@ -202,17 +202,23 @@ namespace DSL {
         
         uint OdeAreaListSize();
         
-        DslReturnType OdeTriggerAlwaysNew(const char* name, const char* source, uint when);
+        DslReturnType OdeTriggerAlwaysNew(const char* name, 
+            const char* source, uint when);
         
-        DslReturnType OdeTriggerOccurrenceNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerOccurrenceNew(const char* name, 
+            const char* source, uint classId, uint limit);
         
-        DslReturnType OdeTriggerAbsenceNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerAbsenceNew(const char* name, 
+            const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerInstanceNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerInstanceNew(const char* name, 
+            const char* source, uint classId, uint limit);
         
-        DslReturnType OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerIntersectionNew(const char* name, 
+            const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerSummationNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerSummationNew(const char* name, 
+            const char* source, uint classId, uint limit);
 
         DslReturnType OdeTriggerCustomNew(const char* name, const char* source, 
             uint classId, uint limit,  dsl_ode_check_for_occurrence_cb client_checker, 
@@ -224,9 +230,17 @@ namespace DSL {
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
         
-        DslReturnType OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerSmallestNew(const char* name, 
+            const char* source, uint classId, uint limit);
 
-        DslReturnType OdeTriggerLargestNew(const char* name, const char* source, uint classId, uint limit);
+        DslReturnType OdeTriggerLargestNew(const char* name, 
+            const char* source, uint classId, uint limit);
+
+        DslReturnType OdeTriggerNewHighNew(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
+
+        DslReturnType OdeTriggerNewLowNew(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
 
         DslReturnType OdeTriggerReset(const char* name);
 
@@ -524,7 +538,7 @@ namespace DSL {
                 
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
-
+            
         DslReturnType SinkWindowForceAspectRationGet(const char* name, 
             boolean* force);
 

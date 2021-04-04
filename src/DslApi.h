@@ -1340,7 +1340,8 @@ DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* sou
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Count trigger that checks for the occurrence of Objects within a frame
@@ -1365,7 +1366,8 @@ DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* sour
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Intersection trigger that checks for intersection of all Object detected
@@ -1376,7 +1378,8 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* s
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
@@ -1407,7 +1410,8 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
@@ -1435,7 +1439,8 @@ DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name,
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Largest trigger that checks for the occurrence of Objects within a frame
@@ -1446,7 +1451,8 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* s
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Summation trigger that checks for and sums all objects detected within a frame
@@ -1456,7 +1462,37 @@ DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* so
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+
+/**
+ * @brief New high-count trigger that checks for the occurrence of a new high count of objects within 
+ * a frame for a specified source and object class_id.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] preset initial high count to start with. High count will be reset to the preset on trigger reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+
+/**
+ * @brief New low-count trigger that checks for the occurrence of a new low count of objects within 
+ * a frame for a  specified source and object class_id. This trigger can be added in a disabled state and 
+ * then enabled by a new-high count trigger on first new-high count occurrence.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] preset initial low count to start with. High count will be reset to the preset on trigger reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
@@ -2814,11 +2850,10 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint di
 DslReturnType dsl_sink_window_new(const wchar_t* name, 
     uint offsetX, uint offsetY, uint width, uint height);
 
-
 /**
  * @brief Gets the current "force-aspect-ration" property setting for the 
  * named Window Sink
- * @param name unique name of the Window Sink to query
+ * @param[in] name unique name of the Window Sink to query
  * @param[out] force true if the apect ratio is forced, false otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
@@ -2827,7 +2862,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
 
 /**
  * @brief Sets the "force-aspect-ration" property for the named Window Sink
- * @param name unique name of the Window Sink to update
+ * @param[in] name unique name of the Window Sink to update
  * @param[in] force set to true to force the apect ratio, false otherwise
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */

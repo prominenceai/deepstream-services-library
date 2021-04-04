@@ -2467,7 +2467,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerSmallestNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2493,7 +2494,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerLargestNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerLargestNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2515,6 +2517,62 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Largest ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerNewHighNew(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, 
+                source, classId, limit, preset);
+            
+            LOG_INFO("New New-High ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New-High ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerNewLowNew(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_NEW_LOW_NEW(name, 
+                source, classId, limit, preset);
+            
+            LOG_INFO("New New-Low ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New-Low ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }

@@ -1402,3 +1402,156 @@ SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[
     }
 }
 
+SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new NewLowOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("new-low");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+        uint preset(2);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_NEW_LOW_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_NEW_LOW_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, preset);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "When three objects - i.e. more than the current low count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When two objects - i.e. equal to the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new low" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When one object - i.e. less than the current low count - is added" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+
+            THEN( "PostProcessFrame returns 1 occurrence of new low" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+                
+                // ensure that new low has taken effect - one object is no longer new low
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+           }
+        }
+    }
+}
+
+SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new NewHighOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("new-high");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+        uint preset(2);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_NEW_HIGH_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_NEW_HIGH_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, preset);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "When one object - i.e. less than the current high count - is checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When two objects - i.e. equal to the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When three objects - i.e. greater than the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 1 occurrence of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+                
+                // ensure that the new high has taken effect - and three objects are not a new high
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+           }
+        }
+    }
+}

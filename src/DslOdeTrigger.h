@@ -82,6 +82,14 @@ namespace DSL
     #define DSL_ODE_TRIGGER_LARGEST_NEW(name, source, classId, limit) \
         std::shared_ptr<LargestOdeTrigger>(new LargestOdeTrigger(name, source, classId, limit))
 
+    #define DSL_ODE_TRIGGER_NEW_LOW_PTR std::shared_ptr<NewLowOdeTrigger>
+    #define DSL_ODE_TRIGGER_NEW_LOW_NEW(name, source, classId, limit, preset) \
+        std::shared_ptr<NewLowOdeTrigger>(new NewLowOdeTrigger(name, source, classId, limit, preset))
+
+    #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
+    #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
+        std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, source, classId, limit, preset))
+
 
     class OdeTrigger : public Base
     {
@@ -165,11 +173,10 @@ namespace DSL
          */
         void RemoveAllAreas();
         
-        
         /**
          * @brief Resets the Trigger
          */
-        void Reset();
+        virtual void Reset();
         
         /**
          * @brief Gets the current Enabled setting, default = true
@@ -938,6 +945,103 @@ namespace DSL
         std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
     
     };
+    
+    class NewLowOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        NewLowOdeTrigger(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
+        
+        ~NewLowOdeTrigger();
+
+        /**
+         * @brief Resets the Trigger
+         */
+        virtual void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a New Low Count Event 
+         * if the current Frame's object count is less than the current low
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief initial low value to use on first play and reset.
+         */
+        uint m_preset;
+        
+        /**
+         * @brief current lowest count value, updated on new low.
+         * Set to m_preset on trigger create and reset.
+         */
+        uint m_currentLow;
+    
+    };
+
+    class NewHighOdeTrigger : public OdeTrigger
+    {
+    public:
+    
+        NewHighOdeTrigger(const char* name, 
+            const char* source, uint classId, uint limit, uint preset);
+        
+        ~NewHighOdeTrigger();
+
+        /**
+         * @brief Resets the Trigger
+         */
+        void Reset();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a New High Count Event 
+         * if the current Frame's object count is greater than the current high
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief initial high value to use on first play and reset.
+         */
+        uint m_preset;
+        
+        /**
+         * @brief current highest count value, updated on new high.
+         * Set to m_preset on trigger create and reset.
+         */
+        uint m_currentHigh;
+    
+    };
+    
 }
 
 #endif // _DSL_ODE_H

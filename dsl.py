@@ -799,6 +799,26 @@ def dsl_ode_trigger_intersection_new(name, source, class_id, limit):
     return int(result)
 
 ##
+## dsl_ode_trigger_new_low_new()
+##
+_dsl.dsl_ode_trigger_new_low_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_new_low_new.restype = c_uint
+def dsl_ode_trigger_new_low_new(name, source, class_id, limit, preset):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_new_low_new(name, source, class_id, limit, preset)
+    return int(result)
+
+##
+## dsl_ode_trigger_new_high_new()
+##
+_dsl.dsl_ode_trigger_new_high_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_new_high_new.restype = c_uint
+def dsl_ode_trigger_new_high_new(name, source, class_id, limit, preset):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_new_high_new(name, source, class_id, limit, preset)
+    return int(result)
+
+##
 ## dsl_ode_trigger_occurrence_new()
 ##
 _dsl.dsl_ode_trigger_occurrence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
