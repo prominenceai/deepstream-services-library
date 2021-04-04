@@ -105,8 +105,8 @@ namespace DSL
         static uint64_t s_eventCount;
         
         /**
-         * @brief Function to check a given Object Meta data structure for the occurence of an event
-         * and to invoke all Event Actions owned by the event
+         * @brief Function to check a given Object Meta data structure for the 
+         * occurence of an event and to invoke all Event Actions owned by the event
          * @param[in] pBuffer pointer to the GST Buffer containing all meta
          * @param[in] pBatchMeta aquired from pBuffer containing the Frame and Object meta
          * @param[in] pFrameMeta pointer to the containing NvDsFrameMeta data
@@ -117,7 +117,8 @@ namespace DSL
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta){return false;};
 
         /**
-         * @brief Function called to pre process the current frame data prior to checking for Occurrences
+         * @brief Function called to pre process the current frame data prior to 
+         * checking for Occurrences
          * @param[in] pBuffer pointer to the GST Buffer containing all meta
          * @param[in] pBatchMeta aquired from pBuffer containing the Frame meta
          * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre processing
@@ -310,8 +311,10 @@ namespace DSL
     protected:
     
         /**
-         * @brief Common function to check if an Object's meta data meets the min criteria for ODE 
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @brief Common function to check if an Object's meta data meets the 
+         * min criteria for ODE 
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to test for min criteria
          * @return true if Min Criteria is met, false otherwise
          */
@@ -570,8 +573,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -584,7 +589,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -600,8 +606,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the 
+         * frame that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -614,7 +622,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -638,11 +647,14 @@ namespace DSL
         ~CustomOdeTrigger();
 
         /**
-         * @brief Function to check a given Object Meta data structure for an Occurrence that meets the min criteria
-         * and to inkoke the client provided "client_checker". If the client returns TRUE, all Event Actions owned 
+         * @brief Function to check a given Object Meta data structure for an 
+         * Occurrence that meets the min criteria and to inkoke the client provided 
+         * "client_checker". If the client returns TRUE, all Event Actions owned 
          * by the trigger will be invoked.
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -655,7 +667,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
         
     private:
     
@@ -686,8 +699,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -701,7 +716,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -722,8 +738,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -737,7 +755,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -792,8 +811,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -808,7 +829,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
 
@@ -839,8 +861,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence, 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -854,7 +878,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -880,8 +905,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -895,7 +922,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -918,8 +946,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -933,7 +963,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -962,8 +993,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -977,7 +1010,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
@@ -1010,8 +1044,10 @@ namespace DSL
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame that holds the Object Meta
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the frame 
+         * that holds the Object Meta
          * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
          * @return true if Occurrence, false otherwise
          */
@@ -1025,7 +1061,8 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
     private:
     
