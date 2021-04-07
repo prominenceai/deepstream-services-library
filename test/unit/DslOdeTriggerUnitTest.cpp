@@ -1555,3 +1555,389 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
         }
     }
 }
+
+SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new Distance Trigger" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+        
+        std::string source;
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 0;
+
+        WHEN( "A Single object is detected" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(10);
+            uint maximum(20);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "A Two objects are detected beyond maximum distance" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(10);
+            uint maximum(20);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
+            }
+        }
+        WHEN( "A Two objects are detected within the minimum distance - same Class Ids" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(201);
+            uint maximum(UINT32_MAX);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
+            }
+        }
+        WHEN( "A Two objects are detected within the minimum distance - different Class Ids" )
+        {
+            uint classIdA(1);
+            uint classIdB(2);
+            uint minimum(201);
+            uint maximum(UINT32_MAX);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[yup]" )
+{
+    GIVEN( "Attributes for a new Distance Trigger" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+        
+        std::string source;
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 0;
+
+        uint classIdA(1);
+        uint classIdB(2);
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classIdA; 
+        objectMeta1.rect_params.left = 0;
+        objectMeta1.rect_params.top = 0;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classIdB; 
+        objectMeta2.rect_params.left = 200;
+        objectMeta2.rect_params.top = 0;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+
+
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}    

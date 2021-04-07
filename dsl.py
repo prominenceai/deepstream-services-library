@@ -80,6 +80,13 @@ DSL_BBOX_EDGE_BOTTOM = 1
 DSL_BBOX_EDGE_LEFT   = 2
 DSL_BBOX_EDGE_RIGHT  = 3
 
+DSL_DISTANCE_METHOD_FIXED_PIXELS     = 0
+DSL_DISTANCE_METHOD_PERCENT_WIDTH_A  = 1
+DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
+DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A = 3
+DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
+
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -856,6 +863,19 @@ _dsl.dsl_ode_trigger_count_new.restype = c_uint
 def dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum):
     global _dsl
     result =_dsl.dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum)
+    return int(result)
+
+##
+## dsl_ode_trigger_distance_new()
+##
+_dsl.dsl_ode_trigger_distance_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_new.restype = c_uint
+def dsl_ode_trigger_distance_new(name, 
+    source, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_new(name, 
+        source, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method)
     return int(result)
 
 ##

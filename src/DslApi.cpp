@@ -1081,6 +1081,7 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeTriggerNewLowNew(cstrName.c_str(), 
         cstrSource.c_str(), class_id, limit, preset);
 }
+
     
 DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, dsl_ode_check_for_occurrence_cb client_checker, 
@@ -1138,6 +1139,25 @@ DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* sour
     }
     return DSL::Services::GetServices()->OdeTriggerCountNew(cstrName.c_str(), cstrSource.c_str(), 
         class_id, limit, minimum, maximum);
+}
+
+DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id_a, uint class_id_b, uint limit, uint minimum, uint maximum, 
+    uint test_point, uint test_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->OdeTriggerDistanceNew(cstrName.c_str(), cstrSource.c_str(), 
+        class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method);
 }
 
 DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit)

@@ -1306,6 +1306,212 @@ namespace DSL
         }
         return 1; // At most once per frame
    }
+   
+    // *****************************************************************************
+    
+    DistanceOdeTrigger::DistanceOdeTrigger(const char* name, const char* source, 
+        uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+        uint testPoint, uint testMethod)
+        : OdeTrigger(name, source, classIdA, limit)
+        , m_classIdA(classIdA)
+        , m_classIdB(classIdB)
+        , m_minimum(minimum)
+        , m_maximum(maximum)
+        , m_testPoint(testPoint)
+        , m_testMethod(testMethod)
+    {
+        LOG_FUNC();
+    }
 
+    DistanceOdeTrigger::~DistanceOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+    
+    bool DistanceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
+        {
+            return false;
+        }
+        
+        m_classId = m_classIdA;
+        bool occurrenceAdded(false);
+        
+        if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            m_occurrenceMetaListA.push_back(pObjectMeta);
+            occurrenceAdded = true;
+        }
+        m_classId = m_classIdB;
+        if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            m_occurrenceMetaListB.push_back(pObjectMeta);
+            occurrenceAdded = true;
+        }
+        
+        return occurrenceAdded;
+    }
+
+    uint DistanceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least one object from each of the two Classes 
+        if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
+        {
+            // iterate through the list of object occurrences that passed all min criteria
+            for (const auto &iterA: m_occurrenceMetaListA) 
+            {
+                for (const auto &iterB: m_occurrenceMetaListB) 
+                {
+                    // ensure we are not testing the same object which can be in both vectors
+                    // if Class Id A and B are specified to be the same.
+                    if (iterA != iterB)
+                    {
+                        if (CheckDistance(iterA, iterB))
+                        {
+                            // event has been triggered
+                            m_occurrences++;
+                            
+                            m_triggered++;
+                            
+                             // update the total event count static variable
+                            s_eventCount++;
+
+                            for (const auto &imap: m_pOdeActions)
+                            {
+                                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                                
+                                // Invoke each action twice, once for each object in the tested pair
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterA);
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterB);
+                            }
+                            if (m_limit and m_triggered >= m_limit)
+                            {
+                                m_occurrenceMetaListA.clear();
+                                m_occurrenceMetaListB.clear();
+                                return m_occurrences;
+                            }
+                        }
+                    }
+                }
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaListA.clear();
+        m_occurrenceMetaListB.clear();
+        return m_occurrences;
+    }
+   
+    bool DistanceOdeTrigger::CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB)
+    {
+        uint distance(0);
+        if (m_testPoint = DSL_BBOX_POINT_ANY)
+        {
+            GeosRectangle rectA(pObjectMetaA->rect_params);
+            GeosRectangle rectB(pObjectMetaB->rect_params);
+            distance = rectA.Distance(rectB);
+        }
+        else{
+            uint xa(0), ya(0), xb(0), yb(0);
+            switch (m_testPoint)
+            {
+            case DSL_BBOX_POINT_CENTER :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_NORTH_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_SOUTH_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            default:
+                LOG_ERROR("Invalid DSL_BBOX_POINT = '" << m_testPoint 
+                    << "' for DistanceOdeTrigger Trigger '" << GetName() << "'");
+                throw;
+            }
+
+            GeosPoint pointA(xa, ya);
+            GeosPoint pointB(xb, yb);
+            distance = pointA.Distance(pointB);
+        }
+        
+        uint minimum(0), maximum(0);
+        switch (m_testMethod)
+        {
+        case DSL_DISTANCE_METHOD_FIXED_PIXELS :
+            minimum = m_minimum;
+            maximum = m_maximum;
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_WIDTH_A :
+            minimum = uint((m_minimum*pObjectMetaA->rect_params.width)/100);
+            maximum = uint((m_maximum*pObjectMetaA->rect_params.width)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_WIDTH_B :
+            minimum = uint((m_minimum*pObjectMetaB->rect_params.width)/100);
+            maximum = uint((m_maximum*pObjectMetaB->rect_params.width)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A :
+            minimum = uint((m_minimum*pObjectMetaA->rect_params.height)/100);
+            maximum = uint((m_maximum*pObjectMetaA->rect_params.height)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B :
+            minimum = uint((m_minimum*pObjectMetaB->rect_params.height)/100);
+            maximum = uint((m_maximum*pObjectMetaB->rect_params.height)/100);
+            break;
+        }    
+        return (minimum > distance or maximum < distance);
+    }
 
 }

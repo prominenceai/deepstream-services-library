@@ -230,6 +230,10 @@ namespace DSL {
         DslReturnType OdeTriggerCountNew(const char* name, const char* source, 
             uint classId, uint limit, uint minimum, uint maximum);
         
+        DslReturnType OdeTriggerDistanceNew(const char* name, const char* source, 
+            uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+            uint testPoint, uint testMethod);
+        
         DslReturnType OdeTriggerSmallestNew(const char* name, 
             const char* source, uint classId, uint limit);
 

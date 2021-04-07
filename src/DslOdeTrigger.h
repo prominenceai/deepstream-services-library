@@ -89,6 +89,12 @@ namespace DSL
     #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
         std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, source, classId, limit, preset))
+        
+    #define DSL_ODE_TRIGGER_DISTANCE_PTR std::shared_ptr<DistanceOdeTrigger>
+    #define DSL_ODE_TRIGGER_DISTANCE_NEW(name, source, classIdA, classIdB, \
+        limit, maximum, minimum, testPoint, testMethod) \
+        std::shared_ptr<DistanceOdeTrigger>(new DistanceOdeTrigger(name, source, \
+        classIdA, classIdB, limit, maximum, minimum, testPoint, testMethod))
 
 
     class OdeTrigger : public Base
@@ -326,23 +332,6 @@ namespace DSL
          * @return true if Source Id criteria is met, false otherwise
          */
         bool CheckForSourceId(int sourceId);
-        
-        /**
-         * @brief helper function for doesOverlap
-         * @param value to check if in range
-         * @param min min value of range check
-         * @param max max value of range check
-         * @return trun if value in range of min-max
-         */
-        bool valueInRange(int value, int min, int max);
-        
-        /**
-         * @brief Determines if two rectangles overlaps 
-         * @param[in] a rectangle A for test
-         * @param[in] b rectangle A for test
-         * @return true if the object's rectangle overlaps, false otherwise
-         */
-        bool doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b);
         
         /**
          * @brief Map of ODE Areas to use for minimum critera
@@ -1078,7 +1067,95 @@ namespace DSL
         uint m_currentHigh;
     
     };
+
+    class DistanceOdeTrigger : public OdeTrigger
+    {
+    public:
     
+        DistanceOdeTrigger(const char* name, const char* source, 
+            uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+            uint testPoint, uint testMethod);
+        
+        ~DistanceOdeTrigger();
+
+        /**
+         * @brief Function to check a given Object Meta data structure for Object occurrence
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
+         * Meta - that holds the Object Meta
+         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the 
+         * frame that holds the Object Meta
+         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
+         * @return true if Occurrence, false otherwise
+         */
+        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Distance Event 
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+
+    private:
+    
+        /**
+         * @brief Calculates the distance between two objects based on the current
+         * m_bboxTestPoint setting. Either point-to-point or edge-to-edge
+         * @param pObjectMetaA[in] pointer to Object A's meta data with location and dimension
+         * @param pObjectMetaB[in] pointer to Object B's meta data with location and dimension
+         * @return true if the objects are within minimum or beyond the maximum distance
+         * as mesured by the DSL_DISTANCE_METHOD
+         */
+        bool CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB);
+    
+        /**
+         * @brief list of pointers to NvDsObjectMeta data for Class A
+         * Each object occurrence of Class A that matches the criteria will be added
+         * to list to be checked for distance on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaListA;
+
+        /**
+         * @brief list of pointers to NvDsObjectMeta data for Class B
+         * Each object occurrence of Class B that matches the min criteria will be added
+         * to list to be checked for distance on PostProcessFrame
+         */ 
+        std::vector<NvDsObjectMeta*> m_occurrenceMetaListB;
+        
+        /**
+         * @brief Class ID to for A objects for A-B distance calculation
+         */
+        uint m_classIdA;
+
+        /**
+         * @brief Class ID to for A objects for A-B distance calculation
+         */
+        uint m_classIdB;
+        
+        /**
+         * @brief minimum distance between objects to trigger ODE occurrence
+         */
+        uint m_minimum;
+        
+        /**
+         * @brief maximum distance between objects to trigger ODE occurrence
+         */
+        uint m_maximum;
+        
+        /**
+         * @brief the bounding box point to measure distance
+         */
+        uint m_testPoint;
+        
+        /**
+         * @brief the method to use to measure distance between objects.
+         */
+        uint m_testMethod;
+    };
+
 }
 
 #endif // _DSL_ODE_H

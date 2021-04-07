@@ -63,6 +63,18 @@ namespace DSL
         }
     }
 
+    uint GeosPoint::Distance(const GeosPoint& testPoint)
+    {
+        // Don't log function entry/exit
+        double distance;
+        
+        if (!GEOSDistance(m_pGeosPoint, testPoint.m_pGeosPoint, &distance))
+        {
+            LOG_ERROR("Exception when calling GEOS Distance");
+            throw;
+        }
+        return (uint)round(distance);
+    }
     
     GeosLine::GeosLine(const NvOSD_LineParams& line)
         : m_pGeosLine(NULL)
@@ -168,6 +180,19 @@ namespace DSL
         {
             GEOSGeom_destroy(m_pGeosRectangle);
         }
+    }
+
+    uint GeosRectangle::Distance(const GeosRectangle& testRectangle)
+    {
+        // Don't log function entry/exit
+        double distance;
+        
+        if (!GEOSDistance(m_pGeosRectangle, testRectangle.m_pGeosRectangle, &distance))
+        {
+            LOG_ERROR("Exception when calling GEOS Distance");
+            throw;
+        }
+        return (uint)round(distance);
     }
 
     bool GeosRectangle::Overlaps(const GeosRectangle& testRectangle)
