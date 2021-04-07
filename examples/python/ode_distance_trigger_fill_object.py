@@ -45,6 +45,10 @@ TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
+
+# Min object height in pixels
+MINIMUM_OBJ_HEIGHT = 80
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -84,10 +88,11 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of ODE Instance Triggers to trigger on
-        # new Object Instances as identified by an IOU Tracker. The bounding box of
-        # the new Object will filled with a color for a (brief) visual indication,
-        # with event data printed to the console for each
+        # This example demonstrates the use of an ODE Distance Trigger to trigger on
+        # occurrence of two objects of different class id that are closer that a 
+        # minimum distance - specifically testing the distance between People and Vehicles.
+        # The bounding boxes for the two objects that are witin the minimim distance will. 
+        # be filled with a color for visual indication of the events.
         
         #```````````````````````````````````````````````````````````````````````````````````
         # Create a Hide Action to hide all Display Text and Bounding Boxes
@@ -105,62 +110,82 @@ def main(args):
             break
 
         #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new RGBA fill colors to fill the bounding boxes of new objects
-        retval = dsl_display_type_rgba_color_new('solid-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        # Create a new RGBA fill color to fill the bounding boxes of objects witin distance
+        retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.5)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_new('solid-white', red=1.0, green=1.0, blue=1.0, alpha=1.0)
+        # Create a new RGBA fill color to fill the bounding boxes of objects of minimum height
+        retval = dsl_display_type_rgba_color_new('opaque-white', red=1.0, green=1.0, blue=1.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new Actions to fill the bounding boxes, one for the PERSON class, the
-        # other for the VEHICLE class.
-        retval = dsl_ode_action_fill_object_new('fill-person-action', color='solid-red')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_ode_action_fill_object_new('fill-vehicle-action', color='solid-white')
+        # Create the Action to fill the bounding boxes of the two objects within minimim distance
+        retval = dsl_ode_action_fill_object_new('fill-red-action', color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # And a single action to print the event data to the console, which will be used
-        # by both our PERSON and VEHICLE Instance Trigers - created next
-        retval = dsl_ode_action_print_new('print-data')
+        # Create the Action to fill the bounding boxes of all objects with minimim height
+        retval = dsl_ode_action_fill_object_new('fill-white-action', color='opaque-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new Instance triggers, one for the PERSON class, the other for the VEHICLE class.
-        retval = dsl_ode_trigger_instance_new('person-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        # Create the new Distance trigger with minimim distance critera as a percentage
+        # of the width of Class A in the A/B distance measurement. ODE Occurrence will be 
+        # triggered if the distance between any Person and Vehicle is measured to be less 
+        # that the 300% of the width of the Person's BBox. Maximum is set to 0 == no maximum
+        # Note: Class A and Class B can be set to the same Class Id or DSL_ODE_ANY_CLASS.
+        # test_point is DSL_BBOX_POINT_SOUTH == measuring from center points of bottom edges
+        # test_method is DSL_DISTANCE_METHOD_PERCENT_WIDTH_A == % of Person's BBox width
+        retval = dsl_ode_trigger_distance_new('distance-trigger', 
+            source = 'uri-source-1',
+            class_id_a = PGIE_CLASS_ID_PERSON, 
+            class_id_b = PGIE_CLASS_ID_VEHICLE, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE,
+            minimum = 300,
+            maximum = 0,
+            test_point = DSL_BBOX_POINT_SOUTH,
+            test_method = DSL_DISTANCE_METHOD_PERCENT_WIDTH_A)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create an additional Occurrence Trigger using the same minimum hight critera
+        # just to highlight all objects that are being tested for distance. 
+        retval = dsl_ode_trigger_occurrence_new('min-height-trigger',
+            source = 'uri-source-1',
+            class_id = DSL_ODE_ANY_CLASS,
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+            
+        # Set the minimum Object height critera for both triggers        
+        retval = dsl_ode_trigger_dimensions_min_set('distance-trigger', 
+            min_width = 0, 
+            min_height = MINIMUM_OBJ_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_dimensions_min_set('min-height-trigger', 
+            min_width = 0, 
+            min_height = MINIMUM_OBJ_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         #```````````````````````````````````````````````````````````````````````````````````
         # Next, we add our Actions to our Triggers
-        retval = dsl_ode_trigger_action_add_many('person-instance-trigger',
-            actions=['fill-person-action', 'print-data', None])
+        retval = dsl_ode_trigger_action_add('distance-trigger', action='fill-red-action')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add_many('vehicle-instance-trigger',
-            actions=['fill-vehicle-action', 'print-data', None])
+        retval = dsl_ode_trigger_action_add('min-height-trigger', action='fill-white-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler to handle all ODE Triggers    
+        # New ODE Handler to handle the ODE Trigger
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', 
-            triggers=['every-occurrence-trigger', 'person-instance-trigger', 
-            'vehicle-instance-trigger', None])
+            triggers=['every-occurrence-trigger', 'distance-trigger', 'min-height-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -194,8 +219,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with clock and text enabled... using default values.
-        retval = dsl_osd_new('on-screen-display', False, True)
+        # New OSD with text disabled, clock enabled using default values.
+        retval = dsl_osd_new('on-screen-display', text_enabled=False, clock_enabled=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

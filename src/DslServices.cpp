@@ -2467,6 +2467,40 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeTriggerDistanceNew(const char* name, const char* source, 
+        uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+        uint testPoint, uint testMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+            
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_DISTANCE_NEW(name, 
+                source, classIdA, classIdB, limit, minimum, maximum, 
+                testPoint, testMethod);
+            
+            LOG_INFO("New Distance ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Distance ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+            
+    
     DslReturnType Services::OdeTriggerSmallestNew(const char* name, 
         const char* source, uint classId, uint limit)
     {

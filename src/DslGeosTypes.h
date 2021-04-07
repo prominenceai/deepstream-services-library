@@ -52,6 +52,13 @@ namespace DSL
         ~GeosPoint();
         
         /**
+         * @brief function to determine the distance between two GEOS Points
+         * @param testPoint GEOS Point to test for distance
+         * @return distance between the two points in units of pixels
+         */
+        uint Distance(const GeosPoint& testPoint);
+        
+        /**
          * @brief Actual GEOS Point for this class.
          */
         GEOSGeometry* m_pGeosPoint;
@@ -112,6 +119,13 @@ namespace DSL
          */
         ~GeosRectangle();
 
+        /**
+         * @brief function to determine the distance between two GEOS Rectangels
+         * @param testRectangle GEOS rectaangle to test for distance
+         * @return shortest distance between any two points on the rectangles
+         */
+        uint Distance(const GeosRectangle& testRectangle);
+        
         /**
          * @brief function to determine if two GEOS Rectangles overlap
          * @param[in] testRectangle GEOS rectangle to test for overlap

@@ -440,6 +440,15 @@ THE SOFTWARE.
 #define DSL_BBOX_EDGE_LEFT                                          2
 #define DSL_BBOX_EDGE_RIGHT                                         3
 
+/**
+ * @brief Methods of calculating distance between object BBoxes
+ */
+#define DSL_DISTANCE_METHOD_FIXED_PIXELS                            0
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_A                         1
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_B                         2
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
+
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
 EXTERN_C_BEGIN
@@ -1493,6 +1502,26 @@ DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name,
 DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit, uint preset);
 
+/**
+ * @brief Distance trigger that checks for the occurrence of two Objects that are below a minimum and/or
+ * above a maximum specified distance, and generates an ODE occurrence if detected. Detected objects are
+ *  tested using an A-B comparison of class_ids as specified. 
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id_a class id A filter for this ODE Trigger
+ * @param[in] class_id_b class id B filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * as specified by the test_method parameter below.
+ * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * as specified by the test_method parameter below.
+ * @param[in] test_point the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
+ * @param[in] test_method method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id_a, uint class_id_b, uint limit, uint minimum, uint maximum, 
+    uint test_point, uint test_method);
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
