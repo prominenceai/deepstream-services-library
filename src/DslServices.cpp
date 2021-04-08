@@ -71,6 +71,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(DistanceOdeTrigger)) and  \
+        !components[name]->IsType(typeid(IntersectionOdeTrigger))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not an AB ODE Trigger"); \
+        return DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE; \
+    } \
+}while(0); 
 
 #define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
 { \
@@ -2776,6 +2785,7 @@ namespace DSL
         try
         {
             RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
@@ -2799,6 +2809,7 @@ namespace DSL
         try
         {
             RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
             
             DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
                 std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
@@ -9000,6 +9011,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE] = L"DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";

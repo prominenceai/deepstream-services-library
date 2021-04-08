@@ -784,7 +784,8 @@ def dsl_ode_trigger_instance_new(name, source, class_id, limit):
 _dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, 
     DSL_ODE_CHECK_FOR_OCCURRENCE, DSL_ODE_POST_PROCESS_FRAME, c_void_p]
 _dsl.dsl_ode_trigger_custom_new.restype = c_uint
-def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, client_post_processor, client_data):
+def dsl_ode_trigger_custom_new(name, 
+    source, class_id, limit, client_checker, client_post_processor, client_data):
     global _dsl
     checker_cb = DSL_ODE_CHECK_FOR_OCCURRENCE(client_checker)
     processor_cb = DSL_ODE_POST_PROCESS_FRAME(client_post_processor)
@@ -792,17 +793,20 @@ def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, cl
     callbacks.append(processor_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, c_client_data)
+    result = _dsl.dsl_ode_trigger_custom_new(name, 
+        source, class_id, limit, checker_cb, processor_cb, c_client_data)
     return int(result)
 
 ##
 ## dsl_ode_trigger_intersection_new()
 ##
-_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_intersection_new.restype = c_uint
-def dsl_ode_trigger_intersection_new(name, source, class_id, limit):
+def dsl_ode_trigger_intersection_new(name, source, class_id_a, class_id_b, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_intersection_new(name, source, class_id, limit)
+    result =_dsl.dsl_ode_trigger_intersection_new(name, 
+        source, class_id_a, class_id_b, limit)
     return int(result)
 
 ##
