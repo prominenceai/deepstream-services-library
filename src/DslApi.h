@@ -392,9 +392,17 @@ THE SOFTWARE.
 #define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
 #define DSL_ODE_POST_OCCURRENCE_CHECK                               1
 
-// Source and Class Trigger filter constants for no-filter
+/**
+ * @brief Source and Class Trigger filter constants for no-filter
+ */
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
+
+/**
+ * @brief Unique class relational identifiers for Class A/B testing
+ */
+#define DSL_CLASS_A                                                 0
+#define DSL_CLASS_B                                                 1
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
@@ -1379,16 +1387,18 @@ DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name,
     const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Intersection trigger that checks for intersection of all Object detected
- * and triggers an ODE occurrence for each unique overlaping pair.
+ * @brief Intersection trigger that checks for the intersection of detected Objects 
+ * and triggers an ODE occurrence for each unique overlaping pair. Detected objects are
+ * tested using an A-B comparison of class_ids as specified. 
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] class_id_a class id A filter for this ODE Trigger
+ * @param[in] class_id_b class id B filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
-    const wchar_t* source, uint class_id, uint limit);
+    const wchar_t* source, uint class_id_a, uint class_id_b, uint limit);
 
 /**
  * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
@@ -1505,7 +1515,7 @@ DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name,
 /**
  * @brief Distance trigger that checks for the occurrence of two Objects that are below a minimum and/or
  * above a maximum specified distance, and generates an ODE occurrence if detected. Detected objects are
- *  tested using an A-B comparison of class_ids as specified. 
+ * tested using an A-B comparison of class_ids as specified. 
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id_a class id A filter for this ODE Trigger
@@ -1579,6 +1589,26 @@ DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current class_id_a and class_id_b filters for the ODE Trigger
+ * @param[in] name unique name of the Intersection ODE Trigger to query
+ * @param[out] class_id_a returns the current class_id for Class A
+ * @param[out] class_id_b returns the current class_id for Class B
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_class_id_ab_get(const wchar_t* name, 
+    uint* class_id_a, uint* class_id_b);
+
+/**
+ * @brief Sets the class_id_a and class_id_b filters for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] class_id_a returns the current class_id for Class A
+ * @param[in] class_id_b returns the current class_id for Class B
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name, 
+    uint class_id_a, uint class_id_b);
 
 /**
  * @brief Gets the current limit setting for the ODE Trigger

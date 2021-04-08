@@ -474,12 +474,14 @@ SCENARIO( "A new Intersection Trigger can be created and deleted correctly", "[o
     GIVEN( "Attributes for a new Intersection Trigger" ) 
     {
         std::wstring odeTriggerName(L"intersection");
-        uint class_id(0);
+        uint class_id_a(0);
+        uint class_id_b(0);
         uint limit(0);
 
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), 
+                NULL, class_id_a, class_id_b, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "The Trigger can be deleted only once" ) 
             {
@@ -490,12 +492,13 @@ SCENARIO( "A new Intersection Trigger can be created and deleted correctly", "[o
         }
         WHEN( "When the Trigger is created" )         
         {
-            REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), NULL, class_id, limit) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), 
+                NULL, class_id_a, class_id_b, limit) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Trigger with the same name fails to create" ) 
             {
-                REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), NULL, class_id, limit) 
-                    == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_trigger_intersection_new(odeTriggerName.c_str(), 
+                    NULL, class_id_a, class_id_b, limit) == DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_trigger_delete(odeTriggerName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_trigger_list_size() == 0 );
@@ -739,7 +742,7 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
         std::wstring triggerName  = L"test-trigger";
         std::wstring otherName  = L"other";
         
-        uint claass_id(0);
+        uint class_id(0);
         const wchar_t* source(NULL);
         boolean enabled(0), infer(0);
         float confidence(0), min_height(0), min_width(0), max_height(0), max_width(0);
@@ -755,7 +758,7 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_occurrence_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_instance_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_absence_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_intersection_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_intersection_new(NULL, NULL, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_summation_new(NULL, NULL, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_trigger_custom_new(NULL, NULL, 0, 0, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -776,8 +779,10 @@ SCENARIO( "The ODE Trigger API checks for NULL input parameters", "[ode-trigger-
                 REQUIRE( dsl_ode_trigger_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_enabled_set(NULL, enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_class_id_get(NULL, &claass_id) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_trigger_class_id_set(NULL, claass_id) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_class_id_get(NULL, &class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_class_id_set(NULL, class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_class_id_ab_get(NULL, &class_id, &class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_trigger_class_id_ab_set(NULL, class_id, class_id) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_source_get(NULL, &source) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_source_set(NULL, source) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_trigger_confidence_min_get(NULL, &confidence) == DSL_RESULT_INVALID_INPUT_PARAM );

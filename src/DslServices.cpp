@@ -2318,7 +2318,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, 
+        const char* source, uint classIdA, uint classIdB, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2331,7 +2332,8 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, 
+                source, classIdA, classIdB, limit);
             
             LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
 
@@ -2765,6 +2767,51 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerClassIdABGet(const char* name, 
+        uint* classIdA, uint* classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerClassIdABSet(const char* name, 
+        uint classIdA, uint classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     DslReturnType Services::OdeTriggerLimitGet(const char* name, uint* limit)
     {
         LOG_FUNC();
