@@ -25,10 +25,9 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
+* [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
-* [dsl_ode_trigger_minimum_new](#dsl_ode_trigger_minimum_new)
-* [dsl_ode_trigger_maximum_new](#dsl_ode_trigger_maximum_new)
-* [dsl_ode_trigger_range_new](#dsl_ode_trigger_range_new)
+* [dsl_ode_trigger_count_new](#dsl_ode_trigger_count_new)
 * [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
 * [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
 * [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
@@ -46,6 +45,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_source_set](#dsl_ode_trigger_source_set)
 * [dsl_ode_trigger_class_id_get](#dsl_ode_trigger_class_id_get)
 * [dsl_ode_trigger_class_id_set](#dsl_ode_trigger_class_id_set)
+* [dsl_ode_trigger_class_id_ab_get](#dsl_ode_trigger_class_id_ab_get)
+* [dsl_ode_trigger_class_id_ab_set](#dsl_ode_trigger_class_id_ab_set)
 * [dsl_ode_trigger_limit_get](#dsl_ode_trigger_limit_get)
 * [dsl_ode_trigger_limit_set](#dsl_ode_trigger_limit_set)
 * [dsl_ode_trigger_confidence_min_get](#dsl_ode_trigger_confidence_min_get)
@@ -85,6 +86,7 @@ The following return codes are used by the ODE Trigger API
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
 #define DSL_RESULT_ODE_TRIGGER_ALWAYS_WHEN_PARAMETER_INVALID        0x000E000E
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 ```
 
 ---
@@ -95,6 +97,30 @@ The following symbolic constants are used by the ODE Trigger API
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 #define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
+
+/**
+ * @brief Speicifes a set of defined points along a BBox border. 
+ */
+#define DSL_BBOX_POINT_CENTER                                       0
+#define DSL_BBOX_POINT_NORTH_WEST                                   1
+#define DSL_BBOX_POINT_NORTH                                        2
+#define DSL_BBOX_POINT_NORTH_EAST                                   3
+#define DSL_BBOX_POINT_EAST                                         4
+#define DSL_BBOX_POINT_SOUTH_EAST                                   5
+#define DSL_BBOX_POINT_SOUTH                                        6
+#define DSL_BBOX_POINT_SOUTH_WEST                                   7
+#define DSL_BBOX_POINT_WEST                                         8
+#define DSL_BBOX_POINT_ANY                                          9
+
+/**
+ * @brief Methods of calculating distance between object BBoxes
+ */
+#define DSL_DISTANCE_METHOD_FIXED_PIXELS                            0
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_A                         1
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_B                         2
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
+
 ```
 
 ---
@@ -253,13 +279,54 @@ retval = dsl_ode_trigger_summation_new('my-summation-trigger', DSL_ODE_ANY_SOURC
 
 <br>
 
+### *dsl_ode_trigger_distance_new*
+```C++
+DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id_a, uint class_id_b, uint limit, uint minimum, uint maximum, 
+    uint test_point, uint test_method);
+```
+
+This constructor creates a uniquely named Distance Trigger that determines if Objects, that meet the Trigger's (optional) criteria, are less than a minimum and/or greater than a maximum distance from one another. If detected, the Trigger will generate an ODE occurrence invoking all ODE Actions twice, once for **each object** in the pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.  The points and method of distance measurement (fixed or ratio) are defined as well.
+
+Intersection requires at least one pixel of overlap between a pair of object's rectangles.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+* `minimum` - [in] the minimum distance between objects in either pixels or percentage of BBox edge as specified by the test_method parameter below.
+* `maximum` - [in] the maximum distance between objects in either pixels or percentage of BBox edge as specified by the test_method parameter below.
+* `test_point` - [in] the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
+* `test_method` - [in] method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_distance_new('my-distance-trigger', 
+    source = DSL_ODE_ANY_SOURCE, 
+    class_id_a = PGIE_CLASS_ID_PERSON, 
+    class_id_b = PGIE_CLASS_ID_VEHICLE,
+    minimum = 300,
+    maximum = 0,
+    test_point = DSL_BBOX_POINT_SOUTH,
+    test_method = DSL_DISTANCE_METHOD_PERCENT_WIDTH_A)
+```
+
+<br>
+
 ### *dsl_ode_trigger_intersection_new*
 ```C++
 DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
     const wchar_t* source, uint class_id, uint limit);
 ```
 
-This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) criteria, intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. 
+This constructor creates a uniquely named Intersection Trigger that determines if Objects, that meet the Trigger's (optional) criteria, intersect, and generates an ODE occurrence invoking all ODE Actions twice, once for **each object** in the intersection pair. Object detection is based on the specification of two Class IDs; A and B. All Objects of Class A will be tested against all Objects of Class B. `class_id_a` and `class_id_b` can both be set to the same Class Id and `DSL_ODE_ANY_CLASS`.
 
 For example: Given three objects A, B, and C. If A intersects B and B intersects C, then two unique ODE occurrences are generated. Each Action owned by the Trigger will be called for each object for every overlapping pair, i.e. a total of four times in this example.  If each of the three objects intersect with the other two, then three ODE occurrences will be triggered with each action called a total of 6 times. 
 
@@ -268,7 +335,8 @@ Intersection requires at least one pixel of overlap between a pair of object's r
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `class_id_a` - [in] inference class id filter A. Use `DSL_ODE_ANY_CLASS` to disable the filter
+* `class_id_b` - [in] inference class id filter B. Use `DSL_ODE_ANY_CLASS` to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
@@ -278,86 +346,30 @@ Intersection requires at least one pixel of overlap between a pair of object's r
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_intersection_new('my-intersection-trigger', DSL_ODE_ANY_SOURCE, 
-    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+retval = dsl_ode_trigger_intersection_new('my-intersection-trigger', 
+    source = DSL_ODE_ANY_SOURCE, 
+    class_id_a = PGIE_CLASS_ID_PERSON, 
+    class_id_b = PGIE_CLASS_ID_VEHICLE,
+    limit = DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
 
-### *dsl_ode_trigger_minimum_new*
-```C++
-DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint minimum);
-```
-
-The constructor creates a uniquely named Minimum Occurrence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurrence invoking all Actions if the minimum is not met.
-
-Note: Adding Actions to a Minimum Occurrence Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
-
-**Parameters**
-* `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
-* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `minimum` [in] the required minimum number of objects per-frame 
-
-**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_trigger_minimum_new('my-minimum-trigger', DSL_ODE_ANY_SOURCE, 
-    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum)
-```
-
-<br>
-
-### *dsl_ode_trigger_maximum_new*
-```C++
-DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint maximum);
-```
-
-The constructor creates a uniquely named Maximum Occurrence Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a specified minimum number. The Trigger generates an ODE occurrence invoking all Actions if the maximum is exceeded.
-
-Note: Adding Actions to a Range of Occurrences Trigger that require Object metadata during invocation - Object-Capture and Object-Fill as examples - will result in a non-action when invoked. 
-
-**Parameters**
-* `name` - [in] unique name for the ODE Trigger to create.
-* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
-* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
-* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-
-**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_ode_trigger_maximum_new('my-maximum-trigger', DSL_ODE_ANY_SOURCE, 
-    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maximum)
-```
-
-<br>
-
-### *dsl_ode_trigger_range_new*
+### *dsl_ode_trigger_count_new*
 ```C++
 DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* source, 
     uint class_id, uint limit, uint lower, uint upper);
 ```
 
-This constructor creates a uniquely named Range of Occurrences Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a range of numbers. The Trigger generates an ODE occurrence invoking all Actions if the object count is within range.
+This constructor creates a uniquely named Count Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria against a range of numbers. The Trigger generates an ODE occurrence invoking all Actions if the object count is below and/or above  a minimum and maximum count.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
 * `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
 * `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
 * `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
-* `lower` - [in] defines the lower limit in the range of numbers
-* `upper` - [in] defines the upper limit in the range of numbers
+* `minimum` - [in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
+* `maximum` - [in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
 
 **Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
 
@@ -366,8 +378,8 @@ This constructor creates a uniquely named Range of Occurrences Trigger that chec
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_range_new('my-range-trigger', DSL_ODE_ANY_SOURCE, 
-    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, maximum)
+retval = dsl_ode_trigger_count_new('my-range-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum, maximum)
 ```
 
 <br>
@@ -392,7 +404,8 @@ This constructor creates a uniquely named smallest trigger that checks for the o
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_smallest_new('my-range-trigger', DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+retval = dsl_ode_trigger_smallest_new('my-smallest-trigger', 
+    DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
 <br>
@@ -649,6 +662,53 @@ This service sets the current class_id filter setting for the named ODE Trigger.
 **Python Example**
 ```Python
 retval = dsl_ode_trigger_class_id_set('my-trigger', DSL_ODE_ANY_CLASS)
+```
+
+<br>
+
+### *dsl_ode_trigger_class_id_ab_get*
+```c++
+DslReturnType dsl_ode_trigger_class_id_ab_get(const wchar_t* name, 
+    uint* class_id_a, uint* class_id_b);
+```
+
+This service returns the current class_id_a and class_id_b filter settings for the named **AB Type** ODE Trigger. A value of `DSL_ODE_ANY_CLASS` indicates that the class filter is disabled.
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `class_id_a` - [out] current class Id A filter for the ODE Trigger to filter on. 
+* `class_id_a` - [out] current class Id B filter for the ODE Trigger to filter on. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, class_id_a, class_id_b = dsl_ode_trigger_class_id_ab_get('my-trigger')
+```
+
+<br>
+
+### *dsl_ode_trigger_class_id_ab_set*
+```c++
+DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name, 
+    uint class_id_a, uint class_id_b);;
+```
+
+This service sets the current class_id_a filter setting for a named **AB Type** ODE Trigger. Both can be set to the same Class Id or `DSL_ODE_ANY_CLASS`
+
+**Parameters**
+* `name` - [in] unique name of the ODE Trigger to query.
+* `class_id_a` - [in] new class Id A filter for the ODE Trigger to filter on.
+* `class_id_b` - [in] new class Id A filter for the ODE Trigger to filter on.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_class_id_ab_set('my-trigger', 
+    class_id_a = DSL_ODE_ANY_CLASS, class_id_b = DSL_ODE_ANY_CLASS)
 ```
 
 <br>
