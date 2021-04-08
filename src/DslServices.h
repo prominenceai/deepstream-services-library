@@ -215,7 +215,7 @@ namespace DSL {
             const char* source, uint classId, uint limit);
         
         DslReturnType OdeTriggerIntersectionNew(const char* name, 
-            const char* source, uint classId, uint limit);
+            const char* source, uint classIdA, uint classIdB, uint limit);
 
         DslReturnType OdeTriggerSummationNew(const char* name, 
             const char* source, uint classId, uint limit);
@@ -259,6 +259,10 @@ namespace DSL {
         DslReturnType OdeTriggerClassIdGet(const char* name, uint* classId);
         
         DslReturnType OdeTriggerClassIdSet(const char* name, uint classId);
+        
+        DslReturnType OdeTriggerClassIdABGet(const char* name, uint* classIdA, uint* classIdB);
+        
+        DslReturnType OdeTriggerClassIdABSet(const char* name, uint classIdA, uint classIdB);
         
         DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
         

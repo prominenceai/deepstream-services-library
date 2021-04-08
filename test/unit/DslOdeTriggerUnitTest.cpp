@@ -842,13 +842,15 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
     {
         std::string odeTriggerName("intersection");
         std::string source;
-        uint classId(1);
+        uint classIdA(1);
+        uint classIdB(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_INTERSECTION_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classIdA, classIdB, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -862,13 +864,13 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.class_id = classIdA; // must match ODE Type's classId
         
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.class_id = classIdA; // must match ODE Type's classId
         
         NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classId; // must match ODE Type's classId
+        objectMeta3.class_id = classIdA; // must match ODE Type's classId
         
         WHEN( "Two objects occur without overlap" )
         {
@@ -1556,11 +1558,94 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
     }
 }
 
+SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new DetectionEvent" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1);
+        uint classIdA(1);
+        uint classIdB(1);
+        uint minimum(10);
+        uint maximum(20);
+        
+        std::string source;
+
+        WHEN( "A new OdeTrigger is created" )
+        {
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The OdeTriggers's members are setup and returned correctly" )
+            {
+                uint retClassIdA(0), retClassIdB(0);
+                REQUIRE( pOdeTrigger->GetEnabled() == true );
+                pOdeTrigger->GetClassIdAB(&retClassIdA, &retClassIdB);
+                REQUIRE( retClassIdA == classIdA );
+                REQUIRE( retClassIdB == classIdB );
+                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetSource() == NULL );
+                float minWidth(123), minHeight(123);
+                pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
+                REQUIRE( minWidth == 0 );
+                REQUIRE( minHeight == 0 );
+                float maxWidth(123), maxHeight(123);
+                pOdeTrigger->GetMaxDimensions(&maxWidth, &maxHeight);
+                REQUIRE( maxWidth == 0 );
+                REQUIRE( maxHeight == 0 );
+                uint minFrameCountN(123), minFrameCountD(123);
+                pOdeTrigger->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
+                REQUIRE( minFrameCountN == 1 );
+                REQUIRE( minFrameCountD == 1 );
+                REQUIRE( pOdeTrigger->GetInferDoneOnlySetting() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OdeDistanceTrigger can Set/Get its AB Class Ids", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new DetectionEvent" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1);
+        uint classIdA(1);
+        uint classIdB(1);
+        uint minimum(10);
+        uint maximum(20);
+        
+        std::string source;
+
+        DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                classIdA, classIdB, limit, minimum, maximum, 
+                DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+        WHEN( "The OdeDistanceTrigger's AB Class Ids are Set" )
+        {
+            uint newClassIdA(5), newClassIdB(8);
+            pOdeTrigger->SetClassIdAB(newClassIdA, newClassIdB);
+            
+            THEN( "The correct values are returned on Get" )
+            {
+                uint retClassIdA(0), retClassIdB(0);
+                pOdeTrigger->GetClassIdAB(&retClassIdA, &retClassIdB);
+                REQUIRE( retClassIdA == newClassIdA );
+                REQUIRE( retClassIdB == newClassIdB );
+            }
+        }
+    }
+}           
+
 SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "Attributes for a new Distance Trigger" ) 
     {
-        std::string odeTriggerName("occurence");
+        std::string odeTriggerName("distance");
         uint limit(0);
 
         std::string odeActionName("event-action");
@@ -1626,7 +1711,7 @@ SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
             }
         }
         WHEN( "A Two objects are detected within the minimum distance - same Class Ids" )
@@ -1659,7 +1744,7 @@ SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
             }
         }
         WHEN( "A Two objects are detected within the minimum distance - different Class Ids" )
@@ -1702,7 +1787,7 @@ SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[
 {
     GIVEN( "Attributes for a new Distance Trigger" ) 
     {
-        std::string odeTriggerName("occurence");
+        std::string odeTriggerName("distance");
         uint limit(0);
 
         std::string odeActionName("event-action");

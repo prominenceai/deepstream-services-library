@@ -48,10 +48,6 @@ namespace DSL
     #define DSL_ODE_TRIGGER_INSTANCE_NEW(name, source, classId, limit) \
         std::shared_ptr<InstanceOdeTrigger>(new InstanceOdeTrigger(name, source, classId, limit))
 
-    #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
-    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit) \
-        std::shared_ptr<IntersectionOdeTrigger>(new IntersectionOdeTrigger(name, source, classId, limit))
-
     #define DSL_ODE_TRIGGER_OCCURRENCE_PTR std::shared_ptr<OccurrenceOdeTrigger>
     #define DSL_ODE_TRIGGER_OCCURRENCE_NEW(name, source, classId, limit) \
         std::shared_ptr<OccurrenceOdeTrigger>(new OccurrenceOdeTrigger(name, source, classId, limit))
@@ -61,7 +57,8 @@ namespace DSL
         std::shared_ptr<SummationOdeTrigger>(new SummationOdeTrigger(name, source, classId, limit))
         
     #define DSL_ODE_TRIGGER_CUSTOM_PTR std::shared_ptr<CustomOdeTrigger>
-    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, source, classId, limit, clientChecker, clientPostProcessor, clientData) \
+    #define DSL_ODE_TRIGGER_CUSTOM_NEW(name, \
+    source, classId, limit, clientChecker, clientPostProcessor, clientData) \
         std::shared_ptr<CustomOdeTrigger>(new CustomOdeTrigger(name, \
             source, classId, limit, clientChecker, clientPostProcessor, clientData))
 
@@ -72,7 +69,8 @@ namespace DSL
 
     #define DSL_ODE_TRIGGER_COUNT_PTR std::shared_ptr<CountOdeTrigger>
     #define DSL_ODE_TRIGGER_COUNT_NEW(name, source, classId, limit, minimum, maximum) \
-        std::shared_ptr<CountOdeTrigger>(new CountOdeTrigger(name, source, classId, limit, minimum, maximum))
+        std::shared_ptr<CountOdeTrigger> \
+            (new CountOdeTrigger(name, source, classId, limit, minimum, maximum))
 
     #define DSL_ODE_TRIGGER_SMALLEST_PTR std::shared_ptr<SmallestOdeTrigger>
     #define DSL_ODE_TRIGGER_SMALLEST_NEW(name, source, classId, limit) \
@@ -89,12 +87,22 @@ namespace DSL
     #define DSL_ODE_TRIGGER_NEW_HIGH_PTR std::shared_ptr<NewHighOdeTrigger>
     #define DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, source, classId, limit, preset) \
         std::shared_ptr<NewHighOdeTrigger>(new NewHighOdeTrigger(name, source, classId, limit, preset))
-        
+
+    // Triggers for ClassA - ClassB Testing
+
+    #define DSL_ODE_TRIGGER_AB_PTR std::shared_ptr<ABOdeTrigger>
+    
     #define DSL_ODE_TRIGGER_DISTANCE_PTR std::shared_ptr<DistanceOdeTrigger>
     #define DSL_ODE_TRIGGER_DISTANCE_NEW(name, source, classIdA, classIdB, \
-        limit, maximum, minimum, testPoint, testMethod) \
-        std::shared_ptr<DistanceOdeTrigger>(new DistanceOdeTrigger(name, source, \
-        classIdA, classIdB, limit, maximum, minimum, testPoint, testMethod))
+        limit, maximum, minimum, testPoint, testMethod) std::shared_ptr<DistanceOdeTrigger> \
+            (new DistanceOdeTrigger(name, source, classIdA, classIdB, limit, \
+            maximum, minimum, testPoint, testMethod))
+
+    #define DSL_ODE_TRIGGER_INTERSECTION_PTR std::shared_ptr<IntersectionOdeTrigger>
+    #define DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classIdA, classIdB, limit) \
+        std::shared_ptr<IntersectionOdeTrigger> \
+            (new IntersectionOdeTrigger(name, source, classIdA, classIdB, limit))
+
 
 
     class OdeTrigger : public Base
@@ -585,46 +593,6 @@ namespace DSL
     
     };
     
-    class IntersectionOdeTrigger : public OdeTrigger
-    {
-    public:
-    
-        IntersectionOdeTrigger(const char* name, const char* source, uint classId, uint limit);
-        
-        ~IntersectionOdeTrigger();
-
-        /**
-         * @brief Function to check a given Object Meta data structure for Object occurrence
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame 
-         * Meta - that holds the Object Meta
-         * @param[in] pFrameMeta pointer to the parent NvDsFrameMeta data - the 
-         * frame that holds the Object Meta
-         * @param[in] pObjectMeta pointer to a NvDsObjectMeta data to check
-         * @return true if Occurrence, false otherwise
-         */
-        bool CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
-         * @brief Function to post process the frame and generate a Intersection Event 
-         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
-         * @param[in] pFrameMeta Frame meta data to post process.
-         * @return the number of ODE Occurrences triggered on post process
-         */
-        uint PostProcessFrame(GstBuffer* pBuffer, 
-            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
-
-    private:
-    
-        /**
-         * @brief list of pointers to NvDsObjectMeta data
-         * Each object occurrence that matches the min criteria will be added
-         * to list to be checked for intersection on PostProcessFrame
-         */ 
-        std::vector<NvDsObjectMeta*> m_occurrenceMetaList;
-    
-    };
-
     class CustomOdeTrigger : public OdeTrigger
     {
     public:
@@ -1068,15 +1036,14 @@ namespace DSL
     
     };
 
-    class DistanceOdeTrigger : public OdeTrigger
+    class ABOdeTrigger : public OdeTrigger
     {
     public:
     
-        DistanceOdeTrigger(const char* name, const char* source, 
-            uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
-            uint testPoint, uint testMethod);
+        ABOdeTrigger(const char* name, const char* source, 
+            uint classIdA, uint classIdB, uint limit);
         
-        ~DistanceOdeTrigger();
+        ~ABOdeTrigger();
 
         /**
          * @brief Function to check a given Object Meta data structure for Object occurrence
@@ -1096,21 +1063,45 @@ namespace DSL
          * @param[in] pFrameMeta Frame meta data to post process.
          * @return the number of ODE Occurrences triggered on post process
          */
-        uint PostProcessFrame(GstBuffer* pBuffer, 
+        virtual uint PostProcessFrame(GstBuffer* pBuffer, 
             NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
 
-    private:
-    
         /**
-         * @brief Calculates the distance between two objects based on the current
-         * m_bboxTestPoint setting. Either point-to-point or edge-to-edge
-         * @param pObjectMetaA[in] pointer to Object A's meta data with location and dimension
-         * @param pObjectMetaB[in] pointer to Object B's meta data with location and dimension
-         * @return true if the objects are within minimum or beyond the maximum distance
-         * as mesured by the DSL_DISTANCE_METHOD
+         * @brief Gets the ClassIdA and ClassIdB filters used for Object detection 
+         * @param[out] classA Class Id for Class A 
+         * @param[out] classB Class Id for Class B
+         * @return the current ClassId filter value
          */
-        bool CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB);
-    
+        void GetClassIdAB(uint* classA, uint* classB);
+        
+        /**
+         * @brief Sets the ClassId filter for Object detection 
+         * @param[in] classA Class Id for Class A 
+         * @param[in] classB Class Id for Class B
+         * @param[in] classId new filter value to use
+         */
+        void SetClassIdAB(uint classIdA, uint classIdB);
+
+    protected:
+
+        /**
+         * @brief Function to post process the frame and generate a Distance Event - Class A Only
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        virtual uint PostProcessFrameA(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) = 0;
+
+        /**
+         * @brief Function to post process the frame and generate a Distance Event - Class A/B
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        virtual uint PostProcessFrameAB(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta) = 0;
+
         /**
          * @brief list of pointers to NvDsObjectMeta data for Class A
          * Each object occurrence of Class A that matches the criteria will be added
@@ -1126,6 +1117,11 @@ namespace DSL
         std::vector<NvDsObjectMeta*> m_occurrenceMetaListB;
         
         /**
+         * @brief boolean flag to specify if A-A testing or A-B testing
+         */
+        bool m_classIdAOnly;
+    
+        /**
          * @brief Class ID to for A objects for A-B distance calculation
          */
         uint m_classIdA;
@@ -1134,6 +1130,49 @@ namespace DSL
          * @brief Class ID to for A objects for A-B distance calculation
          */
         uint m_classIdB;
+    };
+
+    class DistanceOdeTrigger : public ABOdeTrigger
+    {
+    public:
+    
+        DistanceOdeTrigger(const char* name, const char* source, 
+            uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+            uint testPoint, uint testMethod);
+        
+        ~DistanceOdeTrigger();
+
+    private:
+
+        /**
+         * @brief Function to post process the frame and generate a Distance Event - Class A Only
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrameA(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+
+        /**
+         * @brief Function to post process the frame and generate a Distance Event - Class A/B
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrameAB(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+
+    
+        /**
+         * @brief Calculates the distance between two objects based on the current
+         * m_bboxTestPoint setting. Either point-to-point or edge-to-edge
+         * @param pObjectMetaA[in] pointer to Object A's meta data with location and dimension
+         * @param pObjectMetaB[in] pointer to Object B's meta data with location and dimension
+         * @return true if the objects are within minimum or beyond the maximum distance
+         * as mesured by the DSL_DISTANCE_METHOD
+         */
+        bool CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB);
+    
         
         /**
          * @brief minimum distance between objects to trigger ODE occurrence
@@ -1154,6 +1193,36 @@ namespace DSL
          * @brief the method to use to measure distance between objects.
          */
         uint m_testMethod;
+    };
+
+    class IntersectionOdeTrigger : public ABOdeTrigger
+    {
+    public:
+    
+        IntersectionOdeTrigger(const char* name, 
+            const char* source, uint classIdA, uint classIdB, uint limit);
+        
+        ~IntersectionOdeTrigger();
+
+    private:
+
+        /**
+         * @brief Function to post process the frame and generate an Intersection Event - Class A only
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrameA(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
+    
+        /**
+         * @brief Function to post process the frame and generate an Intersection Event - Class A/B testing
+         * @param[in] pBuffer pointer to batched stream buffer - that holds the Frame Meta
+         * @param[in] pFrameMeta Frame meta data to post process.
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        uint PostProcessFrameAB(GstBuffer* pBuffer, 
+            NvDsDisplayMeta* pDisplayMeta, NvDsFrameMeta* pFrameMeta);
     };
 
 }

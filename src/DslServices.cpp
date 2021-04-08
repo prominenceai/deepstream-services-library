@@ -71,6 +71,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(DistanceOdeTrigger)) and  \
+        !components[name]->IsType(typeid(IntersectionOdeTrigger))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not an AB ODE Trigger"); \
+        return DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE; \
+    } \
+}while(0); 
 
 #define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
 { \
@@ -2318,7 +2327,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, 
+        const char* source, uint classIdA, uint classIdB, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2331,7 +2341,8 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, 
+                source, classIdA, classIdB, limit);
             
             LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
 
@@ -2765,6 +2776,53 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerClassIdABGet(const char* name, 
+        uint* classIdA, uint* classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerClassIdABSet(const char* name, 
+        uint classIdA, uint classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     DslReturnType Services::OdeTriggerLimitGet(const char* name, uint* limit)
     {
         LOG_FUNC();
@@ -8953,6 +9011,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE] = L"DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";

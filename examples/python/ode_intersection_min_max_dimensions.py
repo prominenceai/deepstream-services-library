@@ -115,9 +115,12 @@ def main(args):
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the Person Intersection Trigger, and set a Minumum height as criteria, add the Actions to Fill 
-        # the Object and Print the ODE occurrence info to the console.
-        retval = dsl_ode_trigger_intersection_new('person-intersection', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
+        # the Object and Print the ODE occurrence info to the console. Using a single class for testing.
+        retval = dsl_ode_trigger_intersection_new('person-intersection', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id_a = PGIE_CLASS_ID_PERSON, 
+            class_id_b = PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE )
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_min_set('person-intersection', min_width=0, min_height=70)
@@ -130,8 +133,11 @@ def main(args):
 
         # Next, create the Vehicle Intersection Trigger, and set a Maximum height as criteria, add the Actions to Fill 
         # the Object on ODE occurrence and Print the ODE occurrence info to the console.
-        retval = dsl_ode_trigger_intersection_new('vehicle-intersection', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE )
+        retval = dsl_ode_trigger_intersection_new('vehicle-intersection', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id_a = PGIE_CLASS_ID_VEHICLE,
+            class_id_b = PGIE_CLASS_ID_VEHICLE,
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE )
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_dimensions_max_set('vehicle-intersection', max_width=0, max_height=80)
