@@ -28,6 +28,8 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
 * [dsl_ode_trigger_count_new](#dsl_ode_trigger_count_new)
+* [dsl_ode_trigger_new_high_new](#dsl_ode_trigger_new_high_new)
+* [dsl_ode_trigger_new_low_new](#dsl_ode_trigger_new_low_new)
 * [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
 * [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
 * [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
@@ -218,7 +220,7 @@ The constructor creates an Occurrence trigger that checks for the occurrence of 
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_absence_new('my-absence-trigger', DSL_ODE_ANY_SOURCE, 
+retval = dsl_ode_trigger_occurrence_new('my-occurrence-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
@@ -245,7 +247,7 @@ The constructor creates an Instance trigger that checks for new instances of Obj
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_instance_new('my-absence-trigger', DSL_ODE_ANY_SOURCE, 
+retval = dsl_ode_trigger_instance_new('my-instance-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
 ```
 
@@ -378,8 +380,64 @@ This constructor creates a uniquely named Count Trigger that checks for the occu
 
 **Python Example**
 ```Python
-retval = dsl_ode_trigger_count_new('my-range-trigger', DSL_ODE_ANY_SOURCE, 
+retval = dsl_ode_trigger_count_new('my-count-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum, maximum)
+```
+
+<br>
+
+### *dsl_ode_trigger_new_high_new*
+```C++
+DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+```
+
+This constructor creates a uniquely named New High Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria and deterines if the numbers has reached a new high. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the highest count. The Trigger can be created with a preset high value of 0 or greater.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+* `preset` - [in] initial high count to start with. High count will be reset to the preset on trigger reset.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_new_high_new('my-new-high-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, preset=0)
+```
+
+<br>
+
+### *dsl_ode_trigger_new_low_new*
+```C++
+DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+```
+
+This constructor creates a uniquely named New Low Trigger that checks for the occurrence of Objects within a frame that meet the Trigger's (optional) criteria and deterines if the number has reached a new low. The Trigger generates an ODE occurrence invoking all Actions if the object count is above the lowest count. The Trigger can be created with a preset low value of 0 or greater.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+* `preset` - [in] initial low count to start with. Low count will be reset to the preset on trigger reset.
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_new_low_new('my-new-low-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, preset=4)
 ```
 
 <br>
