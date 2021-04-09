@@ -61,6 +61,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_xwindow_dimensions_set](#dsl_pipeline_xwindow_dimensions_set)
 * [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get)
 * [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
+* [dsl_pipeline_xwindow_destroy](#dsl_pipeline_xwindow_destroy)
 * [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add)
 * [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove)
 * [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
@@ -554,7 +555,7 @@ retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window handle);
 ```
-This service sets the the XWindow for the named Pipeline to use. This service will fail if the Pipeline has an existing XWindow handle. 
+This service sets the the XWindow for the named Pipeline to use. 
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
@@ -566,6 +567,24 @@ This service sets the the XWindow for the named Pipeline to use. This service wi
 **Python Example**
 ```Python
 retval = dsl_pipeline_xwindow_handle_set('my-pipeline', x_window)
+```
+<br>
+
+### *dsl_pipeline_xwindow_destroy*
+```C++
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
+```
+This service destroys the Pipeline's XWindow if one exists and was created by the Pipeline, i.e. was not provided by the client with an earlier call to [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_xwindow_destroy('my-pipeline')
 ```
 <br>
 
