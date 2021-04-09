@@ -24,6 +24,7 @@ As with Actions, multiple ODE areas can be added to an ODE Trigger and the same 
 * [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
 * [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
 * [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
+* [dsl_ode_trigger_persistence_new](#dsl_ode_trigger_persistence_new)
 * [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
 * [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
 * [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
@@ -249,6 +250,35 @@ The constructor creates an Instance trigger that checks for new instances of Obj
 ```Python
 retval = dsl_ode_trigger_instance_new('my-instance-trigger', DSL_ODE_ANY_SOURCE, 
     DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE)
+```
+
+<br>
+
+### *dsl_ode_trigger_persistence_new*
+```C++
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+```
+
+The constructor creates a Persistence trigger that checks for the persistence of Objects tracked -- based on the `object_id` provided by the [Object Tracker](/docs/api-tracker.md) over consecutive frames -- for a specified source and object class_id. Each object tracked for ">= minimum and/or <= maximum time will trigger an ODE occurrence.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Trigger to create.
+* `source` - [in] unique name of the Source to filter on. Use NULL or DSL_ODE_ANY_SOURCE (defined as NULL) to disable filer
+* `class_id` - [in] inference class id filter. Use DSL_ODE_ANY_CLASS to disable the filter
+* `limit` - [in] the Trigger limit. Once met, the Trigger will stop triggering new ODE occurrences. Set to DSL_ODE_TRIGGER_LIMIT_NONE (0) for no limit.
+* `minimum` - [in] the minimum amount of time a unique object must remain detected before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+* `maximum` - [in] the maximum amount of time a unique object can remain detected before triggering an ODE occurrence - in units of seconds. 0 = no maximum
+
+**Note** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as this can consume all available diskspace.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_trigger_persistence_new('my-instance-trigger', DSL_ODE_ANY_SOURCE, 
+    DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, minimum=15, maximum=0)
 ```
 
 <br>
