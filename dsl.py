@@ -80,6 +80,13 @@ DSL_BBOX_EDGE_BOTTOM = 1
 DSL_BBOX_EDGE_LEFT   = 2
 DSL_BBOX_EDGE_RIGHT  = 3
 
+DSL_DISTANCE_METHOD_FIXED_PIXELS     = 0
+DSL_DISTANCE_METHOD_PERCENT_WIDTH_A  = 1
+DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
+DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A = 3
+DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
+
+
 class dsl_coordinate(Structure):
     _fields_ = [
         ('x', c_uint),
@@ -111,6 +118,7 @@ class dsl_rtsp_connection_data(Structure):
 ## Pointer Typedefs
 ##
 DSL_UINT_P = POINTER(c_uint)
+DSL_UINT64_P = POINTER(c_uint64)
 DSL_BOOL_P = POINTER(c_bool)
 DSL_WCHAR_PP = POINTER(c_wchar_p)
 DSL_LONG_P = POINTER(c_long)
@@ -776,7 +784,8 @@ def dsl_ode_trigger_instance_new(name, source, class_id, limit):
 _dsl.dsl_ode_trigger_custom_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, 
     DSL_ODE_CHECK_FOR_OCCURRENCE, DSL_ODE_POST_PROCESS_FRAME, c_void_p]
 _dsl.dsl_ode_trigger_custom_new.restype = c_uint
-def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, client_post_processor, client_data):
+def dsl_ode_trigger_custom_new(name, 
+    source, class_id, limit, client_checker, client_post_processor, client_data):
     global _dsl
     checker_cb = DSL_ODE_CHECK_FOR_OCCURRENCE(client_checker)
     processor_cb = DSL_ODE_POST_PROCESS_FRAME(client_post_processor)
@@ -784,37 +793,40 @@ def dsl_ode_trigger_custom_new(name, source, class_id, limit, client_checker, cl
     callbacks.append(processor_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_ode_trigger_custom_new(name, source, class_id, limit, checker_cb, processor_cb, c_client_data)
+    result = _dsl.dsl_ode_trigger_custom_new(name, 
+        source, class_id, limit, checker_cb, processor_cb, c_client_data)
     return int(result)
 
 ##
 ## dsl_ode_trigger_intersection_new()
 ##
-_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_intersection_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_ode_trigger_intersection_new.restype = c_uint
-def dsl_ode_trigger_intersection_new(name, source, class_id, limit):
+def dsl_ode_trigger_intersection_new(name, source, class_id_a, class_id_b, limit):
     global _dsl
-    result =_dsl.dsl_ode_trigger_intersection_new(name, source, class_id, limit)
+    result =_dsl.dsl_ode_trigger_intersection_new(name, 
+        source, class_id_a, class_id_b, limit)
     return int(result)
 
 ##
-## dsl_ode_trigger_maximum_new()
+## dsl_ode_trigger_new_low_new()
 ##
-_dsl.dsl_ode_trigger_maximum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_maximum_new.restype = c_uint
-def dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum):
+_dsl.dsl_ode_trigger_new_low_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_new_low_new.restype = c_uint
+def dsl_ode_trigger_new_low_new(name, source, class_id, limit, preset):
     global _dsl
-    result =_dsl.dsl_ode_trigger_maximum_new(name, source, class_id, limit, maximum)
+    result =_dsl.dsl_ode_trigger_new_low_new(name, source, class_id, limit, preset)
     return int(result)
 
 ##
-## dsl_ode_trigger_minimum_new()
+## dsl_ode_trigger_new_high_new()
 ##
-_dsl.dsl_ode_trigger_minimum_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_minimum_new.restype = c_uint
-def dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum):
+_dsl.dsl_ode_trigger_new_high_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_new_high_new.restype = c_uint
+def dsl_ode_trigger_new_high_new(name, source, class_id, limit, preset):
     global _dsl
-    result =_dsl.dsl_ode_trigger_minimum_new(name, source, class_id, limit, minimum)
+    result =_dsl.dsl_ode_trigger_new_high_new(name, source, class_id, limit, preset)
     return int(result)
 
 ##
@@ -828,6 +840,16 @@ def dsl_ode_trigger_occurrence_new(name, source, class_id, limit):
     return int(result)
 
 ##
+## dsl_ode_trigger_persistence_new()
+##
+_dsl.dsl_ode_trigger_persistence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_persistence_new.restype = c_uint
+def dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maximum):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_persistence_new(name, source, class_id, limit, minimum, maximum)
+    return int(result)
+
+##
 ## dsl_ode_trigger_summation_new()
 ##
 _dsl.dsl_ode_trigger_summation_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
@@ -838,13 +860,26 @@ def dsl_ode_trigger_summation_new(name, source, class_id, limit):
     return int(result)
 
 ##
-## dsl_ode_trigger_range_new()
+## dsl_ode_trigger_count_new()
 ##
-_dsl.dsl_ode_trigger_range_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_ode_trigger_range_new.restype = c_uint
-def dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper):
+_dsl.dsl_ode_trigger_count_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_count_new.restype = c_uint
+def dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum):
     global _dsl
-    result =_dsl.dsl_ode_trigger_range_new(name, source, class_id, limit, lower, upper)
+    result =_dsl.dsl_ode_trigger_count_new(name, source, class_id, limit, minimum, maximum)
+    return int(result)
+
+##
+## dsl_ode_trigger_distance_new()
+##
+_dsl.dsl_ode_trigger_distance_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_ode_trigger_distance_new.restype = c_uint
+def dsl_ode_trigger_distance_new(name, 
+    source, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_distance_new(name, 
+        source, class_id_a, class_id_b, limit, minimum, maximum, test_point, test_method)
     return int(result)
 
 ##
@@ -2335,6 +2370,27 @@ def dsl_sink_window_new(name, offsetX, offsetY, width, height):
     return int(result)
 
 ##
+## dsl_sink_window_force_aspect_ratio_get()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_get(name):
+    global _dsl
+    force = c_bool(False)
+    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
+    return int(result), force.value
+
+##
+## dsl_sink_window_force_aspect_ratio_set()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_set(name, force):
+    global _dsl
+    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
+    return int(result)
+
+##
 ## dsl_sink_file_new()
 ##
 _dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
@@ -2947,6 +3003,27 @@ def dsl_pipeline_streammux_padding_set(name, enabled):
     return int(result)
 
 ##
+## dsl_pipeline_xwindow_handle_get()
+##
+_dsl.dsl_pipeline_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_pipeline_xwindow_handle_get.restype = c_uint
+def dsl_pipeline_xwindow_handle_get(name):
+    global _dsl
+    handle = c_uint64(0)
+    result = _dsl.dsl_pipeline_xwindow_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_pipeline_xwindow_handle_set()
+##
+_dsl.dsl_pipeline_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_pipeline_xwindow_handle_set.restype = c_uint
+def dsl_pipeline_xwindow_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_handle_set(name, handle)
+    return int(result)
+
+##
 ## dsl_pipeline_xwindow_clear()
 ##
 _dsl.dsl_pipeline_xwindow_clear.argtypes = [c_wchar_p]
@@ -2954,6 +3031,16 @@ _dsl.dsl_pipeline_xwindow_clear.restype = c_uint
 def dsl_pipeline_xwindow_clear(name):
     global _dsl
     result = _dsl.dsl_pipeline_xwindow_clear(name)
+    return int(result)
+
+##
+## dsl_pipeline_xwindow_destroy()
+##
+_dsl.dsl_pipeline_xwindow_destroy.argtypes = [c_wchar_p]
+_dsl.dsl_pipeline_xwindow_destroy.restype = c_uint
+def dsl_pipeline_xwindow_destroy(name):
+    global _dsl
+    result = _dsl.dsl_pipeline_xwindow_destroy(name)
     return int(result)
 
 ##

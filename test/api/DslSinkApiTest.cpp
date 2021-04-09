@@ -397,6 +397,41 @@ SCENARIO( "A Window Sink can update its Sync/Async attributes", "[window-sink-ap
     }
 }    
 
+SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[window-sink-api]" )
+{
+    GIVEN( "A new window sink" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+        boolean force(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Window Sink's force-aspect-ratio is set" ) 
+        {
+            REQUIRE( dsl_sink_window_force_aspect_ratio_set(windowSinkName.c_str(), 
+                force) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retForce(false);
+                REQUIRE( dsl_sink_window_force_aspect_ratio_get(windowSinkName.c_str(), &retForce) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( retForce == force );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 
 SCENARIO( "A Window Sink in use can't be deleted", "[window-sink-api]" )
 {
@@ -1146,6 +1181,9 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 
                 REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_force_aspect_ratio_get(sinkName.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_force_aspect_ratio_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_file_new(sinkName.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -353,14 +353,31 @@ namespace DSL
          * @brief returns a handle to this PipelineBintr's XWindow
          * @return XWindow handle, NULL untill created
          */
-        const Window GetXWindow()
+        Window GetXWindow()
         {
             LOG_FUNC();
             
             return m_pXWindow;
         }
+		
+		/**
+		 * @brief Sets the PipelineBintr's XWindow handle. The Pipeline
+		 * must be in an unlinked state to change XWindow handles. 
+		 * @return true on successful clear, false otherwise
+		 */
+		bool SetXWindow(Window xWindow);
         
+		/**
+		 * @brief Clears the PipelineBintr's XWindow buffer
+		 * @return true on successful clear, false otherwise
+		 */
         bool ClearXWindow();
+        
+		/**
+		 * @brief Destroys the PipelineBintr's XWindow
+		 * @return true on successful destruction, false otherwise
+		 */
+        bool DestroyXWindow();
         
         /**
          * @brief Gets the last error message recieved by the bus watch error handler
@@ -514,6 +531,12 @@ namespace DSL
          * @brief handle to X Window
          */
         Window m_pXWindow;
+		
+		/**
+		 * @brief flag to determine if the XWindow was created or provided by the client.
+		 * The Pipeline needs to delete the XWindow if created, but not the client's
+		 */
+		bool m_pXWindowCreated;
         
         /**
          * @brief handle to the X Window event thread, 

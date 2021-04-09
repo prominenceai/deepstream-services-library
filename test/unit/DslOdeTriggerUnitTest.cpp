@@ -842,13 +842,15 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
     {
         std::string odeTriggerName("intersection");
         std::string source;
-        uint classId(1);
+        uint classIdA(1);
+        uint classIdB(1);
         uint limit(0);
 
         std::string odeActionName("event-action");
 
         DSL_ODE_TRIGGER_INTERSECTION_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_INTERSECTION_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classIdA, classIdB, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -862,13 +864,13 @@ SCENARIO( "An Intersection OdeTrigger checks for intersection correctly", "[OdeT
         frameMeta.source_id = 2;
 
         NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
+        objectMeta1.class_id = classIdA; // must match ODE Type's classId
         
         NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
+        objectMeta2.class_id = classIdA; // must match ODE Type's classId
         
         NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classId; // must match ODE Type's classId
+        objectMeta3.class_id = classIdA; // must match ODE Type's classId
         
         WHEN( "Two objects occur without overlap" )
         {
@@ -995,20 +997,22 @@ SCENARIO( "A Custom OdeTrigger checks for and handles Occurrence correctly", "[O
     }
 }
 
-SCENARIO( "A MaximumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
+SCENARIO( "A CountOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
 {
-    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
+    GIVEN( "A new CountOdeTrigger with Maximum criteria" ) 
     {
         std::string odeTriggerName("maximum");
         std::string source;
         uint classId(1);
         uint limit(0);
-        uint maximum(2);
+        uint minimum(2);
+        uint maximum(3);
 
         std::string odeActionName("event-action");
 
-        DSL_ODE_TRIGGER_MAXIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MAXIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, maximum);
+        DSL_ODE_TRIGGER_COUNT_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_COUNT_NEW(odeTriggerName.c_str(), source.c_str(), 
+				classId, limit, minimum, maximum);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
@@ -1028,82 +1032,48 @@ SCENARIO( "A MaximumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]"
         
         NvDsObjectMeta objectMeta3 = {0};
         objectMeta3.class_id = classId; // must match ODE Type's classId
+
+        NvDsObjectMeta objectMeta4 = {0};
+        objectMeta4.class_id = classId; // must match ODE Type's classId
         
-        WHEN( "Two objects occur -- equal to the Maximum " )
+        WHEN( "Two objects occur -- equal to the Minimum" )
         {
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             
-            THEN( "NO ODE occurrence is detected" )
-            {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
-            }
-        }
-        WHEN( "Three objects occur -- greater than the Maximum " )
-        {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
-            
-            THEN( "ODE occurrence is detected" )
-            {
-                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A MinimumOdeTrigger handles ODE Occurrence correctly", "[OdeTrigger]" )
-{
-    GIVEN( "A new MaximumOdeTrigger with Maximum criteria" ) 
-    {
-        std::string odeTriggerName("maximum");
-        std::string source;
-        uint classId(1);
-        uint limit(0);
-        uint minimum(3);
-
-        std::string odeActionName("event-action");
-
-        DSL_ODE_TRIGGER_MINIMUM_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_MINIMUM_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit, minimum);
-
-        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
-            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
-            
-        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
-
-        NvDsFrameMeta frameMeta =  {0};
-        frameMeta.frame_num = 444;
-        frameMeta.ntp_timestamp = INT64_MAX;
-        frameMeta.source_id = 2;
-
-        NvDsObjectMeta objectMeta1 = {0};
-        objectMeta1.class_id = classId; // must match ODE Type's classId
-        
-        NvDsObjectMeta objectMeta2 = {0};
-        objectMeta2.class_id = classId; // must match ODE Type's classId
-        
-        NvDsObjectMeta objectMeta3 = {0};
-        objectMeta3.class_id = classId; // must match ODE Type's classId
-        
-        WHEN( "Two objects occur -- less than the Maximum " )
-        {
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
-            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
-            
-            THEN( "NO ODE occurrence is detected" )
+            THEN( "Two ODE occurrences are detected" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 2 );
             }
         }
-        WHEN( "Three objects occur -- equal than the Maximum " )
+        WHEN( "One object occurs -- less than the Minimum" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            
+            THEN( "0 ODE occurrences are detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "Three objects occur -- equal to the Maximum " )
         {
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
             REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
             
-            THEN( "ODE occurrence is detected" )
+            THEN( "Three ODE occurrences are detected" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+            }
+        }
+        WHEN( "Four objects occur -- greater than the Maximum " )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta4) == true );
+            
+            THEN( "0 ODE occurrences are detected" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
             }
@@ -1212,3 +1182,847 @@ SCENARIO( "A LargestOdeTrigger handles am ODE Occurrence correctly", "[OdeTrigge
         }
     }
 }
+
+SCENARIO( "A PersistenceOdeTrigger adds/updates tracked objects correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new PersistenceOdeTrigger with criteria" ) 
+    {
+        std::string odeTriggerName("persistence");
+        std::string source;
+        uint classId(1);
+        uint limit(0);
+        uint minimum(1);
+        uint maximum(4);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
+				source.c_str(), classId, limit, minimum, maximum);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+
+		NvDsObjectMeta objectMeta1 = {0};
+		objectMeta1.class_id = classId;
+		NvDsObjectMeta objectMeta2 = {0};
+		objectMeta2.class_id = classId;
+		NvDsObjectMeta objectMeta3 = {0};
+		objectMeta3.class_id = classId;
+        
+        WHEN( "Three unique objects, each from a unique source, are provided" )
+        {
+			frameMeta.frame_num = 1;
+			objectMeta1.object_id = 1;
+			objectMeta2.object_id = 2;
+			objectMeta3.object_id = 3;
+            
+            THEN( "CheckForOccurrence adds the tracked objects correctly " )
+            {
+				frameMeta.source_id = 1;
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+				frameMeta.source_id = 2;
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+				frameMeta.source_id = 3;
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            }
+        }
+        WHEN( "Three object metas are provide for two unique objects" )
+        {
+			frameMeta.source_id = 2;
+			objectMeta1.object_id = 0;
+			objectMeta2.object_id = 1;
+			objectMeta3.object_id = 1;
+            
+            THEN( "CheckForOccurrence adds the tracked objects correctly " )
+            {
+				frameMeta.frame_num = 1;
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+				// new frame 
+				frameMeta.frame_num = 2;
+				REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PersistenceOdeTrigger purges tracked objects correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new PersistenceOdeTrigger with criteria" ) 
+    {
+        std::string odeTriggerName("persistence");
+        std::string source;
+        uint classId(1);
+        uint limit(0);
+        uint minimum(1);
+        uint maximum(4);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
+				source.c_str(), classId, limit, minimum, maximum);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+
+		NvDsObjectMeta objectMeta1 = {0};
+		objectMeta1.class_id = classId;
+		NvDsObjectMeta objectMeta2 = {0};
+		objectMeta2.class_id = classId;
+		NvDsObjectMeta objectMeta3 = {0};
+		objectMeta3.class_id = classId;
+        
+        WHEN( "Three unique objects, each from a unique source, are added" )
+        {
+			frameMeta.frame_num = 1;
+			objectMeta1.object_id = 1;
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			objectMeta2.object_id = 2;
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			// new frame
+			frameMeta.frame_num = 2;
+			objectMeta3.object_id = 3;
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+            
+            THEN( "PostProcessFrame purges the first two objects" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A PersistenceOdeTrigger Post Processes ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new PersistenceOdeTrigger with criteria" ) 
+    {
+        std::string odeTriggerName("persistence");
+        std::string source;
+        uint classId(1);
+        uint limit(0);
+        uint minimum(1);
+        uint maximum(3);
+
+        std::string odeActionName("event-action");
+
+        DSL_ODE_TRIGGER_PERSISTENCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_PERSISTENCE_NEW(odeTriggerName.c_str(), 
+				source.c_str(), classId, limit, minimum, maximum);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.ntp_timestamp = INT64_MAX;
+		frameMeta.frame_num = 1;
+
+		NvDsObjectMeta objectMeta1 = {0};
+		objectMeta1.class_id = classId;
+		objectMeta1.object_id = 1;
+		NvDsObjectMeta objectMeta2 = {0};
+		objectMeta2.class_id = classId;
+		objectMeta2.object_id = 2;
+		NvDsObjectMeta objectMeta3 = {0};
+		objectMeta3.class_id = classId;
+		objectMeta3.object_id = 3;
+        
+        WHEN( "The objects are tracked for < than the minimum time" )
+        {
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+			
+            THEN( "PostProcessFrame returns 0 occurrences" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The objects are tracked for > the minimum time and < the maximum time" )
+        {
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			frameMeta.frame_num = 2;
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 3 occurrences" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 3 );
+            }
+        }
+        WHEN( "The objects are tracked for > the maximum time" )
+        {
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+			std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+			frameMeta.frame_num = 2;
+			frameMeta.source_id = 1;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+			frameMeta.source_id = 2;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+			frameMeta.source_id = 3;
+			REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new NewLowOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("new-low");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+        uint preset(2);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_NEW_LOW_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_NEW_LOW_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, preset);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "When three objects - i.e. more than the current low count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When two objects - i.e. equal to the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new low" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When one object - i.e. less than the current low count - is added" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+
+            THEN( "PostProcessFrame returns 1 occurrence of new low" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+                
+                // ensure that new low has taken effect - one object is no longer new low
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+           }
+        }
+    }
+}
+
+SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" )
+{
+    GIVEN( "A new NewHighOdeTrigger with specific Class Id and Source Id criteria" ) 
+    {
+        std::string odeTriggerName("new-high");
+        std::string source("source-1");
+        uint sourceId(1);
+        uint classId(1);
+        uint limit(0);
+        uint preset(2);
+
+        std::string odeActionName("event-action");
+
+        Services::GetServices()->_sourceNameSet(sourceId, source.c_str());
+
+        DSL_ODE_TRIGGER_NEW_HIGH_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_NEW_HIGH_NEW(odeTriggerName.c_str(), 
+                source.c_str(), classId, limit, preset);
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+            
+        REQUIRE( pOdeTrigger->AddAction(pOdeAction) == true );        
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = sourceId;
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classId; 
+        
+        NvDsObjectMeta objectMeta3 = {0};
+        objectMeta3.class_id = classId; 
+        
+        WHEN( "When one object - i.e. less than the current high count - is checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When two objects - i.e. equal to the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+
+            THEN( "PostProcessFrame returns 0 occurrences of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "When three objects - i.e. greater than the current high count - are checked" )
+        {
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+            REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+
+            THEN( "PostProcessFrame returns 1 occurrence of new high" )
+            {
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+                
+                // ensure that the new high has taken effect - and three objects are not a new high
+                pOdeTrigger->PreProcessFrame(NULL, NULL, &frameMeta);
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta3) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+           }
+        }
+    }
+}
+
+SCENARIO( "A new OdeDistanceTrigger is created correctly", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new DetectionEvent" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1);
+        uint classIdA(1);
+        uint classIdB(1);
+        uint minimum(10);
+        uint maximum(20);
+        
+        std::string source;
+
+        WHEN( "A new OdeTrigger is created" )
+        {
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The OdeTriggers's members are setup and returned correctly" )
+            {
+                uint retClassIdA(0), retClassIdB(0);
+                REQUIRE( pOdeTrigger->GetEnabled() == true );
+                pOdeTrigger->GetClassIdAB(&retClassIdA, &retClassIdB);
+                REQUIRE( retClassIdA == classIdA );
+                REQUIRE( retClassIdB == classIdB );
+                REQUIRE( pOdeTrigger->GetLimit() == limit );
+                REQUIRE( pOdeTrigger->GetSource() == NULL );
+                float minWidth(123), minHeight(123);
+                pOdeTrigger->GetMinDimensions(&minWidth, &minHeight);
+                REQUIRE( minWidth == 0 );
+                REQUIRE( minHeight == 0 );
+                float maxWidth(123), maxHeight(123);
+                pOdeTrigger->GetMaxDimensions(&maxWidth, &maxHeight);
+                REQUIRE( maxWidth == 0 );
+                REQUIRE( maxHeight == 0 );
+                uint minFrameCountN(123), minFrameCountD(123);
+                pOdeTrigger->GetMinFrameCount(&minFrameCountN, &minFrameCountD);
+                REQUIRE( minFrameCountN == 1 );
+                REQUIRE( minFrameCountD == 1 );
+                REQUIRE( pOdeTrigger->GetInferDoneOnlySetting() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new OdeDistanceTrigger can Set/Get its AB Class Ids", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new DetectionEvent" ) 
+    {
+        std::string odeTriggerName("occurence");
+        uint classId(1);
+        uint limit(1);
+        uint classIdA(1);
+        uint classIdB(1);
+        uint minimum(10);
+        uint maximum(20);
+        
+        std::string source;
+
+        DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+            DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                classIdA, classIdB, limit, minimum, maximum, 
+                DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+        WHEN( "The OdeDistanceTrigger's AB Class Ids are Set" )
+        {
+            uint newClassIdA(5), newClassIdB(8);
+            pOdeTrigger->SetClassIdAB(newClassIdA, newClassIdB);
+            
+            THEN( "The correct values are returned on Get" )
+            {
+                uint retClassIdA(0), retClassIdB(0);
+                pOdeTrigger->GetClassIdAB(&retClassIdA, &retClassIdB);
+                REQUIRE( retClassIdA == newClassIdA );
+                REQUIRE( retClassIdB == newClassIdB );
+            }
+        }
+    }
+}           
+
+SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "[OdeTrigger]" )
+{
+    GIVEN( "Attributes for a new Distance Trigger" ) 
+    {
+        std::string odeTriggerName("distance");
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+        
+        std::string source;
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 0;
+
+        WHEN( "A Single object is detected" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(10);
+            uint maximum(20);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "A Two objects are detected beyond maximum distance" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(10);
+            uint maximum(20);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "A Two objects are detected within the minimum distance - same Class Ids" )
+        {
+            uint classIdA(1);
+            uint classIdB(1);
+            uint minimum(201);
+            uint maximum(UINT32_MAX);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "A Two objects are detected within the minimum distance - different Class Ids" )
+        {
+            uint classIdA(1);
+            uint classIdB(2);
+            uint minimum(201);
+            uint maximum(UINT32_MAX);
+
+            NvDsObjectMeta objectMeta1 = {0};
+            objectMeta1.class_id = classIdA; 
+            objectMeta1.rect_params.left = 0;
+            objectMeta1.rect_params.top = 0;
+            objectMeta1.rect_params.width = 100;
+            objectMeta1.rect_params.height = 100;
+            
+            NvDsObjectMeta objectMeta2 = {0};
+            objectMeta2.class_id = classIdB; 
+            objectMeta2.rect_params.left = 300;
+            objectMeta2.rect_params.top = 0;
+            objectMeta2.rect_params.width = 100;
+            objectMeta2.rect_params.height = 100;
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_ANY, DSL_DISTANCE_METHOD_FIXED_PIXELS);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[yup]" )
+{
+    GIVEN( "Attributes for a new Distance Trigger" ) 
+    {
+        std::string odeTriggerName("distance");
+        uint limit(0);
+
+        std::string odeActionName("event-action");
+        
+        std::string source;
+
+        DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
+            DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str());
+
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 0;
+
+        uint classIdA(1);
+        uint classIdB(2);
+
+        NvDsObjectMeta objectMeta1 = {0};
+        objectMeta1.class_id = classIdA; 
+        objectMeta1.rect_params.left = 0;
+        objectMeta1.rect_params.top = 0;
+        objectMeta1.rect_params.width = 100;
+        objectMeta1.rect_params.height = 100;
+        
+        NvDsObjectMeta objectMeta2 = {0};
+        objectMeta2.class_id = classIdB; 
+        objectMeta2.rect_params.left = 200;
+        objectMeta2.rect_params.top = 0;
+        objectMeta2.rect_params.width = 100;
+        objectMeta2.rect_params.height = 100;
+
+
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_A);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_SOUTH_WEST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(100); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 0 );
+            }
+        }
+        WHEN( "The distance between two detected objects is calculated" )
+        {
+            uint minimum(101); // units of percent
+            uint maximum(UINT32_MAX);
+
+            DSL_ODE_TRIGGER_DISTANCE_PTR pOdeTrigger = 
+                DSL_ODE_TRIGGER_DISTANCE_NEW(odeTriggerName.c_str(), source.c_str(), 
+                    classIdA, classIdB, limit, minimum, maximum, 
+                    DSL_BBOX_POINT_NORTH_EAST, DSL_DISTANCE_METHOD_PERCENT_WIDTH_B);
+
+            THEN( "The correct number of occurrences is returned" )
+            {
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta1) == true );
+                REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, NULL, &frameMeta, &objectMeta2) == true );
+                REQUIRE( pOdeTrigger->PostProcessFrame(NULL, NULL, &frameMeta) == 1 );
+            }
+        }
+    }
+}    

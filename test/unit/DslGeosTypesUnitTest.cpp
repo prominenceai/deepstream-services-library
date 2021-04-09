@@ -27,6 +27,27 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "The distance between two GEOS points is returned correctly", "[GeosTypes]" )
+{
+    GIVEN( "Two GEOS points" ) 
+    {
+        GeosPoint testPoint1(100, 100);
+        GeosPoint testPoint2(200, 100);
+        GeosPoint testPoint3(100, 200);
+        WHEN( "When the distance between the points are calculated" )
+        {
+            uint distance1 = testPoint1.Distance(testPoint2);
+            uint distance2 = testPoint3.Distance(testPoint1);
+
+            THEN( "The distance is returned correctly" )
+            {
+                REQUIRE( distance1 == 100 );
+                REQUIRE( distance1 == 100 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new GEOS Line is created correctly", "[GeosTypes]" )
 {
     GIVEN( "A new NvOSD Line with coordinates and dimensions" ) 
@@ -104,6 +125,65 @@ SCENARIO( "Two new GEOS Lines are determined to NOT cross", "[GeosTypes]" )
             {
                 REQUIRE( testGeosLine1.Intersects(testGeosLine2) != true );
                 REQUIRE( testGeosLine2.Intersects(testGeosLine1) != true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new GEOS Rectangle is created correctly", "[GeosTypes]" )
+{
+    GIVEN( "A new NvOSD Rectangle with coordinates and dimensions" ) 
+    {
+        NvOSD_RectParams testRectangle{0};
+        testRectangle.left = 100;
+        testRectangle.top = 100;
+        testRectangle.width = 200;
+        testRectangle.height = 200;
+ 
+        WHEN( "A new GEOS Rectangle is created" )
+        {
+            GeosRectangle testGeosRectangle(testRectangle);
+
+            THEN( "The GEOS Rectangle's memebers are setup correctly" )
+            {
+                REQUIRE( testGeosRectangle.m_pGeosRectangle != NULL );
+            }
+        }
+    }
+}
+
+SCENARIO( "The distance between two GEOS Rectangle is returned correctly", "[GeosTypes]" )
+{
+    GIVEN( "Three new NvOSD Rectangles with coordinates and dimensions" ) 
+    {
+        NvOSD_RectParams testRectangle1{0};
+        testRectangle1.left = 100;
+        testRectangle1.top = 100;
+        testRectangle1.width = 100;
+        testRectangle1.height = 100;
+
+        NvOSD_RectParams testRectangle2{0};
+        testRectangle2.left = 300;
+        testRectangle2.top = 100;
+        testRectangle2.width = 200;
+        testRectangle2.height = 200;
+
+        NvOSD_RectParams testRectangle3{0};
+        testRectangle3.left = 100;
+        testRectangle3.top = 300;
+        testRectangle3.width = 100;
+        testRectangle3.height = 100;
+ 
+        WHEN( "The three GEOS Rectangles are created" )
+        {
+            GeosRectangle testGeosRectangle1(testRectangle1);
+            GeosRectangle testGeosRectangle2(testRectangle2);
+            GeosRectangle testGeosRectangle3(testRectangle3);
+
+            THEN( "The distances between then are returned correctly" )
+            {
+                REQUIRE( testGeosRectangle1.Distance(testRectangle2) == 100 );
+                REQUIRE( testGeosRectangle3.Distance(testRectangle1) == 100 );
             }
         }
     }

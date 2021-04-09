@@ -71,6 +71,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(DistanceOdeTrigger)) and  \
+        !components[name]->IsType(typeid(IntersectionOdeTrigger))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not an AB ODE Trigger"); \
+        return DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE; \
+    } \
+}while(0); 
 
 #define RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
 { \
@@ -2318,7 +2327,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerIntersectionNew(const char* name, 
+        const char* source, uint classIdA, uint classIdB, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2331,7 +2341,8 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, source, classId, limit);
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_INTERSECTION_NEW(name, 
+                source, classIdA, classIdB, limit);
             
             LOG_INFO("New Intersection ODE Trigger '" << name << "' created successfully");
 
@@ -2405,8 +2416,8 @@ namespace DSL
         }
     }
             
-    DslReturnType Services::OdeTriggerMinimumNew(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum)
+    DslReturnType Services::OdeTriggerPersistenceNew(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2419,21 +2430,25 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_MINIMUM_NEW(name, source, classId, limit, minimum);
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
+
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_PERSISTENCE_NEW(name, 
+                source, classId, limit, minimum, maximum);
             
-            LOG_INFO("New Minimum ODE Trigger '" << name << "' created successfully");
+            LOG_INFO("New Persistence ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Minimum ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Persistence ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
-    
-    DslReturnType Services::OdeTriggerMaximumNew(const char* name, const char* source, 
-        uint classId, uint limit, uint maximum)
+
+    DslReturnType Services::OdeTriggerCountNew(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2446,21 +2461,26 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_MAXIMUM_NEW(name, source, classId, limit, maximum);
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
             
-            LOG_INFO("New Maximum ODE Trigger '" << name << "' created successfully");
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_COUNT_NEW(name, 
+                source, classId, limit, minimum, maximum);
+            
+            LOG_INFO("New Count ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Maximum ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Count ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::OdeTriggerRangeNew(const char* name, const char* source, 
-        uint classId, uint limit, uint lower, uint upper)
+    DslReturnType Services::OdeTriggerDistanceNew(const char* name, const char* source, 
+        uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+        uint testPoint, uint testMethod)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2473,20 +2493,27 @@ namespace DSL
                 LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
                 return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
             }
-            m_odeTriggers[name] = DSL_ODE_TRIGGER_RANGE_NEW(name, source, classId, limit, lower, upper);
+            // check for no maximum
+            maximum = (maximum == 0) ? UINT32_MAX : maximum;
             
-            LOG_INFO("New Range ODE Trigger '" << name << "' created successfully");
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_DISTANCE_NEW(name, 
+                source, classIdA, classIdB, limit, minimum, maximum, 
+                testPoint, testMethod);
+            
+            LOG_INFO("New Distance ODE Trigger '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Range ODE Trigger '" << name << "' threw exception on create");
+            LOG_ERROR("New Distance ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
+            
     
-    DslReturnType Services::OdeTriggerSmallestNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerSmallestNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2512,7 +2539,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::OdeTriggerLargestNew(const char* name, const char* source, uint classId, uint limit)
+    DslReturnType Services::OdeTriggerLargestNew(const char* name, 
+        const char* source, uint classId, uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2534,6 +2562,62 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New Largest ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeTriggerNewHighNew(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_NEW_HIGH_NEW(name, 
+                source, classId, limit, preset);
+            
+            LOG_INFO("New New-High ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New-High ODE Trigger '" << name << "' threw exception on create");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::OdeTriggerNewLowNew(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure event name uniqueness 
+            if (m_odeTriggers.find(name) != m_odeTriggers.end())
+            {   
+                LOG_ERROR("ODE Trigger name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_TRIGGER_NAME_NOT_UNIQUE;
+            }
+            m_odeTriggers[name] = DSL_ODE_TRIGGER_NEW_LOW_NEW(name, 
+                source, classId, limit, preset);
+            
+            LOG_INFO("New New-Low ODE Trigger '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New New-Low ODE Trigger '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
         }
     }
@@ -2692,6 +2776,53 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::OdeTriggerClassIdABGet(const char* name, 
+        uint* classIdA, uint* classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->GetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::OdeTriggerClassIdABSet(const char* name, 
+        uint classIdA, uint classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, name);
+            RETURN_IF_ODE_TRIGGER_IS_NOT_AB_TYPE(m_odeTriggers, name);
+            
+            DSL_ODE_TRIGGER_AB_PTR pOdeTrigger = 
+                std::dynamic_pointer_cast<ABOdeTrigger>(m_odeTriggers[name]);
+         
+            pOdeTrigger->SetClassIdAB(classIdA, classIdB);
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Trigger '" << name << "' threw exception getting class id");
+            return DSL_RESULT_ODE_TRIGGER_THREW_EXCEPTION;
+        }
+    }                
     DslReturnType Services::OdeTriggerLimitGet(const char* name, uint* limit)
     {
         LOG_FUNC();
@@ -4873,8 +5004,6 @@ namespace DSL
             std::string testPath(modelEngineFile);
             if (testPath.size())
             {
-                LOG_INFO("Model engine file: " << modelEngineFile);
-                
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
@@ -6465,6 +6594,62 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkWindowForceAspectRationGet(const char* name, 
+        boolean* force)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            *force = pWindowSinkBintr->GetForceAspectRatio();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink'" << name 
+                << "' threw an exception getting 'force-aspect-ratio' property");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowForceAspectRationSet(const char* name, 
+        boolean force)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->SetForceAspectRatio(force))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to Set 'force-aspec-ratio' property");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink'" << name 
+                << "' threw an exception setting 'force-apect-ratio' property");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -6998,6 +7183,7 @@ namespace DSL
         try
         {
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
             
             DSL_RTSP_SINK_PTR rtspSinkBintr = 
                 std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
@@ -7766,6 +7952,48 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::PipelineXWindowHandleGet(const char* pipeline, uint64_t* xwindow) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            *xwindow = m_pipelines[pipeline]->GetXWindow();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception getting XWindow handle");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineXWindowHandleSet(const char* pipeline, uint64_t xwindow)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->SetXWindow(xwindow))
+            {
+                LOG_ERROR("Failure setting XWindow handle for Pipeline '" << pipeline << "'");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception setting XWindow handle");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::PipelineXWindowClear(const char* pipeline)    
     {
         LOG_FUNC();
@@ -7777,14 +8005,39 @@ namespace DSL
             
             if (!m_pipelines[pipeline]->ClearXWindow())
             {
-                LOG_ERROR("Pipeline '" << pipeline << "' failed to Clear XWindow");
+                LOG_ERROR("Pipeline '" << pipeline << "' failed to clear its XWindow");
                 return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
             }
+            LOG_ERROR("Pipeline '" << pipeline << "' successfully cleared its XWindow");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing XWindow");
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception clearing its XWindow");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineXWindowDestroy(const char* pipeline)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, pipeline);
+            
+            if (!m_pipelines[pipeline]->DestroyXWindow())
+            {
+                LOG_ERROR("Pipeline '" << pipeline << "' failed to destroy its XWindow");
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+            LOG_ERROR("Pipeline '" << pipeline << "' successfully destroyed its XWindow");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << pipeline << "' threw an exception destroying its XWindow");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
@@ -8758,6 +9011,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE] = L"DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID] = L"DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID] = L"DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID";
+        m_returnValueToString[DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE] = L"DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_THREW_EXCEPTION] = L"DSL_RESULT_ODE_ACTION_THREW_EXCEPTION";

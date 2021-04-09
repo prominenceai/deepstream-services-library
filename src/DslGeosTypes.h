@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,11 @@ THE SOFTWARE.
 
 namespace DSL
 {
-
+    /**
+     * @class GeosPoint 
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Point object with x and y coordinates
+     */
     class GeosPoint
     {
     public: 
@@ -48,12 +52,24 @@ namespace DSL
         ~GeosPoint();
         
         /**
+         * @brief function to determine the distance between two GEOS Points
+         * @param testPoint GEOS Point to test for distance
+         * @return distance between the two points in units of pixels
+         */
+        uint Distance(const GeosPoint& testPoint);
+        
+        /**
          * @brief Actual GEOS Point for this class.
          */
         GEOSGeometry* m_pGeosPoint;
     };
         
-    
+    /**
+     * @class GeosLine
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Line object that can test for
+     * intersection with another GEOS Line object
+     */
     class GeosLine
     {
     public: 
@@ -71,7 +87,7 @@ namespace DSL
 
         /**
          * @brief function to determine if two GEOS Lines intersect
-         * @param[in] testLine RGBA line to test for intersection
+         * @param[in] testLine GEOS line to test for intersection
          * @return true if lines intersect, false otherwise
          */
         bool Intersects(const GeosLine& testLine);
@@ -82,6 +98,53 @@ namespace DSL
         GEOSGeometry* m_pGeosLine;
     };
 
+    /**
+     * @class GeosRectangle
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Rectangle object that can test for
+     * intersection with other GEOS Rectangle objects
+     */
+    class GeosRectangle
+    {
+    public: 
+
+        /**
+         * @brief ctor for the GeosRectangle class
+         * @param[in] rectangle reference to a Nvidia OSD Rectangle Structure.
+         */
+        GeosRectangle(const NvOSD_RectParams& rectangle);
+
+        /**
+         * @brief dtor for the GeosRectangle class
+         */
+        ~GeosRectangle();
+
+        /**
+         * @brief function to determine the distance between two GEOS Rectangels
+         * @param testRectangle GEOS rectaangle to test for distance
+         * @return shortest distance between any two points on the rectangles
+         */
+        uint Distance(const GeosRectangle& testRectangle);
+        
+        /**
+         * @brief function to determine if two GEOS Rectangles overlap
+         * @param[in] testRectangle GEOS rectangle to test for overlap
+         * @return true if rectangles intersect, false otherwise
+         */
+        bool Overlaps(const GeosRectangle& testRectangle);
+        
+        /**
+         * @brief Actual GEOS Rectangle for this class.
+         */
+        GEOSGeometry* m_pGeosRectangle;
+    };
+
+    /**
+     * @class GeosPolygon
+     * @file DslGeosTypes.h
+     * @brief Implements a GEOS Polygon object that can test for
+     * overlap and containment with other GEOS Types
+     */
     class GeosPolygon
     {
     public: 

@@ -71,6 +71,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
+#define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
 #define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
@@ -278,7 +279,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
 #define DSL_RESULT_ODE_TRIGGER_CLIENT_CALLBACK_INVALID              0x000E000D
 #define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000E
-
+#define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 /**
  * ODE Action API Return Values
  */
@@ -391,9 +392,17 @@ THE SOFTWARE.
 #define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
 #define DSL_ODE_POST_OCCURRENCE_CHECK                               1
 
-// Source and Class Trigger filter constants for no-filter
+/**
+ * @brief Source and Class Trigger filter constants for no-filter
+ */
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
+
+/**
+ * @brief Unique class relational identifiers for Class A/B testing
+ */
+#define DSL_CLASS_A                                                 0
+#define DSL_CLASS_B                                                 1
 
 #define DSL_AREA_TYPE_INCLUSION                                     0
 #define DSL_AREA_TYPE_EXCLUSION                                     1
@@ -438,6 +447,15 @@ THE SOFTWARE.
 #define DSL_BBOX_EDGE_BOTTOM                                        1
 #define DSL_BBOX_EDGE_LEFT                                          2
 #define DSL_BBOX_EDGE_RIGHT                                         3
+
+/**
+ * @brief Methods of calculating distance between object BBoxes
+ */
+#define DSL_DISTANCE_METHOD_FIXED_PIXELS                            0
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_A                         1
+#define DSL_DISTANCE_METHOD_PERCENT_WIDTH_B                         2
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A                        3
+#define DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B                        4
 
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
@@ -1332,17 +1350,6 @@ uint dsl_ode_area_list_size();
 DslReturnType dsl_ode_trigger_always_new(const wchar_t* name, const wchar_t* source, uint when);
 
 /**
- * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
- * specified source and object class_id.
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
-
-/**
  * @brief Absence trigger that checks for the absence of Objects within a frame
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
@@ -1350,7 +1357,22 @@ DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, const wchar_t*
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Count trigger that checks for the occurrence of Objects within a frame
+ * and tests if the count is within a specified range.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum count for triggering ODE occurrence, 0 = no minimum
+ * @param[in] maximum the maximum count for triggering ODE occurrence, 0 = no maximum
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_count_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id, uint limit, uint minimum, uint maximum);
 
 /**
  * @brief Occurence trigger that checks for a new instance of an Object for a 
@@ -1361,29 +1383,22 @@ DslReturnType dsl_ode_trigger_absence_new(const wchar_t* name, const wchar_t* so
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_instance_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Intersection trigger that checks for intersection of all Object detected
- * and triggers an ODE occurrence for each unique overlaping pair.
+ * @brief Intersection trigger that checks for the intersection of detected Objects 
+ * and triggers an ODE occurrence for each unique overlaping pair. Detected objects are
+ * tested using an A-B comparison of class_ids as specified. 
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] class_id_a class id A filter for this ODE Trigger
+ * @param[in] class_id_b class id B filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
-
-/**
- * @brief Summation trigger that checks for and sums all objects detected within a frame
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] name unique name for the ODE Trigger
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
- 
-DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_intersection_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id_a, uint class_id_b, uint limit);
 
 /**
  * @brief Custom ODE Trigger that allows the client to provide a custom "check-for-occurrence' function
@@ -1406,45 +1421,34 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
     dsl_ode_post_process_frame_cb client_post_processor, void* client_data);
 
 /**
- * @brief Miniumu occurence trigger that checks for the occurrence of Objects within a frame
- * against a specified minimum number, and generates an ODE occurence if not met
+ * @brief Occurence trigger that checks for the occurrence of Objects within a frame for a 
+ * specified source and object class_id.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] minimum the minimum count that must be present before triggering an ODE occurence
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_minimum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint minimum);
+DslReturnType dsl_ode_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
- * @brief Maximum occurence trigger that checks for the occurrence of Objects within a frame
- * against a specified maximum number, and generates an ODE occurence if exceeded
+ * @brief Persistence trigger that checks for the persistence of Objects tracked for a. 
+ * specified source and object class_id. Each object tracked or ">= minimum and <= maximum time 
+ * will trigger an ODE occurrence.
  * @param[in] name unique name for the ODE Trigger
  * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
  * @param[in] class_id class id filter for this ODE Trigger
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] maximum the maximum count allowed without triggering ODE occurence
+ * @param[in] minimum the minimum amount of time a unique object must remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no minimum
+ * @param[in] maximum the maximum amount of time a unique object can remain detected 
+ * before triggering an ODE occurrence - in units of seconds. 0 = no maximum
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_maximum_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint maximum);
-
-/**
- * @brief Range occurence trigger that checks for the occurrence of Objects within a frame
- * against a range of numbers, and generates an ODE occurence if within range
- * @param[in] name unique name for the ODE Trigger
- * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
- * @param[in] class_id class id filter for this ODE Trigger
- * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
- * @param[in] lower the lower range for triggering ODE occurence
- * @param[in] upper the upper range for triggering ODE occurence
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
- */
-DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* source, 
-    uint class_id, uint limit, uint lower, uint upper);
-
+DslReturnType dsl_ode_trigger_persistence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint minimum, uint maximum);
+	
 /**
  * @brief Smallest trigger that checks for the occurrence of Objects within a frame
  * and if at least one is found, Triggers on the Object with smallest rectangle area.
@@ -1454,7 +1458,8 @@ DslReturnType dsl_ode_trigger_range_new(const wchar_t* name, const wchar_t* sour
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
 /**
  * @brief Largest trigger that checks for the occurrence of Objects within a frame
@@ -1465,8 +1470,68 @@ DslReturnType dsl_ode_trigger_smallest_new(const wchar_t* name, const wchar_t* s
  * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
-DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, const wchar_t* source, uint class_id, uint limit);
+DslReturnType dsl_ode_trigger_largest_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
 
+/**
+ * @brief Summation trigger that checks for and sums all objects detected within a frame
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_summation_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+
+/**
+ * @brief New high-count trigger that checks for the occurrence of a new high count of objects within 
+ * a frame for a specified source and object class_id.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] preset initial high count to start with. High count will be reset to the preset on trigger reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_new_high_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+
+/**
+ * @brief New low-count trigger that checks for the occurrence of a new low count of objects within 
+ * a frame for a  specified source and object class_id. This trigger can be added in a disabled state and 
+ * then enabled by a new-high count trigger on first new-high count occurrence.
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] preset initial low count to start with. High count will be reset to the preset on trigger reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_new_low_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit, uint preset);
+
+/**
+ * @brief Distance trigger that checks for the occurrence of two Objects that are below a minimum and/or
+ * above a maximum specified distance, and generates an ODE occurrence if detected. Detected objects are
+ * tested using an A-B comparison of class_ids as specified. 
+ * @param[in] name unique name for the ODE Trigger
+ * @param[in] source unique source name filter for the ODE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id_a class id A filter for this ODE Trigger
+ * @param[in] class_id_b class id B filter for this ODE Trigger
+ * @param[in] limit limits the number of ODE occurrences, a value of 0 = NO limit
+ * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * as specified by the test_method parameter below.
+ * @param[in] minimum the minimum distance between objects in either pixels or percentage of BBox edge
+ * as specified by the test_method parameter below.
+ * @param[in] test_point the point on the bounding box rectangle to use for measurement, one of DSL_BBOX_POINT
+ * @param[in] test_method method of measuring the distance between objects, one of DSL_DISTANCE_METHOD
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_distance_new(const wchar_t* name, const wchar_t* source, 
+    uint class_id_a, uint class_id_b, uint limit, uint minimum, uint maximum, 
+    uint test_point, uint test_method);
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
@@ -1524,6 +1589,26 @@ DslReturnType dsl_ode_trigger_class_id_get(const wchar_t* name, uint* class_id);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current class_id_a and class_id_b filters for the ODE Trigger
+ * @param[in] name unique name of the Intersection ODE Trigger to query
+ * @param[out] class_id_a returns the current class_id for Class A
+ * @param[out] class_id_b returns the current class_id for Class B
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_class_id_ab_get(const wchar_t* name, 
+    uint* class_id_a, uint* class_id_b);
+
+/**
+ * @brief Sets the class_id_a and class_id_b filters for the ODE Trigger to filter on
+ * @param[in] name unique name of the ODE Trigger to update
+ * @param[in] class_id_a returns the current class_id for Class A
+ * @param[in] class_id_b returns the current class_id for Class B
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_ODE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_ode_trigger_class_id_ab_set(const wchar_t* name, 
+    uint class_id_a, uint class_id_b);
 
 /**
  * @brief Gets the current limit setting for the ODE Trigger
@@ -2825,6 +2910,25 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
     uint offsetX, uint offsetY, uint width, uint height);
 
 /**
+ * @brief Gets the current "force-aspect-ration" property setting for the 
+ * named Window Sink
+ * @param[in] name unique name of the Window Sink to query
+ * @param[out] force true if the apect ratio is forced, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
+
+/**
+ * @brief Sets the "force-aspect-ration" property for the named Window Sink
+ * @param[in] name unique name of the Window Sink to update
+ * @param[in] force set to true to force the apect ratio, false otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
+    
+/**
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink
  * @param[in] filepath absolute or relative file path including extension
@@ -3332,53 +3436,6 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
     uint width, uint height);
 
 /**
- * @brief clears the Pipelines XWindow
- * @param[in] pipeline name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
-
-/**
- * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
- * prior to window creation which occurs when the Pipeline is played. 
- * @param[in] pipeline name of the pipeline to query
- * @param[out] x_offset offset in the x direction of the XWindow in pixels
- * @param[out] x_offset offset in the Y direction of the XWindow in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
-    uint* x_offset, uint* y_offset);
-
-/**
- * @brief gets the current Pipeline XWindow dimensions. 
- * @param[in] pipeline name of the pipeline to query
- * @param[out] width width of the XWindow in pixels
- * @param[out] heigth height of the Window in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
-    uint* width, uint* height);
-
-/**
- * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to query
- * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
-    boolean* enabled);
-
-/**
- * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] pipeline name of the pipeline to update
- * @param[in] enabled if true, sets the XWindow to full-screen on creation.
- * The service will fail if called after the XWindow has been created.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
-    boolean enabled);
-
-/**
  * @brief returns the current setting, enabled/disabled, for the fixed-aspect-ratio 
  * attribute for the named Tiled Display
  * @param[in] name name of the Display to query
@@ -3540,6 +3597,79 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline, 
     dsl_state_change_listener_cb listener);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to query
+ * @param[out] xwindow XWindow handle currently in use. NULL if none 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, uint64_t* xwindow);
+
+/**
+ * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
+ * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
+ * @param[in] pipeline name of the Pipeline to update
+ * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, uint64_t window);
+
+/**
+ * @brief clears the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* pipeline);
+
+/**
+ * @brief destroys the Pipeline's XWindow if one exists and was not provided by the
+ * client with an earlier call to dsl_pipeline_xwindow_handle_set
+ * @param[in] pipeline name of the pipeline to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
+
+/**
+ * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
+ * prior to window creation which occurs when the Pipeline is played. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] x_offset offset in the x direction of the XWindow in pixels
+ * @param[out] x_offset offset in the Y direction of the XWindow in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* pipeline, 
+    uint* x_offset, uint* y_offset);
+
+/**
+ * @brief gets the current Pipeline XWindow dimensions. 
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] width width of the XWindow in pixels
+ * @param[out] heigth height of the Window in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline, 
+    uint* width, uint* height);
+
+/**
+ * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, 
+    boolean* enabled);
+
+/**
+ * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
+ * @param[in] pipeline name of the pipeline to update
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, 
+    boolean enabled);
 
 /**
  * @brief adds a callback to be notified on XWindow KeyRelease Event

@@ -38,6 +38,8 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_window_offsets_set](#dsl_sink_window_offsets_set)
 * [dsl_sink_window_dimensions_get](#dsl_sink_window_dimensions_get)
 * [dsl_sink_window_dimensions_set](#dsl_sink_window_dimensions_set)
+* [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
+* [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
 * [dsl_sink_record_session_stop](#dsl_sink_record_session_stop)
 * [dsl_sink_record_outdir_get](#dsl_sink_record_outdir_get)
@@ -444,6 +446,48 @@ This service updates the dimensions of a named Window Sink. This service will fa
 **Python Example**
 ```Python
 retval = dsl_sink_window_dimensions_set('my-window-sink', 1280, 720)
+```
+
+<br>
+
+### *dsl_sink_window_force_aspect_ratio_get*
+```C++
+DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
+```
+This service returns the "force-aspect-ratio" property setting for the uniquely named Window Sink. The Sink's aspect ratio will be maintained on Window resize if set. 
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to query.
+* `force` - [out] true if the property is set, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
+```
+
+<br>
+
+### *dsl_sink_window_force_aspect_ratio_set*
+```C++
+DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
+```
+This service set the "force-aspect-ratio" property for the uniquely named Window Sink.  The Sink's aspect ratio will be maintained on Window resize if set.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to query.
+* `force` - [in] set true to force the aspect ratio on window resize., false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, force = dsl_sink_window_force_aspect_ratio_get('my-window-sink')
 ```
 
 <br>

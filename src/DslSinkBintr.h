@@ -143,7 +143,7 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-
+        
         /**
          * @brief sets the current sync and async settings for the SinkBintr
          * @param[in] sync current sync setting, true if set, false otherwise.
@@ -305,14 +305,35 @@ namespace DSL
          * @return true is successful, false otherwise. 
          */
         bool SetSyncSettings(bool sync, bool async);
+        
+        /**
+         * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
+         * @return true if forced, false otherwise
+         */
+        bool GetForceAspectRatio();
+        
+        /**
+         * @brief Set the force-aspect-ration setting for the WindowSinkBinter
+         * @param[in] force set true to force-aspect-ration false otherwise
+         * @return 
+         */
+        bool SetForceAspectRatio(bool force);
 
     private:
+
+        /**
+         * @brief Resets (recreates) the EGL-GLES sink element to allow the
+         * Pipeline to invoke the "prepare_window_handle" on relink and play
+         * @return true if successful, false otherwise.
+         */
+        void Reset();
 
         boolean m_qos;
         uint m_offsetX;
         uint m_offsetY;
         uint m_width;
         uint m_height;
+        bool m_forceAspectRatio;
 
         DSL_ELEMENT_PTR m_pTransform;
         DSL_ELEMENT_PTR m_pEglGles;

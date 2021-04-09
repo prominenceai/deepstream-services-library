@@ -421,22 +421,6 @@ namespace DSL
         }
         return true;
     }
-
-    inline bool OdeTrigger::valueInRange(int value, int min, int max)
-    { 
-        return (value >= min) && (value <= max);
-    }
-
-    inline bool OdeTrigger::doesOverlap(NvOSD_RectParams a, NvOSD_RectParams b)
-    {
-        bool xOverlap = valueInRange(a.left, b.left, b.left + b.width) ||
-                        valueInRange(b.left, a.left, a.left + a.width);
-
-        bool yOverlap = valueInRange(a.top, b.top, b.top + b.height) ||
-                        valueInRange(b.top, a.top, a.top + a.height);
-
-        return xOverlap && yOverlap;
-    }    
     
     // *****************************************************************************
     AlwaysOdeTrigger::AlwaysOdeTrigger(const char* name, const char* source, uint when)
@@ -699,81 +683,6 @@ namespace DSL
    }
 
     // *****************************************************************************
-    
-    IntersectionOdeTrigger::IntersectionOdeTrigger(const char* name, 
-        const char* source, uint classId, uint limit)
-        : OdeTrigger(name, source, classId, limit)
-    {
-        LOG_FUNC();
-    }
-
-    IntersectionOdeTrigger::~IntersectionOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-    
-    bool IntersectionOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
-        {
-            return false;
-        }
-        
-        m_occurrenceMetaList.push_back(pObjectMeta);
-        
-        return true;
-    }
-
-    uint IntersectionOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
-    {
-        m_occurrences = 0;
-        
-        // need at least two objects for intersection to occur
-        if (m_enabled and m_occurrenceMetaList.size() > 1)
-        {
-            // iterate through the list of object occurrences that passed all min criteria
-            for (uint i = 0; i < m_occurrenceMetaList.size()-1 ; i++) 
-            {
-                for (uint j = i+1; j < m_occurrenceMetaList.size() ; j++) 
-                {
-                    // check each in turn for any frame overlap
-                    if (doesOverlap(m_occurrenceMetaList[i]->rect_params, 
-                        m_occurrenceMetaList[j]->rect_params))
-                    {
-                        // event has been triggered
-                        m_occurrences++;
-                        
-                        // TODO: should we be testing the new trigger count against the limit here?
-                        // or just wait for the next frame and leave "checkForOccurrence" to test the limit?
-                        m_triggered++;
-                        
-                         // update the total event count static variable
-                        s_eventCount++;
-
-                        for (const auto &imap: m_pOdeActions)
-                        {
-                            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-                            
-                            // Invoke each action twice, once for each object in the tested pair
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaList[i]);
-                            pOdeAction->HandleOccurrence(shared_from_this(), 
-                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaList[j]);
-                        }
-                    }
-                }
-            }
-        }   
-
-        // reset for next frame
-        m_occurrenceMetaList.clear();
-        return m_occurrences;
-   }
-
-    // *****************************************************************************
 
     CustomOdeTrigger::CustomOdeTrigger(const char* name, const char* source, 
         uint classId, uint limit, dsl_ode_check_for_occurrence_cb clientChecker, 
@@ -867,20 +776,21 @@ namespace DSL
 
     // *****************************************************************************
     
-    MinimumOdeTrigger::MinimumOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint minimum)
+    PersistenceOdeTrigger::PersistenceOdeTrigger(const char* name, const char* source, 
+        uint classId, uint limit, uint minimum, uint maximum)
         : OdeTrigger(name, source, classId, limit)
-        , m_minimum(minimum)
+        , m_minimumMs(minimum*1000.0)
+        , m_maximumMs(maximum*1000.0)
     {
         LOG_FUNC();
     }
 
-    MinimumOdeTrigger::~MinimumOdeTrigger()
+    PersistenceOdeTrigger::~PersistenceOdeTrigger()
     {
         LOG_FUNC();
     }
     
-    bool MinimumOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    bool PersistenceOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
@@ -888,50 +798,136 @@ namespace DSL
         {
             return false;
         }
-        
-        m_occurrences++;
-        
-        return true;
+
+		// if this is the first occurrence of any object for this source
+		if (m_trackedObjectsPerSource.find(pFrameMeta->source_id) == 
+			m_trackedObjectsPerSource.end())
+		{
+			LOG_DEBUG("First object detected with id = " << pObjectMeta->object_id 
+				<< " for source = " << pFrameMeta->source_id);
+			
+			// create a new tracked object for this tracking Id and source
+			std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+				(new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+				
+			// create a map of tracked objects for this source	
+			std::shared_ptr<TrackedObjects> pTrackedObjects = 
+				std::shared_ptr<TrackedObjects>(new TrackedObjects());
+				
+			// insert the new tracked object into the new map	
+			pTrackedObjects->insert(std::pair<uint64_t, 
+				std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));
+				
+			// add the map of tracked objects for this source to the map of all tracked objects.
+			m_trackedObjectsPerSource[pFrameMeta->source_id] = pTrackedObjects;
+		}
+		else
+		{
+			std::shared_ptr<TrackedObjects> pTrackedObjects = 
+				m_trackedObjectsPerSource[pFrameMeta->source_id];
+				
+			// else, if this is the first occurrence of a specific object for this source
+			if (pTrackedObjects->find(pObjectMeta->object_id) == pTrackedObjects->end())
+			{
+				LOG_DEBUG("New object detected with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id);
+				
+				// create a new tracked object for this tracking Id and source
+				std::shared_ptr<TrackedObject> pTrackedObject = std::shared_ptr<TrackedObject>
+					(new TrackedObject(pObjectMeta->object_id, pFrameMeta->frame_num));
+
+				// insert the new tracked object into the new map	
+				pTrackedObjects->insert(std::pair<uint64_t, 
+					std::shared_ptr<TrackedObject>>(pObjectMeta->object_id, pTrackedObject));		
+			}
+			else
+			{
+				LOG_DEBUG("Tracked objected detected with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id);
+				// else, the object is currently being tracked - so update the frame number
+				pTrackedObjects->at(pObjectMeta->object_id)->m_frameNumber = pFrameMeta->frame_num;
+				
+				timeval currentTime;
+				gettimeofday(&currentTime, NULL);
+				
+				double currentTimeMs = currentTime.tv_sec*1000.0 + currentTime.tv_usec/1000.0;
+				double trackedTimeMs = currentTimeMs - pTrackedObjects->at(pObjectMeta->object_id)->m_creationTimeMs;
+				
+				LOG_DEBUG("Persistence for tracked object with id = " << pObjectMeta->object_id 
+					<< " for source = " << pFrameMeta->source_id << ", = " << trackedTimeMs << " ms");
+				
+				// if the objects tracked time is within range. 
+				if (trackedTimeMs >= m_minimumMs and trackedTimeMs <= m_maximumMs)
+				{
+					// event has been triggered
+					m_triggered++;
+					m_occurrences++;
+
+					// update the total event count static variable
+					s_eventCount++;
+		
+					for (const auto &imap: m_pOdeActions)
+					{
+						DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+						pOdeAction->HandleOccurrence(shared_from_this(), 
+							pBuffer, pDisplayMeta, pFrameMeta, pObjectMeta);
+					}
+				}
+			}
+		}
+		return true;
+		
     }
 
-    uint MinimumOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+    uint PersistenceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_occurrences >= m_minimum)
+        if (m_trackedObjectsPerSource.empty())
         {
             return 0;
         }
-        // event has been triggered
-        m_triggered++;
+		
+		// purge all tracked objects, for all sources that are not in the current frame.
+		for (const auto &trackedObjects: m_trackedObjectsPerSource)
+		{
+			std::shared_ptr<TrackedObjects> pTrackedObjects = trackedObjects.second;
 
-         // update the total event count static variable
-        s_eventCount++;
-
-        for (const auto &imap: m_pOdeActions)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, pDisplayMeta, pFrameMeta, NULL);
-        }
+			auto trackedObject = pTrackedObjects->cbegin();
+			while (trackedObject != pTrackedObjects->cend())
+			{
+				if (trackedObject->second->m_frameNumber != pFrameMeta->frame_num)
+				{
+					LOG_DEBUG("Purging tracked object with id = " << trackedObject->first 
+						<< " for source = " << trackedObjects.first);
+						
+					// use the return value to update the iterator, as erase invalidates it
+					trackedObject = pTrackedObjects->erase(trackedObject);
+				}
+				else {
+					++trackedObject;
+				}			
+			}
+		}
         return m_occurrences;
     }
 
     // *****************************************************************************
     
-    MaximumOdeTrigger::MaximumOdeTrigger(const char* name, const char* source, 
-        uint classId, uint limit, uint maximum)
+    CountOdeTrigger::CountOdeTrigger(const char* name, const char* source,
+        uint classId, uint limit, uint minimum, uint maximum)
         : OdeTrigger(name, source, classId, limit)
+        , m_minimum(minimum)
         , m_maximum(maximum)
     {
         LOG_FUNC();
     }
 
-    MaximumOdeTrigger::~MaximumOdeTrigger()
+    CountOdeTrigger::~CountOdeTrigger()
     {
         LOG_FUNC();
     }
     
-    bool MaximumOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+    bool CountOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
         if (!CheckForSourceId(pFrameMeta->source_id) or 
@@ -945,62 +941,10 @@ namespace DSL
         return true;
     }
 
-    uint MaximumOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+    uint CountOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
         NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
     {
-        if (!m_enabled or m_occurrences <= m_maximum)
-        {
-            return 0;
-        }
-        // event has been triggered
-        m_triggered++;
-
-         // update the total event count static variable
-        s_eventCount++;
-
-        for (const auto &imap: m_pOdeActions)
-        {
-            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
-            pOdeAction->HandleOccurrence(shared_from_this(), 
-                pBuffer, pDisplayMeta, pFrameMeta, NULL);
-        }
-        return m_occurrences;
-   }
-
-    // *****************************************************************************
-    
-    RangeOdeTrigger::RangeOdeTrigger(const char* name, const char* source,
-        uint classId, uint limit, uint lower, uint upper)
-        : OdeTrigger(name, source, classId, limit)
-        , m_lower(lower)
-        , m_upper(upper)
-    {
-        LOG_FUNC();
-    }
-
-    RangeOdeTrigger::~RangeOdeTrigger()
-    {
-        LOG_FUNC();
-    }
-    
-    bool RangeOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        if (!CheckForSourceId(pFrameMeta->source_id) or 
-            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
-        {
-            return false;
-        }
-        
-        m_occurrences++;
-        
-        return true;
-    }
-
-    uint RangeOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
-    {
-        if (!m_enabled or (m_occurrences < m_lower) or (m_occurrences > m_upper))
+        if (!m_enabled or (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
         {
             return 0;
         }
@@ -1157,4 +1101,555 @@ namespace DSL
         return m_occurrences;
    }
 
+    // *****************************************************************************
+    
+    NewLowOdeTrigger::NewLowOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+        : OdeTrigger(name, source, classId, limit)
+        , m_preset(preset)
+        , m_currentLow(preset)
+        
+    {
+        LOG_FUNC();
+    }
+
+    NewLowOdeTrigger::~NewLowOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void NewLowOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_currentLow = m_preset;
+    }
+    
+    bool NewLowOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    uint NewLowOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_occurrences >= m_currentLow)
+        {
+            return 0;
+        }
+        // new low
+        m_currentLow = m_occurrences;
+        
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        return 1; // At most once per frame
+   }
+
+    // *****************************************************************************
+    
+    NewHighOdeTrigger::NewHighOdeTrigger(const char* name, 
+        const char* source, uint classId, uint limit, uint preset)
+        : OdeTrigger(name, source, classId, limit)
+        , m_preset(preset)
+        , m_currentHigh(preset)
+        
+    {
+        LOG_FUNC();
+    }
+
+    NewHighOdeTrigger::~NewHighOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void NewHighOdeTrigger::Reset()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_triggered = 0;
+        m_currentHigh = m_preset;
+    }
+    
+    bool NewHighOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id) or 
+            !CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            return false;
+        }
+        
+        m_occurrences++;
+        
+        return true;
+    }
+
+    uint NewHighOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (!m_enabled or m_occurrences <= m_currentHigh)
+        {
+            return 0;
+        }
+        // new high
+        m_currentHigh = m_occurrences;
+        
+        // event has been triggered
+        m_triggered++;
+
+         // update the total event count static variable
+        s_eventCount++;
+
+        for (const auto &imap: m_pOdeActions)
+        {
+            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+            pOdeAction->HandleOccurrence(shared_from_this(), 
+                pBuffer, pDisplayMeta, pFrameMeta, NULL);
+        }
+        return 1; // At most once per frame
+   }
+   
+    // *****************************************************************************
+    
+    ABOdeTrigger::ABOdeTrigger(const char* name, 
+        const char* source, uint classIdA, uint classIdB, uint limit)
+        : OdeTrigger(name, source, classIdA, limit)
+        , m_classIdA(classIdA)
+        , m_classIdB(classIdB)
+    {
+        LOG_FUNC();
+        
+        m_classIdAOnly = (m_classIdA == m_classIdB);
+    }
+
+    ABOdeTrigger::~ABOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    void ABOdeTrigger::GetClassIdAB(uint* classIdA, uint* classIdB)
+    {
+        LOG_FUNC();
+        
+        *classIdA = m_classIdA;
+        *classIdB = m_classIdB;
+    }
+    
+    void ABOdeTrigger::SetClassIdAB(uint classIdA, uint classIdB)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_classIdA = classIdA;
+        m_classIdB = classIdB;
+        m_classIdAOnly = (m_classIdA == m_classIdB);
+    }
+    
+    bool ABOdeTrigger::CheckForOccurrence(GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
+        {
+            return false;
+        }
+        
+        bool occurrenceAdded(false);
+        
+        m_classId = m_classIdA;
+        if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+        {
+            m_occurrenceMetaListA.push_back(pObjectMeta);
+            occurrenceAdded = true;
+        }
+        else if (!m_classIdAOnly)
+        {
+            m_classId = m_classIdB;
+            if (CheckForMinCriteria(pFrameMeta, pObjectMeta))
+            {
+                m_occurrenceMetaListB.push_back(pObjectMeta);
+                occurrenceAdded = true;
+            }
+        }
+        
+        return occurrenceAdded;
+    }
+
+    uint ABOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        if (m_classIdAOnly)
+        {
+            return PostProcessFrameA(pBuffer, pDisplayMeta, pFrameMeta);
+        }
+        return  PostProcessFrameAB(pBuffer, pDisplayMeta, pFrameMeta);
+    }
+
+    // *****************************************************************************
+    
+    DistanceOdeTrigger::DistanceOdeTrigger(const char* name, const char* source, 
+        uint classIdA, uint classIdB, uint limit, uint minimum, uint maximum, 
+        uint testPoint, uint testMethod)
+        : ABOdeTrigger(name, source, classIdA, classIdB, limit)
+        , m_minimum(minimum)
+        , m_maximum(maximum)
+        , m_testPoint(testPoint)
+        , m_testMethod(testMethod)
+    {
+        LOG_FUNC();
+    }
+
+    DistanceOdeTrigger::~DistanceOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    uint DistanceOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least two objects for intersection to occur
+        if (m_enabled and m_occurrenceMetaListA.size() > 1)
+        {
+            // iterate through the list of object occurrences that passed all min criteria
+            for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
+            {
+                for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
+                {
+                    if (CheckDistance(m_occurrenceMetaListA[i], m_occurrenceMetaListA[j]))
+                    {
+                        // event has been triggered
+                        m_occurrences++;
+                        m_triggered++;
+                        
+                         // update the total event count static variable
+                        s_eventCount++;
+
+                        for (const auto &imap: m_pOdeActions)
+                        {
+                            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                            
+                            // Invoke each action twice, once for each object in the tested pair
+                            pOdeAction->HandleOccurrence(shared_from_this(), 
+                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaListA[i]);
+                            pOdeAction->HandleOccurrence(shared_from_this(), 
+                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaListA[j]);
+                        }
+                        if (m_limit and m_triggered >= m_limit)
+                        {
+                            m_occurrenceMetaListA.clear();
+                            return m_occurrences;
+                        }
+                    }
+                }
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaListA.clear();
+        return m_occurrences;
+    }
+   
+    uint DistanceOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least one object from each of the two Classes 
+        if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
+        {
+            // iterate through the list of object occurrences that passed all min criteria
+            for (const auto &iterA: m_occurrenceMetaListA) 
+            {
+                for (const auto &iterB: m_occurrenceMetaListB) 
+                {
+                    // ensure we are not testing the same object which can be in both vectors
+                    // if Class Id A and B are specified to be the same.
+                    if (iterA != iterB)
+                    {
+                        if (CheckDistance(iterA, iterB))
+                        {
+                            // event has been triggered
+                            m_occurrences++;
+                            m_triggered++;
+                            
+                             // update the total event count static variable
+                            s_eventCount++;
+
+                            for (const auto &imap: m_pOdeActions)
+                            {
+                                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                                
+                                // Invoke each action twice, once for each object in the tested pair
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterA);
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterB);
+                            }
+                            if (m_limit and m_triggered >= m_limit)
+                            {
+                                m_occurrenceMetaListA.clear();
+                                m_occurrenceMetaListB.clear();
+                                return m_occurrences;
+                            }
+                        }
+                    }
+                }
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaListA.clear();
+        m_occurrenceMetaListB.clear();
+        return m_occurrences;
+    }
+
+    bool DistanceOdeTrigger::CheckDistance(NvDsObjectMeta* pObjectMetaA, NvDsObjectMeta* pObjectMetaB)
+    {
+        uint distance(0);
+        if (m_testPoint = DSL_BBOX_POINT_ANY)
+        {
+            GeosRectangle rectA(pObjectMetaA->rect_params);
+            GeosRectangle rectB(pObjectMetaB->rect_params);
+            distance = rectA.Distance(rectB);
+        }
+        else{
+            uint xa(0), ya(0), xb(0), yb(0);
+            switch (m_testPoint)
+            {
+            case DSL_BBOX_POINT_CENTER :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_NORTH_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_SOUTH_EAST :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH :
+                xa = round(pObjectMetaA->rect_params.left + pObjectMetaA->rect_params.width/2);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left + pObjectMetaB->rect_params.width/2);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_WEST :
+                xa = round(pObjectMetaA->rect_params.left);
+                ya = round(pObjectMetaA->rect_params.top + pObjectMetaA->rect_params.height/2);
+                xb = round(pObjectMetaB->rect_params.left);
+                yb = round(pObjectMetaB->rect_params.top + pObjectMetaB->rect_params.height/2);
+                break;
+            default:
+                LOG_ERROR("Invalid DSL_BBOX_POINT = '" << m_testPoint 
+                    << "' for DistanceOdeTrigger Trigger '" << GetName() << "'");
+                throw;
+            }
+
+            GeosPoint pointA(xa, ya);
+            GeosPoint pointB(xb, yb);
+            distance = pointA.Distance(pointB);
+        }
+        
+        uint minimum(0), maximum(0);
+        switch (m_testMethod)
+        {
+        case DSL_DISTANCE_METHOD_FIXED_PIXELS :
+            minimum = m_minimum;
+            maximum = m_maximum;
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_WIDTH_A :
+            minimum = uint((m_minimum*pObjectMetaA->rect_params.width)/100);
+            maximum = uint((m_maximum*pObjectMetaA->rect_params.width)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_WIDTH_B :
+            minimum = uint((m_minimum*pObjectMetaB->rect_params.width)/100);
+            maximum = uint((m_maximum*pObjectMetaB->rect_params.width)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A :
+            minimum = uint((m_minimum*pObjectMetaA->rect_params.height)/100);
+            maximum = uint((m_maximum*pObjectMetaA->rect_params.height)/100);
+            break;
+        case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B :
+            minimum = uint((m_minimum*pObjectMetaB->rect_params.height)/100);
+            maximum = uint((m_maximum*pObjectMetaB->rect_params.height)/100);
+            break;
+        }    
+        return (minimum > distance or maximum < distance);
+    }
+
+    // *****************************************************************************
+    
+    IntersectionOdeTrigger::IntersectionOdeTrigger(const char* name, 
+        const char* source, uint classIdA, uint classIdB, uint limit)
+        : ABOdeTrigger(name, source, classIdA, classIdB, limit)
+    {
+        LOG_FUNC();
+    }
+
+    IntersectionOdeTrigger::~IntersectionOdeTrigger()
+    {
+        LOG_FUNC();
+    }
+
+    
+    uint IntersectionOdeTrigger::PostProcessFrameA(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least two objects for intersection to occur
+        if (m_enabled and m_occurrenceMetaListA.size() > 1)
+        {
+            // iterate through the list of object occurrences that passed all min criteria
+            for (uint i = 0; i < m_occurrenceMetaListA.size()-1 ; i++) 
+            {
+                for (uint j = i+1; j < m_occurrenceMetaListA.size() ; j++) 
+                {
+                    // check each in turn for any frame overlap
+                    GeosRectangle rectA(m_occurrenceMetaListA[i]->rect_params);
+                    GeosRectangle rectB(m_occurrenceMetaListA[j]->rect_params);
+                    if (rectA.Overlaps(rectB))
+                    {
+                        // event has been triggered
+                        m_occurrences++;
+                        m_triggered++;
+                        
+                         // update the total event count static variable
+                        s_eventCount++;
+
+                        for (const auto &imap: m_pOdeActions)
+                        {
+                            DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                            
+                            // Invoke each action twice, once for each object in the tested pair
+                            pOdeAction->HandleOccurrence(shared_from_this(), 
+                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaListA[i]);
+                            pOdeAction->HandleOccurrence(shared_from_this(), 
+                                pBuffer, pDisplayMeta, pFrameMeta, m_occurrenceMetaListA[j]);
+                        }
+                        if (m_limit and m_triggered >= m_limit)
+                        {
+                            m_occurrenceMetaListA.clear();
+                            return m_occurrences;
+                        }
+                    }
+                }
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaListA.clear();
+        return m_occurrences;
+   }
+
+    uint IntersectionOdeTrigger::PostProcessFrameAB(GstBuffer* pBuffer, 
+        NvDsDisplayMeta* pDisplayMeta,  NvDsFrameMeta* pFrameMeta)
+    {
+        m_occurrences = 0;
+        
+        // need at least one object from each of the two Classes 
+        if (m_enabled and m_occurrenceMetaListA.size() and m_occurrenceMetaListB.size())
+        {
+            // iterate through the list of object occurrences that passed all min criteria
+            for (const auto &iterA: m_occurrenceMetaListA) 
+            {
+                for (const auto &iterB: m_occurrenceMetaListB) 
+                {
+                    // ensure we are not testing the same object which can be in both vectors
+                    // if Class Id A and B are specified to be the same.
+                    if (iterA != iterB)
+                    {
+                        // check each in turn for any frame overlap
+                        GeosRectangle rectA(iterA->rect_params);
+                        GeosRectangle rectB(iterB->rect_params);
+                        if (rectA.Overlaps(rectB))
+                        {
+                            // event has been triggered
+                            m_occurrences++;
+                            m_triggered++;
+                            
+                             // update the total event count static variable
+                            s_eventCount++;
+
+                            for (const auto &imap: m_pOdeActions)
+                            {
+                                DSL_ODE_ACTION_PTR pOdeAction = std::dynamic_pointer_cast<OdeAction>(imap.second);
+                                
+                                // Invoke each action twice, once for each object in the tested pair
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterA);
+                                pOdeAction->HandleOccurrence(shared_from_this(), 
+                                    pBuffer, pDisplayMeta, pFrameMeta, iterB);
+                            }
+                            if (m_limit and m_triggered >= m_limit)
+                            {
+                                m_occurrenceMetaListA.clear();
+                                m_occurrenceMetaListB.clear();
+                                return m_occurrences;
+                            }
+                        }
+                    }
+                }
+            }
+        }   
+
+        // reset for next frame
+        m_occurrenceMetaListA.clear();
+        m_occurrenceMetaListB.clear();
+        return m_occurrences;
+    }
 }

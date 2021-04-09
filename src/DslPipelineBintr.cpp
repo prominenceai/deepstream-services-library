@@ -37,6 +37,7 @@ namespace DSL
         , m_pXWindowEventThread(NULL)
         , m_pXDisplay(0)
         , m_pXWindow(0)
+		, m_pXWindowCreated(false)
         , m_xWindowOffsetX(0)
         , m_xWindowOffsetY(0)
         , m_xWindowWidth(0)
@@ -77,7 +78,7 @@ namespace DSL
         Stop();
         
         // cleanup all resources
-        if (m_pXWindow)
+        if (m_pXWindow and m_pXWindowCreated)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
             XDestroyWindow(m_pXDisplay, m_pXWindow);
@@ -304,10 +305,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // TODO verify dimensions before setting.
         if (m_pXWindow)
         {
-            LOG_ERROR("Can not set full-screen-enable for Pipeline '" << GetName() << "' once XWindow has been created.");
+            LOG_ERROR("Can not set full-screen-enabled for Pipeline '" 
+                << GetName() << "' once XWindow has been created.");
             return false;
         }
         m_xWindowfullScreenEnabled = enabled;
@@ -848,6 +849,8 @@ namespace DSL
             LOG_ERROR("Failed to create new X Window for Pipeline '" << GetName() << "' ");
             return false;
         }
+		// Flag used to cleanup the handle - pipeline created vs. client created.
+		m_pXWindowCreated = True;
         XSetWindowAttributes attr{0};
         
         attr.event_mask = ButtonPress | KeyRelease;
@@ -887,18 +890,55 @@ namespace DSL
         return true;
     }
     
+	bool PipelineBintr::SetXWindow(Window xWindow)
+	{
+        LOG_FUNC();
+		
+		if (IsLinked())
+		{
+            LOG_ERROR("Pipeline '" << GetName() 
+				<< "' failed to set XWindow handle as it is currently linked");
+            return false;
+		}
+		if (m_pXWindowCreated)
+		{
+            DestroyXWindow();
+            LOG_INFO("Pipeline '" << GetName() 
+				<< "' destroyed its own XWindow to use the client's");
+            m_pXWindowCreated = false;
+		}
+		m_pXWindow = xWindow;
+		return true;
+	}
+	
     bool PipelineBintr::ClearXWindow()
     {
         LOG_FUNC();
         
-        if (!m_pXWindow)
+        if (!m_pXWindow or !m_pXWindowCreated)
         {
-            LOG_ERROR("Pipeline '" << GetName() << "' has now XWindow to clear");
+            LOG_ERROR("Pipeline '" << GetName() << "' does not own a XWindow to clear");
             return false;
         }
         XClearWindow(m_pXDisplay, m_pXWindow);
         return true;
     }
+    
+    bool PipelineBintr::DestroyXWindow()
+    {
+        LOG_FUNC();
+        
+        if (!m_pXWindow or !m_pXWindowCreated)
+        {
+            LOG_ERROR("Pipeline '" << GetName() << "' does not own an XWindow to distroy");
+            return false;
+        }
+        XDestroyWindow(m_pXDisplay, m_pXWindow);
+        m_pXWindow = 0;
+        m_pXWindowCreated = False;
+        return true;
+    }
+    
     
     void PipelineBintr::HandleErrorMessage(GstMessage* pMessage)
     {

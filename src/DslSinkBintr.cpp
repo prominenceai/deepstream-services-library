@@ -347,6 +347,7 @@ namespace DSL
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
+        , m_forceAspectRatio(false)
     {
         LOG_FUNC();
         
@@ -358,6 +359,7 @@ namespace DSL
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
         m_pEglGles->SetAttribute("enable-last-sample", false);
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         
         m_pEglGles->SetAttribute("max-lateness", -1);
         m_pEglGles->SetAttribute("sync", m_sync);
@@ -408,8 +410,40 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         m_isLinked = false;
+        Reset();
     }
 
+    void WindowSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to reset WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return;
+        }
+
+        RemoveChild(m_pEglGles);
+        
+        // recreate the EGL-GLES sink element - the old will be destroyed on deref
+        m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
+        
+        m_pEglGles->SetAttribute("window-x", m_offsetX);
+        m_pEglGles->SetAttribute("window-y", m_offsetY);
+        m_pEglGles->SetAttribute("window-width", m_width);
+        m_pEglGles->SetAttribute("window-height", m_height);
+        m_pEglGles->SetAttribute("enable-last-sample", false);
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        m_pEglGles->SetAttribute("max-lateness", -1);
+        m_pEglGles->SetAttribute("sync", m_sync);
+        m_pEglGles->SetAttribute("async", m_async);
+        m_pEglGles->SetAttribute("qos", m_qos);
+
+        AddChild(m_pEglGles);
+    }
+    
     void  WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
@@ -422,10 +456,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -450,10 +484,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently linked");
             return false;
         }
 
@@ -482,6 +516,28 @@ namespace DSL
         m_pEglGles->SetAttribute("sync", m_sync);
         m_pEglGles->SetAttribute("async", m_async);
 
+        return true;
+    }
+
+    bool WindowSinkBintr::GetForceAspectRatio()
+    {
+        LOG_FUNC();
+        
+        return m_forceAspectRatio;
+    }
+    
+    bool WindowSinkBintr::SetForceAspectRatio(bool force)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_forceAspectRatio = force;
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
     

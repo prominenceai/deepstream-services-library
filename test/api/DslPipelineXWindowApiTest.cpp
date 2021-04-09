@@ -58,7 +58,7 @@ SCENARIO( "A Pipeline's XWindow Offsets and Dimensions can be queried", "[pipeli
     }
 }
 
-SCENARIO( "A Pipeline's XWindow Full-Screen-Enabled be Set/Get", "[pipeline-xwindow-api]" )
+SCENARIO( "A Pipeline's XWindow Full-Screen-Enabled can be Set/Get", "[pipeline-xwindow-api]" )
 {
     GIVEN( "A new Pipeline" ) 
     {
@@ -116,3 +116,41 @@ SCENARIO( "A Pipeline's XWindow Full-Sreen-Enabled setting can be queried", "[pi
         }
     }
 }
+
+SCENARIO( "A Pipeline's XWindow Handle can be Set/Get", "[new]" )
+{
+    GIVEN( "A new Pipeline" ) 
+    {
+        std::wstring pipelineName  = L"test-pipeline";
+		uint64_t handle(0);
+        
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+
+        REQUIRE( dsl_pipeline_xwindow_handle_get(pipelineName.c_str(), 
+            &handle) == DSL_RESULT_SUCCESS );
+            
+        // must be initialized false
+        REQUIRE( handle == 0 );
+
+        WHEN( "When the Pipeline's XWindow Handle is updated" ) 
+        {
+			handle = 0x1234567812345678;
+            REQUIRE( dsl_pipeline_xwindow_handle_set(pipelineName.c_str(), 
+                handle) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The new handle value is returned on get" )
+            {
+				uint64_t newHandle(0);
+				REQUIRE( dsl_pipeline_xwindow_handle_get(pipelineName.c_str(), 
+					&newHandle) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( handle == newHandle );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
