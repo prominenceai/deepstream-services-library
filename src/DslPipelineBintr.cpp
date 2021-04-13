@@ -61,6 +61,7 @@ namespace DSL
         g_mutex_init(&m_busWatchMutex);
         g_mutex_init(&m_displayMutex);
         g_mutex_init(&m_lastErrorMutex);
+        g_mutex_init(&m_asyncCommMutex);
 
         // get the GST message bus - one per GST pipeline
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstObj));
@@ -100,6 +101,7 @@ namespace DSL
         g_mutex_clear(&m_busWatchMutex);
         g_mutex_clear(&m_displayMutex);
         g_mutex_clear(&m_lastErrorMutex);
+        g_mutex_clear(&m_asyncCommMutex);
     }
     
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -393,36 +395,88 @@ namespace DSL
             LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
         }
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Pipeline in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PipelinePause, this);
+            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandlePause();
+        }
+        return true;
+}
+
+    void PipelineBintr::HandlePause()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        
         // Call the base class to Pause
         if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Pause Pipeline '" << GetName() << "'");
-            return false;
         }
-        return true;
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            g_cond_signal(&m_asyncCondition);
+        }
     }
 
     bool PipelineBintr::Stop()
     {
         LOG_FUNC();
         
-        if (IsLinked())
+        if (!IsLinked())
         {
-            GstState state;
-            GetState(state, 0);
-            if (state == GST_STATE_PAUSED or state == GST_STATE_PLAYING)
-            {
-                SendEos();
-                sleep(1);
-            }
-            if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
-            {
-                LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
-                return false;
-            }
-            UnlinkAll();
+            LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
+            return false;
+        }
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Pipeline in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PipelineStop, this);
+            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandleStop();
         }
         return true;
+    }
+
+    void PipelineBintr::HandleStop()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+        // For non-live sources we need to disable the 'Repeat/Restart' handler 
+        // that occurrs on EOS. 
+        if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
+        {
+            m_pPipelineSourcesBintr->DisableAutoRepeat();
+        }
+        SendEos();
+        sleep(1);
+
+        GstState state;
+        GetState(state, 0);
+        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        {
+            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+        }
+        UnlinkAll();
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            g_cond_signal(&m_asyncCondition);
+        }
     }
 
     bool PipelineBintr::IsLive()
@@ -1056,11 +1110,27 @@ namespace DSL
             NotifyErrorMessageHandlers();
     }
 
-    static gpointer XWindowEventThread(gpointer pData)
+    static gpointer XWindowEventThread(gpointer pPipeline)
     {
-        static_cast<PipelineBintr*>(pData)->HandleXWindowEvents();
+        static_cast<PipelineBintr*>(pPipeline)->HandleXWindowEvents();
        
         return NULL;
+    }
+
+    static int PipelinePause(gpointer pPipeline)
+    {
+        static_cast<PipelineBintr*>(pPipeline)->HandlePause();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
+    
+    static int PipelineStop(gpointer pPipeline)
+    {
+        static_cast<PipelineBintr*>(pPipeline)->HandleStop();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
     }
     
 

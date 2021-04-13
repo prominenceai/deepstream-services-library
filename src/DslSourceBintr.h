@@ -256,6 +256,8 @@ namespace DSL
     
         DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
             bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        ~DecodeSourceBintr();
 
         /**
          * @brief returns the current URI source for this DecodeSourceBintr
@@ -324,7 +326,26 @@ namespace DSL
          * @return true if the Source has a Child
          */
         bool HasDewarperBintr();
-
+        
+        /**
+         * @brief Gets the current repeat enabled setting, non-live URI sources only
+         * @return true if enabled, false otherwise.
+         */
+        bool GetRepeatEnabled();
+        
+        /**
+         * @brief Sets the repeat enabled setting, non-live URI source only.
+         * @param enabled set true to enable, false to disable
+         * @return true on succcess, false if URI source is live-soure
+         */
+        bool SetRepeatEnabled(bool enabled);
+        
+        /**
+         * @brief Disables Auto Repeat without updating the RepeatEnabled flag 
+         * which will take affect on next Play Pipeline command. This function
+         * should be called on non-live sources before sending the source an EOS
+         */
+        void DisableAutoRepeat();
         
     protected:
 
@@ -359,9 +380,25 @@ namespace DSL
         guint m_prevAccumulatedBase;
         
         /**
-         * @brief
+         * nvv4l2decoder sink pad to add the Buffer Probe to
+         */  
+        GstPad* m_pDecoderStaticSinkpad;
+        
+        /**
+         * @brief probe id for nvv412decoder Buffer Probe used to handle EOS
+         * events and initiate the Restart process for a non-live source
          */
         guint m_bufferProbeId;
+        
+        /**
+         * @brief mutual exclusion of the repeat enabled setting.
+         */
+        GMutex m_repeatEnabledMutex;
+        
+        /**
+         * @brief is set to true, non-live source will restart on EOS
+         */
+        bool m_repeatEnabled;
 
         /**
          * @brief A dynamic collection of requested Source Pads for the Tee 

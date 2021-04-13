@@ -230,12 +230,11 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
 
             THEN( "The Pipeline can be Played, Stopped, and Disassembled" )
             {
-                // Bug** unable to re-play after stopping. 
-//                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-//
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );

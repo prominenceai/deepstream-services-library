@@ -357,6 +357,10 @@ namespace DSL {
         DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
+        
+        DslReturnType SourceDecodeRepeatEnabledGet(const char* name, boolean* enabled);
+    
+        DslReturnType SourceDecodeRepeatEnabledSet(const char* name, boolean enabled);
     
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 

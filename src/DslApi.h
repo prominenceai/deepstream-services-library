@@ -2061,6 +2061,22 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
 
 /**
+ * @brief Gets the current Repeat on EOS Enabled setting for the non-live Decode Source
+ * @param[in] name name of the decode source to query
+ * @param[out] enabled true if Repeat on EOS is enabled, false otherwise 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_repeat_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current Repeat on EOS Enabled setting for the non-live Decode Source
+ * @param[in] name name of the decode source to update
+ * @param[out] enabled set to true to enable Repeat on EOS, false to disable. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_decode_repeat_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
  * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query
  * @param[out] timeout current time to wait between successive frames before determining the 
