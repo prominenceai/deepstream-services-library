@@ -3974,6 +3974,56 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SourceDecodeRepeatEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+         
+            *enabled = pSourceBintr->GetRepeatEnabled();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceDecodeRepeatEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+
+            DSL_DECODE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetRepeatEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set Repeat Enabled from Decode Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception setting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceRtspTimeoutGet(const char* name, uint* timeout)
     {
         LOG_FUNC();

@@ -1954,6 +1954,28 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
 }
 
+DslReturnType dsl_source_decode_repeat_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceDecodeRepeatEnabledGet(cstrName.c_str(),
+        enabled);
+}
+
+DslReturnType dsl_source_decode_repeat_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceDecodeRepeatEnabledSet(cstrName.c_str(),
+        enabled);
+}
+
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);

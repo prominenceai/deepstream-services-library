@@ -308,6 +308,9 @@ namespace DSL
         , m_dropFrameInterval(dropFrameInterval)
         , m_accumulatedBase(0)
         , m_prevAccumulatedBase(0)
+        , m_pDecoderStaticSinkpad(NULL)
+        , m_bufferProbeId(0)
+        , m_repeatEnabled(false)
     {
         LOG_FUNC();
         
@@ -332,6 +335,7 @@ namespace DSL
             char absolutePath[PATH_MAX+1];
             m_uri.assign(realpath(uri, absolutePath));
             m_uri.insert(0, "file:");
+            g_mutex_init(&m_repeatEnabledMutex);
         }
         
         LOG_INFO("URI Path = " << m_uri);
@@ -345,6 +349,17 @@ namespace DSL
         
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
+    }
+    
+    DecodeSourceBintr::~DecodeSourceBintr()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLive)
+        {
+            DisableAutoRepeat();
+            g_mutex_clear(&m_repeatEnabledMutex);
+        }
     }
     
     void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
@@ -401,17 +416,18 @@ namespace DSL
 
             // if the source is from file, then setup Stream buffer probe function
             // to handle the stream restart/loop on GST_EVENT_EOS.
-            if (!m_isLive and true)
+            if (!m_isLive and m_repeatEnabled)
             {
                 GstPadProbeType mask = (GstPadProbeType) 
                     (GST_PAD_PROBE_TYPE_EVENT_BOTH |
                     GST_PAD_PROBE_TYPE_EVENT_FLUSH | 
                     GST_PAD_PROBE_TYPE_BUFFER);
                     
-                GstPad* pStaticSinkpad = gst_element_get_static_pad(GST_ELEMENT(pObject), "sink");
+                m_pDecoderStaticSinkpad = 
+                    gst_element_get_static_pad(GST_ELEMENT(pObject), "sink");
                 
-                m_bufferProbeId = 
-                    gst_pad_add_probe(pStaticSinkpad, mask, StreamBufferRestartProbCB, this, NULL);
+                m_bufferProbeId = gst_pad_add_probe(m_pDecoderStaticSinkpad, 
+                    mask, StreamBufferRestartProbCB, this, NULL);
             }
         }
     }
@@ -420,7 +436,8 @@ namespace DSL
         GstPadProbeInfo* pInfo)
     {
         LOG_FUNC();
-
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
+        
         GstEvent* event = GST_EVENT(pInfo->data);
 
         if (pInfo->type & GST_PAD_PROBE_TYPE_BUFFER)
@@ -521,6 +538,48 @@ namespace DSL
         LOG_FUNC();
         
         return (m_pDewarperBintr != nullptr);
+    }
+    
+    bool DecodeSourceBintr::GetRepeatEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_repeatEnabled;
+    }
+    
+    bool DecodeSourceBintr::SetRepeatEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLive and enabled)
+        {
+            LOG_ERROR("Cannot set Repeat Enabled for live Source '" << GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot set Repeat Enabled for Source '" << GetName() 
+                << "' as it is currently Linked");
+            return false;
+        }
+        
+        m_repeatEnabled = enabled;
+        return true;
+    }
+    
+    void DecodeSourceBintr::DisableAutoRepeat()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
+
+        if (m_pDecoderStaticSinkpad)
+        {
+            if (m_bufferProbeId)
+            {
+                gst_pad_remove_probe(m_pDecoderStaticSinkpad, m_bufferProbeId);
+            }
+            gst_object_unref(m_pDecoderStaticSinkpad);
+        }
     }
 
     //*********************************************************************************

@@ -977,6 +977,30 @@ def dsl_ode_trigger_class_id_set(name, class_id):
     return int(result)
 
 ##
+## dsl_ode_trigger_class_id_ab_get()
+##
+_dsl.dsl_ode_trigger_class_id_ab_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_ode_trigger_class_id_ab_get.restype = c_uint
+def dsl_ode_trigger_class_id_ab_get(name):
+    global _dsl
+    class_id_a = c_uint(0)
+    class_id_b = c_uint(0)
+    result =_dsl.dsl_ode_trigger_class_id_ab_get(name, 
+        DSL_UINT_P(class_id_a), DSL_UINT_P(class_id_b))
+    return int(result), class_id_a.value, class_id_b.value
+
+##
+## dsl_ode_trigger_class_id_ab_set()
+##
+_dsl.dsl_ode_trigger_class_id_ab_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_trigger_class_id_ab_set.restype = c_uint
+def dsl_ode_trigger_class_id_ab_set(name, class_id_a, class_id_b):
+    global _dsl
+    result =_dsl.dsl_ode_trigger_class_id_ab_set(name, class_id_a, class_id_b)
+    return int(result)
+
+##
 ## dsl_ode_trigger_limit_get()
 ##
 _dsl.dsl_ode_trigger_limit_get.argtypes = [c_wchar_p, POINTER(c_uint)]
@@ -1489,6 +1513,27 @@ _dsl.dsl_source_decode_dewarper_remove.restype = c_uint
 def dsl_source_decode_dewarper_remove(name):
     global _dsl
     result = _dsl.dsl_source_decode_dewarper_remove(name)
+    return int(result)
+
+##
+## dsl_source_decode_repeat_enabled_get()
+##
+_dsl.dsl_source_decode_repeat_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_source_decode_repeat_enabled_get.restype = c_uint
+def dsl_source_decode_repeat_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_source_decode_repeat_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_source_decode_repeat_enabled_set()
+##
+_dsl.dsl_source_decode_repeat_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_decode_repeat_enabled_set.restype = c_uint
+def dsl_source_decode_repeat_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_source_decode_repeat_enabled_set(name, enabled)
     return int(result)
 
 ##

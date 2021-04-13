@@ -352,5 +352,17 @@ namespace DSL
         m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
     }
     
+    void PipelineSourcesBintr::DisableAutoRepeat()
+    {
+        if (!m_areSourcesLive)
+        {
+            for (auto const& imap: m_pChildSources)
+            {
+                DSL_DECODE_SOURCE_PTR pSource = 
+                    std::dynamic_pointer_cast<DecodeSourceBintr>(imap.second);
+                pSource->DisableAutoRepeat();
+            }
+        }
+    }
     
 }

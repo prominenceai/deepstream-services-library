@@ -68,16 +68,28 @@ namespace DSL
         bool Play();
 
         /**
-         * @brief Attempts to pause the Pipeline, if non-live, and currently playing
-         * @return true if able to pause, false otherwise 
+         * @brief Schedules a Timer Callback to call HandlePause in the mainloop context
+         * @return true if HandlePause schedule correctly, false otherwise 
          */
         bool Pause();
         
         /**
-         * @brief Attempts to stop the Pipeline currently playing
-         * @return true if able to stop, false otherwise 
+         * @brief Pauses the Pipeline by setting its state to GST_STATE_PAUSED
+         * Import: must be called in the mainloop's context, i.e. timer callback
+         */
+        void HandlePause();
+
+        /**
+         * @brief Schedules a Timer Callback to call HandleStop in the mainloop context
+         * @return true if HandleStop schedule correctly, false otherwise 
          */
         bool Stop();
+        
+        /**
+         * @brief Stops the Pipeline by setting its state to GST_STATE_NULL
+         * Import: must be called in the mainloop's context, i.e. timer callback
+         */
+        void HandleStop();
         
         /**
          * @brief returns whether the Pipeline has all live sources or not.
@@ -556,6 +568,19 @@ namespace DSL
         std::map<GstMessageType, std::string> m_mapMessageTypes;
 
         /**
+         * @brief Mutex to protect the async GCond used to synchronize
+         * the Application thread with the mainloop context on
+         * asynchronous change of pipeline state.
+         */
+        GMutex m_asyncCommMutex;
+        
+        /**
+         * @brief Condition used to block the application context while waiting
+         * for a Pipeline change of state to be completed in the mainloop context
+         */
+        GCond m_asyncCondition;
+        
+        /**
          * @brief initializes the "constant-value-to-string" maps
          */
         void _initMaps();
@@ -584,15 +609,31 @@ namespace DSL
         GstBus* bus, GstMessage* pMessage, gpointer pData);
 
     /**
-     * @brief Timer thread Notification Handler to invoke a Pipelines NotifyErrorMessageHandlers() function
-     * @param pPipeline shared pointer to the Pipeline that started the timer so that clients can be notified
-     * in the timer's experation callback running from the main the loop, instead of the bus-watch callback
+     * @brief Timer thread Notification Handler to invoke a Pipelines 
+     * NotifyErrorMessageHandlers() function
+     * @param pPipeline shared pointer to the Pipeline that started the timer so that 
+     * clients can be notified in the timer's experation callback running from the 
+     * main the loop, instead of the bus-watch callback
      * @return false always to self destroy the one-shot timer.
      */
     static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline);
     
-    static gpointer XWindowEventThread(gpointer pData);
+    
+    static gpointer XWindowEventThread(gpointer pPipeline);
 
+    /**
+     * @brief Timer callback function to Pause a Pipeline in the mainloop context.  
+     * @param pPipeline shared pointer to the Pipeline that started the timer to schedule the pause
+     * @return false always to self destroy the on-shot timer.
+     */
+    static int PipelinePause(gpointer pPipeline);
+    
+    /**
+     * @brief Timer callback function to Stop a Pipeline in the mainloop context.  
+     * @param pPipeline shared pointer to the Pipeline that started the timer to schedule the stop
+     * @return false always to self destroy the on-shot timer.
+     */
+    static int PipelineStop(gpointer pPipeline);
     
 } // Namespace
 
