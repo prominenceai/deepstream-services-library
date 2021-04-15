@@ -1430,6 +1430,59 @@ def dsl_source_uri_new(name, uri, is_live, cudadec_mem_type, intra_decode, drop_
     return int(result)
 
 ##
+## dsl_source_file_new()
+##
+_dsl.dsl_source_file_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_source_file_new.restype = c_uint
+def dsl_source_file_new(name, file_path, repeat_enabled):
+    global _dsl
+    result = _dsl.dsl_source_file_new(name, file_path, repeat_enabled)
+    return int(result)
+
+##
+## dsl_source_file_path_get()
+##
+_dsl.dsl_source_file_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_file_path_get.restype = c_uint
+def dsl_source_file_path_get(name):
+    global _dsl
+    file_path = c_wchar_p(0)
+    result = _dsl.dsl_source_file_path_get(name, DSL_WCHAR_PP(file_path))
+    return int(result), file_path.value 
+
+##
+## dsl_source_file_path_set()
+##
+_dsl.dsl_source_file_path_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_file_path_set.restype = c_uint
+def dsl_source_file_path_set(name, file_path):
+    global _dsl
+    result = _dsl.dsl_source_file_path_set(name, file_path)
+    return int(result)
+
+##
+## dsl_source_file_repeat_enabled_get()
+##
+_dsl.dsl_source_file_repeat_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_source_file_repeat_enabled_get.restype = c_uint
+def dsl_source_file_repeat_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_source_decode_repeat_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_source_file_repeat_enabled_set()
+##
+_dsl.dsl_source_file_repeat_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_file_repeat_enabled_set.restype = c_uint
+def dsl_source_file_repeat_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_source_file_repeat_enabled_set(name, enabled)
+    return int(result)
+
+
+##
 ## dsl_source_rtsp_new()
 ##
 _dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
@@ -1513,27 +1566,6 @@ _dsl.dsl_source_decode_dewarper_remove.restype = c_uint
 def dsl_source_decode_dewarper_remove(name):
     global _dsl
     result = _dsl.dsl_source_decode_dewarper_remove(name)
-    return int(result)
-
-##
-## dsl_source_decode_repeat_enabled_get()
-##
-_dsl.dsl_source_decode_repeat_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_source_decode_repeat_enabled_get.restype = c_uint
-def dsl_source_decode_repeat_enabled_get(name):
-    global _dsl
-    enabled = c_bool(False)
-    result = _dsl.dsl_source_decode_repeat_enabled_get(name, DSL_BOOL_P(enabled))
-    return int(result), enabled.value 
-
-##
-## dsl_source_decode_repeat_enabled_set()
-##
-_dsl.dsl_source_decode_repeat_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_source_decode_repeat_enabled_set.restype = c_uint
-def dsl_source_decode_repeat_enabled_set(name, enabled):
-    global _dsl
-    result = _dsl.dsl_source_decode_repeat_enabled_set(name, enabled)
     return int(result)
 
 ##
