@@ -1986,12 +1986,55 @@ DslReturnType dsl_source_usb_new(const wchar_t* name,
  * @param[in] name Unique Resource Identifier (file or live)
  * @param[in] is_live true if source is live false if file
  * @param[in] cudadec_mem_type, use DSL_CUDADEC_MEMORY_TYPE_<type>
- * @param[in] 
+ * @param[in] intra_decode set to True to enable, false to disable
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, boolean is_live,
     uint cudadec_mem_type, uint intra_decode, uint drop_frame_interval);
 
+/**
+ * @brief creates a new, uniquely named File Source component
+ * @param[in] name Unique name for the File Source
+ * @param[in] file_path absolute or relative path to the media file to play
+ * @param[in] repeat_enabled set to true to repeat source on EOS
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean repeat_enabled);
+
+/**
+ * @brief Gets the current File Path in use by the named File Source
+ * @param[in] name name of the File Source to query
+ * @param[out] FilePath in use by the File Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file_path);
+
+/**
+ * @brief Sets the current File Path for the named File Source to use
+ * @param[in] name name of the File Source to update
+ * @param[in] file_path new file path to use by the Decode Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
+
+
+/**
+ * @brief Gets the current Repeat on EOS Enabled setting for the File Source
+ * @param[in] name name of the File Source to query
+ * @param[out] enabled true if Repeat on EOS is enabled, false otherwise 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the current Repeat on EOS Enabled setting for the File Source
+ * @param[in] name name of the File Source to update
+ * @param[out] enabled set to true to enable Repeat on EOS, false to disable. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
+    
 /**
  * @brief creates a new, uniquely named RTSP Source component
  * @param[in] name Unique Resource Identifier (file or live)
@@ -2040,7 +2083,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
 /**
  * @brief Sets the current URI for the named Decode Source to use
  * @param[in] name name of the Source to update
- * @param[out] uri in use by the Decode Source
+ * @param[in] uri to use by the Decode Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri);
@@ -2059,22 +2102,6 @@ DslReturnType dsl_source_decode_dewarper_add(const wchar_t* name, const wchar_t*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name);
-
-/**
- * @brief Gets the current Repeat on EOS Enabled setting for the non-live Decode Source
- * @param[in] name name of the decode source to query
- * @param[out] enabled true if Repeat on EOS is enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_decode_repeat_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the current Repeat on EOS Enabled setting for the non-live Decode Source
- * @param[in] name name of the decode source to update
- * @param[out] enabled set to true to enable Repeat on EOS, false to disable. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_decode_repeat_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source

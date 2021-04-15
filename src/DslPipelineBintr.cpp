@@ -466,8 +466,6 @@ namespace DSL
         SendEos();
         sleep(1);
 
-        GstState state;
-        GetState(state, 0);
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");

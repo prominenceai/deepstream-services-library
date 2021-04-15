@@ -585,35 +585,28 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     }
 }
 
-SCENARIO( "A non-live Decode Source Component can Set/Get its Repeat Enabled setting", "[source-api]" )
+SCENARIO( "A File Source Component can Set/Get its Repeat Enabled setting", "[source-api]" )
 {
     GIVEN( "A new File Source" )
     {
-        std::wstring sourceName = L"uri-source";
-        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
-        uint cudadecMemType(DSL_CUDADEC_MEMTYPE_DEVICE);
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
+        std::wstring sourceName = L"file-source";
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
-        std::wstring dewarperName(L"dewarper");
-        std::wstring defConfigFile(L"./test/configs/config_dewarper.txt");
-
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), cudadecMemType, 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), false) == DSL_RESULT_SUCCESS );
 
         boolean retRepeatEnabled(true);
-        REQUIRE( dsl_source_decode_repeat_enabled_get(sourceName.c_str(), 
+        REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
             &retRepeatEnabled) == DSL_RESULT_SUCCESS );
         REQUIRE( retRepeatEnabled == false );
 
         WHEN( "The Source's Repeat Enabled setting is set" ) 
         {
-            REQUIRE( dsl_source_decode_repeat_enabled_set(sourceName.c_str(), 
+            REQUIRE( dsl_source_file_repeat_enabled_set(sourceName.c_str(), 
                 true) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( dsl_source_decode_repeat_enabled_get(sourceName.c_str(), 
+                REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
                     &retRepeatEnabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( retRepeatEnabled == true );
                     

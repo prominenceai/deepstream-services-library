@@ -3787,6 +3787,149 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceFileNew(const char* name, const char* filePath, 
+            boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_components[name] = DSL_FILE_SOURCE_NEW(
+                name, filePath, repeatEnabled);
+
+            LOG_INFO("New File Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New File Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceFilePathGet(const char* name, const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetFilePath();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("File Source '" << name << "' threw exception getting File Path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceFilePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            if (!pSourceBintr->SetFilePath(filePath));
+            {
+                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception setting File path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceFileRepeatEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+         
+            *enabled = pSourceBintr->GetRepeatEnabled();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceFileRepeatEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, FileSourceBintr);
+
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetRepeatEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set Repeat Enabled for File Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception setting Repeat Enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
     {
@@ -3970,56 +4113,6 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Source '" << name << "' threw exception removing Dewarper");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceDecodeRepeatEnabledGet(const char* name, boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-         
-            *enabled = pSourceBintr->GetRepeatEnabled();
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception getting Repeat Enabled");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SourceDecodeRepeatEnabledSet(const char* name, boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
-         
-            if (!pSourceBintr->SetRepeatEnabled(enabled))
-            {
-                LOG_ERROR("Failed to set Repeat Enabled from Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_SET_FAILED;
-            }
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name << "' threw exception setting Repeat Enabled");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }

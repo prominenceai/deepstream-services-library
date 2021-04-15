@@ -55,11 +55,18 @@ namespace DSL
         
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
     #define DSL_URI_SOURCE_NEW(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval) \
-        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
+        std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
+            uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
+        
+    #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
+    #define DSL_FILE_SOURCE_NEW(name, file_path, repeat_enabled) \
+        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, file_path, repeat_enabled))
         
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
-    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval) \
-        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, intraDecode, dropFrameInterval, latency, reconnectInterval))
+    #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, cudadecMemType, \
+        intraDecode, dropFrameInterval, latency, reconnectInterval) \
+        std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, cudadecMemType, \
+            intraDecode, dropFrameInterval, latency, reconnectInterval))
 
     /**
      * @class SourceBintr
@@ -326,20 +333,7 @@ namespace DSL
          * @return true if the Source has a Child
          */
         bool HasDewarperBintr();
-        
-        /**
-         * @brief Gets the current repeat enabled setting, non-live URI sources only
-         * @return true if enabled, false otherwise.
-         */
-        bool GetRepeatEnabled();
-        
-        /**
-         * @brief Sets the repeat enabled setting, non-live URI source only.
-         * @param enabled set true to enable, false to disable
-         * @return true on succcess, false if URI source is live-soure
-         */
-        bool SetRepeatEnabled(bool enabled);
-        
+
         /**
          * @brief Disables Auto Repeat without updating the RepeatEnabled flag 
          * which will take affect on next Play Pipeline command. This function
@@ -391,6 +385,11 @@ namespace DSL
         guint m_bufferProbeId;
         
         /**
+         * @brief A dynamic collection of requested Source Pads for the Tee 
+         */
+        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
+
+        /**
          * @brief mutual exclusion of the repeat enabled setting.
          */
         GMutex m_repeatEnabledMutex;
@@ -399,11 +398,6 @@ namespace DSL
          * @brief is set to true, non-live source will restart on EOS
          */
         bool m_repeatEnabled;
-
-        /**
-         * @brief A dynamic collection of requested Source Pads for the Tee 
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
 
         /**
          @brief
@@ -459,6 +453,47 @@ namespace DSL
         
     private:
 
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class FileSourceBintr
+     * @brief 
+     */
+    class FileSourceBintr : public UriSourceBintr
+    {
+    public: 
+    
+        FileSourceBintr(const char* name, const char* filePath, bool repeatEnabled);
+
+        /**
+         * @brief returns the current File Path for this FileSourceBintr
+         * @return const string for either live or file source
+         */
+        const char* GetFilePath()
+        {
+            LOG_FUNC();
+            
+            return m_uri.c_str();
+        }
+
+        bool SetFilePath(const char* file_path);
+
+        /**
+         * @brief Gets the current repeat enabled setting, non-live URI sources only
+         * @return true if enabled, false otherwise.
+         */
+        bool GetRepeatEnabled();
+        
+        /**
+         * @brief Sets the repeat enabled setting, non-live URI source only.
+         * @param enabled set true to enable, false to disable
+         * @return true on succcess, false if URI source is live-soure
+         */
+        bool SetRepeatEnabled(bool enabled);
+        
+    private:
 
     };
 

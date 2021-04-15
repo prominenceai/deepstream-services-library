@@ -56,7 +56,7 @@ namespace DSL
         ~PipelineBintr();
 
         /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @brief Links all Child Bintrs owned by this Pipeline Bintr
          * @return True success, false otherwise
          */
         bool LinkAll();
@@ -584,7 +584,6 @@ namespace DSL
          * @brief initializes the "constant-value-to-string" maps
          */
         void _initMaps();
-        
         
     }; // Pipeline
     

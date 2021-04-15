@@ -354,12 +354,9 @@ namespace DSL
     DecodeSourceBintr::~DecodeSourceBintr()
     {
         LOG_FUNC();
-        
-        if (!m_isLive)
-        {
-            DisableAutoRepeat();
-            g_mutex_clear(&m_repeatEnabledMutex);
-        }
+ 
+        DisableAutoRepeat();
+        g_mutex_clear(&m_repeatEnabledMutex);
     }
     
     void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
@@ -540,33 +537,6 @@ namespace DSL
         return (m_pDewarperBintr != nullptr);
     }
     
-    bool DecodeSourceBintr::GetRepeatEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_repeatEnabled;
-    }
-    
-    bool DecodeSourceBintr::SetRepeatEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (m_isLive and enabled)
-        {
-            LOG_ERROR("Cannot set Repeat Enabled for live Source '" << GetName() << "'");
-            return false;
-        }
-        if (IsLinked())
-        {
-            LOG_ERROR("Cannot set Repeat Enabled for Source '" << GetName() 
-                << "' as it is currently Linked");
-            return false;
-        }
-        
-        m_repeatEnabled = enabled;
-        return true;
-    }
-    
     void DecodeSourceBintr::DisableAutoRepeat()
     {
         LOG_FUNC();
@@ -581,6 +551,7 @@ namespace DSL
             gst_object_unref(m_pDecoderStaticSinkpad);
         }
     }
+    
 
     //*********************************************************************************
 
@@ -802,6 +773,64 @@ namespace DSL
         }        
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
+        return true;
+    }
+
+    //*********************************************************************************
+
+    FileSourceBintr::FileSourceBintr(const char* name, 
+        const char* filePath, bool repeatEnabled)
+        : UriSourceBintr(name, filePath, false, 
+            DSL_CUDADEC_MEMTYPE_DEVICE, false, 0)
+    {
+        LOG_FUNC();
+    }
+
+    bool FileSourceBintr::GetRepeatEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_repeatEnabled;
+    }
+
+    bool FileSourceBintr::SetFilePath(const char* filePath)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        std::ifstream streamUriFile(filePath);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("fILE Source'" << filePath << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(filePath, absolutePath));
+        m_uri.insert(0, "file:");
+
+        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        
+        return true;
+    }
+    
+    bool FileSourceBintr::SetRepeatEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot set Repeat Enabled for Source '" << GetName() 
+                << "' as it is currently Linked");
+            return false;
+        }
+        
+        m_repeatEnabled = enabled;
         return true;
     }
     

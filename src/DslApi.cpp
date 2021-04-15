@@ -1861,6 +1861,82 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
         is_live, cudadec_mem_type, intra_decode, dropFrameInterval);
 }
 
+DslReturnType dsl_source_file_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean repeat_enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceFileNew(cstrName.c_str(), 
+        cstrFilePath.c_str(), repeat_enabled);
+}
+
+DslReturnType dsl_source_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFilePath;
+    static std::string cstrFilePath;
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->SourceFilePathGet(cstrName.c_str(), 
+        &cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFilePath.assign(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+    
+}
+
+DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceFilePathSet(cstrName.c_str(), 
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceFileRepeatEnabledGet(cstrName.c_str(),
+        enabled);
+}
+
+DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceFileRepeatEnabledSet(cstrName.c_str(),
+        enabled);
+}
+
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
     uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
@@ -1918,6 +1994,7 @@ DslReturnType dsl_source_decode_uri_get(const wchar_t* name, const wchar_t** uri
     return retval;
     
 }
+
 DslReturnType dsl_source_decode_uri_set(const wchar_t* name, const wchar_t* uri)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -1952,28 +2029,6 @@ DslReturnType dsl_source_decode_dewarper_remove(const wchar_t* name)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SourceDecodeDewarperRemove(cstrName.c_str());
-}
-
-DslReturnType dsl_source_decode_repeat_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceDecodeRepeatEnabledGet(cstrName.c_str(),
-        enabled);
-}
-
-DslReturnType dsl_source_decode_repeat_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SourceDecodeRepeatEnabledSet(cstrName.c_str(),
-        enabled);
 }
 
 DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout)

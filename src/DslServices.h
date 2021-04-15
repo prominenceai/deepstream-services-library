@@ -343,6 +343,17 @@ namespace DSL {
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
             
+        DslReturnType SourceFileNew(const char* name, const char* filePath, 
+            boolean repeatEnabled);
+
+        DslReturnType SourceFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceFilePathSet(const char* name, const char* filePath);
+
+        DslReturnType SourceFileRepeatEnabledGet(const char* name, boolean* enabled);
+    
+        DslReturnType SourceFileRepeatEnabledSet(const char* name, boolean enabled);
+            
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
@@ -358,10 +369,6 @@ namespace DSL {
     
         DslReturnType SourceDecodeDewarperRemove(const char* name);
         
-        DslReturnType SourceDecodeRepeatEnabledGet(const char* name, boolean* enabled);
-    
-        DslReturnType SourceDecodeRepeatEnabledSet(const char* name, boolean enabled);
-    
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
