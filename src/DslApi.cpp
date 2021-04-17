@@ -4303,6 +4303,24 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+DslReturnType dsl_player_new(const wchar_t* name,
+    const wchar_t* file_source, const wchar_t* sink)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_source);
+    RETURN_IF_PARAM_IS_NULL(sink);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFileSource(file_source);
+    std::string cstrFileSource(wstrFileSource.begin(), wstrFileSource.end());
+    std::wstring wstrSink(sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->PlayerNew(cstrName.c_str(),
+        cstrFileSource.c_str(), cstrSink.c_str());
+}
+
 DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled)
 {
     return DSL::Services::GetServices()->SmtpMailEnabledGet(enabled);

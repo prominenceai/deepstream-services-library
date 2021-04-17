@@ -342,6 +342,24 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
 
 /**
+ * Player API Return Values
+ */
+#define DSL_RESULT_PLAYER_RESULT                                    0x00400000
+#define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
+#define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
+#define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
+#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400004
+#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400005
+#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400006
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x0040000B
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000C
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000D
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000E
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000F
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x00400010
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x00400011
+
+/**
  *
  */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -3377,7 +3395,6 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components);
 
-
 /**
  * @brief deletes a Pipeline object by name.
  * @param[in] pipeline unique name of the Pipeline to delete.
@@ -3770,6 +3787,33 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipel
  */
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
     dsl_xwindow_delete_event_handler_cb handler);
+
+/**
+ * @brief creates a new, uniquely named Player
+ * @param[in] name unique name for the new Player
+ * @parma[in] file_source name of the file source to use for the Player
+ * @parma[in] sink name of the sink to use for the Player
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_player_new(const wchar_t* name,
+    const wchar_t* file_source, const wchar_t* sink);
+
+/**
+ * @brief deletes a Pipeline object by name.
+ * @param[in] pipeline unique name of the Pipeline to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ * @info the source and owned by the player move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_player_delete(const wchar_t* pipeline);
+
+/**
+ * @brief deletes all media players in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @info the source and sink components owned by the players move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_player_delete_all();
 
 /**
  * @brief Gets the current Enabled state of the SMTP Email Services

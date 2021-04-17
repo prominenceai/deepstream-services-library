@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslPipelineBintr.h"
+#include "DslPlayerBintr.h"
 #include "DslComms.h"
 
 namespace DSL {
@@ -746,6 +747,14 @@ namespace DSL {
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
 
+        DslReturnType PlayerNew(const char* name, const char* file_source, const char* sink);
+        
+        DslReturnType PlayerDelete(const char* name);
+        
+        DslReturnType PlayerDeleteAll();
+
+        uint PlayerListSize();
+
         DslReturnType SmtpMailEnabledGet(boolean* enabled);
         
         DslReturnType SmtpMailEnabledSet(boolean enabled);   
@@ -915,6 +924,11 @@ namespace DSL {
          * @brief map of all pipelines creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
+        
+        /**
+         * @brief map of all players creaated by the client, key=name
+         */
+        std::map <std::string, std::shared_ptr<PlayerBintr>> m_players;
         
         /**
          * @brief map of all pipeline components creaated by the client, key=name

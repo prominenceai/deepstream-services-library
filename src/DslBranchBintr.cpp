@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     BranchBintr::BranchBintr(const char* name)
-        : Bintr(name)
+        : Bintr(name, true) // Pipeline = true
         , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
     {
         LOG_FUNC();

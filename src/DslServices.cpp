@@ -99,6 +99,15 @@ THE SOFTWARE.
     } \
 }while(0); 
     
+#define RETURN_IF_PLAYER_NAME_NOT_FOUND(players, name) do \
+{ \
+    if (players.find(name) == players.end()) \
+    { \
+        LOG_ERROR("Player name '" << name << "' was not found"); \
+        return DSL_RESULT_PLAYER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+    
 #define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
 { \
     if (components.find(name) == components.end()) \
@@ -8714,6 +8723,74 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PlayerNew(const char* name, 
+        const char* file_source, const char* sink)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, file_source);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, file_source, FileSourceBintr);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
+            RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
+        
+            if (m_players[name])
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[file_source]);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);
+            
+            m_players[name] = std::shared_ptr<PlayerBintr>(new 
+                PlayerBintr(name, pSourceBintr, pSinkBintr));
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Player '" << name << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+        LOG_INFO("New Plyer '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        m_players.erase(name);
+
+        LOG_INFO("Player '" << name << "' deleted successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        m_pipelines.clear();
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    uint Services::PlayerListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_players.size();
+    }
+
     DslReturnType Services::SmtpMailEnabledGet(boolean* enabled)
     {
         LOG_FUNC();
@@ -9286,6 +9363,20 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_TAP_SET_FAILED] = L"DSL_RESULT_TAP_SET_FAILED";
         m_returnValueToString[DSL_RESULT_TAP_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_TAP_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_TAP_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_TAP_CONTAINER_VALUE_INVALID";
+        m_returnValueToString[DSL_RESULT_PLAYER_RESULT] = L"DSL_RESULT_PLAYER_RESULT";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_PLAYER_STATE_PAUSED] = L"DSL_RESULT_PLAYER_STATE_PAUSED";
+        m_returnValueToString[DSL_RESULT_PLAYER_STATE_RUNNING] = L"DSL_RESULT_PLAYER_STATE_RUNNING";
+        m_returnValueToString[DSL_RESULT_PLAYER_THREW_EXCEPTION] = L"DSL_RESULT_PLAYER_THREW_EXCEPTION";
+        m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_GET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_GET_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_XWINDOW_SET_FAILED] = L"DSL_RESULT_PLAYER_XWINDOW_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED] = L"DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PLAY] = L"DSL_RESULT_PLAYER_FAILED_TO_PLAY";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PAUSE] = L"DSL_RESULT_PLAYER_FAILED_TO_PAUSE";
+        m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }
