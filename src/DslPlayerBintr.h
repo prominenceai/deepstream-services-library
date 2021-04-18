@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBintr.h"
-#include "DslPipelineBusMgr.h"
+#include "DslPipelineStateMgr.h"
 #include "DslPipelineXWinMgr.h"
 #include "DslSourceBintr.h"
 #include "DslSinkBintr.h"
@@ -43,7 +43,7 @@ namespace DSL
     #define DSL_PLAYER_BINTR_NEW(name, pSource, pSink) \
         std::shared_ptr<PlayerBintr>(new PlayerBintr(name, pSource, pSink))    
     
-    class PlayerBintr : public Bintr, public PipelineBusMgr,
+    class PlayerBintr : public Bintr, public PipelineStateMgr,
         public PipelineXWinMgr
     {
     public: 
@@ -78,11 +78,43 @@ namespace DSL
         bool Pause();
 
         /**
+         * @brief Pauses the Player by setting its state to GST_STATE_PAUSED
+         * Import: must be called in the mainloop's context, i.e. timer callback
+         */
+        void HandlePause();
+
+        /**
          * @brief Schedules a Timer Callback to call HandleStop in the mainloop context
          * @return true if HandleStop schedule correctly, false otherwise 
          */
         bool Stop();
         
+        /**
+         * @brief Stops the Player by setting its state to GST_STATE_NULL
+         * Import: must be called in the mainloop's context, i.e. timer callback
+         */
+        void HandleStop();
+        
+        /**
+         * @brief Terminates the player on event of EOS or XWindow Delete
+         * Import: must be called by the BusWatch or Event Handler context.
+         */
+        void HandleTermination();
+
+        /**
+         * @brief adds a callback to be notified on Player Termination event
+         * @param[in] listener pointer to the client's function to call on Termination event
+         * @param[in] clientData opaque pointer to client data passed into the listener function.
+         * @return true on successful add, false otherwise
+         */
+        bool AddTerminationEventListener(dsl_player_termination_event_listener_cb listener, void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemoveTerminationEventListener(dsl_player_termination_event_listener_cb listener);
         
     private:
 
@@ -98,6 +130,12 @@ namespace DSL
          * for a Pipeline change of state to be completed in the mainloop context
          */
         GCond m_asyncCondition;
+
+        /**
+         * @brief map of all currently registered Termination event listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_player_termination_event_listener_cb, void*>m_terminationEventListeners;
         
         /**
          * @brief shared pointer to the Player's child URI Source
@@ -111,6 +149,29 @@ namespace DSL
 
     };
 
+    /**
+     * @brief Timer callback function to Pause a Player in the mainloop context.  
+     * @param pPlayer shared pointer to the Player that started the timer to 
+     * schedule the pause
+     * @return false always to self destroy the on-shot timer.
+     */
+    static int PlayerPause(gpointer pPipeline);
+    
+    /**
+     * @brief Timer callback function to Stop a Player in the mainloop context.  
+     * @param pPlayer shared pointer to the Player that started the timer to 
+     * schedule the stop
+     * @return false always to self destroy the on-shot timer.
+     */
+    static int PlayerStop(gpointer pPipeline);
+
+    /**
+     * @brief EOS Listener Callback to add to the State Manager's EOS Listeners,
+     * and the XWindow Manager's Delete Event Handlers
+     * @param pPlayer pointer to the Player object that received the Event message
+     */
+    static void PlayerTerminate(void* pPlayer);
+    
 }
 
 #endif //  DSL_PLAYER_BINTR_H

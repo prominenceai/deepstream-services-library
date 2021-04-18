@@ -31,8 +31,8 @@ THE SOFTWARE.
 namespace DSL
 {
     PipelineBintr::PipelineBintr(const char* name)
-        : BranchBintr(name)
-        , PipelineBusMgr(m_pGstObj)
+        : BranchBintr(name, true) // Pipeline = true
+        , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
     {
         LOG_FUNC();
@@ -44,6 +44,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        Stop();
         g_mutex_clear(&m_asyncCommMutex);
     }
     
@@ -286,7 +287,7 @@ namespace DSL
             HandlePause();
         }
         return true;
-}
+    }
 
     void PipelineBintr::HandlePause()
     {
@@ -310,7 +311,6 @@ namespace DSL
         
         if (!IsLinked())
         {
-            LOG_WARN("Pipeline '" << GetName() << "' is not in a state of Playing");
             return false;
         }
         // If the main loop is running -- normal case -- then we can't change the 
@@ -397,6 +397,5 @@ namespace DSL
         // Return false to self destroy timer - one shot.
         return false;
     }
-    
 
 } // DSL

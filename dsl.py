@@ -142,6 +142,8 @@ DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
+DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -3387,6 +3389,96 @@ def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
     result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
     return int(result)
     
+##
+## dsl_player_new()
+##
+_dsl.dsl_player_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_player_new.restype = c_uint
+def dsl_player_new(name, source, sink):
+    global _dsl
+    result =_dsl.dsl_player_new(name, source, sink)
+    return int(result)
+
+##
+## dsl_player_pause()
+##
+_dsl.dsl_player_pause.argtypes = [c_wchar_p]
+_dsl.dsl_player_pause.restype = c_uint
+def dsl_player_pause(name):
+    global _dsl
+    result =_dsl.dsl_player_pause(name)
+    return int(result)
+
+##
+## dsl_player_play()
+##
+_dsl.dsl_player_play.argtypes = [c_wchar_p]
+_dsl.dsl_player_play.restype = c_uint
+def dsl_player_play(name):
+    global _dsl
+    result =_dsl.dsl_player_play(name)
+    return int(result)
+
+##
+## dsl_player_stop()
+##
+_dsl.dsl_player_stop.argtypes = [c_wchar_p]
+_dsl.dsl_player_stop.restype = c_uint
+def dsl_player_stop(name):
+    global _dsl
+    result =_dsl.dsl_player_stop(name)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_add()
+##
+_dsl.dsl_player_termination_event_listener_add.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER, c_void_p]
+_dsl.dsl_player_termination_event_listener_add.restype = c_uint
+def dsl_player_termination_event_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_player_termination_event_listener_add(name, c_client_listener, c_client_data)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_remove()
+##
+_dsl.dsl_player_termination_event_listener_remove.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER]
+_dsl.dsl_player_termination_event_listener_remove.restype = c_uint
+def dsl_player_termination_event_listener_remove(name, client_handler):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_handler)
+    return int(result)
+
+##
+## dsl_player_delete()
+##
+_dsl.dsl_player_delete.argtypes = [c_wchar_p]
+_dsl.dsl_player_delete.restype = c_uint
+def dsl_player_delete(name):
+    global _dsl
+    result =_dsl.dsl_player_delete(name)
+    return int(result)
+
+##
+## dsl_player_delete_all()
+##
+_dsl.dsl_player_delete_all.argtypes = []
+_dsl.dsl_player_delete_all.restype = c_uint
+def dsl_player_delete_all():
+    global _dsl
+    result =_dsl.dsl_player_delete_all()
+    return int(result)
+
+##
+## dsl_smtp_mail_enabled_get()
+##
 _dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
 _dsl.dsl_smtp_mail_enabled_get.restype = c_uint
 def dsl_smtp_mail_enabled_get():

@@ -729,6 +729,11 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
  */
 typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
 
+/**
+ * @brief callback typedef for a client to listen for Player termination events.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -3789,31 +3794,78 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
     dsl_xwindow_delete_event_handler_cb handler);
 
 /**
- * @brief creates a new, uniquely named Player
+ * @brief Creates a new, uniquely named Player
  * @param[in] name unique name for the new Player
  * @parma[in] file_source name of the file source to use for the Player
  * @parma[in] sink name of the sink to use for the Player
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
  */
 DslReturnType dsl_player_new(const wchar_t* name,
     const wchar_t* file_source, const wchar_t* sink);
 
 /**
- * @brief deletes a Pipeline object by name.
- * @param[in] pipeline unique name of the Pipeline to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- * @info the source and owned by the player move
- * to a state of not-in-use.
+ * @brief Plays a Player if in a state of NULL Or Paused
+ * @param[in] name unique name of the Player to play.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
  */
-DslReturnType dsl_player_delete(const wchar_t* pipeline);
+DslReturnType dsl_player_play(const wchar_t* name);
 
 /**
- * @brief deletes all media players in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @brief Pauses a Player if in a state of Playing
+ * @param[in] name unique name of the Player to pause.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT.
+ */
+DslReturnType dsl_player_pause(const wchar_t* name);
+
+/**
+ * @brief Stops a Player if in a state of Paused or Playing
+ * @param[in] name unique name of the Player to stop.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
+ */
+DslReturnType dsl_player_stop(const wchar_t* name);
+
+/**
+ * @brief Adds a callback to be notified on Player Termination Event.
+ * Termination can be the result of EOS, image timeout, or XWindow deletion.
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's function to call on Termination event.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_player_termination_event_listener_add
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* pipeline, 
+    dsl_player_termination_event_listener_cb listener);
+
+/**
+ * @brief Deletes a Player object by name.
+ * @param[in] name unique name of the Player to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ * @info the Source and Sink components owned by the player move
+ * to a state of "not-in-use".
+ */
+DslReturnType dsl_player_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all media players in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
  * @info the source and sink components owned by the players move
  * to a state of not-in-use.
  */
 DslReturnType dsl_player_delete_all();
+
+/**
+ * @brief Returns the current number of Players in memeory
+ * @return size of the list of Players
+ */
+uint dsl_player_list_size();
 
 /**
  * @brief Gets the current Enabled state of the SMTP Email Services

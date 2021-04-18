@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslPlayerBintr.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(10000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 
 using namespace DSL;
 

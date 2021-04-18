@@ -748,6 +748,18 @@ namespace DSL {
             dsl_xwindow_delete_event_handler_cb handler);
 
         DslReturnType PlayerNew(const char* name, const char* file_source, const char* sink);
+
+        DslReturnType PlayerPause(const char* name);
+        
+        DslReturnType PlayerPlay(const char* name);
+        
+        DslReturnType PlayerStop(const char* name);
+        
+        DslReturnType PlayerTerminationEventListenerAdd(const char* name,
+            dsl_player_termination_event_listener_cb listener, void* clientData);
+        
+        DslReturnType PlayerTerminationEventListenerRemove(const char* name,
+            dsl_player_termination_event_listener_cb listener);
         
         DslReturnType PlayerDelete(const char* name);
         

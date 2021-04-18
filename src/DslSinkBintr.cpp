@@ -333,7 +333,7 @@ namespace DSL
 
     WindowSinkBintr::WindowSinkBintr(const char* name, guint offsetX, guint offsetY, 
         guint width, guint height)
-        : SinkBintr(name, true, false)
+        : SinkBintr(name, true, true)
         , m_qos(false)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)

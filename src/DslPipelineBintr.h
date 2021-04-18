@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBranchBintr.h"
-#include "DslPipelineBusMgr.h"
+#include "DslPipelineStateMgr.h"
 #include "DslPipelineXWinMgr.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"
@@ -48,7 +48,7 @@ namespace DSL
      * @class PipelineBintr
      * @brief 
      */
-    class PipelineBintr : public BranchBintr, public PipelineBusMgr,
+    class PipelineBintr : public BranchBintr, public PipelineStateMgr,
         public PipelineXWinMgr
     {
     public:
@@ -232,17 +232,18 @@ namespace DSL
         
     }; // Pipeline
     
-    
     /**
      * @brief Timer callback function to Pause a Pipeline in the mainloop context.  
-     * @param pPipeline shared pointer to the Pipeline that started the timer to schedule the pause
+     * @param pPipeline shared pointer to the Pipeline that started the timer to 
+     * schedule the pause
      * @return false always to self destroy the on-shot timer.
      */
     static int PipelinePause(gpointer pPipeline);
     
     /**
      * @brief Timer callback function to Stop a Pipeline in the mainloop context.  
-     * @param pPipeline shared pointer to the Pipeline that started the timer to schedule the stop
+     * @param pPipeline shared pointer to the Pipeline that started the timer to 
+     * schedule the stop
      * @return false always to self destroy the on-shot timer.
      */
     static int PipelineStop(gpointer pPipeline);

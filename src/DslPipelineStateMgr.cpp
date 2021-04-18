@@ -24,11 +24,11 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslPipelineBusMgr.h"
+#include "DslPipelineStateMgr.h"
 
 namespace DSL
 {
-    PipelineBusMgr::PipelineBusMgr(const GstObject* pGstPipeline)
+    PipelineStateMgr::PipelineStateMgr(const GstObject* pGstPipeline)
         : m_pGstPipeline(pGstPipeline)
         , m_gstBusWatch(0)
         , m_errorNotificationTimerId(0)
@@ -47,7 +47,7 @@ namespace DSL
         gst_object_unref(pGstBus);
     }
 
-    PipelineBusMgr::~PipelineBusMgr()
+    PipelineStateMgr::~PipelineStateMgr()
     {
         LOG_FUNC();
         
@@ -55,7 +55,7 @@ namespace DSL
         g_mutex_clear(&m_lastErrorMutex);
     }
 
-    bool PipelineBusMgr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData)
+    bool PipelineStateMgr::AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         
@@ -69,7 +69,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
+    bool PipelineStateMgr::RemoveStateChangeListener(dsl_state_change_listener_cb listener)
     {
         LOG_FUNC();
         
@@ -83,7 +83,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::AddEosListener(dsl_eos_listener_cb listener, void* clientData)
+    bool PipelineStateMgr::AddEosListener(dsl_eos_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         
@@ -97,7 +97,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::RemoveEosListener(dsl_eos_listener_cb listener)
+    bool PipelineStateMgr::RemoveEosListener(dsl_eos_listener_cb listener)
     {
         LOG_FUNC();
         
@@ -111,7 +111,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData)
+    bool PipelineStateMgr::AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         
@@ -125,7 +125,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::RemoveErrorMessageHandler(dsl_error_message_handler_cb handler)
+    bool PipelineStateMgr::RemoveErrorMessageHandler(dsl_error_message_handler_cb handler)
     {
         LOG_FUNC();
         
@@ -139,7 +139,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBusMgr::HandleBusWatchMessage(GstMessage* pMessage)
+    bool PipelineStateMgr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
         
@@ -176,7 +176,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineBusMgr::HandleStateChanged(GstMessage* pMessage)
+    bool PipelineStateMgr::HandleStateChanged(GstMessage* pMessage)
     {
         if (GST_ELEMENT(GST_MESSAGE_SRC(pMessage)) != GST_ELEMENT(m_pGstPipeline))
         {
@@ -197,13 +197,13 @@ namespace DSL
             }
             catch(...)
             {
-                LOG_ERROR("Exception calling Client State-Change-Lister");
+                LOG_ERROR("Exception calling Client State-Change-Listener");
             }
         }
         return true;
     }
     
-    void PipelineBusMgr::HandleEosMessage(GstMessage* pMessage)
+    void PipelineStateMgr::HandleEosMessage(GstMessage* pMessage)
     {
         LOG_INFO("EOS message recieved");
         
@@ -221,7 +221,7 @@ namespace DSL
         }
     }
     
-    void PipelineBusMgr::HandleErrorMessage(GstMessage* pMessage)
+    void PipelineStateMgr::HandleErrorMessage(GstMessage* pMessage)
     {
         LOG_FUNC();
         
@@ -251,7 +251,7 @@ namespace DSL
         g_free(debugInfo);
     }    
 
-    void PipelineBusMgr::GetLastErrorMessage(std::wstring& source, std::wstring& message)
+    void PipelineStateMgr::GetLastErrorMessage(std::wstring& source, std::wstring& message)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
@@ -260,7 +260,7 @@ namespace DSL
         message = m_lastErrorMessage;
     }
 
-    void PipelineBusMgr::SetLastErrorMessage(std::wstring& source, std::wstring& message)
+    void PipelineStateMgr::SetLastErrorMessage(std::wstring& source, std::wstring& message)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
@@ -274,7 +274,7 @@ namespace DSL
         }
     }
     
-    int PipelineBusMgr::NotifyErrorMessageHandlers()
+    int PipelineStateMgr::NotifyErrorMessageHandlers()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_lastErrorMutex);
@@ -288,7 +288,7 @@ namespace DSL
             }
             catch(...)
             {
-                LOG_ERROR("PipelineBusMgr threw exception calling Client Error-Message-Handlers");
+                LOG_ERROR("PipelineStateMgr threw exception calling Client Error-Message-Handler");
             }
         }
         // clear the timer id and return false to self remove
@@ -296,7 +296,7 @@ namespace DSL
         return false;
     }
 
-    void PipelineBusMgr::_initMaps()
+    void PipelineStateMgr::_initMaps()
     {
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
         m_mapPipelineStates[GST_STATE_PLAYING] = "GST_STATE_PLAYING";
@@ -306,12 +306,12 @@ namespace DSL
     
     static gboolean bus_watch(GstBus* bus, GstMessage* pMessage, gpointer pData)
     {
-        return static_cast<PipelineBusMgr*>(pData)->HandleBusWatchMessage(pMessage);
+        return static_cast<PipelineStateMgr*>(pData)->HandleBusWatchMessage(pMessage);
     }    
     
     static int ErrorMessageHandlersNotificationHandler(gpointer pPipeline)
     {
-        return static_cast<PipelineBusMgr*>(pPipeline)->
+        return static_cast<PipelineStateMgr*>(pPipeline)->
             NotifyErrorMessageHandlers();
     }
     

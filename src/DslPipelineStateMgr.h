@@ -34,13 +34,13 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    class PipelineBusMgr
+    class PipelineStateMgr
     {
     public: 
     
-        PipelineBusMgr(const GstObject* pGstPipeline);
+        PipelineStateMgr(const GstObject* pGstPipeline);
 
-        ~PipelineBusMgr();
+        ~PipelineStateMgr();
 
         /**
          * @brief adds a callback to be notified on change of Pipeline state

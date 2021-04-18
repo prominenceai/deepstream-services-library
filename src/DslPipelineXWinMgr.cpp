@@ -456,7 +456,7 @@ namespace DSL
         
         if (!m_pXWindow or !m_pXWindowCreated)
         {
-            LOG_ERROR("PipelineXWinMgr does not own an XWindow to distroy");
+            LOG_INFO("PipelineXWinMgr does not own an XWindow to distroy");
             return false;
         }
         XDestroyWindow(m_pXDisplay, m_pXWindow);

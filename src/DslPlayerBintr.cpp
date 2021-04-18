@@ -24,6 +24,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslPlayerBintr.h"
 
 namespace DSL
@@ -31,7 +32,7 @@ namespace DSL
     PlayerBintr::PlayerBintr(const char* name, 
         DSL_FILE_SOURCE_PTR pSource, DSL_SINK_PTR pSink)
         : Bintr(name, true) // Pipeline = true
-        , PipelineBusMgr(m_pGstObj)
+        , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
         , m_pSource(pSource)
         , m_pSink(pSink)
@@ -53,12 +54,16 @@ namespace DSL
             throw;
         }
         
+        AddEosListener(PlayerTerminate, this);
+        AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::~PlayerBintr()
     {
         LOG_FUNC();
         Stop();
+        RemoveEosListener(PlayerTerminate);
+        RemoveXWindowDeleteEventHandler(PlayerTerminate);
         g_mutex_clear(&m_asyncCommMutex);
     }
 
@@ -126,22 +131,167 @@ namespace DSL
         return SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
     }
     
+    bool PlayerBintr::Pause()
+    {
+        LOG_FUNC();
+        
+        GstState state;
+        GetState(state, 0);
+        if (state != GST_STATE_PLAYING)
+        {
+            LOG_WARN("Player '" << GetName() << "' is not in a state of Playing");
+            return false;
+        }
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Pipeline in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PlayerPause, this);
+            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandlePause();
+        }
+        return true;
+    }
+
+    void PlayerBintr::HandlePause()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        
+        // Call the base class to Pause
+        if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        {
+            LOG_ERROR("Failed to Pause Player '" << GetName() << "'");
+        }
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            g_cond_signal(&m_asyncCondition);
+        }
+    }
+
     bool PlayerBintr::Stop()
     {
         LOG_FUNC();
-
+        
         if (!IsLinked())
         {
-            LOG_WARN("PipelineBase '" << GetName() << "' is not in a state of Playing");
             return false;
         }
+
+        SendEos();
+        sleep(1);
+
+        // If the main loop is running -- normal case -- then we can't change the 
+        // state of the Pipeline in the Application's context. 
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            g_timeout_add(1, PlayerStop, this);
+            g_cond_wait(&m_asyncCondition, &m_asyncCommMutex);
+        }
+        // Else, we are running under test without the mainloop
+        else
+        {
+            HandleStop();
+        }
+        return true;
+    }
+    
+    void PlayerBintr::HandleStop()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
         UnlinkAll();
+        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            g_cond_signal(&m_asyncCondition);
+        }
+        // iterate through the map of Termination event listeners calling each
+        for(auto const& imap: m_terminationEventListeners)
+        {
+            try
+            {
+                imap.first(imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Termination event Listener");
+            }
+        }
+    }
+
+    void PlayerBintr::HandleTermination()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+
+        // Start asyn Stop timer, do not wait or block as we are
+        // in the State Manager's bus watcher context.
+        g_timeout_add(1, PlayerStop, this);
+        
+        DestroyXWindow();
+    }
+
+    
+    bool PlayerBintr::AddTerminationEventListener(
+        dsl_player_termination_event_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_terminationEventListeners.find(listener) != m_terminationEventListeners.end())
+        {   
+            LOG_ERROR("Player listener is not unique");
+            return false;
+        }
+        m_terminationEventListeners[listener] = clientData;
+        
         return true;
     }
+    
+    bool PlayerBintr::RemoveTerminationEventListener(
+        dsl_player_termination_event_listener_cb listener)
+    {
+        LOG_FUNC();
+
+        if (m_terminationEventListeners.find(listener) == m_terminationEventListeners.end())
+        {   
+            LOG_ERROR("Player listener was not found");
+            return false;
+        }
+        m_terminationEventListeners.erase(listener);
+        
+        return true;
+    }
+    
+    static int PlayerPause(gpointer pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandlePause();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
+    
+    static int PlayerStop(gpointer pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandleStop();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
+    
+    static void PlayerTerminate(void* pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandleTermination();
+    }    
     
 } // DSL   

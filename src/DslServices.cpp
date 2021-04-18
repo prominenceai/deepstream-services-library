@@ -7802,6 +7802,8 @@ namespace DSL
         }
         m_pipelines.clear();
 
+        LOG_INFO("All Pipelines deleted successfully");
+
         return DSL_RESULT_SUCCESS;
     }
 
@@ -8755,9 +8757,101 @@ namespace DSL
             LOG_ERROR("New Player '" << name << "' threw exception on create");
             return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
-        LOG_INFO("New Plyer '" << name << "' created successfully");
+        LOG_INFO("New Player '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerPlay(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Play())
+        {
+            return DSL_RESULT_PLAYER_FAILED_TO_PLAY;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::PlayerPause(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Pause())
+        {
+            return DSL_RESULT_PLAYER_FAILED_TO_PAUSE;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerStop(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        if (!std::dynamic_pointer_cast<PlayerBintr>(m_players[name])->Stop())
+        {
+            return DSL_RESULT_PLAYER_FAILED_TO_STOP;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerTerminationEventListenerAdd(const char* name,
+        dsl_player_termination_event_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        try
+        {
+            if (!m_players[name]->AddTerminationEventListener(listener, clientData))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to add Termination Event Listener");
+                return DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PlayerTerminationEventListenerRemove(const char* name,
+        dsl_player_termination_event_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+
+        try
+        {
+            if (!m_players[name]->RemoveTerminationEventListener(listener))
+            {
+                LOG_ERROR("Player '" << name 
+                    << "' failed to remove Termination Event Listener");
+                return DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
     }
 
     DslReturnType Services::PlayerDelete(const char* name)
@@ -8778,7 +8872,15 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-        m_pipelines.clear();
+        for (auto &imap: m_players)
+        {
+            imap.second->RemoveAllChildren();
+            imap.second = nullptr;
+        }
+
+        m_players.clear();
+
+        LOG_INFO("All Players deleted successfully");
 
         return DSL_RESULT_SUCCESS;
     }

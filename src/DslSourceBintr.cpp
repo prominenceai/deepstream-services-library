@@ -728,8 +728,8 @@ namespace DSL
             
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
-                LOG_ERROR("Failed to link decodebin to pipeline");
-                throw;
+                LOG_ERROR("Failed to link decodebin to source Tee");
+                return; 
             }
             
             // Update the cap memebers for this URI Source Bintr

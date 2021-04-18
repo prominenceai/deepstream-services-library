@@ -56,7 +56,7 @@ namespace DSL
         /** 
          * 
          */
-        BranchBintr(const char* name);
+        BranchBintr(const char* name, bool pipeline = false);
 
         /**
          * @brief adds a single GIE Bintr to this Branch 
