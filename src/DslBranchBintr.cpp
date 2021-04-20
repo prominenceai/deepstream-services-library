@@ -30,8 +30,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    BranchBintr::BranchBintr(const char* name)
-        : Bintr(name)
+    BranchBintr::BranchBintr(const char* name, bool pipeline)
+        : Bintr(name, pipeline) 
         , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
     {
         LOG_FUNC();

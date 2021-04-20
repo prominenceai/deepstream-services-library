@@ -142,6 +142,8 @@ DSL_ODE_POST_PROCESS_FRAME = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_void_p)
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
+DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -1481,15 +1483,69 @@ def dsl_source_file_repeat_enabled_set(name, enabled):
     result = _dsl.dsl_source_file_repeat_enabled_set(name, enabled)
     return int(result)
 
+##
+## dsl_source_image_new()
+##
+_dsl.dsl_source_image_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint, c_uint, c_uint]
+_dsl.dsl_source_image_new.restype = c_uint
+def dsl_source_image_new(name, file_path, is_live, fps_n, fps_d, timeout):
+    global _dsl
+    result = _dsl.dsl_source_image_new(name, file_path, is_live, fps_n, fps_d, timeout)
+    return int(result)
+
+##
+## dsl_source_image_path_get()
+##
+_dsl.dsl_source_image_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_image_path_get.restype = c_uint
+def dsl_source_image_path_get(name):
+    global _dsl
+    file_path = c_wchar_p(0)
+    result = _dsl.dsl_source_image_path_get(name, DSL_WCHAR_PP(file_path))
+    return int(result), file_path.value 
+
+##
+## dsl_source_image_path_set()
+##
+_dsl.dsl_source_image_path_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_image_path_set.restype = c_uint
+def dsl_source_image_path_set(name, file_path):
+    global _dsl
+    result = _dsl.dsl_source_image_path_set(name, file_path)
+    return int(result)
+
+##
+## dsl_source_image_timeout_get()
+##
+_dsl.dsl_source_image_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_image_timeout_get.restype = c_uint
+def dsl_source_image_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result = _dsl.dsl_source_image_timeout_get(name, DSL_UINT_P(timeout))
+    return int(result), timeout.value 
+
+##
+## dsl_source_image_timeout_set()
+##
+_dsl.dsl_source_image_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_source_image_timeout_set.restype = c_uint
+def dsl_source_image_timeout_set(name, timeout):
+    global _dsl
+    result = _dsl.dsl_source_image_timeout_set(name, timeout)
+    return int(result)
 
 ##
 ## dsl_source_rtsp_new()
 ##
-_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_source_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, 
+    c_uint, c_uint, c_uint]
 _dsl.dsl_source_rtsp_new.restype = c_uint
-def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout):
+def dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, 
+    drop_frame_interval, latency, timeout):
     global _dsl
-    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, intra_decode, drop_frame_interval, latency, timeout)
+    result = _dsl.dsl_source_rtsp_new(name, uri, protocol, cudadec_mem_type, 
+        intra_decode, drop_frame_interval, latency, timeout)
     return int(result)
 
 ##
@@ -2431,9 +2487,9 @@ def dsl_sink_fake_new(name):
 ##
 _dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height):
+def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, width, height)
+    result =_dsl.dsl_sink_overlay_new(name, overlay_id, display_id, depth, offset_x, offset_y, width, height)
     return int(result)
 
 ##
@@ -2441,9 +2497,9 @@ def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offsetX, offsetY, 
 ##
 _dsl.dsl_sink_window_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_window_new.restype = c_uint
-def dsl_sink_window_new(name, offsetX, offsetY, width, height):
+def dsl_sink_window_new(name, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_window_new(name, offsetX, offsetY, width, height)
+    result =_dsl.dsl_sink_window_new(name, offset_x, offset_y, width, height)
     return int(result)
 
 ##
@@ -3387,6 +3443,96 @@ def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
     result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
     return int(result)
     
+##
+## dsl_player_new()
+##
+_dsl.dsl_player_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_player_new.restype = c_uint
+def dsl_player_new(name, source, sink):
+    global _dsl
+    result =_dsl.dsl_player_new(name, source, sink)
+    return int(result)
+
+##
+## dsl_player_pause()
+##
+_dsl.dsl_player_pause.argtypes = [c_wchar_p]
+_dsl.dsl_player_pause.restype = c_uint
+def dsl_player_pause(name):
+    global _dsl
+    result =_dsl.dsl_player_pause(name)
+    return int(result)
+
+##
+## dsl_player_play()
+##
+_dsl.dsl_player_play.argtypes = [c_wchar_p]
+_dsl.dsl_player_play.restype = c_uint
+def dsl_player_play(name):
+    global _dsl
+    result =_dsl.dsl_player_play(name)
+    return int(result)
+
+##
+## dsl_player_stop()
+##
+_dsl.dsl_player_stop.argtypes = [c_wchar_p]
+_dsl.dsl_player_stop.restype = c_uint
+def dsl_player_stop(name):
+    global _dsl
+    result =_dsl.dsl_player_stop(name)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_add()
+##
+_dsl.dsl_player_termination_event_listener_add.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER, c_void_p]
+_dsl.dsl_player_termination_event_listener_add.restype = c_uint
+def dsl_player_termination_event_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_player_termination_event_listener_add(name, c_client_listener, c_client_data)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_remove()
+##
+_dsl.dsl_player_termination_event_listener_remove.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER]
+_dsl.dsl_player_termination_event_listener_remove.restype = c_uint
+def dsl_player_termination_event_listener_remove(name, client_handler):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_handler)
+    return int(result)
+
+##
+## dsl_player_delete()
+##
+_dsl.dsl_player_delete.argtypes = [c_wchar_p]
+_dsl.dsl_player_delete.restype = c_uint
+def dsl_player_delete(name):
+    global _dsl
+    result =_dsl.dsl_player_delete(name)
+    return int(result)
+
+##
+## dsl_player_delete_all()
+##
+_dsl.dsl_player_delete_all.argtypes = []
+_dsl.dsl_player_delete_all.restype = c_uint
+def dsl_player_delete_all():
+    global _dsl
+    result =_dsl.dsl_player_delete_all()
+    return int(result)
+
+##
+## dsl_smtp_mail_enabled_get()
+##
 _dsl.dsl_smtp_mail_enabled_get.argtypes = [POINTER(c_bool)]
 _dsl.dsl_smtp_mail_enabled_get.restype = c_uint
 def dsl_smtp_mail_enabled_get():

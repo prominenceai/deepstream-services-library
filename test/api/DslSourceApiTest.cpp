@@ -585,37 +585,6 @@ SCENARIO( "Adding an invalid Dewarper to a Decode Source Component fails", "[sou
     }
 }
 
-SCENARIO( "A File Source Component can Set/Get its Repeat Enabled setting", "[source-api]" )
-{
-    GIVEN( "A new File Source" )
-    {
-        std::wstring sourceName = L"file-source";
-        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
-
-        REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), false) == DSL_RESULT_SUCCESS );
-
-        boolean retRepeatEnabled(true);
-        REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
-            &retRepeatEnabled) == DSL_RESULT_SUCCESS );
-        REQUIRE( retRepeatEnabled == false );
-
-        WHEN( "The Source's Repeat Enabled setting is set" ) 
-        {
-            REQUIRE( dsl_source_file_repeat_enabled_set(sourceName.c_str(), 
-                true) == DSL_RESULT_SUCCESS );
-
-            THEN( "The correct value is returned on get" )
-            {
-                REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
-                    &retRepeatEnabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( retRepeatEnabled == true );
-                    
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
 SCENARIO( "An RTSP Source's Timeout can be updated correctly", "[source-api]" )
 {
     GIVEN( "A new RTSP Source with a 0 timeout" )
@@ -744,6 +713,152 @@ SCENARIO( "An RTSP state-change-listener can be added and removed", "[source-api
     }
 }    
 
+SCENARIO( "A new File Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "Attributes for a new File Source" ) 
+    {
+        std::wstring source_name(L"image-source");
+        std::wstring uri = L"./test/streams/sample_1080p_h264.mp4";
+        boolean repeat_enabled(1);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new File Source is created" ) 
+        {
+            REQUIRE( dsl_source_file_new(source_name.c_str(), 
+                uri.c_str(), repeat_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct attribute values are returned" ) 
+            {
+                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == 0 );
+                REQUIRE( ret_height == 0 );
+                REQUIRE( ret_fps_n == 0 );
+                REQUIRE( ret_fps_d == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
+                boolean ret_repeat_enabled(0);
+                REQUIRE( dsl_source_file_repeat_enabled_get(source_name.c_str(), 
+                    &ret_repeat_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_repeat_enabled == repeat_enabled );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A File Source Component can Set/Get its Repeat Enabled setting", "[source-api]" )
+{
+    GIVEN( "A new File Source" )
+    {
+        std::wstring sourceName = L"file-source";
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+
+        REQUIRE( dsl_source_file_new(sourceName.c_str(), 
+            file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+
+        boolean retRepeatEnabled(true);
+        REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
+            &retRepeatEnabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( retRepeatEnabled == false );
+
+        WHEN( "The Source's Repeat Enabled setting is set" ) 
+        {
+            REQUIRE( dsl_source_file_repeat_enabled_set(sourceName.c_str(), 
+                true) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_source_file_repeat_enabled_get(sourceName.c_str(), 
+                    &retRepeatEnabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( retRepeatEnabled == true );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+
+SCENARIO( "A new Image Source returns the correct attribute values", "[source-api]" )
+{
+    GIVEN( "Attributes for a new Image Source" ) 
+    {
+        std::wstring source_name(L"image-source");
+        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
+        boolean is_live(false);
+        uint fps_n(30);
+        uint fps_d(1);
+        uint timeout(123);
+        uint actual_width(136);
+        uint actual_height(391);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Image Source is created" ) 
+        {
+            REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(),
+                is_live, fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                REQUIRE( dsl_source_dimensions_get(source_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_width == actual_width );
+                REQUIRE( ret_height == actual_height );
+                REQUIRE( ret_fps_n == fps_n );
+                REQUIRE( ret_fps_d == fps_d );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Image Source Component can Set/Get its Display Timeout setting", "[source-api]" )
+{
+    GIVEN( "A new File Source" )
+    {
+        std::wstring source_name(L"image-source");
+        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
+        boolean is_live(false);
+        uint fps_n(30);
+        uint fps_d(1);
+        uint timeout(123);
+
+        REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(),
+            is_live, fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
+
+        uint retTimeout(321);
+        REQUIRE( dsl_source_image_timeout_get(source_name.c_str(), 
+            &retTimeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( retTimeout == timeout );
+
+        WHEN( "The Source's Timeout setting is set" ) 
+        {
+            uint newTimeout(444);
+            REQUIRE( dsl_source_image_timeout_set(source_name.c_str(), 
+                newTimeout) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_source_image_timeout_get(source_name.c_str(), 
+                    &retTimeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( retTimeout == newTimeout );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -759,12 +874,16 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_csi_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_usb_new( NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_uri_new( sourceName.c_str(), NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new( NULL, NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_new( sourceName.c_str(), NULL, 0, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_new( NULL, NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_image_new( sourceName.c_str(), NULL, false, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_file_new( NULL, NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_file_new( sourceName.c_str(), NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_dimensions_get( NULL, &width, &height ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_frame_rate_get( NULL, &fps_n, &fps_d ) == DSL_RESULT_INVALID_INPUT_PARAM );

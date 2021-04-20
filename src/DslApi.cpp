@@ -1937,6 +1937,82 @@ DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean en
         enabled);
 }
 
+DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImageNew(cstrName.c_str(), 
+        cstrFilePath.c_str(), is_live, fps_n, fps_d, timeout);
+}
+
+DslReturnType dsl_source_image_path_get(const wchar_t* name, 
+    const wchar_t** file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFilePath;
+    static std::string cstrFilePath;
+    static std::wstring wcstrFilePath;
+    
+    uint retval = DSL::Services::GetServices()->SourceImagePathGet(cstrName.c_str(), 
+        &cFilePath);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFilePath.assign(cFilePath);
+        wcstrFilePath.assign(cstrFilePath.begin(), cstrFilePath.end());
+        *file_path = wcstrFilePath.c_str();
+    }
+    return retval;
+    
+}
+
+DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_path);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFilePath(file_path);
+    std::string cstrFilePath(wstrFilePath.begin(), wstrFilePath.end());
+
+    return DSL::Services::GetServices()->SourceImagePathSet(cstrName.c_str(), 
+        cstrFilePath.c_str());
+}
+
+DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageTimeoutGet(cstrName.c_str(),
+        timeout);
+}
+
+DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceImageTimeoutSet(cstrName.c_str(),
+        timeout);
+}
+
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol, 
     uint cudadec_mem_type, uint intra_decode, uint dropFrameInterval, uint latency, uint timeout)
 {
@@ -4303,6 +4379,100 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pi
         PipelineXWindowDeleteEventHandlerRemove(cstrPipeline.c_str(), handler);
 }
 
+DslReturnType dsl_player_new(const wchar_t* name,
+    const wchar_t* file_source, const wchar_t* sink)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(file_source);
+    RETURN_IF_PARAM_IS_NULL(sink);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFileSource(file_source);
+    std::string cstrFileSource(wstrFileSource.begin(), wstrFileSource.end());
+    std::wstring wstrSink(sink);
+    std::string cstrSink(wstrSink.begin(), wstrSink.end());
+
+    return DSL::Services::GetServices()->PlayerNew(cstrName.c_str(),
+        cstrFileSource.c_str(), cstrSink.c_str());
+}
+
+DslReturnType dsl_player_play(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerPlay(cstrName.c_str());
+}
+
+DslReturnType dsl_player_pause(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerPause(cstrName.c_str());
+}
+
+DslReturnType dsl_player_stop(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerStop(cstrName.c_str());
+}
+
+DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerTerminationEventListenerAdd(cstrName.c_str(), listener, client_data);
+}    
+
+DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerTerminationEventListenerRemove(cstrName.c_str(), listener);
+}
+
+DslReturnType dsl_player_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_player_delete_all()
+{
+    return DSL::Services::GetServices()->PlayerDeleteAll();
+}
+
+uint dsl_player_list_size()
+{
+    return DSL::Services::GetServices()->PlayerListSize();
+}
+
 DslReturnType dsl_smtp_mail_enabled_get(boolean* enabled)
 {
     return DSL::Services::GetServices()->SmtpMailEnabledGet(enabled);
@@ -4456,6 +4626,7 @@ DslReturnType dsl_smtp_test_message_send()
 void dsl_delete_all()
 {
     dsl_pipeline_delete_all();
+    dsl_player_delete_all();
     dsl_component_delete_all();
     dsl_pph_delete_all();
     dsl_ode_trigger_delete_all();

@@ -342,6 +342,24 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
 
 /**
+ * Player API Return Values
+ */
+#define DSL_RESULT_PLAYER_RESULT                                    0x00400000
+#define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
+#define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
+#define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
+#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400004
+#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400005
+#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400006
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x0040000B
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000C
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000D
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000E
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000F
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x00400010
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x00400011
+
+/**
  *
  */
 #define DSL_CUDADEC_MEMTYPE_DEVICE                                  0
@@ -711,6 +729,11 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
  */
 typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
 
+/**
+ * @brief callback typedef for a client to listen for Player termination events.
+ * @param[in] client_data opaque pointer to client's user data
+ */
+typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 
 /**
  * @brief creates a uniquely named RGBA Display Color
@@ -2013,7 +2036,7 @@ DslReturnType dsl_source_file_path_get(const wchar_t* name, const wchar_t** file
 /**
  * @brief Sets the current File Path for the named File Source to use
  * @param[in] name name of the File Source to update
- * @param[in] file_path new file path to use by the Decode Source
+ * @param[in] file_path new file path to use by the File Source
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_file_path_set(const wchar_t* name, const wchar_t* file_path);
@@ -2030,10 +2053,57 @@ DslReturnType dsl_source_file_repeat_enabled_get(const wchar_t* name, boolean* e
 /**
  * @brief Sets the current Repeat on EOS Enabled setting for the File Source
  * @param[in] name name of the File Source to update
- * @param[out] enabled set to true to enable Repeat on EOS, false to disable. 
+ * @param[in] enabled set to true to enable Repeat on EOS, false to disable. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief creates a new, uniquely named Image Source component that
+ * streams an image at a specified framerate
+ * @param[in] name Unique name for the Image Source
+ * @param[in] file_path absolute or relative path to the image file to play
+ * @param[in] is_live set to true to act as live source, false otherwise
+ * @param[in] fps_n frames/second fraction numerator
+ * @param[in] fps_d frames/second fraction denominator
+ * @param[in] timeout source will send an EOS event on timeout, set to 0 to disable
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_new(const wchar_t* name, 
+    const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
+
+/**
+ * @brief Gets the current File Path in use by the named JPEG Image Source
+ * @param[in] name name of the Image Source to query
+ * @param[out] FilePath in use by the Image Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_path_get(const wchar_t* name, const wchar_t** file_path);
+
+/**
+ * @brief Sets the current File Path for the named JPEG Image Source to use
+ * @param[in] name name of the Image Source to update
+ * @param[in] file_path new file path to use by the Image Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_path_set(const wchar_t* name, const wchar_t* file_path);
+
+/**
+ * @brief Gets the current Timeout setting for the Image Source
+ * @param[in] name name of the Image Source to query
+ * @param[out] timeout current timeout value for the EOS Timer, 0 means the
+ * timer is disabled
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_timeout_get(const wchar_t* name, uint* timeout);
+
+/**
+ * @brief Sets the current Timeout setting for the Image Source
+ * @param[in] name name of the Image Source to update
+ * @param[in] timeout new timeout value for the EOS Timer (in seconds), 0 to disable. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_image_timeout_set(const wchar_t* name, uint timeout);
     
 /**
  * @brief creates a new, uniquely named RTSP Source component
@@ -3377,7 +3447,6 @@ DslReturnType dsl_pipeline_new_many(const wchar_t** pipelines);
 DslReturnType dsl_pipeline_new_component_add_many(const wchar_t* pipeline, 
     const wchar_t** components);
 
-
 /**
  * @brief deletes a Pipeline object by name.
  * @param[in] pipeline unique name of the Pipeline to delete.
@@ -3770,6 +3839,80 @@ DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipel
  */
 DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* pipeline, 
     dsl_xwindow_delete_event_handler_cb handler);
+
+/**
+ * @brief Creates a new, uniquely named Player
+ * @param[in] name unique name for the new Player
+ * @parma[in] file_source name of the file source to use for the Player
+ * @parma[in] sink name of the sink to use for the Player
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_player_new(const wchar_t* name,
+    const wchar_t* file_source, const wchar_t* sink);
+
+/**
+ * @brief Plays a Player if in a state of NULL Or Paused
+ * @param[in] name unique name of the Player to play.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
+ */
+DslReturnType dsl_player_play(const wchar_t* name);
+
+/**
+ * @brief Pauses a Player if in a state of Playing
+ * @param[in] name unique name of the Player to pause.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT.
+ */
+DslReturnType dsl_player_pause(const wchar_t* name);
+
+/**
+ * @brief Stops a Player if in a state of Paused or Playing
+ * @param[in] name unique name of the Player to stop.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
+ */
+DslReturnType dsl_player_stop(const wchar_t* name);
+
+/**
+ * @brief Adds a callback to be notified on Player Termination Event.
+ * Termination can be the result of EOS, image timeout, or XWindow deletion.
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's function to call on Termination event.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_player_termination_event_listener_add
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* pipeline, 
+    dsl_player_termination_event_listener_cb listener);
+
+/**
+ * @brief Deletes a Player object by name.
+ * @param[in] name unique name of the Player to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ * @info the Source and Sink components owned by the player move
+ * to a state of "not-in-use".
+ */
+DslReturnType dsl_player_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes all media players in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ * @info the source and sink components owned by the players move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_player_delete_all();
+
+/**
+ * @brief Returns the current number of Players in memeory
+ * @return size of the list of Players
+ */
+uint dsl_player_list_size();
 
 /**
  * @brief Gets the current Enabled state of the SMTP Email Services
