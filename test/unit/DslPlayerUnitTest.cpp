@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslPlayerBintr.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
 using namespace DSL;
 
@@ -167,7 +167,7 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
     }
 }
 
-SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[new]" )
+SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
@@ -203,6 +203,93 @@ SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[new]" )
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pOverlaySinkBintr);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new PipelineBintr" ) 
+    {
+        std::string playerName = "player";
+
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+
+        std::string overlaySinkName("overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(0);
+        uint sinkH(0);
+        
+        std::string windowSinkName("window-sink");
+
+
+        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+
+        // use the image size for the Window sink dimensions
+        pSourceBintr->GetDimensions(&sinkW, &sinkH);
+        
+        DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+                depth, offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PLAYER_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pOverlaySinkBintr);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New PlayerBintr with ImageSourceBintr and WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new PipelineBintr" ) 
+    {
+        std::string playerName = "player";
+
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+
+        std::string windowSinkName("window-sink");
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, 1, 1, 0);
+
+        // use the image size for the Window sink dimensions
+        pSourceBintr->GetDimensions(&sinkW, &sinkH);
+
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(windowSinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PLAYER_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )
         {

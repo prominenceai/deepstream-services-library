@@ -30,7 +30,7 @@ THE SOFTWARE.
 namespace DSL
 {
     PlayerBintr::PlayerBintr(const char* name, 
-        DSL_FILE_SOURCE_PTR pSource, DSL_SINK_PTR pSink)
+        DSL_SOURCE_PTR pSource, DSL_SINK_PTR pSink)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
         , PipelineXWinMgr(m_pGstObj)
@@ -40,6 +40,18 @@ namespace DSL
         LOG_FUNC();
 
         g_mutex_init(&m_asyncCommMutex);
+        
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "player-queue");
+        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "player-converter");
+        m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "player-caps-filter");
+
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=RGBA");
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
+        AddChild(m_pQueue);
+        AddChild(m_pConverter);
+        AddChild(m_pCapsFilter);
         
         if (!AddChild(m_pSource))
         {
@@ -77,7 +89,10 @@ namespace DSL
             return false;
         }
         if (!m_pSource->LinkAll() or ! m_pSink->LinkAll() or 
-            !m_pSource->LinkToSink(m_pSink))
+            !m_pSource->LinkToSink(m_pQueue) or
+            !m_pQueue->LinkToSink(m_pConverter) or
+            !m_pConverter->LinkToSink(m_pCapsFilter)or
+            !m_pCapsFilter->LinkToSink(m_pSink))
         {
             LOG_ERROR("Failed link SourceBintr '" << m_pSource->GetName() 
                 << "' to SinkBintr '" << m_pSink->GetName() << "'");
@@ -96,7 +111,10 @@ namespace DSL
             LOG_ERROR("PlayerBintr '" << GetName() << "' is not linked");
             return;
         }
-        if (!m_pSource->UnlinkFromSink())
+        if (!m_pSource->UnlinkFromSink() or
+            !m_pQueue->UnlinkFromSink() or
+            !m_pConverter->UnlinkFromSink() or
+            !m_pCapsFilter->UnlinkFromSink())
         {
             LOG_ERROR("Failed unlink SourceBintr '" << m_pSource->GetName() 
                 << "' to SinkBintr '" << m_pSink->GetName() << "'");

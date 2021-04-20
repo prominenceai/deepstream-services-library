@@ -131,6 +131,8 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
@@ -3700,7 +3702,7 @@ namespace DSL
     }
     
     DslReturnType Services::SourceCsiNew(const char* name,
-        uint width, uint height, uint fps_n, uint fps_d)
+        uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3713,7 +3715,7 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fps_n, fps_d);
+            m_components[name] = DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD);
 
             LOG_INFO("New CSI Source '" << name << "' created successfully");
 
@@ -3727,7 +3729,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceUsbNew(const char* name,
-        uint width, uint height, uint fps_n, uint fps_d)
+        uint width, uint height, uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -3740,7 +3742,7 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fps_n, fps_d);
+            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD);
 
             LOG_INFO("New USB Source '" << name << "' created successfully");
 
@@ -3883,7 +3885,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception setting File path");
+            LOG_ERROR("File Source '" << name << "' threw exception setting File path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3906,7 +3908,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception getting Repeat Enabled");
+            LOG_ERROR("File Source '" << name << "' threw exception getting Repeat Enabled");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -3933,11 +3935,152 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception setting Repeat Enabled");
+            LOG_ERROR("File Source '" << name << "' threw exception setting Repeat Enabled");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     
+    DslReturnType Services::SourceImageNew(const char* name, const char* filePath, 
+        boolean isLive, uint fpsN, uint fpsD, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_components[name] = DSL_IMAGE_SOURCE_NEW(
+                name, filePath, isLive, fpsN, fpsD, timeout);
+
+            LOG_INFO("New Image Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Image Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImagePathGet(const char* name, const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetFilePath();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception getting File Path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceImagePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("Image Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            if (!pSourceBintr->SetFilePath(filePath));
+            {
+                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception setting File path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageTimeoutGet(const char* name, uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+         
+            *timeout = pSourceBintr->GetTimeout();
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception getting Timeout");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageTimeoutSet(const char* name, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, ImageSourceBintr);
+
+            DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetTimeout(timeout))
+            {
+                LOG_ERROR("Failed to set Timeout for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name << "' threw exception setting Timeout");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
 
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
        uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
@@ -3991,7 +4134,7 @@ namespace DSL
         }
     }                
     
-    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d)
+    DslReturnType Services::SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -4004,7 +4147,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
-            pSourceBintr->GetFrameRate(fps_n, fps_d);
+            pSourceBintr->GetFrameRate(fpsN, fpsD);
             
             return DSL_RESULT_SUCCESS;
         }
@@ -8726,15 +8869,15 @@ namespace DSL
     }
 
     DslReturnType Services::PlayerNew(const char* name, 
-        const char* file_source, const char* sink)
+        const char* source, const char* sink)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
         try
         {
-            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, file_source);
-            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, file_source, FileSourceBintr);
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, source);
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
             RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
         
@@ -8743,8 +8886,8 @@ namespace DSL
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
             }
-            DSL_FILE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<FileSourceBintr>(m_components[file_source]);
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
 
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[sink]);

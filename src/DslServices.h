@@ -336,10 +336,10 @@ namespace DSL {
         uint PphListSize();
         
         DslReturnType SourceCsiNew(const char* name, 
-            uint width, uint height, uint fps_n, uint fps_d);
+            uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUsbNew(const char* name, 
-            uint width, uint height, uint fps_n, uint fps_d);
+            uint width, uint height, uint fpsN, uint fpsD);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
@@ -355,12 +355,23 @@ namespace DSL {
     
         DslReturnType SourceFileRepeatEnabledSet(const char* name, boolean enabled);
             
+        DslReturnType SourceImageNew(const char* name, const char* filePath, 
+            boolean isLive, uint fpsN, uint fpsD, uint timeout);
+
+        DslReturnType SourceImagePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceImagePathSet(const char* name, const char* filePath);
+
+        DslReturnType SourceImageTimeoutGet(const char* name, uint* timeout);
+    
+        DslReturnType SourceImageTimeoutSet(const char* name, uint timeout);
+            
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint cudadecMemType, uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
             
         DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
         
-        DslReturnType SourceFrameRateGet(const char* name, uint* fps_n, uint* fps_d);
+        DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
         DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
 
@@ -747,7 +758,7 @@ namespace DSL {
         DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* pipeline, 
             dsl_xwindow_delete_event_handler_cb handler);
 
-        DslReturnType PlayerNew(const char* name, const char* file_source, const char* sink);
+        DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
 
         DslReturnType PlayerPause(const char* name);
         

@@ -49,7 +49,7 @@ namespace DSL
     public: 
     
         PlayerBintr(const char* name, 
-            DSL_FILE_SOURCE_PTR pSource, DSL_SINK_PTR pSink);
+            DSL_SOURCE_PTR pSource, DSL_SINK_PTR pSink);
 
         ~PlayerBintr();
 
@@ -136,11 +136,26 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_player_termination_event_listener_cb, void*>m_terminationEventListeners;
+
+        /**
+         * @brief Queue element for Video converter.
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+        
+        /**
+         * @brief Video converter to convert from RAW memory to NVMM.
+         */
+        DSL_ELEMENT_PTR m_pConverter;
+        
+        /**
+         * @brief Caps filter for the video converter.
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
         
         /**
          * @brief shared pointer to the Player's child URI Source
          */
-        DSL_FILE_SOURCE_PTR m_pSource;
+        DSL_SOURCE_PTR m_pSource;
         
         /**
          * @brief shared pointer to the Player's child Overlay Sink

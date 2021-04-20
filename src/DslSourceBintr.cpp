@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSourceBintr.h"
 #include "DslPipelineBintr.h"
+#include "DslSurfaceTransform.h"
 #include <nvdsgstutils.h>
 
 #define N_DECODE_SURFACES 16
@@ -37,8 +38,8 @@ namespace DSL
         , m_isLive(TRUE)
         , m_width(0)
         , m_height(0)
-        , m_fps_n(0)
-        , m_fps_d(0)
+        , m_fpsN(0)
+        , m_fpsD(0)
         , m_latency(100)
         , m_numDecodeSurfaces(N_DECODE_SURFACES)
         , m_numExtraSurfaces(N_EXTRA_SURFACES)
@@ -93,18 +94,18 @@ namespace DSL
         *height = m_height;
     }
 
-    void  SourceBintr::GetFrameRate(uint* fps_n, uint* fps_d)
+    void  SourceBintr::GetFrameRate(uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         
-        *fps_n = m_fps_n;
-        *fps_d = m_fps_d;
+        *fpsN = m_fpsN;
+        *fpsD = m_fpsD;
     }
 
     //*********************************************************************************
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
-        guint width, guint height, guint fps_n, guint fps_d)
+        guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
     {
@@ -112,8 +113,8 @@ namespace DSL
 
         m_width = width;
         m_height = height;
-        m_fps_n = fps_n;
-        m_fps_d = fps_d;
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_CSI, "csi_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
@@ -126,7 +127,7 @@ namespace DSL
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
@@ -188,7 +189,7 @@ namespace DSL
     //*********************************************************************************
 
     UsbSourceBintr::UsbSourceBintr(const char* name, 
-        guint width, guint height, guint fps_n, guint fps_d)
+        guint width, guint height, guint fpsN, guint fpsD)
         : SourceBintr(name)
         , m_sensorId(0)
     {
@@ -196,8 +197,8 @@ namespace DSL
 
         m_width = width;
         m_height = height;
-        m_fps_n = fps_n;
-        m_fps_d = fps_d;
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
         
         m_pSourceElement = DSL_ELEMENT_NEW(NVDS_ELEM_SRC_CAMERA_V4L2, "usb_camera_elem");
         m_pCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "src_caps_filter");
@@ -206,7 +207,7 @@ namespace DSL
 
         GstCaps * pCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12",
             "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height, 
-            "framerate", GST_TYPE_FRACTION, m_fps_n, m_fps_d, NULL);
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
@@ -729,13 +730,13 @@ namespace DSL
             if (gst_pad_link(pPad, m_pGstStaticSinkPad) != GST_PAD_LINK_OK) 
             {
                 LOG_ERROR("Failed to link decodebin to source Tee");
-                return; 
+                throw;
             }
             
             // Update the cap memebers for this URI Source Bintr
             gst_structure_get_uint(structure, "width", &m_width);
             gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
             
             LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
         }
@@ -786,13 +787,6 @@ namespace DSL
         LOG_FUNC();
     }
 
-    bool FileSourceBintr::GetRepeatEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_repeatEnabled;
-    }
-
     bool FileSourceBintr::SetFilePath(const char* filePath)
     {
         LOG_FUNC();
@@ -819,6 +813,13 @@ namespace DSL
         return true;
     }
     
+    bool FileSourceBintr::GetRepeatEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_repeatEnabled;
+    }
+
     bool FileSourceBintr::SetRepeatEnabled(bool enabled)
     {
         LOG_FUNC();
@@ -831,6 +832,151 @@ namespace DSL
         }
         
         m_repeatEnabled = enabled;
+        return true;
+    }
+    
+    //*********************************************************************************
+
+    ImageSourceBintr::ImageSourceBintr(const char* name, 
+        const char* filePath, bool isLive, uint fpsN, uint fpsD, uint timeout)
+        : SourceBintr(name)
+        , m_timeout(timeout)
+    {
+        LOG_FUNC();
+        
+        // override default values
+        m_isLive = isLive;
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+
+        std::ifstream streamUriFile(filePath);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("Image Source'" << filePath << "' Not found");
+            throw;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_filePath.assign(realpath(filePath, absolutePath));
+
+        // Use OpenCV to determine the image dimensions
+        cv::Mat image = imread(m_filePath, cv::IMREAD_COLOR);
+        cv::Size imageSize = image.size();
+        m_width = imageSize.width;
+        m_height = imageSize.height;
+        
+        m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
+        m_pSourceCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "source-caps-filter");
+        m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
+
+        m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
+
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, "RGBA", 
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height,
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+            throw;  
+        }
+        m_pSourceCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);        
+
+        // Set the filepath for the Image Elementr
+        m_pImageOverlay->SetAttribute("location", m_filePath.c_str());
+
+        // Add all new Elementrs as Children to the SourceBintr
+        AddChild(m_pSourceElement);
+        AddChild(m_pSourceCapsFilter);
+        AddChild(m_pImageOverlay);
+        
+        // Source Ghost Pad for ImageSourceBintr
+        m_pImageOverlay->AddGhostPadToParent("src");
+    }
+
+    bool ImageSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void ImageSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        if (!m_pSourceElement->UnlinkFromSink() or
+            !m_pSourceCapsFilter->UnlinkFromSink())
+        {
+            LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
+            return;
+        }    
+        m_isLinked = false;
+    }
+
+    bool ImageSourceBintr::SetFilePath(const char* filePath)
+    {
+        LOG_FUNC();
+        
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        std::ifstream streamUriFile(filePath);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("Image Source'" << filePath << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_filePath.assign(realpath(filePath, absolutePath));
+
+        m_pSourceElement->SetAttribute("location", m_filePath.c_str());
+        
+        return true;
+    }
+    
+    uint ImageSourceBintr::GetTimeout()
+    {
+        LOG_FUNC();
+        
+        return m_timeout;
+    }
+
+    bool ImageSourceBintr::SetTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot set Timeout for Image Source '" << GetName() 
+                << "' as it is currently Linked");
+            return false;
+        }
+        
+        m_timeout = timeout;
         return true;
     }
     
@@ -1348,7 +1494,7 @@ namespace DSL
             // Update the cap memebers for this URI Source Bintr
             gst_structure_get_uint(structure, "width", &m_width);
             gst_structure_get_uint(structure, "height", &m_height);
-            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fps_n, (gint*)&m_fps_d);
+            gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
             
             // Start the Stream mangement timer, only if timeout is enable and not currently running
             if (m_bufferTimeout and !m_streamManagerTimerId)
