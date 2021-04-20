@@ -785,6 +785,9 @@ namespace DSL
             DSL_CUDADEC_MEMTYPE_DEVICE, false, 0)
     {
         LOG_FUNC();
+        
+        // override the default
+        m_repeatEnabled = repeatEnabled;
     }
 
     bool FileSourceBintr::SetFilePath(const char* filePath)
@@ -841,6 +844,7 @@ namespace DSL
         const char* filePath, bool isLive, uint fpsN, uint fpsD, uint timeout)
         : SourceBintr(name)
         , m_timeout(timeout)
+        , m_timeoutTimerId(0)
     {
         LOG_FUNC();
         
@@ -849,50 +853,45 @@ namespace DSL
         m_fpsN = fpsN;
         m_fpsD = fpsD;
 
-        std::ifstream streamUriFile(filePath);
-        if (!streamUriFile.good())
-        {
-            LOG_ERROR("Image Source'" << filePath << "' Not found");
-            throw;
-        }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_filePath.assign(realpath(filePath, absolutePath));
-
-        // Use OpenCV to determine the image dimensions
-        cv::Mat image = imread(m_filePath, cv::IMREAD_COLOR);
-        cv::Size imageSize = image.size();
-        m_width = imageSize.width;
-        m_height = imageSize.height;
-        
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
         m_pSourceCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "source-caps-filter");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
+        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "video-converter");
+        m_pConverterCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "converter-caps-filter");
 
-        m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
+        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
 
-        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
-            "format", G_TYPE_STRING, "RGBA", 
-            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height,
-            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
-        if (!pCaps)
+
+        if (!SetFilePath(filePath))
         {
-            LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-            throw;  
+            throw;
         }
-        m_pSourceCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);        
-
-        // Set the filepath for the Image Elementr
-        m_pImageOverlay->SetAttribute("location", m_filePath.c_str());
+        m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
+        AddChild(m_pConverter);
+        AddChild(m_pConverterCapsFilter);
         
         // Source Ghost Pad for ImageSourceBintr
-        m_pImageOverlay->AddGhostPadToParent("src");
+        m_pConverterCapsFilter->AddGhostPadToParent("src");
+
+        g_mutex_init(&m_timeoutTimerMutex);
+    }
+    
+    ImageSourceBintr::~ImageSourceBintr()
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
+        g_mutex_clear(&m_timeoutTimerMutex);
     }
 
     bool ImageSourceBintr::LinkAll()
@@ -905,12 +904,20 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
+            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
+            !m_pImageOverlay->LinkToSink(m_pConverter) or
+            !m_pConverter->LinkToSink(m_pConverterCapsFilter))
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
         }
         m_isLinked = true;
+        
+        if (m_timeout)
+        {
+            m_timeoutTimerId = g_timeout_add(m_timeout*1000, 
+                ImageSourceDisplayTimeoutHandler, this);
+        }
         
         return true;
     }
@@ -924,22 +931,45 @@ namespace DSL
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
+        if (m_timeoutTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_timeoutTimerMutex);
+            g_source_remove(m_timeoutTimerId);
+            m_timeoutTimerId = 0;
+        }
+        
         if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pSourceCapsFilter->UnlinkFromSink())
+            !m_pSourceCapsFilter->UnlinkFromSink() or
+            !m_pImageOverlay->UnlinkFromSink() or
+            !m_pConverter->UnlinkFromSink())
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;
         }    
         m_isLinked = false;
     }
+    
+    int ImageSourceBintr::HandleDisplayTimeout()
+    {
+        LOG_FUNC();
+        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_timeoutTimerMutex);
+
+        // Send the EOS event to end the Image display
+        SendEos();
+        m_timeoutTimerId = 0;
+        
+        // Single shot - so don't restart
+        return 0;
+    }
 
     bool ImageSourceBintr::SetFilePath(const char* filePath)
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
-            LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
+            LOG_ERROR("Unable to set File Path for ImageSourceBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -953,7 +983,26 @@ namespace DSL
         char absolutePath[PATH_MAX+1];
         m_filePath.assign(realpath(filePath, absolutePath));
 
-        m_pSourceElement->SetAttribute("location", m_filePath.c_str());
+        // Use OpenCV to determine the new image dimensions
+        cv::Mat image = imread(m_filePath, cv::IMREAD_COLOR);
+        cv::Size imageSize = image.size();
+        m_width = imageSize.width;
+        m_height = imageSize.height;
+
+        GstCaps * pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, "NV12", 
+            "width", G_TYPE_INT, m_width, "height", G_TYPE_INT, m_height,
+            "framerate", GST_TYPE_FRACTION, m_fpsN, m_fpsD, NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create new Simple Caps Filter for '" << m_name << "'");
+            throw;  
+        }
+        m_pSourceCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);        
+
+        // Set the filepath for the Image Elementr
+        m_pImageOverlay->SetAttribute("location", m_filePath.c_str());
         
         return true;
     }
@@ -1763,6 +1812,12 @@ namespace DSL
     }
     
     // --------------------------------------------------------------------------------------
+
+    static int ImageSourceDisplayTimeoutHandler(gpointer pSource)
+    {
+        return static_cast<ImageSourceBintr*>(pSource)->
+            HandleDisplayTimeout();
+    }
     
     static void UriSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource)
     {
@@ -1826,4 +1881,5 @@ namespace DSL
         return static_cast<RtspSourceBintr*>(pSource)->
             NotifyClientListeners();
     }
+    
 } // SDL namespace

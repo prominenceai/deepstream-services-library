@@ -136,21 +136,6 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_player_termination_event_listener_cb, void*>m_terminationEventListeners;
-
-        /**
-         * @brief Queue element for Video converter.
-         */
-        DSL_ELEMENT_PTR m_pQueue;
-        
-        /**
-         * @brief Video converter to convert from RAW memory to NVMM.
-         */
-        DSL_ELEMENT_PTR m_pConverter;
-        
-        /**
-         * @brief Caps filter for the video converter.
-         */
-        DSL_ELEMENT_PTR m_pCapsFilter;
         
         /**
          * @brief shared pointer to the Player's child URI Source

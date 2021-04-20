@@ -50,16 +50,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Image Source using the filespec defined above
+        # New Image Source using the filespec defined above, with a display timeout of 5 seconds
         retval = dsl_source_image_new('image-source', 
             file_path = image_path, 
             is_live = False,
             fps_n = 1,
             fps_d = 1,
-            timeout = 0)
+            timeout = 5)
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # Query the source for the image dimensions to use for our sink dimensions
         retval, image_width, image_height = dsl_source_dimensions_get('image-source')
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
@@ -67,14 +68,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 0, 0, 1280, 720)
+        # New Overlay Sink,  x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_overlay_new('overlay-sink', 
+            overlay_id = 1, 
+            display_id = 0, 
+            depth = 0,
+            offset_x = 50, 
+            offset_y = 50, 
+            width = image_width, 
+            height = image_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Media Player using the File Source and Window Sink
         retval = dsl_player_new('player1',
-            source='image-source', sink='window-sink')
+            source='image-source', sink='overlay-sink')
         if retval != DSL_RETURN_SUCCESS:
             break
 

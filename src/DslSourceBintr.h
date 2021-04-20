@@ -73,7 +73,6 @@ namespace DSL
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
             cudadecMemType, intraDecode, dropFrameInterval, latency, timeout))
 
-
     /**
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
@@ -513,8 +512,16 @@ namespace DSL
     {
     public: 
     
+        /**
+         * @brief Ctor for the ImageSourceBintr class
+         */
         ImageSourceBintr(const char* name, 
             const char* filePath, bool isLive, uint fpsN, uint fpsD, uint timeout);
+        
+        /**
+         * @brief Dtor for the ImageSourceBintr class
+         */
+        ~ImageSourceBintr();
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr
@@ -538,6 +545,11 @@ namespace DSL
             return m_filePath.c_str();
         }
 
+        /**
+         * @brief Sets the File Path to use by this ImageSoureceBintr
+         * @param filePath absolute or relative path to the image file
+         * @return true if set successfully, false otherwise
+         */
         bool SetFilePath(const char* filePath);
 
         /**
@@ -553,6 +565,12 @@ namespace DSL
          */
         bool SetTimeout(uint timeout);
         
+        /**
+         * @brief Handles the Image display timeout by sending and EOS event.
+         * @return 0 always to clear the timer resource
+         */
+        int HandleDisplayTimeout();
+        
     private:
     
         /**
@@ -566,9 +584,29 @@ namespace DSL
         uint m_timeout;
 
         /**
+         * @brief gnome timer Id for the display timeout
+         */
+        uint m_timeoutTimerId;
+        
+        /**
+         * @brief mutux to guard the display timeout callback.
+         */
+        GMutex m_timeoutTimerMutex;
+
+        /**
          * @brief Caps Filter for the File Source Element
          */
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
+
+        /**
+         * @brief Video converter to convert from RAW memory to NVMM.
+         */
+        DSL_ELEMENT_PTR m_pConverter;
+        
+        /**
+         * @brief Caps filter for the video converter.
+         */
+        DSL_ELEMENT_PTR m_pConverterCapsFilter;
 
         /**
          * @brief Image Overlay element for the FileSourceBintr
@@ -859,7 +897,13 @@ namespace DSL
         std::queue<std::shared_ptr<DslStateChange>> m_stateChanges;
     };
     
-
+    /**
+     * @brief Timer Callback to handle the image display timeout
+     * @param pSource (callback user data) pointer to the unique source opject
+     * @return 0 always - one shot timer.
+     */
+    static int ImageSourceDisplayTimeoutHandler(gpointer pSource);
+    
     /**
      * @brief 
      * @param[in] pBin

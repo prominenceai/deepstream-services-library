@@ -477,7 +477,6 @@ THE SOFTWARE.
 
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
-class dsl_source_image_new;
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;

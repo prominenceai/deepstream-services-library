@@ -1216,3 +1216,126 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         }
     }
 }
+
+SCENARIO( "A Pipeline with an ImageSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
+{
+    GIVEN( "A new ImageSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName = "image-source";
+        std::string filePath = "./test/streams/sample_720p.jpg";
+        std::string sinkName = "overlay-sink";
+        std::string tilerName = "tiler";
+        std::string pipelineName = "pipeline";
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+        
+        bool isLive(true);
+        uint timeout(0);
+        uint interval(1);
+        uint tilerW(1280);
+        uint tilerH(720);
+        uint fps_n(1);
+        uint fps_d(30);
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_IMAGE_SOURCE_PTR pSourceBintr = 
+            DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), isLive, fps_n, fps_d, timeout);
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        REQUIRE( pPipelineBintr->IsLinked() == false );
+            
+        WHEN( "All components are added and PipelineBintr Linked" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+            THEN( "The Pipeline components are Linked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
+{
+    GIVEN( "A new FileSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    {
+        std::string sourceName("file-source");
+        std::string filePath("./test/streams/sample_1080p_h264.mp4");
+        std::string sinkName = "overlay-sink";
+        std::string tilerName = "tiler";
+        std::string pipelineName = "pipeline";
+        std::string primaryGieName = "primary-gie";
+        std::string inferConfigFile = "./test/configs/config_infer_primary_nano.txt";
+        std::string modelEngineFile = "./test/models/Primary_Detector_Nano/resnet10.caffemodel";
+
+        uint repeat(true);
+        uint interval(1);
+        uint tilerW(1280);
+        uint tilerH(720);
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(0);
+        uint sinkH(0);
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = 
+            DSL_FILE_SOURCE_NEW(sourceName.c_str(), filePath.c_str(), repeat);
+
+        DSL_TILER_PTR pTilerBintr = 
+            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+
+        DSL_OVERLAY_SINK_PTR pSinkBintr = 
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        REQUIRE( pPipelineBintr->IsLinked() == false );
+            
+        WHEN( "All components are added and PipelineBintr Linked" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+            THEN( "The Pipeline components are Linked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+    }
+}

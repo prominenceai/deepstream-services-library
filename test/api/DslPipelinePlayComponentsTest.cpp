@@ -1611,3 +1611,63 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
     }
 }
 
+SCENARIO( "A new Pipeline with a Image Source, OverlaySink, and Tiled Display can play", "[new]" )
+{
+    GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
+    {
+        std::wstring source_name(L"image-source");
+        std::wstring image_path(L"./test/streams/first-person-occurrence-438.jpeg");
+        boolean is_live(true);
+        uint fps_n(30);
+        uint fps_d(1);
+        uint timeout(123);
+
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        std::wstring overlaySinkName(L"overlay-sink");
+        uint overlayId(1);
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+
+        std::wstring pipelineName(L"test-pipeline");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_image_new(source_name.c_str(), image_path.c_str(), is_live, 
+            fps_n, fps_d, timeout) == DSL_RESULT_SUCCESS );
+
+        // overlay sink for observation 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        // new tiler for this scenario
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {L"image-source", L"tiler", L"overlay-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
