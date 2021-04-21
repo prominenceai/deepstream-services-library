@@ -117,13 +117,56 @@ namespace DSL
         , m_captureType(captureType)
         , m_outdir(outdir)
         , m_annotate(annotate)
+        , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
+
+        g_mutex_init(&m_captureCompleteMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
+
+        if (m_listenerNotifierTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+            g_source_remove(m_listenerNotifierTimerId);
+        }
+
+        g_mutex_clear(&m_captureCompleteMutex);
+    }
+
+    bool CaptureOdeAction::AddCaptureCompleteListener(
+        dsl_capture_client_listener_cb listener, void* userdata)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_captureCompleteListeners.find(listener) != m_captureCompleteListeners.end())
+        {   
+            LOG_ERROR("ODE Action Capture Complete listener is not unique");
+            return false;
+        }
+        m_captureCompleteListeners[listener] = userdata;
+        
+        return true;
+    }
+
+    bool CaptureOdeAction::RemoveCaptureCompleteListener(
+        dsl_capture_client_listener_cb listener)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        if (m_captureCompleteListeners.find(listener) == m_captureCompleteListeners.end())
+        {   
+            LOG_ERROR("ODE Action Capture Complete listener not found");
+            return false;
+        }
+        m_captureCompleteListeners.erase(listener);
+        
+        return true;
     }
     
     cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
@@ -310,6 +353,42 @@ namespace DSL
             std::to_string(pTrigger->s_eventCount) + ".jpeg";
 
         cv::imwrite(filespec.c_str(), bgr_frame);
+    }
+
+    int CaptureOdeAction::NotifyClientListeners()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        
+        while (m_infoStructs.size())
+        {
+            std::shared_ptr<dsl_capture_info> pCaptureInfo = m_infoStructs.front();
+            m_infoStructs.pop();
+            
+            // iterate through the map of state-change-listeners calling each
+            for(auto const& imap: m_captureCompleteListeners)
+            {
+                try
+                {
+                    imap.first(&*pCaptureInfo, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("ODE Capture Action '" << GetName() 
+                        << "' threw exception calling Client Capture Complete Lister");
+                }
+            }
+            
+        }
+        // clear the timer id and return false to self remove
+        m_listenerNotifierTimerId = 0;
+        return false;
+    }
+
+    static int CaptureListenerNotificationHandler(gpointer pAction)
+    {
+        return static_cast<CaptureOdeAction*>(pAction)->
+            NotifyClientListeners();
     }
 
     // ********************************************************************

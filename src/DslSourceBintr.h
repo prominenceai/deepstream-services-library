@@ -701,14 +701,14 @@ namespace DSL
          * @brief adds a callback to be notified on change of RTSP source state
          * @param[in] listener pointer to the client's function to call on state change
          * @param[in] userdata opaque pointer to client data passed into the listener function.
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successfull add, false otherwise
          */
         bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* userdata);
 
         /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successfull remove, false otherwise
          */
         bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
 

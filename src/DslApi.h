@@ -293,6 +293,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
 #define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
 #define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
+#define DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED                   0x000F000A
+#define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
 
 /**
  * ODE Area API Return Values
@@ -578,11 +580,39 @@ typedef struct dsl_recording_info
     uint width;
 
     /**
-     * @brief width of the recording in pixels
+     * @brief height of the recording in pixels
      */
     uint height;
 
 } dsl_recording_info;
+
+/**
+ * @struct dsl_capture_info
+ * @brief Image capture information provided to the client on callback
+ */
+typedef struct dsl_capture_info
+{
+    /**
+     * @brief filename generated for the captured image. 
+     */
+    const wchar_t* filename;
+    
+    /** 
+     * @brief directory path for the captured image
+     */
+    const wchar_t* dirpath;
+    
+    /**
+     * @brief width of the image in pixels
+     */
+    uint width;
+
+    /**
+     * @brief height of the image in pixels
+     */
+    uint height;
+
+} dsl_capture_info;
 
 /**
  * @struct _dsl_coordinate
@@ -725,9 +755,17 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
  * @brief callback typedef for a client to listen for notification that a Recording 
  * Session has ended.
  * @param[in] info pointer to session info, see... dsl_recording_info above.
- * @param[in] client_data opaque pointer to client's user data provide on end-of-session
+ * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
+
+/**
+ * @brief callback typedef for a client to listen for notification that an 
+ * JPEG Image has been captured and saved to file.
+ * @param[in] info pointer to capture info, see... dsl_capture_info above.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void* (*dsl_capture_client_listener_cb)(dsl_capture_info* info, void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for Player termination events.
@@ -953,6 +991,25 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, 
     const wchar_t* outdir);
+
+/**
+ * @brief adds a callback to be notified on Image Capture complete
+ * @param[in] name name of the RTSP source to update
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
+    dsl_capture_client_listener_cb listener, void* client_data);
+
+/**
+ * @brief removes a callback previously added with dsl_ode_action_capture_complete_listener_add
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] listener pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
+    dsl_capture_client_listener_cb listener);
 
 /**
  * @brief Creates a uniquely named Display ODE Action

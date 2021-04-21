@@ -107,6 +107,12 @@ namespace DSL {
         DslReturnType OdeActionCaptureFrameNew(const char* name, const char* outdir, boolean annotate);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, const char* outdir);
+
+        DslReturnType OdeActionCaptureCompleteListenerAdd(const char* name, 
+            dsl_capture_client_listener_cb listener, void* clientData);
+        
+        DslReturnType OdeActionCaptureCompleteListenerRemove(const char* name, 
+            dsl_capture_client_listener_cb listener);
         
         DslReturnType OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
             boolean offsetYWithClassId, const char* font, boolean hasBgColor, const char* bgColor);

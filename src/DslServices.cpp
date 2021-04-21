@@ -62,6 +62,17 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(actions, name) do \
+{ \
+    if (!actions[name]->IsType(typeid(CaptureFrameOdeAction)) and \
+        !actions[name]->IsType(typeid(CaptureObjectOdeAction)))\
+    { \
+        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
+        return DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE; \
+    } \
+}while(0); 
+
+
 #define RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(events, name) do \
 { \
     if (events.find(name) == events.end()) \
@@ -1110,6 +1121,65 @@ namespace DSL
             LOG_ERROR("New Capture Object ODE Action '" << name << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::OdeActionCaptureCompleteListenerAdd(const char* name, 
+        dsl_capture_client_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
+
+            if (!pOdeAction->AddCaptureCompleteListener(listener, clientData))
+            {
+                LOG_ERROR("ODE Capture Action '" << name 
+                    << "' failed to add a Capture Complete Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding a Capture Complete Lister");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DslReturnType Services::OdeActionCaptureCompleteListenerRemove(const char* name, 
+        dsl_capture_client_listener_cb listener)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, name);
+            RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
+
+            DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_components[name]);
+
+            if (!pOdeAction->RemoveCaptureCompleteListener(listener))
+            {
+                LOG_ERROR("Capture Action '" << name 
+                    << "' failed to add a Capture Complete Listener");
+                return DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED;
+            }
+        }
+        catch(...)
+        {
+            LOG_ERROR("ODE Capture Action '" << name 
+                << "' threw an exception adding a Capture Complete Lister");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        return DSL_RESULT_SUCCESS;
     }
     
     DslReturnType Services::OdeActionDisplayNew(const char* name, uint offsetX, uint offsetY, 
@@ -9486,6 +9556,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND] = L"DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID] = L"DSL_RESULT_ODE_ACTION_CAPTURE_TYPE_INVALID";
         m_returnValueToString[DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE] = L"DSL_RESULT_ODE_AREA_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_ODE_AREA_NAME_NOT_FOUND] = L"DSL_RESULT_ODE_AREA_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_ODE_AREA_THREW_EXCEPTION] = L"DSL_RESULT_ODE_AREA_THREW_EXCEPTION";
