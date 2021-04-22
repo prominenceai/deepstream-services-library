@@ -717,14 +717,14 @@ static void source_state_change_listener_cb1(uint prev_state, uint curr_state, v
 {
     std::cout << "Source state change lister 1 called with prev_state = " 
         << prev_state << " current_state = " << curr_state << "\n";
-        *(int*)user_data = 111;
+    *(int*)user_data = 111;
 }
 
 static void source_state_change_listener_cb2(uint prev_state, uint curr_state, void* user_data)
 {
     std::cout << "Source state change lister 2 called with prev_state = " 
         << prev_state << " current_state = " << curr_state << "\n";
-        *(int*)user_data = 222;
+    *(int*)user_data = 222;
 }
 
 SCENARIO( "An RtspSourceBintr can add and remove State Change Listeners",  "[RtspSourceBintr]" )

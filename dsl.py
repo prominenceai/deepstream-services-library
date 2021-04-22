@@ -101,7 +101,15 @@ class dsl_recording_info(Structure):
         ('container_type', c_uint),
         ('width', c_uint),
         ('height', c_uint)]
-                
+
+class dsl_capture_info(Structure):
+    _fields_ = [
+        ('capture_id', c_uint),
+        ('filename', c_wchar_p),
+        ('dirpath', c_wchar_p),
+        ('width', c_uint),
+        ('height', c_uint)]
+
 class dsl_rtsp_connection_data(Structure):
     _fields_ = [
         ('is_connected', c_bool),
@@ -143,6 +151,7 @@ DSL_RECORD_CLIENT_LISTNER = CFUNCTYPE(c_void_p, POINTER(dsl_recording_info), c_v
 DSL_PPH_CUSTOM_CLIENT_HANDLER = CFUNCTYPE(c_uint, c_void_p, c_void_p)
 DSL_PPH_METER_CLIENT_HANDLER = CFUNCTYPE(c_bool, DSL_DOUBLE_P, DSL_DOUBLE_P, c_uint, c_void_p)
 DSL_PLAYER_TERMINATION_EVENT_LISTENER = CFUNCTYPE(None, c_void_p)
+DSL_CAPTURE_COMPLETE_LISTENER = CFUNCTYPE(None, POINTER(dsl_capture_info), c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -337,6 +346,34 @@ _dsl.dsl_ode_action_capture_object_new.restype = c_uint
 def dsl_ode_action_capture_object_new(name, outdir):
     global _dsl
     result =_dsl.dsl_ode_action_capture_object_new(name, outdir)
+    return int(result)
+
+##
+## dsl_ode_action_capture_complete_listener_add()
+##
+_dsl.dsl_ode_action_capture_complete_listener_add.argtypes = [c_wchar_p, 
+    DSL_CAPTURE_COMPLETE_LISTENER, c_void_p]
+_dsl.dsl_ode_action_capture_complete_listener_add.restype = c_uint
+def dsl_ode_action_capture_complete_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_CAPTURE_COMPLETE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_ode_action_capture_complete_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_ode_action_capture_complete_listener_remove()
+##
+_dsl.dsl_ode_action_capture_complete_listener_remove.argtypes = [c_wchar_p, 
+    DSL_CAPTURE_COMPLETE_LISTENER]
+_dsl.dsl_ode_action_capture_complete_listener_remove.restype = c_uint
+def dsl_ode_action_capture_complete_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_CAPTURE_COMPLETE_LISTENER(client_listener)
+    result = _dsl.dsl_ode_action_capture_complete_listener_remove(name, c_client_listener)
     return int(result)
 
 ##

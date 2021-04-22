@@ -365,6 +365,32 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
     return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), cstrOutdir.c_str());
 }
 
+DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
+    dsl_capture_complete_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        OdeActionCaptureCompleteListenerAdd(cstrName.c_str(), listener, client_data);
+}
+    
+DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
+    dsl_capture_complete_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        OdeActionCaptureCompleteListenerRemove(cstrName.c_str(), listener);
+}
+    
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
     boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {

@@ -42,6 +42,8 @@ namespace DSL
     #define DSL_ODE_ACTION_CUSTOM_NEW(name, clientHandler, clientData) \
         std::shared_ptr<CustomOdeAction>(new CustomOdeAction(name, clientHandler, clientData))
         
+    #define DSL_ODE_ACTION_CATPURE_PTR std::shared_ptr<CaptureOdeAction>
+    
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
         std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction(name, outdir, annotate))
@@ -302,8 +304,40 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, NvDsDisplayMeta* pDisplayMeta,
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
+        /**
+         * @brief adds a callback to be notified on Image Capture complete callback
+         * @param[in] listener pointer to the client's function to call on capture complete
+         * @param[in] userdata opaque pointer to client data passed into the listener function.
+         * @return true on successfull add, false otherwise
+         */
+        bool AddCaptureCompleteListener(dsl_capture_complete_listener_cb listener, void* userdata);
+        
+        /**
+         * @brief removes a previously added Image Capture Complete callback
+         * @param[in] listener pointer to the client's function to remove
+         * @return true on successfull remove, false otherwise
+         */
+        bool RemoveCaptureCompleteListener(dsl_capture_complete_listener_cb listener);
+        
+        /**
+         * @brief Queues capture info and starts the Listener notification timer
+         * @param info shared pointer to cv::MAT containing the captured image
+         */
+        void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
+        
+        /**
+         * @brief implements a timer callback to notify all client listeners in the main loop context.
+         * @return false always to self remove timer once clients have been notified. Timer/tread will
+         * be restarted on next Image Capture
+         */
+        int NotifyClientListeners();
         
     protected:
+    
+        /**
+         * @brief static, unique capture id shared by all Capture actions
+         */
+        static uint64_t s_captureId;
     
         /**
          * @brief either DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
@@ -320,7 +354,35 @@ namespace DSL
          */
         bool m_annotate;
 
+        /**
+         * @brief mutux to guard the Capture info read/write access.
+         */
+        GMutex m_captureCompleteMutex;
+
+        /**
+         * @brief gnome timer Id for the capture complete callback
+         */
+        uint m_listenerNotifierTimerId;
+        
+        /**
+         * @brief map of all currently registered capture-complete-listeners
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_capture_complete_listener_cb, void*> m_captureCompleteListeners;
+        
+        /**
+         * @brief a queue of captured Images to save to file and notify clients
+         */
+        std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
+
     };
+
+    /**
+     * @brief Timer callback handler to invoke the Capture Actions Listerner notification.
+     * @param[in] pSource shared pointer to Capture Action to invoke.
+     * @return int true to continue, 0 to self remove
+     */
+    static int CaptureListenerNotificationHandler(gpointer pAction);
     
     // ********************************************************************
 
