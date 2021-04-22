@@ -180,7 +180,8 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
 
         WHEN( "A new Object Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
+                outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Object Capture Action can be deleted" ) 
             {
@@ -190,7 +191,8 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
         }
         WHEN( "A new Object Capture Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), outdir.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
+                outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Object Capture Action of the same names fails to create" ) 
             {
@@ -214,6 +216,44 @@ SCENARIO( "A new Object Capture ODE Action can be created and deleted", "[ode-ac
         }
     }
 }
+
+static void capture_complete_cb(dsl_capture_info* pInfo, void* user_data)
+{
+}
+
+SCENARIO( "A Capture Complete Listener can be added and removed", "[new]" )
+{
+    GIVEN( "A new RTSP Source and client listener callback" )
+    {
+        std::wstring actionName(L"capture-action");
+        std::wstring outdir(L"./");
+        
+        REQUIRE( dsl_ode_action_capture_object_new(actionName.c_str(), 
+            outdir.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A capture-complete-listner is added" )
+        {
+            REQUIRE( dsl_ode_action_capture_complete_listener_add(actionName.c_str(),
+                capture_complete_cb, NULL) == DSL_RESULT_SUCCESS );
+
+            // ensure the same listener twice fails
+            REQUIRE( dsl_ode_action_capture_complete_listener_add(actionName.c_str(),
+                capture_complete_cb, NULL) == DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED );
+
+            THEN( "The same listner can be remove" ) 
+            {
+                REQUIRE( dsl_ode_action_capture_complete_listener_remove(actionName.c_str(),
+                    capture_complete_cb) == DSL_RESULT_SUCCESS );
+
+                // calling a second time must fail
+                REQUIRE( dsl_ode_action_capture_complete_listener_remove(actionName.c_str(),
+                    capture_complete_cb) == DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
 
 SCENARIO( "A new Display ODE Action can be created and deleted", "[ode-action-api]" )
 {

@@ -593,6 +593,11 @@ typedef struct dsl_recording_info
 typedef struct dsl_capture_info
 {
     /**
+     * @brief the unique capture id assigned on file save
+     */
+    uint captureId;
+
+    /**
      * @brief filename generated for the captured image. 
      */
     const wchar_t* filename;
@@ -765,7 +770,7 @@ typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* c
  * @param[in] info pointer to capture info, see... dsl_capture_info above.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void* (*dsl_capture_client_listener_cb)(dsl_capture_info* info, void* client_data);
+typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for Player termination events.
@@ -1000,7 +1005,7 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
-    dsl_capture_client_listener_cb listener, void* client_data);
+    dsl_capture_complete_listener_cb listener, void* client_data);
 
 /**
  * @brief removes a callback previously added with dsl_ode_action_capture_complete_listener_add
@@ -1009,7 +1014,7 @@ DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
-    dsl_capture_client_listener_cb listener);
+    dsl_capture_complete_listener_cb listener);
 
 /**
  * @brief Creates a uniquely named Display ODE Action

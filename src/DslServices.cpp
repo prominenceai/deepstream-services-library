@@ -1124,7 +1124,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeActionCaptureCompleteListenerAdd(const char* name, 
-        dsl_capture_client_listener_cb listener, void* clientData)
+        dsl_capture_complete_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1154,7 +1154,7 @@ namespace DSL
     }
         
     DslReturnType Services::OdeActionCaptureCompleteListenerRemove(const char* name, 
-        dsl_capture_client_listener_cb listener)
+        dsl_capture_complete_listener_cb listener)
     {
         LOG_FUNC();
     
@@ -1164,7 +1164,7 @@ namespace DSL
             RETURN_IF_ODE_ACTION_IS_NOT_CAPTURE_TYPE(m_odeActions, name);   
 
             DSL_ODE_ACTION_CATPURE_PTR pOdeAction = 
-                std::dynamic_pointer_cast<CaptureOdeAction>(m_components[name]);
+                std::dynamic_pointer_cast<CaptureOdeAction>(m_odeActions[name]);
 
             if (!pOdeAction->RemoveCaptureCompleteListener(listener))
             {

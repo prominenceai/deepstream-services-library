@@ -366,7 +366,7 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name, const wchar
 }
 
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
-    dsl_capture_client_listener_cb listener, void* client_data)
+    dsl_capture_complete_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -379,7 +379,7 @@ DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name,
 }
     
 DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
-    dsl_capture_client_listener_cb listener)
+    dsl_capture_complete_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);

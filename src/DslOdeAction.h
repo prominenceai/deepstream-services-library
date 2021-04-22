@@ -310,14 +310,20 @@ namespace DSL
          * @param[in] userdata opaque pointer to client data passed into the listener function.
          * @return true on successfull add, false otherwise
          */
-        bool AddCaptureCompleteListener(dsl_capture_client_listener_cb listener, void* userdata);
+        bool AddCaptureCompleteListener(dsl_capture_complete_listener_cb listener, void* userdata);
         
         /**
          * @brief removes a previously added Image Capture Complete callback
          * @param[in] listener pointer to the client's function to remove
          * @return true on successfull remove, false otherwise
          */
-        bool RemoveCaptureCompleteListener(dsl_capture_client_listener_cb listener);
+        bool RemoveCaptureCompleteListener(dsl_capture_complete_listener_cb listener);
+        
+        /**
+         * @brief Queues capture info and starts the Listener notification timer
+         * @param info shared pointer to cv::MAT containing the captured image
+         */
+        void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
         
         /**
          * @brief implements a timer callback to notify all client listeners in the main loop context.
@@ -327,6 +333,11 @@ namespace DSL
         int NotifyClientListeners();
         
     protected:
+    
+        /**
+         * @brief static, unique capture id shared by all Capture actions
+         */
+        static uint64_t s_captureId;
     
         /**
          * @brief either DSL_CAPTURE_TYPE_OBJECT or DSL_CAPTURE_TYPE_FRAME
@@ -357,12 +368,12 @@ namespace DSL
          * @brief map of all currently registered capture-complete-listeners
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_capture_client_listener_cb, void*>m_captureCompleteListeners;
+        std::map<dsl_capture_complete_listener_cb, void*> m_captureCompleteListeners;
         
         /**
-         * @brief a queue of capture info structures to process and notify clients asynchronously
+         * @brief a queue of captured Images to save to file and notify clients
          */
-        std::queue<std::shared_ptr<dsl_capture_info>> m_infoStructs;
+        std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
 
     };
 
