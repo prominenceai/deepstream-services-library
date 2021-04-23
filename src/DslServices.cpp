@@ -3926,7 +3926,7 @@ namespace DSL
             DSL_FILE_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
 
-            *filePath = pSourceBintr->GetFilePath();
+            *filePath = pSourceBintr->GetUri();
             
             return DSL_RESULT_SUCCESS;
         }
@@ -3957,7 +3957,7 @@ namespace DSL
                 LOG_ERROR("File Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            if (!pSourceBintr->SetFilePath(filePath));
+            if (!pSourceBintr->SetUri(filePath));
             {
                 LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
@@ -4068,7 +4068,7 @@ namespace DSL
             DSL_IMAGE_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<ImageSourceBintr>(m_components[name]);
 
-            *filePath = pSourceBintr->GetFilePath();
+            *filePath = pSourceBintr->GetUri();
             
             return DSL_RESULT_SUCCESS;
         }
@@ -4099,7 +4099,7 @@ namespace DSL
                 LOG_ERROR("Image Source'" << filePath << "' Not found");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            if (!pSourceBintr->SetFilePath(filePath));
+            if (!pSourceBintr->SetUri(filePath));
             {
                 LOG_ERROR("Failed to Set FilePath '" << filePath << "' for Image Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
