@@ -116,6 +116,8 @@ namespace DSL
          * @param[out] fpsD the FPS denominator
          */ 
         void GetFrameRate(uint* fpsN, uint* fpsD);
+        
+        
 
     public:
     
@@ -254,25 +256,19 @@ namespace DSL
          * @brief
          */
         DSL_ELEMENT_PTR m_pVidConv2;
-    };    
+    }; 
 
     //*********************************************************************************
-
-    /**
-     * @class DecodeSourceBintr
-     * @brief 
-     */
-    class DecodeSourceBintr : public SourceBintr
+    class ResourceSourceBintr: public SourceBintr
     {
-    public: 
+    public:
     
-        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
-            
-        ~DecodeSourceBintr();
-
+        ResourceSourceBintr(const char* name)
+            : SourceBintr(name)
+            {};
+        
         /**
-         * @brief returns the current URI source for this DecodeSourceBintr
+         * @brief returns the current URI source for this ResourceSourceBintr
          * @return const string for either live or file source
          */
         const char* GetUri()
@@ -283,6 +279,29 @@ namespace DSL
         }
 
         virtual bool SetUri(const char* uri) = 0;
+    
+    protected:
+    
+        /**
+         * @brief Universal Resource Identifier (URI) for this ResourceSourceBintr
+         */
+        std::string m_uri;
+    };
+
+    //*********************************************************************************
+
+    /**
+     * @class DecodeSourceBintr
+     * @brief 
+     */
+    class DecodeSourceBintr : public ResourceSourceBintr
+    {
+    public: 
+    
+        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
+            bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval);
+            
+        ~DecodeSourceBintr();
 
         /**
          * @brief Sets the unique source id for this Source bintr
@@ -348,11 +367,6 @@ namespace DSL
         
     protected:
 
-        /**
-         * @brief
-         */
-        std::string m_uri; 
-        
         /**
          * @brief
          */
@@ -470,20 +484,10 @@ namespace DSL
     {
     public: 
     
-        FileSourceBintr(const char* name, const char* filePath, bool repeatEnabled);
+        FileSourceBintr(const char* name, const char* uri, bool repeatEnabled);
 
-        /**
-         * @brief returns the current File Path for this FileSourceBintr
-         * @return const string for either live or file source
-         */
-        const char* GetFilePath()
-        {
-            LOG_FUNC();
-            
-            return m_uri.c_str();
-        }
 
-        bool SetFilePath(const char* file_path);
+        bool SetUri(const char* file_path);
 
         /**
          * @brief Gets the current repeat enabled setting, non-live URI sources only
@@ -508,7 +512,7 @@ namespace DSL
      * @class ImageSourceBintr
      * @brief 
      */
-    class ImageSourceBintr : public SourceBintr
+    class ImageSourceBintr : public ResourceSourceBintr
     {
     public: 
     
@@ -516,7 +520,7 @@ namespace DSL
          * @brief Ctor for the ImageSourceBintr class
          */
         ImageSourceBintr(const char* name, 
-            const char* filePath, bool isLive, uint fpsN, uint fpsD, uint timeout);
+            const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout);
         
         /**
          * @brief Dtor for the ImageSourceBintr class
@@ -535,22 +539,11 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief returns the current File Path for this ImageSourceBintr
-         * @return const string to current file path setting
-         */
-        const char* GetFilePath()
-        {
-            LOG_FUNC();
-            
-            return m_filePath.c_str();
-        }
-
-        /**
-         * @brief Sets the File Path to use by this ImageSoureceBintr
+         * @brief Sets the URI (filepath) to use by this ImageSoureceBintr
          * @param filePath absolute or relative path to the image file
          * @return true if set successfully, false otherwise
          */
-        bool SetFilePath(const char* filePath);
+        bool SetUri(const char* uri);
 
         /**
          * @brief Gets the current display timeout setting
@@ -572,11 +565,6 @@ namespace DSL
         int HandleDisplayTimeout();
         
     private:
-    
-        /**
-         * @brief path to the Image file as source
-         */
-        std::string m_filePath;
         
         /**
          * @brief display timeout in units of seconds

@@ -967,7 +967,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[FileSourceBintr]" )
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
                 
-                std::string returnedUri = pSourceBintr->GetFilePath();
+                std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
             }
         }
@@ -1049,7 +1049,7 @@ SCENARIO( "A new ImageSourceBintr is created correctly",  "[ImageSourceBintr]" )
                 
                 REQUIRE( pSourceBintr->GetTimeout() == 0 );
                 
-                std::string returnedFilePath = pSourceBintr->GetFilePath();
+                std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
             }
         }

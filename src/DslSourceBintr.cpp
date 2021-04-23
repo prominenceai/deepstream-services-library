@@ -303,7 +303,7 @@ namespace DSL
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
         bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : SourceBintr(name)
+        : ResourceSourceBintr(name)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
@@ -780,8 +780,8 @@ namespace DSL
     //*********************************************************************************
 
     FileSourceBintr::FileSourceBintr(const char* name, 
-        const char* filePath, bool repeatEnabled)
-        : UriSourceBintr(name, filePath, false, 
+        const char* uri, bool repeatEnabled)
+        : UriSourceBintr(name, uri, false, 
             DSL_CUDADEC_MEMTYPE_DEVICE, false, 0)
     {
         LOG_FUNC();
@@ -790,7 +790,7 @@ namespace DSL
         m_repeatEnabled = repeatEnabled;
     }
 
-    bool FileSourceBintr::SetFilePath(const char* filePath)
+    bool FileSourceBintr::SetUri(const char* uri)
     {
         LOG_FUNC();
         
@@ -800,15 +800,15 @@ namespace DSL
                 << "' as it's currently in use");
             return false;
         }
-        std::ifstream streamUriFile(filePath);
+        std::ifstream streamUriFile(uri);
         if (!streamUriFile.good())
         {
-            LOG_ERROR("fILE Source'" << filePath << "' Not found");
+            LOG_ERROR("fILE Source'" << uri << "' Not found");
             return false;
         }
         // File source, not live - setup full path
         char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(filePath, absolutePath));
+        m_uri.assign(realpath(uri, absolutePath));
         m_uri.insert(0, "file:");
 
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
@@ -841,8 +841,8 @@ namespace DSL
     //*********************************************************************************
 
     ImageSourceBintr::ImageSourceBintr(const char* name, 
-        const char* filePath, bool isLive, uint fpsN, uint fpsD, uint timeout)
-        : SourceBintr(name)
+        const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
+        : ResourceSourceBintr(name)
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
@@ -863,8 +863,7 @@ namespace DSL
         m_pConverterCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
-
-        if (!SetFilePath(filePath))
+        if (!SetUri(uri))
         {
             throw;
         }
@@ -963,7 +962,7 @@ namespace DSL
         return 0;
     }
 
-    bool ImageSourceBintr::SetFilePath(const char* filePath)
+    bool ImageSourceBintr::SetUri(const char* uri)
     {
         LOG_FUNC();
         
@@ -973,18 +972,18 @@ namespace DSL
                 << "' as it's currently in use");
             return false;
         }
-        std::ifstream streamUriFile(filePath);
+        std::ifstream streamUriFile(uri);
         if (!streamUriFile.good())
         {
-            LOG_ERROR("Image Source'" << filePath << "' Not found");
+            LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
         // File source, not live - setup full path
         char absolutePath[PATH_MAX+1];
-        m_filePath.assign(realpath(filePath, absolutePath));
+        m_uri.assign(realpath(uri, absolutePath));
 
         // Use OpenCV to determine the new image dimensions
-        cv::Mat image = imread(m_filePath, cv::IMREAD_COLOR);
+        cv::Mat image = imread(m_uri, cv::IMREAD_COLOR);
         cv::Size imageSize = image.size();
         m_width = imageSize.width;
         m_height = imageSize.height;
@@ -1002,7 +1001,7 @@ namespace DSL
         gst_caps_unref(pCaps);        
 
         // Set the filepath for the Image Elementr
-        m_pImageOverlay->SetAttribute("location", m_filePath.c_str());
+        m_pImageOverlay->SetAttribute("location", m_uri.c_str());
         
         return true;
     }
