@@ -248,7 +248,8 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[OverlaySinkBintr]
         uint initSinkH(200);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, offsetX, offsetY, initSinkW, initSinkH);
+            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), overlayId, displayId, depth, 
+                offsetX, offsetY, initSinkW, initSinkH);
             
         uint currSinkW(0);
         uint currSinkH(0);

@@ -223,7 +223,7 @@ static void capture_complete_cb(dsl_capture_info* pInfo, void* user_data)
 
 SCENARIO( "A Capture Complete Listener can be added and removed", "[new]" )
 {
-    GIVEN( "A new RTSP Source and client listener callback" )
+    GIVEN( "A new Capture Action and client listener callback" )
     {
         std::wstring actionName(L"capture-action");
         std::wstring outdir(L"./");
@@ -249,7 +249,8 @@ SCENARIO( "A Capture Complete Listener can be added and removed", "[new]" )
                 REQUIRE( dsl_ode_action_capture_complete_listener_remove(actionName.c_str(),
                     capture_complete_cb) == DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED );
                     
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(actionName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
