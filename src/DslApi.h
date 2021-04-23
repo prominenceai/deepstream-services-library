@@ -124,10 +124,11 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000D
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000E
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x0004000F
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040010
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
 
 /**
  * OSD API Return Values
@@ -759,7 +760,7 @@ typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
 /**
  * @brief callback typedef for a client to listen for notification that a Recording 
  * Session has ended.
- * @param[in] info pointer to session info, see... dsl_recording_info above.
+ * @param[in] info pointer to session info, see dsl_recording_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
@@ -767,7 +768,7 @@ typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* c
 /**
  * @brief callback typedef for a client to listen for notification that an 
  * JPEG Image has been captured and saved to file.
- * @param[in] info pointer to capture info, see... dsl_capture_info above.
+ * @param[in] info pointer to capture info, see dsl_capture_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
@@ -998,10 +999,10 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
     const wchar_t* outdir);
 
 /**
- * @brief adds a callback to be notified on Image Capture complete
- * @param[in] name name of the RTSP source to update
- * @param[in] listener pointer to the client's function to call on state change
- * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @brief adds a callback to be notified on Image Capture complete.
+ * @param[in] name unique name of the Capture Action to update
+ * @param[in] listener pointer to the client's function to call on capture complete
+ * @param[in] client_data opaque pointer to client data passed into the listener function
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
@@ -1019,17 +1020,17 @@ DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* nam
 /**
  * @brief Creates a uniquely named Display ODE Action
  * @param[in] name unique name for the ODE Display Action 
- * @param[in] offsetX offset in the X direction for the Display text
- * @param[in] offsetY offset in the Y direction for the Display text
- * @param[in] offsetY_with_classId adds an additional offset based on ODE class Id if set true
+ * @param[in] offset_x offset in the X direction for the Display text
+ * @param[in] offset_y offset in the Y direction for the Display text
+ * @param[in] offset_y_with_classId adds an additional offset based on ODE class Id if set true
  * The setting allows multiple ODE Triggers with different class Ids to share the same Display action
  * @param[in] font RGBA Font type to use for the Display text
  * @param[in] has_bg_color if true, displays the background color for the Display Text
  * @param[in] bg_color color to use for the Display Text background color, if has_bg_color
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
-    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, 
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
+    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
 
 /**
@@ -2738,20 +2739,20 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 /**
  * @brief returns the current X and Y offsets for On-Screen-Display clock
  * @param[in] name name of the OSD to query
- * @param[out] offsetX current offset in the X direction for the OSD clock in pixels
- * @param[out] offsetY current offset in the Y direction for the OSD clock in pixels
+ * @param[out] offset_x current offset in the X direction for the OSD clock in pixels
+ * @param[out] offset_y current offset in the Y direction for the OSD clock in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY);
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y);
 
 /**
  * @brief sets the X and Y offsets for the On-Screen-Display clock
  * @param[in] name name of the OSD to update
- * @param[in] offsetX new offset for the OSD clock in the X direction in pixels
- * @param[in] offsetY new offset for the OSD clock in the X direction in pixels
+ * @param[in] offset_x new offset for the OSD clock in the X direction in pixels
+ * @param[in] offset_y new offset for the OSD clock in the X direction in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y);
 
 /**
  * @brief returns the font name and size for On-Screen-Display clock
@@ -3063,26 +3064,26 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
  * @param[in] name unique component name for the new Overlay Sink
  * @param[in] display_id unique display ID for this Overlay Sink
  * @param[in] depth overlay depth for this Overlay Sink
- * @param[in] offsetX upper left corner offset in the X direction in pixels
- * @param[in] offsetY upper left corner offset in the Y direction in pixels
+ * @param[in] offset_x upper left corner offset in the X direction in pixels
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels
  * @param[in] width width of the Ovelay Sink in pixels
  * @param[in] heigth height of the Overlay Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
-    uint depth, uint offsetX, uint offsetY, uint width, uint height);
+    uint depth, uint offset_x, uint offset_y, uint width, uint height);
 
 /**
  * @brief creates a new, uniquely named Window Sink component
  * @param[in] name unique component name for the new Overlay Sink
- * @param[in] offsetX upper left corner offset in the X direction in pixels
- * @param[in] offsetY upper left corner offset in the Y direction in pixels
+ * @param[in] offset_x upper left corner offset in the X direction in pixels
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels
  * @param[in] width width of the Window Sink in pixels
  * @param[in] heigth height of the Window Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_window_new(const wchar_t* name, 
-    uint offsetX, uint offsetY, uint width, uint height);
+    uint offset_x, uint offset_y, uint width, uint height);
 
 /**
  * @brief Gets the current "force-aspect-ration" property setting for the 
@@ -3102,7 +3103,44 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
+
+/**
+ * @brief returns the current X and Y offsets for the Render Sink
+ * @param[in] name name of the Render Sink to query - of type Overlay or Window
+ * @param[out] offset_x current offset in the X direction for the Render Sink in pixels
+ * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y);
+
+/**
+ * @brief sets the X and Y offsets for the On-Screen-Display clock
+ * @param[in] name name of the Render Sink to update - of type Overlay or Window
+ * @param[in] offset_x new offset for the Render Sink in the X direction in pixels
+ * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, uint offset_x, uint offset_y);
     
+/**
+ * @brief Returns the dimensions, width and height, in use by the Render Sink
+ * The Render Sink can be of type Window Sink or Overlay Sink
+ * @param[in] name name of the Record Sink to query
+ * @param[out] width current width of the video recording in pixels
+ * @param[out] height current height of the video recording in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensions, width and height, for the Render Sink
+ * @param[in] name name of the Record Sink to update
+ * @param[in] width width to set the video recording in pixels
+ * @param[in] height height to set the video in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, uint height);
+
 /**
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink

@@ -416,6 +416,13 @@ namespace DSL
         
         return true;
     }
+
+	Window PipelineXWinMgr::GetXWindow()
+    {
+        LOG_FUNC();
+        
+        return m_pXWindow;
+    }
     
 	bool PipelineXWinMgr::SetXWindow(Window xWindow)
 	{

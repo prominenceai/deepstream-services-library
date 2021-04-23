@@ -161,6 +161,17 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(OverlaySinkBintr)) and \
+        !components[name]->IsType(typeid(WindowSinkBintr)))\
+    { \
+        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK; \
+    } \
+}while(0); 
+
+
 #define RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -6669,13 +6680,6 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-//            if (m_components[name]->IsInUse())
-//            {
-//                LOG_ERROR("Unable to set The clock offsets for the OSD '" << name 
-//                    << "' as it's currently in use");
-//                return DSL_RESULT_OSD_IS_IN_USE;
-//            }
-
             DSL_OSD_PTR osdBintr = 
                 std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
 
@@ -7014,6 +7018,107 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            pRenderSink->GetOffsets(offsetX, offsetY);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to set offsets");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception setting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderDimensionsGet(const char* name, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            pRenderSink->GetDimensions(width, height);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderDimensionsSet(const char* name, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+
+            DSL_RENDER_SINK_PTR pRenderSink = 
+                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+
+            if (!pRenderSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Render Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Sink '" << name << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
@@ -9574,6 +9679,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
+        m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED] = L"DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_HANDLER_ADD_FAILED] = L"DSL_RESULT_SINK_HANDLER_ADD_FAILED";

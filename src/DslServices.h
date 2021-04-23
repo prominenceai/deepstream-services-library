@@ -581,6 +581,14 @@ namespace DSL {
 
         DslReturnType SinkWindowForceAspectRationSet(const char* name, 
             boolean force);
+            
+        DslReturnType SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+        
+        DslReturnType SinkRenderDimensionsGet(const char* name, uint* width, uint* height);
+
+        DslReturnType SinkRenderDimensionsSet(const char* name, uint width, uint height);
 
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint muxer, uint bit_rate, uint interval);

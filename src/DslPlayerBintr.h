@@ -42,14 +42,37 @@ namespace DSL
     #define DSL_PLAYER_BINTR_PTR std::shared_ptr<PlayerBintr>
     #define DSL_PLAYER_BINTR_NEW(name, pSource, pSink) \
         std::shared_ptr<PlayerBintr>(new PlayerBintr(name, pSource, pSink))    
+
+    #define DSL_PLAYER_RENDERER_BINTR_PTR std::shared_ptr<RendererPlayerBintr>
+
+    #define DSL_PLAYER_RENDERER_VIDEO_BINTR_PTR std::shared_ptr<FileRendererPlayerBintr>
+    #define DSL_PLAYER_RENDERER_VIDEO_BINTR_NEW(name, \
+        filePath, renderType, zoom, repeatEnabled) \
+        std::shared_ptr<FileRendererPlayerBintr>(new FileRendererPlayerBintr(name, \
+            filePath, renderType, zoom, repeatEnabled))    
+
+    #define DSL_PLAYER_RENDERER_IMAGE_BINTR_PTR std::shared_ptr<ImageRendererPlayerBintr>
+    #define DSL_PLAYER_RENDERER_IMAGE_BINTR_NEW(name, \
+        filePath, renderType, zoom, timeout) \
+        std::shared_ptr<ImageRendererPlayerBintr>(new ImageRendererPlayerBintr(name, \
+            filePath, renderType, zoom, timeout))    
     
     class PlayerBintr : public Bintr, public PipelineStateMgr,
         public PipelineXWinMgr
     {
     public: 
     
+        /**
+         * @brief ctor for the PlayerBintr class
+         * @return 
+         */
         PlayerBintr(const char* name, 
             DSL_SOURCE_PTR pSource, DSL_SINK_PTR pSink);
+
+        /**
+         * @brief ctor2 allows for derived classes to mange their Source/Sink
+         */
+        PlayerBintr(const char* name);
 
         ~PlayerBintr();
 
@@ -147,6 +170,54 @@ namespace DSL
          */
         DSL_SINK_PTR m_pSink;
 
+    };
+
+    /**
+     * @class RendererPlayerBintr
+     * @file DslPlayerBintr.h
+     * @brief Implements a PlayerBintr with a FileSourceBintr or ImageSourceBintr
+     * and OverlaySink or WindowSinkBintr
+     */
+    class RendererPlayerBintr : public PlayerBintr
+    {
+    public: 
+    
+        RendererPlayerBintr(const char* name,
+            uint renderType, uint zoom);
+
+        ~RendererPlayerBintr();
+    };
+
+    /**
+     * @class FileRendererPlayerBintr
+     * @file DslPlayerBintr.h
+     * @brief Implements a PlayerBintr with a FileSourceBintr
+     * and OverlaySink or WindowSinkBintr
+     */
+    class FileRendererPlayerBintr : public RendererPlayerBintr
+    {
+    public: 
+    
+        FileRendererPlayerBintr(const char* name, 
+            const char* filepath, uint renderType, uint zoom, bool repeatEnabled);
+
+        ~FileRendererPlayerBintr();
+    };
+
+    /**
+     * @class ImageRendererPlayerBintr
+     * @file DslPlayerBintr.h
+     * @brief Implements a PlayerBintr with an ImageSourceBintr
+     * and OverlaySink or WindowSinkBintr
+     */
+    class ImageRendererPlayerBintr : public RendererPlayerBintr
+    {
+    public: 
+    
+        ImageRendererPlayerBintr(const char* name, 
+            const char* filepath, uint renderType, uint zoom, bool repeatEnabled);
+
+        ~ImageRendererPlayerBintr();
     };
 
     /**

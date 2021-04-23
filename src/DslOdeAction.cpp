@@ -378,7 +378,7 @@ namespace DSL
             std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
             m_imageMats.pop();
             
-            char dateTime[30] = {0};
+            char dateTime[64] = {0};
             time_t seconds = time(NULL);
             struct tm currentTm;
             localtime_r(&seconds, &currentTm);
@@ -407,8 +407,9 @@ namespace DSL
 
                 info.captureId = s_captureId;
                 
+                std::string fileName = fileNameStream.str();
                 // convert the filename and dirpath to wchar string types (client format)
-                std::wstring wstrFilename(fileNameStream.str().begin(), fileNameStream.str().end());
+                std::wstring wstrFilename(fileName.begin(), fileName.end());
                 std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
                
                 info.dirpath = wstrDirpath.c_str();

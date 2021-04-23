@@ -150,12 +150,7 @@ namespace DSL
          * @brief returns a handle to this PipelineBintr's XWindow
          * @return XWindow handle, NULL untill created
          */
-        Window GetXWindow()
-        {
-            LOG_FUNC();
-            
-            return m_pXWindow;
-        }
+        Window GetXWindow();
 		
 		/**
 		 * @brief Sets the PipelineBintr's XWindow handle. The Pipeline
