@@ -391,8 +391,8 @@ DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* nam
         OdeActionCaptureCompleteListenerRemove(cstrName.c_str(), listener);
 }
     
-DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint offsetY, 
-    boolean offsetY_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offset_x, uint offset_y, 
+    boolean offset_y_with_classId, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -411,7 +411,7 @@ DslReturnType dsl_ode_action_display_new(const wchar_t* name, uint offsetX, uint
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
     return DSL::Services::GetServices()->OdeActionDisplayNew(cstrName.c_str(),
-        offsetX, offsetY, offsetY_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+        offset_x, offset_y, offset_y_with_classId, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_ode_action_handler_disable_new(const wchar_t* name, const wchar_t* handler)
@@ -2781,24 +2781,24 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OsdClockEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offsetX, uint* offsetY)
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offsetX, offsetY);
+    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offset_x, offset_y);
 }
 
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY)
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offsetX, offsetY);
+    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offset_x, offset_y);
 }
 
 DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size)
@@ -3233,7 +3233,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
 }
 
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
-    uint depth, uint offsetX, uint offsetY, uint width, uint height)
+    uint depth, uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -3241,11 +3241,11 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint di
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), overlay_id, 
-        display_id, depth, offsetX, offsetY, width, height);
+        display_id, depth, offset_x, offset_y, width, height);
 }
 
 DslReturnType dsl_sink_window_new(const wchar_t* name,
-    uint offsetX, uint offsetY, uint width, uint height)
+    uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -3253,7 +3253,7 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->SinkWindowNew(cstrName.c_str(), 
-        offsetX, offsetY, width, height);
+        offset_x, offset_y, width, height);
 }
 
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
@@ -3279,6 +3279,46 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->SinkWindowForceAspectRationSet(cstrName.c_str(), 
         force);
+}
+
+DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderOffsetsGet(cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, uint offset_x, uint offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderOffsetsSet(cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderDimensionsGet(cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderDimensionsSet(cstrName.c_str(), width, height);
 }
 
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 

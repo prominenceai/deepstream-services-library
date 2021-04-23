@@ -86,13 +86,13 @@ def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Complete  *** ')
     
     session_info = session_info_ptr.contents
-    print('session_id:    ', session_info.session_id)
-    print('filename:      ', session_info.filename)
-    print('dirpath:       ', session_info.dirpath)
-    print('duration:      ', session_info.duration)
-    print('containerType: ', session_info.containerType)
-    print('width:         ', session_info.width)
-    print('height:        ', session_info.height)
+    print('session_id: ', session_info.session_id)
+    print('filename:   ', session_info.filename)
+    print('dirpath:    ', session_info.dirpath)
+    print('duration:   ', session_info.duration)
+    print('container:  ', session_info.container_type)
+    print('width:      ', session_info.width)
+    print('height:     ', session_info.height)
     
     retval, is_on = dsl_sink_record_is_on_get('record-sink')
     print('        is_on flag = ', is_on)

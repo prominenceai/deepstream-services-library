@@ -48,6 +48,8 @@ namespace DSL
         std::shared_ptr<MeterSinkBintr>( \
         new MeterSinkBintr(name, interval, clientListener, clientData))
 
+    #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
+
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
     #define DSL_OVERLAY_SINK_NEW(name, overlayId, displayId, depth, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
@@ -164,7 +166,74 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class OverlaySinkBintr : public SinkBintr
+    class RenderSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        RenderSinkBintr(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height, bool sync, bool async);
+
+        ~RenderSinkBintr();
+        
+        /**
+         * @brief Gets the current X and Y offset settings for this OverlaySinkBintr
+         * @param[out] offsetX the current offset in the X direction in pixels
+         * @param[out] offsetY the current offset in the Y direction setting in pixels
+         */ 
+        void GetOffsets(uint* offsetX, uint* offsetY);
+
+        /**
+         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] offsetX the offset in the X direct to set in pixels
+         * @param[in] offsetY the offset in the Y direct to set in pixels
+         * @return false if the OverlaySink is currently in Use. True otherwise
+         */ 
+        virtual bool SetOffsets(uint offsetX, uint offsetY) = 0;
+
+        /**
+         * @brief Gets the current width and height settings for this WindowSinkBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the current width and height settings for this SinkBintr
+         * The caller is required to provide valid width and height values
+         * @param[in] width the width value to set in pixels
+         * @param[in] height the height value to set in pixels
+         * @return false if the sink is currently Linked. True otherwise
+         */ 
+        virtual bool SetDimensions(uint width, uint hieght) = 0;
+        
+
+    protected:
+
+        /**
+         * @brief offset from the left edge in uints of pixels
+         */
+        uint m_offsetX;
+
+        /**
+         * @brief offset from the top edge in uints of pixels
+         */
+        uint m_offsetY;
+
+        /**
+         * @brief Width property for the SinkBintr in uints of pixels
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the SinkBintr in uints of pixels
+         */
+        uint m_height;
+    };
+    
+    //-------------------------------------------------------------------------
+
+    class OverlaySinkBintr : public RenderSinkBintr
     {
     public: 
     
@@ -190,13 +259,6 @@ namespace DSL
         bool SetDisplayId(int id);
 
         /**
-         * @brief Gets the current X and Y offset settings for this OverlaySinkBintr
-         * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction setting in pixels
-         */ 
-        void GetOffsets(uint* offsetX, uint* offsetY);
-
-        /**
          * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direct to set in pixels
@@ -204,13 +266,6 @@ namespace DSL
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Gets the current width and height settings for this OverlaySinkBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this OverlaySinkBintr
@@ -235,10 +290,6 @@ namespace DSL
         uint m_overlayId;
         uint m_displayId;
         uint m_uniqueId;
-        uint m_offsetX;
-        uint m_offsetY;
-        uint m_width;
-        uint m_height;
         uint m_depth;
 
         DSL_ELEMENT_PTR m_pOverlay;
@@ -246,7 +297,7 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class WindowSinkBintr : public SinkBintr
+    class WindowSinkBintr : public RenderSinkBintr
     {
     public: 
     
@@ -267,13 +318,6 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the current X and Y offset settings for this WindowSinkBintr
-         * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction setting in pixels
-         */ 
-        void GetOffsets(uint* offsetX, uint* offsetY);
-
-        /**
          * @brief Sets the current X and Y offset settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direction to set in pixels
@@ -281,13 +325,6 @@ namespace DSL
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Gets the current width and height settings for this WindowSinkBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
@@ -329,10 +366,6 @@ namespace DSL
         void Reset();
 
         boolean m_qos;
-        uint m_offsetX;
-        uint m_offsetY;
-        uint m_width;
-        uint m_height;
         bool m_forceAspectRatio;
 
         DSL_ELEMENT_PTR m_pTransform;
@@ -364,7 +397,7 @@ namespace DSL
 
         /**
          * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] bitRate the new bit-rate setting in units of bits/sec
+         * @param[in] bitRate the new bit-rate setting in uints of bits/sec
          * @param[in] interval the new iframe-interval setting
          * @return false if the FileSink is currently in Use. True otherwise
          */ 
@@ -507,7 +540,7 @@ namespace DSL
 
         /**
          * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] bitRate the new bit-rate setting in units of bits/sec
+         * @param[in] bitRate the new bit-rate setting in uints of bits/sec
          * @param[in] interval the new iframe-interval setting
          * @return false if the FileSink is currently in Use. True otherwise
          */ 

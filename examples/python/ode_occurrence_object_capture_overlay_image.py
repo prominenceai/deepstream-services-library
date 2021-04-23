@@ -51,6 +51,8 @@ WINDOW_HEIGHT = 720
 INCLUSION_AREA = 0
 EXCLUSION_AREA = 1
 
+g_capture_instance = 0
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -84,6 +86,100 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+
+## 	
+# Objects of this class will be used as "client_data" for the 
+# player_termination_event_listener() callback below.	
+# defines a class of all component names associated with a single RTSP Source. 	
+# The names are derived from the unique Source name	
+##	
+class PlayerComponents:	
+    def __init__(self, suffix):
+        self.player = 'player-' + suffix
+        self.source = 'source-' + suffix
+        self.sink = 'sink-' + suffix
+
+## 
+# Function to be called on Player termination event
+## 
+def player_termination_event_listener(client_data):
+    print(' ***  Display Image Complete  *** ')
+
+    # cast the C void* client_data back to a py_object pointer and deref	
+    playerComponents = cast(client_data, POINTER(py_object)).contents.value	
+
+    # delete the player and its two components
+    dsl_player_delete(playerComponents.player)
+#    dsl_component_delete_many(components=[
+#        playerComponents.source, playerComponents.sink, None])
+
+    # reset the Trigger so that a new image can be captured.
+    print(dsl_return_value_to_string(dsl_ode_trigger_reset('person-enter-area-trigger')))
+
+
+def capture_complete_listener(capture_info_ptr, client_data):
+    print(' ***  Object Capture Complete  *** ')
+    
+    global g_capture_instance
+    g_capture_instance += 1
+    
+    capture_info = capture_info_ptr.contents
+    print('capture_id: ', capture_info.capture_id)
+    print('filename:   ', capture_info.filename)
+    print('dirpath:    ', capture_info.dirpath)
+    print('width:      ', capture_info.width)
+    print('height:     ', capture_info.height)
+
+    # Create the unique player component names for this capture instance
+    playerComponents = PlayerComponents(str(g_capture_instance))
+    
+    print(playerComponents.source)
+
+    # New Image Source using the dirpath and filename
+    
+    retval = dsl_source_image_new(
+        name = playerComponents.source, 
+        file_path = capture_info.dirpath + '/' + capture_info.filename, 
+        is_live = False,
+        fps_n = 10,
+        fps_d = 1,
+        timeout = 5)
+    if retval != DSL_RETURN_SUCCESS:
+        return
+    
+    # New Overlay Sink
+    retval = dsl_sink_overlay_new(
+        name = playerComponents.sink, 
+        overlay_id = 1, 
+        display_id = 0, 
+        depth = 0,
+        offset_x = 50, 
+        offset_y = 50, 
+        width = capture_info.width*2, 
+        height = capture_info.height*2)
+    if retval != DSL_RETURN_SUCCESS:
+        return
+
+    # New Media Player using the File Source and Window Sink
+    retval = dsl_player_new(
+        name = playerComponents.player,
+        source = playerComponents.source, 
+        sink = playerComponents.sink)
+    if retval != DSL_RETURN_SUCCESS:
+        return
+
+    # Add the Termination listener callback to the Player
+    # Pass the playerComponents (i.e. names) as client data
+    retval = dsl_player_termination_event_listener_add(playerComponents.player,
+        client_listener=player_termination_event_listener, client_data=playerComponents)
+    if retval != DSL_RETURN_SUCCESS:
+        return
+
+    # Play the Player until end-of-stream (EOS)
+    retval = dsl_player_play(playerComponents.player)
+    if retval != DSL_RETURN_SUCCESS:
+        return
+    
 
 def main(args):
 
@@ -143,19 +239,52 @@ def main(args):
             if retval != DSL_RETURN_SUCCESS:
                 break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        # New Occurrence Trigger, filtering on PERSON class_id, 
+        # and with no limit on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-in-area-trigger',
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_trigger_area_add('person-occurrence-trigger', area='polygon-area')
+        retval = dsl_ode_trigger_area_add('person-in-area-trigger', area='polygon-area')
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        retval = dsl_ode_trigger_action_add('person-occurrence-trigger', action='fill-action')
+        retval = dsl_ode_trigger_action_add('person-in-area-trigger', action='fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
+
+
+        # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
+        # with a limit of one which will be reset in the capture-complete callback
+        retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
+            source = DSL_ODE_ANY_SOURCE,
+            class_id = PGIE_CLASS_ID_PERSON, 
+            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Using the same Inclusion area as the New Occurrence Trigger
+        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Capture Action to capture the object to jpeg image, and save to file. 
+        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Add the capture complete listener function to the action
+        retval = dsl_ode_action_capture_complete_listener_add('person-capture-action', 
+            capture_complete_listener, None)
+
+        retval = dsl_ode_trigger_action_add('person-enter-area-trigger', 
+            action='person-capture-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         
@@ -163,8 +292,11 @@ def main(args):
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
-            triggers=['any-occurrence-trigger', 'person-occurrence-trigger', None])
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
+            'any-occurrence-trigger', 
+            'person-in-area-trigger', 
+            'person-enter-area-trigger',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
         

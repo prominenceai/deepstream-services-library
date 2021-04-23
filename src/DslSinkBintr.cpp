@@ -29,7 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    SinkBintr::SinkBintr(const char* name, bool sync, bool async)
+    SinkBintr::SinkBintr(const char* name, 
+        bool sync, bool async)
         : Bintr(name)
         , m_sync(sync)
         , m_async(async)
@@ -162,20 +163,50 @@ namespace DSL
         
         return true;
     }
+
+    //-------------------------------------------------------------------------
+
+    RenderSinkBintr::RenderSinkBintr(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height, bool sync, bool async)
+        : SinkBintr(name, sync, async)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetY)
+        , m_width(width)
+        , m_height(height)
+    {
+        LOG_FUNC();
+    };
+
+    RenderSinkBintr::~RenderSinkBintr()
+    {
+        LOG_FUNC();
+    };
+
+    void  RenderSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        
+        *offsetX = m_offsetX;
+        *offsetY = m_offsetY;
+    }
+
+    void RenderSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
     
     //-------------------------------------------------------------------------
 
     OverlaySinkBintr::OverlaySinkBintr(const char* name, uint overlayId, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : SinkBintr(name, true, false) // sync, async
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false) // sync, async
         , m_qos(FALSE)
         , m_overlayId(overlayId)
         , m_displayId(displayId)
         , m_depth(depth)
-        , m_offsetX(offsetX)
-        , m_offsetY(offsetY)
-        , m_width(width)
-        , m_height(height)
     {
         LOG_FUNC();
         
@@ -254,14 +285,6 @@ namespace DSL
         return true;
     }
     
-    void  OverlaySinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-    
     bool OverlaySinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
@@ -280,14 +303,6 @@ namespace DSL
         m_pOverlay->SetAttribute("overlay-y", m_offsetY);
         
         return true;
-    }
-
-    void OverlaySinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
     }
 
     bool OverlaySinkBintr::SetDimensions(uint width, uint height)
@@ -331,14 +346,10 @@ namespace DSL
     
     //-------------------------------------------------------------------------
 
-    WindowSinkBintr::WindowSinkBintr(const char* name, guint offsetX, guint offsetY, 
-        guint width, guint height)
-        : SinkBintr(name, true, false)
+    WindowSinkBintr::WindowSinkBintr(const char* name, 
+        guint offsetX, guint offsetY, guint width, guint height)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false)
         , m_qos(false)
-        , m_offsetX(offsetX)
-        , m_offsetY(offsetY)
-        , m_width(width)
-        , m_height(height)
         , m_forceAspectRatio(false)
     {
         LOG_FUNC();
@@ -436,14 +447,6 @@ namespace DSL
         AddChild(m_pEglGles);
     }
     
-    void  WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-    
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
@@ -462,14 +465,6 @@ namespace DSL
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         
         return true;
-    }
-
-    void WindowSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
     }
 
     bool WindowSinkBintr::SetDimensions(uint width, uint height)
