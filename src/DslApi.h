@@ -480,6 +480,12 @@ THE SOFTWARE.
 
 #define DSL_SMTP_MAX_PENDING_MESSAGES                               10
 
+/**
+ * @brief Sink Types for Render Players
+ */
+#define DSL_RENDER_TYPE_OVERLAY                                     0
+#define DSL_RENDER_TYPE_WINDOW                                      1
+
 EXTERN_C_BEGIN
 
 typedef uint DslReturnType;
@@ -3070,7 +3076,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
  * @param[in] heigth height of the Overlay Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
     uint depth, uint offset_x, uint offset_y, uint width, uint height);
 
 /**

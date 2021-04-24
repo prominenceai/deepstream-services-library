@@ -2522,11 +2522,11 @@ def dsl_sink_fake_new(name):
 ##
 ## dsl_sink_overlay_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, overlay_id, display_id, depth, offset_x, offset_y, width, height):
+def dsl_sink_overlay_new(name, display_id, depth, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, overlay_id, display_id, depth, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_overlay_new(name, display_id, depth, offset_x, offset_y, width, height)
     return int(result)
 
 ##

@@ -45,7 +45,6 @@ SCENARIO( "A New PlayerBintr is created correctly", "[PlayerBintr]" )
         fullFilePath.insert(0, "file:");
 
         std::string overlaySinkName("overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -57,7 +56,7 @@ SCENARIO( "A New PlayerBintr is created correctly", "[PlayerBintr]" )
             sourceName.c_str(), filePath.c_str(), false);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), displayId, 
                 depth, offsetX, offsetY, sinkW, sinkH);
 
         WHEN( "The new PlayerBintr is created" )
@@ -90,7 +89,6 @@ SCENARIO( "A New PlayerBintr can Link its Child Bintrs correctly", "[PlayerBintr
         fullFilePath.insert(0, "file:");
 
         std::string overlaySinkName("overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -102,7 +100,7 @@ SCENARIO( "A New PlayerBintr can Link its Child Bintrs correctly", "[PlayerBintr
             sourceName.c_str(), filePath.c_str(), false);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), displayId, 
                 depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
@@ -135,7 +133,6 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
         fullFilePath.insert(0, "file:");
 
         std::string overlaySinkName("overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -147,7 +144,7 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
             sourceName.c_str(), filePath.c_str(), false);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), displayId, 
                 depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
@@ -181,7 +178,6 @@ SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[PlayerBintr]" )
         fullFilePath.insert(0, "file:");
 
         std::string overlaySinkName("overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -195,7 +191,7 @@ SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[PlayerBintr]" )
             sourceName.c_str(), filePath.c_str(), false);
 
         DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
-            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), displayId, 
                 depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
@@ -227,7 +223,6 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play
         std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
 
         std::string overlaySinkName("overlay-sink");
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(100);
@@ -245,7 +240,7 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play
         pSourceBintr->GetDimensions(&sinkW, &sinkH);
         
         DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
-            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), overlayId, displayId, 
+            DSL_OVERLAY_SINK_NEW(overlaySinkName.c_str(), displayId, 
                 depth, offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 

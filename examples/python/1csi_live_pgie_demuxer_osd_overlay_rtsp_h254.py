@@ -56,7 +56,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 100, 100, 1280, 720)
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 

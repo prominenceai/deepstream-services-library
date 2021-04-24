@@ -196,7 +196,7 @@ def main(args):
         # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
         
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 1, 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

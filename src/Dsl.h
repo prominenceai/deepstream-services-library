@@ -38,7 +38,8 @@ THE SOFTWARE.
 #include <iostream> 
 #include <sstream>
 #include <vector>
-#include <map> 
+#include <map>
+#include <list> 
 #include <memory> 
 #include <math.h>
 #include <fstream>

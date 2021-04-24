@@ -43,18 +43,18 @@ namespace DSL
     #define DSL_PLAYER_BINTR_NEW(name, pSource, pSink) \
         std::shared_ptr<PlayerBintr>(new PlayerBintr(name, pSource, pSink))    
 
-    #define DSL_PLAYER_RENDERER_BINTR_PTR std::shared_ptr<RendererPlayerBintr>
+    #define DSL_PLAYER_RENDER_BINTR_PTR std::shared_ptr<RenderPlayerBintr>
 
-    #define DSL_PLAYER_RENDERER_VIDEO_BINTR_PTR std::shared_ptr<FileRendererPlayerBintr>
-    #define DSL_PLAYER_RENDERER_VIDEO_BINTR_NEW(name, \
+    #define DSL_PLAYER_RENDER_VIDEO_BINTR_PTR std::shared_ptr<FileRenderPlayerBintr>
+    #define DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(name, \
         filePath, renderType, zoom, repeatEnabled) \
-        std::shared_ptr<FileRendererPlayerBintr>(new FileRendererPlayerBintr(name, \
+        std::shared_ptr<FileRenderPlayerBintr>(new FileRenderPlayerBintr(name, \
             filePath, renderType, zoom, repeatEnabled))    
 
-    #define DSL_PLAYER_RENDERER_IMAGE_BINTR_PTR std::shared_ptr<ImageRendererPlayerBintr>
-    #define DSL_PLAYER_RENDERER_IMAGE_BINTR_NEW(name, \
+    #define DSL_PLAYER_RENDER_IMAGE_BINTR_PTR std::shared_ptr<ImageRenderPlayerBintr>
+    #define DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(name, \
         filePath, renderType, zoom, timeout) \
-        std::shared_ptr<ImageRendererPlayerBintr>(new ImageRendererPlayerBintr(name, \
+        std::shared_ptr<ImageRenderPlayerBintr>(new ImageRenderPlayerBintr(name, \
             filePath, renderType, zoom, timeout))    
     
     class PlayerBintr : public Bintr, public PipelineStateMgr,
@@ -138,7 +138,18 @@ namespace DSL
          * @return true on successful remove, false otherwise
          */
         bool RemoveTerminationEventListener(dsl_player_termination_event_listener_cb listener);
+
+    protected:
+        /**
+         * @brief shared pointer to the Player's child URI Source
+         */
+        DSL_SOURCE_PTR m_pSource;
         
+        /**
+         * @brief shared pointer to the Player's child Overlay Sink
+         */
+        DSL_SINK_PTR m_pSink;
+    
     private:
 
         /**
@@ -159,65 +170,105 @@ namespace DSL
          * callback functions mapped with the user provided data
          */
         std::map<dsl_player_termination_event_listener_cb, void*>m_terminationEventListeners;
-        
-        /**
-         * @brief shared pointer to the Player's child URI Source
-         */
-        DSL_SOURCE_PTR m_pSource;
-        
-        /**
-         * @brief shared pointer to the Player's child Overlay Sink
-         */
-        DSL_SINK_PTR m_pSink;
 
     };
 
     /**
-     * @class RendererPlayerBintr
+     * @class RenderPlayerBintr
      * @file DslPlayerBintr.h
      * @brief Implements a PlayerBintr with a FileSourceBintr or ImageSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
-    class RendererPlayerBintr : public PlayerBintr
+    class RenderPlayerBintr : public PlayerBintr
     {
     public: 
     
-        RendererPlayerBintr(const char* name,
-            uint renderType, uint zoom);
+        RenderPlayerBintr(const char* name, uint renderType, 
+            uint offsetX, uint offsetY, uint zoom);
 
-        ~RendererPlayerBintr();
+        ~RenderPlayerBintr();
+        
+        /**
+         * @breif creates the sink once the Source has been created and the 
+         * dimensions have been determined and saved to the member variables.
+         */
+        bool CreateSink();
+
+        static const uint m_displayId;
+        static const uint m_depth;
+        
+    protected:
+
+        /**
+         * @brief Sink Type, either DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+         */
+        uint m_renderType;
+        
+        /**
+         * @brief zoom factor in units of %
+         */
+        uint m_zoom;
+        
+        /**
+         * @brief offset of the Image or Stream in the X direction
+         */
+        uint m_offsetX;
+
+        /**
+         * @brief offset of the Image or Stream in the Y direction
+         */
+        uint m_offsetY;
+    
+        /**
+         * @brief width of the Image or Stream
+         */
+        uint m_width;
+
+        /**
+         * @brief height of the Image or Stream
+         */
+        uint m_height;
+        
     };
 
     /**
-     * @class FileRendererPlayerBintr
+     * @class FileRenderPlayerBintr
      * @file DslPlayerBintr.h
      * @brief Implements a PlayerBintr with a FileSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
-    class FileRendererPlayerBintr : public RendererPlayerBintr
+    class FileRenderPlayerBintr : public RenderPlayerBintr
     {
     public: 
     
-        FileRendererPlayerBintr(const char* name, 
-            const char* filepath, uint renderType, uint zoom, bool repeatEnabled);
+        FileRenderPlayerBintr(const char* name, const char* uri, 
+            uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled);
 
-        ~FileRendererPlayerBintr();
+        ~FileRenderPlayerBintr();
+        
+    private:
+        
+        bool m_repeatEnabled;
     };
 
     /**
-     * @class ImageRendererPlayerBintr
+     * @class ImageRenderPlayerBintr
      * @file DslPlayerBintr.h
      * @brief Implements a PlayerBintr with an ImageSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
-    class ImageRendererPlayerBintr : public RendererPlayerBintr
+    class ImageRenderPlayerBintr : public RenderPlayerBintr
     {
     public: 
     
-        ImageRendererPlayerBintr(const char* name, 
-            const char* filepath, uint renderType, uint zoom, bool repeatEnabled);
+        ImageRenderPlayerBintr(const char* name, const char* uri, 
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
 
-        ~ImageRendererPlayerBintr();
+        ~ImageRenderPlayerBintr();
+        
+    private:
+    
+        uint m_timeout;
     };
 
     /**

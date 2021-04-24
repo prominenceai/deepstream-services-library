@@ -51,9 +51,9 @@ namespace DSL
     #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(name, overlayId, displayId, depth, offsetX, offsetY, width, height) \
+    #define DSL_OVERLAY_SINK_NEW(name, displayId, depth, offsetX, offsetY, width, height) \
         std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(name, overlayId, displayId, depth, offsetX, offsetY, width, height))
+        new OverlaySinkBintr(name, displayId, depth, offsetX, offsetY, width, height))
 
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
     #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
@@ -237,7 +237,7 @@ namespace DSL
     {
     public: 
     
-        OverlaySinkBintr(const char* name, uint overlayId, uint displayId, uint depth, 
+        OverlaySinkBintr(const char* name, uint displayId, uint depth, 
             uint offsetX, uint offsetY, uint width, uint height);
 
         ~OverlaySinkBintr();
@@ -284,10 +284,17 @@ namespace DSL
          */
         bool SetSyncSettings(bool sync, bool async);
         
+
+        /**
+         * @brief static list of unique Overlay IDs to be used/recycled by all
+         * Overlay Sinks cto/dtor
+         */
+        static std::list<uint> s_uniqueIds;
+        
     private:
 
         boolean m_qos;
-        uint m_overlayId;
+        
         uint m_displayId;
         uint m_uniqueId;
         uint m_depth;

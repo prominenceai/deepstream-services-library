@@ -198,21 +198,29 @@ namespace DSL
         *height = m_height;
     }
     
+    std::list<uint> OverlaySinkBintr::s_uniqueIds;
     //-------------------------------------------------------------------------
 
-    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint overlayId, uint displayId, 
+    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
         : RenderSinkBintr(name, offsetX, offsetY, width, height, true, false) // sync, async
         , m_qos(FALSE)
-        , m_overlayId(overlayId)
         , m_displayId(displayId)
         , m_depth(depth)
+        , m_uniqueId(1)
     {
         LOG_FUNC();
         
+        // Find the first available unique Id
+        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
+        {
+            m_uniqueId++;
+        }
+        s_uniqueIds.push_back(m_uniqueId);
+        
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
 
-        m_pOverlay->SetAttribute("overlay", m_overlayId);
+        m_pOverlay->SetAttribute("overlay", m_uniqueId);
         m_pOverlay->SetAttribute("display-id", m_displayId);
         m_pOverlay->SetAttribute("max-lateness", -1);
         m_pOverlay->SetAttribute("sync", m_sync);
@@ -229,6 +237,9 @@ namespace DSL
     OverlaySinkBintr::~OverlaySinkBintr()
     {
         LOG_FUNC();
+        
+        s_uniqueIds.remove(m_uniqueId);
+        
     }
 
     bool OverlaySinkBintr::LinkAll()

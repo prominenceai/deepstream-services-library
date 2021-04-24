@@ -6908,7 +6908,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkOverlayNew(const char* name, uint overlay_id, uint display_id,
+    DslReturnType Services::SinkOverlayNew(const char* name, uint display_id,
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -6923,7 +6923,7 @@ namespace DSL
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_OVERLAY_SINK_NEW(
-                name, overlay_id, display_id, depth, offsetX, offsetY, width, height);
+                name, display_id, depth, offsetX, offsetY, width, height);
 
             LOG_INFO("New Overlay Sink '" << name << "' created successfully");
 
