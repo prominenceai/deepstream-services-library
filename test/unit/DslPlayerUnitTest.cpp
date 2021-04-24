@@ -75,6 +75,7 @@ SCENARIO( "A New PlayerBintr is created correctly", "[PlayerBintr]" )
     }
 }
 
+
 SCENARIO( "A New PlayerBintr can Link its Child Bintrs correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new PlayerBintr with URI Source and Overlay Sink" ) 
@@ -164,7 +165,7 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
     }
 }
 
-SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New PlayerBintr with a File Source and Overlay Sink can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new name for a PipelineBintr" ) 
     {
@@ -213,9 +214,54 @@ SCENARIO( "A New PlayerBintr can Play and Stop correctly", "[PlayerBintr]" )
     }
 }
 
+SCENARIO( "A New PlayerBintr with a File Source and Window Sink can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new name for a PipelineBintr" ) 
+    {
+        std::string playerName = "player";
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        
+        char absolutePath[PATH_MAX+1];
+        std::string fullFilePath = realpath(filePath.c_str(), absolutePath);
+        fullFilePath.insert(0, "file:");
+
+        std::string overlaySinkName("overlay-sink");
+        uint displayId(0);
+        uint depth(0);
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+        
+        std::string windowSinkName("window-sink");
+
+        DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false);
+
+        DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+            DSL_WINDOW_SINK_NEW(windowSinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        DSL_PLAYER_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pWindowSinkBintr);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
 SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
-    GIVEN( "A new PipelineBintr" ) 
+    GIVEN( "A new PlayerBintr" ) 
     {
         std::string playerName = "player";
 
@@ -229,8 +275,6 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and OverlaySinkBintr can Play
         uint offsetY(140);
         uint sinkW(0);
         uint sinkH(0);
-        
-        std::string windowSinkName("window-sink");
 
 
         DSL_IMAGE_SOURCE_PTR pSourceBintr = DSL_IMAGE_SOURCE_NEW(
@@ -285,6 +329,124 @@ SCENARIO( "A New PlayerBintr with ImageSourceBintr and WindowSinkBintr can Play 
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr with OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new PipelineBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(200);
+        uint timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New ImageRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new PipelineBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        uint timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New FileRenderPlayerBintr with OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new FileRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        uint offsetX(400);
+        uint offsetY(200);
+        uint zoom(50);
+        bool repeatEnabled(0);
+
+        DSL_PLAYER_RENDER_FILE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_FILE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled);
+
+        WHEN( "The new PlayerBintr is set to a state of PLAYING" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            
+            THEN( "The PlayerBintr can be set back to a state of NULL" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A New FileRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new FileRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        int timeout(0);
+
+        DSL_PLAYER_RENDER_FILE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_FILE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )
         {

@@ -856,12 +856,6 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
         m_pSourceCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "source-caps-filter");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
-        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "video-converter");
-        m_pConverterCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "converter-caps-filter");
-
-        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
-        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
 
         if (!SetUri(uri))
         {
@@ -873,11 +867,9 @@ namespace DSL
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
-        AddChild(m_pConverter);
-        AddChild(m_pConverterCapsFilter);
         
         // Source Ghost Pad for ImageSourceBintr
-        m_pConverterCapsFilter->AddGhostPadToParent("src");
+        m_pImageOverlay->AddGhostPadToParent("src");
 
         g_mutex_init(&m_timeoutTimerMutex);
     }
@@ -903,9 +895,7 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
-            !m_pImageOverlay->LinkToSink(m_pConverter) or
-            !m_pConverter->LinkToSink(m_pConverterCapsFilter))
+            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -938,9 +928,7 @@ namespace DSL
         }
         
         if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pSourceCapsFilter->UnlinkFromSink() or
-            !m_pImageOverlay->UnlinkFromSink() or
-            !m_pConverter->UnlinkFromSink())
+            !m_pSourceCapsFilter->UnlinkFromSink())
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;

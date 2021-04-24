@@ -42,7 +42,19 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "queue");
+        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "video-converter");
+        m_pConverterCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "converter-caps-filter");
+
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
+        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
         g_mutex_init(&m_asyncCommMutex);
+        
+        AddChild(m_pQueue);
+        AddChild(m_pConverter);
+        AddChild(m_pConverterCapsFilter);
         
         if (!AddChild(m_pSource))
         {
@@ -68,7 +80,19 @@ namespace DSL
     {
         LOG_FUNC();
 
+        m_pQueue = DSL_ELEMENT_NEW(NVDS_ELEM_QUEUE, "queue");
+        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "video-converter");
+        m_pConverterCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "converter-caps-filter");
+
+        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
+        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
         g_mutex_init(&m_asyncCommMutex);
+
+        AddChild(m_pQueue);
+        AddChild(m_pConverter);
+        AddChild(m_pConverterCapsFilter);
         
         AddEosListener(PlayerTerminate, this);
         AddXWindowDeleteEventHandler(PlayerTerminate, this);
@@ -98,7 +122,10 @@ namespace DSL
             return false;
         }
         if (!m_pSource->LinkAll() or ! m_pSink->LinkAll() or 
-            !m_pSource->LinkToSink(m_pSink))
+            !m_pSource->LinkToSink(m_pQueue) or
+            !m_pQueue->LinkToSink(m_pConverter) or
+            !m_pConverter->LinkToSink(m_pConverterCapsFilter) or
+            !m_pConverterCapsFilter->LinkToSink(m_pSink))
         {
             LOG_ERROR("Failed link SourceBintr '" << m_pSource->GetName() 
                 << "' to SinkBintr '" << m_pSink->GetName() << "'");
@@ -122,7 +149,10 @@ namespace DSL
             LOG_ERROR("PlayerBintr '" << GetName() << "' is not linked");
             return;
         }
-        if (!m_pSource->UnlinkFromSink())
+        if (!m_pSource->UnlinkFromSink() or
+            !m_pQueue->UnlinkFromSink() or
+            !m_pConverter->UnlinkFromSink() or
+            !m_pConverterCapsFilter->UnlinkFromSink())
         {
             LOG_ERROR("Failed unlink SourceBintr '" << m_pSource->GetName() 
                 << "' to SinkBintr '" << m_pSink->GetName() << "'");
@@ -325,16 +355,20 @@ namespace DSL
     {
         LOG_FUNC();
         
+        // scale the width and hight based on zoom percentage
+        uint width = std::round((m_zoom * m_width) / 100);
+        uint height = std::round((m_zoom * m_height) / 100);
+        
         std::string sinkName = m_name + "-render-sink__";
         if (m_renderType == DSL_RENDER_TYPE_OVERLAY)
         {
             m_pSink = DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                m_displayId, m_depth, m_offsetX, m_offsetY, m_width, m_height);
+                m_displayId, m_depth, m_offsetX, m_offsetY, width, height);
         }
         else
         {
             m_pSink = DSL_WINDOW_SINK_NEW(sinkName.c_str(), 
-                m_offsetX, m_offsetY, m_width, m_height);
+                m_offsetX, m_offsetY, width, height);
         }
         if (!AddChild(m_pSink))
         {
@@ -397,7 +431,30 @@ namespace DSL
     {
         LOG_FUNC();
         
+        const bool isLive(false);
+        const uint fpsN(4), fpsD(1);
         
+        std::string sourceName = m_name + "-image-source";
+        m_pSource = DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), 
+            uri, isLive, fpsN, fpsD, m_timeout);        
+
+        if (!AddChild(m_pSource))
+        {
+            LOG_ERROR("Failed to add SourceBintr '" << m_pSource->GetName() 
+                << "' to PlayerBintr '" << GetName() << "'");
+            throw;
+        }
+        
+        // get the image dimensions from Souce
+        m_pSource->GetDimensions(&m_width, &m_height);
+
+        // everything we need to create the SinkBintr
+        if (!CreateSink())
+        {
+            LOG_ERROR("Failed to create RenderSink for FileRenderPlayerBintr '" 
+                << GetName() << "'");
+            throw;
+        }
     }
     
     ImageRenderPlayerBintr::~ImageRenderPlayerBintr()

@@ -587,16 +587,6 @@ namespace DSL
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
 
         /**
-         * @brief Video converter to convert from RAW memory to NVMM.
-         */
-        DSL_ELEMENT_PTR m_pConverter;
-        
-        /**
-         * @brief Caps filter for the video converter.
-         */
-        DSL_ELEMENT_PTR m_pConverterCapsFilter;
-
-        /**
          * @brief Image Overlay element for the FileSourceBintr
          */
         DSL_ELEMENT_PTR m_pImageOverlay;

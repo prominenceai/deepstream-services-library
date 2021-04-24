@@ -45,17 +45,17 @@ namespace DSL
 
     #define DSL_PLAYER_RENDER_BINTR_PTR std::shared_ptr<RenderPlayerBintr>
 
-    #define DSL_PLAYER_RENDER_VIDEO_BINTR_PTR std::shared_ptr<FileRenderPlayerBintr>
-    #define DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(name, \
-        filePath, renderType, zoom, repeatEnabled) \
+    #define DSL_PLAYER_RENDER_FILE_BINTR_PTR std::shared_ptr<FileRenderPlayerBintr>
+    #define DSL_PLAYER_RENDER_FILE_BINTR_NEW(name, \
+        filePath, renderType, offsetX, offsetY, zoom, repeatEnabled) \
         std::shared_ptr<FileRenderPlayerBintr>(new FileRenderPlayerBintr(name, \
-            filePath, renderType, zoom, repeatEnabled))    
+            filePath, renderType, offsetX, offsetY, zoom, repeatEnabled))    
 
     #define DSL_PLAYER_RENDER_IMAGE_BINTR_PTR std::shared_ptr<ImageRenderPlayerBintr>
     #define DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(name, \
-        filePath, renderType, zoom, timeout) \
+        filePath, renderType, offsetX, offsetY, zoom, timeout) \
         std::shared_ptr<ImageRenderPlayerBintr>(new ImageRenderPlayerBintr(name, \
-            filePath, renderType, zoom, timeout))    
+            filePath, renderType, offsetX, offsetY, zoom, timeout))    
     
     class PlayerBintr : public Bintr, public PipelineStateMgr,
         public PipelineXWinMgr
@@ -140,6 +140,22 @@ namespace DSL
         bool RemoveTerminationEventListener(dsl_player_termination_event_listener_cb listener);
 
     protected:
+
+        /**
+         * @brief Queue to connect Source to Converter.
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+    
+        /**
+         * @brief Video converter to convert from RAW memory to NVMM.
+         */
+        DSL_ELEMENT_PTR m_pConverter;
+        
+        /**
+         * @brief Caps filter for the video converter.
+         */
+        DSL_ELEMENT_PTR m_pConverterCapsFilter;
+
         /**
          * @brief shared pointer to the Player's child URI Source
          */
