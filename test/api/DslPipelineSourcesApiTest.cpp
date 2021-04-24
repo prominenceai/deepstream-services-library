@@ -46,7 +46,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -69,7 +68,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
@@ -114,7 +113,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -137,7 +135,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
@@ -187,7 +185,6 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -210,7 +207,7 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
@@ -261,7 +258,6 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -284,7 +280,7 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 

@@ -45,7 +45,6 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         uint height(720);
 
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -66,7 +65,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario

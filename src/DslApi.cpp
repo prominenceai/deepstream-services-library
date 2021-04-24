@@ -3232,7 +3232,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
 }
 
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint display_id,
+DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
     uint depth, uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3240,7 +3240,7 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint overlay_id, uint di
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), overlay_id, 
+    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
         display_id, depth, offset_x, offset_y, width, height);
 }
 

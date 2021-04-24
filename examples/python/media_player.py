@@ -70,8 +70,7 @@ def main(args):
 
         # New Overlay Sink,  x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_overlay_new('overlay-sink', 
-            overlay_id = 1, 
-            display_id = 0, 
+             display_id = 0, 
             depth = 0,
             offset_x = 50, 
             offset_y = 50, 

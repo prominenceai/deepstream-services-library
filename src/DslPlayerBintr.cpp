@@ -26,6 +26,9 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslServices.h"
 #include "DslPlayerBintr.h"
+#include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 namespace DSL
 {
@@ -58,6 +61,19 @@ namespace DSL
         AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
+    PlayerBintr::PlayerBintr(const char* name)
+        : Bintr(name, true) // Pipeline = true
+        , PipelineStateMgr(m_pGstObj)
+        , PipelineXWinMgr(m_pGstObj)
+    {
+        LOG_FUNC();
+
+        g_mutex_init(&m_asyncCommMutex);
+        
+        AddEosListener(PlayerTerminate, this);
+        AddXWindowDeleteEventHandler(PlayerTerminate, this);
+    }
+
     PlayerBintr::~PlayerBintr()
     {
         LOG_FUNC();
@@ -71,6 +87,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_pSource == nullptr or m_pSink == nullptr)
+        {
+            LOG_ERROR("PlayerBintr '" << GetName() << "' missing required components");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR("PlayerBintr '" << GetName() << "' is already linked");
@@ -91,6 +112,11 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (m_pSource == nullptr or m_pSink == nullptr)
+        {
+            LOG_ERROR("PlayerBintr '" << GetName() << "' missing required components");
+            return;
+        }
         if (!m_isLinked)
         {
             LOG_ERROR("PlayerBintr '" << GetName() << "' is not linked");
@@ -272,6 +298,115 @@ namespace DSL
         
         return true;
     }
+
+   const uint RenderPlayerBintr::m_displayId(0);
+   const uint RenderPlayerBintr::m_depth(0);
+    
+    RenderPlayerBintr::RenderPlayerBintr(const char* name, uint renderType, 
+        uint offsetX, uint offsetY, uint zoom)
+        : PlayerBintr(name)
+        , m_renderType(renderType)
+        , m_zoom(zoom)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetY)
+        , m_width(0)
+        , m_height(0)
+    {
+        LOG_FUNC();
+
+    }
+    
+    RenderPlayerBintr::~RenderPlayerBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool RenderPlayerBintr::CreateSink()
+    {
+        LOG_FUNC();
+        
+        std::string sinkName = m_name + "-render-sink__";
+        if (m_renderType == DSL_RENDER_TYPE_OVERLAY)
+        {
+            m_pSink = DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                m_displayId, m_depth, m_offsetX, m_offsetY, m_width, m_height);
+        }
+        else
+        {
+            m_pSink = DSL_WINDOW_SINK_NEW(sinkName.c_str(), 
+                m_offsetX, m_offsetY, m_width, m_height);
+        }
+        if (!AddChild(m_pSink))
+        {
+            LOG_ERROR("Failed to add SinkBintr '" << m_pSink->GetName() 
+                << "' to PlayerBintr '" << GetName() << "'");
+            return false;
+        }
+        return true;
+    }
+    
+    FileRenderPlayerBintr::FileRenderPlayerBintr(const char* name, const char* uri, 
+        uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled)
+        : RenderPlayerBintr(name, renderType, offsetX, offsetY, zoom)
+        , m_repeatEnabled(repeatEnabled)
+    {
+        LOG_FUNC();
+
+        
+        std::string sourceName = m_name + "-file-source";
+        m_pSource = DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled);
+            
+        if (!AddChild(m_pSource))
+        {
+            LOG_ERROR("Failed to add SourceBintr '" << m_pSource->GetName() 
+                << "' to PlayerBintr '" << GetName() << "'");
+            throw;
+        }
+
+        // use openCV to open the file and read the Frame width and height properties.
+        cv::VideoCapture vidCap;
+        vidCap.open(uri, cv::CAP_ANY);
+
+        if (!vidCap.isOpened())
+        {
+            LOG_ERROR("Failed to open URI '" << uri 
+                << "' for FileRenderPlayerBintr '" << GetName() << "'");
+            throw;
+        }
+        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
+        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+        
+        // everything we need to create the SinkBintr
+        if (!CreateSink())
+        {
+            LOG_ERROR("Failed to create RenderSink for FileRenderPlayerBintr '" 
+                << GetName() << "'");
+            throw;
+        }
+    }
+    
+    FileRenderPlayerBintr::~FileRenderPlayerBintr()
+    {
+        LOG_FUNC();
+    }
+
+    ImageRenderPlayerBintr::ImageRenderPlayerBintr(const char* name, const char* uri, 
+        uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout)
+        : RenderPlayerBintr(name, renderType, offsetX, offsetY, zoom)
+        , m_timeout(timeout)
+    {
+        LOG_FUNC();
+        
+        
+    }
+    
+    ImageRenderPlayerBintr::~ImageRenderPlayerBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    
+    //--------------------------------------------------------------------------------
     
     static int PlayerPause(gpointer pPlayer)
     {

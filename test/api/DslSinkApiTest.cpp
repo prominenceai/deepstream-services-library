@@ -103,7 +103,6 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -116,7 +115,7 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
         WHEN( "A new Overlay Sink is created" ) 
         {
 
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -133,7 +132,6 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
     GIVEN( "An Overlay Sink Component" ) 
     {
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -142,7 +140,7 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Overlay Sink is deleted" ) 
@@ -162,7 +160,6 @@ SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -171,7 +168,7 @@ SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "A the Window Sink's attributes are updated from the default" ) 
@@ -197,7 +194,6 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
     GIVEN( "A new Render Sink in memory" ) 
     {
         std::wstring sinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -208,7 +204,7 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
         uint preOffsetX(100), preOffsetY(100);
         uint retOffsetX(0), retOffsetY(0);
 
-        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Window Sink's Offsets are Set" ) 
@@ -233,7 +229,6 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
     GIVEN( "A new Overlay Sink in memory" ) 
     {
         std::wstring sinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -244,7 +239,7 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
         uint preSinkW(1280), preSinkH(720);
         uint retSinkW(0), retSinkH(0);
 
-        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Overlay Sink's Dimensions are Set" ) 
@@ -270,7 +265,6 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
     {
         std::wstring pipelineName  = L"test-pipeline";
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -278,7 +272,7 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -308,7 +302,6 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[ove
     {
         std::wstring pipelineName  = L"test-pipeline";
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -316,7 +309,7 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[ove
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -348,7 +341,6 @@ SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[sink-a
         std::wstring pipelineName1(L"test-pipeline-1");
         std::wstring pipelineName2(L"test-pipeline-2");
         std::wstring overlaySinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -356,7 +348,7 @@ SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[sink-a
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), overlayId, displayId, depth,
+        REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
@@ -383,7 +375,6 @@ SCENARIO( "The Components container is updated correctly on new Window Sink", "[
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring windowSinkName = L"window-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -396,7 +387,7 @@ SCENARIO( "The Components container is updated correctly on new Window Sink", "[
         WHEN( "A new Window Sink is created" ) 
         {
 
-            REQUIRE( dsl_sink_overlay_new(windowSinkName.c_str(), overlayId, displayId, depth,
+            REQUIRE( dsl_sink_overlay_new(windowSinkName.c_str(), displayId, depth,
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -1312,7 +1303,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
             {
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sinkName.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );

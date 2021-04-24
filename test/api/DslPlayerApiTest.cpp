@@ -38,7 +38,6 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -49,7 +48,7 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
         REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -80,7 +79,6 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -91,7 +89,7 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
         REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -128,7 +126,6 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
-        uint overlayId(1);
         uint displayId(0);
         uint depth(0);
         uint offsetX(0);
@@ -139,7 +136,7 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
         REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), overlayId, displayId, depth, 
+        REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_list_size() == 0 );
