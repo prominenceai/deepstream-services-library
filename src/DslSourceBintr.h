@@ -50,6 +50,8 @@ namespace DSL
     #define DSL_USB_SOURCE_PTR std::shared_ptr<UsbSourceBintr>
     #define DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<UsbSourceBintr>(new UsbSourceBintr(name, width, height, fpsN, fpsD))
+
+    #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
     #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
         
@@ -104,6 +106,12 @@ namespace DSL
         }
         
         /**
+         * @brief For sources that manage EOS Consumers, this service must
+         * called before sending the source an EOS Event to stop playing.
+         */
+        virtual void DisableEosConsumer(){};
+        
+        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -116,7 +124,6 @@ namespace DSL
          * @param[out] fpsD the FPS denominator
          */ 
         void GetFrameRate(uint* fpsN, uint* fpsD);
-        
         
 
     public:
@@ -263,9 +270,17 @@ namespace DSL
     {
     public:
     
-        ResourceSourceBintr(const char* name)
+        ResourceSourceBintr(const char* name, const char* uri)
             : SourceBintr(name)
-            {};
+            , m_uri(uri)
+        {
+            LOG_FUNC();
+        };
+            
+        ~ResourceSourceBintr()
+        {
+            LOG_FUNC();
+        }
         
         /**
          * @brief returns the current URI source for this ResourceSourceBintr
@@ -363,7 +378,7 @@ namespace DSL
          * which will take affect on next Play Pipeline command. This function
          * should be called on non-live sources before sending the source an EOS
          */
-        void DisableAutoRepeat();
+        void DisableEosConsumer();
         
     protected:
 
@@ -485,7 +500,8 @@ namespace DSL
     public: 
     
         FileSourceBintr(const char* name, const char* uri, bool repeatEnabled);
-
+        
+        ~FileSourceBintr();
 
         bool SetUri(const char* file_path);
 

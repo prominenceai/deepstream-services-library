@@ -69,7 +69,6 @@ namespace DSL
             throw;
         }
         
-        AddEosListener(PlayerTerminate, this);
         AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
@@ -94,15 +93,20 @@ namespace DSL
         AddChild(m_pConverter);
         AddChild(m_pConverterCapsFilter);
         
-        AddEosListener(PlayerTerminate, this);
         AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::~PlayerBintr()
     {
         LOG_FUNC();
-        Stop();
-        RemoveEosListener(PlayerTerminate);
+
+        GstState state;
+        GetState(state, 0);
+        if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+        {
+            Stop();
+        }
+//        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         RemoveXWindowDeleteEventHandler(PlayerTerminate);
         g_mutex_clear(&m_asyncCommMutex);
     }
@@ -169,7 +173,7 @@ namespace DSL
 
         GstState currentState;
         GetState(currentState, 0);
-        if (currentState == GST_STATE_NULL)
+        if (currentState == GST_STATE_NULL or currentState == GST_STATE_READY)
         {
             if (!LinkAll())
             {
@@ -183,8 +187,13 @@ namespace DSL
             }
 
         }
-        // Call the base class to complete the Play process
-        return SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
+        if (!SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        {
+            LOG_ERROR("Failed to play Pipeline '" << GetName() << "'");
+            return false;
+        }
+        AddEosListener(PlayerTerminate, this);
+        return true;
     }
     
     bool PlayerBintr::Pause()
@@ -236,8 +245,16 @@ namespace DSL
         
         if (!IsLinked())
         {
+            LOG_INFO("PlayerBintr is not linked when called to stop");
             return false;
         }
+
+        // Need to remove the Terminate on EOS handler or it will call (reenter) this 
+        // Stop function When we send the EOS message.
+        RemoveEosListener(PlayerTerminate);
+
+        // Call the source to disable its EOS consumer, before sending EOS
+        m_pSource->DisableEosConsumer();
 
         SendEos();
         sleep(1);
@@ -263,15 +280,27 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
-        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
+      
+        // Unlink All objects and elements
         UnlinkAll();
+        
+        // If we are running under the main loop, then this funtion was called from a timer
+        // thread while the client is blocked in the Stop() function on the async GCond
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
             g_cond_signal(&m_asyncCondition);
         }
+        
+        // Conditionally destroy the XWindow if one was created by the Player
+        if (GetXWindow())
+        {
+            DestroyXWindow();
+        }
+        
         // iterate through the map of Termination event listeners calling each
         for(auto const& imap: m_terminationEventListeners)
         {
@@ -329,6 +358,8 @@ namespace DSL
         return true;
     }
 
+    //----------------------------------------------------------------------------------
+
    const uint RenderPlayerBintr::m_displayId(0);
    const uint RenderPlayerBintr::m_depth(0);
     
@@ -349,6 +380,24 @@ namespace DSL
     RenderPlayerBintr::~RenderPlayerBintr()
     {
         LOG_FUNC();
+    }
+    
+    const char* RenderPlayerBintr::GetFilePath()
+    {
+        LOG_FUNC();
+        
+        DSL_RESOURCE_SOURCE_PTR pResourceSource = 
+            std::dynamic_pointer_cast<ResourceSourceBintr>(m_pSource);
+        return pResourceSource->GetUri();
+    }
+
+    bool RenderPlayerBintr::SetFilePath(const char* filepath)
+    {
+        LOG_FUNC();
+        
+        DSL_RESOURCE_SOURCE_PTR pResourceSource = 
+            std::dynamic_pointer_cast<ResourceSourceBintr>(m_pSource);
+        return pResourceSource->SetUri(filepath);
     }
     
     bool RenderPlayerBintr::CreateSink()
@@ -379,7 +428,9 @@ namespace DSL
         return true;
     }
     
-    FileRenderPlayerBintr::FileRenderPlayerBintr(const char* name, const char* uri, 
+    //----------------------------------------------------------------------------------
+    
+    VideoRenderPlayerBintr::VideoRenderPlayerBintr(const char* name, const char* uri, 
         uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled)
         : RenderPlayerBintr(name, renderType, offsetX, offsetY, zoom)
         , m_repeatEnabled(repeatEnabled)
@@ -404,7 +455,7 @@ namespace DSL
         if (!vidCap.isOpened())
         {
             LOG_ERROR("Failed to open URI '" << uri 
-                << "' for FileRenderPlayerBintr '" << GetName() << "'");
+                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
             throw;
         }
         m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
@@ -413,13 +464,13 @@ namespace DSL
         // everything we need to create the SinkBintr
         if (!CreateSink())
         {
-            LOG_ERROR("Failed to create RenderSink for FileRenderPlayerBintr '" 
+            LOG_ERROR("Failed to create RenderSink for VideoRenderPlayerBintr '" 
                 << GetName() << "'");
             throw;
         }
     }
     
-    FileRenderPlayerBintr::~FileRenderPlayerBintr()
+    VideoRenderPlayerBintr::~VideoRenderPlayerBintr()
     {
         LOG_FUNC();
     }
@@ -451,7 +502,7 @@ namespace DSL
         // everything we need to create the SinkBintr
         if (!CreateSink())
         {
-            LOG_ERROR("Failed to create RenderSink for FileRenderPlayerBintr '" 
+            LOG_ERROR("Failed to create RenderSink for VideoRenderPlayerBintr '" 
                 << GetName() << "'");
             throw;
         }

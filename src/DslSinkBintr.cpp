@@ -219,7 +219,7 @@ namespace DSL
         s_uniqueIds.push_back(m_uniqueId);
         
         m_pOverlay = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_OVERLAY, "sink-bin-overlay");
-
+        
         m_pOverlay->SetAttribute("overlay", m_uniqueId);
         m_pOverlay->SetAttribute("display-id", m_displayId);
         m_pOverlay->SetAttribute("max-lateness", -1);
@@ -251,6 +251,7 @@ namespace DSL
             LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
             return false;
         }
+
         if (!m_pQueue->LinkToSink(m_pOverlay))
         {
             return false;
@@ -268,7 +269,9 @@ namespace DSL
             LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
             return;
         }
+        
         m_pQueue->UnlinkFromSink();
+
         m_isLinked = false;
     }
 
@@ -424,40 +427,8 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         m_isLinked = false;
-        Reset();
     }
 
-    void WindowSinkBintr::Reset()
-    {
-        LOG_FUNC();
-
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to reset WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return;
-        }
-
-        RemoveChild(m_pEglGles);
-        
-        // recreate the EGL-GLES sink element - the old will be destroyed on deref
-        m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
-        
-        m_pEglGles->SetAttribute("window-x", m_offsetX);
-        m_pEglGles->SetAttribute("window-y", m_offsetY);
-        m_pEglGles->SetAttribute("window-width", m_width);
-        m_pEglGles->SetAttribute("window-height", m_height);
-        m_pEglGles->SetAttribute("enable-last-sample", false);
-        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        m_pEglGles->SetAttribute("max-lateness", -1);
-        m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", m_async);
-        m_pEglGles->SetAttribute("qos", m_qos);
-
-        AddChild(m_pEglGles);
-    }
-    
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();

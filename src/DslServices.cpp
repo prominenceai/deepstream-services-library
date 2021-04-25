@@ -118,7 +118,17 @@ THE SOFTWARE.
         return DSL_RESULT_PLAYER_NAME_NOT_FOUND; \
     } \
 }while(0); 
-    
+
+#define RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(players, name) do \
+{ \
+    if (!players[name]->IsType(typeid(ImageRenderPlayerBintr)) and  \
+        !players[name]->IsType(typeid(VideoRenderPlayerBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        return DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER; \
+    } \
+}while(0); 
+        
 #define RETURN_IF_COMPONENT_NAME_NOT_FOUND(components, name) do \
 { \
     if (components.find(name) == components.end()) \
@@ -4258,7 +4268,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception getting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -4280,13 +4290,13 @@ namespace DSL
             if (!pSourceBintr->SetUri(uri));
             {
                 LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+                return DSL_RESULT_SOURCE_SET_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            LOG_ERROR("Source '" << name << "' threw exception setting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -9056,7 +9066,7 @@ namespace DSL
             RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, sink);
             RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, sink);
         
-            if (m_players[name])
+            if (m_players.find(name) != m_players.end())
             {   
                 LOG_ERROR("Player name '" << name << "' is not unique");
                 return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
@@ -9078,6 +9088,131 @@ namespace DSL
         LOG_INFO("New Player '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderVideoNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+        
+            if (m_players.find(name) != m_players.end())
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_players[name] = std::shared_ptr<VideoRenderPlayerBintr>(new 
+                VideoRenderPlayerBintr(name, filePath, renderType,
+                    offsetX, offsetY, zoom, repeatEnabled));
+                    
+            LOG_INFO("New Render File Player '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Render File Player '" << name << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderImageNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+        
+            if (m_players.find(name) != m_players.end())
+            {   
+                LOG_ERROR("Player name '" << name << "' is not unique");
+                return DSL_RESULT_PLAYER_NAME_NOT_UNIQUE;
+            }
+            std::ifstream streamUriFile(filePath);
+            if (!streamUriFile.good())
+            {
+                LOG_ERROR("File Source'" << filePath << "' Not found");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            m_players[name] = std::shared_ptr<ImageRenderPlayerBintr>(new 
+                ImageRenderPlayerBintr(name, filePath, renderType,
+                    offsetX, offsetY, zoom, timeout));
+                    
+            LOG_INFO("New Render Image Player '" << name << "' created successfully");
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Render Image Player '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerRenderFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            *filePath = pRenderPlayer->GetFilePath();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception getting File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderFilePathSet(const char* name, const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetFilePath(filePath));
+            {
+                LOG_ERROR("Failed to Set URI '" << filePath << "' for Decode Source '" << name << "'");
+                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
     }
 
     DslReturnType Services::PlayerPlay(const char* name)
@@ -9152,10 +9287,11 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
         try
         {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            
             if (!m_players[name]->RemoveTerminationEventListener(listener))
             {
                 LOG_ERROR("Player '" << name 
@@ -9172,17 +9308,45 @@ namespace DSL
         }
     }
 
+    boolean Services::PlayerExists(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            return (boolean)(m_players.find(name) != m_players.end());
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception adding Termination Event Listner");
+            return false;
+        }
+    }
+
     DslReturnType Services::PlayerDelete(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
-        m_players.erase(name);
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
 
-        LOG_INFO("Player '" << name << "' deleted successfully");
+            m_players.erase(name);
 
-        return DSL_RESULT_SUCCESS;
+            LOG_INFO("Player '" << name << "' deleted successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception on Delete");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+
     }
 
     DslReturnType Services::PlayerDeleteAll()
@@ -9790,6 +9954,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_UNIQUE] = L"DSL_RESULT_PLAYER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_NOT_FOUND] = L"DSL_RESULT_PLAYER_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PLAYER_NAME_BAD_FORMAT] = L"DSL_RESULT_PLAYER_NAME_BAD_FORMAT";
+        m_returnValueToString[DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER] = L"DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER";
         m_returnValueToString[DSL_RESULT_PLAYER_STATE_PAUSED] = L"DSL_RESULT_PLAYER_STATE_PAUSED";
         m_returnValueToString[DSL_RESULT_PLAYER_STATE_RUNNING] = L"DSL_RESULT_PLAYER_STATE_RUNNING";
         m_returnValueToString[DSL_RESULT_PLAYER_THREW_EXCEPTION] = L"DSL_RESULT_PLAYER_THREW_EXCEPTION";
@@ -9800,6 +9965,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PLAY] = L"DSL_RESULT_PLAYER_FAILED_TO_PLAY";
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_PAUSE] = L"DSL_RESULT_PLAYER_FAILED_TO_PAUSE";
         m_returnValueToString[DSL_RESULT_PLAYER_FAILED_TO_STOP] = L"DSL_RESULT_PLAYER_FAILED_TO_STOP";
+        m_returnValueToString[DSL_RESULT_PLAYER_SET_FAILED] = L"DSL_RESULT_PLAYER_SET_FAILED";
         
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
     }

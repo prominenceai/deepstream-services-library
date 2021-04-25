@@ -774,6 +774,17 @@ namespace DSL {
 
         DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
 
+        DslReturnType PlayerRenderVideoNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, boolean repeatEnabled);
+
+        DslReturnType PlayerRenderImageNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
+            
+        DslReturnType PlayerRenderFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType PlayerRenderFilePathSet(const char* name, const char* filePath);
+            
+
         DslReturnType PlayerPause(const char* name);
         
         DslReturnType PlayerPlay(const char* name);
@@ -785,6 +796,8 @@ namespace DSL {
         
         DslReturnType PlayerTerminationEventListenerRemove(const char* name,
             dsl_player_termination_event_listener_cb listener);
+        
+        boolean PlayerExists(const char* name);
         
         DslReturnType PlayerDelete(const char* name);
         

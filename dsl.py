@@ -86,6 +86,8 @@ DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A = 3
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 
+DSL_RENDER_TYPE_OVERLAY = 0
+DSL_RENDER_TYPE_WINDOW  = 1
 
 class dsl_coordinate(Structure):
     _fields_ = [
@@ -3491,6 +3493,32 @@ def dsl_player_new(name, source, sink):
     return int(result)
 
 ##
+## dsl_player_render_file_new()
+##
+_dsl.dsl_player_render_file_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
+_dsl.dsl_player_render_file_new.restype = c_uint
+def dsl_player_render_file_new(name, file_path, 
+    render_type, offset_x, offset_y, zoom, repeat_enabled):
+    global _dsl
+    result =_dsl.dsl_player_render_file_new(name, 
+        file_path, render_type, offset_x, offset_y, zoom, repeat_enabled)
+    return int(result)
+
+##
+## dsl_player_render_image_new()
+##
+_dsl.dsl_player_render_image_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_player_render_image_new.restype = c_uint
+def dsl_player_render_image_new(name, file_path, 
+    render_type, offset_x, offset_y, zoom, timeout):
+    global _dsl
+    result =_dsl.dsl_player_render_image_new(name, 
+        file_path, render_type, offset_x, offset_y, zoom, timeout)
+    return int(result)
+
+##
 ## dsl_player_pause()
 ##
 _dsl.dsl_player_pause.argtypes = [c_wchar_p]
@@ -3556,6 +3584,15 @@ def dsl_player_delete(name):
     global _dsl
     result =_dsl.dsl_player_delete(name)
     return int(result)
+
+##
+## dsl_player_exists()
+##
+_dsl.dsl_player_exists.argtypes = [c_wchar_p]
+_dsl.dsl_player_exists.restype = c_uint
+def dsl_player_exists(name):
+    global _dsl
+    return _dsl.dsl_player_exists(name)
 
 ##
 ## dsl_player_delete_all()

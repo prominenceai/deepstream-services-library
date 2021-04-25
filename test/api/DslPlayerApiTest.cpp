@@ -32,9 +32,9 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring playerName  = L"player";
+        std::wstring player_name  = L"player";
 
-        std::wstring sourceName = L"file-source";
+        std::wstring source_name = L"file-source";
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
@@ -45,7 +45,7 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
+        REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
@@ -55,13 +55,13 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
 
         WHEN( "A new Player is created" ) 
         {
-            REQUIRE( dsl_player_new(playerName.c_str(),
-                sourceName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_player_new(player_name.c_str(),
+                source_name.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_player_list_size() == 1 );
-                REQUIRE( dsl_player_delete(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_player_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -73,9 +73,9 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring playerName  = L"player";
+        std::wstring player_name  = L"player";
 
-        std::wstring sourceName = L"file-source";
+        std::wstring source_name = L"file-source";
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
@@ -86,7 +86,7 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
+        REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
@@ -96,33 +96,105 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
 
         WHEN( "A new Player is created" ) 
         {
-            REQUIRE( dsl_player_new(playerName.c_str(),
-                sourceName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_player_new(player_name.c_str(),
+                source_name.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                REQUIRE( dsl_player_play(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_player_pause(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_player_play(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_player_stop(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
 
-                REQUIRE( dsl_player_delete(playerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
+SCENARIO( "A File Render Player can Play, Pause, and Stop", "[player-api]" )
+{
+    GIVEN( "An empty list of Players" ) 
+    {
+        std::wstring player_name  = L"player";
+
+        std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        
+        REQUIRE( dsl_player_list_size() == 0 );
+
+        WHEN( "A new Player is created" ) 
+        {
+            REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
+                DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, false) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An Image  Render Player can Play, Pause, and Stop", "[player-api]" )
+{
+    GIVEN( "An empty list of Players" ) 
+    {
+        std::wstring player_name  = L"player";
+
+        std::wstring file_path = L"./test/streams/first-person-occurrence-438.jpeg";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        
+        REQUIRE( dsl_player_list_size() == 0 );
+
+        WHEN( "A new Player is created" ) 
+        {
+            REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
+                DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_pause(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_play(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_player_stop(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+
+
 SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 
     {
-        std::wstring playerName  = L"player";
+        std::wstring player_name  = L"player";
 
-        std::wstring sourceName = L"file-source";
+        std::wstring source_name = L"file-source";
         std::wstring file_path = L"./test/streams/sample_1080p_h264.mp4";
 
         std::wstring sinkName = L"overlay-sink";
@@ -133,7 +205,7 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_source_file_new(sourceName.c_str(), file_path.c_str(), 
+        REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_overlay_new(sinkName.c_str(), displayId, depth, 
@@ -146,11 +218,11 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
                 REQUIRE( dsl_player_new(NULL,
-                    sourceName.c_str(), sinkName.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_new(playerName.c_str(),
+                    source_name.c_str(), sinkName.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_player_new(player_name.c_str(),
                     NULL, sinkName.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_player_new(playerName.c_str(),
-                    sourceName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_player_new(player_name.c_str(),
+                    source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

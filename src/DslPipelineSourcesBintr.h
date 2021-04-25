@@ -155,9 +155,9 @@ namespace DSL
         void SetStreamMuxNumSurfacesPerFrame(uint num);
         
         /**
-         * @brief Disables AutoRepeat on all non-live sources.
+         * @brief Calls on all child Sources to disable their EOS consumers.
          */
-        void DisableAutoRepeat();
+        void DisableEosConsumers();
 
     private:
         /**

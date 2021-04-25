@@ -351,16 +351,18 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
 #define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
 #define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
-#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400004
-#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400005
-#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400006
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x0040000B
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000C
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000D
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000E
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000F
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x00400010
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x00400011
+#define DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER                      0x00400004
+#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400005
+#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400006
+#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400001
 
 /**
  *
@@ -3957,6 +3959,50 @@ DslReturnType dsl_player_new(const wchar_t* name,
     const wchar_t* file_source, const wchar_t* sink);
 
 /**
+ * @brief Creates a new, uniquely named Video Render Player
+ * @param[in] name unique name for the new Player
+ * @param[in] file_path absolute or relative path to the file to render
+ * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
+ * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
+ * @param[in] zoom digital zoom factor in units of %
+ * @param[in] repeat_enabled set to true to auto-repeat on EOS
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* file_path, 
+   uint render_type, uint offset_x, uint offset_y, uint zoom, boolean repeat_enabled);
+
+/**
+ * @brief Creates a new, uniquely named Image Render Player
+ * @param[in] name unique name for the new Player
+ * @param[in] file_path absolute or relative path to the image to render
+ * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
+ * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
+ * @param[in] zoom digital zoom factor in units of %
+ * @param[in] timeout will generate an EOS event on timeout in units of seconds, 0 = no timeout.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_player_render_image_new(const wchar_t* name, const wchar_t* file_path,
+    uint render_type, uint offset_x, uint offset_y, uint zoom, uint timeout);
+
+/**
+ * @brief Gets the current file path in use by the named Image or File Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] file_path in use by the Render Player
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_filepath_get(const wchar_t* name, const wchar_t** file_path);
+    
+/**
+ * @brief Sets the current file path to use for the named Image or File Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] file_path file path for the Render Player to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_filepath_set(const wchar_t* name, const wchar_t* file_path);
+    
+/**
  * @brief Plays a Player if in a state of NULL Or Paused
  * @param[in] name unique name of the Player to play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
@@ -3996,6 +4042,13 @@ DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* pipeline, 
     dsl_player_termination_event_listener_cb listener);
+
+/**
+ * @brief Queries DSL to determine if a uniquely named Player Object exists 
+ * @param name of the Player to determine if exists
+ * @return true if the named Player exists, false otherwise
+ */
+boolean dsl_player_exists(const wchar_t* name);
 
 /**
  * @brief Deletes a Player object by name.

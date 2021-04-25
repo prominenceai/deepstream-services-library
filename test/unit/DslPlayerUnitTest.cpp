@@ -352,7 +352,7 @@ SCENARIO( "A New ImageRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
         std::string filePath("./test/streams/first-person-occurrence-438.jpeg");
         uint offsetX(400);
         uint offsetY(200);
-        uint zoom(200);
+        uint zoom(50);
         uint timeout(0);
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
@@ -365,6 +365,11 @@ SCENARIO( "A New ImageRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
             
             THEN( "The PlayerBintr can be set back to a state of NULL" )
             {
+                // Stop and play again
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Play() == true);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( pPlayerBintr->Stop() == true );
             }
@@ -396,14 +401,18 @@ SCENARIO( "A New ImageRenderPlayerBintr with WindowSinkBintr can Play and Stop c
             {
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( pPlayerBintr->Stop() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Play() == true);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
             }
         }
     }
 }
 
-SCENARIO( "A New FileRenderPlayerBintr with OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New VideoRenderPlayerBintr with OverlaySinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
-    GIVEN( "A new FileRenderPlayerBintr" ) 
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
         std::string playerName("player");
 
@@ -414,8 +423,8 @@ SCENARIO( "A New FileRenderPlayerBintr with OverlaySinkBintr can Play and Stop c
         uint zoom(50);
         bool repeatEnabled(0);
 
-        DSL_PLAYER_RENDER_FILE_BINTR_PTR pPlayerBintr = 
-            DSL_PLAYER_RENDER_FILE_BINTR_NEW(playerName.c_str(),
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
                 filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )
@@ -426,14 +435,18 @@ SCENARIO( "A New FileRenderPlayerBintr with OverlaySinkBintr can Play and Stop c
             {
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( pPlayerBintr->Stop() == true );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Play() == true);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
             }
         }
     }
 }
 
-SCENARIO( "A New FileRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New VideoRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
-    GIVEN( "A new FileRenderPlayerBintr" ) 
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
         std::string playerName("player");
 
@@ -444,8 +457,8 @@ SCENARIO( "A New FileRenderPlayerBintr with WindowSinkBintr can Play and Stop co
         uint zoom(50);
         int timeout(0);
 
-        DSL_PLAYER_RENDER_FILE_BINTR_PTR pPlayerBintr = 
-            DSL_PLAYER_RENDER_FILE_BINTR_NEW(playerName.c_str(),
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
                 filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )

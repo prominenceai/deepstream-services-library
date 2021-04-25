@@ -45,10 +45,10 @@ namespace DSL
 
     #define DSL_PLAYER_RENDER_BINTR_PTR std::shared_ptr<RenderPlayerBintr>
 
-    #define DSL_PLAYER_RENDER_FILE_BINTR_PTR std::shared_ptr<FileRenderPlayerBintr>
-    #define DSL_PLAYER_RENDER_FILE_BINTR_NEW(name, \
+    #define DSL_PLAYER_RENDER_VIDEO_BINTR_PTR std::shared_ptr<VideoRenderPlayerBintr>
+    #define DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(name, \
         filePath, renderType, offsetX, offsetY, zoom, repeatEnabled) \
-        std::shared_ptr<FileRenderPlayerBintr>(new FileRenderPlayerBintr(name, \
+        std::shared_ptr<VideoRenderPlayerBintr>(new VideoRenderPlayerBintr(name, \
             filePath, renderType, offsetX, offsetY, zoom, repeatEnabled))    
 
     #define DSL_PLAYER_RENDER_IMAGE_BINTR_PTR std::shared_ptr<ImageRenderPlayerBintr>
@@ -203,6 +203,18 @@ namespace DSL
             uint offsetX, uint offsetY, uint zoom);
 
         ~RenderPlayerBintr();
+
+        /**
+         * @brief returns the current filepath for this RenderPlayerBintr
+         * @return const string to the file source
+         */
+        const char* GetFilePath();
+        
+        /**
+         * @brief sets the current filepath for this RenderPlayerBintr
+         * @return const string to the file source to use
+         */
+        bool SetFilePath(const char* filepath);
         
         /**
          * @breif creates the sink once the Source has been created and the 
@@ -248,19 +260,19 @@ namespace DSL
     };
 
     /**
-     * @class FileRenderPlayerBintr
+     * @class VideoRenderPlayerBintr
      * @file DslPlayerBintr.h
      * @brief Implements a PlayerBintr with a FileSourceBintr
      * and OverlaySink or WindowSinkBintr
      */
-    class FileRenderPlayerBintr : public RenderPlayerBintr
+    class VideoRenderPlayerBintr : public RenderPlayerBintr
     {
     public: 
     
-        FileRenderPlayerBintr(const char* name, const char* uri, 
+        VideoRenderPlayerBintr(const char* name, const char* uri, 
             uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled);
 
-        ~FileRenderPlayerBintr();
+        ~VideoRenderPlayerBintr();
         
     private:
         

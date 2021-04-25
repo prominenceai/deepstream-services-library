@@ -303,7 +303,7 @@ namespace DSL
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
         bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : ResourceSourceBintr(name)
+        : ResourceSourceBintr(name, uri)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
@@ -316,7 +316,9 @@ namespace DSL
         LOG_FUNC();
         
         m_isLive = isLive;
-        m_uri = uri;
+        
+        // Initialize the mutex regardless of IsLive or not
+        g_mutex_init(&m_repeatEnabledMutex);
         
         // if not a URL
         if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
@@ -336,7 +338,6 @@ namespace DSL
             char absolutePath[PATH_MAX+1];
             m_uri.assign(realpath(uri, absolutePath));
             m_uri.insert(0, "file:");
-            g_mutex_init(&m_repeatEnabledMutex);
         }
         
         LOG_INFO("URI Path = " << m_uri);
@@ -356,7 +357,7 @@ namespace DSL
     {
         LOG_FUNC();
  
-        DisableAutoRepeat();
+        DisableEosConsumer();
         g_mutex_clear(&m_repeatEnabledMutex);
     }
     
@@ -538,7 +539,7 @@ namespace DSL
         return (m_pDewarperBintr != nullptr);
     }
     
-    void DecodeSourceBintr::DisableAutoRepeat()
+    void DecodeSourceBintr::DisableEosConsumer()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
@@ -789,6 +790,11 @@ namespace DSL
         // override the default
         m_repeatEnabled = repeatEnabled;
     }
+    
+    FileSourceBintr::~FileSourceBintr()
+    {
+        LOG_FUNC();
+    }
 
     bool FileSourceBintr::SetUri(const char* uri)
     {
@@ -842,7 +848,7 @@ namespace DSL
 
     ImageSourceBintr::ImageSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
-        : ResourceSourceBintr(name)
+        : ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
@@ -1036,11 +1042,9 @@ namespace DSL
         , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
-        
+
         // Set RTSP latency
         m_latency = latency;
-        LOG_DEBUG("Setting latency to '" << latency 
-            << "' for RtspSourceBintr '" << m_name << "'");
 
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
@@ -1116,8 +1120,8 @@ namespace DSL
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
         
         g_mutex_clear(&m_streamManagerMutex);
+        g_mutex_clear(&m_reconnectionManagerMutex);
         g_mutex_clear(&m_stateChangeMutex);
-        
     }
     
     bool RtspSourceBintr::LinkAll()
