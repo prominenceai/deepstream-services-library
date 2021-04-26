@@ -601,7 +601,7 @@ SCENARIO( "A UriSourceBintr can Get and Set its GPU ID",  "[UriSourceBintr]" )
     }
 }
 
-SCENARIO( "A new RtspSourceBintr is created correctly",  "[new]" )
+SCENARIO( "A new RtspSourceBintr is created correctly",  "[RtspSourceBintr]" )
 {
     GIVEN( "A name for a new RtspSourceBintr" ) 
     {

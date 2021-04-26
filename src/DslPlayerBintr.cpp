@@ -296,10 +296,10 @@ namespace DSL
         }
         
         // Conditionally destroy the XWindow if one was created by the Player
-        if (GetXWindow())
-        {
-            DestroyXWindow();
-        }
+//        if (GetXWindow())
+//        {
+//            DestroyXWindow();
+//        }
         
         // iterate through the map of Termination event listeners calling each
         for(auto const& imap: m_terminationEventListeners)
@@ -323,8 +323,6 @@ namespace DSL
         // Start asyn Stop timer, do not wait or block as we are
         // in the State Manager's bus watcher context.
         g_timeout_add(1, PlayerStop, this);
-        
-        DestroyXWindow();
     }
 
     
@@ -395,12 +393,20 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for RenderPlayerBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        
         DSL_RESOURCE_SOURCE_PTR pResourceSource = 
             std::dynamic_pointer_cast<ResourceSourceBintr>(m_pSource);
+
         return pResourceSource->SetUri(filepath);
     }
     
-    bool RenderPlayerBintr::CreateSink()
+    bool RenderPlayerBintr::CreateRenderSink()
     {
         LOG_FUNC();
         
@@ -427,10 +433,29 @@ namespace DSL
         }
         return true;
     }
+
+    bool RenderPlayerBintr::UpdateRenderSink()
+    {
+        LOG_FUNC();
+        
+        // scale the width and hight based on zoom percentage
+        uint width = std::round((m_zoom * m_width) / 100);
+        uint height = std::round((m_zoom * m_height) / 100);
+        
+        DSL_RENDER_SINK_PTR pRenderSink = 
+            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+
+        if (GetXWindow())
+        {
+            SetXWindowDimensions(width, height);
+        }
+        return pRenderSink->SetDimensions(width, height);
+    }
+    
     
     //----------------------------------------------------------------------------------
     
-    VideoRenderPlayerBintr::VideoRenderPlayerBintr(const char* name, const char* uri, 
+    VideoRenderPlayerBintr::VideoRenderPlayerBintr(const char* name, const char* filepath, 
         uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled)
         : RenderPlayerBintr(name, renderType, offsetX, offsetY, zoom)
         , m_repeatEnabled(repeatEnabled)
@@ -439,7 +464,7 @@ namespace DSL
 
         
         std::string sourceName = m_name + "-file-source";
-        m_pSource = DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled);
+        m_pSource = DSL_FILE_SOURCE_NEW(name, filepath, repeatEnabled);
             
         if (!AddChild(m_pSource))
         {
@@ -450,11 +475,11 @@ namespace DSL
 
         // use openCV to open the file and read the Frame width and height properties.
         cv::VideoCapture vidCap;
-        vidCap.open(uri, cv::CAP_ANY);
+        vidCap.open(filepath, cv::CAP_ANY);
 
         if (!vidCap.isOpened())
         {
-            LOG_ERROR("Failed to open URI '" << uri 
+            LOG_ERROR("Failed to open URI '" << filepath 
                 << "' for VideoRenderPlayerBintr '" << GetName() << "'");
             throw;
         }
@@ -462,7 +487,7 @@ namespace DSL
         m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
         
         // everything we need to create the SinkBintr
-        if (!CreateSink())
+        if (!CreateRenderSink())
         {
             LOG_ERROR("Failed to create RenderSink for VideoRenderPlayerBintr '" 
                 << GetName() << "'");
@@ -475,7 +500,38 @@ namespace DSL
         LOG_FUNC();
     }
 
-    ImageRenderPlayerBintr::ImageRenderPlayerBintr(const char* name, const char* uri, 
+    bool VideoRenderPlayerBintr::SetFilePath(const char* filepath)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for VideoRenderPlayerBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        // Call the base class first to set location for the source
+        RenderPlayerBintr::SetFilePath(filepath);
+        
+        // use openCV to open the file and read the Frame width and height properties.
+        cv::VideoCapture vidCap;
+        vidCap.open(filepath, cv::CAP_ANY);
+
+        if (!vidCap.isOpened())
+        {
+            LOG_ERROR("Failed to open URI '" << filepath 
+                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
+            throw;
+        }
+        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
+        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+
+        // update the Render Sink with the new dimensions
+        return UpdateRenderSink();
+    }
+    
+
+    ImageRenderPlayerBintr::ImageRenderPlayerBintr(const char* name, const char* filepath, 
         uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout)
         : RenderPlayerBintr(name, renderType, offsetX, offsetY, zoom)
         , m_timeout(timeout)
@@ -487,7 +543,7 @@ namespace DSL
         
         std::string sourceName = m_name + "-image-source";
         m_pSource = DSL_IMAGE_SOURCE_NEW(sourceName.c_str(), 
-            uri, isLive, fpsN, fpsD, m_timeout);        
+            filepath, isLive, fpsN, fpsD, m_timeout);        
 
         if (!AddChild(m_pSource))
         {
@@ -500,7 +556,7 @@ namespace DSL
         m_pSource->GetDimensions(&m_width, &m_height);
 
         // everything we need to create the SinkBintr
-        if (!CreateSink())
+        if (!CreateRenderSink())
         {
             LOG_ERROR("Failed to create RenderSink for VideoRenderPlayerBintr '" 
                 << GetName() << "'");
@@ -513,6 +569,25 @@ namespace DSL
         LOG_FUNC();
     }
     
+    bool ImageRenderPlayerBintr::SetFilePath(const char* filepath)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set File Path for ImageRenderPlayerBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        // Call the base class first to set location for the source
+        RenderPlayerBintr::SetFilePath(filepath);
+        
+        // get the new image dimensions from Souce
+        m_pSource->GetDimensions(&m_width, &m_height);
+
+        // update the Render Sink with the new dimensions
+        return UpdateRenderSink();
+    }
     
     //--------------------------------------------------------------------------------
     

@@ -115,6 +115,11 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_xWindowOffsetX, m_xWindowOffsetY, width, height);
+        }
         m_xWindowWidth = width;
         m_xWindowHeight = height;
     }

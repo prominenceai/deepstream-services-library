@@ -747,10 +747,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Uri for UriSourceBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently Linked");
             return false;
         }
         std::string newUri(uri);
@@ -800,7 +800,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
                 << "' as it's currently in use");

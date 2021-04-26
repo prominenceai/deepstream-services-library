@@ -214,18 +214,25 @@ namespace DSL
          * @brief sets the current filepath for this RenderPlayerBintr
          * @return const string to the file source to use
          */
-        bool SetFilePath(const char* filepath);
-        
-        /**
-         * @breif creates the sink once the Source has been created and the 
-         * dimensions have been determined and saved to the member variables.
-         */
-        bool CreateSink();
+        virtual bool SetFilePath(const char* filepath) = 0;
 
         static const uint m_displayId;
         static const uint m_depth;
         
     protected:
+
+        /**
+         * @breif creates the sink once the Source has been created and the 
+         * dimensions have been determined and saved to the member variables.
+         * @return true on successfull creation, false otherwise
+         */
+        bool CreateRenderSink();
+        
+        /**
+         * @brief updates the Render Sink with new Dimensions
+         * @return true on successful update, false otherwise.
+         */
+        bool UpdateRenderSink();
 
         /**
          * @brief Sink Type, either DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
@@ -269,10 +276,16 @@ namespace DSL
     {
     public: 
     
-        VideoRenderPlayerBintr(const char* name, const char* uri, 
+        VideoRenderPlayerBintr(const char* name, const char* filepath, 
             uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled);
 
         ~VideoRenderPlayerBintr();
+
+        /**
+         * @brief sets the current filepath for this VideoRenderPlayerBintr
+         * @return const string to the file source to use
+         */
+        bool SetFilePath(const char* filepath);
         
     private:
         
@@ -289,10 +302,16 @@ namespace DSL
     {
     public: 
     
-        ImageRenderPlayerBintr(const char* name, const char* uri, 
+        ImageRenderPlayerBintr(const char* name, const char* filepath, 
             uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
 
         ~ImageRenderPlayerBintr();
+
+        /**
+         * @brief sets the current filepath for this ImageRenderPlayerBintr
+         * @return const string to the file source to use
+         */
+        bool SetFilePath(const char* filepath);
         
     private:
     

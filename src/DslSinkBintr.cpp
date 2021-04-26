@@ -427,8 +427,41 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         m_isLinked = false;
+        //Reset();
     }
 
+    void WindowSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to reset WindowSinkBintr '" << GetName() 
+                << "' as it's currently linked");
+            return;
+        }
+
+        gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
+        RemoveChild(m_pEglGles);
+        
+        // recreate the EGL-GLES sink element - the old will be destroyed on deref
+        m_pEglGles = DSL_ELEMENT_NEW(NVDS_ELEM_SINK_EGL, "sink-bin-eglgles");
+        
+        m_pEglGles->SetAttribute("window-x", m_offsetX);
+        m_pEglGles->SetAttribute("window-y", m_offsetY);
+        m_pEglGles->SetAttribute("window-width", m_width);
+        m_pEglGles->SetAttribute("window-height", m_height);
+        m_pEglGles->SetAttribute("enable-last-sample", false);
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        m_pEglGles->SetAttribute("max-lateness", -1);
+        m_pEglGles->SetAttribute("sync", m_sync);
+        m_pEglGles->SetAttribute("async", m_async);
+        m_pEglGles->SetAttribute("qos", m_qos);
+
+        AddChild(m_pEglGles);
+    }
+    
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();

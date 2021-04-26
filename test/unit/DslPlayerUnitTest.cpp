@@ -473,3 +473,98 @@ SCENARIO( "A New VideoRenderPlayerBintr with WindowSinkBintr can Play and Stop c
         }
     }
 }
+
+SCENARIO( "A VideoRenderPlayerBintr can Set/Get it's File Path correctly", "[PlayerBintr]" )
+{
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath1 = "./test/streams/sample_1080p_h264.mp4";
+        std::string filePath2 = "./test/streams/rawBikeFootage.mp4";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        bool repeatEnabled(false);
+
+        char absolutePath[PATH_MAX+1];
+        std::string fullFilePath1 = realpath(filePath1.c_str(), absolutePath);
+        fullFilePath1.insert(0, "file:");
+        std::string fullFilePath2 = realpath(filePath2.c_str(), absolutePath);
+        fullFilePath2.insert(0, "file:");
+
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
+                filePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled);
+                
+        std::string returnedFilePath1 = pPlayerBintr->GetFilePath();
+        REQUIRE( returnedFilePath1 == fullFilePath1 );
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+        REQUIRE( pPlayerBintr->Stop() == true );
+
+        WHEN( "A new File Path is Set" )
+        {
+            REQUIRE( pPlayerBintr->SetFilePath(filePath2.c_str()) == true);
+            
+            THEN( "The same File Path is return on Get" )
+            {
+                std::string returnedFilePath2 = pPlayerBintr->GetFilePath();
+                REQUIRE( returnedFilePath2 == fullFilePath2 );
+                REQUIRE( pPlayerBintr->Play() == true);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ImageRenderPlayerBintr can Set/Get it's File Path correctly", "[new]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath1 = "./test/streams/first-person-occurrence-438.jpeg";
+        std::string filePath2 = "./test/streams/ode-action_00000_20210424-190805.jpeg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        int timeout(0);
+
+        char absolutePath[PATH_MAX+1];
+        std::string fullFilePath1 = realpath(filePath1.c_str(), absolutePath);
+//        fullFilePath1.insert(0, "file:");
+        std::string fullFilePath2 = realpath(filePath2.c_str(), absolutePath);
+//        fullFilePath2.insert(0, "file:");
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                
+        std::string returnedFilePath1 = pPlayerBintr->GetFilePath();
+        REQUIRE( returnedFilePath1 == fullFilePath1 );
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+        REQUIRE( pPlayerBintr->Stop() == true );
+
+        WHEN( "A new File Path is Set" )
+        {
+            REQUIRE( pPlayerBintr->SetFilePath(filePath2.c_str()) == true);
+            
+            THEN( "The same File Path is return on Get" )
+            {
+                std::string returnedFilePath2 = pPlayerBintr->GetFilePath();
+                REQUIRE( returnedFilePath2 == fullFilePath2 );
+                REQUIRE( pPlayerBintr->Play() == true);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
