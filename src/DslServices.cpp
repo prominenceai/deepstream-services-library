@@ -9201,17 +9201,155 @@ namespace DSL
             DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
                 std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
 
-            if (!pRenderPlayer->SetFilePath(filePath));
+            if (!pRenderPlayer->SetFilePath(filePath))
             {
-                LOG_ERROR("Failed to Set URI '" << filePath << "' for Decode Source '" << name << "'");
-                return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
+                LOG_ERROR("Failed to Set File Path '" << filePath 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
             }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception adding Dewarper");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception setting File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderFilePathQueue(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->QueueFilePath(filePath))
+            {
+                LOG_ERROR("Failed to Queue File Path '" << filePath 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception queuing File Path");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            pRenderPlayer->GetOffsets(offsetX, offsetY);
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Render Player '" << name << "' failed to set offsets");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name << "' threw an exception setting Clock offsets");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderZoomGet(const char* name, uint* zoom)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            *zoom = pRenderPlayer->GetZoom();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception getting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderZoomSet(const char* name, uint zoom)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+
+            DSL_PLAYER_RENDER_BINTR_PTR pRenderPlayer = 
+                std::dynamic_pointer_cast<RenderPlayerBintr>(m_players[name]);
+
+            if (!pRenderPlayer->SetZoom(zoom))
+            {
+                LOG_ERROR("Failed to Set Zooom '" << zoom 
+                    << "' for Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Render Player '" << name 
+                << "' threw exception setting Zoom");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
         }
     }
 

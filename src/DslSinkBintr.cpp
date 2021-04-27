@@ -288,7 +288,7 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set DisplayId for OverlaySinkBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -302,13 +302,6 @@ namespace DSL
     bool OverlaySinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
 
         m_offsetX = offsetX;
         m_offsetY = offsetY;
@@ -323,13 +316,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Dimensions for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
         m_width = width;
         m_height = height;
 
@@ -403,7 +389,7 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         if (!m_pQueue->LinkToSink(m_pTransform) or
@@ -421,7 +407,7 @@ namespace DSL
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         m_pQueue->UnlinkFromSink();
@@ -465,13 +451,6 @@ namespace DSL
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
 
         m_offsetX = offsetX;
         m_offsetY = offsetY;
@@ -486,13 +465,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Dimensions for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-
         m_width = width;
         m_height = height;
 

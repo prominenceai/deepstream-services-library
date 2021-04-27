@@ -319,6 +319,12 @@ namespace DSL
         ~DecodeSourceBintr();
 
         /**
+         * @brief Sets the URL for file decode sources only
+         * @param uri relative or absolute path to the file decode source
+         */
+        bool SetFileUri(const char* uri);
+        
+        /**
          * @brief Sets the unique source id for this Source bintr
          * @param id value to assign [0...MAX]
          */
@@ -503,7 +509,11 @@ namespace DSL
         
         ~FileSourceBintr();
 
-        bool SetUri(const char* file_path);
+        /**
+         * @brief Sets the URL for FileSourceBintr 
+         * @param uri relative or absolute path to the file decode source
+         */
+        bool SetUri(const char* uri);
 
         /**
          * @brief Gets the current repeat enabled setting, non-live URI sources only

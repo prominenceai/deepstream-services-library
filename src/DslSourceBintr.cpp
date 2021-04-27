@@ -320,7 +320,7 @@ namespace DSL
         // Initialize the mutex regardless of IsLive or not
         g_mutex_init(&m_repeatEnabledMutex);
         
-        // if not a URL
+        // if it's a file source, 
         if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
         {
             if (isLive)
@@ -328,19 +328,15 @@ namespace DSL
                 LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
                 throw;
             }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
+            // Setup the absolute File URI and query dimensions
+            if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
                 throw;
             }
-            // File source, not live - setup full path
-            char absolutePath[PATH_MAX+1];
-            m_uri.assign(realpath(uri, absolutePath));
-            m_uri.insert(0, "file:");
         }
         
-        LOG_INFO("URI Path = " << m_uri);
+        LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
         m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         if (m_uri.find("rtsp") != std::string::npos)
@@ -348,8 +344,11 @@ namespace DSL
             // Configure the source to generate NTP sync values
             configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         }
+        else
+        {
+            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        }
         
-        // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
     }
     
@@ -359,6 +358,41 @@ namespace DSL
  
         DisableEosConsumer();
         g_mutex_clear(&m_repeatEnabledMutex);
+    }
+    
+    bool DecodeSourceBintr::SetFileUri(const char* uri)
+    {
+        LOG_FUNC();
+
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("fILE Source'" << uri << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+        m_uri.insert(0, "file:");
+
+        LOG_INFO("File Path = " << m_uri);
+        
+        // use openCV to open the file and read the Frame width and height properties.
+        cv::VideoCapture vidCap;
+        vidCap.open(uri, cv::CAP_ANY);
+
+        if (!vidCap.isOpened())
+        {
+            LOG_ERROR("Failed to open File '" << uri 
+                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
+            return false;
+        }
+        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
+        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+        
+        // Note: the m_fpsN and m_fpsD can be calculated from cv.CAP_PROP_FPS
+        // if needed prior to playing the file.
+        return true;
     }
     
     void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
@@ -753,25 +787,16 @@ namespace DSL
                 << "' as it's currently Linked");
             return false;
         }
+        // if it's a file source, 
         std::string newUri(uri);
-        if (newUri.find("http") == std::string::npos)
+        if ((newUri.find("http") == std::string::npos) and (newUri.find("rtsp") == std::string::npos))
         {
-            if (m_isLive)
-            {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" 
-                    << GetName() << "'");
-                return false;
-            }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
+            // Setup the absolute File URI and query dimensions
+            if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
-                return false;
+                throw;
             }
-            // File source, not live - setup full path
-            char absolutePath[PATH_MAX+1];
-            m_uri.assign(realpath(uri, absolutePath));
-            m_uri.insert(0, "file:");
         }        
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
@@ -806,20 +831,8 @@ namespace DSL
                 << "' as it's currently in use");
             return false;
         }
-        std::ifstream streamUriFile(uri);
-        if (!streamUriFile.good())
-        {
-            LOG_ERROR("fILE Source'" << uri << "' Not found");
-            return false;
-        }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(uri, absolutePath));
-        m_uri.insert(0, "file:");
-
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
-        return true;
+        return SetFileUri(uri);
     }
     
     bool FileSourceBintr::GetRepeatEnabled()
@@ -989,7 +1002,7 @@ namespace DSL
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Caps Filter for '" << m_name << "'");
-            throw;  
+            return false;  
         }
         m_pSourceCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);        

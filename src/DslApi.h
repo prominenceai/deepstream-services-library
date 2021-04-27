@@ -3152,14 +3152,14 @@ DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, ui
 /**
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink
- * @param[in] filepath absolute or relative file path including extension
+ * @param[in] file_path absolute or relative file path including extension
  * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second - H264 and H265 only
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
+DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
      uint codec, uint container, uint bitrate, uint interval);
 
 /**
@@ -3990,18 +3990,67 @@ DslReturnType dsl_player_render_image_new(const wchar_t* name, const wchar_t* fi
  * @brief Gets the current file path in use by the named Image or File Render Player
  * @param[in] name name of the Player to query
  * @param[out] file_path in use by the Render Player
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
  */
-DslReturnType dsl_player_render_filepath_get(const wchar_t* name, const wchar_t** file_path);
+DslReturnType dsl_player_render_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
     
 /**
  * @brief Sets the current file path to use for the named Image or File Render Player
  * @param[in] name name of the Render Player to update
  * @param[in] file_path file path for the Render Player to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
+    
+/**
+ * @brief Queues a file path to be played, in turn, on EOS Termination by the  
+ * named Image or File Render Player.
+ * @param[in] name name of the Render Player to update
+ * @param[in] file_path file path for the Render Player to queue
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_file_path_queue(const wchar_t* name, 
+    const wchar_t* file_path);
+
+/**
+ * @brief returns the current X and Y offsets for the Render Player
+ * @param[in] name name of the Render Player to query
+ * @param[out] offset_x current offset in the X direction for the Render Player in pixels
+ * @param[out] offset_y current offset in the Y direction for the Render Player in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise
+ */
+DslReturnType dsl_player_render_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
+
+/**
+ * @brief sets the X and Y offsets for the Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] offset_x new offset for the Render Player in the X direction in pixels
+ * @param[in] offset_y new offset for the Render Player in the X direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_player_render_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
+
+
+/**
+ * @brief Gets the current zoom setting in use by the named Image or File Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] zoom zoom setting in use by the Render Player, in unit of %
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_player_render_filepath_set(const wchar_t* name, const wchar_t* file_path);
+DslReturnType dsl_player_render_zoom_get(const wchar_t* name, uint* zoom);
     
+/**
+ * @brief Sets the zoom setting to use for the named Image or File Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] zoom zoom setting for the Render Player to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_zoom_set(const wchar_t* name, uint zoom);
+        
 /**
  * @brief Plays a Player if in a state of NULL Or Paused
  * @param[in] name unique name of the Player to play.

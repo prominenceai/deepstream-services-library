@@ -205,16 +205,51 @@ namespace DSL
         ~RenderPlayerBintr();
 
         /**
-         * @brief returns the current filepath for this RenderPlayerBintr
-         * @return const string to the file source
+         * @brief returns the current filePath for this RenderPlayerBintr
+         * @return const string to the file path
          */
         const char* GetFilePath();
         
         /**
-         * @brief sets the current filepath for this RenderPlayerBintr
-         * @return const string to the file source to use
+         * @brief sets the current filePath for this RenderPlayerBintr
+         * The service will fail if the RenderPlayerBintr is linked when called
+         * @return const string to the filePath to use
          */
-        virtual bool SetFilePath(const char* filepath) = 0;
+        bool SetFilePath(const char* filePath);
+
+        /**
+         * @brief adds a filePath to the RenderPlayerBintr's queue
+         * @return const string to the filePath to use
+         */
+        virtual bool QueueFilePath(const char* filePath);
+
+        /**
+         * @brief Gets the current X and Y offsets for the RenderPlayerBintr
+         * @param[out] offsetX current offset in the x direction in pixels
+         * @param[out] offsetY current offset in the Y direction in pixels
+         */
+        void GetOffsets(uint* offsetX, uint* offsetY);
+        
+        /**
+         * @brief Sets the current X and Y offsets for the RenderPlayerBintr
+         * @param[in] offsetX new offset in the Y direction in pixels
+         * @param[in] offsetY new offset in the Y direction in pixels
+         * @return true on successful update, false otherwise
+         */
+        bool SetOffsets(uint offsetX, uint offsetY);
+
+        /**
+         * @brief returns the current zooom setting for this RenderPlayerBintr
+         * @return zoom setting in units of %
+         */
+        uint GetZoom();
+        
+        /**
+         * @brief sets the current filePath for this RenderPlayerBintr
+         * The service will fail if the RenderPlayerBintr is linked when called
+         * @return const string to the filePath to use
+         */
+        bool SetZoom(uint zoom);
 
         static const uint m_displayId;
         static const uint m_depth;
@@ -264,6 +299,16 @@ namespace DSL
          */
         uint m_height;
         
+        /**
+         * @brief queue of file paths to play,
+         */
+        std::queue<std::string> m_filePathQueue;
+
+        /**
+         * @brief mutual exclusion over the file path queue.
+         */
+        GMutex m_filePathQueueMutex;
+        
     };
 
     /**
@@ -276,17 +321,11 @@ namespace DSL
     {
     public: 
     
-        VideoRenderPlayerBintr(const char* name, const char* filepath, 
+        VideoRenderPlayerBintr(const char* name, const char* filePath, 
             uint renderType, uint offsetX, uint offsetY, uint zoom, bool repeatEnabled);
 
         ~VideoRenderPlayerBintr();
 
-        /**
-         * @brief sets the current filepath for this VideoRenderPlayerBintr
-         * @return const string to the file source to use
-         */
-        bool SetFilePath(const char* filepath);
-        
     private:
         
         bool m_repeatEnabled;
@@ -302,17 +341,11 @@ namespace DSL
     {
     public: 
     
-        ImageRenderPlayerBintr(const char* name, const char* filepath, 
+        ImageRenderPlayerBintr(const char* name, const char* filePath, 
             uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
 
         ~ImageRenderPlayerBintr();
 
-        /**
-         * @brief sets the current filepath for this ImageRenderPlayerBintr
-         * @return const string to the file source to use
-         */
-        bool SetFilePath(const char* filepath);
-        
     private:
     
         uint m_timeout;

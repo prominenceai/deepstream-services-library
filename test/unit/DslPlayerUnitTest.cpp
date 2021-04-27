@@ -474,7 +474,7 @@ SCENARIO( "A New VideoRenderPlayerBintr with WindowSinkBintr can Play and Stop c
     }
 }
 
-SCENARIO( "A VideoRenderPlayerBintr can Set/Get it's File Path correctly", "[PlayerBintr]" )
+SCENARIO( "A VideoRenderPlayerBintr can Set/Get its File Path correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
@@ -521,7 +521,7 @@ SCENARIO( "A VideoRenderPlayerBintr can Set/Get it's File Path correctly", "[Pla
     }
 }
 
-SCENARIO( "A ImageRenderPlayerBintr can Set/Get it's File Path correctly", "[new]" )
+SCENARIO( "A ImageRenderPlayerBintr can Set/Get its File Path correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new ImageRenderPlayerBintr" ) 
     {
@@ -562,6 +562,142 @@ SCENARIO( "A ImageRenderPlayerBintr can Set/Get it's File Path correctly", "[new
                 REQUIRE( returnedFilePath2 == fullFilePath2 );
                 REQUIRE( pPlayerBintr->Play() == true);
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ImageRenderPlayerBintr with a WindowSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        int timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The Zoom Setting is updated" )
+        {
+            uint newZoom(100);
+            REQUIRE( pPlayerBintr->SetZoom(newZoom) == true);
+            
+            THEN( "The correct Zoom setting is return on Get" )
+            {
+                REQUIRE( pPlayerBintr->GetZoom() == newZoom );
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        int timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The Zoom Setting is updated" )
+        {
+            uint newZoom(100);
+            REQUIRE( pPlayerBintr->SetZoom(newZoom) == true);
+            
+            THEN( "The correct Zoom setting is return on Get" )
+            {
+                REQUIRE( pPlayerBintr->GetZoom() == newZoom );
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A VideoRenderPlayerBintr with a WindowSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
+{
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        bool repeatEnabled(false);
+
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The Zoom Setting is updated" )
+        {
+            uint newZoom(100);
+            REQUIRE( pPlayerBintr->SetZoom(newZoom) == true);
+            
+            THEN( "The correct Zoom setting is return on Get" )
+            {
+                REQUIRE( pPlayerBintr->GetZoom() == newZoom );
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom", "[new]" )
+{
+    GIVEN( "A new VideoRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/sample_1080p_h264.mp4";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(50);
+        bool repeatEnabled(false);
+
+        DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The Zoom Setting is updated" )
+        {
+            uint newZoom(100);
+            REQUIRE( pPlayerBintr->SetZoom(newZoom) == true);
+            
+            THEN( "The correct Zoom setting is return on Get" )
+            {
+                REQUIRE( pPlayerBintr->GetZoom() == newZoom );
                 REQUIRE( pPlayerBintr->Stop() == true );
             }
         }

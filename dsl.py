@@ -3493,15 +3493,15 @@ def dsl_player_new(name, source, sink):
     return int(result)
 
 ##
-## dsl_player_render_file_new()
+## dsl_player_render_video_new()
 ##
-_dsl.dsl_player_render_file_new.argtypes = [c_wchar_p, 
+_dsl.dsl_player_render_video_new.argtypes = [c_wchar_p, 
     c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_bool]
-_dsl.dsl_player_render_file_new.restype = c_uint
-def dsl_player_render_file_new(name, file_path, 
+_dsl.dsl_player_render_video_new.restype = c_uint
+def dsl_player_render_video_new(name, file_path, 
     render_type, offset_x, offset_y, zoom, repeat_enabled):
     global _dsl
-    result =_dsl.dsl_player_render_file_new(name, 
+    result =_dsl.dsl_player_render_video_new(name, 
         file_path, render_type, offset_x, offset_y, zoom, repeat_enabled)
     return int(result)
 
@@ -3516,6 +3516,27 @@ def dsl_player_render_image_new(name, file_path,
     global _dsl
     result =_dsl.dsl_player_render_image_new(name, 
         file_path, render_type, offset_x, offset_y, zoom, timeout)
+    return int(result)
+
+##
+## dsl_player_render_file_path_get()
+##
+_dsl.dsl_player_render_file_path_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_player_render_file_path_get.restype = c_uint
+def dsl_player_render_file_path_get(name):
+    global _dsl
+    file_path = c_wchar_p(0)
+    result = _dsl.dsl_player_render_file_path_get(name, DSL_WCHAR_PP(file_path))
+    return int(result), uri.value 
+
+##
+## dsl_player_render_file_path_set()
+##
+_dsl.dsl_player_render_file_path_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_player_render_file_path_set.restype = c_uint
+def dsl_player_render_file_path_set(name, file_path):
+    global _dsl
+    result = _dsl.dsl_player_render_file_path_set(name, file_path)
     return int(result)
 
 ##

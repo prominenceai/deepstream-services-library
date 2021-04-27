@@ -28,7 +28,7 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+file_path = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -114,14 +114,21 @@ def capture_complete_listener(capture_info_ptr, client_data):
             name = 'image-player',
             file_path = capture_info.dirpath + '/' + capture_info.filename,
             render_type = DSL_RENDER_TYPE_OVERLAY,
-            offset_x = WINDOW_WIDTH - (capture_info.width +10), 
-            offset_y = 10, 
+            offset_x = 400, 
+            offset_y = 100, 
             zoom = 150,
-            timeout = 5)
+            timeout = 2)
 
         # Add the Termination listener callback to the Player 
         retval = dsl_player_termination_event_listener_add('image-player',
             client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+            
+    # Else, update the Render-Player's file-path with the new image path
+    else:
+        retval = dsl_player_render_file_path_set('image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename)
         if retval != DSL_RETURN_SUCCESS:
             return
 
@@ -255,8 +262,10 @@ def main(args):
         #
         # Create the remaining Pipeline components
         
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
+        # New File Source using the file path defined at the top of the file
+        retval = dsl_source_file_new('file-source', 
+            file_path = file_path, 
+            repeat_enabled = True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -292,7 +301,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

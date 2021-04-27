@@ -784,6 +784,15 @@ namespace DSL {
 
         DslReturnType PlayerRenderFilePathSet(const char* name, const char* filePath);
             
+        DslReturnType PlayerRenderFilePathQueue(const char* name, const char* filePath);
+
+        DslReturnType PlayerRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType PlayerRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+
+        DslReturnType PlayerRenderZoomGet(const char* name, uint* zoom);
+
+        DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
 
         DslReturnType PlayerPause(const char* name);
         
