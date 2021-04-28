@@ -303,7 +303,7 @@ namespace DSL
     DecodeSourceBintr::DecodeSourceBintr(const char* name, 
         const char* factoryName, const char* uri,
         bool isLive, uint cudadecMemType, uint intraDecode, uint dropFrameInterval)
-        : ResourceSourceBintr(name)
+        : ResourceSourceBintr(name, uri)
         , m_cudadecMemtype(cudadecMemType)
         , m_intraDecode(intraDecode)
         , m_dropFrameInterval(dropFrameInterval)
@@ -316,9 +316,11 @@ namespace DSL
         LOG_FUNC();
         
         m_isLive = isLive;
-        m_uri = uri;
         
-        // if not a URL
+        // Initialize the mutex regardless of IsLive or not
+        g_mutex_init(&m_repeatEnabledMutex);
+        
+        // if it's a file source, 
         if ((m_uri.find("http") == std::string::npos) and (m_uri.find("rtsp") == std::string::npos))
         {
             if (isLive)
@@ -326,20 +328,15 @@ namespace DSL
                 LOG_ERROR("Invalid URI '" << uri << "' for Live source '" << name << "'");
                 throw;
             }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
+            // Setup the absolute File URI and query dimensions
+            if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
                 throw;
             }
-            // File source, not live - setup full path
-            char absolutePath[PATH_MAX+1];
-            m_uri.assign(realpath(uri, absolutePath));
-            m_uri.insert(0, "file:");
-            g_mutex_init(&m_repeatEnabledMutex);
         }
         
-        LOG_INFO("URI Path = " << m_uri);
+        LOG_INFO("URI Path for File Source '" << GetName() << "' = " << m_uri);
         m_pSourceElement = DSL_ELEMENT_NEW(factoryName, GetName().c_str());
         
         if (m_uri.find("rtsp") != std::string::npos)
@@ -347,8 +344,11 @@ namespace DSL
             // Configure the source to generate NTP sync values
             configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         }
+        else
+        {
+            m_pSourceElement->SetAttribute("uri", m_uri.c_str());
+        }
         
-        // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
     }
     
@@ -356,8 +356,43 @@ namespace DSL
     {
         LOG_FUNC();
  
-        DisableAutoRepeat();
+        DisableEosConsumer();
         g_mutex_clear(&m_repeatEnabledMutex);
+    }
+    
+    bool DecodeSourceBintr::SetFileUri(const char* uri)
+    {
+        LOG_FUNC();
+
+        std::ifstream streamUriFile(uri);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("File Source'" << uri << "' Not found");
+            return false;
+        }
+        // File source, not live - setup full path
+        char absolutePath[PATH_MAX+1];
+        m_uri.assign(realpath(uri, absolutePath));
+        m_uri.insert(0, "file:");
+
+        LOG_INFO("File Path = " << m_uri);
+        
+        // use openCV to open the file and read the Frame width and height properties.
+        cv::VideoCapture vidCap;
+        vidCap.open(uri, cv::CAP_ANY);
+
+        if (!vidCap.isOpened())
+        {
+            LOG_ERROR("Failed to open File '" << uri 
+                << "' for VideoRenderPlayerBintr '" << GetName() << "'");
+            return false;
+        }
+        m_width = vidCap.get(cv::CAP_PROP_FRAME_WIDTH);
+        m_height = vidCap.get(cv::CAP_PROP_FRAME_HEIGHT);
+        
+        // Note: the m_fpsN and m_fpsD can be calculated from cv.CAP_PROP_FPS
+        // if needed prior to playing the file.
+        return true;
     }
     
     void DecodeSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,
@@ -538,7 +573,7 @@ namespace DSL
         return (m_pDewarperBintr != nullptr);
     }
     
-    void DecodeSourceBintr::DisableAutoRepeat()
+    void DecodeSourceBintr::DisableEosConsumer()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_repeatEnabledMutex);
@@ -746,31 +781,22 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set Uri for UriSourceBintr '" << GetName() 
-                << "' as it's currently in use");
+                << "' as it's currently Linked");
             return false;
         }
+        // if it's a file source, 
         std::string newUri(uri);
-        if (newUri.find("http") == std::string::npos)
+        if ((newUri.find("http") == std::string::npos) and (newUri.find("rtsp") == std::string::npos))
         {
-            if (m_isLive)
-            {
-                LOG_ERROR("Invalid URI '" << uri << "' for Live source '" 
-                    << GetName() << "'");
-                return false;
-            }
-            std::ifstream streamUriFile(uri);
-            if (!streamUriFile.good())
+            // Setup the absolute File URI and query dimensions
+            if (!SetFileUri(uri))
             {
                 LOG_ERROR("URI Source'" << uri << "' Not found");
-                return false;
+                throw;
             }
-            // File source, not live - setup full path
-            char absolutePath[PATH_MAX+1];
-            m_uri.assign(realpath(uri, absolutePath));
-            m_uri.insert(0, "file:");
         }        
         m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
@@ -789,31 +815,24 @@ namespace DSL
         // override the default
         m_repeatEnabled = repeatEnabled;
     }
+    
+    FileSourceBintr::~FileSourceBintr()
+    {
+        LOG_FUNC();
+    }
 
     bool FileSourceBintr::SetUri(const char* uri)
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (IsLinked())
         {
             LOG_ERROR("Unable to set File Path for FileSourceBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
-        std::ifstream streamUriFile(uri);
-        if (!streamUriFile.good())
-        {
-            LOG_ERROR("fILE Source'" << uri << "' Not found");
-            return false;
-        }
-        // File source, not live - setup full path
-        char absolutePath[PATH_MAX+1];
-        m_uri.assign(realpath(uri, absolutePath));
-        m_uri.insert(0, "file:");
-
-        m_pSourceElement->SetAttribute("uri", m_uri.c_str());
         
-        return true;
+        return SetFileUri(uri);
     }
     
     bool FileSourceBintr::GetRepeatEnabled()
@@ -842,7 +861,7 @@ namespace DSL
 
     ImageSourceBintr::ImageSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
-        : ResourceSourceBintr(name)
+        : ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
@@ -856,12 +875,6 @@ namespace DSL
         m_pSourceElement = DSL_ELEMENT_NEW("videotestsrc", "image-source");
         m_pSourceCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "source-caps-filter");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", "image-overlay"); 
-        m_pConverter = DSL_ELEMENT_NEW(NVDS_ELEM_VIDEO_CONV, "video-converter");
-        m_pConverterCapsFilter = DSL_ELEMENT_NEW(NVDS_ELEM_CAPS_FILTER, "converter-caps-filter");
-
-        GstCaps* pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=NV12");
-        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
 
         if (!SetUri(uri))
         {
@@ -873,11 +886,9 @@ namespace DSL
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
-        AddChild(m_pConverter);
-        AddChild(m_pConverterCapsFilter);
         
         // Source Ghost Pad for ImageSourceBintr
-        m_pConverterCapsFilter->AddGhostPadToParent("src");
+        m_pImageOverlay->AddGhostPadToParent("src");
 
         g_mutex_init(&m_timeoutTimerMutex);
     }
@@ -903,9 +914,7 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
-            !m_pImageOverlay->LinkToSink(m_pConverter) or
-            !m_pConverter->LinkToSink(m_pConverterCapsFilter))
+            !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay))
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -938,9 +947,7 @@ namespace DSL
         }
         
         if (!m_pSourceElement->UnlinkFromSink() or
-            !m_pSourceCapsFilter->UnlinkFromSink() or
-            !m_pImageOverlay->UnlinkFromSink() or
-            !m_pConverter->UnlinkFromSink())
+            !m_pSourceCapsFilter->UnlinkFromSink())
         {
             LOG_ERROR("ImageSourceBintr '" << GetName() << "' failed to UnlinkAll");
             return;
@@ -995,7 +1002,7 @@ namespace DSL
         if (!pCaps)
         {
             LOG_ERROR("Failed to create new Simple Caps Filter for '" << m_name << "'");
-            throw;  
+            return false;  
         }
         m_pSourceCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);        
@@ -1048,11 +1055,9 @@ namespace DSL
         , m_listenerNotifierTimerId(0)
     {
         LOG_FUNC();
-        
+
         // Set RTSP latency
         m_latency = latency;
-        LOG_DEBUG("Setting latency to '" << latency 
-            << "' for RtspSourceBintr '" << m_name << "'");
 
         // New RTSP Specific Elementrs for this Source
         m_pPreDecodeTee = DSL_ELEMENT_NEW(NVDS_ELEM_TEE, "pre-decode-tee");
@@ -1128,8 +1133,8 @@ namespace DSL
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
         
         g_mutex_clear(&m_streamManagerMutex);
+        g_mutex_clear(&m_reconnectionManagerMutex);
         g_mutex_clear(&m_stateChangeMutex);
-        
     }
     
     bool RtspSourceBintr::LinkAll()

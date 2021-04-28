@@ -221,7 +221,7 @@ static void capture_complete_cb(dsl_capture_info* pInfo, void* user_data)
 {
 }
 
-SCENARIO( "A Capture Complete Listener can be added and removed", "[new]" )
+SCENARIO( "A Capture Complete Listener can be added and removed", "[ode-action-api]" )
 {
     GIVEN( "A new Capture Action and client listener callback" )
     {

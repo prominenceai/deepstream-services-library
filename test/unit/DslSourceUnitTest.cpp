@@ -302,8 +302,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[UriSourceBintr]" )
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
                 pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
-                REQUIRE( retWidth == 0 );
-                REQUIRE( retHeight == 0 );
+                REQUIRE( retWidth == 1920 );
+                REQUIRE( retHeight == 1080 );
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
             }

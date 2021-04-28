@@ -28,7 +28,7 @@ import sys
 sys.path.insert(0, "../../")
 from dsl import *
 
-uri_file = "../../test/streams/sample_1080p_h264.mp4"
+file_path = "../../test/streams/sample_1080p_h264.mp4"
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = '../../test/configs/config_infer_primary_nano.txt'
@@ -45,13 +45,11 @@ MAX_OBJECTS = 8
 
 TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
 TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 INCLUSION_AREA = 0
 EXCLUSION_AREA = 1
-
-g_capture_instance = 0
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -87,41 +85,21 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-## 	
-# Objects of this class will be used as "client_data" for the 
-# player_termination_event_listener() callback below.	
-# defines a class of all component names associated with a single RTSP Source. 	
-# The names are derived from the unique Source name	
-##	
-class PlayerComponents:	
-    def __init__(self, suffix):
-        self.player = 'player-' + suffix
-        self.source = 'source-' + suffix
-        self.sink = 'sink-' + suffix
-
 ## 
 # Function to be called on Player termination event
 ## 
 def player_termination_event_listener(client_data):
     print(' ***  Display Image Complete  *** ')
 
-    # cast the C void* client_data back to a py_object pointer and deref	
-    playerComponents = cast(client_data, POINTER(py_object)).contents.value	
-
-    # delete the player and its two components
-    dsl_player_delete(playerComponents.player)
-#    dsl_component_delete_many(components=[
-#        playerComponents.source, playerComponents.sink, None])
-
-    # reset the Trigger so that a new image can be captured.
+    # reset the Trigger so that a new image can be captured and rendered.
     print(dsl_return_value_to_string(dsl_ode_trigger_reset('person-enter-area-trigger')))
 
 
+## 
+# Function to be called on Object Capture (and file-save) complete
+## 
 def capture_complete_listener(capture_info_ptr, client_data):
     print(' ***  Object Capture Complete  *** ')
-    
-    global g_capture_instance
-    g_capture_instance += 1
     
     capture_info = capture_info_ptr.contents
     print('capture_id: ', capture_info.capture_id)
@@ -129,54 +107,33 @@ def capture_complete_listener(capture_info_ptr, client_data):
     print('dirpath:    ', capture_info.dirpath)
     print('width:      ', capture_info.width)
     print('height:     ', capture_info.height)
-
-    # Create the unique player component names for this capture instance
-    playerComponents = PlayerComponents(str(g_capture_instance))
     
-    print(playerComponents.source)
+    # One time creation of the Image Render Player
+    if dsl_player_exists('image-player') == False:
+        dsl_player_render_image_new(
+            name = 'image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename,
+            render_type = DSL_RENDER_TYPE_OVERLAY,
+            offset_x = 400, 
+            offset_y = 100, 
+            zoom = 150,
+            timeout = 2)
 
-    # New Image Source using the dirpath and filename
-    
-    retval = dsl_source_image_new(
-        name = playerComponents.source, 
-        file_path = capture_info.dirpath + '/' + capture_info.filename, 
-        is_live = False,
-        fps_n = 10,
-        fps_d = 1,
-        timeout = 5)
-    if retval != DSL_RETURN_SUCCESS:
-        return
-    
-    # New Overlay Sink
-    retval = dsl_sink_overlay_new(
-        name = playerComponents.sink, 
-        overlay_id = 1, 
-        display_id = 0, 
-        depth = 0,
-        offset_x = 50, 
-        offset_y = 50, 
-        width = capture_info.width*2, 
-        height = capture_info.height*2)
-    if retval != DSL_RETURN_SUCCESS:
-        return
-
-    # New Media Player using the File Source and Window Sink
-    retval = dsl_player_new(
-        name = playerComponents.player,
-        source = playerComponents.source, 
-        sink = playerComponents.sink)
-    if retval != DSL_RETURN_SUCCESS:
-        return
-
-    # Add the Termination listener callback to the Player
-    # Pass the playerComponents (i.e. names) as client data
-    retval = dsl_player_termination_event_listener_add(playerComponents.player,
-        client_listener=player_termination_event_listener, client_data=playerComponents)
-    if retval != DSL_RETURN_SUCCESS:
-        return
+        # Add the Termination listener callback to the Player 
+        retval = dsl_player_termination_event_listener_add('image-player',
+            client_listener=player_termination_event_listener, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            return
+            
+    # Else, update the Render-Player's file-path with the new image path
+    else:
+        retval = dsl_player_render_file_path_set('image-player',
+            file_path = capture_info.dirpath + '/' + capture_info.filename)
+        if retval != DSL_RETURN_SUCCESS:
+            return
 
     # Play the Player until end-of-stream (EOS)
-    retval = dsl_player_play(playerComponents.player)
+    retval = dsl_player_play('image-player')
     if retval != DSL_RETURN_SUCCESS:
         return
     
@@ -305,8 +262,10 @@ def main(args):
         #
         # Create the remaining Pipeline components
         
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, 0, 0, 0)
+        # New File Source using the file path defined at the top of the file
+        retval = dsl_source_file_new('file-source', 
+            file_path = file_path, 
+            repeat_enabled = True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -342,7 +301,12 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Set the XWindow into full-screen mode for a kiosk look
+        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -117,6 +117,11 @@ namespace DSL
 
         m_xWindowWidth = width;
         m_xWindowHeight = height;
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_xWindowOffsetX, m_xWindowOffsetY, m_xWindowWidth, m_xWindowHeight);
+        }
     }
     
     bool PipelineXWinMgr::GetXWindowFullScreenEnabled()

@@ -97,6 +97,13 @@ namespace DSL
         return true;
     }
 
+    bool PipelineStateMgr::IsEosListener(dsl_eos_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        return (m_eosListeners.find(listener) != m_eosListeners.end());
+    }
+
     bool PipelineStateMgr::RemoveEosListener(dsl_eos_listener_cb listener)
     {
         LOG_FUNC();

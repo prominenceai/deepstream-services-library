@@ -71,10 +71,9 @@ namespace DSL
 
         /**
          * @brief Sets the dimensions for the Pipeline's XWindow
-         * Note: this function is used for XWindow unit testing only. Dimensions are set by the Window Sink
-         * @param width width in pixels to set the XWindow on creation
-         * @param height height in pixels to set the XWindow on creation
-         * @return true if the output dimensions could be set, false otherwise
+         * @param width width in pixels to set the XWindow
+         * @param height height in pixels to set the XWindow
+         * @return true if the XWindow dimensions could be set, false otherwise
          */
         void SetXWindowDimensions(uint width, uint height);
         

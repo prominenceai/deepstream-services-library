@@ -774,17 +774,51 @@ namespace DSL {
 
         DslReturnType PlayerNew(const char* name, const char* source, const char* sink);
 
+        DslReturnType PlayerRenderVideoNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, boolean repeatEnabled);
+
+        DslReturnType PlayerRenderImageNew(const char* name, const char* filePath,
+            uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout);
+            
+        DslReturnType PlayerRenderFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType PlayerRenderFilePathSet(const char* name, const char* filePath);
+            
+        DslReturnType PlayerRenderFilePathQueue(const char* name, const char* filePath);
+
+        DslReturnType PlayerRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
+
+        DslReturnType PlayerRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+
+        DslReturnType PlayerRenderZoomGet(const char* name, uint* zoom);
+
+        DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
+
+        DslReturnType PlayerRenderImageTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType PlayerRenderImageTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType PlayerRenderVideoRepeatEnabledGet(const char* name, 
+            boolean* repeatEnabled);
+
+        DslReturnType PlayerRenderVideoRepeatEnabledSet(const char* name, 
+            boolean repeatEnabled);
+
         DslReturnType PlayerPause(const char* name);
         
         DslReturnType PlayerPlay(const char* name);
         
         DslReturnType PlayerStop(const char* name);
+
+        DslReturnType PlayerStateGet(const char* name, uint* state);
         
         DslReturnType PlayerTerminationEventListenerAdd(const char* name,
             dsl_player_termination_event_listener_cb listener, void* clientData);
         
         DslReturnType PlayerTerminationEventListenerRemove(const char* name,
             dsl_player_termination_event_listener_cb listener);
+        
+        boolean PlayerExists(const char* name);
         
         DslReturnType PlayerDelete(const char* name);
         

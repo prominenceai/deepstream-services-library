@@ -351,16 +351,18 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_NAME_NOT_UNIQUE                           0x00400001
 #define DSL_RESULT_PLAYER_NAME_NOT_FOUND                            0x00400002
 #define DSL_RESULT_PLAYER_NAME_BAD_FORMAT                           0x00400003
-#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400004
-#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400005
-#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400006
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x0040000B
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000C
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000D
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000E
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000F
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x00400010
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x00400011
+#define DSL_RESULT_PLAYER_IS_NOT_RENDER_PLAYER                      0x00400004
+#define DSL_RESULT_PLAYER_STATE_PAUSED                              0x00400005
+#define DSL_RESULT_PLAYER_STATE_RUNNING                             0x00400006
+#define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
+#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400008
+#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000A
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000B
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000D
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000E
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
 
 /**
  *
@@ -3150,14 +3152,14 @@ DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, ui
 /**
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink
- * @param[in] filepath absolute or relative file path including extension
+ * @param[in] file_path absolute or relative file path including extension
  * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265, DSL_CODEC_MPEG4
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second - H264 and H265 only
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath, 
+DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
      uint codec, uint container, uint bitrate, uint interval);
 
 /**
@@ -3957,7 +3959,153 @@ DslReturnType dsl_player_new(const wchar_t* name,
     const wchar_t* file_source, const wchar_t* sink);
 
 /**
- * @brief Plays a Player if in a state of NULL Or Paused
+ * @brief Creates a new, uniquely named Video Render Player
+ * @param[in] name unique name for the new Player
+ * @param[in] file_path absolute or relative path to the file to render
+ * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
+ * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
+ * @param[in] zoom digital zoom factor in units of %
+ * @param[in] repeat_enabled set to true to auto-repeat on EOS
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* file_path, 
+   uint render_type, uint offset_x, uint offset_y, uint zoom, boolean repeat_enabled);
+
+/**
+ * @brief Creates a new, uniquely named Image Render Player
+ * @param[in] name unique name for the new Player
+ * @param[in] file_path absolute or relative path to the image to render
+ * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
+ * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
+ * @param[in] zoom digital zoom factor in units of %
+ * @param[in] timeout will generate an EOS event on timeout in units of seconds, 0 = no timeout.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT
+ */
+DslReturnType dsl_player_render_image_new(const wchar_t* name, const wchar_t* file_path,
+    uint render_type, uint offset_x, uint offset_y, uint zoom, uint timeout);
+
+/**
+ * @brief Gets the current file path in use by the named Image or File Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] file_path in use by the Render Player
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
+    
+/**
+ * @brief Sets the current file path to use for the named Image or File Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] file_path file path for the Render Player to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
+    
+/**
+ * @brief Queues a file path to be played, in turn, on EOS Termination by the  
+ * named Image or File Render Player.
+ * @param[in] name name of the Render Player to update
+ * @param[in] file_path file path for the Render Player to queue
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_file_path_queue(const wchar_t* name, 
+    const wchar_t* file_path);
+
+/**
+ * @brief returns the current X and Y offsets for the Render Player
+ * @param[in] name name of the Render Player to query
+ * @param[out] offset_x current offset in the X direction for the Render Player in pixels
+ * @param[out] offset_y current offset in the Y direction for the Render Player in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise
+ */
+DslReturnType dsl_player_render_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
+
+/**
+ * @brief Sets the X and Y offsets for the Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] offset_x new offset for the Render Player in the X direction in pixels
+ * @param[in] offset_y new offset for the Render Player in the X direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_player_render_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
+
+/**
+ * @brief Gets the current zoom setting in use by the named Image or File Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] zoom zoom setting in use by the Render Player, in unit of %
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_zoom_get(const wchar_t* name, uint* zoom);
+    
+/**
+ * @brief Sets the zoom setting to use for the named Image or File Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] zoom zoom setting for the Render Player to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_zoom_set(const wchar_t* name, uint zoom);
+
+/**
+ * @brief Gets the current timeout setting in use by the named Image Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] timeout timeout setting in use by the Render Player, in unit of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_image_timeout_get(const wchar_t* name, uint* timeout);
+    
+/**
+ * @brief Sets the timeout setting to use for the named Image Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] timeout timeout setting for the Render Player to use, in uints of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_image_timeout_set(const wchar_t* name, uint timeout);
+        
+/**
+ * @brief Gets the current repeat_enabled setting in use by the named video Render Player
+ * @param[in] name name of the Player to query
+ * @param[out] timeout_enabled enabled if true, disabled otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_video_repeat_enabled_get(const wchar_t* name, 
+    boolean* repeat_enabled);
+    
+/**
+ * @brief Sets the repeat enabled setting to use for the named video Render Player
+ * @param[in] name name of the Render Player to update
+ * @param[in] repeat_enabled set to true to enable, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_player_render_video_repeat_enabled_set(const wchar_t* name, 
+    boolean repeat_enabled);
+        
+/**
+ * @brief Adds a callback to be notified on Player Termination Event.
+ * Termination can be the result of EOS, image timeout, or XWindow deletion.
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's function to call on Termination event.
+ * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with dsl_player_termination_event_listener_add
+ * @param[in] name name of the player to update
+ * @param[in] listener pointer to the client's listener function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* pipeline, 
+    dsl_player_termination_event_listener_cb listener);
+
+/**
+ * @brief Plays a Player if in a state of NULL or Paused
  * @param[in] name unique name of the Player to play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT on failure.
  */
@@ -3978,24 +4126,19 @@ DslReturnType dsl_player_pause(const wchar_t* name);
 DslReturnType dsl_player_stop(const wchar_t* name);
 
 /**
- * @brief Adds a callback to be notified on Player Termination Event.
- * Termination can be the result of EOS, image timeout, or XWindow deletion.
- * @param[in] name name of the player to update
- * @param[in] listener pointer to the client's function to call on Termination event.
- * @param[in] client_data opaque pointer to client data passed to the listener function.
+ * @brief gets the current state of a Player
+ * @param[in] name unique name of the player to query
+ * @param[out] state one of the DSL_STATE_* values representing the current state
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
-DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
-    dsl_player_termination_event_listener_cb listener, void* client_data);
+DslReturnType dsl_player_state_get(const wchar_t* name, uint* state);
 
 /**
- * @brief Removes a callback previously added with dsl_player_termination_event_listener_add
- * @param[in] name name of the player to update
- * @param[in] listener pointer to the client's listener function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ * @brief Queries DSL to determine if a uniquely named Player Object exists 
+ * @param name of the Player to determine if exists
+ * @return true if the named Player exists, false otherwise
  */
-DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* pipeline, 
-    dsl_player_termination_event_listener_cb listener);
+boolean dsl_player_exists(const wchar_t* name);
 
 /**
  * @brief Deletes a Player object by name.

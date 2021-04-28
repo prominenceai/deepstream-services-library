@@ -44,7 +44,13 @@ namespace DSL
     {
         LOG_FUNC();
         
-        Stop();
+        GstState state;
+        GetState(state, 0);
+        if (state == GST_STATE_PLAYING or state == GST_STATE_PAUSED)
+        {
+            Stop();
+        }
+        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         g_mutex_clear(&m_asyncCommMutex);
     }
     
@@ -240,7 +246,7 @@ namespace DSL
         
         GstState currentState;
         GetState(currentState, 0);
-        if (currentState == GST_STATE_NULL)
+        if (currentState == GST_STATE_NULL or currentState == GST_STATE_READY)
         {
             if (!LinkAll())
             {
@@ -334,16 +340,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
 
-        // For non-live sources we need to disable the 'Repeat/Restart' handler 
-        // that occurrs on EOS. 
-        if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
-        {
-            m_pPipelineSourcesBintr->DisableAutoRepeat();
-        }
+        // Call on all sources to disable their EOS consumers, before send EOS
+        m_pPipelineSourcesBintr->DisableEosConsumers();
+        
         SendEos();
         sleep(1);
 
-        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }

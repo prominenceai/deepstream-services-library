@@ -735,8 +735,8 @@ SCENARIO( "A new File Source returns the correct attribute values", "[source-api
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
                     &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_width == 0 );
-                REQUIRE( ret_height == 0 );
+                REQUIRE( ret_width == 1920 );
+                REQUIRE( ret_height == 1080 );
                 REQUIRE( ret_fps_n == 0 );
                 REQUIRE( ret_fps_d == 0 );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == false );
