@@ -48,9 +48,6 @@ TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
-INCLUSION_AREA = 0
-EXCLUSION_AREA = 1
-
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -91,10 +88,6 @@ def state_change_listener(old_state, new_state, client_data):
 def player_termination_event_listener(client_data):
     print(' ***  Display Image Complete  *** ')
 
-    # reset the Trigger so that a new image can be captured and rendered.
-    print(dsl_return_value_to_string(dsl_ode_trigger_reset('person-enter-area-trigger')))
-
-
 ## 
 # Function to be called on Object Capture (and file-save) complete
 ## 
@@ -117,7 +110,7 @@ def capture_complete_listener(capture_info_ptr, client_data):
             offset_x = 400, 
             offset_y = 100, 
             zoom = 150,
-            timeout = 2)
+            timeout = 1)
 
         # Add the Termination listener callback to the Player 
         retval = dsl_player_termination_event_listener_add('image-player',
@@ -127,11 +120,28 @@ def capture_complete_listener(capture_info_ptr, client_data):
             
     # Else, update the Render-Player's file-path with the new image path
     else:
+
+        # Check the Player's state to see if it's currently displaying an image
+        retval, state = dsl_player_state_get('image-player')
+        if retval != DSL_RETURN_SUCCESS:
+            return
+
+        print('player is in a state of ', state)
+        if state == DSL_STATE_PLAYING:
+
+            # If we are playing then we need to queue the file
+            retval = dsl_player_render_file_path_queue('image-player',
+                file_path = capture_info.dirpath + '/' + capture_info.filename)
+
+            # return with out changing the players state
+            return
+
+        # otherwise, we can set the path in preperation for playing 
         retval = dsl_player_render_file_path_set('image-player',
             file_path = capture_info.dirpath + '/' + capture_info.filename)
         if retval != DSL_RETURN_SUCCESS:
             return
-
+    
     # Play the Player until end-of-stream (EOS)
     retval = dsl_player_play('image-player')
     if retval != DSL_RETURN_SUCCESS:
@@ -145,8 +155,6 @@ def main(args):
     
         # This example demonstrates the use of a Polygon Area for Inclusion 
         # or Exlucion critera for ODE occurrence. Change the variable below to try each.
-        
-        area_type = INCLUSION_AREA
         
         #```````````````````````````````````````````````````````````````````````````````````
 
@@ -185,16 +193,10 @@ def main(args):
             break
             
         # create the ODE inclusion area to use as criteria for ODE occurrence
-        if area_type == INCLUSION_AREA:
-            retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
-                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        else:
-            retval = dsl_ode_area_exclusion_new('polygon-area', polygon='polygon1', 
-                show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
-            if retval != DSL_RETURN_SUCCESS:
-                break
+        retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
+            show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New Occurrence Trigger, filtering on PERSON class_id, 
         # and with no limit on the number of occurrences
@@ -219,7 +221,7 @@ def main(args):
         retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
-            limit = DSL_ODE_TRIGGER_LIMIT_ONE)
+            limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
