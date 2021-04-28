@@ -776,7 +776,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Offs
     }
 }
 
-SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[new]" )
+SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[PlayerBintr]" )
 {
     GIVEN( "A new ImageRenderPlayerBintr with a queued file" ) 
     {
@@ -806,7 +806,8 @@ SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[new]" )
             
             THEN( "The Player is Stoped and the Queued file is Played" )
             {
-                // Note: required visual convermation at this time..
+                pPlayerBintr->HandleStopAndPlay();
+                // Note: required visual confermation at this time..
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( pPlayerBintr->Stop() == true );
             }

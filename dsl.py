@@ -3697,7 +3697,7 @@ def dsl_player_stop(name):
 ##
 _dsl.dsl_player_state_get.argtypes = [c_wchar_p, POINTER(c_uint)]
 _dsl.dsl_player_state_get.restype = c_uint
-def dsl_plaery_state_get(name):
+def dsl_player_state_get(name):
     global _dsl
     state = c_uint(0)
     result =_dsl.dsl_player_state_get(name,  DSL_UINT_P(state))

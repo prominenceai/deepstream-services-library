@@ -46,14 +46,14 @@ namespace DSL
          * @brief adds a callback to be notified on change of Pipeline state
          * @param[in] listener pointer to the client's function to call on state change
          * @param[in] clientData opaque pointer to client data passed into the listner function.
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful listener add, false otherwise.
          */
         bool AddStateChangeListener(dsl_state_change_listener_cb listener, void* clientData);
 
         /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful listener remove, false otherwise.
          */
         bool RemoveStateChangeListener(dsl_state_change_listener_cb listener);
             
@@ -61,14 +61,21 @@ namespace DSL
          * @brief adds a callback to be notified on change of Pipeline state
          * @param[in] listener pointer to the client's function to call on state change
          * @param[in] clientData opaque pointer to client data passed into the listner function.
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful listener add, false otherwise.
          */
         bool AddEosListener(dsl_eos_listener_cb listener, void* clientData);
 
         /**
+         * @brief queries if a callback function is currently added as an EOS listener
+         * @param[in] listener pointer to the client's function to query for
+         * @return true if the calback is an EOS listener, false otherwise.
+         */
+        bool IsEosListener(dsl_eos_listener_cb listener);
+
+        /**
          * @brief removes a previously added callback
          * @param[in] listener pointer to the client's function to remove
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful listener remove, false otherwise.
          */
         bool RemoveEosListener(dsl_eos_listener_cb listener);
             
@@ -76,14 +83,14 @@ namespace DSL
          * @brief adds a callback to be notified on the event an error message is recieved on the bus
          * @param[in] handler pointer to the client's function to call on error message
          * @param[in] clientData opaque pointer to client data passed into the handler function.
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful handler add, false otherwise.
          */
         bool AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData);
 
         /**
          * @brief removes a previously added callback
          * @param[in] handler pointer to the client's function to remove
-         * @return DSL_RESULT_PIPELINE_RESULT
+         * @return true on successful handler remove, false otherwise.
          */
         bool RemoveErrorMessageHandler(dsl_error_message_handler_cb handler);
             

@@ -173,10 +173,15 @@ namespace DSL
         if (currentState == GST_STATE_PLAYING)
         {
             LOG_ERROR("Unable to play Pipeline '" << GetName() 
-                << "' as it's already playing");
+                << "' as it's already in a state of playing");
             return false;
         }
-        AddEosListener(PlayerHandleEos, this);
+        // conditionally add the EOS Listener as it may have been
+        // removed by the client with a previous call to Stop()
+        if (!IsEosListener(PlayerHandleEos))
+        {
+            AddEosListener(PlayerHandleEos, this);
+        }
         return HandlePlay();
     }
     
@@ -316,7 +321,7 @@ namespace DSL
             }
         }
     }
-    
+
     void PlayerBintr::HandleEos()
     {
         LOG_FUNC();
@@ -547,22 +552,43 @@ namespace DSL
         return true;
     }
 
+    void RenderPlayerBintr::HandleStopAndPlay()
+    {
+        LOG_FUNC();
+        LOG_WARN("HANDLE STOP AND PLAY");
+
+        HandleStop();
+
+        if (m_filePathQueue.empty())
+        {
+            LOG_ERROR("Called to handle Stop and Play for PlayerBintr '" 
+                << GetName() << "' without queued files???");
+            return;
+        }
+
+        std::string nextFilePath = m_filePathQueue.front();
+        m_filePathQueue.pop();
+        
+        LOG_INFO("Playing next file = '" << nextFilePath);
+        SetFilePath(nextFilePath.c_str());
+        
+        HandlePlay();
+    }
+    
+
     void RenderPlayerBintr::HandleEos()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_filePathQueueMutex);
 
-        HandleStop();
         
         if (m_filePathQueue.size())
         {
-            std::string nextFilePath = m_filePathQueue.front();
-            m_filePathQueue.pop();
-            
-            LOG_INFO("Playing next file = '" << nextFilePath);
-            SetFilePath(nextFilePath.c_str());
-            
-            HandlePlay();
+            g_timeout_add(1, PlayerStopAndPlay, this);
+        }
+        else
+        {            
+            g_timeout_add(1, PlayerStop, this);
         }
     }
 
@@ -709,6 +735,14 @@ namespace DSL
     static int PlayerStop(gpointer pPlayer)
     {
         static_cast<PlayerBintr*>(pPlayer)->HandleStop();
+        
+        // Return false to self destroy timer - one shot.
+        return false;
+    }
+    
+    static int PlayerStopAndPlay(gpointer pPlayer)
+    {
+        static_cast<RenderPlayerBintr*>(pPlayer)->HandleStopAndPlay();
         
         // Return false to self destroy timer - one shot.
         return false;

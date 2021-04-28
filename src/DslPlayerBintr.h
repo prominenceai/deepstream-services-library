@@ -263,7 +263,13 @@ namespace DSL
         bool SetZoom(uint zoom);
         
         /**
-         * @brief on event of EOS, starts the next file if one is queued, or terminates the player 
+         * @brief Handles the Stop and Play next queued file in a timer callback
+         */
+        void HandleStopAndPlay();
+        
+        /**
+         * @brief on event of EOS, schedules HandleStopAndPlay if a file is queued,
+         * or HandleStop to terminate the Player if not. 
          * Important: must be called by the BusWatch or Event Handler context.
          */
         void HandleEos();
@@ -412,6 +418,14 @@ namespace DSL
      * @return false always to self destroy the on-shot timer.
      */
     static int PlayerStop(gpointer pPlayer);
+
+    /**
+     * @brief Timer callback function to Stop and Play a Player in the mainloop context.  
+     * @param pPlayer shared pointer to the Player that started the timer to 
+     * schedule the stop amd play
+     * @return false always to self destroy the on-shot timer.
+     */
+    static int PlayerStopAndPlay(gpointer pPlayer);
 
     /**
      * @brief XWindow delete Callback to add to XWindow Manager's Delete Event Handlers
