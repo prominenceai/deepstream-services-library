@@ -537,9 +537,7 @@ SCENARIO( "A ImageRenderPlayerBintr can Set/Get its File Path correctly", "[Play
 
         char absolutePath[PATH_MAX+1];
         std::string fullFilePath1 = realpath(filePath1.c_str(), absolutePath);
-//        fullFilePath1.insert(0, "file:");
         std::string fullFilePath2 = realpath(filePath2.c_str(), absolutePath);
-//        fullFilePath2.insert(0, "file:");
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
@@ -670,7 +668,7 @@ SCENARIO( "A VideoRenderPlayerBintr with a WindowSinkBintr can Set/Get its Zoom"
     }
 }
 
-SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom", "[new]" )
+SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
 {
     GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
@@ -704,3 +702,114 @@ SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
     }
 }
 
+SCENARIO( "A ImageRenderPlayerBintr with a WindowSinkBintr can Set/Get its Offsets", "[PlayerBintr]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(100);
+        int timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The offsets are updated" )
+        {
+            uint newOffsetX(123), newOffsetY(123);
+            REQUIRE( pPlayerBintr->SetOffsets(newOffsetX, newOffsetY) == true);
+            
+            THEN( "The correct offsets are return on Get" )
+            {
+                uint retOffsetX(0), retOffsetY(0);
+                pPlayerBintr->GetOffsets(&retOffsetX, &retOffsetY);
+                REQUIRE( retOffsetX == newOffsetX );
+                REQUIRE( retOffsetY == newOffsetY );
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Offsets", "[PlayerBintr]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath = "./test/streams/first-person-occurrence-438.jpeg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(100);
+        int timeout(0);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->Play() == true);
+        std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+        WHEN( "The offsets are updated" )
+        {
+            uint newOffsetX(123), newOffsetY(123);
+            REQUIRE( pPlayerBintr->SetOffsets(newOffsetX, newOffsetY) == true);
+            
+            THEN( "The correct offsets are return on Get" )
+            {
+                uint retOffsetX(0), retOffsetY(0);
+                pPlayerBintr->GetOffsets(&retOffsetX, &retOffsetY);
+                REQUIRE( retOffsetX == newOffsetX );
+                REQUIRE( retOffsetY == newOffsetY );
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[new]" )
+{
+    GIVEN( "A new ImageRenderPlayerBintr with a queued file" ) 
+    {
+        std::string playerName("player");
+
+        std::string sourceName("file-source");
+        std::string filePath1 = "./test/streams/first-person-occurrence-438.jpeg";
+        std::string filePath2 = "./test/streams/sample_720p.jpg";
+        uint offsetX(0);
+        uint offsetY(0);
+        uint zoom(100);
+        int timeout(1);
+
+        DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
+            DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
+                filePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+
+        REQUIRE( pPlayerBintr->QueueFilePath(filePath2.c_str()) == true);
+
+        WHEN( "An EOS event occurs" )
+        {
+            REQUIRE( pPlayerBintr->Play() == true);
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+            // Simulate EOS event
+            pPlayerBintr->HandleEos();
+            
+            THEN( "The Player is Stoped and the Queued file is Played" )
+            {
+                // Note: required visual convermation at this time..
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pPlayerBintr->Stop() == true );
+            }
+        }
+    }
+}

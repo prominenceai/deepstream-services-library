@@ -794,11 +794,23 @@ namespace DSL {
 
         DslReturnType PlayerRenderZoomSet(const char* name, uint zoom);
 
+        DslReturnType PlayerRenderImageTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType PlayerRenderImageTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType PlayerRenderVideoRepeatEnabledGet(const char* name, 
+            boolean* repeatEnabled);
+
+        DslReturnType PlayerRenderVideoRepeatEnabledSet(const char* name, 
+            boolean repeatEnabled);
+
         DslReturnType PlayerPause(const char* name);
         
         DslReturnType PlayerPlay(const char* name);
         
         DslReturnType PlayerStop(const char* name);
+
+        DslReturnType PlayerStateGet(const char* name, uint* state);
         
         DslReturnType PlayerTerminationEventListenerAdd(const char* name,
             dsl_player_termination_event_listener_cb listener, void* clientData);

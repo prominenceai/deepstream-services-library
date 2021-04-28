@@ -3540,6 +3540,129 @@ def dsl_player_render_file_path_set(name, file_path):
     return int(result)
 
 ##
+## dsl_player_render_file_path_queue()
+##
+_dsl.dsl_player_render_file_path_queue.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_player_render_file_path_queue.restype = c_uint
+def dsl_player_render_file_path_queue(name, file_path):
+    global _dsl
+    result = _dsl.dsl_player_render_file_path_queue(name, file_path)
+    return int(result)
+
+##
+## dsl_player_render_offsets_get()
+##
+_dsl.dsl_player_render_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_player_render_offsets_get.restype = c_uint
+def dsl_player_render_offsets_get(name):
+    global _dsl
+    x_offset = c_uint(0)
+    y_offset = c_uint(0)
+    result = _dsl.dsl_player_render_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
+    return int(result), x_offset.value, y_offset.value 
+
+##
+## dsl_player_render_offsets_set()
+##
+_dsl.dsl_player_render_offsets_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_player_render_offsets_set.restype = c_uint
+def dsl_player_render_offsets_set(name, x_offset, y_offset):
+    global _dsl
+    result = _dsl.dsl_player_render_offsets_set(name, x_offset, y_offset)
+    return int(result)
+
+##
+## dsl_player_render_zoom_get()
+##
+_dsl.dsl_player_render_zoom_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_player_render_zoom_get.restype = c_uint
+def dsl_player_render_zoom_get(name):
+    global _dsl
+    zoom = c_uint(0)
+    result = _dsl.dsl_player_render_zoom_get(name, DSL_UINT_P(zoom))
+    return int(result), zoom.value
+
+##
+## dsl_player_render_zoom_set()
+##
+_dsl.dsl_player_render_zoom_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_player_render_zoom_set.restype = c_uint
+def dsl_player_render_zoom_set(name, zoom):
+    global _dsl
+    result = _dsl.dsl_player_render_zoom_set(name, zoom)
+    return int(result)
+
+##
+## dsl_player_render_image_timeout_get()
+##
+_dsl.dsl_player_render_image_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_player_render_image_timeout_get.restype = c_uint
+def dsl_player_render_image_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result = _dsl.dsl_player_render_zoom_get(name, DSL_UINT_P(timeout))
+    return int(result), timeout.value
+
+##
+## dsl_player_render_image_timeout_set()
+##
+_dsl.dsl_player_render_image_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_player_render_image_timeout_set.restype = c_uint
+def dsl_player_render_image_timeout_set(name, timeout):
+    global _dsl
+    result = _dsl.dsl_player_render_image_timeout_set(name, timeout)
+    return int(result)
+
+##
+## dsl_player_render_video_repeat_enabled_get()
+##
+_dsl.dsl_player_render_video_repeat_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_player_render_video_repeat_enabled_get.restype = c_uint
+def dsl_player_render_video_repeat_enabled_get(name):
+    global _dsl
+    repeat_enabled = c_bool(0)
+    result = _dsl.dsl_player_render_zoom_get(name, DSL_UINT_P(repeat_enabled))
+    return int(result), repeat_enabled.value
+
+##
+## dsl_player_render_video_repeat_enabled_set()
+##
+_dsl.dsl_player_render_video_repeat_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_player_render_video_repeat_enabled_set.restype = c_uint
+def dsl_player_render_video_repeat_enabled_set(name, repeat_enabled):
+    global _dsl
+    result = _dsl.dsl_player_render_video_repeat_enabled_set(name, repeat_enabled)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_add()
+##
+_dsl.dsl_player_termination_event_listener_add.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER, c_void_p]
+_dsl.dsl_player_termination_event_listener_add.restype = c_uint
+def dsl_player_termination_event_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_player_termination_event_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+
+##
+## dsl_player_termination_event_listener_remove()
+##
+_dsl.dsl_player_termination_event_listener_remove.argtypes = [c_wchar_p, 
+    DSL_PLAYER_TERMINATION_EVENT_LISTENER]
+_dsl.dsl_player_termination_event_listener_remove.restype = c_uint
+def dsl_player_termination_event_listener_remove(name, client_handler):
+    global _dsl
+    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
+    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_handler)
+    return int(result)
+
+##
 ## dsl_player_pause()
 ##
 _dsl.dsl_player_pause.argtypes = [c_wchar_p]
@@ -3570,31 +3693,15 @@ def dsl_player_stop(name):
     return int(result)
 
 ##
-## dsl_player_termination_event_listener_add()
+## dsl_player_state_get()
 ##
-_dsl.dsl_player_termination_event_listener_add.argtypes = [c_wchar_p, 
-    DSL_PLAYER_TERMINATION_EVENT_LISTENER, c_void_p]
-_dsl.dsl_player_termination_event_listener_add.restype = c_uint
-def dsl_player_termination_event_listener_add(name, client_listener, client_data):
+_dsl.dsl_player_state_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_player_state_get.restype = c_uint
+def dsl_plaery_state_get(name):
     global _dsl
-    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
-    callbacks.append(c_client_listener)
-    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(c_client_data)
-    result = _dsl.dsl_player_termination_event_listener_add(name, c_client_listener, c_client_data)
-    return int(result)
-
-##
-## dsl_player_termination_event_listener_remove()
-##
-_dsl.dsl_player_termination_event_listener_remove.argtypes = [c_wchar_p, 
-    DSL_PLAYER_TERMINATION_EVENT_LISTENER]
-_dsl.dsl_player_termination_event_listener_remove.restype = c_uint
-def dsl_player_termination_event_listener_remove(name, client_handler):
-    global _dsl
-    c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
-    result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_handler)
-    return int(result)
+    state = c_uint(0)
+    result =_dsl.dsl_player_state_get(name,  DSL_UINT_P(state))
+    return int(result), int(state.value)
 
 ##
 ## dsl_player_delete()

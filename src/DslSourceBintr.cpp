@@ -367,7 +367,7 @@ namespace DSL
         std::ifstream streamUriFile(uri);
         if (!streamUriFile.good())
         {
-            LOG_ERROR("fILE Source'" << uri << "' Not found");
+            LOG_ERROR("File Source'" << uri << "' Not found");
             return false;
         }
         // File source, not live - setup full path

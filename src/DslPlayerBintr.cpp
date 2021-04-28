@@ -103,7 +103,6 @@ namespace DSL
         {
             Stop();
         }
-//        SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         RemoveXWindowDeleteEventHandler(PlayerTerminate);
         g_mutex_clear(&m_asyncCommMutex);
     }
@@ -167,7 +166,23 @@ namespace DSL
     bool PlayerBintr::Play()
     {
         LOG_FUNC();
+        LOG_WARN("DO PLAY");
 
+        GstState currentState;
+        GetState(currentState, 0);
+        if (currentState == GST_STATE_PLAYING)
+        {
+            LOG_ERROR("Unable to play Pipeline '" << GetName() 
+                << "' as it's already playing");
+            return false;
+        }
+        AddEosListener(PlayerHandleEos, this);
+        return HandlePlay();
+    }
+    
+    bool PlayerBintr::HandlePlay()
+    {
+        LOG_FUNC();
         GstState currentState;
         GetState(currentState, 0);
         if (currentState == GST_STATE_NULL or currentState == GST_STATE_READY)
@@ -179,23 +194,22 @@ namespace DSL
             }
             if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
             {
-                LOG_ERROR("Failed to Pause before playing Pipeline '" << GetName() << "'");
+                LOG_ERROR("Failed to Pause before playing Player '" << GetName() << "'");
                 return false;
             }
-
         }
         if (!SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
-            LOG_ERROR("Failed to play Pipeline '" << GetName() << "'");
+            LOG_ERROR("Failed to play Player '" << GetName() << "'");
             return false;
         }
-        AddEosListener(PlayerTerminate, this);
         return true;
     }
     
     bool PlayerBintr::Pause()
     {
         LOG_FUNC();
+        LOG_WARN("DO PAUSE");
         
         GstState state;
         GetState(state, 0);
@@ -205,7 +219,7 @@ namespace DSL
             return false;
         }
         // If the main loop is running -- normal case -- then we can't change the 
-        // state of the Pipeline in the Application's context. 
+        // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
@@ -224,21 +238,20 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOG_WARN("HANDLE PAUSE");
         
         // Call the base class to Pause
         if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Pause Player '" << GetName() << "'");
         }
-        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
-        {
-            g_cond_signal(&m_asyncCondition);
-        }
+        g_cond_signal(&m_asyncCondition);
     }
 
     bool PlayerBintr::Stop()
     {
         LOG_FUNC();
+        LOG_WARN("DO STOP");
         
         if (!IsLinked())
         {
@@ -248,7 +261,7 @@ namespace DSL
 
         // Need to remove the Terminate on EOS handler or it will call (reenter) this 
         // Stop function When we send the EOS message.
-        RemoveEosListener(PlayerTerminate);
+        RemoveEosListener(PlayerHandleEos);
 
         // Call the source to disable its EOS consumer, before sending EOS
         m_pSource->DisableEosConsumer();
@@ -257,7 +270,7 @@ namespace DSL
         sleep(1);
 
         // If the main loop is running -- normal case -- then we can't change the 
-        // state of the Pipeline in the Application's context. 
+        // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
@@ -276,10 +289,11 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOG_WARN("HANDLE STOP");
 
         if (!SetState(GST_STATE_READY, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
-            LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
+            LOG_ERROR("Failed to Stop Player '" << GetName() << "'");
         }
       
         // Unlink All objects and elements
@@ -287,16 +301,7 @@ namespace DSL
         
         // If we are running under the main loop, then this funtion was called from a timer
         // thread while the client is blocked in the Stop() function on the async GCond
-        if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
-        {
-            g_cond_signal(&m_asyncCondition);
-        }
-        
-        // Conditionally destroy the XWindow if one was created by the Player
-//        if (GetXWindow())
-//        {
-//            DestroyXWindow();
-//        }
+        g_cond_signal(&m_asyncCondition);
         
         // iterate through the map of Termination event listeners calling each
         for(auto const& imap: m_terminationEventListeners)
@@ -311,11 +316,21 @@ namespace DSL
             }
         }
     }
+    
+    void PlayerBintr::HandleEos()
+    {
+        LOG_FUNC();
+        LOG_WARN("HANDLE EOS");
+
+        // Do not lock mutext!
+        HandleStop();
+    }
 
     void PlayerBintr::HandleTermination()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOG_WARN("HANDLE TERMINATION");
 
         // Start asyn Stop timer, do not wait or block as we are
         // in the State Manager's bus watcher context.
@@ -414,7 +429,7 @@ namespace DSL
         m_pSource->GetDimensions(&m_width, &m_height);
         
         // everything we need to create the SinkBintr
-        if (!UpdateRenderSink())
+        if (!SetDimensions())
         {
             LOG_ERROR("Failed to update RenderSink for RenderPlayerBintr '" 
                 << GetName() << "'");
@@ -428,7 +443,15 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_filePathQueueMutex);
 
+        std::ifstream streamUriFile(filePath);
+        if (!streamUriFile.good())
+        {
+            LOG_ERROR("File'" << filePath << "' Not found");
+            return false;
+        }
+
         m_filePathQueue.push(filePath);
+        return true;
     }
 
     void RenderPlayerBintr::GetOffsets(uint* offsetX, uint* offsetY)
@@ -447,7 +470,38 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
-        return UpdateRenderSink();
+        DSL_RENDER_SINK_PTR pRenderSink = 
+            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+
+        // If the RenderSink is a WindowSinkBintr
+        if (GetXWindow())
+        {
+            SetXWindowOffsets(m_offsetX, m_offsetY);
+            return true;
+        }
+        // Else, update the OverlaySinkBintr;
+        return pRenderSink->SetOffsets(m_offsetX, m_offsetY);
+    }
+
+    bool RenderPlayerBintr::SetDimensions()
+    {
+        LOG_FUNC();
+
+        // scale the width and hight based on zoom percentage
+        uint width = std::round((m_zoom * m_width) / 100);
+        uint height = std::round((m_zoom * m_height) / 100);
+        
+        DSL_RENDER_SINK_PTR pRenderSink = 
+            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+
+        // If the RenderSink is a WindowSinkBintr
+        if (GetXWindow())
+        {
+            SetXWindowDimensions(width, height);
+            return true;
+        }
+        // Else, update the OverlaySinkBintr;
+        return pRenderSink->SetDimensions(width, height);
     }
 
     uint RenderPlayerBintr::GetZoom()
@@ -462,7 +516,7 @@ namespace DSL
         LOG_FUNC();
 
         m_zoom = zoom;
-        return UpdateRenderSink();
+        return SetDimensions();
     }
     
     bool RenderPlayerBintr::CreateRenderSink()
@@ -493,32 +547,25 @@ namespace DSL
         return true;
     }
 
-    bool RenderPlayerBintr::UpdateRenderSink()
+    void RenderPlayerBintr::HandleEos()
     {
         LOG_FUNC();
-        
-        // scale the width and hight based on zoom percentage
-        uint width = std::round((m_zoom * m_width) / 100);
-        uint height = std::round((m_zoom * m_height) / 100);
-        
-        DSL_RENDER_SINK_PTR pRenderSink = 
-            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_filePathQueueMutex);
 
-        // If the RenderSink is a WindowSinkBintr
-        if (GetXWindow())
+        HandleStop();
+        
+        if (m_filePathQueue.size())
         {
-            SetXWindowOffsets(m_offsetX, m_offsetY);
-            SetXWindowDimensions(width, height);
-            return true;
+            std::string nextFilePath = m_filePathQueue.front();
+            m_filePathQueue.pop();
+            
+            LOG_INFO("Playing next file = '" << nextFilePath);
+            SetFilePath(nextFilePath.c_str());
+            
+            HandlePlay();
         }
-        // Else, update the OverlaySinkBintr;
-        if (!pRenderSink->SetOffsets(m_offsetX, m_offsetY))
-        {
-            return false;
-        }
-        return pRenderSink->SetDimensions(width, height);
     }
-    
+
     //----------------------------------------------------------------------------------
     
     VideoRenderPlayerBintr::VideoRenderPlayerBintr(const char* name, const char* filePath, 
@@ -555,6 +602,35 @@ namespace DSL
     {
         LOG_FUNC();
     }
+    
+    bool VideoRenderPlayerBintr::GetRepeatEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_repeatEnabled;
+    }
+    
+    bool VideoRenderPlayerBintr::SetRepeatEnabled(bool repeatEnabled)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Repeat Enabled for VideoRenderPlayerBintr '" 
+                << GetName() << "' as it's currently Linked");
+            return false;
+        }
+        m_repeatEnabled = repeatEnabled;
+        
+        DSL_FILE_SOURCE_PTR pFileSource = 
+            std::dynamic_pointer_cast<FileSourceBintr>(m_pSource);
+        
+        pFileSource->SetRepeatEnabled(repeatEnabled);
+        
+        return true;
+    }
+
+    //--------------------------------------------------------------------------------
 
     ImageRenderPlayerBintr::ImageRenderPlayerBintr(const char* name, const char* filePath, 
         uint renderType, uint offsetX, uint offsetY, uint zoom, uint timeout)
@@ -594,6 +670,31 @@ namespace DSL
         LOG_FUNC();
     }
 
+    uint ImageRenderPlayerBintr::GetTimeout()
+    {
+        LOG_FUNC();
+        
+        return m_timeout;
+    }
+    
+    bool ImageRenderPlayerBintr::SetTimeout(uint timeout)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Timeout for ImageRenderPlayerBintr '" 
+                << GetName() << "' as it's currently Linked");
+            return false;
+        }
+        m_timeout = timeout;
+        
+        DSL_IMAGE_SOURCE_PTR pImageSource = 
+            std::dynamic_pointer_cast<ImageSourceBintr>(m_pSource);
+        
+        pImageSource->SetTimeout(timeout);
+        return true;
+    }
     
     //--------------------------------------------------------------------------------
     
@@ -616,6 +717,11 @@ namespace DSL
     static void PlayerTerminate(void* pPlayer)
     {
         static_cast<PlayerBintr*>(pPlayer)->HandleTermination();
+    }    
+    
+    static void PlayerHandleEos(void* pPlayer)
+    {
+        static_cast<PlayerBintr*>(pPlayer)->HandleEos();
     }    
     
 } // DSL   

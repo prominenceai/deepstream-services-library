@@ -89,10 +89,15 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Attempts to link all and play the PlayerBintr
-         * @return true if able to play, false otherwise
+         * @brief Attempts to link all and Play the Pipeline
+         * @return true if able to Play, false otherwise
          */
         bool Play();
+
+        /**
+         * @brief Completes the process of transitioning to a state of Playing
+         */
+        bool HandlePlay();
 
         /**
          * @brief Schedules a Timer Callback to call HandlePause in the mainloop context
@@ -119,10 +124,16 @@ namespace DSL
         void HandleStop();
         
         /**
-         * @brief Terminates the player on event of EOS or XWindow Delete
-         * Import: must be called by the BusWatch or Event Handler context.
+         * @brief Terminates the player on event of XWindow Delete
+         * Important: must be called by the BusWatch or Event Handler context.
          */
-        void HandleTermination();
+        virtual void HandleTermination();
+        
+        /**
+         * @brief Terminates the player on event of EOS
+         * Important: must be called by the BusWatch or Event Handler context.
+         */
+        virtual void HandleEos();
 
         /**
          * @brief adds a callback to be notified on Player Termination event
@@ -166,7 +177,7 @@ namespace DSL
          */
         DSL_SINK_PTR m_pSink;
     
-    private:
+    protected:
 
         /**
          * @brief Mutex to protect the async GCond used to synchronize
@@ -221,7 +232,7 @@ namespace DSL
          * @brief adds a filePath to the RenderPlayerBintr's queue
          * @return const string to the filePath to use
          */
-        virtual bool QueueFilePath(const char* filePath);
+        bool QueueFilePath(const char* filePath);
 
         /**
          * @brief Gets the current X and Y offsets for the RenderPlayerBintr
@@ -247,9 +258,15 @@ namespace DSL
         /**
          * @brief sets the current filePath for this RenderPlayerBintr
          * The service will fail if the RenderPlayerBintr is linked when called
-         * @return const string to the filePath to use
+         * @return true on successful update, false otherwise
          */
         bool SetZoom(uint zoom);
+        
+        /**
+         * @brief on event of EOS, starts the next file if one is queued, or terminates the player 
+         * Important: must be called by the BusWatch or Event Handler context.
+         */
+        void HandleEos();
 
         static const uint m_displayId;
         static const uint m_depth;
@@ -267,7 +284,7 @@ namespace DSL
          * @brief updates the Render Sink with new Dimensions
          * @return true on successful update, false otherwise.
          */
-        bool UpdateRenderSink();
+        bool SetDimensions();
 
         /**
          * @brief Sink Type, either DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
@@ -326,6 +343,20 @@ namespace DSL
 
         ~VideoRenderPlayerBintr();
 
+        /**
+         * @brief returns the current repeat-enabled setting for this VideoRenderPlayerBintr
+         * @return true if repeat on EOS is enabled, false otherwise
+         */
+        bool GetRepeatEnabled();
+        
+        /**
+         * @brief sets the current repeat-enabled for this RenderPlayerBintr
+         * The service will fail if the VideoRenderPlayerBintr is linked when called
+         * @param[in] repeatEnabled set to true to enable, false otherwise
+         * @return true on successful update, false otherwise
+         */
+        bool SetRepeatEnabled(bool repeatEnabled);
+
     private:
         
         bool m_repeatEnabled;
@@ -346,18 +377,33 @@ namespace DSL
 
         ~ImageRenderPlayerBintr();
 
+        /**
+         * @brief returns the current timeout setting for this ImageRenderPlayerBintr
+         * @return true if send EOS on timeout is enabled, false otherwise
+         */
+        uint GetTimeout();
+        
+        /**
+         * @brief sets the timeout for this RenderPlayerBintr.
+         * The service will fail if the VideoRenderPlayerBintr is linked when called
+         * @param[in] timeout timeout to display the image before sending an EOS event
+         * in units of seconds.  0 = no timeout.
+         * @return true on successful update, false otherwise
+         */
+        bool SetTimeout(uint timeout);
+
     private:
     
         uint m_timeout;
     };
-
+    
     /**
      * @brief Timer callback function to Pause a Player in the mainloop context.  
      * @param pPlayer shared pointer to the Player that started the timer to 
      * schedule the pause
      * @return false always to self destroy the on-shot timer.
      */
-    static int PlayerPause(gpointer pPipeline);
+    static int PlayerPause(gpointer pPlayer);
     
     /**
      * @brief Timer callback function to Stop a Player in the mainloop context.  
@@ -365,14 +411,19 @@ namespace DSL
      * schedule the stop
      * @return false always to self destroy the on-shot timer.
      */
-    static int PlayerStop(gpointer pPipeline);
+    static int PlayerStop(gpointer pPlayer);
 
     /**
-     * @brief EOS Listener Callback to add to the State Manager's EOS Listeners,
-     * and the XWindow Manager's Delete Event Handlers
+     * @brief XWindow delete Callback to add to XWindow Manager's Delete Event Handlers
      * @param pPlayer pointer to the Player object that received the Event message
      */
     static void PlayerTerminate(void* pPlayer);
+    
+    /**
+     * @brief EOS Listener Callback to add to the State Manager's EOS Listeners
+     * @param pPlayer pointer to the Player object that received the Event message
+     */
+    static void PlayerHandleEos(void* pPlayer);
     
 }
 

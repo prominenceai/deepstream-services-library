@@ -4587,6 +4587,80 @@ DslReturnType dsl_player_render_zoom_set(const wchar_t* name, uint zoom)
     return DSL::Services::GetServices()->PlayerRenderZoomSet(cstrName.c_str(), zoom);
 }
 
+DslReturnType dsl_player_render_image_timeout_get(const wchar_t* name, uint* timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderImageTimeoutGet(cstrName.c_str(), 
+        timeout);
+}
+
+DslReturnType dsl_player_render_image_timeout_set(const wchar_t* name, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderImageTimeoutSet(cstrName.c_str(), 
+        timeout);
+}
+
+DslReturnType dsl_player_render_video_repeat_enabled_get(const wchar_t* name, 
+    boolean* repeat_enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(repeat_enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderVideoRepeatEnabledGet(cstrName.c_str(),
+        repeat_enabled);
+}
+    
+DslReturnType dsl_player_render_video_repeat_enabled_set(const wchar_t* name, 
+    boolean repeat_enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PlayerRenderVideoRepeatEnabledSet(cstrName.c_str(), 
+        repeat_enabled);
+}
+    
+DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerTerminationEventListenerAdd(cstrName.c_str(), listener, client_data);
+}    
+
+DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
+    dsl_player_termination_event_listener_cb listener)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PlayerTerminationEventListenerRemove(cstrName.c_str(), listener);
+}
+
 DslReturnType dsl_player_play(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4617,30 +4691,15 @@ DslReturnType dsl_player_stop(const wchar_t* name)
     return DSL::Services::GetServices()->PlayerStop(cstrName.c_str());
 }
 
-DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
-    dsl_player_termination_event_listener_cb listener, void* client_data)
+DslReturnType dsl_player_state_get(const wchar_t* name, uint* state)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(listener);
+    RETURN_IF_PARAM_IS_NULL(state);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->
-        PlayerTerminationEventListenerAdd(cstrName.c_str(), listener, client_data);
-}    
-
-DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
-    dsl_player_termination_event_listener_cb listener)    
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(listener);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PlayerTerminationEventListenerRemove(cstrName.c_str(), listener);
+    return DSL::Services::GetServices()->PlayerStateGet(cstrName.c_str(), state);
 }
 
 boolean dsl_player_exists(const wchar_t* name)

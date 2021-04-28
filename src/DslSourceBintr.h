@@ -61,8 +61,8 @@ namespace DSL
             uri, isLive, cudadecMemType, intraDecode, dropFrameInterval))
         
     #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
-    #define DSL_FILE_SOURCE_NEW(name, file_path, repeatEnabled) \
-        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, file_path, repeatEnabled))
+    #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
+        std::shared_ptr<FileSourceBintr>(new FileSourceBintr(name, uri, repeatEnabled))
 
     #define DSL_IMAGE_SOURCE_PTR std::shared_ptr<ImageSourceBintr>
     #define DSL_IMAGE_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \

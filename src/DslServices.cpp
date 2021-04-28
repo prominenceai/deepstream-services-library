@@ -9353,6 +9353,119 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PlayerRenderImageTimeoutGet(const char* name, 
+        uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
+                std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
+
+            *timeout = pImageRenderPlayer->GetTimeout();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception getting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::PlayerRenderImageTimeoutSet(const char* name, 
+        uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, ImageRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImageRenderPlayer = 
+                std::dynamic_pointer_cast<ImageRenderPlayerBintr>(m_players[name]);
+
+            if (!pImageRenderPlayer->SetTimeout(timeout))
+            {
+                LOG_ERROR("Failed to Set Timeout to '" << timeout 
+                    << "s' for Image Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception setting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderVideoRepeatEnabledGet(const char* name, 
+        boolean* repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
+                std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
+
+            *repeatEnabled = pVideoRenderPlayer->GetRepeatEnabled();
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Render Player '" << name 
+                << "' threw exception getting Timeout");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PlayerRenderVideoRepeatEnabledSet(const char* name, 
+        boolean repeatEnabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_players, name, VideoRenderPlayerBintr);
+
+            DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pVideoRenderPlayer = 
+                std::dynamic_pointer_cast<VideoRenderPlayerBintr>(m_players[name]);
+
+            if (!pVideoRenderPlayer->SetRepeatEnabled(repeatEnabled))
+            {
+                LOG_ERROR("Failed to Set Repeat Enabled to '" << repeatEnabled 
+                    << "' for Video Render Player '" << name << "'");
+                return DSL_RESULT_PLAYER_SET_FAILED;
+            }
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Video Render Player '" << name 
+                << "' threw exception setting Repeat Enabled");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PlayerPlay(const char* name)
     {
         LOG_FUNC();
@@ -9392,6 +9505,28 @@ namespace DSL
             return DSL_RESULT_PLAYER_FAILED_TO_STOP;
         }
 
+        return DSL_RESULT_SUCCESS;
+    }
+
+    DslReturnType Services::PlayerStateGet(const char* name, uint* state)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
+            RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
+            GstState gstState;
+            m_players[name]->GetState(gstState, 0);
+            *state = (uint)gstState;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Player '" << name 
+                << "' threw an exception getting state");
+            return DSL_RESULT_PLAYER_THREW_EXCEPTION;
+        }
         return DSL_RESULT_SUCCESS;
     }
 
