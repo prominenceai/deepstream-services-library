@@ -10,7 +10,7 @@ There are three types of Players that can be created.
 
 Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
 
-#### Playing, Pausing and Stopping a Players
+#### Playing, Pausing and Stopping Players
 Players can be `played` by calling [dsl_player_play](#dsl_player_play), `paused` (non-live sources only) by calling [dsl_player_pause](#dsl_player_pause), and `stopped` by calling [dsl_player_stop](#dsl_player_stop).
 
 #### Player Client-Listener Notifications
