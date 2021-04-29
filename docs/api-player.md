@@ -73,7 +73,14 @@ The following return codes are used by the Player API
 #define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
 ```
 
----
+## DSL State Values
+```C
+#define DSL_STATE_NULL                                              1
+#define DSL_STATE_READY                                             2
+#define DSL_STATE_PAUSED                                            3
+#define DSL_STATE_PLAYING                                           4
+```
+
 ## Constants
 The following symbolic constants are used by the ODE Trigger API
 ```C++
@@ -537,11 +544,11 @@ retval = dsl_player_stop('my-player')
 ```C++
 DslReturnType dsl_player_state_get(wchar_t* name, uint* state);
 ```
-This service returns the current [state]() of the named Player The service fails if the named Player was not found.  
+This service returns the current [state](#dsl-state-values) of the named Player The service fails if the named Player was not found.  
 
 **Parameters**
 * `name` - [in] unique name for the Player to query.
-* `state` - [out] the current [State](/docs/api-pipeline.mdP#pipeline-states) of the named Player
+* `state` - [out] the current [state](#dsl-state-values) of the named Player
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful get. One of the [Return Values](#return-values) defined above on failure.
