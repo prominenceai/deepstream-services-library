@@ -5,8 +5,8 @@ Players are simplified/specialized Pipelines, created with a single [Source](/do
 There are three types of Players that can be created. 
 * The **Basic Player** that can be created with any one Source and Sink by calling [dsl_player_new](#dsl_player_new). Both the Source and Sink components must exists at the time of Player construction
 * Two Render Players that create and manage their own Sink and Source Components
-   * An **Image Render Player**, created by calling  [dsl_player_render_image_new](#dsl_player_render_image_new), that creates an Image Source and Render Sink; Overlay or Window as specified.
-   * A **Video Render Player**, created by calling  [dsl_player_render_video_new](#dsl_player_render_video_new), that creates a File Source and Render Sink as specified.
+  * An **Image Render Player**, created by calling  [dsl_player_render_image_new](#dsl_player_render_image_new), that creates an Image Source and Render Sink; Overlay or Window as specified.
+  * A **Video Render Player**, created by calling  [dsl_player_render_video_new](#dsl_player_render_video_new), that creates a File Source and Video Render Sink as specified.
 
 Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
 
