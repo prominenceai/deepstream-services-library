@@ -177,7 +177,7 @@ retval, x_offset, y_offset = dsl_osd_clock_offsets_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint offsetY);
 ```
-This service sets the current clock X and Y offsets for the named On-Screen Display. The offsets start from the upper left corner of the bounding box for each object detected and tracked.
+This service sets the current clock X and Y offsets for the named On-Screen Display. The offsets start from the upper left corner of the frame.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
@@ -333,6 +333,7 @@ retval = dsl_osd_pph_remove('my-osd', 'my-pph-handler', `DSL_PAD_SINK`)
 ## API Reference
 * [List of all Services](/docs/api-reference-list.md)
 * [Pipeline](/docs/api-pipeline.md)
+* [Player](/docs/api-player.md)
 * [Source](/docs/api-source.md)
 * [Dewarper](/docs/api-dewarper.md)
 * [Primary and Secondary GIE](/docs/api-gie.md)
