@@ -19,7 +19,7 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 
 ## Sink API
 **Callback Types:**
-* [dsl_record_client_listner_cb](#dsl_record_client_listner_cb)
+* [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 
 **Constructors:**
 * [dsl_sink_overlay_new](#dsl_sink_overlay_new)
@@ -96,9 +96,9 @@ The following video container types are used by the File Sink API
 ---
 
 ## Callback Types:
-### *dsl_record_client_listner_cb*
+### *dsl_record_client_listener_cb*
 ```C++
-typedef void* (*dsl_record_client_listner_cb)(void* info, void* user_data);
+typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 ```
 Callback typedef for a client to listen for the notification that a Recording Session has ended.
 
