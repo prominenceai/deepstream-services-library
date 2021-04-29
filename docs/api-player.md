@@ -3,10 +3,10 @@ Players are simplified/specialized Pipelines, created with a single [Source](/do
 
 #### Player Construction and Destruction
 There are three types of Players that can be created. 
-* The **Basic Player** that can be created with any one Source and Sink by calling [dsl_player_new](#dsl_player_new). Both the Source and Sink components must exists at the time of Player construction
+* The **Basic Player**, created with any one Source and Sink by calling [dsl_player_new](#dsl_player_new). The Source and Sink components must exists at the time of Player construction
 * Two Render Players that create and manage their own Sink and Source Components
   * An **Image Render Player**, created by calling  [dsl_player_render_image_new](#dsl_player_render_image_new), that creates an Image Source and Render Sink; Overlay or Window as specified.
-  * A **Video Render Player**, created by calling  [dsl_player_render_video_new](#dsl_player_render_video_new), that creates a File Source and Video Render Sink as specified.
+  * A **Video Render Player**, created by calling  [dsl_player_render_video_new](#dsl_player_render_video_new), that creates a Video File Source and Render Sink as specified.
 
 Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
 
@@ -309,7 +309,7 @@ This service sets the X and Y offsets for the named Render Player. The X and Y o
 * `y_offset` - [in] Offset in the Y direction in units of pixels
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -443,7 +443,7 @@ DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name,
 This service adds a callback function of type [dsl_player_termination_event_listener_cb](#dsl_player_termination_event_listener_cb) to a Player identified by its unique name. The function will be called on a Player Termination event, either end-of-stream (eos) or Window Delete. Multiple callback functions can be registered with one Player, and one callback function can be registered with multiple Players.
 
 **Parameters**
-* `name` - [in] unique name of the Pipeline to update.
+* `name` - [in] unique name of the Player to update.
 * `listener` - [in] Termination listener callback function to add.
 * `client_data` - [in] opaque pointer to user data returned to the listener when called back
 
@@ -537,18 +537,18 @@ retval = dsl_player_stop('my-player')
 ```C++
 DslReturnType dsl_player_state_get(wchar_t* name, uint* state);
 ```
-This service returns the current [state]() of the named Pipeline The service fails if the named Pipeline was not found.  
+This service returns the current [state]() of the named Player The service fails if the named Player was not found.  
 
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `state` - [out] the current [Pipeline State](#pipeline-states) of the named Pipeline
+* `name` - [in] unique name for the Player to query.
+* `state` - [out] the current [State](/docs/api-pipeline.mdP#pipeline-states) of the named Player
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful get. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval, state = dsl_pipeline_state_get('my-pipeline')
+retval, state = dsl_player_state_get('my-player')
 ```
 
 <br>
@@ -560,7 +560,7 @@ boolean dsl_player_exists(const wchar_t* name);
 This service is used to determine if a named Player currently exists in memory.
 
 **Parameters**
-* `name` - [in] unique name for the Player to query.
+* `name` - [in] unique name for the Player to query for.
 * 
 **Returns** 
 * true if the named Player exists, false otherwise.
