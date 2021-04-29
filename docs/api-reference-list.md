@@ -19,6 +19,7 @@
 * [dsl_xwindow_key_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_key_event_handler_cb)
 * [dsl_xwindow_button_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_button_event_handler_cb)
 * [dsl_xwindow_delete_event_handler_cb](/docs/api-pipeline.md#dsl_xwindow_delete_event_handler_cb)
+* [dsl_player_termination_event_listener_cb](/docs/api-player.md#dsl_player_termination_event_listener_cb)
 
 ### Pipeline API:
 * [Overview](/docs/api-pipeline.md)
@@ -66,6 +67,33 @@
 * [dsl_pipeline_dump_to_dot](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot)
 * [dsl_pipeline_dump_to_dot_with_ts](/docs/api-pipeline.md#dsl_pipeline_dump_to_dot_with_ts)
 
+## Player API
+* [Overview](/docs/api-player.md)
+* [dsl_player_new](/docs/api-player.md#dsl_player_new)
+* [dsl_player_render_image_new](/docs/api-player.md#dsl_player_render_image_new)
+* [dsl_player_render_video_new](/docs/api-player.md#dsl_player_render_video_new)
+* [dsl_player_delete](/docs/api-player.md#dsl_player_delete)
+* [dsl_player_delete_all](/docs/api-player.md#dsl_player_delete_all) 
+* [dsl_player_render_file_path_get](/docs/api-player.md#dsl_player_render_file_path_get)
+* [dsl_player_render_file_path_set](/docs/api-player.md#dsl_player_render_file_path_set)
+* [dsl_player_render_file_path_queue](/docs/api-player.md#dsl_player_render_file_path_queue)
+* [dsl_player_render_offsets_get](/docs/api-player.md#dsl_player_render_offsets_get)
+* [dsl_player_render_offsets_set](/docs/api-player.md#dsl_player_render_offsets_set)
+* [dsl_player_render_zoom_get](/docs/api-player.md#dsl_player_render_zoom_get)
+* [dsl_player_render_zoom_set](/docs/api-player.md#dsl_player_render_zoom_set)
+* [dsl_player_render_image_timeout_get](/docs/api-player.md#dsl_player_render_image_timeout_get)
+* [dsl_player_render_image_timeout_set](/docs/api-player.md#dsl_player_render_image_timeout_set)
+* [dsl_player_render_video_repeat_enabled_get](/docs/api-player.md#dsl_player_render_video_repeat_enabled_get)
+* [dsl_player_render_video_repeat_enabled_set](/docs/api-player.md#dsl_player_render_video_repeat_enabled_set)
+* [dsl_player_termination_event_listener_add](/docs/api-player.md#dsl_player_termination_event_listener_add)
+* [dsl_player_termination_event_listener_remove](/docs/api-player.md#dsl_player_termination_event_listener_remove)
+* [dsl_player_play](/docs/api-player.md#dsl_player_play)
+* [dsl_player_pause](/docs/api-player.md#dsl_player_pause)
+* [dsl_player_stop](/docs/api-player.md#dsl_player_stop)
+* [dsl_player_state_get](/docs/api-player.md#dsl_player_state_get)
+* [dsl_player_exists](/docs/api-player.md#dsl_player_exists)
+* [dsl_player_list_size](/docs/api-player.md#dsl_player_list_size)
+* 
 ## Branch API
 * [Overview](/docs/api-branch.md)
 * [dsl_branch_new](/docs/api-branch.md#dsl_branch_new)
